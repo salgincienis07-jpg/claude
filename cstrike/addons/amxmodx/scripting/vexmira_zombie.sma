@@ -47,7 +47,7 @@
 #pragma dynamic 32768
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "1.5.0"
+#define VERSION  "2.0.0"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ------------------------------------------------------------------ */
@@ -97,6 +97,10 @@
 #define TASK_MINEFX   9200
 #define TASK_LOADWAIT 9300
 #define TASK_ROUNDINF 9400
+#define TASK_HOSTNAME 9500
+#define TASK_CFGLOAD  9600
+#define TASK_SNDSTOP  31000   // +0..63 (dongulu ses durdurma)
+#define TASK_BSK      32000   // +0..255 (boss R yetenekleri, gecikmeli vuruslar)
 
 #define HIT_HEAD      1
 
@@ -121,7 +125,8 @@
 #define SL_REWARD     4
 #define NUM_SLOTS     5
 
-#define CHAT_PREFIX   "^4[^3Vex^4mira^4]^1"
+// Chat oneki vexmira.cfg'deki vex_chat_prefix'ten gelir (^1 ^3 ^4 renk kodlari desteklenir)
+#define CHAT_PREFIX   g_szPrefix
 #define MENU_TAG      "\r[\wVexmira\r] \d||"
 
 // Kisisel ayar bitleri (bit = KAPALI)
@@ -240,17 +245,19 @@ new const SOUND_KEYS[][] =
     "NADE_MODE", "NADE_BEEP", "NADE_ARM", "NADE_CLUSTER",
     "AIRDROP_INCOMING", "AIRDROP_LAND", "AIRDROP_LOOT", "QUEST_DONE", "EVOLVE",
     "SPEED_START", "SPEED_WIND", "STORM_STRIKE", "BLACKOUT", "FINAL_ROUND", "MAP_END",
-    "FROST_NOVA", "THUNDER", "ACID_POOL", "GRAVITY_WELL", "ECLIPSE"
+    "FROST_NOVA", "THUNDER", "ACID_POOL", "GRAVITY_WELL", "ECLIPSE",
+    // v2.0
+    "ZONE_WARN", "SKILL_UNLOCK", "NEM_RAGE", "ASN_VEIL", "LM_KILL", "NADE_TRIGGER", "UI_OPEN", "LM_DENY"
 };
 
 // Zombi siniflari: Walker, Runner, Tank, Banshee, Leech, Stalker, Bomber, Frost
-new const Float:CLASS_HP[NUM_CLASSES]   = { 1.0, 0.70, 1.80, 0.90, 1.10, 0.80, 1.00, 1.05, 0.90, 1.60, 0.95, 0.75 };
-new const CLASS_SPD[NUM_CLASSES]        = { 270,  310,  235,  285,  265,  295,  260,  270,  280,  245,  275,  300 };
-new const Float:CLASS_GRAV[NUM_CLASSES] = { 0.80, 0.70, 1.00, 0.80, 0.85, 0.75, 0.90, 0.80, 0.80, 1.00, 0.80, 0.70 };
-new const Float:CLASS_KB[NUM_CLASSES]   = { 1.00, 1.30, 0.40, 1.00, 0.90, 1.10, 0.90, 0.90, 1.00, 0.50, 1.00, 1.20 };
-new const Float:CLASS_COOL[NUM_CLASSES] = { 15.0, 8.0, 14.0, 12.0, 20.0, 18.0, 16.0, 18.0, 12.0, 16.0, 18.0, 9.0 };
-new const CLASS_LVL[NUM_CLASSES]        = { 1, 1, 1, 1, 5, 8, 12, 16, 18, 20, 22, 25 };
-new const CLASS_RGB[NUM_CLASSES][3]     =
+new Float:CLASS_HP[NUM_CLASSES]   = { 1.0, 0.70, 1.80, 0.90, 1.10, 0.80, 1.00, 1.05, 0.90, 1.60, 0.95, 0.75 };
+new CLASS_SPD[NUM_CLASSES]        = { 270,  310,  235,  285,  265,  295,  260,  270,  280,  245,  275,  300 };
+new Float:CLASS_GRAV[NUM_CLASSES] = { 0.80, 0.70, 1.00, 0.80, 0.85, 0.75, 0.90, 0.80, 0.80, 1.00, 0.80, 0.70 };
+new Float:CLASS_KB[NUM_CLASSES]   = { 1.00, 1.30, 0.40, 1.00, 0.90, 1.10, 0.90, 0.90, 1.00, 0.50, 1.00, 1.20 };
+new Float:CLASS_COOL[NUM_CLASSES] = { 15.0, 8.0, 14.0, 12.0, 20.0, 18.0, 16.0, 18.0, 12.0, 16.0, 18.0, 9.0 };
+new CLASS_LVL[NUM_CLASSES]        = { 1, 1, 1, 1, 5, 8, 12, 16, 18, 20, 22, 25 };
+new CLASS_RGB[NUM_CLASSES][3]     =
 {
     {0, 140, 0}, {255, 140, 0}, {40, 90, 255}, {200, 200, 255},
     {200, 0, 0}, {0, 110, 110}, {120, 255, 0}, {0, 200, 255},
@@ -266,26 +273,29 @@ new const WEAPON_KEYNAME[31][] =
 };
 
 // Bosslar: Brute, Banshee, Overlord, Inferno, Reaper, Frostlord, Stormcaller, Hive Queen, Void
-new const Float:BOSS_HP_MULT[NUM_BOSSES] = { 1.00, 0.80, 1.15, 1.00, 0.90, 1.05, 0.95, 1.10, 1.20 };
-new const BOSS_SPD[NUM_BOSSES]           = { 255,  290,  260,  270,  300,  265,  285,  275,  280 };
-new const Float:BOSS_GRAV[NUM_BOSSES]    = { 0.85, 0.65, 0.85, 0.80, 0.60, 0.85, 0.75, 0.80, 0.55 };
-new const BOSS_RGB[NUM_BOSSES][3] =
+new Float:BOSS_HP_MULT[NUM_BOSSES] = { 1.00, 0.80, 1.15, 1.00, 0.90, 1.05, 0.95, 1.10, 1.20 };
+new BOSS_SPD[NUM_BOSSES]           = { 255,  290,  260,  270,  300,  265,  285,  275,  280 };
+new Float:BOSS_GRAV[NUM_BOSSES]    = { 0.85, 0.65, 0.85, 0.80, 0.60, 0.85, 0.75, 0.80, 0.55 };
+new BOSS_RGB[NUM_BOSSES][3] =
 {
     {255, 120, 0}, {190, 210, 255}, {160, 0, 255}, {255, 50, 0}, {120, 0, 190},
     {0, 190, 255}, {255, 240, 80}, {110, 255, 0}, {220, 0, 140}
 };
 
 // Mod rotasyonu: sans (%), minimum oyuncu
-new const MODE_CHANCE[MODE_TOTAL] = { 0, 15, 5, 4, 5, 4, 5, 3, 2, 0 };
-new const MODE_MINPL[MODE_TOTAL]  = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+new MODE_CHANCE[MODE_TOTAL] = { 0, 15, 5, 4, 5, 4, 5, 3, 2, 0 };
+new MODE_MINPL[MODE_TOTAL]  = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
 
 // Meslek level kilitleri
-new const JOB_LVL[NUM_JOBS] = { 1, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 21, 24, 28, 7, 9, 11, 13, 15, 17, 20, 23, 26, 32 };
+new JOB_LVL[NUM_JOBS] = { 1, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 21, 24, 28, 7, 9, 11, 13, 15, 17, 20, 23, 26, 32 };
 
 // Market: fiyat (AP), takim (0 insan / 1 zombi), round limiti (0 = sinirsiz)
-new const ITEM_COST[NUM_ITEMS]  = { 12, 10, 12, 12, 5, 15, 10, 12, 25, 30, 40, 30, 20, 35, 15, 12, 10, 18, 15, 25, 8, 30, 10, 15, 20, 12, 25, 18 };
+new ITEM_COST[NUM_ITEMS]  = { 12, 10, 12, 12, 5, 15, 10, 12, 25, 30, 40, 30, 20, 35, 15, 12, 10, 18, 15, 25, 8, 30, 10, 15, 20, 12, 25, 18 };
 new const ITEM_TEAM[NUM_ITEMS]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 };
-new const ITEM_LIMIT[NUM_ITEMS] = { 3, 2, 2, 2, 3, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1 };
+new ITEM_LIMIT[NUM_ITEMS] = { 3, 2, 2, 2, 3, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1 };
+// v2.0: esya level kilidi ve ana deger (can / zirh / sure / yuzde ...) - vexmira.cfg: vex_item
+new ITEM_LVL[NUM_ITEMS]   = { 1, 1, 1, 1, 1, 2, 1, 1, 3, 4, 2, 1, 1, 3, 1, 2, 1, 3, 2, 3, 1, 4, 1, 1, 2, 1, 3, 2 };
+new ITEM_VAL[NUM_ITEMS]   = { 100, 200, 1, 1, 1, 1, 55, 12, 0, 30, 0, 0, 5, 3, 1000, 20, 0, 20, 6, 8, 0, 2, 0, 6, 6, 60, 60, 0 };
 // Satin alininca herkese duyurulan esyalar
 new const ITEM_ANNOUNCE[NUM_ITEMS] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1 };
 
@@ -300,10 +310,10 @@ new const WeaponIdType:SW_BASE_ID[NUM_SPECIAL] =
     WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
     WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550
 };
-new const Float:SW_MULT[NUM_SPECIAL] = { 1.8, 1.5, 3.0, 1.6, 2.2, 1.6, 1.9, 2.4 };
-new const SW_COST[NUM_SPECIAL]       = { 40, 60, 70, 45, 30, 50, 55, 80 };
-new const SW_LVL[NUM_SPECIAL]        = { 3, 8, 12, 5, 4, 10, 15, 20 };
-new const SW_BPAMMO[NUM_SPECIAL]     = { 180, 300, 60, 64, 70, 200, 180, 180 };
+new Float:SW_MULT[NUM_SPECIAL] = { 1.8, 1.5, 3.0, 1.6, 2.2, 1.6, 1.9, 2.4 };
+new SW_COST[NUM_SPECIAL]       = { 40, 60, 70, 45, 30, 50, 55, 80 };
+new SW_LVL[NUM_SPECIAL]        = { 3, 8, 12, 5, 4, 10, 15, 20 };
+new SW_BPAMMO[NUM_SPECIAL]     = { 180, 300, 60, 64, 70, 200, 180, 180 };
 new const SW_RGB[NUM_SPECIAL][3]     =
 {
     {0, 220, 255}, {255, 110, 0}, {200, 220, 255}, {120, 220, 255},
@@ -336,13 +346,13 @@ new const THEME_C[NUM_THEMES][3] =
 // Silah menusu
 new const PRIM_NAME[][] = { "AK-47", "M4A1 Carbine", "FAMAS", "Galil", "MP5 Navy", "UMP45", "P90", "M3 Super 90", "XM1014", "AUG", "SG552", "M249 SAW", "AWP", "G3SG1" };
 new const PRIM_ENT[][]  = { "weapon_ak47", "weapon_m4a1", "weapon_famas", "weapon_galil", "weapon_mp5navy", "weapon_ump45", "weapon_p90", "weapon_m3", "weapon_xm1014", "weapon_aug", "weapon_sg552", "weapon_m249", "weapon_awp", "weapon_g3sg1" };
-new const PRIM_AMMO[]   = { 180, 180, 180, 180, 240, 200, 200, 64, 64, 180, 180, 300, 60, 120 };
-new const PRIM_LVL[]    = { 1, 1, 1, 1, 1, 2, 3, 2, 4, 6, 7, 9, 12, 14 };
+new PRIM_AMMO[]   = { 180, 180, 180, 180, 240, 200, 200, 64, 64, 180, 180, 300, 60, 120 };
+new PRIM_LVL[]    = { 1, 1, 1, 1, 1, 2, 3, 2, 4, 6, 7, 9, 12, 14 };
 
 new const SEC_NAME[][]  = { "USP", "Glock-18", "P228", "Desert Eagle", "Dual Elites", "Five-seveN" };
 new const SEC_ENT[][]   = { "weapon_usp", "weapon_glock18", "weapon_p228", "weapon_deagle", "weapon_elite", "weapon_fiveseven" };
-new const SEC_AMMO[]    = { 100, 120, 52, 70, 120, 100 };
-new const SEC_LVL[]     = { 1, 1, 1, 2, 3, 5 };
+new SEC_AMMO[]    = { 100, 120, 52, 70, 120, 100 };
+new SEC_LVL[]     = { 1, 1, 1, 2, 3, 5 };
 
 // Tum atesli silah siniflari (sinirsiz sarjor + ozel silah efektleri)
 new const GUN_CLASSES[][] =
@@ -371,6 +381,63 @@ new const VIP_AURA_RGB[VIP_AURA_COUNT][3] =
 };
 
 new const VOX_NUM[][] = { "", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten" };
+
+/* ---------------- v2.0: ortam (isik / sis / hava) ----------------
+   vexmira.cfg: vex_env_event / vex_env_mode / vex_env_boss / vex_env_calm
+   isik: a (zifiri karanlik) .. m (normal) .. z (cok parlak), 0 = dokunma
+   sis: R G B yogunluk (yogunluk x10000, 0 = sis yok)
+   hava: 0 = acik, 1 = yagmur, 2 = kar                                    */
+new ENV_EV_LIGHT[EV_TOTAL]   = { 'm', 'c', 'g', 'm', 'k', 'l', 'b', 'h', 'm', 'i', 'n', 'g', 'f', 'e', 'n', 'c', 'j', 'f', 'a' };
+new ENV_EV_FOG[EV_TOTAL][4]  =
+{
+    {0, 0, 0, 0},       {90, 0, 10, 25},    {150, 150, 150, 45}, {0, 60, 90, 15},   {40, 20, 80, 15},
+    {90, 40, 0, 12},    {0, 0, 20, 20},     {20, 90, 0, 25},     {0, 0, 0, 0},      {100, 20, 0, 18},
+    {0, 80, 40, 10},    {120, 50, 0, 25},   {30, 60, 0, 25},     {80, 0, 0, 20},    {120, 100, 20, 15},
+    {60, 0, 20, 28},    {60, 30, 0, 12},    {90, 100, 120, 25},  {0, 0, 0, 35}
+};
+new ENV_EV_WEATHER[EV_TOTAL] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+
+new ENV_MODE_LIGHT[MODE_TOTAL]   = { 0, 0, 'd', 'a', 'h', 'g', 'f', 'e', 'c', 0 };
+new ENV_MODE_FOG[MODE_TOTAL][4]  =
+{
+    {0, 0, 0, 0}, {0, 0, 0, 0}, {60, 0, 0, 30}, {10, 0, 20, 40}, {0, 40, 90, 20},
+    {0, 60, 30, 15}, {60, 40, 0, 20}, {60, 0, 80, 25}, {120, 30, 0, 35}, {0, 0, 0, 0}
+};
+new ENV_MODE_WEATHER[MODE_TOTAL] = { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0 };
+
+new ENV_BOSS_LIGHT[NUM_BOSSES]   = { 'e', 'f', 'd', 'e', 'c', 'i', 'e', 'f', 'b' };
+new ENV_BOSS_FOG[NUM_BOSSES][4]  =
+{
+    {80, 40, 0, 20}, {60, 70, 100, 30}, {40, 0, 60, 30}, {120, 40, 0, 30}, {20, 0, 40, 35},
+    {150, 180, 210, 30}, {70, 80, 100, 30}, {40, 90, 0, 30}, {40, 0, 40, 40}
+};
+new ENV_BOSS_WEATHER[NUM_BOSSES] = { 0, 0, 0, 0, 0, 2, 1, 0, 0 };
+
+// Sakin roundlar icin hava durumu hazirlari: gunduz, alacakaranlik, gece, yagmur, kar, sis
+#define NUM_CALM 6
+new ENV_CALM_LIGHT[NUM_CALM]   = { 'm', 'h', 'd', 'i', 'k', 'j' };
+new ENV_CALM_FOG[NUM_CALM][4]  = { {0, 0, 0, 0}, {90, 50, 30, 12}, {0, 0, 30, 18}, {70, 80, 90, 20}, {170, 180, 200, 20}, {120, 120, 130, 30} };
+new ENV_CALM_WEATHER[NUM_CALM] = { 0, 0, 0, 1, 2, 0 };
+
+/* ---------------- v2.0: boss R yetenekleri (faza gore) ----------------
+   Her bossun 3 R yetenegi var: faz 1, faz 2, faz 3 (delilik). Yeni faza
+   gecince R tusuna yeni yetenek gelir, eski yetenekler boss'un otomatik
+   saldirilarina eklenir. vexmira.cfg: vex_boss_skill <boss> <faz> <bekleme> <hasar> <yaricap> */
+new Float:BSK_COOL[NUM_BOSSES][3] =
+{
+    {9.0, 13.0, 24.0}, {9.0, 14.0, 26.0}, {10.0, 18.0, 24.0}, {8.0, 14.0, 28.0}, {8.0, 16.0, 24.0},
+    {8.0, 15.0, 28.0}, {9.0, 12.0, 28.0}, {8.0, 16.0, 26.0}, {8.0, 15.0, 28.0}
+};
+new Float:BSK_DMG[NUM_BOSSES][3] =
+{
+    {35.0, 40.0, 15.0}, {25.0, 30.0, 10.0}, {20.0, 15.0, 35.0}, {20.0, 45.0, 85.0}, {0.0, 6.0, 60.0},
+    {18.0, 25.0, 10.0}, {8.0, 30.0, 35.0}, {20.0, 0.0, 30.0}, {25.0, 40.0, 8.0}
+};
+new BSK_RAD[NUM_BOSSES][3] =
+{
+    {320, 110, 230}, {650, 320, 1200}, {900, 600, 250}, {450, 140, 700}, {800, 600, 150},
+    {900, 800, 0}, {170, 130, 140}, {150, 260, 180}, {1000, 450, 600}
+};
 
 /* ------------------------------------------------------------------ */
 /*  Globaller                                                          */
@@ -468,9 +535,87 @@ new g_pStartAP, g_pArmorProtect, g_pVipContact;
 new g_pBossRounds, g_pBossHPPer, g_pBossFinal, g_pBossDmg, g_pBossAbil, g_pSpecialRounds, g_pMultiChance, g_pRoundsTotal;
 new g_pSpeedHuman, g_pSpeedZombie, g_pSpeedFov, g_pNemDmg, g_pAsnDmg, g_pMinionDmg, g_pZombieDmg, g_pHumanHP;
 new g_pZSpeed, g_pHSpeed, g_pMvpAP, g_pMvpVC, g_pGiveNades, g_pLastHumanHP, g_pInfectAP, g_pKillAP;
-new g_pLmEnable, g_pLmCost, g_pLmMax, g_pLmMaxVip, g_pLmTeamMax, g_pLmHealth, g_pLmDamage, g_pLmZMult, g_pLmWear, g_pLmFree, g_pLmBoss;
+new g_pLmEnable, g_pLmMax, g_pLmMaxVip, g_pLmTeamMax, g_pLmHealth, g_pLmDamage, g_pLmZMult, g_pLmWear, g_pLmBoss;
 new g_pNadeModes, g_pNadeProx, g_pNadeLaser, g_pNadeHoming, g_pCluster;
 new g_pAirdrop, g_pAirdropEvery, g_pMotd, g_pQuests, g_pEvolve, g_pJoinMsg;
+
+/* ---------------- v2.0 globaller ---------------- */
+new g_szPrefix[64] = "^4[^3VEX^4MIRA^4]^1";
+
+// v2.0 kaynaklar
+new g_szSprZone[64], g_szSprTarget[64], g_szSprBeacon[64], g_szSprOrb[64], g_szSprMark[64], g_szSprFire[64], g_szSprLaser[64];
+new g_iMineBody, g_iMineSeq, g_iMineSkin;
+
+// v2.0 cvar'lar
+new g_pPrefix, g_pHostname, g_pHostDyn, g_pEnv, g_pEnvCalm, g_pWeather;
+new g_pNemOneShot, g_pAsnOneShot, g_pNemVsSurv, g_pNemSpeed, g_pAsnSpeed, g_pNemGrav, g_pAsnGrav, g_pMinionHP;
+new g_pNemRageTime, g_pNemRageCd, g_pAsnVeilTime, g_pAsnVeilCd, g_pSpecialLeapCd;
+new g_pLmPerRound, g_pLmPerRoundVip, g_pLmOneShot, g_pLmSpecialDmg, g_pLmKillWear, g_pLmPlantTime, g_pLmTakeTime;
+new g_pLmArmTime, g_pLmBeamWidth, g_pLmColorMode, g_pLmColor, g_pLmRange, g_pLmTakeRange, g_pAirdropLaser;
+new g_pNadeSensorArm, g_pNadeSensorLife, g_pNadeLaserArm, g_pNadeFireDmg, g_pNadeFireRad, g_pNadeFireBurn;
+new g_pNadeFrostRad, g_pNadeFrostTime, g_pNadeInfectRad, g_pNadeFlareTime, g_pNadeClusterDmg;
+new g_pBossPhase2, g_pBossPhase3, g_pBossRAuto, g_pBossRCdMult, g_pBossRDmgMult, g_pBossAutoAbil;
+new g_pAfkTime, g_pAfkAction, g_pDropBeacon, g_pDropCompass, g_pLoopGuard, g_pLoopMax, g_pRoundStopSnd;
+new g_pKillXP, g_pInfectXP, g_pWinHXP, g_pWinHAP, g_pWinZXP, g_pWinZAP, g_pBossKillXP, g_pBossKillAP, g_pBossKillVC;
+new g_pSpecKillXP, g_pSpecKillAP, g_pBossBoard, g_pHsAP, g_pExchange, g_pPerkStep, g_pDailyAP, g_pAchAP, g_pAchVC;
+new g_pBurnDmg, g_pZombieBurnDmg, g_pAirdropHP, g_pBossFallback;
+
+// Ortam durumu
+new g_msgWeather, g_iCalmPreset = -1, g_iEnvWeather;
+
+// Ses: dongulu wav tespiti (yol -> bilgi). Bilgi = (dongulu ? 1 : 0) | (sure_ms << 1)
+new Trie:g_tSndInfo, g_iSndStopSlot;
+
+// Lazer: round basi hak verildi mi
+new bool:g_bLmGiven[33];
+new Float:g_fNextBeat[33];
+
+// Ozel sprite'lar (yoksa orijinal oyun dosyalarina duser)
+new g_sprZone, g_sprTarget, g_sprBeacon, g_sprOrb, g_sprMark, g_sprFire, g_sprLmBeam;
+
+// Boss R yetenekleri
+new Float:g_fBossRCool, Float:g_fBossRLast, g_iBossSerial, g_iBskSlot;
+new Float:g_fBossBuffEnd, Float:g_fBossEmpower, Float:g_fBossChannelEnd, g_iBossChannel, g_iBossChannelTick;
+new Float:g_fBossChannelPos[3], g_iBossTethers[3];
+
+// Nemesis / Assassin [F] yetenegi
+new Float:g_fFCool[33], Float:g_fRage[33];
+
+// AFK
+new Float:g_fAfkPos[33][3], Float:g_fAfkAng[33][3], g_iAfkSec[33];
+
+// Tehlike alanlari / boss mermileri / yumurtalar
+#define ZONE_CLASS "vex_zone"
+#define PROJ_CLASS "vex_bproj"
+#define EGG_CLASS  "vex_egg"
+#define TASK_BCHAN (TASK_BSK + 255)
+new bool:g_bFxReliable;
+
+enum
+{
+    PJ_NONE = 0,
+    PJ_ORB,
+    PJ_ACID,
+    PJ_VOID
+};
+
+// Boss kanal (sureli) yetenekleri
+enum
+{
+    CH_NONE = 0,
+    CH_TITAN,
+    CH_REQUIEM,
+    CH_CHAINS,
+    CH_ZERO,
+    CH_DASH,
+    CH_TEMPEST,
+    CH_CLOUD,
+    CH_SINGULARITY,
+    CH_HORIZON
+};
+
+new g_iDashHit;
+new g_iPoolType[6], Float:g_fPoolRad[6];
 
 /* ================================================================== */
 /*  MODUL FILTRESI (GeoIP istege bagli)                                */
@@ -502,107 +647,120 @@ public fw_NativeFilter(const name[], index, trap)
 
 SetDefaultResources()
 {
-    // Sesler: hepsi orijinal CS 1.6 / Half-Life dosyalari.
+    // v2.0: once Vexmira'nin kendi (dongusuz, ozel) sesleri; sunucuda yoksa
+    // orijinal CS 1.6 / Half-Life sesine duser.
     // DefSound(anahtar, birinci tercih, yedek): dosya sunucuda yoksa yedege gecer.
-    DefSound("ZOMBIE_INFECT",  "zombie/zo_alert20.wav",      "player/bhit_flesh-1.wav");
+    // NOT: Bazi orijinal HL sesleri DONGULUdur (mine_charge, burning1, wind1,
+    // heartbeat1...): bunlar yedek olarak kullanilmaz, aksi halde ses susmaz.
+    DefSound("ZOMBIE_INFECT",  "vexmira/infect.wav",          "zombie/zo_alert20.wav");
     DefSound("ZOMBIE_PAIN",    "zombie/zo_pain1.wav",        "player/pl_pain2.wav");
     DefSound("ZOMBIE_DIE",     "zombie/zo_pain2.wav",        "player/die3.wav");
-    DefSound("ROUND_START",    "ambience/the_horror2.wav",   "");
-    DefSound("EVENT_START",    "ambience/thunder_clap.wav",  "");
-    DefSound("MODE_START",     "ambience/the_horror4.wav",   "");
-    DefSound("BOSS_SPAWN",     "ambience/the_horror4.wav",   "");
-    DefSound("BOSS_SLAM",      "weapons/c4_explode1.wav",    "");
-    DefSound("BOSS_SCREAM",    "ambience/the_horror1.wav",   "");
-    DefSound("BOSS_SUMMON",    "ambience/the_horror3.wav",   "");
-    DefSound("BOSS_DEATH",     "weapons/c4_explode1.wav",    "");
-    DefSound("COUNTDOWN_BEEP", "buttons/blip1.wav",          "");
-    DefSound("LEVEL_UP",       "plats/elevbell1.wav",        "");
-    DefSound("LAST_HUMAN",     "ambience/the_horror3.wav",   "");
-    DefSound("LIGHTNING",      "ambience/thunder_clap.wav",  "");
-    DefSound("AMBIENT",        "ambience/the_horror3.wav",   "");
-    DefSound("HEARTBEAT",      "player/heartbeat1.wav",      "");
-    DefSound("METEOR",         "weapons/c4_explode1.wav",    "");
-    DefSound("ABILITY_BURST",  "zombie/zo_alert30.wav",      "player/pl_pain5.wav");
-    DefSound("ABILITY_LEAP",   "zombie/zo_attack1.wav",      "player/pl_pain7.wav");
-    DefSound("ABILITY_SHIELD", "items/suitchargeok1.wav",    "");
-    DefSound("ABILITY_SCREAM", "ambience/the_horror2.wav",   "");
-    DefSound("ABILITY_DRAIN",  "zombie/zo_attack2.wav",      "player/pl_pain6.wav");
-    DefSound("ABILITY_CLOAK",  "buttons/blip1.wav",          "");
-    DefSound("ABILITY_TOXIC",  "bullchicken/bc_acid1.wav",   "weapons/sg_explode.wav");
-    DefSound("ABILITY_FROST",  "debris/glass1.wav",          "");
-    DefSound("HUMAN_WIN",      "radio/ctwin.wav",            "");
-    DefSound("ZOMBIE_WIN",     "radio/terwin.wav",           "");
-    DefSound("ACH_UNLOCK",     "plats/elevbell1.wav",        "");
-    DefSound("SHOP_BUY",       "items/gunpickup2.wav",       "");
-    DefSound("DAILY",          "items/suitchargeok1.wav",    "");
-    DefSound("HEADSHOT",       "player/headshot1.wav",       "");
-    DefSound("KILL_DOUBLE",    "buttons/bell1.wav",          "");
-    DefSound("KILL_TRIPLE",    "buttons/bell1.wav",          "");
-    DefSound("KILL_MULTI",     "buttons/bell1.wav",          "");
-    DefSound("KILL_MEGA",      "buttons/bell1.wav",          "");
-    DefSound("KILL_MONSTER",   "buttons/bell1.wav",          "");
-    DefSound("STREAK_5",       "ambience/thunder_clap.wav",  "");
-    DefSound("STREAK_10",      "ambience/thunder_clap.wav",  "");
-    DefSound("STREAK_15",      "ambience/thunder_clap.wav",  "");
-    DefSound("NADE_FIRE",      "ambience/flameburst1.wav",   "weapons/c4_explode1.wav");
-    DefSound("NADE_FROST",     "debris/glass2.wav",          "weapons/sg_explode.wav");
-    DefSound("NADE_INFECT",    "bullchicken/bc_spithit1.wav", "weapons/sg_explode.wav");
-    DefSound("FREEZE",         "debris/glass1.wav",          "");
-    DefSound("BURN",           "ambience/burning1.wav",      "");
-    DefSound("ANTIDOTE",       "items/smallmedkit1.wav",     "");
-    DefSound("MADNESS",        "ambience/the_horror1.wav",   "");
-    DefSound("SW_FIRE",        "weapons/electro5.wav",       "");
-    DefSound("ZAP",            "weapons/electro4.wav",       "");
-    DefSound("MVP",            "events/task_complete.wav",   "plats/elevbell1.wav");
-    DefSound("VIP_JOIN",       "buttons/bell1.wav",          "");
-    DefSound("BOSS_WARN",      "buttons/blip2.wav",          "");
-    DefSound("BOSS_ROAR",      "garg/gar_alert1.wav",        "ambience/the_horror1.wav");
-    DefSound("BOSS_ABILITY",   "",                           "");
-    DefSound("ZOMBIE_IDLE",    "zombie/zo_idle1.wav",        "");
-    DefSound("ZOMBIE_SLASH",   "zombie/claw_miss1.wav",      "");
-    DefSound("ZOMBIE_HITWALL", "zombie/claw_miss2.wav",      "");
-    DefSound("ZOMBIE_HIT",     "zombie/claw_strike1.wav",    "");
-    DefSound("ZOMBIE_STAB",    "zombie/claw_strike2.wav",    "");
-    DefSound("ZOMBIE_ACID",    "bullchicken/bc_acid2.wav",   "weapons/sg_explode.wav");
-    DefSound("ZOMBIE_HEAL",    "items/smallmedkit1.wav",     "");
-    DefSound("ZOMBIE_BLINK",   "weapons/electro4.wav",       "");
-    DefSound("ZOMBIE_SHOCK",   "garg/gar_stomp1.wav",        "weapons/c4_explode1.wav");
+    DefSound("ROUND_START",    "vexmira/round_start.wav",     "ambience/the_horror2.wav");
+    DefSound("EVENT_START",    "vexmira/event_start.wav",     "ambience/thunder_clap.wav");
+    DefSound("MODE_START",     "vexmira/mode_start.wav",      "ambience/the_horror4.wav");
+    DefSound("BOSS_SPAWN",     "vexmira/boss_spawn.wav",      "ambience/the_horror4.wav");
+    DefSound("BOSS_SLAM",      "vexmira/boss_slam.wav",       "weapons/c4_explode1.wav");
+    DefSound("BOSS_SCREAM",    "vexmira/boss_scream.wav",     "ambience/the_horror1.wav");
+    DefSound("BOSS_SUMMON",    "vexmira/boss_summon.wav",     "ambience/the_horror3.wav");
+    DefSound("BOSS_DEATH",     "vexmira/boss_death.wav",      "weapons/c4_explode1.wav");
+    DefSound("COUNTDOWN_BEEP", "vexmira/tick.wav",            "buttons/blip1.wav");
+    DefSound("LEVEL_UP",       "vexmira/levelup.wav",         "plats/elevbell1.wav");
+    DefSound("LAST_HUMAN",     "vexmira/last_human.wav",      "ambience/the_horror3.wav");
+    DefSound("LIGHTNING",      "vexmira/thunder_crack.wav",   "ambience/thunder_clap.wav");
+    DefSound("AMBIENT",        "vexmira/ambient.wav",         "ambience/the_horror3.wav");
+    DefSound("HEARTBEAT",      "vexmira/heartbeat.wav",       "");
+    DefSound("METEOR",         "vexmira/meteor.wav",          "weapons/c4_explode1.wav");
+    DefSound("ABILITY_BURST",  "vexmira/z_burst.wav",         "zombie/zo_alert30.wav");
+    DefSound("ABILITY_LEAP",   "vexmira/z_leap.wav",          "zombie/zo_attack1.wav");
+    DefSound("ABILITY_SHIELD", "vexmira/z_shield.wav",        "items/suitchargeok1.wav");
+    DefSound("ABILITY_SCREAM", "vexmira/z_scream.wav",        "ambience/the_horror2.wav");
+    DefSound("ABILITY_DRAIN",  "vexmira/z_drain.wav",         "zombie/zo_attack2.wav");
+    DefSound("ABILITY_CLOAK",  "vexmira/z_cloak.wav",         "buttons/blip1.wav");
+    DefSound("ABILITY_TOXIC",  "vexmira/z_toxic.wav",         "bullchicken/bc_acid1.wav");
+    DefSound("ABILITY_FROST",  "vexmira/z_frost.wav",         "debris/glass1.wav");
+    DefSound("HUMAN_WIN",      "vexmira/win_humans.wav",      "radio/ctwin.wav");
+    DefSound("ZOMBIE_WIN",     "vexmira/win_zombies.wav",     "radio/terwin.wav");
+    DefSound("ACH_UNLOCK",     "vexmira/achievement.wav",     "plats/elevbell1.wav");
+    DefSound("SHOP_BUY",       "vexmira/buy.wav",             "items/gunpickup2.wav");
+    DefSound("DAILY",          "vexmira/daily.wav",           "items/suitchargeok1.wav");
+    DefSound("HEADSHOT",       "vexmira/vox_headshot.wav",    "player/headshot1.wav");
+    DefSound("KILL_DOUBLE",    "vexmira/vox_double.wav",      "buttons/bell1.wav");
+    DefSound("KILL_TRIPLE",    "vexmira/vox_triple.wav",      "buttons/bell1.wav");
+    DefSound("KILL_MULTI",     "vexmira/vox_multi.wav",       "buttons/bell1.wav");
+    DefSound("KILL_MEGA",      "vexmira/vox_mega.wav",        "buttons/bell1.wav");
+    DefSound("KILL_MONSTER",   "vexmira/vox_monster.wav",     "buttons/bell1.wav");
+    DefSound("STREAK_5",       "vexmira/vox_rampage.wav",     "ambience/thunder_clap.wav");
+    DefSound("STREAK_10",      "vexmira/vox_unstoppable.wav", "ambience/thunder_clap.wav");
+    DefSound("STREAK_15",      "vexmira/vox_godlike.wav",     "ambience/thunder_clap.wav");
+    DefSound("NADE_FIRE",      "vexmira/nade_fire.wav",       "ambience/flameburst1.wav");
+    DefSound("NADE_FROST",     "vexmira/nade_frost.wav",      "debris/glass2.wav");
+    DefSound("NADE_INFECT",    "vexmira/nade_infect.wav",     "bullchicken/bc_spithit1.wav");
+    DefSound("FREEZE",         "vexmira/freeze.wav",          "debris/glass1.wav");
+    DefSound("BURN",           "vexmira/burn.wav",            "ambience/flameburst1.wav");
+    DefSound("ANTIDOTE",       "vexmira/antidote.wav",        "items/smallmedkit1.wav");
+    DefSound("MADNESS",        "vexmira/madness.wav",         "ambience/the_horror1.wav");
+    DefSound("SW_FIRE",        "vexmira/sw_fire.wav",         "weapons/electro5.wav");
+    DefSound("ZAP",            "vexmira/zap.wav",             "weapons/electro4.wav");
+    DefSound("MVP",            "vexmira/mvp.wav",             "events/task_complete.wav");
+    DefSound("VIP_JOIN",       "vexmira/vip_join.wav",        "buttons/bell1.wav");
+    DefSound("BOSS_WARN",      "vexmira/boss_warn.wav",       "buttons/blip2.wav");
+    DefSound("BOSS_ROAR",      "garg/gar_alert1.wav",         "ambience/the_horror1.wav");
+    DefSound("BOSS_ABILITY",   "",                            "");
+    DefSound("ZOMBIE_IDLE",    "zombie/zo_idle1.wav",         "");
+    DefSound("ZOMBIE_SLASH",   "zombie/claw_miss1.wav",       "");
+    DefSound("ZOMBIE_HITWALL", "zombie/claw_miss2.wav",       "");
+    DefSound("ZOMBIE_HIT",     "zombie/claw_strike1.wav",     "");
+    DefSound("ZOMBIE_STAB",    "zombie/claw_strike2.wav",     "");
+    DefSound("ZOMBIE_ACID",    "vexmira/z_acid.wav",          "bullchicken/bc_acid2.wav");
+    DefSound("ZOMBIE_HEAL",    "vexmira/z_heal.wav",          "items/smallmedkit1.wav");
+    DefSound("ZOMBIE_BLINK",   "vexmira/z_blink.wav",         "weapons/electro4.wav");
+    DefSound("ZOMBIE_SHOCK",   "vexmira/z_shock.wav",         "garg/gar_stomp1.wav");
 
     // v1.4
-    DefSound("WELCOME",          "events/tutor_msg.wav",       "plats/elevbell1.wav");
-    DefSound("PLAYER_JOIN",      "buttons/bell1.wav",          "");
-    DefSound("PLAYER_LEAVE",     "buttons/blip2.wav",          "");
-    DefSound("BOSS_SOON",        "ambience/the_horror2.wav",   "");
-    DefSound("BOSS_INTRO",       "ambience/the_horror4.wav",   "");
-    DefSound("BOSS_STEP",        "garg/gar_step1.wav",         "");
-    DefSound("BOSS_PHASE",       "ambience/thunder_clap.wav",  "");
-    DefSound("BOSS_ENRAGE",      "garg/gar_alert3.wav",        "ambience/the_horror1.wav");
-    DefSound("LM_DEPLOY",        "weapons/mine_deploy.wav",    "weapons/c4_plant.wav");
-    DefSound("LM_CHARGE",        "weapons/mine_charge.wav",    "weapons/c4_click.wav");
-    DefSound("LM_ACTIVATE",      "weapons/mine_activate.wav",  "buttons/blip2.wav");
-    DefSound("LM_HIT",           "weapons/electro4.wav",       "");
-    DefSound("LM_BREAK",         "weapons/explode3.wav",       "weapons/c4_explode1.wav");
-    DefSound("LM_PICKUP",        "items/gunpickup2.wav",       "");
-    DefSound("NADE_MODE",        "buttons/lightswitch2.wav",   "weapons/zoom.wav");
-    DefSound("NADE_BEEP",        "weapons/c4_beep1.wav",       "buttons/blip1.wav");
-    DefSound("NADE_ARM",         "weapons/c4_click.wav",       "buttons/blip1.wav");
-    DefSound("NADE_CLUSTER",     "weapons/explode4.wav",       "weapons/c4_explode1.wav");
-    DefSound("AIRDROP_INCOMING", "items/suitchargeok1.wav",    "buttons/bell1.wav");
-    DefSound("AIRDROP_LAND",     "debris/metal2.wav",          "weapons/c4_click.wav");
-    DefSound("AIRDROP_LOOT",     "items/ammopickup2.wav",      "items/gunpickup2.wav");
-    DefSound("QUEST_DONE",       "events/task_complete.wav",   "plats/elevbell1.wav");
-    DefSound("EVOLVE",           "zombie/zo_alert30.wav",      "ambience/the_horror2.wav");
-    DefSound("SPEED_START",      "weapons/rocketfire1.wav",    "ambience/thunder_clap.wav");
-    DefSound("SPEED_WIND",       "ambience/wind1.wav",         "");
-    DefSound("STORM_STRIKE",     "ambience/thunder_clap.wav",  "");
-    DefSound("BLACKOUT",         "buttons/lightswitch2.wav",   "buttons/blip2.wav");
-    DefSound("FINAL_ROUND",      "ambience/the_horror4.wav",   "");
-    DefSound("MAP_END",          "events/task_complete.wav",   "plats/elevbell1.wav");
-    DefSound("FROST_NOVA",       "debris/glass2.wav",          "debris/glass1.wav");
-    DefSound("THUNDER",          "ambience/thunder_clap.wav",  "");
-    DefSound("ACID_POOL",        "bullchicken/bc_acid1.wav",   "weapons/sg_explode.wav");
-    DefSound("GRAVITY_WELL",     "x/x_teleattack1.wav",        "ambience/the_horror2.wav");
-    DefSound("ECLIPSE",          "x/x_laugh1.wav",             "ambience/the_horror1.wav");
+    DefSound("WELCOME",          "vexmira/welcome.wav",          "events/tutor_msg.wav");
+    DefSound("PLAYER_JOIN",      "vexmira/join.wav",             "buttons/bell1.wav");
+    DefSound("PLAYER_LEAVE",     "vexmira/leave.wav",            "buttons/blip2.wav");
+    DefSound("BOSS_SOON",        "vexmira/boss_soon.wav",        "ambience/the_horror2.wav");
+    DefSound("BOSS_INTRO",       "vexmira/boss_intro.wav",       "ambience/the_horror4.wav");
+    DefSound("BOSS_STEP",        "vexmira/boss_step.wav",        "garg/gar_step1.wav");
+    DefSound("BOSS_PHASE",       "vexmira/boss_phase.wav",       "ambience/thunder_clap.wav");
+    DefSound("BOSS_ENRAGE",      "vexmira/boss_enrage.wav",      "garg/gar_alert3.wav");
+    DefSound("LM_DEPLOY",        "vexmira/lm_deploy.wav",        "weapons/mine_deploy.wav");
+    DefSound("LM_CHARGE",        "vexmira/lm_charge.wav",        "weapons/c4_click.wav");
+    DefSound("LM_ACTIVATE",      "vexmira/lm_activate.wav",      "weapons/mine_activate.wav");
+    DefSound("LM_HIT",           "vexmira/lm_hit.wav",           "weapons/electro4.wav");
+    DefSound("LM_BREAK",         "vexmira/lm_break.wav",         "weapons/explode3.wav");
+    DefSound("LM_PICKUP",        "vexmira/lm_pickup.wav",        "items/gunpickup2.wav");
+    DefSound("NADE_MODE",        "vexmira/nade_mode.wav",        "buttons/lightswitch2.wav");
+    DefSound("NADE_BEEP",        "vexmira/nade_beep.wav",        "weapons/c4_beep1.wav");
+    DefSound("NADE_ARM",         "vexmira/nade_arm.wav",         "weapons/c4_click.wav");
+    DefSound("NADE_CLUSTER",     "vexmira/nade_cluster.wav",     "weapons/explode4.wav");
+    DefSound("AIRDROP_INCOMING", "vexmira/airdrop_incoming.wav", "items/suitchargeok1.wav");
+    DefSound("AIRDROP_LAND",     "vexmira/airdrop_land.wav",     "debris/metal2.wav");
+    DefSound("AIRDROP_LOOT",     "vexmira/airdrop_loot.wav",     "items/ammopickup2.wav");
+    DefSound("QUEST_DONE",       "vexmira/quest_done.wav",       "events/task_complete.wav");
+    DefSound("EVOLVE",           "vexmira/evolve.wav",           "zombie/zo_alert30.wav");
+    DefSound("SPEED_START",      "vexmira/speed_start.wav",      "weapons/rocketfire1.wav");
+    DefSound("SPEED_WIND",       "vexmira/wind.wav",             "");
+    DefSound("STORM_STRIKE",     "vexmira/thunder_crack.wav",    "ambience/thunder_clap.wav");
+    DefSound("BLACKOUT",         "vexmira/blackout.wav",         "buttons/lightswitch2.wav");
+    DefSound("FINAL_ROUND",      "vexmira/final_round.wav",      "ambience/the_horror4.wav");
+    DefSound("MAP_END",          "vexmira/map_end.wav",          "events/task_complete.wav");
+    DefSound("FROST_NOVA",       "vexmira/frost_nova.wav",       "debris/glass2.wav");
+    DefSound("THUNDER",          "vexmira/thunder.wav",          "ambience/thunder_clap.wav");
+    DefSound("ACID_POOL",        "vexmira/acid_pool.wav",        "bullchicken/bc_acid1.wav");
+    DefSound("GRAVITY_WELL",     "vexmira/gravity_well.wav",     "x/x_teleattack1.wav");
+    DefSound("ECLIPSE",          "vexmira/eclipse.wav",          "x/x_laugh1.wav");
+
+    // v2.0
+    DefSound("ZONE_WARN",        "vexmira/zone_warn.wav",        "buttons/blip2.wav");
+    DefSound("SKILL_UNLOCK",     "vexmira/skill_unlock.wav",     "plats/elevbell1.wav");
+    DefSound("NEM_RAGE",         "vexmira/nem_rage.wav",         "garg/gar_alert3.wav");
+    DefSound("ASN_VEIL",         "vexmira/asn_veil.wav",         "x/x_teleattack1.wav");
+    DefSound("LM_KILL",          "vexmira/lm_kill.wav",          "weapons/electro5.wav");
+    DefSound("NADE_TRIGGER",     "vexmira/nade_trigger.wav",     "weapons/c4_beep2.wav");
+    DefSound("UI_OPEN",          "vexmira/ui_open.wav",          "");
+    DefSound("LM_DENY",          "vexmira/deny.wav",             "buttons/button10.wav");
 
     // Boss'lara ozel sesler (B<no>_<olay>): yoksa genel BOSS_<olay> kullanilir
     static const BEV[][] = { "SPAWN", "ROAR", "SCREAM", "ABILITY", "DEATH" };
@@ -618,6 +776,19 @@ SetDefaultResources()
         { "bullchicken/bc_attackgrowl1.wav", "bullchicken/bc_attackgrowl2.wav", "bullchicken/bc_pain1.wav", "bullchicken/bc_acid1.wav", "bullchicken/bc_die1.wav" },
         { "x/x_recharge1.wav", "x/x_attack3.wav", "tentacle/te_roar1.wav", "x/x_ballattack1.wav", "x/x_die1.wav" }
     };
+    // Boss R yetenek sesleri (B<no>_R1 / _R2 / _R3)
+    static const BRSND[NUM_BOSSES][3][] =
+    {
+        { "vexmira/brute_stomp.wav",     "vexmira/brute_shatter.wav",   "vexmira/brute_wrath.wav" },
+        { "vexmira/banshee_lance.wav",   "vexmira/banshee_shriek.wav",  "vexmira/banshee_requiem.wav" },
+        { "vexmira/overlord_prison.wav", "vexmira/overlord_legion.wav", "vexmira/overlord_nova.wav" },
+        { "vexmira/inferno_breath.wav",  "vexmira/inferno_pillar.wav",  "vexmira/inferno_nova.wav" },
+        { "vexmira/reaper_step.wav",     "vexmira/reaper_chains.wav",   "vexmira/reaper_mark.wav" },
+        { "vexmira/frost_shards.wav",    "vexmira/frost_tomb.wav",      "vexmira/frost_zero.wav" },
+        { "vexmira/storm_orb.wav",       "vexmira/storm_dash.wav",      "vexmira/storm_tempest.wav" },
+        { "vexmira/hive_spit.wav",       "vexmira/hive_cloud.wav",      "vexmira/hive_eggs.wav" },
+        { "vexmira/void_bolt.wav",       "vexmira/void_singularity.wav", "vexmira/void_horizon.wav" }
+    };
     new key[24];
     for (new b = 0; b < NUM_BOSSES; b++)
     {
@@ -626,7 +797,18 @@ SetDefaultResources()
             formatex(key, charsmax(key), "B%d_%s", b, BEV[e]);
             DefSound(key, BSND[b][e], "");
         }
+        for (new p = 0; p < 3; p++)
+        {
+            formatex(key, charsmax(key), "B%d_R%d", b, p + 1);
+            DefSound(key, BRSND[b][p], BSND[b][3]);
+        }
     }
+
+    // Muzik (istege bagli, MP3): boss / ozel mod roundlarinda
+    DefSound("MODE9_MUSIC", "sound/vexmira/boss_theme.mp3", "");
+    DefSound("MODE2_MUSIC", "sound/vexmira/nemesis_theme.mp3", "");
+    DefSound("MODE3_MUSIC", "sound/vexmira/nemesis_theme.mp3", "");
+    DefSound("MODE8_MUSIC", "sound/vexmira/boss_theme.mp3", "");
 
     // Anons cumleleri (oyunun kendi VOX sesleri; dosya indirmez)
     TrieSetString(g_tRes, "VOX_BOSS",     "vox/warning _comma hostile presence detected");
@@ -667,10 +849,21 @@ SetDefaultResources()
     TrieSetString(g_tRes, "SURVIVOR_MODEL", "gign");
     TrieSetString(g_tRes, "SNIPER_MODEL",   "sas");
 
+    // Lazer mayini: model + govde/animasyon/kaplama (v_tripmine icin govde 3, animasyon 7)
     TrieSetString(g_tRes, "LASERMINE_MODEL", "models/v_tripmine.mdl");
+    // LASERMINE_BODY / LASERMINE_SEQUENCE / LASERMINE_SKIN: yazilmazsa modele gore secilir
     TrieSetString(g_tRes, "AIRDROP_MODEL",   "models/w_weaponbox.mdl");
     TrieSetString(g_tRes, "SKY_MODE", "1");
     TrieSetString(g_tRes, "SKY_LIST", "night de_storm tornsky black space hav office cx backalley city");
+
+    // v2.0 ozel sprite'lar (yoksa orijinal oyun sprite'larina duser)
+    TrieSetString(g_tRes, "SPR_ZONE",   "sprites/vexmira/zone.spr");
+    TrieSetString(g_tRes, "SPR_TARGET", "sprites/vexmira/target.spr");
+    TrieSetString(g_tRes, "SPR_BEACON", "sprites/vexmira/beacon.spr");
+    TrieSetString(g_tRes, "SPR_ORB",    "sprites/vexmira/orb.spr");
+    TrieSetString(g_tRes, "SPR_MARK",   "sprites/vexmira/mark.spr");
+    TrieSetString(g_tRes, "SPR_FIRE",   "sprites/vexmira/fire.spr");
+    TrieSetString(g_tRes, "SPR_LASER",  "sprites/vexmira/laser.spr");
 }
 
 // Ses dosyasi sunucuda var mi? (yoksa oyuncular "failed to transmit" ile atilir)
@@ -700,22 +893,18 @@ DefSound(const key[], const first[], const second[])
 public plugin_precache()
 {
     g_tRes = TrieCreate();
+    g_tSndInfo = TrieCreate();
     SetDefaultResources();
+    // Eski surum uyumlulugu: vexmira_resources.ini varsa once o okunur,
+    // sonra TEK AYAR DOSYASI vexmira.cfg icindeki "vex_res" satirlari ustune yazar.
     LoadResourceIni();
+    LoadMainConfig(true);
 
     new path[128], key[24];
 
     // Sesler
     for (new i = 0; i < sizeof SOUND_KEYS; i++)
-    {
-        if (TrieGetString(g_tRes, SOUND_KEYS[i], path, charsmax(path)) && path[0])
-        {
-            if (containi(path, ".mp3") != -1)
-                precache_generic(path);
-            else
-                precache_sound(path);
-        }
-    }
+        PrecacheSoundKey(SOUND_KEYS[i]);
 
     // Geri sayim sesi (VOX)
     if (g_bVoxCountdown)
@@ -797,6 +986,11 @@ public plugin_precache()
             formatex(key, charsmax(key), "B%d_%s", i, BEV[e]);
             PrecacheSoundKey(key);
         }
+        for (new r = 1; r <= 3; r++)
+        {
+            formatex(key, charsmax(key), "B%d_R%d", i, r);
+            PrecacheSoundKey(key);
+        }
     }
     for (new m = 0; m < MODE_TOTAL; m++)
     {
@@ -820,13 +1014,49 @@ public plugin_precache()
     if (!g_sprFlare)
         g_sprFlare  = g_sprHeadMark;
 
-    // Lazer mayini + hava ikmali modelleri
+    // v2.0 ozel sprite'lar (vexmira.cfg: vex_res SPR_...). Dosya yoksa 0 kalir ve
+    // efekt orijinal oyun sprite'lariyla cizilir.
+    g_sprZone   = PrecacheResSprite("SPR_ZONE", g_szSprZone, charsmax(g_szSprZone));
+    g_sprTarget = PrecacheResSprite("SPR_TARGET", g_szSprTarget, charsmax(g_szSprTarget));
+    g_sprBeacon = PrecacheResSprite("SPR_BEACON", g_szSprBeacon, charsmax(g_szSprBeacon));
+    g_sprOrb    = PrecacheResSprite("SPR_ORB", g_szSprOrb, charsmax(g_szSprOrb));
+    g_sprMark   = PrecacheResSprite("SPR_MARK", g_szSprMark, charsmax(g_szSprMark));
+    g_sprFire   = PrecacheResSprite("SPR_FIRE", g_szSprFire, charsmax(g_szSprFire));
+    g_sprLmBeam = PrecacheResSprite("SPR_LASER", g_szSprLaser, charsmax(g_szSprLaser));
+    if (!g_sprBeacon && g_sprHeadMark)
+    {
+        g_sprBeacon = g_sprHeadMark;
+        copy(g_szSprBeacon, charsmax(g_szSprBeacon), GetResString("BOSS_MARK_SPRITE", "sprites/glow01.spr"));
+    }
+    if (!g_sprOrb)
+    {
+        g_sprOrb = g_sprFlare;
+        copy(g_szSprOrb, charsmax(g_szSprOrb), "sprites/flare6.spr");
+    }
+    if (!g_sprMark)
+        g_sprMark = g_sprHeadMark;
+    if (g_sprLmBeam)
+        g_sprLaser = g_sprLmBeam;
+    else
+        copy(g_szSprLaser, charsmax(g_szSprLaser), "sprites/laserbeam.spr");
+
+    // Lazer mayini + hava ikmali modelleri (vexmira.cfg: vex_res LASERMINE_MODEL ...)
     GetFileModel("LASERMINE_MODEL", g_szMineModel, charsmax(g_szMineModel));
+    if (!g_szMineModel[0] && file_exists("models/v_tripmine.mdl", true))
+    {
+        copy(g_szMineModel, charsmax(g_szMineModel), "models/v_tripmine.mdl");
+        precache_model(g_szMineModel);
+    }
     if (!g_szMineModel[0] && file_exists("models/w_c4.mdl", true))
     {
         copy(g_szMineModel, charsmax(g_szMineModel), "models/w_c4.mdl");
         precache_model(g_szMineModel);
     }
+    // Govde / animasyon / kaplama: orijinal tripmine modelinde 3 / 7 / 0, baska modelde cfg'den
+    new bool:tripmine = (containi(g_szMineModel, "tripmine") != -1) ? true : false;
+    g_iMineBody = str_to_num(GetResString("LASERMINE_BODY", tripmine ? "3" : "0"));
+    g_iMineSeq  = str_to_num(GetResString("LASERMINE_SEQUENCE", tripmine ? "7" : "0"));
+    g_iMineSkin = str_to_num(GetResString("LASERMINE_SKIN", "0"));
     GetFileModel("AIRDROP_MODEL", g_szDropModel, charsmax(g_szDropModel));
     if (!g_szDropModel[0] && file_exists("models/w_weaponbox.mdl", true))
     {
@@ -892,7 +1122,92 @@ PrecacheSoundKey(const key[])
     if (containi(path, ".mp3") != -1)
         precache_generic(path);
     else
+    {
         precache_sound(path);
+        ScanWav(path);
+    }
+}
+
+/* ---------------- Dongulu ses korumasi ----------------
+   GoldSrc, icinde "cue " bolumu olan WAV dosyalarini SONSUZ DONGUDE calar
+   (or. weapons/mine_charge.wav, ambience/burning1.wav). Bu sesler
+   durdurulmazsa round bitse de susmaz, ust uste biner. Precache sirasinda
+   her WAV taranir: dongulu olanlar oyuncuya "spk" ile hic calinmaz, varliktan
+   calinanlar kisa sure sonra otomatik durdurulur. */
+
+#define WAV_RIFF 0x46464952
+#define WAV_WAVE 0x45564157
+#define WAV_FMT  0x20746D66
+#define WAV_DATA 0x61746164
+#define WAV_CUE  0x20657563
+
+ScanWav(const snd[])
+{
+    if (TrieKeyExists(g_tSndInfo, snd))
+        return;
+
+    new full[160], info;
+    formatex(full, charsmax(full), "sound/%s", snd);
+    new fp = fopen(full, "rb", true);
+    if (fp)
+    {
+        new id, size, tmp, rate, byterate, datalen, bool:loop, guard;
+        fread(fp, id, BLOCK_INT);
+        fread(fp, size, BLOCK_INT);
+        fread(fp, tmp, BLOCK_INT);
+        if (id == WAV_RIFF && tmp == WAV_WAVE)
+        {
+            while (!feof(fp) && guard++ < 64)
+            {
+                if (fread(fp, id, BLOCK_INT) != 1 || fread(fp, size, BLOCK_INT) != 1 || size < 0)
+                    break;
+
+                if (id == WAV_FMT && size >= 16)
+                {
+                    fread(fp, tmp, BLOCK_INT);       // format + kanal
+                    fread(fp, rate, BLOCK_INT);
+                    fread(fp, byterate, BLOCK_INT);
+                    fseek(fp, size - 12, SEEK_CUR);
+                }
+                else if (id == WAV_DATA)
+                {
+                    datalen = size;
+                    fseek(fp, size, SEEK_CUR);
+                }
+                else
+                {
+                    if (id == WAV_CUE)
+                        loop = true;
+                    fseek(fp, size, SEEK_CUR);
+                }
+                if (size & 1)
+                    fseek(fp, 1, SEEK_CUR);
+            }
+        }
+        fclose(fp);
+
+        new ms = (byterate > 0) ? (datalen / max(1, byterate / 1000)) : 0;
+        info = (loop ? 1 : 0) | (clamp(ms, 0, 600000) << 1);
+        if (loop)
+            log_amx("[Vexmira] DONGULU ses tespit edildi: %s (otomatik durdurulacak / spk ile calinmayacak)", snd);
+    }
+    TrieSetCell(g_tSndInfo, snd, info);
+}
+
+bool:SndLooped(const snd[])
+{
+    new info;
+    if (!TrieGetCell(g_tSndInfo, snd, info))
+        return false;
+    return (info & 1) ? true : false;
+}
+
+Float:SndLength(const snd[])
+{
+    new info;
+    if (!TrieGetCell(g_tSndInfo, snd, info))
+        return 0.0;
+    return float(info >> 1) / 1000.0;
 }
 
 PrecacheSafe(const path[])
@@ -903,6 +1218,22 @@ PrecacheSafe(const path[])
             log_amx("[Vexmira] Dosya bulunamadi, atlandi: %s", path);
         return 0;
     }
+    return precache_model(path);
+}
+
+// Ayardaki sprite (vex_res SPR_...): varsa precache, yoksa 0
+PrecacheResSprite(const key[], out[], len)
+{
+    out[0] = 0;
+    new path[96];
+    if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
+        return 0;
+    if (!file_exists(path, true))
+    {
+        log_amx("[Vexmira] Sprite bulunamadi: %s (%s) - orijinal efekt kullanilacak", path, key);
+        return 0;
+    }
+    copy(out, len, path);
     return precache_model(path);
 }
 
@@ -948,18 +1279,46 @@ GetFileModel(const key[], out[], len)
     precache_model(out);
 }
 
+// Tek kaynak ayari: ANAHTAR -> deger. Ses dosyasi sunucuda yoksa varsayilan korunur
+// (eksik dosya oyunculari "server failed to transmit file" ile atar).
+ResSet(const key[], const value[])
+{
+    if (!key[0])
+        return;
+
+    if (equali(key, "VOX_COUNTDOWN"))
+    {
+        g_bVoxCountdown = (str_to_num(value) != 0);
+        return;
+    }
+
+    if (value[0] && (containi(value, ".wav") != -1 || containi(value, ".mp3") != -1))
+    {
+        new full[192];
+        if (containi(value, ".mp3") != -1)
+            copy(full, charsmax(full), value);
+        else
+            formatex(full, charsmax(full), "sound/%s", value);
+
+        if (!file_exists(full, true))
+        {
+            log_amx("[Vexmira] Ses bulunamadi: %s (%s) - varsayilan kullanilacak", full, key);
+            return;
+        }
+    }
+    TrieSetString(g_tRes, key, value);
+}
+
+// Eski surumden kalan vexmira_resources.ini (varsa). Yeni surumde her sey vexmira.cfg'de.
 LoadResourceIni()
 {
-    new file[96], line[256], key[32], value[192], stock_path[192];
+    new file[96], line[256], key[32], value[192];
     get_configsdir(file, charsmax(file));
     add(file, charsmax(file), "/vexmira_resources.ini");
 
     new fp = fopen(file, "rt");
     if (!fp)
-    {
-        log_amx("[Vexmira] vexmira_resources.ini bulunamadi, varsayilanlar kullaniliyor.");
         return;
-    }
 
     while (!feof(fp))
     {
@@ -987,33 +1346,7 @@ LoadResourceIni()
             value[sc] = 0;
             trim(value);
         }
-
-        if (!key[0])
-            continue;
-
-        if (equali(key, "VOX_COUNTDOWN"))
-        {
-            g_bVoxCountdown = (str_to_num(value) != 0);
-            continue;
-        }
-
-        // Ses dosyasi: ozel dosya yoksa varsayilani koru
-        if (value[0] && (containi(value, ".wav") != -1 || containi(value, ".mp3") != -1))
-        {
-            if (containi(value, ".mp3") != -1)
-                copy(stock_path, charsmax(stock_path), value);
-            else
-                formatex(stock_path, charsmax(stock_path), "sound/%s", value);
-
-            // Sunucuda olmayan ses oyunculari "server failed to transmit file" ile atar: kontrol et
-            if (!file_exists(stock_path, true))
-            {
-                log_amx("[Vexmira] Ses bulunamadi: %s (%s) - varsayilan kullanilacak", stock_path, key);
-                continue;
-            }
-        }
-
-        TrieSetString(g_tRes, key, value);
+        ResSet(key, value);
     }
     fclose(fp);
 }
@@ -1089,15 +1422,13 @@ public plugin_init()
     g_pMvpVC        = register_cvar("vex_mvp_vc", "1");
     g_pKillAP       = register_cvar("vex_kill_ap", "2");
     g_pInfectAP     = register_cvar("vex_infect_ap", "3");
-    g_pGiveNades    = register_cvar("vex_give_nades", "ab");
+    g_pGiveNades    = register_cvar("vex_give_nades", "abc");
     g_pLmEnable     = register_cvar("vex_lm_enable", "1");
-    g_pLmCost       = register_cvar("vex_lm_cost", "12");
-    g_pLmFree       = register_cvar("vex_lm_free", "1");
-    g_pLmMax        = register_cvar("vex_lm_max", "2");
+    g_pLmMax        = register_cvar("vex_lm_max", "3");
     g_pLmMaxVip     = register_cvar("vex_lm_max_vip", "3");
-    g_pLmTeamMax    = register_cvar("vex_lm_team_max", "16");
-    g_pLmHealth     = register_cvar("vex_lm_health", "450");
-    g_pLmDamage     = register_cvar("vex_lm_damage", "55");
+    g_pLmTeamMax    = register_cvar("vex_lm_team_max", "40");
+    g_pLmHealth     = register_cvar("vex_lm_health", "600");
+    g_pLmDamage     = register_cvar("vex_lm_damage", "150");
     g_pLmZMult      = register_cvar("vex_lm_zombie_mult", "3.0");
     g_pLmWear       = register_cvar("vex_lm_beam_wear", "18");
     g_pLmBoss       = register_cvar("vex_lm_boss", "0");
@@ -1112,6 +1443,100 @@ public plugin_init()
     g_pQuests       = register_cvar("vex_quests", "1");
     g_pEvolve       = register_cvar("vex_evolve", "3");
     g_pJoinMsg      = register_cvar("vex_join_messages", "1");
+
+    // v2.0
+    g_pPrefix        = register_cvar("vex_chat_prefix", "^4[^3VEX^4MIRA^4]^1");
+    g_pHostname      = register_cvar("vex_hostname", "EN/TR ZOMBIE | VEXMIRA | Boss + Round Events + Advanced Menu");
+    g_pHostDyn       = register_cvar("vex_hostname_dynamic", "1");
+    g_pEnv           = register_cvar("vex_env", "1");
+    g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
+    g_pWeather       = register_cvar("vex_weather", "1");
+    g_pNemOneShot    = register_cvar("vex_nemesis_oneshot", "1");
+    g_pAsnOneShot    = register_cvar("vex_assassin_oneshot", "1");
+    g_pNemVsSurv     = register_cvar("vex_nemesis_vs_survivor", "250");
+    g_pNemSpeed      = register_cvar("vex_nemesis_speed", "265");
+    g_pAsnSpeed      = register_cvar("vex_assassin_speed", "340");
+    g_pNemGrav       = register_cvar("vex_nemesis_gravity", "0.5");
+    g_pAsnGrav       = register_cvar("vex_assassin_gravity", "0.45");
+    g_pMinionHP      = register_cvar("vex_minion_hp", "400");
+    g_pNemRageTime   = register_cvar("vex_nemesis_rage_time", "5");
+    g_pNemRageCd     = register_cvar("vex_nemesis_rage_cooldown", "25");
+    g_pAsnVeilTime   = register_cvar("vex_assassin_veil_time", "4");
+    g_pAsnVeilCd     = register_cvar("vex_assassin_veil_cooldown", "25");
+    g_pSpecialLeapCd = register_cvar("vex_special_leap_cooldown", "6");
+    g_pLmPerRound    = register_cvar("vex_lm_per_round", "3");
+    g_pLmPerRoundVip = register_cvar("vex_lm_per_round_vip", "3");
+    g_pLmOneShot     = register_cvar("vex_lm_oneshot", "1");
+    g_pLmSpecialDmg  = register_cvar("vex_lm_special_damage", "600");
+    g_pLmKillWear    = register_cvar("vex_lm_kill_wear", "100");
+    g_pLmPlantTime   = register_cvar("vex_lm_plant_time", "1.0");
+    g_pLmTakeTime    = register_cvar("vex_lm_take_time", "0");
+    g_pLmArmTime     = register_cvar("vex_lm_arm_time", "1.5");
+    g_pLmBeamWidth   = register_cvar("vex_lm_beam_width", "8");
+    g_pLmColorMode   = register_cvar("vex_lm_color_mode", "0");
+    g_pLmColor       = register_cvar("vex_lm_color", "0 200 255");
+    g_pLmRange       = register_cvar("vex_lm_plant_range", "128");
+    g_pLmTakeRange   = register_cvar("vex_lm_take_range", "170");
+    g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
+    g_pNadeSensorArm = register_cvar("vex_nade_sensor_arm", "1.5");
+    g_pNadeSensorLife= register_cvar("vex_nade_sensor_life", "60");
+    g_pNadeLaserArm  = register_cvar("vex_nade_laser_arm", "1.0");
+    g_pNadeFireDmg   = register_cvar("vex_nade_fire_damage", "80");
+    g_pNadeFireRad   = register_cvar("vex_nade_fire_radius", "260");
+    g_pNadeFireBurn  = register_cvar("vex_nade_fire_burn", "6");
+    g_pNadeFrostRad  = register_cvar("vex_nade_frost_radius", "260");
+    g_pNadeFrostTime = register_cvar("vex_nade_frost_time", "3.0");
+    g_pNadeInfectRad = register_cvar("vex_nade_infect_radius", "240");
+    g_pNadeFlareTime = register_cvar("vex_nade_flare_time", "25");
+    g_pNadeClusterDmg= register_cvar("vex_nade_cluster_damage", "45");
+    g_pBossPhase2    = register_cvar("vex_boss_phase2", "60");
+    g_pBossPhase3    = register_cvar("vex_boss_phase3", "30");
+    g_pBossRAuto     = register_cvar("vex_boss_r_auto", "12");
+    g_pBossRCdMult   = register_cvar("vex_boss_r_cooldown_mult", "1.0");
+    g_pBossRDmgMult  = register_cvar("vex_boss_r_damage_mult", "1.0");
+    g_pBossAutoAbil  = register_cvar("vex_boss_auto_abilities", "1");
+    g_pBossFallback  = register_cvar("vex_boss_min_players", "2");
+    g_pAfkTime       = register_cvar("vex_afk_time", "120");
+    g_pAfkAction     = register_cvar("vex_afk_action", "1");
+    g_pDropBeacon    = register_cvar("vex_airdrop_beacon", "1");
+    g_pDropCompass   = register_cvar("vex_airdrop_compass", "1");
+    g_pAirdropHP     = register_cvar("vex_airdrop_zombie_heal", "300");
+    g_pLoopGuard     = register_cvar("vex_sound_loopguard", "1");
+    g_pLoopMax       = register_cvar("vex_sound_loop_max", "3.0");
+    g_pRoundStopSnd  = register_cvar("vex_round_stopsound", "1");
+    g_pKillXP        = register_cvar("vex_kill_xp", "8");
+    g_pInfectXP      = register_cvar("vex_infect_xp", "10");
+    g_pWinHXP        = register_cvar("vex_win_human_xp", "25");
+    g_pWinHAP        = register_cvar("vex_win_human_ap", "6");
+    g_pWinZXP        = register_cvar("vex_win_zombie_xp", "15");
+    g_pWinZAP        = register_cvar("vex_win_zombie_ap", "4");
+    g_pBossKillXP    = register_cvar("vex_boss_kill_xp", "120");
+    g_pBossKillAP    = register_cvar("vex_boss_kill_ap", "25");
+    g_pBossKillVC    = register_cvar("vex_boss_kill_vc", "3");
+    g_pSpecKillXP    = register_cvar("vex_special_kill_xp", "80");
+    g_pSpecKillAP    = register_cvar("vex_special_kill_ap", "15");
+    g_pBossBoard     = register_cvar("vex_boss_board_ap", "40 25 15");
+    g_pHsAP          = register_cvar("vex_headshot_ap", "1");
+    g_pExchange      = register_cvar("vex_exchange_cost", "60");
+    g_pPerkStep      = register_cvar("vex_perk_cost_step", "4");
+    g_pDailyAP       = register_cvar("vex_daily_ap", "20");
+    g_pAchAP         = register_cvar("vex_achievement_ap", "25");
+    g_pAchVC         = register_cvar("vex_achievement_vc", "3");
+    g_pBurnDmg       = register_cvar("vex_burn_damage_human", "6");
+    g_pZombieBurnDmg = register_cvar("vex_burn_damage_zombie", "35");
+
+    g_msgWeather = get_user_msgid("ReceiveW");
+
+    // Tek ayar dosyasi tablolari (konsoldan da calisir)
+    static const TABLE_CMDS[][] =
+    {
+        "vex_item", "vex_class", "vex_sw", "vex_gun", "vex_job", "vex_boss_stat", "vex_boss_skill",
+        "vex_mode_rule", "vex_env_event", "vex_env_mode", "vex_env_boss", "vex_env_calm", "vex_cosmetic", "vex_quest"
+    };
+    for (new i = 0; i < sizeof TABLE_CMDS; i++)
+        register_srvcmd(TABLE_CMDS[i], "srv_TableCmd");
+    register_srvcmd("vex_res", "srv_ResCmd");
+    register_concmd("vex_reload", "cmd_reload_cfg", ADMIN_RCON, "- vexmira.cfg dosyasini yeniden yukler");
 
     // ReAPI hook'lari
     RegisterHookChain(RG_CSGameRules_CheckWinConditions, "rg_CheckWinConditions", false);
@@ -1220,7 +1645,7 @@ public plugin_init()
     register_clcmd("+setlaser", "cmd_lm_plant");
     register_clcmd("-setlaser", "cmd_lm_release");
     register_clcmd("+dellaser", "cmd_lm_take");
-    register_clcmd("-dellaser", "cmd_lm_release");
+    register_clcmd("-dellaser", "cmd_lm_release_take");
     register_clcmd("setlaser",  "cmd_lm_plant");
     register_clcmd("dellaser",  "cmd_lm_take");
     register_clcmd("vex_lm_plant", "cmd_lm_plant");
@@ -1248,20 +1673,17 @@ public plugin_init()
     ShuffleBosses();
 }
 
-// configs/vexmira.cfg dosyasindaki ayarlari yukle
+// configs/vexmira.cfg: TEK ayar dosyasi. Plugin satir satir okur ve uygular.
+// Panel / server.cfg sonradan hostname vb. ezerse diye birkac saniye sonra tekrar uygulanir.
 public plugin_cfg()
 {
-    new file[128];
-    get_configsdir(file, charsmax(file));
-    add(file, charsmax(file), "/vexmira.cfg");
-
-    if (file_exists(file))
-        server_cmd("exec %s", file);
-    else
-        log_amx("[Vexmira] %s bulunamadi, varsayilan cvar degerleri kullaniliyor.", file);
+    new n = LoadMainConfig(false);
+    log_amx("[Vexmira] vexmira.cfg yuklendi (%d satir).", n);
 
     LoadTop();
     set_task(1.5, "task_EnforceRoundInfinite", TASK_ROUNDINF);
+    set_task(6.0, "task_LoadConfig", TASK_CFGLOAD);
+    set_task(30.0, "task_Hostname", TASK_HOSTNAME, _, _, "b");
 }
 
 // Round suresi dolunca oyun kendi bitirmesin (CheckWin bitirir); cfg unutulsa bile
@@ -2523,6 +2945,10 @@ public rg_MakeBomber(id)
 
 public rg_RestartRound()
 {
+    // Onceki roundun sesleri (kalp atisi, muzik, yanma, ruzgar...) tamamen susar
+    if (get_pcvar_num(g_pRoundStopSnd))
+        StopAllClientSounds();
+
     remove_task(TASK_ANNOUNCE);
     remove_task(TASK_BOSSCAST);
     remove_task(TASK_BOSSHIT);
@@ -2552,6 +2978,7 @@ public rg_RestartRound()
 
     RemoveAllMines();
     RemoveAllDrops();
+    BossCleanup();
     TrieClear(g_tRoundBuys);
     g_iStartTries = 0;
     g_bAnnounced = false;
@@ -2564,6 +2991,7 @@ public rg_RestartRound()
         g_bZombie[id] = 0; g_bNemesis[id] = 0; g_bAssassin[id] = 0; g_bSurvivor[id] = 0; g_bSniper[id] = 0;
         g_bBoss[id] = 0; g_bMinion[id] = 0; g_bFirst[id] = 0; g_bForceZombie[id] = 0;
         g_fRespawnAt[id] = 0.0;
+        g_bLmGiven[id] = false;
         ResetRoundData(id);
         ResetLifeData(id);
     }
@@ -2589,7 +3017,9 @@ public rg_RestartRound()
     }
 
     PickMode();
+    PickCalmPreset();
     ApplyWorldEvent();
+    ApplyHostname();
 
     set_task(1.2, "task_Announce", TASK_ANNOUNCE);
 }
@@ -2904,6 +3334,9 @@ OnRoundEnd(WinStatus:status)
 
     g_bRoundEnded = true;
     g_bCounting = false;
+
+    // Mod / boss muzigi round bitince susar
+    StopRoundMusic();
 
     new bool:wasActive = g_bRoundActive;
     g_bRoundActive = false;
@@ -3547,7 +3980,12 @@ TickPlayers()
 
             if (get_entvar(id, var_health) < 30.0 && !is_user_bot(id))
             {
-                PlayKey(id, "HEARTBEAT");
+                // Kalp atisi: tek seferlik ses, bitmeden tekrar calinmaz (ust uste binmez)
+                if (now >= g_fNextBeat[id])
+                {
+                    PlayKey(id, "HEARTBEAT");
+                    g_fNextBeat[id] = now + 1.1;
+                }
                 if (!(g_iSet[id] & SET_NO_FX))
                     FadeOne(id, 255, 0, 0, 45, 0.9);
             }
@@ -3642,7 +4080,7 @@ TickMeteor()
     o[0] += random_float(-120.0, 120.0);
     o[1] += random_float(-120.0, 120.0);
 
-    FxRing(o, 255, 60, 0, 220);
+    ZoneSpawn(o, 220.0, 255, 80, 0, 1.5, 0, false);
     FxLight(o, 255, 60, 0, 30, 15, 5);
 
     new params[4];
@@ -3718,7 +4156,7 @@ AddFlare(const Float:o[3])
     g_fFlarePos[best][0] = o[0];
     g_fFlarePos[best][1] = o[1];
     g_fFlarePos[best][2] = o[2] + 10.0;
-    g_fFlareEnd[best] = get_gametime() + 25.0;
+    g_fFlareEnd[best] = get_gametime() + floatmax(1.0, get_pcvar_float(g_pNadeFlareTime));
 }
 
 /* ================================================================== */
@@ -3829,13 +4267,22 @@ DrawHud()
                 else
                     formatex(l4, charsmax(l4), "%L", id, "HUD_CLASS_READY", cn);
             }
-            else if (g_bNemesis[id] || g_bAssassin[id] || g_bBoss[id])
+            else if (g_bBoss[id])
             {
-                new Float:cd = g_fCool[id] - get_gametime();
-                if (cd > 0.0)
-                    formatex(l4, charsmax(l4), "%L", id, "HUD_LEAP_CD", floatround(cd, floatround_ceil));
-                else
-                    formatex(l4, charsmax(l4), "%L", id, "HUD_LEAP_READY");
+                // [R] faz yetenegi + [F] atilma
+                new sk[16], skn[40], rs[24], fs[24];
+                formatex(sk, charsmax(sk), "BSK_%d_%d", g_iBossType, clamp(g_iBossPhase, 1, 3));
+                formatex(skn, charsmax(skn), "%L", id, sk);
+                CdText(id, g_iBossChannel != CH_NONE ? -1.0 : g_fBossRCool - get_gametime(), rs, charsmax(rs));
+                CdText(id, g_fCool[id] - get_gametime(), fs, charsmax(fs));
+                formatex(l4, charsmax(l4), "%L", id, "HUD_BOSS_R", skn, rs, fs);
+            }
+            else if (g_bNemesis[id] || g_bAssassin[id])
+            {
+                new rs[24], fs[24];
+                CdText(id, g_fCool[id] - get_gametime(), rs, charsmax(rs));
+                CdText(id, g_fFCool[id] - get_gametime(), fs, charsmax(fs));
+                formatex(l4, charsmax(l4), "%L", id, g_bNemesis[id] ? "HUD_NEM_RF" : "HUD_ASN_RF", rs, fs);
             }
             else if (!g_bZombie[id])
             {
@@ -3849,6 +4296,17 @@ DrawHud()
         }
 
         QuestLine(id, l5, charsmax(l5));
+        if (is_user_alive(id) && !g_bZombie[id])
+        {
+            new cmp[64];
+            if (DropCompass(id, cmp, charsmax(cmp)))
+            {
+                if (l5[0])
+                    format(l5, charsmax(l5), "%s^n%s", l5, cmp);
+                else
+                    copy(l5, charsmax(l5), cmp);
+            }
+        }
 
         new pos = g_iHudPos[id];
         new bool:zm = (is_user_alive(id) && g_bZombie[id]) ? true : false;
@@ -3955,7 +4413,9 @@ StartMode()
     {
         remove_task(TASK_ANNOUNCE);
         PickMode();
+        PickCalmPreset();
         ApplyWorldEvent();
+        ApplyHostname();
         task_Announce();
     }
 
@@ -4198,18 +4658,18 @@ ApplyZombieStats(id)
         hp = float(get_pcvar_num(g_pNemHP) + 500 * CountPlaying());
         if (g_iMode == MODE_ARMAGEDDON)
             hp *= 0.5;
-        grav = 0.5;
+        grav = get_pcvar_float(g_pNemGrav);
         copy(model, charsmax(model), g_szNemModel);
     }
     else if (g_bAssassin[id])
     {
         hp = float(get_pcvar_num(g_pAsnHP) + 300 * CountPlaying());
-        grav = 0.45;
+        grav = get_pcvar_float(g_pAsnGrav);
         copy(model, charsmax(model), g_szAsnModel);
     }
     else if (g_bMinion[id])
     {
-        hp = 400.0;
+        hp = float(max(1, get_pcvar_num(g_pMinionHP)));
         grav = 0.8;
         copy(model, charsmax(model), g_szZModel[0]);
     }
@@ -4258,6 +4718,7 @@ ClearZombieRoles(id)
         g_bBoss[id] = 0;
         if (g_iBoss == id)
         {
+            BossCleanup();
             g_iBoss = 0;
             g_fBossIntro = 0.0;
             remove_task(TASK_BOSSCAST);
@@ -4341,11 +4802,13 @@ MakeHuman(id)
     ApplyHumanGravity(id);
     ApplyRender(id);
     rg_reset_maxspeed(id);
+    GiveRoundMines(id);
 
     if (g_iPrim[id] >= 0 && g_iSec[id] >= 0)
         GiveLoadout(id);
     else
         ShowPrimaryMenu(id);
+    GiveStartNades(id);
 
     new Float:o[3];
     get_entvar(id, var_origin, o);
@@ -4420,6 +4883,10 @@ ApplyRender(id)
         set_user_rendering(id, kRenderFxGlowShell, 40, 120, 255, kRenderNormal, 28);
     else if (g_bBoss[id] && g_fEclipseEnd > get_gametime())
         set_user_rendering(id, kRenderFxGlowShell, 40, 0, 30, kRenderTransAlpha, 70);
+    else if (g_bBoss[id] && g_fBossBuffEnd > get_gametime())
+        set_user_rendering(id, kRenderFxGlowShell, 255, 80, 0, kRenderNormal, 70);
+    else if (g_bBoss[id] && g_fBossEmpower > get_gametime())
+        set_user_rendering(id, kRenderFxGlowShell, 120, 0, 200, kRenderNormal, 60);
     else if (g_bBoss[id])
     {
         if (g_bEnraged)
@@ -4427,6 +4894,8 @@ ApplyRender(id)
         else
             set_user_rendering(id, kRenderFxGlowShell, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], kRenderNormal, 32);
     }
+    else if (g_bNemesis[id] && g_fRage[id] > get_gametime())
+        set_user_rendering(id, kRenderFxGlowShell, 255, 60, 0, kRenderNormal, 60);
     else if (g_bNemesis[id])
         set_user_rendering(id, kRenderFxGlowShell, 255, 0, 0, kRenderNormal, 20);
     else if (g_bAssassin[id])
@@ -4536,6 +5005,19 @@ public fw_CmdStart(id, uc_handle, seed)
     if (!g_bRoundActive || !is_user_alive(id) || !g_bZombie[id] || g_bMinion[id])
         return FMRES_IGNORED;
 
+    // [F] (fener tusu): Boss = atilma, Nemesis = OFKE, Assassin = GOLGE PERDESI
+    if (get_uc(uc_handle, UC_Impulse) == 100 && (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]))
+    {
+        set_uc(uc_handle, UC_Impulse, 0);
+        if (g_fFrozen[id] <= get_gametime())
+        {
+            if (g_bBoss[id])
+                SpecialLeap(id);
+            else
+                SpecialFSkill(id);
+        }
+    }
+
     if (!(get_uc(uc_handle, UC_Buttons) & IN_RELOAD))
         return FMRES_IGNORED;
     if (get_entvar(id, var_oldbuttons) & IN_RELOAD)
@@ -4543,7 +5025,10 @@ public fw_CmdStart(id, uc_handle, seed)
     if (g_fFrozen[id] > get_gametime())
         return FMRES_IGNORED;
 
-    if (g_bNemesis[id] || g_bAssassin[id] || g_bBoss[id])
+    // [R]: Boss = faza gore yetenek, Nemesis / Assassin = atilma, zombi = sinif yetenegi
+    if (g_bBoss[id])
+        BossUseR(id);
+    else if (g_bNemesis[id] || g_bAssassin[id])
         SpecialLeap(id);
     else
         UseAbility(id);
@@ -4556,14 +5041,63 @@ SpecialLeap(id)
     new Float:now = get_gametime();
     if (now < g_fCool[id] || !(get_entvar(id, var_flags) & FL_ONGROUND))
         return;
+    if (g_bBoss[id] && g_fBossIntro > now)
+        return;
 
-    LeapForward(id, g_bAssassin[id] ? 850.0 : 650.0, 320.0);
-    g_fCool[id] = now + (g_bAssassin[id] ? 4.0 : 6.0);
+    new Float:cd = floatmax(1.0, get_pcvar_float(g_pSpecialLeapCd));
+    LeapForward(id, g_bAssassin[id] ? 850.0 : (g_bBoss[id] ? 720.0 : 650.0), 320.0);
+    g_fCool[id] = now + (g_bAssassin[id] ? cd * 0.66 : cd);
 
     new Float:o[3];
     get_entvar(id, var_origin, o);
-    FxRing(o, 255, 0, 0, 200);
+    if (g_bBoss[id])
+        FxRingEx(o, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], 220, 16, 4);
+    else
+        FxRing(o, 255, 0, 0, 200);
     EmitKey(id, "ABILITY_LEAP");
+}
+
+// Nemesis: OFKE (hizli + dayanikli), Assassin: GOLGE PERDESI (neredeyse gorunmez + hizli)
+SpecialFSkill(id)
+{
+    new Float:now = get_gametime();
+    if (now < g_fFCool[id])
+    {
+        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
+        show_hudmessage(id, "%L", id, "ABILITY_COOL", floatround(g_fFCool[id] - now, floatround_ceil));
+        return;
+    }
+
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    if (g_bNemesis[id])
+    {
+        new Float:dur = floatmax(1.0, get_pcvar_float(g_pNemRageTime));
+        g_fRage[id] = now + dur;
+        g_fFCool[id] = now + floatmax(dur + 1.0, get_pcvar_float(g_pNemRageCd));
+        FxRingEx(o, 255, 30, 0, 320, 30, 5);
+        FxLava(o);
+        FxLight(o, 255, 30, 0, 40, 10, 10);
+        ShakeAll(6, 1.0, 4);
+        EmitKey(id, "NEM_RAGE", CHAN_STATIC, ATTN_NONE);
+        HudTo(id, SL_PERS, 255, 60, 0, 2.5, "NEM_RAGE_YOU");
+        new name[32];
+        get_user_name(id, name, charsmax(name));
+        ChatAllS("NEM_RAGE_ALL", name);
+    }
+    else
+    {
+        new Float:dur = floatmax(1.0, get_pcvar_float(g_pAsnVeilTime));
+        g_fRage[id] = now + dur;
+        g_fCloak[id] = now + dur;
+        g_fFCool[id] = now + floatmax(dur + 1.0, get_pcvar_float(g_pAsnVeilCd));
+        FxSprite(o, g_sprSmoke, 25, 160);
+        FxImplosion(o, 120, 30, 5);
+        EmitKey(id, "ASN_VEIL");
+        HudTo(id, SL_PERS, 160, 60, 255, 2.5, "ASN_VEIL_YOU");
+    }
+    ApplyRender(id);
+    rg_reset_maxspeed(id);
 }
 
 LeapForward(id, Float:power, Float:up)
@@ -4817,9 +5351,7 @@ EmitZombieSound(id, const ev[], const fallbackKey[])
     if (containi(path, ".mp3") != -1)
         return;
 
-    g_bEmitting = true;
-    emit_sound(id, CHAN_VOICE, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
-    g_bEmitting = false;
+    EmitSafe(id, CHAN_VOICE, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 }
 
 
@@ -4901,9 +5433,8 @@ public rg_PlayerSpawn(id)
 
     SyncMoney(id);
 
-    // Bedava lazer mayini (boss roundunda yok)
-    if (LasersAllowed())
-        g_iMines[id] = max(g_iMines[id], get_pcvar_num(g_pLmFree));
+    // Round basi lazer hakki (vex_lm_per_round; boss roundunda yok)
+    GiveRoundMines(id);
 
     remove_task(id + TASK_LOADOUT);
     set_task(0.3, "task_Loadout", id + TASK_LOADOUT);
@@ -4928,6 +5459,9 @@ public task_Loadout(tid)
         ShowPrimaryMenu(id);
     else
         GiveLoadout(id);
+
+    // Bombalar silah seciminden bagimsiz: herkes her round tum bombalari alir
+    GiveStartNades(id);
 }
 
 public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
@@ -4968,11 +5502,32 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
                     dmg *= 1.25;
                 if (g_bFinalBoss)
                     dmg *= 1.15;
+                // Reaper Golge Adimi: sonraki vurus x2
+                if (g_fBossEmpower > now)
+                {
+                    dmg *= 2.0;
+                    g_fBossEmpower = 0.0;
+                    ApplyRender(attacker);
+                    new Float:vo[3];
+                    get_entvar(victim, var_origin, vo);
+                    FxImplosion(vo, 100, 30, 4);
+                    FxSprite(vo, g_sprExplode, 5, 200);
+                }
             }
-            else if (g_bNemesis[attacker])
-                dmg = get_pcvar_float(g_pNemDmg) * ((g_bSurvivor[victim] || g_bSniper[victim]) ? 0.5 : 1.0);
-            else if (g_bAssassin[attacker])
-                dmg = get_pcvar_float(g_pAsnDmg);
+            else if (g_bNemesis[attacker] || g_bAssassin[attacker])
+            {
+                // v2.0: Nemesis ve Assassin insanlari TEK VURUSTA indirir
+                // (vex_nemesis_oneshot / vex_assassin_oneshot). Survivor / Sniper'a ayri hasar.
+                new bool:nem = g_bNemesis[attacker] ? true : false;
+                if (g_bSurvivor[victim] || g_bSniper[victim])
+                    dmg = get_pcvar_float(g_pNemVsSurv);
+                else if (get_pcvar_num(nem ? g_pNemOneShot : g_pAsnOneShot))
+                    dmg = 999999.0;
+                else
+                    dmg = get_pcvar_float(nem ? g_pNemDmg : g_pAsnDmg);
+                if (g_fRage[attacker] > now && dmg < 9000.0)
+                    dmg *= 1.3;
+            }
             else if (g_bMinion[attacker])
                 dmg = get_pcvar_float(g_pMinionDmg);
             else if (g_bSurvivor[victim] || g_bSniper[victim])
@@ -5079,7 +5634,11 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
         if (g_fShield[victim] > now)
             dmg *= 0.4;
         if (g_bZArmor[victim])
-            dmg *= 0.8;
+            dmg *= (100.0 - float(clamp(ITEM_VAL[IT_ZARMOR], 0, 90))) / 100.0;
+        if (g_bBoss[victim] && g_fBossBuffEnd > now)
+            dmg *= 0.7;
+        if (g_bNemesis[victim] && g_fRage[victim] > now)
+            dmg *= 0.7;
     }
     else if (dmg < 9000.0)
     {
@@ -5564,11 +6123,21 @@ public rg_ResetMaxSpeed(id)
             spd *= 1.2;
         if (g_fEclipseEnd > now)
             spd *= 1.15;
+        if (g_fBossBuffEnd > now)
+            spd *= 1.4;
     }
     else if (g_bNemesis[id])
-        spd = 260.0;
+    {
+        spd = get_pcvar_float(g_pNemSpeed);
+        if (g_fRage[id] > now)
+            spd *= 1.25;
+    }
     else if (g_bAssassin[id])
-        spd = 340.0;
+    {
+        spd = get_pcvar_float(g_pAsnSpeed);
+        if (g_fRage[id] > now)
+            spd *= 1.2;
+    }
     else if (g_bZombie[id])
     {
         spd = float(CLASS_SPD[g_bMinion[id] ? 0 : g_iClass[id]]) * get_pcvar_float(g_pZSpeed);
@@ -5774,9 +6343,7 @@ public fw_EmitSound(ent, channel, const sample[], Float:volume, Float:attn, flag
     if (containi(path, ".mp3") != -1 || equal(path, sample))
         return FMRES_IGNORED;
 
-    g_bEmitting = true;
-    emit_sound(ent, channel, path, volume, attn, flags, pitch);
-    g_bEmitting = false;
+    EmitSafe(ent, channel, path, volume, attn, flags, pitch);
     return FMRES_SUPERCEDE;
 }
 
@@ -5956,16 +6523,18 @@ public rg_ExplodeHe(ent, tracehandle, bits)
         FxLight(o, 255, 80, 0, 40, 15, 20);
         PlayKey(0, "NADE_FIRE");
 
+        new Float:frad = get_pcvar_float(g_pNadeFireRad), Float:fdmg = get_pcvar_float(g_pNadeFireDmg);
+        new burn = max(1, get_pcvar_num(g_pNadeFireBurn));
         for (new p = 1; p <= g_iMax; p++)
         {
             if (!is_user_alive(p) || !g_bZombie[p])
                 continue;
             get_entvar(p, var_origin, po);
-            if (get_distance_f(o, po) > 260.0)
+            if (get_distance_f(o, po) > frad)
                 continue;
-            Ignite(p, owner, 6);
+            Ignite(p, owner, burn);
             if (is_user_connected(owner))
-                ExecuteHamB(Ham_TakeDamage, p, ent, owner, 80.0, DMG_BURN | DMG_GRENADE);
+                ExecuteHamB(Ham_TakeDamage, p, ent, owner, fdmg, DMG_BURN | DMG_GRENADE);
         }
     }
     else
@@ -5984,7 +6553,7 @@ public rg_ExplodeHe(ent, tracehandle, bits)
                 if (CountHumans(true) <= 1)
                     break;
                 get_entvar(p, var_origin, po);
-                if (get_distance_f(o, po) > 240.0)
+                if (get_distance_f(o, po) > get_pcvar_float(g_pNadeInfectRad))
                     continue;
                 Infect(p, owner);
             }
@@ -6012,14 +6581,15 @@ public rg_ExplodeSmoke(ent)
     FxLight(o, 0, 150, 255, 40, 15, 20);
     PlayKey(0, "NADE_FROST");
 
+    new Float:rad = get_pcvar_float(g_pNadeFrostRad), Float:ft = get_pcvar_float(g_pNadeFrostTime);
     for (new p = 1; p <= g_iMax; p++)
     {
         if (!is_user_alive(p) || !g_bZombie[p])
             continue;
         get_entvar(p, var_origin, po);
-        if (get_distance_f(o, po) > 260.0)
+        if (get_distance_f(o, po) > rad)
             continue;
-        Freeze(p, 3.0);
+        Freeze(p, ft);
     }
 
     set_entvar(ent, var_flags, FL_KILLME);
@@ -7314,32 +7884,37 @@ GiveLoadout(id)
     rg_set_user_bpammo(id, WeaponIdType:rg_get_weapon_info(PRIM_ENT[p], WI_ID), PRIM_AMMO[p]);
 
     g_bGunsGiven[id] = true;
+    GiveStartNades(id);
+    engclient_cmd(id, PRIM_ENT[p]);
+}
 
-    // Bombalar her hayatta bir kez
-    if (g_bNadesGiven[id])
-    {
-        engclient_cmd(id, PRIM_ENT[p]);
+// v2.0: Her insana (CT) her dogusta TUM bombalar otomatik verilir; silah seciminden
+// bagimsiz. vex_give_nades: a = ates (HE), b = buz (duman), c = isaret fisegi (flash)
+GiveStartNades(id)
+{
+    if (!is_user_alive(id) || g_bZombie[id] || g_bNadesGiven[id])
         return;
-    }
     g_bNadesGiven[id] = true;
 
-    // Herkese baslangic bombalari (vex_give_nades: a = ates, b = buz, c = isaret fisegi)
     new gn[8];
     get_pcvar_string(g_pGiveNades, gn, charsmax(gn));
     if (containi(gn, "a") != -1)
     {
         g_iFireNades[id] = max(1, g_iFireNades[id]);
-        rg_give_item(id, "weapon_hegrenade");
+        if (rg_get_user_bpammo(id, WEAPON_HEGRENADE) <= 0)
+            rg_give_item(id, "weapon_hegrenade");
     }
     if (containi(gn, "b") != -1)
     {
         g_iFrostNades[id] = max(1, g_iFrostNades[id]);
-        rg_give_item(id, "weapon_smokegrenade");
+        if (rg_get_user_bpammo(id, WEAPON_SMOKEGRENADE) <= 0)
+            rg_give_item(id, "weapon_smokegrenade");
     }
     if (containi(gn, "c") != -1)
     {
         g_iFlares[id] = max(1, g_iFlares[id]);
-        rg_give_item(id, "weapon_flashbang");
+        if (rg_get_user_bpammo(id, WEAPON_FLASHBANG) <= 0)
+            rg_give_item(id, "weapon_flashbang");
     }
 
     // Demolitions / Grenadier: bedava bombalar
@@ -7353,28 +7928,84 @@ GiveLoadout(id)
         g_iFrostNades[id]++;
         GiveNadeStack(id, "weapon_smokegrenade", WEAPON_SMOKEGRENADE);
     }
-
-    engclient_cmd(id, PRIM_ENT[p]);
 }
 
 /* ================================================================== */
 /*  DUNYA EVENT'LERI (isik / sis)                                      */
 /* ================================================================== */
 
+/* ---------------- v2.0: ortam sistemi (isik / sis / hava durumu) ----------------
+   Oncelik: BOSS (bossa ozel) > ozel mod > event > sakin round hazirlari.
+   Tablolar vexmira.cfg'de: vex_env_boss / vex_env_mode / vex_env_event / vex_env_calm */
+
+CurrentEnv(&light, fog[4], &weather)
+{
+    light = 'm';
+    fog[0] = 0; fog[1] = 0; fog[2] = 0; fog[3] = 0;
+    weather = 0;
+    if (!get_pcvar_num(g_pEnv))
+        return;
+
+    if (g_iMode == MODE_BOSS && g_iBossType >= 0 && g_iBossType < NUM_BOSSES)
+    {
+        light = ENV_BOSS_LIGHT[g_iBossType] ? ENV_BOSS_LIGHT[g_iBossType] : 'd';
+        for (new i = 0; i < 4; i++)
+            fog[i] = ENV_BOSS_FOG[g_iBossType][i];
+        weather = ENV_BOSS_WEATHER[g_iBossType];
+        return;
+    }
+    if (g_iMode >= 0 && g_iMode < MODE_TOTAL && ENV_MODE_LIGHT[g_iMode])
+    {
+        light = ENV_MODE_LIGHT[g_iMode];
+        for (new i = 0; i < 4; i++)
+            fog[i] = ENV_MODE_FOG[g_iMode][i];
+        weather = ENV_MODE_WEATHER[g_iMode];
+        return;
+    }
+    if (g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
+    {
+        light = ENV_EV_LIGHT[g_iEvent];
+        for (new i = 0; i < 4; i++)
+            fog[i] = ENV_EV_FOG[g_iEvent][i];
+        weather = ENV_EV_WEATHER[g_iEvent];
+        return;
+    }
+    if (g_iCalmPreset >= 0 && g_iCalmPreset < NUM_CALM)
+    {
+        light = ENV_CALM_LIGHT[g_iCalmPreset];
+        for (new i = 0; i < 4; i++)
+            fog[i] = ENV_CALM_FOG[g_iCalmPreset][i];
+        weather = ENV_CALM_WEATHER[g_iCalmPreset];
+    }
+}
+
+// Sakin round: rastgele hava (gunduz %35, alacakaranlik %15, gece %15, yagmur %15, kar %10, sis %10)
+PickCalmPreset()
+{
+    g_iCalmPreset = -1;
+    if (!get_pcvar_num(g_pEnvCalm) || g_iEvent != EV_NONE || (g_iMode != MODE_INFECTION && g_iMode != MODE_MULTI))
+        return;
+    static const W[NUM_CALM] = { 35, 15, 15, 15, 10, 10 };
+    new roll = random_num(1, 100), acc;
+    for (new i = 0; i < NUM_CALM; i++)
+    {
+        acc += W[i];
+        if (roll <= acc)
+        {
+            g_iCalmPreset = i;
+            return;
+        }
+    }
+    g_iCalmPreset = 0;
+}
+
 ApplyWorldEvent()
 {
-    switch (g_iEvent)
-    {
-        case EV_BLOODMOON, EV_VAMPIRE: copy(g_szLight, charsmax(g_szLight), "c");
-        case EV_NIGHT:                 copy(g_szLight, charsmax(g_szLight), "b");
-        case EV_FOG:                   copy(g_szLight, charsmax(g_szLight), "g");
-        case EV_BLACKOUT:              copy(g_szLight, charsmax(g_szLight), "a");
-        case EV_STORM:                 copy(g_szLight, charsmax(g_szLight), "f");
-        default:                       copy(g_szLight, charsmax(g_szLight), "m");
-    }
-
-    if (g_iMode == MODE_BOSS || g_iMode == MODE_NEMESIS || g_iMode == MODE_ARMAGEDDON)
-        copy(g_szLight, charsmax(g_szLight), "d");
+    new light, fog[4], weather;
+    CurrentEnv(light, fog, weather);
+    g_szLight[0] = light ? light : 'm';
+    g_szLight[1] = 0;
+    g_iEnvWeather = weather;
 
     engfunc(EngFunc_LightStyle, 0, g_szLight);
 
@@ -7385,33 +8016,55 @@ ApplyWorldEvent()
     }
 }
 
+// Isik + sis + hava tekrar (yetenek / tutulma / firtina bitince)
+ApplyEnvAll()
+{
+    ApplyWorldEvent();
+}
+
 SendFogForEvent(id)
 {
     if (!is_user_connected(id) || is_user_bot(id))
         return;
 
-    if (g_iSet[id] & SET_NO_FOG)
-    {
-        SendFog(id, 0, 0, 0, false);
-        return;
-    }
+    new light, fog[4], weather;
+    CurrentEnv(light, fog, weather);
 
-    if (g_iMode == MODE_BOSS || g_iMode == MODE_NEMESIS)
-        SendFog(id, 60, 0, 0, true);
-    else if (g_iEvent == EV_BLOODMOON || g_iEvent == EV_VAMPIRE)
-        SendFog(id, 90, 0, 10, true);
-    else if (g_iEvent == EV_FOG)
-        SendFog(id, 150, 150, 150, true);
-    else if (g_iEvent == EV_GOLDRUSH)
-        SendFog(id, 120, 100, 20, true);
-    else if (g_iEvent == EV_STORM)
-        SendFog(id, 90, 100, 120, true);
-    else if (g_iEvent == EV_BLACKOUT)
-        SendFog(id, 0, 0, 0, true);
-    else if (g_iEvent == EV_SPEED)
-        SendFog(id, 0, 60, 90, true);
+    if (get_pcvar_num(g_pWeather))
+        SendWeather(id, weather);
+
+    if ((g_iSet[id] & SET_NO_FOG) || fog[3] <= 0)
+        SendFogEx(id, 0, 0, 0, 0);
     else
-        SendFog(id, 0, 0, 0, false);
+        SendFogEx(id, fog[0], fog[1], fog[2], fog[3]);
+}
+
+// Yogunluk x10000 (or. 25 = 0.0025). 0 = sis kapali.
+stock SendFogEx(id, r, g, b, density)
+{
+    if (!g_msgFog)
+        return;
+    new Float:fd = float(max(density, 0)) / 10000.0;
+    new d = (density > 0) ? (_:fd) : 0;
+    message_begin(MSG_ONE, g_msgFog, _, id);
+    write_byte(r);
+    write_byte(g);
+    write_byte(b);
+    write_byte(d & 0xFF);
+    write_byte((d >> 8) & 0xFF);
+    write_byte((d >> 16) & 0xFF);
+    write_byte((d >> 24) & 0xFF);
+    message_end();
+}
+
+// Hava: 0 acik, 1 yagmur, 2 kar (oyuncunun cl_weather ayari acik olmali)
+stock SendWeather(id, w)
+{
+    if (!g_msgWeather || !is_user_connected(id) || is_user_bot(id))
+        return;
+    message_begin(MSG_ONE, g_msgWeather, _, id);
+    write_byte(clamp(w, 0, 2));
+    message_end();
 }
 
 /* ================================================================== */
@@ -7431,20 +8084,25 @@ stock SendFog(id, r, g, b, bool:on)
     message_end();
 }
 
-// Efekt mesajlari "dusuk efekt" ayarini acmis oyunculara gonderilmez
+// Efekt mesajlari "dusuk efekt" ayarini acmis oyunculara gonderilmez.
+// Onemli uyarilar (boss alanlari) g_bFxReliable ile GUVENILIR kanaldan gider:
+// ag kotasi dolan oyuncu (or. surekli ates eden CT) da kesin gorur.
 stock FxBegin(const Float:o[3], p)
 {
-    engfunc(EngFunc_MessageBegin, MSG_ONE_UNRELIABLE, SVC_TEMPENTITY, o, p);
+    engfunc(EngFunc_MessageBegin, g_bFxReliable ? MSG_ONE : MSG_ONE_UNRELIABLE, SVC_TEMPENTITY, o, p);
 }
 
 stock bool:FxWants(p, const Float:o[3])
 {
-    if (!is_user_connected(p) || is_user_bot(p) || (g_iSet[p] & SET_NO_FX))
+    if (!is_user_connected(p) || is_user_bot(p))
+        return false;
+    // Guvenilir uyarilar dusuk efekt ayarinda bile gonderilir (hayati bilgi)
+    if (!g_bFxReliable && (g_iSet[p] & SET_NO_FX))
         return false;
 
     new Float:po[3];
     get_entvar(p, var_origin, po);
-    return (get_distance_f(o, po) < 2500.0) ? true : false;
+    return (get_distance_f(o, po) < (g_bFxReliable ? 4000.0 : 2500.0)) ? true : false;
 }
 
 stock FxRing(const Float:o[3], r, g, b, radius)
@@ -8008,12 +8666,17 @@ stock PlayKey(id, const key[])
         return;
 
     if (containi(path, ".mp3") != -1)
+    {
         client_cmd(id, "mp3 play ^"%s^"", path);
-    else
-        client_cmd(id, "spk ^"%s^"", path);
+        return;
+    }
+    // Dongulu WAV oyuncuya "spk" ile calinirsa bir daha susmaz: calma
+    if (get_pcvar_num(g_pLoopGuard) && SndLooped(path))
+        return;
+    client_cmd(id, "spk ^"%s^"", path);
 }
 
-stock EmitKey(ent, const key[])
+stock EmitKey(ent, const key[], chan = CHAN_VOICE, Float:attn = ATTN_NORM)
 {
     new path[128];
     if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
@@ -8021,7 +8684,64 @@ stock EmitKey(ent, const key[])
     if (containi(path, ".mp3") != -1)
         return;
 
-    emit_sound(ent, CHAN_VOICE, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+    EmitSafe(ent, chan, path, VOL_NORM, attn, 0, PITCH_NORM);
+}
+
+// Varliktan ses: dongulu WAV ise kisa sure sonra otomatik durdurulur
+stock EmitSafe(ent, chan, const path[], Float:vol = VOL_NORM, Float:attn = ATTN_NORM, flags = 0, pitch = PITCH_NORM)
+{
+    if (!path[0] || (ent > 0 && is_nullent(ent)))
+        return;
+
+    new bool:was = g_bEmitting;
+    g_bEmitting = true;
+    emit_sound(ent, chan, path, vol, attn, flags, pitch);
+    g_bEmitting = was;
+
+    if (!get_pcvar_num(g_pLoopGuard) || !SndLooped(path))
+        return;
+
+    new params[68];
+    params[0] = ent;
+    params[1] = chan;
+    copy(params[2], 64, path);
+    new Float:maxT = floatmax(0.5, get_pcvar_float(g_pLoopMax));
+    new Float:t = SndLength(path);
+    if (t <= 0.1 || t > maxT)
+        t = maxT;
+    g_iSndStopSlot = (g_iSndStopSlot + 1) % 64;
+    remove_task(TASK_SNDSTOP + g_iSndStopSlot);
+    set_task(t, "task_StopEmit", TASK_SNDSTOP + g_iSndStopSlot, params, sizeof params);
+}
+
+public task_StopEmit(params[])
+{
+    new ent = params[0];
+    if (ent > 0 && is_nullent(ent))
+        return;
+    new bool:was = g_bEmitting;
+    g_bEmitting = true;
+    emit_sound(ent, params[1], params[2], 0.0, ATTN_NORM, SND_STOP, PITCH_NORM);
+    g_bEmitting = was;
+}
+
+// Round sonu / basi: muzik ve kalan tum sesler susar (ust uste binme olmaz)
+stock StopRoundMusic()
+{
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (is_user_connected(id) && !is_user_bot(id))
+            client_cmd(id, "mp3 stop");
+    }
+}
+
+stock StopAllClientSounds()
+{
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (is_user_connected(id) && !is_user_bot(id))
+            client_cmd(id, "mp3 stop;stopsound");
+    }
 }
 
 /* ---------------- v1.4 ek efektler ---------------- */
@@ -10018,10 +10738,13 @@ StartBoss(players[32], n)
     new boss = players[random(n)];
     new humans = max(1, n - 1);
 
+    BossCleanup();
     g_iBoss = boss;
     g_iBossTick = 0;
     g_iBossPhase = 1;
     g_bEnraged = false;
+    g_fBossRCool = get_gametime() + 4.0;
+    g_fBossRLast = get_gametime() + 2.5;
     g_bBoss[boss] = 1;
     g_bZombie[boss] = 1;
     g_fEclipseEnd = 0.0;
@@ -10079,6 +10802,14 @@ StartBoss(players[32], n)
     formatex(key, charsmax(key), "BOSS_INFO_%d", g_iBossType);
     ChatAll(key);
     Chat(boss, "ROLE_BOSS_YOU");
+    Chat(boss, "ROLE_BOSS_KEYS");
+    if (!is_user_bot(boss))
+    {
+        new sk[16], skn[48];
+        formatex(sk, charsmax(sk), "BSK_%d_1", g_iBossType);
+        formatex(skn, charsmax(skn), "%L", boss, sk);
+        Chat(boss, "BSK_FIRST_SKILL", skn);
+    }
 
     // Buyuk isim: "B R U T E" + unvan
     new nm[32], spaced[64], txt[128];
@@ -10160,9 +10891,7 @@ EmitBossSound(const ev[])
     if (containi(path, ".mp3") != -1)
         return;
 
-    g_bEmitting = true;
-    emit_sound(g_iBoss, CHAN_STATIC, path, VOL_NORM, ATTN_NONE, 0, PITCH_NORM);
-    g_bEmitting = false;
+    EmitSafe(g_iBoss, CHAN_STATIC, path, VOL_NORM, ATTN_NONE, 0, PITCH_NORM);
 }
 
 // Boss hasari: yetenek carpani + delilik + final
@@ -10201,7 +10930,8 @@ TickBoss()
     // Faz kontrolu
     new hp = floatround(Float:get_entvar(boss, var_health));
     new pct = hp * 100 / max(1, g_iBossMaxHP);
-    new phase = (pct > 60) ? 1 : (pct > 30) ? 2 : 3;
+    new p2 = clamp(get_pcvar_num(g_pBossPhase2), 2, 99), p3 = clamp(get_pcvar_num(g_pBossPhase3), 1, p2 - 1);
+    new phase = (pct > p2) ? 1 : (pct > p3) ? 2 : 3;
 
     if (phase > g_iBossPhase)
     {
@@ -10261,16 +10991,22 @@ TickBoss()
         }
     }
 
-    // Yetenek zamanlayicisi
+    // [R] yapay zeka: bot boss / uzun sure R kullanmayan boss
+    BossAutoR();
+
+    // Otomatik saldirilar (uyarili). Faz ilerledikce siklasir; faz 2+ eski R yetenekleri de katilir.
     new interval = (g_iBossPhase == 1) ? 9 : (g_iBossPhase == 2) ? 7 : 5;
-    if (g_fBossIntro <= now && ++g_iBossTick >= interval && !task_exists(TASK_BOSSCAST))
+    if (get_pcvar_num(g_pBossAutoAbil) && g_fBossIntro <= now && ++g_iBossTick >= interval && !task_exists(TASK_BOSSCAST))
     {
         g_iBossTick = 0;
 
-        new ability = 0;
-        if (g_iBossPhase >= 2 && random_num(0, 1))
-            ability = 1;
-        BossTelegraph(ability);
+        if (!BossAutoOldSkill())
+        {
+            new ability = 0;
+            if (g_iBossPhase >= 2 && random_num(0, 1))
+                ability = 1;
+            BossTelegraph(ability);
+        }
     }
 }
 
@@ -10386,6 +11122,10 @@ BossPhaseChange()
     new Float:o[3], key[20];
     get_entvar(g_iBoss, var_origin, o);
 
+    // Yeni faz = yeni [R] yetenegi: hemen kullanilabilir
+    g_fBossRCool = get_gametime() + 1.0;
+    BossSkillUnlock();
+
     new r = BOSS_RGB[g_iBossType][0], g = BOSS_RGB[g_iBossType][1], b = BOSS_RGB[g_iBossType][2];
 
     FxLava(o);
@@ -10422,43 +11162,52 @@ BossPhaseChange()
     }
 }
 
-// Ust kisimda buyuk, renkli boss can gostergesi
+// Ust kisimda buyuk, renkli boss can gostergesi.
+// v2.0: isim + faz + can + cubuk TEK buyuk yazida (istemci en fazla 8 buyuk yazi
+// tutabildigi icin eskiden insanlarda uyari yazilari dusuyordu).
 BossHud(hp, pct)
 {
-    new key[16], nm[32], spaced[64], ph[32];
+    new key[16], nm[32], spaced[64], ph[32], bar[24];
     new hr, hg, hb;
     HpColor(pct, hr, hg, hb);
     formatex(key, charsmax(key), "BOSS_NAME_%d", g_iBossType);
 
-    new bool:nameLine = (g_iFrame % 2 == 0) ? true : false;
+    // Can cubugu: 20 parca
+    new full = clamp(pct / 5, 0, 20);
+    for (new i = 0; i < 20; i++)
+        bar[i] = (i < full) ? '|' : '.';
+    bar[20] = 0;
 
     for (new id = 1; id <= g_iMax; id++)
     {
         if (!is_user_connected(id) || is_user_bot(id))
             continue;
 
-        // Isim + faz satiri: 2 sn'de bir (bossun kendi renginde)
-        if (nameLine)
-        {
-            formatex(nm, charsmax(nm), "%L", id, key);
-            SpaceOut(nm, spaced, charsmax(spaced));
-            formatex(ph, charsmax(ph), "%L", id, g_bEnraged ? "BOSS_PH_RAGE" : (g_iBossPhase == 2 ? "BOSS_PH_2" : "BOSS_PH_1"));
+        formatex(nm, charsmax(nm), "%L", id, key);
+        SpaceOut(nm, spaced, charsmax(spaced));
+        formatex(ph, charsmax(ph), "%L", id, g_bEnraged ? "BOSS_PH_RAGE" : (g_iBossPhase == 2 ? "BOSS_PH_2" : "BOSS_PH_1"));
 
-            if (g_bEnraged)
-                set_dhudmessage(255, 40, 40, -1.0, Y_BOSS, 0, 0.0, 2.0, 0.0, 0.0);
-            else
-                set_dhudmessage(BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], -1.0, Y_BOSS, 0, 0.0, 2.0, 0.0, 0.0);
+        if (g_bEnraged && g_iFrame % 2)
+            set_dhudmessage(255, 40, 40, -1.0, Y_BOSS, 0, 0.0, 1.05, 0.0, 0.0);
+        else
+            set_dhudmessage(hr, hg, hb, -1.0, Y_BOSS, 0, 0.0, 1.05, 0.0, 0.0);
 
-            if (g_bFinalBoss)
-                show_dhudmessage(id, "%L  <<  %s  >>  %s", id, "FINAL_BOSS_TAG", spaced, ph);
-            else
-                show_dhudmessage(id, "<<  %s  >>   %s", spaced, ph);
-        }
-
-        // Can satiri: her saniye, can durumuna gore renk
-        set_dhudmessage(hr, hg, hb, -1.0, Y_BOSS, 0, 0.0, 1.0, 0.0, 0.0);
-        show_dhudmessage(id, "^n%L", id, "BOSS_HPLINE", hp, g_iBossMaxHP, pct);
+        if (g_bFinalBoss)
+            show_dhudmessage(id, "%L  <<  %s  >>  %s^n[%s]  %L", id, "FINAL_BOSS_TAG", spaced, ph, bar, id, "BOSS_HPLINE", hp, g_iBossMaxHP, pct);
+        else
+            show_dhudmessage(id, "<<  %s  >>   %s^n[%s]  %L", spaced, ph, bar, id, "BOSS_HPLINE", hp, g_iBossMaxHP, pct);
     }
+}
+
+// Bekleme suresi yazisi: "HAZIR" / "5 sn" / "AKTIF"
+CdText(id, Float:cd, out[], len)
+{
+    if (cd < -0.5)
+        formatex(out, len, "%L", id, "HUD_ACTIVE");
+    else if (cd > 0.0)
+        formatex(out, len, "%L", id, "HUD_SECONDS", floatround(cd, floatround_ceil));
+    else
+        formatex(out, len, "%L", id, "HUD_READY");
 }
 
 /* ---------------- Yetenekler ---------------- */
@@ -10485,11 +11234,14 @@ BossTelegraph(ability)
     new radius = BossAbilityRadius(ability);
     if (radius > 0)
     {
+        // Herkesin (T ve CT) kesin gordugu yer isareti; bossu takip eder
+        ZoneSpawn(o, float(radius), r, g, b, g_bEnraged ? 1.2 : 1.5, g_iBoss, false);
         new Float:feet[3];
         feet = o;
         feet[2] -= 30.0;
-        FxDisk(feet, r, g, b, radius, 15);
+        g_bFxReliable = true;
         FxRingEx(feet, 255, 30, 30, radius, 8, 15);
+        g_bFxReliable = false;
     }
     FxRing(o, 255, 0, 0, 150);
     FxImplosion(o, 200, 40, 10);
@@ -10806,9 +11558,8 @@ BossThunder()
         alive[pick] = alive[n - 1];
         n--;
 
+        ZoneSpawn(o, 170.0, 255, 240, 80, 1.2 + 0.25 * float(i), 0, i == 0);
         o[2] -= 30.0;
-        FxDisk(o, 255, 240, 80, 170, 12);
-        FxRingEx(o, 255, 255, 255, 170, 6, 12);
 
         new params[3];
         params[0] = _:o[0];
@@ -10906,26 +11657,15 @@ BossAcidPools()
         alive[pick] = alive[n - 1];
         n--;
 
-        o[2] -= 30.0;
-        new slot = i;
-        for (new s = 0; s < sizeof g_fPoolEnd; s++)
-        {
-            if (g_fPoolEnd[s] < now)
-            {
-                slot = s;
-                break;
-            }
-        }
-        g_fPoolPos[slot] = o;
-        g_fPoolEnd[slot] = now + 8.0;
-
-        FxDisk(o, 110, 255, 0, 150, 10);
+        AddPool(o, 0, 8.0, 150.0);
         FxSprite(o, g_sprSmoke, 20, 180);
     }
     PlayKey(0, "ACID_POOL");
+    #pragma unused now
 }
 
-// Havuzlar: her saniye cizilir, icindeki insan hasar alir (zombi iyilesir)
+// Havuzlar: her saniye; icindeki insan hasar alir. Asitte zombi iyilesir, yanan zeminde insan tutusur.
+// (Gorunum: ZoneSpawn varligi - herkes gorur)
 TickPools()
 {
     new Float:now = get_gametime(), Float:po[3];
@@ -10934,20 +11674,34 @@ TickPools()
         if (g_fPoolEnd[s] < now)
             continue;
 
-        FxDisk(g_fPoolPos[s], 110, 255, 0, 150, 10);
-        FxRingEx(g_fPoolPos[s], 160, 255, 60, 150, 6, 10, 150);
+        new Float:rad = (g_fPoolRad[s] > 0.0) ? g_fPoolRad[s] : 150.0;
+        new bool:fire = (g_iPoolType[s] == 1) ? true : false;
         if (g_iFrame % 2 == 0)
-            FxSprite(g_fPoolPos[s], g_sprSmoke, 12, 140);
+        {
+            if (fire)
+                FxSprite(g_fPoolPos[s], g_sprFire ? g_sprFire : g_sprExplode, 6, 180);
+            else
+                FxSprite(g_fPoolPos[s], g_sprSmoke, 12, 140);
+        }
 
         for (new id = 1; id <= g_iMax; id++)
         {
             if (!is_user_alive(id))
                 continue;
             get_entvar(id, var_origin, po);
-            if (get_distance_f(g_fPoolPos[s], po) > 160.0)
+            if (get_distance_f(g_fPoolPos[s], po) > rad + 10.0)
                 continue;
             if (g_bZombie[id])
-                HealTo(id, 60, g_iMaxHP[id]);
+            {
+                if (!fire)
+                    HealTo(id, 60, g_iMaxHP[id]);
+            }
+            else if (fire)
+            {
+                BurnHuman(id, 2);
+                FadeOne(id, 255, 90, 0, 90, 0.8);
+                BossHurt(id, 8.0, DMG_BURN);
+            }
             else
             {
                 g_fSlow[id] = now + 1.1;
@@ -11152,8 +11906,7 @@ BossMeteorRain()
         alive[pick] = alive[n - 1];
         n--;
 
-        FxRing(o, 255, 60, 0, 200);
-        FxDisk(o, 255, 80, 0, 200, 12);
+        ZoneSpawn(o, 200.0, 255, 80, 0, 1.2 + 0.2 * float(i), 0, i == 0);
         FxLight(o, 255, 60, 0, 30, 15, 5);
 
         new params[4];
@@ -11197,6 +11950,7 @@ BossDeath(victim, const Float:o[3], const killer[])
     new type = g_iBossType;
     new r = BOSS_RGB[type][0], g = BOSS_RGB[type][1], b = BOSS_RGB[type][2];
 
+    BossCleanup();
     g_iBoss = 0;
     g_fBossIntro = 0.0;
     remove_task(TASK_BOSSCAST);
@@ -11357,20 +12111,34 @@ public cmd_roundplan(id)
 }
 
 /* ================================================================== */
-/*  LAZER MAYINLARI                                                    */
-/*  V (+setlaser) basili tut: duvara / zemine lazer kurar (1 sn)       */
-/*  C (+dellaser veya varsayilan radio3): kendi lazerini geri sokur    */
-/*  - Isin zombilere hasar verir ve onlari geri iter                   */
-/*  - Her temasta isin asinir; zombiler pencesiyle mayini kirabilir    */
-/*  - Can azaldikca isin rengi degisir (mavi -> sari -> kirmizi)       */
+/*  LAZER MAYINLARI (v2.0)                                             */
+/*  - Her insana her round vex_lm_per_round (3) lazer hakki verilir;   */
+/*    AP ile satin alma YOK.                                           */
+/*  - V (+setlaser / setlaser): nisan alinan duvara / zemine kurar     */
+/*  - C (radio3 / +dellaser / dellaser): kendi lazerini ANINDA sokup   */
+/*    cantaya geri koyar (menuye girmeye gerek yok)                    */
+/*  - Isina degen zombi TEK ATISTA olur (vex_lm_oneshot 1). Isin her   */
+/*    0.1 sn tum zombilerin govde kutusuyla test edilir: ziplayan,     */
+/*    parasutle suzulen, egilen, baska oyuncunun arkasindaki zombi de  */
+/*    vurulur.                                                         */
+/*  - Model / govde / animasyon / isin sprite'i vexmira.cfg'den        */
+/*    (vex_res LASERMINE_MODEL / LASERMINE_BODY / SPR_LASER ...)       */
+/*  - Zombiler pencesiyle mayini kirabilir; her oldurmede mayin asinir */
 /*  - Boss roundlarinda kurulamaz (vex_lm_boss 0)                      */
 /* ================================================================== */
 
 #define LM_CLASS     "vex_lasermine"
 #define BEAM_MARK_LM 7776
 #define BEAM_MARK_NADE 7777
+#define BEAM_MARK_DROP 7778
 
 new Float:g_fLmCd[33], Float:g_fPlantPos[33][3], Float:g_fLmMsg[33];
+
+// Oyuncuya ozel lazer renkleri (vex_lm_color_mode 1)
+new const LM_PALETTE[8][3] =
+{
+    {0, 200, 255}, {255, 40, 40}, {60, 255, 90}, {255, 200, 0}, {200, 60, 255}, {255, 110, 0}, {0, 255, 220}, {255, 80, 200}
+};
 
 bool:LasersAllowed()
 {
@@ -11381,6 +12149,7 @@ bool:LasersAllowed()
     return true;
 }
 
+// Ayni anda kurulu olabilecek lazer sayisi
 MaxMines(id)
 {
     new m = IsVip(id) ? get_pcvar_num(g_pLmMaxVip) : get_pcvar_num(g_pLmMax);
@@ -11389,12 +12158,22 @@ MaxMines(id)
     return max(0, m);
 }
 
-MineCost(id)
+// Round basi verilen lazer hakki
+RoundMines(id)
 {
-    new c = get_pcvar_num(g_pLmCost);
+    new m = IsVip(id) ? get_pcvar_num(g_pLmPerRoundVip) : get_pcvar_num(g_pLmPerRound);
     if (g_iJob[id] == JOB_ENGINEER)
-        c /= 2;
-    return max(0, c);
+        m++;
+    return clamp(m, 0, 20);
+}
+
+// Insan dogunca (roundda bir kez) lazer hakki verilir
+GiveRoundMines(id)
+{
+    if (g_bLmGiven[id] || !LasersAllowed() || g_bZombie[id])
+        return;
+    g_bLmGiven[id] = true;
+    g_iMines[id] = RoundMines(id);
 }
 
 bool:IsMine(ent)
@@ -11425,21 +12204,34 @@ public cmd_lm_menu(id)
     return PLUGIN_HANDLED;
 }
 
-// C tusu (radio3): insan kendi lazerine bakiyorsa sokulur
+// C tusu (varsayilan radio3): insan kendi lazerine bakiyorsa aninda sokulur,
+// bakmiyorsa normal telsiz menusu acilir.
 public cmd_radio3(id)
 {
     if (!get_pcvar_num(g_pLmEnable) || !is_user_alive(id) || g_bZombie[id])
         return PLUGIN_CONTINUE;
-    if (!AimedMine(id, 110.0))
+    new mine = AimedMine(id, get_pcvar_float(g_pLmTakeRange));
+    if (!mine)
+        return PLUGIN_CONTINUE;
+    if (get_entvar(mine, var_iuser1) != id && !(get_user_flags(id) & ADMIN_BAN))
         return PLUGIN_CONTINUE;
 
     cmd_lm_take(id);
     return PLUGIN_HANDLED;
 }
 
+// -setlaser: kurulum basili tutuluyorsa iptal
 public cmd_lm_release(id)
 {
-    if (g_iPlantAction[id])
+    if (g_iPlantAction[id] == 1)
+        CancelPlant(id);
+    return PLUGIN_HANDLED;
+}
+
+// -dellaser: sokme suresi varsa (vex_lm_take_time > 0) ve tus birakildiysa iptal
+public cmd_lm_release_take(id)
+{
+    if (g_iPlantAction[id] == 2)
         CancelPlant(id);
     return PLUGIN_HANDLED;
 }
@@ -11460,6 +12252,7 @@ LmMessage(id, const key[], val = 0)
         return;
     g_fLmMsg[id] = now + 1.0;
     Chat(id, key, val);
+    PlayKey(id, "LM_DENY");
 }
 
 public cmd_lm_plant(id)
@@ -11475,6 +12268,11 @@ public cmd_lm_plant(id)
     if (!g_bRoundActive && !g_bCounting && !get_member_game(m_bFreezePeriod))
         return PLUGIN_HANDLED;
 
+    if (g_iMines[id] <= 0)
+    {
+        LmMessage(id, "LM_NO_MINE", RoundMines(id));
+        return PLUGIN_HANDLED;
+    }
     if (CountMines(id) >= MaxMines(id))
     {
         LmMessage(id, "LM_LIMIT", MaxMines(id));
@@ -11486,20 +12284,6 @@ public cmd_lm_plant(id)
         return PLUGIN_HANDLED;
     }
 
-    // Envanterde yoksa AP ile otomatik satin al
-    if (g_iMines[id] <= 0)
-    {
-        new cost = MineCost(id);
-        if (g_iAP[id] < cost)
-        {
-            LmMessage(id, "LM_NO_MINE", cost);
-            return PLUGIN_HANDLED;
-        }
-        AddAP(id, -cost, false, false);
-        g_iMines[id]++;
-        Chat(id, "LM_BOUGHT", cost);
-    }
-
     new Float:pos[3], Float:normal[3];
     if (!FindPlantSpot(id, pos, normal))
     {
@@ -11507,10 +12291,19 @@ public cmd_lm_plant(id)
         return PLUGIN_HANDLED;
     }
 
+    new Float:t = get_pcvar_float(g_pLmPlantTime);
+    if (t <= 0.05)
+    {
+        g_iPlantAction[id] = 1;
+        get_entvar(id, var_origin, g_fPlantPos[id]);
+        task_PlantDone(id + TASK_PLANT);
+        return PLUGIN_HANDLED;
+    }
+
     get_entvar(id, var_origin, g_fPlantPos[id]);
     g_iPlantAction[id] = 1;
-    rg_send_bartime(id, 1, false);
-    set_task(1.0, "task_PlantDone", id + TASK_PLANT);
+    rg_send_bartime(id, floatround(t, floatround_ceil), false);
+    set_task(t, "task_PlantDone", id + TASK_PLANT);
     EmitKey(id, "LM_CHARGE");
     return PLUGIN_HANDLED;
 }
@@ -11520,7 +12313,7 @@ public cmd_lm_take(id)
     if (!is_user_alive(id) || g_bZombie[id] || g_iPlantAction[id])
         return PLUGIN_HANDLED;
 
-    new mine = AimedMine(id, 110.0);
+    new mine = AimedMine(id, get_pcvar_float(g_pLmTakeRange));
     if (!mine)
     {
         LmMessage(id, "LM_AIM_MINE");
@@ -11534,8 +12327,16 @@ public cmd_lm_take(id)
 
     get_entvar(id, var_origin, g_fPlantPos[id]);
     g_iPlantAction[id] = 2;
-    rg_send_bartime(id, 1, false);
-    set_task(1.0, "task_PlantDone", id + TASK_PLANT);
+
+    // Varsayilan: ANINDA sokulur (C'ye bir kez basmak yeterli)
+    new Float:t = get_pcvar_float(g_pLmTakeTime);
+    if (t <= 0.05)
+    {
+        task_PlantDone(id + TASK_PLANT);
+        return PLUGIN_HANDLED;
+    }
+    rg_send_bartime(id, floatround(t, floatround_ceil), false);
+    set_task(t, "task_PlantDone", id + TASK_PLANT);
     return PLUGIN_HANDLED;
 }
 
@@ -11576,22 +12377,27 @@ public task_PlantDone(tid)
     }
     else
     {
-        new mine = AimedMine(id, 120.0);
+        new mine = AimedMine(id, get_pcvar_float(g_pLmTakeRange) + 10.0);
         if (!mine)
             return;
         new owner = get_entvar(mine, var_iuser1);
         if (owner != id && !(get_user_flags(id) & ADMIN_BAN))
             return;
 
+        new Float:mo[3];
+        get_entvar(mine, var_origin, mo);
+        FxSparks(mo);
         MineRemove(mine);
         if (owner == id)
             g_iMines[id]++;
+        else if (is_user_connected(owner))
+            g_iMines[owner]++;
         EmitKey(id, "LM_PICKUP");
         Chat(id, "LM_TAKEN", g_iMines[id]);
     }
 }
 
-// Nisan alinan yuzey: duvar / zemin (sadece sabit dunya)
+// Nisan alinan yuzey: duvar / zemin / tavan (sadece sabit dunya)
 bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
 {
     new Float:start[3], Float:end[3], Float:ofs[3], Float:ang[3], Float:fwd[3];
@@ -11605,9 +12411,10 @@ bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
     engfunc(EngFunc_MakeVectors, ang);
     global_get(glb_v_forward, fwd);
 
-    end[0] = start[0] + fwd[0] * 128.0;
-    end[1] = start[1] + fwd[1] * 128.0;
-    end[2] = start[2] + fwd[2] * 128.0;
+    new Float:range = floatclamp(get_pcvar_float(g_pLmRange), 48.0, 256.0);
+    end[0] = start[0] + fwd[0] * range;
+    end[1] = start[1] + fwd[1] * range;
+    end[2] = start[2] + fwd[2] * range;
 
     new tr = create_tr2();
     engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, id, tr);
@@ -11637,6 +12444,7 @@ bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
     return true;
 }
 
+// Nisan alinan / bakilan mayin: once tam nisan, sonra genis bir koni icinde en iyi aday
 AimedMine(id, Float:range)
 {
     new target, body;
@@ -11644,7 +12452,6 @@ AimedMine(id, Float:range)
     if (target > g_iMax && IsMine(target))
         return target;
 
-    // Kucuk kutu: nisan tam tutmazsa en yakin mayini bul
     new Float:eye[3], Float:ofs[3], Float:ang[3], Float:fwd[3], Float:mo[3];
     get_entvar(id, var_origin, eye);
     get_entvar(id, var_view_ofs, ofs);
@@ -11655,7 +12462,7 @@ AimedMine(id, Float:range)
     engfunc(EngFunc_MakeVectors, ang);
     global_get(glb_v_forward, fwd);
 
-    new ent, best, Float:bestDot = 0.93;
+    new ent, best, Float:bestScore = -1.0;
     while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", LM_CLASS)) > 0)
     {
         get_entvar(ent, var_origin, mo);
@@ -11663,9 +12470,16 @@ AimedMine(id, Float:range)
         if (d > range || d < 1.0)
             continue;
         new Float:dot = ((mo[0] - eye[0]) * fwd[0] + (mo[1] - eye[1]) * fwd[1] + (mo[2] - eye[2]) * fwd[2]) / d;
-        if (dot > bestDot)
+        // Yakindayken daha genis aci kabul edilir
+        new Float:need = (d < 70.0) ? 0.55 : 0.82;
+        if (dot < need)
+            continue;
+        new Float:score = dot - d / 2000.0;
+        if (get_entvar(ent, var_iuser1) == id)
+            score += 0.05;
+        if (score > bestScore)
         {
-            bestDot = dot;
+            bestScore = score;
             best = ent;
         }
     }
@@ -11685,11 +12499,9 @@ CreateMine(id, const Float:pos[3], const Float:normal[3])
 
     set_entvar(ent, var_classname, LM_CLASS);
     engfunc(EngFunc_SetModel, ent, g_szMineModel);
-    if (containi(g_szMineModel, "tripmine") != -1)
-    {
-        set_entvar(ent, var_body, 3);
-        set_entvar(ent, var_sequence, 7);
-    }
+    set_entvar(ent, var_body, g_iMineBody);
+    set_entvar(ent, var_sequence, g_iMineSeq);
+    set_entvar(ent, var_skin, g_iMineSkin);
     set_entvar(ent, var_framerate, 0.0);
     set_entvar(ent, var_movetype, MOVETYPE_FLY);
     // Kurarken kati degil (oyuncu icinde kalmasin); aktif olunca kati olur ki pence ile kirilabilsin
@@ -11708,30 +12520,131 @@ CreateMine(id, const Float:pos[3], const Float:normal[3])
     set_entvar(ent, var_iuser1, id);
     set_entvar(ent, var_iuser2, 0);
     set_entvar(ent, var_iuser3, 0);
-    set_entvar(ent, var_fuser1, get_gametime() + 2.0);
+    set_entvar(ent, var_iuser4, 0);
+    set_entvar(ent, var_fuser1, get_gametime() + floatmax(0.2, get_pcvar_float(g_pLmArmTime)));
     set_entvar(ent, var_vuser1, normal);
 
+    new r, g, b;
+    MineColor(ent, r, g, b);
+    new Float:c[3];
+    c[0] = float(r);
+    c[1] = float(g);
+    c[2] = float(b);
     set_entvar(ent, var_renderfx, kRenderFxGlowShell);
-    set_entvar(ent, var_rendercolor, Float:{0.0, 160.0, 255.0});
+    set_entvar(ent, var_rendercolor, c);
     set_entvar(ent, var_rendermode, kRenderNormal);
-    set_entvar(ent, var_renderamt, 8.0);
+    set_entvar(ent, var_renderamt, 10.0);
 
     SetThink(ent, "fw_MineThink");
     set_entvar(ent, var_nextthink, get_gametime() + 0.1);
 
     EmitKey(ent, "LM_DEPLOY");
-    FxRingSmall(pos, 0, 160, 255);
+    FxRingSmall(pos, r, g, b);
     return ent;
 }
 
 MineColor(ent, &r, &g, &b)
 {
+    switch (get_pcvar_num(g_pLmColorMode))
+    {
+        case 1: // oyuncuya ozel renk
+        {
+            new owner = get_entvar(ent, var_iuser1);
+            new c = (owner > 0) ? (owner % sizeof LM_PALETTE) : 0;
+            r = LM_PALETTE[c][0];
+            g = LM_PALETTE[c][1];
+            b = LM_PALETTE[c][2];
+            return;
+        }
+        case 2: // sabit renk (vex_lm_color "R G B")
+        {
+            new txt[16], cr[4], cg[4], cb[4];
+            get_pcvar_string(g_pLmColor, txt, charsmax(txt));
+            parse(txt, cr, charsmax(cr), cg, charsmax(cg), cb, charsmax(cb));
+            r = clamp(str_to_num(cr), 0, 255);
+            g = clamp(str_to_num(cg), 0, 255);
+            b = clamp(str_to_num(cb), 0, 255);
+            return;
+        }
+    }
+
+    // Can durumuna gore: mavi -> sari -> kirmizi
     new Float:hp = Float:get_entvar(ent, var_health);
     new Float:mx = floatmax(1.0, Float:get_entvar(ent, var_max_health));
     new pct = floatround(hp * 100.0 / mx);
     if (pct > 60)      { r = 0;   g = 200; b = 255; }
     else if (pct > 30) { r = 255; g = 190; b = 0; }
     else               { r = 255; g = 40;  b = 40; }
+}
+
+// Isin dogrusu (a -> b) oyuncunun govde kutusundan geciyor mu?
+// Kutu, oyuncunun son 0.1 sn'deki hareketi kadar genisletilir (hizli dusen / ziplayan da yakalanir).
+bool:BeamHitsPlayer(const Float:a[3], const Float:b[3], p, Float:pad = 2.0)
+{
+    new Float:mins[3], Float:maxs[3], Float:vel[3];
+    get_entvar(p, var_absmin, mins);
+    get_entvar(p, var_absmax, maxs);
+    get_entvar(p, var_velocity, vel);
+    for (new i = 0; i < 3; i++)
+    {
+        new Float:d = vel[i] * 0.1;
+        if (d > 0.0)
+            mins[i] -= d;
+        else
+            maxs[i] -= d;
+        mins[i] -= pad;
+        maxs[i] += pad;
+    }
+    return SegmentHitsBox(a, b, mins, maxs);
+}
+
+// Dogru parcasi - eksen hizali kutu kesisimi (slab yontemi)
+bool:SegmentHitsBox(const Float:a[3], const Float:b[3], const Float:mins[3], const Float:maxs[3])
+{
+    new Float:tmin = 0.0, Float:tmax = 1.0;
+    for (new i = 0; i < 3; i++)
+    {
+        new Float:d = b[i] - a[i];
+        if (floatabs(d) < 0.0001)
+        {
+            if (a[i] < mins[i] || a[i] > maxs[i])
+                return false;
+            continue;
+        }
+        new Float:t1 = (mins[i] - a[i]) / d;
+        new Float:t2 = (maxs[i] - a[i]) / d;
+        if (t1 > t2)
+        {
+            new Float:tt = t1;
+            t1 = t2;
+            t2 = tt;
+        }
+        if (t1 > tmin)
+            tmin = t1;
+        if (t2 < tmax)
+            tmax = t2;
+        if (tmin > tmax)
+            return false;
+    }
+    return true;
+}
+
+// Bir noktanin isin uzerindeki en yakin noktasi
+stock ClosestOnSegment(const Float:a[3], const Float:b[3], const Float:p[3], Float:out[3])
+{
+    new Float:ab[3], Float:len2, Float:t;
+    for (new i = 0; i < 3; i++)
+        ab[i] = b[i] - a[i];
+    len2 = ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2];
+    if (len2 < 0.001)
+    {
+        out = a;
+        return;
+    }
+    t = ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1] + (p[2] - a[2]) * ab[2]) / len2;
+    t = floatclamp(t, 0.0, 1.0);
+    for (new i = 0; i < 3; i++)
+        out[i] = a[i] + ab[i] * t;
 }
 
 public fw_MineThink(ent)
@@ -11751,18 +12664,19 @@ public fw_MineThink(ent)
     get_entvar(ent, var_origin, o);
     get_entvar(ent, var_vuser1, normal);
 
-    // Kurulum: 2 sn sarj, sonra isin acilir
+    new Float:start[3], Float:end[3];
+    start[0] = o[0] + normal[0] * 2.0;
+    start[1] = o[1] + normal[1] * 2.0;
+    start[2] = o[2] + normal[2] * 2.0;
+
+    // Kurulum: kisa sarj, sonra isin acilir
     if (get_entvar(ent, var_iuser2) == 0)
     {
         if (now >= Float:get_entvar(ent, var_fuser1))
         {
-            new Float:start[3], Float:end[3];
-            start[0] = o[0] + normal[0] * 2.0;
-            start[1] = o[1] + normal[1] * 2.0;
-            start[2] = o[2] + normal[2] * 2.0;
-            end[0] = start[0] + normal[0] * 4096.0;
-            end[1] = start[1] + normal[1] * 4096.0;
-            end[2] = start[2] + normal[2] * 4096.0;
+            end[0] = start[0] + normal[0] * 8192.0;
+            end[1] = start[1] + normal[1] * 8192.0;
+            end[2] = start[2] + normal[2] * 8192.0;
 
             engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, ent, 0);
             get_tr2(0, TR_vecEndPos, end);
@@ -11770,14 +12684,15 @@ public fw_MineThink(ent)
 
             new r, g, b;
             MineColor(ent, r, g, b);
-            new beam = BeamCreate(start, end, r, g, b, 7, 190);
+            new beam = BeamCreate(start, end, r, g, b, clamp(get_pcvar_num(g_pLmBeamWidth), 1, 100), 200);
             if (beam)
                 set_entvar(beam, var_iuser1, BEAM_MARK_LM);
             set_entvar(ent, var_iuser3, beam);
             set_entvar(ent, var_iuser2, 1);
 
             EmitKey(ent, "LM_ACTIVATE");
-            FxLight(o, 0, 200, 255, 12, 8, 20);
+            FxLight(o, r, g, b, 14, 8, 20);
+            FxRingSmall(o, r, g, b);
         }
         set_entvar(ent, var_nextthink, now + 0.1);
         return;
@@ -11790,21 +12705,28 @@ public fw_MineThink(ent)
         engfunc(EngFunc_SetOrigin, ent, o);
     }
 
-    // Aktif: isinda zombi var mi?
-    new Float:start[3], Float:end[3];
-    start[0] = o[0] + normal[0] * 2.0;
-    start[1] = o[1] + normal[1] * 2.0;
-    start[2] = o[2] + normal[2] * 2.0;
-    get_entvar(ent, var_vuser2, end);
-
-    engfunc(EngFunc_TraceLine, start, end, DONT_IGNORE_MONSTERS, ent, 0);
-    new hit = get_tr2(0, TR_pHit);
-    if (1 <= hit <= g_iMax && is_user_alive(hit) && g_bZombie[hit])
+    // Vurus sonrasi parlama bitti mi?
+    new Float:flash = Float:get_entvar(ent, var_fuser2);
+    if (flash > 0.0 && now >= flash)
     {
-        new Float:hp[3];
-        get_tr2(0, TR_vecEndPos, hp);
-        MineHit(ent, owner, hit, hp);
-        if (is_nullent(ent) || get_entvar(ent, var_flags) & FL_KILLME)
+        set_entvar(ent, var_fuser2, 0.0);
+        MineRefreshColor(ent);
+    }
+
+    // Aktif: isina degen TUM zombiler (parasut / ziplama / egilme / arkada durma fark etmez)
+    get_entvar(ent, var_vuser2, end);
+    new Float:po[3], Float:hitp[3];
+    for (new z = 1; z <= g_iMax; z++)
+    {
+        if (!is_user_alive(z) || !g_bZombie[z])
+            continue;
+        if (!BeamHitsPlayer(start, end, z))
+            continue;
+
+        get_entvar(z, var_origin, po);
+        ClosestOnSegment(start, end, po, hitp);
+        MineHit(ent, owner, z, hitp);
+        if (is_nullent(ent) || (get_entvar(ent, var_flags) & FL_KILLME))
             return;
     }
 
@@ -11838,64 +12760,99 @@ MineHit(ent, owner, zombie, const Float:point[3])
     new Float:now = get_gametime();
     if (now < g_fLmCd[zombie])
         return;
-    g_fLmCd[zombie] = now + 0.4;
+    g_fLmCd[zombie] = now + 0.25;
 
-    new Float:dmg = get_pcvar_float(g_pLmDamage);
-    if (g_bBoss[zombie] || g_bNemesis[zombie] || g_bAssassin[zombie])
-        dmg *= 0.5;
+    new bool:special = (g_bBoss[zombie] || g_bNemesis[zombie] || g_bAssassin[zombie]) ? true : false;
+    new bool:oneshot = get_pcvar_num(g_pLmOneShot) ? true : false;
+    new Float:dmg;
+    if (special)
+        dmg = get_pcvar_float(g_pLmSpecialDmg);
+    else if (oneshot)
+        dmg = 999999.0;
+    else
+        dmg = get_pcvar_float(g_pLmDamage);
 
     new r, g, b;
     MineColor(ent, r, g, b);
 
     FxSparks(point);
-    FxLight(point, r, g, b, 14, 4, 30);
-    FadeOne(zombie, r, g, b, 90, 0.35);
+    FxLight(point, r, g, b, 16, 4, 30);
+    FadeOne(zombie, r, g, b, 120, 0.35);
     EmitKey(ent, "LM_HIT");
 
-    // Geri itme: zombiyi isindan geri savur
-    new Float:vel[3];
-    get_entvar(zombie, var_velocity, vel);
-    vel[0] = -vel[0] * 0.9;
-    vel[1] = -vel[1] * 0.9;
-    vel[2] = 180.0;
-    set_entvar(zombie, var_velocity, vel);
+    // Isin kisa bir an parlar
+    new beam = get_entvar(ent, var_iuser3);
+    if (beam > 0 && !is_nullent(beam))
+        BeamColor(beam, 255, 255, 255, 255);
+    set_entvar(ent, var_fuser2, now + 0.15);
 
+    // Tek atmayan modda (veya ozel karakterde) geri itme
+    if (!oneshot || special)
+    {
+        new Float:vel[3];
+        get_entvar(zombie, var_velocity, vel);
+        vel[0] = -vel[0] * 0.9;
+        vel[1] = -vel[1] * 0.9;
+        vel[2] = 180.0;
+        set_entvar(zombie, var_velocity, vel);
+    }
+
+    new bool:wasAlive = is_user_alive(zombie) ? true : false;
     ExecuteHamB(Ham_TakeDamage, zombie, ent, owner, dmg, DMG_ENERGYBEAM);
 
-    // Isin her temasta asinir: zombiler kalabalik gelirse lazeri yakar
-    if (!is_nullent(ent))
+    if (wasAlive && !is_user_alive(zombie))
+    {
+        // Parcalanma efekti
+        FxSprite(point, g_sprExplode, 6, 220);
+        FxStreak(point, 7, 40, 220);
+        FxLight(point, r, g, b, 30, 6, 30);
+        EmitKey(ent, "LM_KILL");
+        if (!is_nullent(ent))
+            MineDamage(ent, get_pcvar_float(g_pLmKillWear), 0);
+    }
+    else if (!is_nullent(ent))
         MineDamage(ent, get_pcvar_float(g_pLmWear), zombie);
 }
 
 MineDamage(ent, Float:amount, attacker)
 {
+    if (amount <= 0.0)
+        return;
+
     new Float:hp = Float:get_entvar(ent, var_health) - amount;
     if (hp <= 0.0)
     {
         new owner = get_entvar(ent, var_iuser1);
-        if (is_user_connected(owner) && attacker && is_user_connected(attacker))
+        if (is_user_connected(owner))
         {
-            new name[32];
-            get_user_name(attacker, name, charsmax(name));
-            Chat(owner, "LM_DESTROYED", name);
+            if (attacker && is_user_connected(attacker))
+            {
+                new name[32];
+                get_user_name(attacker, name, charsmax(name));
+                Chat(owner, "LM_DESTROYED", name);
+            }
+            else
+                Chat(owner, "LM_WORN_OUT");
         }
         MineDestroy(ent, true);
         return;
     }
     set_entvar(ent, var_health, hp);
+    MineRefreshColor(ent);
+}
 
+MineRefreshColor(ent)
+{
+    new r, g, b;
+    MineColor(ent, r, g, b);
     new beam = get_entvar(ent, var_iuser3);
     if (beam > 0 && !is_nullent(beam))
-    {
-        new r, g, b;
-        MineColor(ent, r, g, b);
-        BeamColor(beam, r, g, b, 190);
-        new Float:c[3];
-        c[0] = float(r);
-        c[1] = float(g);
-        c[2] = float(b);
-        set_entvar(ent, var_rendercolor, c);
-    }
+        BeamColor(beam, r, g, b, 200);
+    new Float:c[3];
+    c[0] = float(r);
+    c[1] = float(g);
+    c[2] = float(b);
+    set_entvar(ent, var_rendercolor, c);
 }
 
 // Mayin + ikmal kutusu hasari (info_target)
@@ -11909,6 +12866,8 @@ public fw_EntTakeDamage(ent, inflictor, attacker, Float:damage, bits)
 
     if (equal(cls, "vex_airdrop"))
         return HAM_SUPERCEDE;
+    if (equal(cls, "vex_egg"))
+        return EggTakeDamage(ent, attacker, damage);
     if (!equal(cls, LM_CLASS))
         return HAM_IGNORED;
 
@@ -11968,8 +12927,10 @@ MineRemove(ent)
 
     SetThink(ent, "");
     set_entvar(ent, var_iuser1, 0);
+    set_entvar(ent, var_iuser3, 0);
     set_entvar(ent, var_takedamage, DAMAGE_NO);
     set_entvar(ent, var_solid, SOLID_NOT);
+    set_entvar(ent, var_classname, "vex_removed");
     set_entvar(ent, var_flags, FL_KILLME);
 }
 
@@ -12001,7 +12962,7 @@ RemoveAllMines()
     while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "beam")) > 0)
     {
         new mark = get_entvar(ent, var_iuser1);
-        if (mark == BEAM_MARK_LM || mark == BEAM_MARK_NADE)
+        if (mark == BEAM_MARK_LM || mark == BEAM_MARK_NADE || mark == BEAM_MARK_DROP)
             set_entvar(ent, var_flags, FL_KILLME);
     }
 
@@ -12031,7 +12992,7 @@ bool:MineAimInfo(id)
     new r, g, b;
     MineColor(target, r, g, b);
     set_hudmessage(r, g, b, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
-    show_hudmessage(id, "%L", id, "LM_AIM_INFO", name, floatround(Float:get_entvar(target, var_health)), floatround(Float:get_entvar(target, var_max_health)));
+    show_hudmessage(id, "%L", id, (owner == id) ? "LM_AIM_INFO_MINE" : "LM_AIM_INFO", name, floatround(Float:get_entvar(target, var_health)), floatround(Float:get_entvar(target, var_max_health)));
     return true;
 }
 
@@ -12062,12 +13023,17 @@ ShowMineMenu(id)
     new bool:ok = LasersAllowed();
     formatex(item, charsmax(item), ok ? "\y%L" : "\d%L", id, "LM_M_PLANT"); MenuAdd(menu, item, 1);
     formatex(item, charsmax(item), "\y%L", id, "LM_M_TAKE"); MenuAdd(menu, item, 2);
-    formatex(item, charsmax(item), ok ? "\y%L \r[\w%d AP\r]" : "\d%L \r[\w%d AP\r]", id, "LM_M_BUY", MineCost(id)); MenuAdd(menu, item, 3);
+    formatex(item, charsmax(item), "\y%L", id, "LM_M_INFO"); MenuAdd(menu, item, 3);
     formatex(item, charsmax(item), "\y%L", id, "LM_M_BIND"); MenuAdd(menu, item, 4);
 
     if (!ok)
     {
         formatex(item, charsmax(item), "\d%L", id, g_iMode == MODE_BOSS ? "LM_NO_BOSS_SHORT" : "LM_DISABLED_SHORT");
+        menu_addtext(menu, item, 0);
+    }
+    else
+    {
+        formatex(item, charsmax(item), "\d%L", id, "LM_M_RULE", RoundMines(id));
         menu_addtext(menu, item, 0);
     }
     MenuFinish(id, menu);
@@ -12089,19 +13055,9 @@ public menu_mine_handler(id, menu, item)
         case 2: cmd_lm_take(id);
         case 3:
         {
-            if (!LasersAllowed() || !is_user_alive(id) || g_bZombie[id])
-                Chat(id, "LM_DISABLED");
-            else if (g_iMines[id] >= 5)
-                Chat(id, "LM_INV_FULL");
-            else if (g_iAP[id] < MineCost(id))
-                Chat(id, "SHOP_NOAP");
-            else
-            {
-                AddAP(id, -MineCost(id), false, false);
-                g_iMines[id]++;
-                PlayKey(id, "SHOP_BUY");
-                Chat(id, "LM_BOUGHT", MineCost(id));
-            }
+            Chat(id, "LM_INFO_1", RoundMines(id));
+            Chat(id, "LM_INFO_2");
+            Chat(id, "LM_INFO_3");
             ShowMineMenu(id);
         }
         case 4:
@@ -12223,6 +13179,8 @@ public fw_NadeDeploy(weapon)
 }
 
 // Atis aninda modu bombaya isle
+// var_iuser4 = mod + 1, var_iuser3 = durum (0 havada, 1 yerlesti/kuruluyor, 2 aktif, 3 tetiklendi)
+// var_iuser2 = lazer isini, var_fuser1 = omur sonu, var_fuser4 = kurulma zamani, var_fuser3 = sonraki bip
 NadeOnThrow(id, ent, slot)
 {
     if (!get_pcvar_num(g_pNadeModes) || is_nullent(ent))
@@ -12235,20 +13193,31 @@ NadeOnThrow(id, ent, slot)
     new Float:now = get_gametime();
     set_entvar(ent, var_iuser4, mode + 1);
     set_entvar(ent, var_iuser3, 0);
+    set_entvar(ent, var_iuser2, 0);
     set_entvar(ent, var_fuser4, now);
+    set_entvar(ent, var_fuser3, now);
 
-    // Lazer yonu: atis yonu (yatay)
+    // Atis yonu
     new Float:ang[3], Float:fwd[3];
     get_entvar(id, var_v_angle, ang);
-    ang[0] = 0.0;
     engfunc(EngFunc_MakeVectors, ang);
     global_get(glb_v_forward, fwd);
     set_entvar(ent, var_vuser4, fwd);
 
     switch (mode)
     {
-        case NM_SENSOR, NM_LASER:
-            set_entvar(ent, var_dmgtime, now + 60.0);
+        case NM_SENSOR:
+        {
+            set_entvar(ent, var_dmgtime, now + 9999.0);
+            set_entvar(ent, var_fuser1, now + floatmax(5.0, get_pcvar_float(g_pNadeSensorLife)));
+            FxTrail(ent, 255, 40, 40);
+        }
+        case NM_LASER:
+        {
+            set_entvar(ent, var_dmgtime, now + 9999.0);
+            set_entvar(ent, var_fuser1, now + floatmax(5.0, get_pcvar_float(g_pNadeSensorLife)));
+            FxTrail(ent, 255, 0, 60);
+        }
         case NM_HOMING:
         {
             set_entvar(ent, var_dmgtime, now + 6.0);
@@ -12260,7 +13229,7 @@ NadeOnThrow(id, ent, slot)
     }
 }
 
-// Patlama: hemen (duman bombasi yere oturmus olmali)
+// Patlama: hemen (duman bombasi icin yerde sayilmali)
 NadeDetonateNow(ent)
 {
     set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
@@ -12273,10 +13242,29 @@ NadeDetonateNow(ent)
 public fw_GrenadeTouch(ent, other)
 {
     new mode = get_entvar(ent, var_iuser4) - 1;
-    if (mode != NM_IMPACT && mode != NM_HOMING)
+    if (mode != NM_IMPACT && mode != NM_HOMING && mode != NM_LASER)
         return HAM_IGNORED;
     if (other == get_entvar(ent, var_owner))
         return HAM_IGNORED;
+
+    // LAZER TUZAK: degdigi duvara / zemine / tavana normal lazer mayini gibi YAPISIR
+    if (mode == NM_LASER)
+    {
+        if (get_entvar(ent, var_iuser3) != 0)
+            return HAM_SUPERCEDE;
+        if (other > 0)
+        {
+            // Sadece sabit dunya parcalari (kapi / oyuncu / tetik degil)
+            if (other <= g_iMax || get_entvar(other, var_solid) != SOLID_BSP)
+                return HAM_IGNORED;
+            new mt = get_entvar(other, var_movetype);
+            if (mt != MOVETYPE_NONE && mt != MOVETYPE_PUSH)
+                return HAM_IGNORED;
+        }
+        NadeStick(ent);
+        return HAM_SUPERCEDE;
+    }
+
     if (Float:get_entvar(ent, var_dmgtime) <= get_gametime())
         return HAM_IGNORED;
 
@@ -12291,6 +13279,86 @@ public fw_GrenadeTouch(ent, other)
 
     NadeDetonateNow(ent);
     return HAM_IGNORED;
+}
+
+// Lazer tuzak: carptigi yuzeye yapis, yuzey normalini kaydet
+NadeStick(ent)
+{
+    new Float:o[3], Float:vel[3], Float:dir[3], Float:a[3], Float:b[3], Float:normal[3], Float:pos[3];
+    get_entvar(ent, var_origin, o);
+    get_entvar(ent, var_velocity, vel);
+
+    new Float:len = floatsqroot(vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]);
+    if (len < 1.0)
+    {
+        dir[0] = 0.0;
+        dir[1] = 0.0;
+        dir[2] = -1.0;
+    }
+    else
+    {
+        dir[0] = vel[0] / len;
+        dir[1] = vel[1] / len;
+        dir[2] = vel[2] / len;
+    }
+
+    new bool:found;
+    new tr = create_tr2();
+    for (new attempt = 0; attempt < 2 && !found; attempt++)
+    {
+        if (attempt == 1)
+        {
+            // Hareket yonunde yuzey yoksa: alta bak
+            dir[0] = 0.0;
+            dir[1] = 0.0;
+            dir[2] = -1.0;
+        }
+        for (new i = 0; i < 3; i++)
+        {
+            a[i] = o[i] - dir[i] * 24.0;
+            b[i] = o[i] + dir[i] * 32.0;
+        }
+        engfunc(EngFunc_TraceLine, a, b, IGNORE_MONSTERS, ent, tr);
+        new Float:frac;
+        get_tr2(tr, TR_flFraction, frac);
+        if (frac < 1.0 && !get_tr2(tr, TR_AllSolid))
+        {
+            get_tr2(tr, TR_vecEndPos, pos);
+            get_tr2(tr, TR_vecPlaneNormal, normal);
+            found = true;
+        }
+    }
+    free_tr2(tr);
+
+    if (!found)
+    {
+        pos = o;
+        normal[0] = -dir[0];
+        normal[1] = -dir[1];
+        normal[2] = -dir[2];
+    }
+
+    pos[0] += normal[0] * 3.0;
+    pos[1] += normal[1] * 3.0;
+    pos[2] += normal[2] * 3.0;
+
+    set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
+    set_entvar(ent, var_avelocity, Float:{0.0, 0.0, 0.0});
+    set_entvar(ent, var_movetype, MOVETYPE_NONE);
+    set_entvar(ent, var_flags, get_entvar(ent, var_flags) | FL_ONGROUND);
+    engfunc(EngFunc_SetOrigin, ent, pos);
+
+    new Float:ang[3];
+    engfunc(EngFunc_VecToAngles, normal, ang);
+    ang[0] += 90.0;
+    set_entvar(ent, var_angles, ang);
+
+    new Float:now = get_gametime();
+    set_entvar(ent, var_vuser2, normal);
+    set_entvar(ent, var_iuser3, 1);
+    set_entvar(ent, var_fuser4, now + floatmax(0.2, get_pcvar_float(g_pNadeLaserArm)));
+    EmitKey(ent, "NADE_ARM", CHAN_ITEM);
+    FxSparks(pos);
 }
 
 // Her 0.1 sn: sensor / lazer / gudumlu bombalar
@@ -12320,9 +13388,13 @@ public task_NadeTick()
 bool:NadeLanded(ent)
 {
     if (get_entvar(ent, var_flags) & FL_ONGROUND)
-        return true;
+    {
+        new Float:vel[3];
+        get_entvar(ent, var_velocity, vel);
+        return (vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2] < 2500.0) ? true : false;
+    }
 
-    // Havada tepe noktasinda da hiz dusuk olur: altinda zemin olmali
+    // Hiz cok dusuk ve altinda zemin var
     new Float:vel[3];
     get_entvar(ent, var_velocity, vel);
     if (vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2] >= 400.0)
@@ -12337,107 +13409,177 @@ bool:NadeLanded(ent)
     return (frac < 1.0) ? true : false;
 }
 
-NadePlant(ent, Float:now)
+// Zombi gorus hattinda mi? (duvar arkasindaki zombi sensoru tetiklemez)
+bool:NadeSees(ent, const Float:o[3], z)
 {
-    set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
-    set_entvar(ent, var_movetype, MOVETYPE_NONE);
-    set_entvar(ent, var_flags, get_entvar(ent, var_flags) | FL_ONGROUND);
-    set_entvar(ent, var_fuser4, now + 1.0);
-    set_entvar(ent, var_fuser3, now + 1.0);
-    set_entvar(ent, var_dmgtime, now + 35.0);
-    EmitKey(ent, "NADE_ARM");
+    new Float:zo[3];
+    get_entvar(z, var_origin, zo);
+    engfunc(EngFunc_TraceLine, o, zo, IGNORE_MONSTERS, ent, 0);
+    new Float:frac;
+    get_tr2(0, TR_flFraction, frac);
+    return (frac >= 0.99) ? true : false;
 }
 
+/* SENSOR: yere oturur, kurulur (bip), zombi menzile ve gorus hattina girince
+   kisa bir uyari bipiyle patlar. Kendiliginden / hemen patlamaz. */
 NadeSensor(ent, Float:now)
 {
-    if (!get_entvar(ent, var_iuser3))
-    {
-        if (!NadeLanded(ent))
-            return;
-        NadePlant(ent, now);
-        set_entvar(ent, var_iuser3, 1);
-        return;
-    }
-    if (now < Float:get_entvar(ent, var_fuser4))
-        return;
-
-    new Float:o[3], Float:po[3];
+    new st = get_entvar(ent, var_iuser3);
+    new Float:o[3], Float:eye[3];
     get_entvar(ent, var_origin, o);
+    eye = o;
+    eye[2] += 10.0;
 
-    // Bip + kirmizi halka (saniyede bir)
-    if (now >= Float:get_entvar(ent, var_fuser3))
+    if (now > Float:get_entvar(ent, var_fuser1) && st < 3)
     {
-        set_entvar(ent, var_fuser3, now + 1.0);
-        FxRingEx(o, 255, 30, 30, get_pcvar_num(g_pNadeProx), 4, 6, 120);
-        FxLight(o, 255, 0, 0, 6, 5, 10);
-        EmitKey(ent, "NADE_BEEP");
-    }
-
-    new Float:radius = get_pcvar_float(g_pNadeProx);
-    for (new p = 1; p <= g_iMax; p++)
-    {
-        if (!is_user_alive(p) || !g_bZombie[p])
-            continue;
-        get_entvar(p, var_origin, po);
-        if (get_distance_f(o, po) > radius)
-            continue;
         NadeDetonateNow(ent);
         return;
     }
+
+    switch (st)
+    {
+        case 0: // havada
+        {
+            if (!NadeLanded(ent))
+                return;
+            set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
+            set_entvar(ent, var_movetype, MOVETYPE_NONE);
+            set_entvar(ent, var_flags, get_entvar(ent, var_flags) | FL_ONGROUND);
+            set_entvar(ent, var_fuser4, now + floatmax(0.3, get_pcvar_float(g_pNadeSensorArm)));
+            set_entvar(ent, var_iuser3, 1);
+            EmitKey(ent, "NADE_ARM", CHAN_ITEM);
+            FxLight(o, 255, 200, 0, 6, 5, 10);
+        }
+        case 1: // kuruluyor
+        {
+            if (now < Float:get_entvar(ent, var_fuser4))
+            {
+                if (now >= Float:get_entvar(ent, var_fuser3))
+                {
+                    set_entvar(ent, var_fuser3, now + 0.5);
+                    FxLight(o, 255, 200, 0, 5, 4, 10);
+                }
+                return;
+            }
+            set_entvar(ent, var_iuser3, 2);
+            set_entvar(ent, var_fuser3, now);
+            EmitKey(ent, "NADE_BEEP", CHAN_ITEM);
+        }
+        case 2: // aktif: zombi bekliyor
+        {
+            new Float:radius = floatmax(50.0, get_pcvar_float(g_pNadeProx));
+            if (now >= Float:get_entvar(ent, var_fuser3))
+            {
+                set_entvar(ent, var_fuser3, now + 1.0);
+                new Float:ring[3];
+                ring = o;
+                ring[2] -= 4.0;
+                FxRingEx(ring, 255, 30, 30, floatround(radius), 4, 6, 120);
+                FxLight(o, 255, 0, 0, 6, 5, 10);
+                EmitKey(ent, "NADE_BEEP", CHAN_ITEM, ATTN_STATIC);
+            }
+
+            new Float:po[3];
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (!is_user_alive(p) || !g_bZombie[p])
+                    continue;
+                get_entvar(p, var_origin, po);
+                if (get_distance_f(o, po) > radius || !NadeSees(ent, eye, p))
+                    continue;
+
+                // Tetiklendi: kisa uyari, sonra patlama
+                set_entvar(ent, var_iuser3, 3);
+                set_entvar(ent, var_fuser4, now + 0.25);
+                EmitKey(ent, "NADE_TRIGGER", CHAN_ITEM);
+                FxLight(o, 255, 0, 0, 14, 3, 30);
+                return;
+            }
+        }
+        default: // tetiklendi
+        {
+            if (now >= Float:get_entvar(ent, var_fuser4))
+                NadeDetonateNow(ent);
+        }
+    }
 }
 
+/* LAZER TUZAK: duvara / zemine yapisir, yuzeyden disari dik kirmizi lazer
+   ceker. Lazeri kesen zombinin UZERINDE patlar. */
 NadeLaser(ent, Float:now)
 {
-    new Float:o[3], Float:start[3], Float:end[3], Float:dir[3];
+    new st = get_entvar(ent, var_iuser3);
+    new Float:o[3], Float:normal[3], Float:start[3], Float:end[3];
     get_entvar(ent, var_origin, o);
-    start = o;
-    start[2] += 8.0;
 
-    if (!get_entvar(ent, var_iuser3))
+    if (now > Float:get_entvar(ent, var_fuser1) && st >= 1)
     {
-        if (!NadeLanded(ent))
-            return;
-        NadePlant(ent, now);
-
-        get_entvar(ent, var_vuser4, dir);
-        new Float:len = get_pcvar_float(g_pNadeLaser);
-        end[0] = start[0] + dir[0] * len;
-        end[1] = start[1] + dir[1] * len;
-        end[2] = start[2];
-        engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, ent, 0);
-        get_tr2(0, TR_vecEndPos, end);
-        set_entvar(ent, var_vuser3, end);
-
-        new beam = BeamCreate(start, end, 255, 30, 30, 5, 200);
-        if (beam)
-        {
-            set_entvar(beam, var_iuser1, BEAM_MARK_NADE);
-            set_entvar(ent, var_iuser3, beam);
-        }
-        else
-            set_entvar(ent, var_iuser3, -1);
-        return;
-    }
-    if (now < Float:get_entvar(ent, var_fuser4))
-        return;
-
-    get_entvar(ent, var_vuser3, end);
-    engfunc(EngFunc_TraceLine, start, end, DONT_IGNORE_MONSTERS, ent, 0);
-    new hit = get_tr2(0, TR_pHit);
-    if (1 <= hit <= g_iMax && is_user_alive(hit) && g_bZombie[hit])
-    {
-        new Float:hp[3];
-        get_tr2(0, TR_vecEndPos, hp);
-        FxSparks(hp);
         NadeCleanup(ent);
         NadeDetonateNow(ent);
         return;
     }
 
-    if (now >= Float:get_entvar(ent, var_fuser3))
+    switch (st)
     {
-        set_entvar(ent, var_fuser3, now + 1.5);
-        FxLight(o, 255, 0, 0, 5, 5, 10);
+        case 0: // havada: yere oturup durduysa (dokunma kacirildiysa) oldugu yere yapis
+        {
+            if (NadeLanded(ent))
+                NadeStick(ent);
+        }
+        case 1: // yapisti, kuruluyor
+        {
+            if (now < Float:get_entvar(ent, var_fuser4))
+                return;
+
+            get_entvar(ent, var_vuser2, normal);
+            for (new i = 0; i < 3; i++)
+            {
+                start[i] = o[i] + normal[i] * 4.0;
+                end[i] = start[i] + normal[i] * floatmax(64.0, get_pcvar_float(g_pNadeLaser));
+            }
+            engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, ent, 0);
+            get_tr2(0, TR_vecEndPos, end);
+            set_entvar(ent, var_vuser1, start);
+            set_entvar(ent, var_vuser3, end);
+
+            new beam = BeamCreate(start, end, 255, 20, 40, 6, 210);
+            if (beam)
+                set_entvar(beam, var_iuser1, BEAM_MARK_NADE);
+            set_entvar(ent, var_iuser2, beam);
+            set_entvar(ent, var_iuser3, 2);
+            set_entvar(ent, var_fuser3, now);
+            EmitKey(ent, "LM_ACTIVATE", CHAN_ITEM);
+        }
+        case 2: // aktif
+        {
+            get_entvar(ent, var_vuser1, start);
+            get_entvar(ent, var_vuser3, end);
+
+            new Float:po[3], Float:hitp[3];
+            for (new z = 1; z <= g_iMax; z++)
+            {
+                if (!is_user_alive(z) || !g_bZombie[z])
+                    continue;
+                if (!BeamHitsPlayer(start, end, z))
+                    continue;
+
+                // Zombinin uzerinde patla
+                get_entvar(z, var_origin, po);
+                ClosestOnSegment(start, end, po, hitp);
+                FxSparks(hitp);
+                EmitKey(ent, "NADE_TRIGGER", CHAN_ITEM);
+                NadeCleanup(ent);
+                engfunc(EngFunc_SetOrigin, ent, hitp);
+                NadeDetonateNow(ent);
+                return;
+            }
+
+            if (now >= Float:get_entvar(ent, var_fuser3))
+            {
+                set_entvar(ent, var_fuser3, now + 1.5);
+                FxLight(o, 255, 0, 0, 5, 5, 10);
+            }
+        }
     }
 }
 
@@ -12488,10 +13630,10 @@ NadeCleanup(ent)
 {
     if (get_entvar(ent, var_iuser4) - 1 != NM_LASER)
         return;
-    new beam = get_entvar(ent, var_iuser3);
+    new beam = get_entvar(ent, var_iuser2);
     if (beam > 0 && !is_nullent(beam))
         set_entvar(beam, var_flags, FL_KILLME);
-    set_entvar(ent, var_iuser3, -1);
+    set_entvar(ent, var_iuser2, 0);
 }
 
 // Parcali: ana patlamanin etrafina kucuk patlamalar
@@ -12540,7 +13682,7 @@ public task_ClusterBlast(params[])
             continue;
         if (params[4] == NADE_FIRE)
             Ignite(p, owner, 3);
-        ExecuteHamB(Ham_TakeDamage, p, 0, owner, 45.0, DMG_GRENADE);
+        ExecuteHamB(Ham_TakeDamage, p, 0, owner, get_pcvar_float(g_pNadeClusterDmg), DMG_GRENADE);
     }
 }
 
@@ -12549,6 +13691,9 @@ stock EmitKeyPos(const Float:o[3], const key[])
 {
     new path[128];
     if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0] || containi(path, ".mp3") != -1)
+        return;
+    // Konumdan calinan dongulu ses durdurulamaz: hic calma
+    if (get_pcvar_num(g_pLoopGuard) && SndLooped(path))
         return;
     engfunc(EngFunc_EmitAmbientSound, 0, o, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 }
@@ -12712,7 +13857,46 @@ SpawnAirdrop()
 
     SetTouch(ent, "fw_DropTouch");
     SetThink(ent, "fw_DropThink");
-    set_entvar(ent, var_nextthink, get_gametime() + 0.2);
+    set_entvar(ent, var_nextthink, get_gametime() + 0.1);
+
+    // v2.0 ALTIN ISIK: gokyuzune uzanan kalin altin isin sutunu (kalici varlik,
+    // herkes gorur) + parlayan isaret sprite'i + kutunun etrafinda isik
+    if (get_pcvar_num(g_pDropBeacon))
+    {
+        set_entvar(ent, var_effects, EF_DIMLIGHT);
+        new Float:sky[3];
+        DropSkyPoint(top, sky);
+        new beam = BeamCreate(top, sky, 255, 200, 40, 60, 160);
+        if (beam)
+        {
+            set_entvar(beam, var_iuser1, BEAM_MARK_DROP);
+            set_entvar(beam, var_renderfx, 0);
+        }
+        set_entvar(ent, var_iuser2, beam);
+        new core = BeamCreate(top, sky, 255, 255, 200, 14, 230);
+        if (core)
+            set_entvar(core, var_iuser1, BEAM_MARK_DROP);
+        set_entvar(ent, var_iuser4, core);
+
+        if (g_szSprBeacon[0])
+        {
+            new spr = rg_create_entity("info_target");
+            if (!is_nullent(spr))
+            {
+                set_entvar(spr, var_classname, "vex_dropglow");
+                engfunc(EngFunc_SetModel, spr, g_szSprBeacon);
+                set_entvar(spr, var_rendermode, kRenderTransAdd);
+                set_entvar(spr, var_renderamt, 255.0);
+                set_entvar(spr, var_rendercolor, Float:{255.0, 200.0, 40.0});
+                set_entvar(spr, var_scale, 1.2);
+                set_entvar(spr, var_movetype, MOVETYPE_FOLLOW);
+                set_entvar(spr, var_aiment, ent);
+                set_entvar(spr, var_solid, SOLID_NOT);
+                engfunc(EngFunc_SetOrigin, spr, top);
+                set_entvar(ent, var_iuser3, spr);
+            }
+        }
+    }
 
     FxTrail(ent, 255, 200, 40);
     HudAll(SL_ALERT, 255, 200, 40, 2.5, "AIRDROP_HUD");
@@ -12729,29 +13913,74 @@ public fw_DropThink(ent)
     new Float:now = get_gametime();
     if (now > Float:get_entvar(ent, var_fuser1) || !g_bRoundActive)
     {
-        set_entvar(ent, var_flags, FL_KILLME);
+        DropRemove(ent);
         return;
     }
 
     new Float:o[3], Float:sky[3];
     get_entvar(ent, var_origin, o);
+    new bool:landed = get_entvar(ent, var_iuser1) ? true : false;
 
     // Yere indi: toz + ses
-    if (!get_entvar(ent, var_iuser1) && (get_entvar(ent, var_flags) & FL_ONGROUND))
+    if (!landed && (get_entvar(ent, var_flags) & FL_ONGROUND))
     {
+        landed = true;
         set_entvar(ent, var_iuser1, 1);
-        FxRingEx(o, 255, 200, 40, 220, 12, 6);
+        FxRingEx(o, 255, 200, 40, 260, 16, 6);
         FxSprite(o, g_sprSmoke, 15, 150);
         EmitKey(ent, "AIRDROP_LAND");
+        ZoneSpawn(o, 70.0, 255, 200, 40, Float:get_entvar(ent, var_fuser1) - now, ent, false);
     }
 
-    // Isik sutunu: uzaktan gorunur
-    sky = o;
-    sky[2] += 520.0;
-    FxBeamEx(o, sky, g_sprBeam, 255, 200, 40, 14, 0, 11, 150);
-    FxLight(o, 255, 200, 40, 14, 11, 5);
+    // Altin isin sutunu kutuyu takip eder (duserken de)
+    DropSkyPoint(o, sky);
+    new beam = get_entvar(ent, var_iuser2);
+    if (beam > 0 && !is_nullent(beam))
+        BeamPoints(beam, o, sky);
+    new core = get_entvar(ent, var_iuser4);
+    if (core > 0 && !is_nullent(core))
+        BeamPoints(core, o, sky);
 
-    set_entvar(ent, var_nextthink, now + 1.0);
+    // Altin nabiz isigi (eski ince sutun yedek olarak)
+    if (!get_pcvar_num(g_pDropBeacon) || !beam)
+        FxBeamEx(o, sky, g_sprBeam, 255, 200, 40, 60, 0, 11, 200);
+    if (landed)
+    {
+        FxLight(o, 255, 200, 40, 28, 11, 5);
+        if (g_iFrame % 2 == 0)
+            FxRingSmall(o, 255, 200, 40);
+    }
+
+    set_entvar(ent, var_nextthink, now + (landed ? 1.0 : 0.1));
+}
+
+// Kutudan yukari: tavana / gokyuzune kadar (en fazla 1500)
+DropSkyPoint(const Float:o[3], Float:sky[3])
+{
+    new Float:top[3];
+    top = o;
+    top[2] += 1500.0;
+    engfunc(EngFunc_TraceLine, o, top, IGNORE_MONSTERS, 0, 0);
+    get_tr2(0, TR_vecEndPos, sky);
+}
+
+DropRemove(ent)
+{
+    if (is_nullent(ent))
+        return;
+    new b = get_entvar(ent, var_iuser2);
+    if (b > 0 && !is_nullent(b))
+        set_entvar(b, var_flags, FL_KILLME);
+    b = get_entvar(ent, var_iuser4);
+    if (b > 0 && !is_nullent(b))
+        set_entvar(b, var_flags, FL_KILLME);
+    b = get_entvar(ent, var_iuser3);
+    if (b > 0 && !is_nullent(b))
+        set_entvar(b, var_flags, FL_KILLME);
+    SetTouch(ent, "");
+    SetThink(ent, "");
+    set_entvar(ent, var_classname, "vex_removed");
+    set_entvar(ent, var_flags, FL_KILLME);
 }
 
 public fw_DropTouch(ent, other)
@@ -12766,16 +13995,14 @@ public fw_DropTouch(ent, other)
 
     new Float:o[3];
     get_entvar(ent, var_origin, o);
-    SetTouch(ent, "");
-    SetThink(ent, "");
-    set_entvar(ent, var_flags, FL_KILLME);
+    DropRemove(ent);
 
     if (g_bZombie[other])
     {
         FxSprite(o, g_sprSmoke, 20, 180);
         FxRingSmall(o, 0, 255, 0);
         ChatAllS("AIRDROP_ZOMBIE", name);
-        HealTo(other, 300, g_iMaxHP[other]);
+        HealTo(other, get_pcvar_num(g_pAirdropHP), g_iMaxHP[other]);
         return;
     }
 
@@ -12815,9 +14042,9 @@ AirdropLoot(id, const name[])
         rg_give_item(id, "weapon_flashbang");
         copy(key, charsmax(key), "LOOT_NADES");
     }
-    else if (roll <= 76 && LasersAllowed())
+    else if (roll <= 76 && LasersAllowed() && get_pcvar_num(g_pAirdropLaser))
     {
-        g_iMines[id] = min(5, g_iMines[id] + 1);
+        g_iMines[id] = min(RoundMines(id) + 2, g_iMines[id] + 1);
         copy(key, charsmax(key), "LOOT_MINE");
     }
     else if (roll <= 84)
@@ -12875,11 +14102,57 @@ RemoveAllDrops()
 {
     new ent;
     while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", DROP_CLASS)) > 0)
-    {
-        SetTouch(ent, "");
-        SetThink(ent, "");
+        DropRemove(ent);
+    ent = 0;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "vex_dropglow")) > 0)
         set_entvar(ent, var_flags, FL_KILLME);
+}
+
+// Insanlar icin pusula: en yakin ikmal kutusu - mesafe (metre) ve yon
+bool:DropCompass(id, out[], len)
+{
+    out[0] = 0;
+    if (!get_pcvar_num(g_pDropCompass))
+        return false;
+
+    new Float:o[3], Float:co[3], best, Float:bd = 999999.0;
+    get_entvar(id, var_origin, o);
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", DROP_CLASS)) > 0)
+    {
+        get_entvar(ent, var_origin, co);
+        new Float:d = get_distance_f(o, co);
+        if (d < bd)
+        {
+            bd = d;
+            best = ent;
+        }
     }
+    if (!best)
+        return false;
+
+    get_entvar(best, var_origin, co);
+    new Float:ang[3];
+    get_entvar(id, var_v_angle, ang);
+    new Float:want = floatatan2(co[1] - o[1], co[0] - o[0], degrees);
+    new Float:diff = want - ang[1];
+    while (diff > 180.0)
+        diff -= 360.0;
+    while (diff < -180.0)
+        diff += 360.0;
+
+    new arrow[8];
+    if (floatabs(diff) <= 30.0)
+        copy(arrow, charsmax(arrow), "^^^^");
+    else if (floatabs(diff) >= 150.0)
+        copy(arrow, charsmax(arrow), "vv");
+    else if (diff > 0.0)
+        copy(arrow, charsmax(arrow), "<<");
+    else
+        copy(arrow, charsmax(arrow), ">>");
+
+    formatex(out, len, "%L", id, "HUD_DROP_COMPASS", floatround(bd * 0.0254), arrow);
+    return true;
 }
 
 /* ---------------- Round gorevleri ----------------
@@ -12887,9 +14160,9 @@ RemoveAllDrops()
 
 // tur: 0 zombi oldur, 1 hasar ver, 2 headshot, 4 enfekte et, 7 roundu insan olarak kazan
 new const QUEST_TYPE[NUM_QUESTS] = { 0, 0, 1, 1, 2, 4, 4, 7 };
-new const QUEST_NEED[NUM_QUESTS] = { 3, 6, 2500, 6000, 2, 1, 3, 1 };
-new const QUEST_XP[NUM_QUESTS]   = { 40, 80, 40, 80, 50, 30, 80, 45 };
-new const QUEST_AP[NUM_QUESTS]   = { 10, 20, 10, 20, 12, 8, 20, 12 };
+new QUEST_NEED[NUM_QUESTS] = { 3, 6, 2500, 6000, 2, 1, 3, 1 };
+new QUEST_XP[NUM_QUESTS]   = { 40, 80, 40, 80, 50, 30, 80, 45 };
+new QUEST_AP[NUM_QUESTS]   = { 10, 20, 10, 20, 12, 8, 20, 12 };
 new g_iQuestProg[33];
 
 AssignQuests()
@@ -13217,9 +14490,9 @@ StormStrike()
 /*  IZLEYICI BILGISI: olu oyuncu izledigi kisinin bilgisini gorur.     */
 /* ================================================================== */
 
-new const TRAIL_PRICE[NUM_TRAILS] = { 15, 15, 15, 20, 30, 50 };
-new const KFX_PRICE[NUM_KFX]      = { 20, 25, 25, 30, 35, 50 };
-new const IFX_PRICE[NUM_IFX]      = { 20, 30, 40 };
+new TRAIL_PRICE[NUM_TRAILS] = { 15, 15, 15, 20, 30, 50 };
+new KFX_PRICE[NUM_KFX]      = { 20, 25, 25, 30, 35, 50 };
+new IFX_PRICE[NUM_IFX]      = { 20, 30, 40 };
 
 // Iz renkleri: Buz, Toksik, Kan, Kraliyet, Altin, Gokkusagi (renk degistirir)
 new const TRAIL_RGB[NUM_TRAILS][3] =
@@ -13969,5 +15242,2529 @@ TopJoinAnnounce(id)
     {
         if (p != id && is_user_connected(p) && !is_user_bot(p))
             client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "TOP_JOIN", r, name);
+    }
+}
+
+/* ================================================================== */
+/*  v2.0  TEK AYAR DOSYASI: configs/vexmira.cfg                        */
+/*  - Oyun kurallari, sunucu adi, tum vex_* ayarlari                   */
+/*  - Tablolar: vex_item, vex_class, vex_sw, vex_gun, vex_job,         */
+/*    vex_boss_stat, vex_boss_skill, vex_mode_rule, vex_env_*,         */
+/*    vex_cosmetic, vex_quest                                          */
+/*  - Kaynaklar (ses / model / sprite): vex_res ANAHTAR "deger"        */
+/*  Dosyayi plugin kendisi satir satir okur (exec tampon tasmasi yok). */
+/*  Oyun icinde yeniden yuklemek: vex_reload (RCON)                     */
+/* ================================================================== */
+
+CfgPath(out[], len)
+{
+    get_configsdir(out, len);
+    add(out, len, "/vexmira.cfg");
+}
+
+// Satir sonu yorumunu at (tirnak icindeki // korunur: http://...)
+StripCfgComment(line[])
+{
+    new bool:q;
+    for (new i = 0; line[i]; i++)
+    {
+        if (line[i] == '"')
+            q = !q;
+        else if (!q && line[i] == '/' && line[i + 1] == '/')
+        {
+            line[i] = 0;
+            break;
+        }
+    }
+    trim(line);
+}
+
+#define CFG_MAXARGS 12
+
+// precache = true: sadece vex_res satirlari (harita yuklenirken)
+LoadMainConfig(bool:precache)
+{
+    new file[128];
+    CfgPath(file, charsmax(file));
+
+    new fp = fopen(file, "rt");
+    if (!fp)
+    {
+        if (!precache)
+            log_amx("[Vexmira] %s bulunamadi, varsayilan ayarlar kullaniliyor.", file);
+        return 0;
+    }
+
+    new line[512], args[CFG_MAXARGS][128], argc, pos, count, value[192];
+    while (!feof(fp))
+    {
+        fgets(fp, line, charsmax(line));
+        trim(line);
+        if (!line[0] || line[0] == ';' || line[0] == '#' || (line[0] == '/' && line[1] == '/'))
+            continue;
+        StripCfgComment(line);
+        if (!line[0])
+            continue;
+
+        argc = 0;
+        pos = 0;
+        while (argc < CFG_MAXARGS && (pos = argparse(line, pos, args[argc], charsmax(args[]))) != -1)
+            argc++;
+        if (!argc)
+            continue;
+
+        if (equali(args[0], "vex_res"))
+        {
+            if (precache && argc >= 2)
+                ResSet(args[1], argc >= 3 ? args[2] : "");
+            continue;
+        }
+        if (precache)
+            continue;
+
+        if (ApplyTableCmd(args, argc))
+        {
+            count++;
+            continue;
+        }
+
+        if (cvar_exists(args[0]))
+        {
+            // Deger: tek arguman (tirnakli) veya bosluklu birden cok arguman
+            value[0] = 0;
+            for (new i = 1; i < argc; i++)
+            {
+                if (i > 1)
+                    add(value, charsmax(value), " ");
+                add(value, charsmax(value), args[i]);
+            }
+            set_cvar_string(args[0], value);
+            count++;
+            continue;
+        }
+
+        // Bilinmeyen satir (or. exec, sv_downloadurl...): sunucuya aynen gonder
+        server_cmd("%s", line);
+        count++;
+    }
+    fclose(fp);
+
+    if (!precache)
+        ApplyConfigNow();
+    return count;
+}
+
+// Ayarlar yuklendikten / degistikten sonra hemen uygulananlar
+ApplyConfigNow()
+{
+    new raw[64];
+    get_pcvar_string(g_pPrefix, raw, charsmax(raw));
+    if (raw[0])
+        ColorEscape(raw, g_szPrefix, charsmax(g_szPrefix));
+    ApplyHostname();
+}
+
+// "^1" "^3" "^4" -> chat renk karakterleri
+ColorEscape(const src[], dst[], len)
+{
+    new j;
+    for (new i = 0; src[i] && j < len; i++)
+    {
+        if (src[i] == '^^' && src[i + 1] >= '1' && src[i + 1] <= '4')
+        {
+            dst[j++] = src[i + 1] - '0';
+            i++;
+        }
+        else
+            dst[j++] = src[i];
+    }
+    dst[j] = 0;
+}
+
+TblIdx(const args[][], argc, need, maxIdx)
+{
+    if (argc < need)
+    {
+        log_amx("[Vexmira] %s: eksik deger (%d gerekli)", args[0], need - 1);
+        return -1;
+    }
+    new i = str_to_num(args[1]);
+    if (i < 0 || i >= maxIdx)
+    {
+        log_amx("[Vexmira] %s: gecersiz numara %d (0-%d)", args[0], i, maxIdx - 1);
+        return -1;
+    }
+    return i;
+}
+
+EnvLightArg(const a[])
+{
+    if (!a[0] || a[0] == '0' || a[0] == '-')
+        return 0;
+    new c = tolower(a[0]);
+    return (c >= 'a' && c <= 'z') ? c : 0;
+}
+
+// true = tablo komutu islendi
+bool:ApplyTableCmd(const args[][], argc)
+{
+    new i;
+    if (equali(args[0], "vex_item"))
+    {
+        // vex_item <no> <fiyat AP> <round limiti> <level> [deger]
+        if ((i = TblIdx(args, argc, 5, NUM_ITEMS)) >= 0)
+        {
+            ITEM_COST[i]  = max(0, str_to_num(args[2]));
+            ITEM_LIMIT[i] = max(0, str_to_num(args[3]));
+            ITEM_LVL[i]   = clamp(str_to_num(args[4]), 1, MAX_LEVEL);
+            if (argc > 5)
+                ITEM_VAL[i] = str_to_num(args[5]);
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_class"))
+    {
+        // vex_class <no> <can carpani> <hiz> <yercekimi> <geri tepme> <yetenek bekleme> <level>
+        if ((i = TblIdx(args, argc, 8, NUM_CLASSES)) >= 0)
+        {
+            CLASS_HP[i]   = floatmax(0.05, str_to_float(args[2]));
+            CLASS_SPD[i]  = clamp(str_to_num(args[3]), 50, 900);
+            CLASS_GRAV[i] = floatclamp(str_to_float(args[4]), 0.1, 2.0);
+            CLASS_KB[i]   = floatmax(0.0, str_to_float(args[5]));
+            CLASS_COOL[i] = floatmax(0.5, str_to_float(args[6]));
+            CLASS_LVL[i]  = clamp(str_to_num(args[7]), 1, MAX_LEVEL);
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_sw"))
+    {
+        // vex_sw <no> <fiyat AP> <level> <hasar carpani> <yedek mermi>
+        if ((i = TblIdx(args, argc, 6, NUM_SPECIAL)) >= 0)
+        {
+            SW_COST[i]   = max(0, str_to_num(args[2]));
+            SW_LVL[i]    = clamp(str_to_num(args[3]), 1, MAX_LEVEL);
+            SW_MULT[i]   = floatmax(0.1, str_to_float(args[4]));
+            SW_BPAMMO[i] = clamp(str_to_num(args[5]), 1, 999);
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_gun"))
+    {
+        // vex_gun <p|s> <no> <level> <yedek mermi>
+        if (argc < 5)
+            return true;
+        new idx = str_to_num(args[2]);
+        if (args[1][0] == 'p' || args[1][0] == 'P')
+        {
+            if (0 <= idx < sizeof PRIM_LVL)
+            {
+                PRIM_LVL[idx]  = clamp(str_to_num(args[3]), 1, MAX_LEVEL);
+                PRIM_AMMO[idx] = clamp(str_to_num(args[4]), 1, 999);
+            }
+        }
+        else if (0 <= idx < sizeof SEC_LVL)
+        {
+            SEC_LVL[idx]  = clamp(str_to_num(args[3]), 1, MAX_LEVEL);
+            SEC_AMMO[idx] = clamp(str_to_num(args[4]), 1, 999);
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_job"))
+    {
+        // vex_job <no> <level>
+        if ((i = TblIdx(args, argc, 3, NUM_JOBS)) >= 0)
+            JOB_LVL[i] = clamp(str_to_num(args[2]), 1, MAX_LEVEL);
+        return true;
+    }
+    if (equali(args[0], "vex_boss_stat"))
+    {
+        // vex_boss_stat <no> <can carpani> <hiz> <yercekimi> [R G B]
+        if ((i = TblIdx(args, argc, 5, NUM_BOSSES)) >= 0)
+        {
+            BOSS_HP_MULT[i] = floatmax(0.05, str_to_float(args[2]));
+            BOSS_SPD[i]     = clamp(str_to_num(args[3]), 50, 900);
+            BOSS_GRAV[i]    = floatclamp(str_to_float(args[4]), 0.1, 2.0);
+            if (argc >= 8)
+            {
+                BOSS_RGB[i][0] = clamp(str_to_num(args[5]), 0, 255);
+                BOSS_RGB[i][1] = clamp(str_to_num(args[6]), 0, 255);
+                BOSS_RGB[i][2] = clamp(str_to_num(args[7]), 0, 255);
+            }
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_boss_skill"))
+    {
+        // vex_boss_skill <boss> <faz 1-3> <bekleme sn> <hasar> <yaricap>
+        if ((i = TblIdx(args, argc, 6, NUM_BOSSES)) >= 0)
+        {
+            new ph = clamp(str_to_num(args[2]), 1, 3) - 1;
+            BSK_COOL[i][ph] = floatmax(1.0, str_to_float(args[3]));
+            BSK_DMG[i][ph]  = floatmax(0.0, str_to_float(args[4]));
+            BSK_RAD[i][ph]  = max(0, str_to_num(args[5]));
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_mode_rule"))
+    {
+        // vex_mode_rule <mod> <sans> <en az oyuncu>
+        if ((i = TblIdx(args, argc, 4, MODE_TOTAL)) >= 0)
+        {
+            MODE_CHANCE[i] = max(0, str_to_num(args[2]));
+            MODE_MINPL[i]  = clamp(str_to_num(args[3]), 1, 32);
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_env_event") || equali(args[0], "vex_env_mode") || equali(args[0], "vex_env_boss") || equali(args[0], "vex_env_calm"))
+    {
+        // vex_env_* <no> <isik a-z | 0> <sis R> <sis G> <sis B> <sis yogunlugu> <hava 0/1/2>
+        new kind = equali(args[0], "vex_env_event") ? 0 : equali(args[0], "vex_env_mode") ? 1 : equali(args[0], "vex_env_boss") ? 2 : 3;
+        static const MAXN[4] = { EV_TOTAL, MODE_TOTAL, NUM_BOSSES, NUM_CALM };
+        if ((i = TblIdx(args, argc, 8, MAXN[kind])) < 0)
+            return true;
+        new l = EnvLightArg(args[2]), w = clamp(str_to_num(args[7]), 0, 2);
+        new f0 = clamp(str_to_num(args[3]), 0, 255), f1 = clamp(str_to_num(args[4]), 0, 255);
+        new f2 = clamp(str_to_num(args[5]), 0, 255), f3 = clamp(str_to_num(args[6]), 0, 200);
+        switch (kind)
+        {
+            case 0: { ENV_EV_LIGHT[i] = l ? l : 'm'; ENV_EV_FOG[i][0] = f0; ENV_EV_FOG[i][1] = f1; ENV_EV_FOG[i][2] = f2; ENV_EV_FOG[i][3] = f3; ENV_EV_WEATHER[i] = w; }
+            case 1: { ENV_MODE_LIGHT[i] = l; ENV_MODE_FOG[i][0] = f0; ENV_MODE_FOG[i][1] = f1; ENV_MODE_FOG[i][2] = f2; ENV_MODE_FOG[i][3] = f3; ENV_MODE_WEATHER[i] = w; }
+            case 2: { ENV_BOSS_LIGHT[i] = l; ENV_BOSS_FOG[i][0] = f0; ENV_BOSS_FOG[i][1] = f1; ENV_BOSS_FOG[i][2] = f2; ENV_BOSS_FOG[i][3] = f3; ENV_BOSS_WEATHER[i] = w; }
+            default: { ENV_CALM_LIGHT[i] = l ? l : 'm'; ENV_CALM_FOG[i][0] = f0; ENV_CALM_FOG[i][1] = f1; ENV_CALM_FOG[i][2] = f2; ENV_CALM_FOG[i][3] = f3; ENV_CALM_WEATHER[i] = w; }
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_cosmetic"))
+    {
+        // vex_cosmetic <tur 0 iz / 1 oldurme / 2 enfeksiyon> <no> <fiyat VC>
+        if (argc < 4)
+            return true;
+        new cat = str_to_num(args[1]), idx = str_to_num(args[2]), price = max(1, str_to_num(args[3]));
+        switch (cat)
+        {
+            case 0: if (0 <= idx < NUM_TRAILS) TRAIL_PRICE[idx] = price;
+            case 1: if (0 <= idx < NUM_KFX) KFX_PRICE[idx] = price;
+            case 2: if (0 <= idx < NUM_IFX) IFX_PRICE[idx] = price;
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_quest"))
+    {
+        // vex_quest <no> <gereken> <XP> <AP>
+        if ((i = TblIdx(args, argc, 5, NUM_QUESTS)) >= 0)
+        {
+            QUEST_NEED[i] = max(1, str_to_num(args[2]));
+            QUEST_XP[i]   = max(0, str_to_num(args[3]));
+            QUEST_AP[i]   = max(0, str_to_num(args[4]));
+        }
+        return true;
+    }
+    return false;
+}
+
+// Konsoldan / RCON'dan tablo komutlari (vex_item 0 12 3 1 100 ...)
+public srv_TableCmd()
+{
+    new args[CFG_MAXARGS][128];
+    new argc = min(read_argc(), CFG_MAXARGS);
+    for (new i = 0; i < argc; i++)
+        read_argv(i, args[i], charsmax(args[]));
+    if (ApplyTableCmd(args, argc))
+        server_print("[Vexmira] %s uygulandi.", args[0]);
+    return PLUGIN_HANDLED;
+}
+
+// vex_res sunucu konsolunda calistirilinca: harita degisince gecerli olur
+public srv_ResCmd()
+{
+    server_print("[Vexmira] vex_res ayarlari harita degisince yuklenir (ses / model precache).");
+    return PLUGIN_HANDLED;
+}
+
+public cmd_reload_cfg(id, level, cid)
+{
+    if (!cmd_access(id, level, cid, 1))
+        return PLUGIN_HANDLED;
+    new n = LoadMainConfig(false);
+    console_print(id, "[Vexmira] vexmira.cfg yeniden yuklendi (%d satir). Ses/model degisiklikleri harita degisince gecerli.", n);
+    if (id)
+        AdminNotify(id, "ADM_RELOADED", n);
+    return PLUGIN_HANDLED;
+}
+
+public task_LoadConfig()
+{
+    LoadMainConfig(false);
+}
+
+/* ================================================================== */
+/*  v2.0  SUNUCU ADI (vex_hostname)                                    */
+/*  vex_hostname_dynamic 1 = sona canli durum eklenir: "| R7/30 BOSS"  */
+/*                       2 = basa eklenir: "[R7/30 BOSS] ..."          */
+/* ================================================================== */
+
+ApplyHostname()
+{
+    new base[100];
+    get_pcvar_string(g_pHostname, base, charsmax(base));
+    trim(base);
+    if (!base[0])
+        return;
+
+    new name[128], tag[40], dyn = get_pcvar_num(g_pHostDyn);
+    if (dyn > 0 && g_iRound > 0)
+    {
+        HostTag(tag, charsmax(tag));
+        if (dyn == 2)
+            formatex(name, charsmax(name), "[%s] %s", tag, base);
+        else
+            formatex(name, charsmax(name), "%s | %s", base, tag);
+    }
+    else
+        copy(name, charsmax(name), base);
+
+    new cur[128];
+    get_cvar_string("hostname", cur, charsmax(cur));
+    if (!equal(cur, name))
+        set_cvar_string("hostname", name);
+}
+
+HostTag(out[], len)
+{
+    static const MODE_SHORT[MODE_TOTAL][] =
+    {
+        "", "MULTI", "NEMESIS", "ASSASSIN", "SURVIVOR", "SNIPER", "SWARM", "PLAGUE", "ARMAGEDDON", "BOSS"
+    };
+    static const EV_SHORT[EV_TOTAL][] =
+    {
+        "", "BLOOD MOON", "FOG", "SPEED RUSH", "LOW GRAVITY", "x2 DAMAGE", "DARK NIGHT", "OUTBREAK",
+        "SUPPLY", "BERSERK", "ADRENALINE", "METEORS", "HORDE", "TITAN", "GOLD RUSH", "VAMPIRE",
+        "HEADHUNTER", "STORM", "BLACKOUT"
+    };
+    new total = RoundsTotal();
+    if (g_iMode != MODE_INFECTION && g_iMode < MODE_TOTAL)
+        formatex(out, len, "R%d/%d %s", g_iRound, total, MODE_SHORT[g_iMode]);
+    else if (g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
+        formatex(out, len, "R%d/%d %s", g_iRound, total, EV_SHORT[g_iEvent]);
+    else
+        formatex(out, len, "R%d/%d", g_iRound, total);
+}
+
+public task_Hostname()
+{
+    ApplyHostname();
+}
+
+/* ================================================================== */
+/*  v2.0  TEHLIKE ALANLARI (herkes gorur: T ve CT)                     */
+/*  Eski surumde alanlar "kaybolabilen" gecici mesajla ciziliyordu;    */
+/*  ates eden insanlarin ag kotasi dolunca alan CT'lerde gorunmuyordu. */
+/*  Artik alan, yere yatik bir sprite VARLIGIDIR (oyun motoru herkese  */
+/*  kesin gonderir). Sprite dosyasi yoksa guvenilir (reliable) mesajla */
+/*  her saniye yeniden cizilir.                                        */
+/* ================================================================== */
+
+
+// Yer seviyesini bul (alan zemine yapissin)
+stock FloorAt(const Float:o[3], Float:out[3])
+{
+    new Float:a[3], Float:b[3];
+    a = o;
+    a[2] += 24.0;
+    b = o;
+    b[2] -= 512.0;
+    engfunc(EngFunc_TraceLine, a, b, IGNORE_MONSTERS, 0, 0);
+    get_tr2(0, TR_vecEndPos, out);
+    out[2] += 2.0;
+}
+
+// Alan olustur. follow > 0 ise alan o oyuncuyu takip eder.
+stock ZoneSpawn(const Float:o[3], Float:radius, r, g, b, Float:life, follow = 0, bool:sound = true)
+{
+    new Float:pos[3];
+    FloorAt(o, pos);
+
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return 0;
+
+    set_entvar(ent, var_classname, ZONE_CLASS);
+    if (g_sprZone)
+    {
+        engfunc(EngFunc_SetModel, ent, g_szSprZone);
+        set_entvar(ent, var_rendermode, kRenderTransAdd);
+        set_entvar(ent, var_renderamt, 220.0);
+        new Float:c[3];
+        c[0] = float(max(r, 1));
+        c[1] = float(max(g, 1));
+        c[2] = float(max(b, 1));
+        set_entvar(ent, var_rendercolor, c);
+        set_entvar(ent, var_scale, floatmax(0.05, radius / 120.0));
+        set_entvar(ent, var_angles, Float:{90.0, 0.0, 0.0});
+        set_entvar(ent, var_frame, 0.0);
+    }
+    else
+        set_entvar(ent, var_effects, EF_NODRAW);
+
+    set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    new Float:mins[3], Float:maxs[3];
+    mins[0] = -radius; mins[1] = -radius; mins[2] = -8.0;
+    maxs[0] = radius;  maxs[1] = radius;  maxs[2] = 8.0;
+    engfunc(EngFunc_SetSize, ent, mins, maxs);
+    engfunc(EngFunc_SetOrigin, ent, pos);
+
+    new Float:now = get_gametime();
+    set_entvar(ent, var_fuser1, now + life);
+    set_entvar(ent, var_fuser2, now);
+    set_entvar(ent, var_fuser3, radius);
+    set_entvar(ent, var_fuser4, 0.0);
+    set_entvar(ent, var_iuser1, follow);
+    set_entvar(ent, var_iuser2, (r << 16) | (g << 8) | b);
+    set_entvar(ent, var_iuser3, g_iBossSerial);
+
+    SetThink(ent, "fw_ZoneThink");
+    set_entvar(ent, var_nextthink, now + 0.01);
+
+    // Ilk an: herkese guvenilir halka (aninda gorulsun)
+    g_bFxReliable = true;
+    FxRingEx(pos, r, g, b, floatround(radius), 10, 6, 220);
+    g_bFxReliable = false;
+    if (sound)
+        EmitKeyPos(pos, "ZONE_WARN");
+    return ent;
+}
+
+public fw_ZoneThink(ent)
+{
+    if (is_nullent(ent))
+        return;
+
+    new Float:now = get_gametime();
+    new Float:end = Float:get_entvar(ent, var_fuser1);
+    if (now >= end)
+    {
+        set_entvar(ent, var_flags, FL_KILLME);
+        return;
+    }
+
+    new follow = get_entvar(ent, var_iuser1);
+    if (follow > 0)
+    {
+        if (!is_user_alive(follow))
+        {
+            set_entvar(ent, var_flags, FL_KILLME);
+            return;
+        }
+        new Float:fo[3], Float:pos[3];
+        get_entvar(follow, var_origin, fo);
+        FloorAt(fo, pos);
+        engfunc(EngFunc_SetOrigin, ent, pos);
+    }
+
+    new Float:radius = Float:get_entvar(ent, var_fuser3);
+    new c = get_entvar(ent, var_iuser2);
+    new r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+
+    if (g_sprZone)
+    {
+        // Nabiz gibi atan parlaklik, son 0.6 sn hizlanir
+        new Float:t = now - Float:get_entvar(ent, var_fuser2);
+        new Float:speed = (end - now < 0.6) ? 22.0 : 7.0;
+        new Float:amt = 150.0 + 90.0 * floatabs(floatsin(t * speed, radian));
+        set_entvar(ent, var_renderamt, amt);
+        set_entvar(ent, var_nextthink, now + 0.05);
+    }
+    else
+    {
+        // Sprite yok: her 0.5 sn guvenilir disk + halka
+        if (now >= Float:get_entvar(ent, var_fuser4))
+        {
+            set_entvar(ent, var_fuser4, now + 0.5);
+            new Float:o[3];
+            get_entvar(ent, var_origin, o);
+            g_bFxReliable = true;
+            FxDisk(o, r, g, b, floatround(radius), 6);
+            FxRingEx(o, r, g, b, floatround(radius), 6, 6, 200);
+            g_bFxReliable = false;
+        }
+        set_entvar(ent, var_nextthink, now + 0.1);
+    }
+}
+
+stock RemoveAllZones()
+{
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", ZONE_CLASS)) > 0)
+    {
+        SetThink(ent, "");
+        set_entvar(ent, var_classname, "vex_removed");
+        set_entvar(ent, var_flags, FL_KILLME);
+    }
+}
+
+/* ================================================================== */
+/*  v2.0  BOSS [R] YETENEKLERI - FAZA GORE DEGISIR                      */
+/*                                                                      */
+/*  Her bossun 3 R yetenegi vardir (toplam 27):                         */
+/*    Faz 1 (%100-60)  : R = 1. yetenek                                 */
+/*    Faz 2 (%60-30)   : R = 2. yetenek  (1. yetenek otomatik saldiri)  */
+/*    Faz 3 (DELILIK)  : R = 3. yetenek (ULTI) (1 ve 2 otomatik)        */
+/*  [F] (fener tusu) = atilma. Boss R'ye uzun sure basmazsa (veya bot   */
+/*  ise) yetenek kendiliginden kullanilir (vex_boss_r_auto).            */
+/*  Her yetenek: renkli alan uyarisi (herkes gorur) + ozel ses + efekt  */
+/*  vexmira.cfg: vex_boss_skill <boss> <faz> <bekleme> <hasar> <yaricap>*/
+/* ================================================================== */
+
+
+/* ---------------- Yardimcilar ---------------- */
+
+Float:BskDmg(ph)
+{
+    return BSK_DMG[g_iBossType][clamp(ph, 1, 3) - 1] * floatmax(0.0, get_pcvar_float(g_pBossRDmgMult));
+}
+
+Float:BskRad(ph)
+{
+    return float(BSK_RAD[g_iBossType][clamp(ph, 1, 3) - 1]);
+}
+
+BossEye(Float:eye[3])
+{
+    new Float:ofs[3];
+    get_entvar(g_iBoss, var_origin, eye);
+    get_entvar(g_iBoss, var_view_ofs, ofs);
+    eye[0] += ofs[0];
+    eye[1] += ofs[1];
+    eye[2] += ofs[2];
+}
+
+BossFwd(Float:fwd[3], bool:flat)
+{
+    new Float:ang[3];
+    get_entvar(g_iBoss, var_v_angle, ang);
+    if (flat)
+        ang[0] = 0.0;
+    engfunc(EngFunc_MakeVectors, ang);
+    global_get(glb_v_forward, fwd);
+}
+
+// Bossun baktigi nokta (duvar / zemin)
+BossAimPoint(Float:range, Float:out[3])
+{
+    new Float:eye[3], Float:fwd[3], Float:end[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+    for (new i = 0; i < 3; i++)
+        end[i] = eye[i] + fwd[i] * range;
+    engfunc(EngFunc_TraceLine, eye, end, IGNORE_MONSTERS, g_iBoss, 0);
+    get_tr2(0, TR_vecEndPos, out);
+}
+
+bool:BossSees(const Float:a[3], p)
+{
+    new Float:po[3];
+    get_entvar(p, var_origin, po);
+    engfunc(EngFunc_TraceLine, a, po, IGNORE_MONSTERS, g_iBoss, 0);
+    new Float:frac;
+    get_tr2(0, TR_flFraction, frac);
+    return (frac >= 0.98) ? true : false;
+}
+
+// Nisan alinan insan (koni icinde, gorus hattinda); yoksa menzildeki en yakin
+BossPickHuman(Float:range, Float:minDot)
+{
+    new Float:eye[3], Float:fwd[3], Float:po[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+
+    new best, Float:bestDot = minDot, nearest, Float:nd = range;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(eye, po);
+        if (d > range || d < 1.0 || !BossSees(eye, p))
+            continue;
+        new Float:dot = ((po[0] - eye[0]) * fwd[0] + (po[1] - eye[1]) * fwd[1] + (po[2] - eye[2]) * fwd[2]) / d;
+        if (dot > bestDot)
+        {
+            bestDot = dot;
+            best = p;
+        }
+        if (d < nd)
+        {
+            nd = d;
+            nearest = p;
+        }
+    }
+    return best ? best : nearest;
+}
+
+bool:HumanInRange(Float:range)
+{
+    new Float:bo[3], Float:po[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(bo, po) <= range)
+            return true;
+    }
+    return false;
+}
+
+// Gecikmeli vurus: params = { boss seri no, x, y, z, ek }
+BskTask(Float:delay, const func[], const Float:o[3], extra = 0)
+{
+    new params[5];
+    params[0] = g_iBossSerial;
+    params[1] = _:o[0];
+    params[2] = _:o[1];
+    params[3] = _:o[2];
+    params[4] = extra;
+    g_iBskSlot = (g_iBskSlot + 1) % 250;
+    set_task(delay, func, TASK_BSK + g_iBskSlot, params, sizeof params);
+}
+
+bool:BskValid(const params[])
+{
+    return (params[0] == g_iBossSerial && g_iBoss && is_user_alive(g_iBoss) && g_bRoundActive && !g_bRoundEnded) ? true : false;
+}
+
+BskPos(const params[], Float:o[3])
+{
+    o[0] = Float:params[1];
+    o[1] = Float:params[2];
+    o[2] = Float:params[3];
+}
+
+// Insani bir noktadan uzaga savur
+PushFrom(p, const Float:c[3], Float:force, Float:up)
+{
+    new Float:po[3], Float:vel[3];
+    get_entvar(p, var_origin, po);
+    new Float:dx = po[0] - c[0], Float:dy = po[1] - c[1];
+    new Float:len = floatsqroot(dx * dx + dy * dy);
+    if (len < 1.0)
+    {
+        dx = 1.0;
+        dy = 0.0;
+        len = 1.0;
+    }
+    get_entvar(p, var_velocity, vel);
+    vel[0] = dx / len * force;
+    vel[1] = dy / len * force;
+    vel[2] = up;
+    set_entvar(p, var_velocity, vel);
+}
+
+// Insani bir noktaya dogru cek (hiz ekler)
+PullTo(p, const Float:c[3], Float:force)
+{
+    new Float:po[3], Float:vel[3];
+    get_entvar(p, var_origin, po);
+    new Float:d = get_distance_f(c, po);
+    if (d < 24.0)
+        return;
+    get_entvar(p, var_velocity, vel);
+    vel[0] += (c[0] - po[0]) / d * force;
+    vel[1] += (c[1] - po[1]) / d * force;
+    new Float:sp = floatsqroot(vel[0] * vel[0] + vel[1] * vel[1]);
+    if (sp > 520.0)
+    {
+        vel[0] = vel[0] / sp * 520.0;
+        vel[1] = vel[1] / sp * 520.0;
+    }
+    set_entvar(p, var_velocity, vel);
+}
+
+SlowHuman(p, Float:dur)
+{
+    new Float:t = get_gametime() + dur;
+    if (g_fSlow[p] < t)
+        g_fSlow[p] = t;
+    rg_reset_maxspeed(p);
+}
+
+RootHuman(p, Float:dur)
+{
+    g_fFrozen[p] = get_gametime() + dur;
+    set_entvar(p, var_velocity, Float:{0.0, 0.0, 0.0});
+    rg_reset_maxspeed(p);
+    ApplyRender(p);
+}
+
+// Insana yanma (saniyede vex_burn_damage_human)
+BurnHuman(p, ticks)
+{
+    g_iBurn[p] = max(g_iBurn[p], ticks);
+    g_iBurnBy[p] = g_iBoss;
+}
+
+// Herkese: "<BOSS> -> <YETENEK>" + kisa ipucu, bossun rengiyle
+BskAnnounce(ph)
+{
+    new key[16], tkey[16], nm[48], tip[64], txt[128];
+    formatex(key, charsmax(key), "BSK_%d_%d", g_iBossType, ph);
+    formatex(tkey, charsmax(tkey), "BSKT_%d_%d", g_iBossType, ph);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_connected(p) || is_user_bot(p))
+            continue;
+        formatex(nm, charsmax(nm), "%L", p, key);
+        formatex(tip, charsmax(tip), "%L", p, tkey);
+        formatex(txt, charsmax(txt), "-=[  %s  ]=-^n%s", nm, tip);
+        HudText(p, SL_ALERT, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], 2.2, txt);
+    }
+
+    // Yetenek sesi (B<n>_R<faz>): bossun uzerinden, herkes duyar
+    formatex(key, charsmax(key), "B%d_R%d", g_iBossType, ph);
+    EmitKey(g_iBoss, key, CHAN_STATIC, ATTN_NONE);
+}
+
+/* ---------------- R tusu / yapay zeka ---------------- */
+
+public BossUseR(id)
+{
+    if (id != g_iBoss || !is_user_alive(id))
+        return;
+
+    new Float:now = get_gametime();
+    if (g_fBossIntro > now)
+        return;
+    if (now < g_fBossRCool)
+    {
+        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
+        show_hudmessage(id, "%L", id, "ABILITY_COOL", floatround(g_fBossRCool - now, floatround_ceil));
+        return;
+    }
+    if (g_iBossChannel != CH_NONE)
+    {
+        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
+        show_hudmessage(id, "%L", id, "BSK_BUSY");
+        return;
+    }
+    BossCastR(clamp(g_iBossPhase, 1, 3));
+}
+
+bool:BossCastR(ph)
+{
+    new bool:ok;
+    switch (g_iBossType * 10 + ph)
+    {
+        case 1:  ok = Bsk_BruteStomp();
+        case 2:  ok = Bsk_BruteShatter();
+        case 3:  ok = Bsk_BruteWrath();
+        case 11: ok = Bsk_BansheeLance();
+        case 12: ok = Bsk_BansheeShriek();
+        case 13: ok = Bsk_BansheeRequiem();
+        case 21: ok = Bsk_OverlordPrison();
+        case 22: ok = Bsk_OverlordLegion();
+        case 23: ok = Bsk_OverlordNova();
+        case 31: ok = Bsk_InfernoBreath();
+        case 32: ok = Bsk_InfernoPillars();
+        case 33: ok = Bsk_InfernoNova();
+        case 41: ok = Bsk_ReaperStep();
+        case 42: ok = Bsk_ReaperChains();
+        case 43: ok = Bsk_ReaperMark();
+        case 51: ok = Bsk_FrostShards();
+        case 52: ok = Bsk_FrostTomb();
+        case 53: ok = Bsk_FrostZero();
+        case 61: ok = Bsk_StormOrb();
+        case 62: ok = Bsk_StormDash();
+        case 63: ok = Bsk_StormTempest();
+        case 71: ok = Bsk_HiveSpit();
+        case 72: ok = Bsk_HiveCloud();
+        case 73: ok = Bsk_HiveEggs();
+        case 81: ok = Bsk_VoidBolt();
+        case 82: ok = Bsk_VoidSingularity();
+        case 83: ok = Bsk_VoidHorizon();
+    }
+
+    if (!ok)
+    {
+        if (is_user_connected(g_iBoss) && !is_user_bot(g_iBoss))
+        {
+            set_hudmessage(255, 160, 60, -1.0, 0.56, 0, 0.0, 1.2, 0.0, 0.0, 4);
+            show_hudmessage(g_iBoss, "%L", g_iBoss, "BSK_NO_TARGET");
+        }
+        return false;
+    }
+
+    new Float:now = get_gametime();
+    BskAnnounce(ph);
+    g_fBossRCool = now + BSK_COOL[g_iBossType][ph - 1] * floatmax(0.1, get_pcvar_float(g_pBossRCdMult));
+    g_fBossRLast = now;
+    return true;
+}
+
+// Boss bir sure R kullanmazsa (bot / AFK) ve yakinda insan varsa kendiliginden kullanilir
+BossAutoR()
+{
+    new idle = get_pcvar_num(g_pBossRAuto);
+    if (idle <= 0 || g_iBossChannel != CH_NONE)
+        return;
+
+    new Float:now = get_gametime();
+    if (g_fBossIntro > now || now < g_fBossRCool)
+        return;
+    if (!is_user_bot(g_iBoss) && now - g_fBossRLast < float(idle))
+        return;
+    if (!HumanInRange(900.0))
+        return;
+    BossCastR(clamp(g_iBossPhase, 1, 3));
+}
+
+// Faz 2+: onceki fazlarin R yetenekleri de bossun otomatik saldirilarina katilir
+bool:BossAutoOldSkill()
+{
+    if (g_iBossPhase < 2 || g_iBossChannel != CH_NONE || random_num(1, 100) > 40)
+        return false;
+    new ph = random_num(1, g_iBossPhase - 1);
+    // Hedef gerektiren yetenek icin bossu en yakin insana dondur
+    new t = BossPickHuman(1200.0, -1.0);
+    if (t)
+        BossFace(t);
+    return BossCastR(ph) ? true : false;
+}
+
+// Bossun bakis yonunu hedefe cevir (otomatik yetenekler icin)
+BossFace(t)
+{
+    new Float:bo[3], Float:po[3], Float:dir[3], Float:ang[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    get_entvar(t, var_origin, po);
+    for (new i = 0; i < 3; i++)
+        dir[i] = po[i] - bo[i];
+    engfunc(EngFunc_VecToAngles, dir, ang);
+    ang[0] = -ang[0];
+    set_entvar(g_iBoss, var_v_angle, ang);
+    set_entvar(g_iBoss, var_angles, ang);
+}
+
+/* ---------------- Kanal (sureli) yetenekler ---------------- */
+
+StartChannel(type, Float:dur)
+{
+    g_iBossChannel = type;
+    g_fBossChannelEnd = get_gametime() + dur;
+    g_iBossChannelTick = 0;
+    remove_task(TASK_BCHAN);
+    set_task(0.1, "task_BossChannel", TASK_BCHAN, _, _, "b");
+}
+
+EndChannel(bool:bossAlive)
+{
+    new type = g_iBossChannel;
+    g_iBossChannel = CH_NONE;
+    remove_task(TASK_BCHAN);
+
+    switch (type)
+    {
+        case CH_TITAN:
+        {
+            g_fBossBuffEnd = 0.0;
+            if (bossAlive)
+            {
+                ApplyRender(g_iBoss);
+                rg_reset_maxspeed(g_iBoss);
+            }
+        }
+        case CH_CHAINS:
+        {
+            for (new i = 0; i < 3; i++)
+                g_iBossTethers[i] = 0;
+        }
+        case CH_ZERO, CH_TEMPEST:
+            ApplyEnvAll();
+        case CH_SINGULARITY:
+        {
+            if (bossAlive)
+                SingularityCollapse();
+        }
+        case CH_HORIZON:
+        {
+            if (bossAlive)
+            {
+                new Float:bo[3];
+                get_entvar(g_iBoss, var_origin, bo);
+                FxRingEx(bo, 220, 0, 140, floatround(BskRad(3)), 50, 6);
+                FxRingEx(bo, 255, 255, 255, floatround(BskRad(3) * 0.6), 20, 5);
+                new Float:po[3];
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(bo, po) <= BskRad(3))
+                        PushFrom(p, bo, 650.0, 260.0);
+                }
+                ShakeAll(10, 1.0, 5);
+            }
+        }
+    }
+}
+
+public task_BossChannel()
+{
+    new Float:now = get_gametime();
+    new bool:alive = (g_iBoss && is_user_alive(g_iBoss) && g_bRoundActive) ? true : false;
+    if (!alive || now >= g_fBossChannelEnd)
+    {
+        EndChannel(alive);
+        return;
+    }
+
+    g_iBossChannelTick++;
+    new tick = g_iBossChannelTick;
+    new Float:bo[3], Float:po[3];
+    get_entvar(g_iBoss, var_origin, bo);
+
+    switch (g_iBossChannel)
+    {
+        case CH_TITAN: // Brute: her saniye sok dalgasi
+        {
+            if (tick % 10 == 0)
+            {
+                new Float:rad = BskRad(3);
+                new Float:feet[3];
+                feet = bo;
+                feet[2] -= 30.0;
+                FxRingEx(feet, 255, 90, 0, floatround(rad), 24, 4);
+                FxLava(bo);
+                ShakeAll(4, 0.6, 4);
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(bo, po) > rad)
+                        continue;
+                    PushFrom(p, bo, 520.0, 220.0);
+                    BossHurt(p, BskDmg(3), DMG_CRUSH);
+                }
+            }
+            if (tick % 2 == 0)
+                FxLight(bo, 255, 80, 0, 40, 3, 30);
+        }
+        case CH_REQUIEM: // Banshee: her saniye haritaya yayilan feryat
+        {
+            if (tick % 10 == 0)
+            {
+                new Float:rad = BskRad(3), hits;
+                FxRingEx(bo, 200, 210, 255, floatround(rad * 0.5), 30, 5);
+                FxRingEx(bo, 255, 255, 255, floatround(rad * 0.25), 14, 4);
+                FxImplosion(bo, 255, 50, 6);
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(bo, po) > rad)
+                        continue;
+                    FadeOne(p, 200, 210, 255, 150, 0.7);
+                    ShakeEx(p, 5, 0.6, 6);
+                    SlowHuman(p, 1.2);
+                    BossHurt(p, BskDmg(3), DMG_SONIC);
+                    hits++;
+                }
+                if (hits)
+                    HealTo(g_iBoss, g_iBossMaxHP * hits / 100, g_iBossMaxHP);
+            }
+        }
+        case CH_CHAINS: // Reaper: ruh zincirleri
+        {
+            if (tick % 5 == 0)
+            {
+                new Float:rad = BskRad(2) * 1.4, any;
+                for (new i = 0; i < 3; i++)
+                {
+                    new t = g_iBossTethers[i];
+                    if (!t)
+                        continue;
+                    if (!is_user_alive(t) || g_bZombie[t])
+                    {
+                        g_iBossTethers[i] = 0;
+                        continue;
+                    }
+                    get_entvar(t, var_origin, po);
+                    if (get_distance_f(bo, po) > rad)
+                    {
+                        // Zincir koptu
+                        g_iBossTethers[i] = 0;
+                        FxSparks(po);
+                        Chat(t, "BSK_CHAIN_BROKEN");
+                        continue;
+                    }
+                    any++;
+                    BeamEnts(g_iBoss, t, g_sprLightning, 150, 0, 220, 30, 25, 6);
+                    SlowHuman(t, 0.7);
+                    FadeOne(t, 120, 0, 200, 70, 0.5);
+                    BossHurt(t, BskDmg(2), DMG_GENERIC);
+                    HealTo(g_iBoss, floatround(BskDmg(2) * 6.0), g_iBossMaxHP);
+                }
+                if (!any)
+                    g_fBossChannelEnd = now;
+            }
+        }
+        case CH_ZERO: // Frostlord: mutlak sifir - duran donar
+        {
+            if (tick % 20 == 0)
+            {
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    new Float:vel[3];
+                    get_entvar(p, var_velocity, vel);
+                    FxStreak(po, 7, 25, 160);
+                    if (vel[0] * vel[0] + vel[1] * vel[1] < 1600.0)
+                    {
+                        RootHuman(p, 1.0);
+                        FadeOne(p, 150, 210, 255, 160, 1.0);
+                        BossHurt(p, BskDmg(3) * 1.5, DMG_FREEZE);
+                    }
+                    else
+                        BossHurt(p, BskDmg(3) * 0.5, DMG_FREEZE);
+                }
+            }
+        }
+        case CH_DASH: // Stormcaller: yildirim atilmasi
+        {
+            static Float:last[3];
+            if (tick == 1)
+                last = bo;
+            FxBeamEx(last, bo, g_sprLightning, 255, 240, 80, 40, 40, 8);
+            last = bo;
+            new Float:rad = BskRad(2);
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (!is_user_alive(p) || g_bZombie[p] || (g_iDashHit & (1 << (p - 1))))
+                    continue;
+                get_entvar(p, var_origin, po);
+                if (get_distance_f(bo, po) > rad)
+                    continue;
+                g_iDashHit |= (1 << (p - 1));
+                FxBeamEntPoint(g_iBoss, po, g_sprLightning, 255, 255, 120, 30, 60, 3);
+                ShakeEx(p, 10, 0.8, 6);
+                FadeOne(p, 255, 250, 150, 120, 0.4);
+                SlowHuman(p, 1.2);
+                BossHurt(p, BskDmg(2), DMG_SHOCK);
+                EmitKey(p, "ZAP");
+            }
+        }
+        case CH_TEMPEST: // Stormcaller: firtina - rastgele insanlara isaretli yildirim
+        {
+            if (tick % 7 == 1)
+            {
+                new list[32], n;
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (is_user_alive(p) && !g_bZombie[p])
+                        list[n++] = p;
+                }
+                if (n)
+                {
+                    new t = list[random(n)];
+                    get_entvar(t, var_origin, po);
+                    po[0] += random_float(-40.0, 40.0);
+                    po[1] += random_float(-40.0, 40.0);
+                    ZoneSpawn(po, BskRad(3), 255, 240, 80, 0.65, 0, false);
+                    BskTask(0.65, "task_TempestHit", po);
+                }
+            }
+            if (tick % 25 == 0)
+                Lightning();
+        }
+        case CH_CLOUD: // Hive Queen: zehir bulutu
+        {
+            if (tick % 5 == 0)
+            {
+                new Float:rad = BskRad(2), Float:puff[3];
+                for (new k = 0; k < 2; k++)
+                {
+                    puff = bo;
+                    puff[0] += random_float(-rad * 0.6, rad * 0.6);
+                    puff[1] += random_float(-rad * 0.6, rad * 0.6);
+                    FxSprite(puff, g_sprSmoke, 18, 140);
+                }
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p))
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(bo, po) > rad)
+                        continue;
+                    if (g_bZombie[p])
+                        HealTo(p, 50, g_iMaxHP[p]);
+                    else
+                    {
+                        g_iPoison[p] = max(g_iPoison[p], 3);
+                        g_iPoisonBy[p] = g_iBoss;
+                        SlowHuman(p, 0.6);
+                        FadeOne(p, 110, 255, 0, 80, 0.6);
+                    }
+                }
+            }
+        }
+        case CH_SINGULARITY: // Void: kara delik - cek
+        {
+            new Float:c[3];
+            c = g_fBossChannelPos;
+            new Float:rad = BskRad(2);
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (!is_user_alive(p) || g_bZombie[p])
+                    continue;
+                get_entvar(p, var_origin, po);
+                if (get_distance_f(c, po) > rad)
+                    continue;
+                PullTo(p, c, 60.0);
+                if (tick % 5 == 0)
+                    FxBeamEx(po, c, g_sprLightning, 220, 0, 140, 18, 40, 4);
+            }
+            if (tick % 5 == 0)
+            {
+                FxImplosion(c, 255, 50, 5);
+                FxLight(c, 200, 0, 160, 30, 6, 10);
+            }
+        }
+        case CH_HORIZON: // Void: olay ufku
+        {
+            new Float:rad = BskRad(3);
+            if (tick % 2 == 0)
+            {
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(bo, po) > rad)
+                        continue;
+                    PullTo(p, bo, 45.0);
+                }
+            }
+            if (tick % 10 == 0)
+            {
+                FxImplosion(bo, 255, 60, 8);
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(bo, po) > rad * 0.55)
+                        continue;
+                    FadeOne(p, 60, 0, 60, 160, 0.8);
+                    BossHurt(p, BskDmg(3), DMG_GENERIC);
+                }
+            }
+        }
+    }
+}
+
+/* ==================== 0 BRUTE ==================== */
+
+// Faz 1 - SISMIK EZME: cevredeki herkesi havaya firlatir
+bool:Bsk_BruteStomp()
+{
+    new Float:bo[3], Float:feet[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    feet = bo;
+    feet[2] -= 30.0;
+    new Float:rad = BskRad(1);
+
+    FxLava(bo);
+    FxExplosion(bo);
+    FxRingEx(feet, 255, 120, 0, floatround(rad), 30, 5);
+    FxRingEx(feet, 255, 220, 80, floatround(rad * 0.6), 18, 4);
+    FxStreak(bo, 5, 60, 400);
+    FxLight(bo, 255, 120, 0, 45, 8, 30);
+    ShakeAll(10, 1.2, 6);
+    EmitKey(g_iBoss, "BOSS_SLAM", CHAN_ITEM);
+    BossAoE(bo, rad, BskDmg(1), 255, 120, 0, 480.0);
+    return true;
+}
+
+// Faz 2 - YER YARIGI: baktigi yone dogru ilerleyen patlamalar
+bool:Bsk_BruteShatter()
+{
+    new Float:bo[3], Float:fwd[3], Float:prev[3], Float:pt[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    BossFwd(fwd, true);
+    prev = bo;
+
+    for (new i = 1; i <= 7; i++)
+    {
+        for (new k = 0; k < 3; k++)
+            pt[k] = bo[k] + fwd[k] * 95.0 * float(i);
+        engfunc(EngFunc_TraceLine, prev, pt, IGNORE_MONSTERS, g_iBoss, 0);
+        new Float:frac;
+        get_tr2(0, TR_flFraction, frac);
+        if (frac < 1.0)
+            break;
+        prev = pt;
+        new Float:delay = 0.35 + 0.12 * float(i);
+        ZoneSpawn(pt, BskRad(2), 255, 140, 0, delay, 0, i == 1);
+        BskTask(delay, "task_BruteEruption", pt);
+    }
+    ShakeAll(6, 1.0, 5);
+    return true;
+}
+
+public task_BruteEruption(params[])
+{
+    if (!BskValid(params))
+        return;
+    new Float:o[3];
+    BskPos(params, o);
+    FxLava(o);
+    FxExplosion(o);
+    FxSprite(o, g_sprFire ? g_sprFire : g_sprExplode, 12, 230);
+    FxLight(o, 255, 120, 0, 30, 5, 30);
+    EmitKeyPos(o, "BOSS_STEP");
+    BossAoE(o, BskRad(2), BskDmg(2), 255, 120, 0, 380.0);
+}
+
+// Faz 3 - TITAN OFKESI (ulti): 6 sn hizli, dayanikli, her saniye sok dalgasi
+bool:Bsk_BruteWrath()
+{
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    g_fBossBuffEnd = get_gametime() + 6.0;
+    StartChannel(CH_TITAN, 6.0);
+    ApplyRender(g_iBoss);
+    rg_reset_maxspeed(g_iBoss);
+    ZoneSpawn(bo, BskRad(3), 255, 80, 0, 6.0, g_iBoss, false);
+    FxFunnel(bo, g_sprFlare, true);
+    FadeAll(255, 80, 0, 80, 1.2);
+    ShakeAll(12, 1.5, 6);
+    return true;
+}
+
+/* ==================== 1 BANSHEE ==================== */
+
+// Faz 1 - SES MIZRAGI: onundeki koniye sok dalgasi, geri savurur
+bool:Bsk_BansheeLance()
+{
+    new Float:eye[3], Float:fwd[3], Float:po[3], Float:pt[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+    new Float:rad = BskRad(1);
+
+    for (new i = 1; i <= 6; i++)
+    {
+        for (new k = 0; k < 3; k++)
+            pt[k] = eye[k] + fwd[k] * rad * float(i) / 6.0;
+        FxRingEx(pt, 210, 220, 255, 30 + i * 22, 10, 3, 200);
+    }
+    for (new k = 0; k < 3; k++)
+        pt[k] = eye[k] + fwd[k] * rad;
+    FxBeamEx(eye, pt, g_sprBeam, 210, 220, 255, 60, 20, 4);
+    FxImplosion(eye, 120, 30, 4);
+
+    new hits;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(eye, po);
+        if (d > rad || d < 1.0)
+            continue;
+        new Float:dir[3];
+        for (new k = 0; k < 3; k++)
+            dir[k] = (po[k] - eye[k]) / d;
+        if (dir[0] * fwd[0] + dir[1] * fwd[1] + dir[2] * fwd[2] < 0.82 || !BossSees(eye, p))
+            continue;
+
+        new Float:vel[3];
+        vel[0] = dir[0] * 650.0;
+        vel[1] = dir[1] * 650.0;
+        vel[2] = 230.0;
+        set_entvar(p, var_velocity, vel);
+        ShakeEx(p, 10, 1.0, 8);
+        FadeOne(p, 230, 235, 255, 170, 1.0);
+        SlowHuman(p, 2.0);
+        BossHurt(p, BskDmg(1), DMG_SONIC);
+        hits++;
+    }
+    return true;
+}
+
+// Faz 2 - HAYALET CIGLIGI: kurbanin arkasina isinlanir, kor eden ciglik
+bool:Bsk_BansheeShriek()
+{
+    new t = BossPickHuman(1300.0, 0.3);
+    if (!t)
+        return false;
+
+    new Float:to[3], Float:tang[3], Float:fwd[3], Float:dest[3];
+    get_entvar(t, var_origin, to);
+    get_entvar(t, var_v_angle, tang);
+    tang[0] = 0.0;
+    engfunc(EngFunc_MakeVectors, tang);
+    global_get(glb_v_forward, fwd);
+
+    new bool:found;
+    static const Float:OFF[][2] = { {-75.0, 0.0}, {0.0, 75.0}, {0.0, -75.0}, {75.0, 0.0}, {-110.0, 0.0} };
+    new Float:right[3];
+    global_get(glb_v_right, right);
+    for (new i = 0; i < sizeof OFF && !found; i++)
+    {
+        for (new k = 0; k < 3; k++)
+            dest[k] = to[k] + fwd[k] * OFF[i][0] + right[k] * OFF[i][1];
+        dest[2] = to[2] + 8.0;
+        if (IsHullFree(g_iBoss, dest))
+            found = true;
+    }
+    if (!found)
+        return false;
+
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    FxTeleport(bo);
+    FxBeamEx(bo, dest, g_sprBeam, 200, 210, 255, 30, 30, 6);
+    engfunc(EngFunc_SetOrigin, g_iBoss, dest);
+    set_entvar(g_iBoss, var_velocity, Float:{0.0, 0.0, 0.0});
+    BossFace(t);
+    set_entvar(g_iBoss, var_fixangle, 1);
+    FxTeleport(dest);
+
+    new Float:rad = BskRad(2), Float:po[3];
+    FxRingEx(dest, 220, 230, 255, floatround(rad), 30, 5);
+    FxRingEx(dest, 255, 255, 255, floatround(rad * 0.5), 14, 4);
+    FxImplosion(dest, 200, 50, 6);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(dest, po) > rad)
+            continue;
+        FadeOne(p, 255, 255, 255, 255, 2.5);
+        ShakeEx(p, 12, 1.5, 8);
+        SlowHuman(p, 2.0);
+        BossHurt(p, BskDmg(2), DMG_SONIC);
+    }
+    return true;
+}
+
+// Faz 3 - AGIT (ulti): 5 saniye, saniyede bir tum haritaya feryat, can calar
+bool:Bsk_BansheeRequiem()
+{
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    StartChannel(CH_REQUIEM, 5.2);
+    g_iBossChannelTick = 9;
+    FxFunnel(bo, g_sprFlare, false);
+    FadeAll(200, 210, 255, 90, 1.5);
+    return true;
+}
+
+/* ==================== 2 OVERLORD ==================== */
+
+// Faz 1 - KEMIK HAPSI: hedefi kemik kafese hapseder
+bool:Bsk_OverlordPrison()
+{
+    new t = BossPickHuman(BskRad(1), 0.6);
+    if (!t)
+        return false;
+
+    new Float:to[3], Float:a[3], Float:b[3];
+    get_entvar(t, var_origin, to);
+    RootHuman(t, 2.5);
+    set_user_rendering(t, kRenderFxGlowShell, 150, 0, 220, kRenderNormal, 30);
+
+    for (new i = 0; i < 8; i++)
+    {
+        new Float:ang = float(i) * 45.0;
+        a[0] = to[0] + floatcos(ang, degrees) * 34.0;
+        a[1] = to[1] + floatsin(ang, degrees) * 34.0;
+        a[2] = to[2] - 36.0;
+        b = a;
+        b[2] = to[2] + 44.0;
+        FxBeamEx(a, b, g_sprBeam, 170, 60, 255, 18, 0, 25, 230);
+    }
+    ZoneSpawn(to, 60.0, 150, 0, 220, 2.5, t, false);
+    FxImplosion(to, 120, 30, 6);
+    FadeOne(t, 120, 0, 180, 140, 1.0);
+    BossHurt(t, BskDmg(1), DMG_GENERIC);
+
+    new bo[3];
+    get_entvar(g_iBoss, var_origin, Float:bo);
+    FxBeamEntPoint(g_iBoss, to, g_sprLightning, 150, 0, 220, 30, 30, 5);
+    client_print(t, print_center, "%L", t, "BSK_PRISON_YOU");
+    return true;
+}
+
+// Faz 2 - LEJYON: dusenleri dirilt + yakindaki insanlarin canini emer
+bool:Bsk_OverlordLegion()
+{
+    new Float:bo[3], Float:po[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    SummonMinions(4);
+    FxFunnel(bo, g_sprFlare, true);
+    FxRingEx(bo, 150, 0, 200, floatround(BskRad(2)), 30, 6);
+    FxTeleport(bo);
+
+    new Float:rad = BskRad(2), total;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(bo, po) > rad || !BossSees(bo, p))
+            continue;
+        FxBeamEx(po, bo, g_sprLightning, 150, 0, 200, 25, 30, 6);
+        FadeOne(p, 120, 0, 180, 110, 0.8);
+        BossHurt(p, BskDmg(2), DMG_GENERIC);
+        total += floatround(BskDmg(2));
+    }
+    HealTo(g_iBoss, g_iBossMaxHP / 25 + total * 4, g_iBossMaxHP);
+    return true;
+}
+
+// Faz 3 - OLUM NOVASI (ulti): ic -> dis yayilan 3 olum halkasi
+bool:Bsk_OverlordNova()
+{
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    new Float:w = BskRad(3);
+    ZoneSpawn(bo, w * 3.0, 150, 0, 220, 2.4, 0, true);
+    FxFunnel(bo, g_sprFlare, false);
+    for (new k = 0; k < 3; k++)
+        BskTask(0.6 + 0.6 * float(k), "task_NovaBand", bo, k);
+    return true;
+}
+
+public task_NovaBand(params[])
+{
+    if (!BskValid(params))
+        return;
+    new Float:o[3], Float:po[3];
+    BskPos(params, o);
+    new k = params[4];
+    new Float:w = BskRad(3);
+    new Float:inner = w * float(k), Float:outer = w * float(k + 1);
+
+    new Float:feet[3];
+    feet = o;
+    feet[2] -= 30.0;
+    FxRingEx(feet, 170, 0, 255, floatround(outer), 40, 4);
+    FxRingEx(feet, 255, 255, 255, floatround(outer * 0.92), 12, 3);
+    FxImplosion(o, 200, 40, 4);
+    EmitKeyPos(o, "BOSS_SUMMON");
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(o, po);
+        if (d < inner || d > outer)
+            continue;
+        FadeOne(p, 150, 0, 220, 150, 0.8);
+        ShakeOne(p);
+        PushFrom(p, o, 300.0, 160.0);
+        BossHurt(p, BskDmg(3), DMG_GENERIC);
+    }
+}
+
+/* ==================== 3 INFERNO ==================== */
+
+// Faz 1 - ALEV NEFESI: onundeki koniye ates puskurtur, tutusturur
+bool:Bsk_InfernoBreath()
+{
+    new Float:eye[3], Float:fwd[3], Float:po[3], Float:pt[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+    new Float:rad = BskRad(1);
+    new spr = g_sprFire ? g_sprFire : g_sprExplode;
+
+    for (new i = 1; i <= 6; i++)
+    {
+        for (new k = 0; k < 3; k++)
+            pt[k] = eye[k] + fwd[k] * rad * float(i) / 6.0;
+        pt[2] -= 20.0;
+        FxSprite(pt, spr, 4 + i * 2, 220);
+        if (i % 2 == 0)
+            FxLight(pt, 255, 110, 0, 20, 5, 30);
+    }
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(eye, po);
+        if (d > rad || d < 1.0)
+            continue;
+        new Float:dot = ((po[0] - eye[0]) * fwd[0] + (po[1] - eye[1]) * fwd[1] + (po[2] - eye[2]) * fwd[2]) / d;
+        if (dot < 0.75 || !BossSees(eye, p))
+            continue;
+        BurnHuman(p, 5);
+        FadeOne(p, 255, 110, 0, 130, 0.8);
+        BossHurt(p, BskDmg(1), DMG_BURN);
+    }
+    return true;
+}
+
+// Faz 2 - ATES SUTUNLARI: insanlarin altindan alev sutunlari fiskirir
+bool:Bsk_InfernoPillars()
+{
+    new list[32], n, Float:po[3];
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (is_user_alive(p) && !g_bZombie[p])
+            list[n++] = p;
+    }
+    if (!n)
+        return false;
+
+    for (new i = 0; i < 5 && n > 0; i++)
+    {
+        new pick = random(n);
+        get_entvar(list[pick], var_origin, po);
+        list[pick] = list[n - 1];
+        n--;
+        ZoneSpawn(po, BskRad(2), 255, 90, 0, 1.2 + 0.15 * float(i), 0, i == 0);
+        BskTask(1.2 + 0.15 * float(i), "task_FirePillar", po);
+    }
+    return true;
+}
+
+public task_FirePillar(params[])
+{
+    if (!BskValid(params))
+        return;
+    new Float:o[3], Float:po[3], Float:h[3];
+    BskPos(params, o);
+    new spr = g_sprFire ? g_sprFire : g_sprExplode;
+    h = o;
+    for (new i = 0; i < 4; i++)
+    {
+        h[2] = o[2] - 20.0 + 60.0 * float(i);
+        FxSprite(h, spr, 10, 240);
+    }
+    FxLava(o);
+    FxExplosion(o);
+    FxLight(o, 255, 100, 0, 35, 6, 30);
+    EmitKeyPos(o, "NADE_FIRE");
+
+    new Float:rad = BskRad(2);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+        new Float:vel[3];
+        get_entvar(p, var_velocity, vel);
+        vel[2] = 360.0;
+        set_entvar(p, var_velocity, vel);
+        BurnHuman(p, 4);
+        FadeOne(p, 255, 90, 0, 140, 0.8);
+        BossHurt(p, BskDmg(2), DMG_BURN);
+    }
+}
+
+// Faz 3 - SUPERNOVA (ulti): 2 sn sarj (boss kipirdayamaz), sonra dev patlama + yanan zemin
+bool:Bsk_InfernoNova()
+{
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    g_fBossIntro = get_gametime() + 2.0;
+    set_entvar(g_iBoss, var_velocity, Float:{0.0, 0.0, 0.0});
+    rg_reset_maxspeed(g_iBoss);
+    set_user_rendering(g_iBoss, kRenderFxGlowShell, 255, 200, 0, kRenderNormal, 80);
+    ZoneSpawn(bo, BskRad(3), 255, 60, 0, 2.0, g_iBoss, true);
+    FxFunnel(bo, g_sprFlare, false);
+    FxLight(bo, 255, 120, 0, 60, 20, 5);
+    BskTask(2.0, "task_Supernova", bo);
+    return true;
+}
+
+public task_Supernova(params[])
+{
+    if (!BskValid(params))
+        return;
+    new Float:o[3], Float:po[3];
+    get_entvar(g_iBoss, var_origin, o);
+    g_fBossIntro = 0.0;
+    rg_reset_maxspeed(g_iBoss);
+    ApplyRender(g_iBoss);
+
+    new Float:rad = BskRad(3);
+    FxExplosion(o);
+    FxLava(o);
+    FxRingEx(o, 255, 90, 0, floatround(rad), 60, 7);
+    FxRingEx(o, 255, 240, 120, floatround(rad * 0.6), 30, 6);
+    FxLight(o, 255, 140, 0, 80, 10, 20);
+    FxSkyStrike(o, 255, 140, 0);
+    ShakeAll(16, 2.5, 8);
+    PlayKey(0, "BOSS_SLAM");
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_connected(p))
+            continue;
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(o, po);
+        if (d > rad)
+            continue;
+        new Float:k = floatmax(0.15, 1.0 - d / rad);
+        FadeOne(p, 255, 120, 0, 200, 1.2);
+        PushFrom(p, o, 600.0, 260.0);
+        BurnHuman(p, 4);
+        BossHurt(p, BskDmg(3) * k, DMG_BURN | DMG_BLAST);
+    }
+
+    // Etrafta 4 yanan zemin
+    new Float:pt[3];
+    for (new i = 0; i < 4; i++)
+    {
+        new Float:a = float(i) * 90.0 + random_float(-25.0, 25.0);
+        pt[0] = o[0] + floatcos(a, degrees) * rad * 0.45;
+        pt[1] = o[1] + floatsin(a, degrees) * rad * 0.45;
+        pt[2] = o[2];
+        AddPool(pt, 1, 5.0, 130.0);
+    }
+}
+
+/* ==================== 4 REAPER ==================== */
+
+// Faz 1 - GOLGE ADIMI: baktigi yere isinlanir, sonraki vurusu x2
+bool:Bsk_ReaperStep()
+{
+    new Float:aim[3], Float:fwd[3], Float:dest[3], Float:bo[3];
+    BossAimPoint(BskRad(1), aim);
+    BossFwd(fwd, true);
+    get_entvar(g_iBoss, var_origin, bo);
+
+    new bool:found;
+    for (new k = 1; k <= 10 && !found; k++)
+    {
+        for (new i = 0; i < 3; i++)
+            dest[i] = aim[i] - fwd[i] * 40.0 * float(k);
+        dest[2] = aim[2] + 36.0;
+        if (IsHullFree(g_iBoss, dest))
+            found = true;
+    }
+    if (!found)
+        return false;
+
+    FxTeleport(bo);
+    FxBeamEx(bo, dest, g_sprBeam, 90, 0, 150, 40, 10, 8);
+    engfunc(EngFunc_SetOrigin, g_iBoss, dest);
+    set_entvar(g_iBoss, var_velocity, Float:{0.0, 0.0, 0.0});
+    FxTeleport(dest);
+    FxImplosion(dest, 150, 40, 5);
+    g_fBossEmpower = get_gametime() + 3.0;
+    set_user_rendering(g_iBoss, kRenderFxGlowShell, 120, 0, 200, kRenderNormal, 60);
+    if (!is_user_bot(g_iBoss))
+        client_print(g_iBoss, print_center, "%L", g_iBoss, "BSK_EMPOWER");
+    return true;
+}
+
+// Faz 2 - RUH ZINCIRLERI: en yakin 3 insani zincirler; can emer, yavaslatir
+bool:Bsk_ReaperChains()
+{
+    new Float:bo[3], Float:po[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    new Float:rad = BskRad(2);
+
+    for (new i = 0; i < 3; i++)
+        g_iBossTethers[i] = 0;
+
+    new found;
+    for (new pass = 0; pass < 3; pass++)
+    {
+        new best, Float:bd = rad;
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (!is_user_alive(p) || g_bZombie[p])
+                continue;
+            if (p == g_iBossTethers[0] || p == g_iBossTethers[1] || p == g_iBossTethers[2])
+                continue;
+            get_entvar(p, var_origin, po);
+            new Float:d = get_distance_f(bo, po);
+            if (d < bd && BossSees(bo, p))
+            {
+                bd = d;
+                best = p;
+            }
+        }
+        if (!best)
+            break;
+        g_iBossTethers[found++] = best;
+        client_print(best, print_center, "%L", best, "BSK_CHAINED");
+    }
+    if (!found)
+        return false;
+
+    StartChannel(CH_CHAINS, 4.0);
+    g_iBossChannelTick = 4;
+    FxImplosion(bo, 200, 40, 6);
+    return true;
+}
+
+// Faz 3 - OLUM ISARETI (ulti): herkes isaretlenir; 3 sn icinde yerinden kacmayan patlar
+bool:Bsk_ReaperMark()
+{
+    new Float:po[3], n;
+    new Float:rad = BskRad(3);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        ZoneSpawn(po, rad, 160, 0, 255, 3.0, 0, n == 0);
+        BskTask(3.0, "task_DeathMark", po);
+        if (g_sprMark && !is_user_bot(p))
+            FxHeadMark(p, g_sprMark, 30);
+        client_print(p, print_center, "%L", p, "BSK_MARKED");
+        n++;
+    }
+    return n > 0;
+}
+
+public task_DeathMark(params[])
+{
+    if (!BskValid(params))
+        return;
+    new Float:o[3], Float:po[3], Float:top[3];
+    BskPos(params, o);
+    top = o;
+    top[2] += 600.0;
+    FxBeamEx(top, o, g_sprLightning, 130, 0, 220, 50, 30, 4);
+    FxImplosion(o, 160, 50, 4);
+    FxSprite(o, g_sprExplode, 8, 180);
+    FxLight(o, 130, 0, 220, 30, 5, 30);
+    EmitKeyPos(o, "ZAP");
+
+    new Float:rad = BskRad(3);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+        FadeOne(p, 100, 0, 180, 180, 1.0);
+        ShakeOne(p);
+        BossHurt(p, BskDmg(3), DMG_GENERIC);
+    }
+}
+
+/* ==================== 5 FROSTLORD ==================== */
+
+// Faz 1 - BUZ PARCALARI: yelpaze seklinde 5 buz mizragi
+bool:Bsk_FrostShards()
+{
+    new Float:eye[3], Float:ang[3], Float:fwd[3], Float:end[3], Float:hitp[3];
+    BossEye(eye);
+    new Float:rad = BskRad(1);
+
+    for (new k = -2; k <= 2; k++)
+    {
+        get_entvar(g_iBoss, var_v_angle, ang);
+        ang[1] += float(k) * 10.0;
+        engfunc(EngFunc_MakeVectors, ang);
+        global_get(glb_v_forward, fwd);
+        for (new i = 0; i < 3; i++)
+            end[i] = eye[i] + fwd[i] * rad;
+
+        engfunc(EngFunc_TraceLine, eye, end, DONT_IGNORE_MONSTERS, g_iBoss, 0);
+        get_tr2(0, TR_vecEndPos, hitp);
+        new hit = get_tr2(0, TR_pHit);
+
+        FxBeamEx(eye, hitp, g_sprBeam, 150, 220, 255, 22, 0, 4, 230);
+        FxSparks(hitp);
+        FxStreak(hitp, 7, 20, 160);
+
+        if (1 <= hit <= g_iMax && is_user_alive(hit) && !g_bZombie[hit])
+        {
+            SlowHuman(hit, 2.5);
+            FadeOne(hit, 150, 210, 255, 140, 1.0);
+            BossHurt(hit, BskDmg(1), DMG_FREEZE);
+        }
+    }
+    EmitKey(g_iBoss, "FROST_NOVA", CHAN_ITEM);
+    return true;
+}
+
+// Faz 2 - BUZ MEZARI: hedefi buza hapseder, cevresini yavaslatir
+bool:Bsk_FrostTomb()
+{
+    new t = BossPickHuman(BskRad(2), 0.6);
+    if (!t)
+        return false;
+
+    new Float:to[3], Float:po[3];
+    get_entvar(t, var_origin, to);
+    RootHuman(t, 3.0);
+    FxRingEx(to, 150, 220, 255, 160, 30, 5);
+    FxDisk(to, 120, 200, 255, 120, 8);
+    FxStreak(to, 7, 80, 300);
+    FxLight(to, 120, 200, 255, 30, 10, 20);
+    ZoneSpawn(to, 160.0, 120, 200, 255, 3.0, t, false);
+    FadeOne(t, 150, 210, 255, 200, 3.0);
+    BossHurt(t, BskDmg(2), DMG_FREEZE);
+    FxBeamEntPoint(g_iBoss, to, g_sprBeam, 150, 220, 255, 30, 10, 5);
+    client_print(t, print_center, "%L", t, "BSK_TOMB_YOU");
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (p == t || !is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(to, po) <= 160.0)
+            SlowHuman(p, 2.0);
+    }
+    return true;
+}
+
+// Faz 3 - MUTLAK SIFIR (ulti): 8 sn kar firtinasi; DURAN donar, hareket eden az hasar alir
+bool:Bsk_FrostZero()
+{
+    g_fBlizzardEnd = get_gametime() + 8.0;
+    StartChannel(CH_ZERO, 8.0);
+    g_iBossChannelTick = 10;
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_connected(id))
+            continue;
+        if (!is_user_bot(id))
+        {
+            if (!(g_iSet[id] & SET_NO_FOG))
+                SendFogEx(id, 200, 220, 255, 40);
+            SendWeather(id, 2);
+        }
+        if (is_user_alive(id) && !g_bZombie[id])
+        {
+            rg_reset_maxspeed(id);
+            FadeOne(id, 200, 230, 255, 140, 2.0);
+            ShakeOne(id);
+        }
+    }
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (is_user_connected(p) && !is_user_bot(p))
+            client_print(p, print_center, "%L", p, "BSK_ZERO_TIP");
+    }
+    return true;
+}
+
+/* ==================== 6 STORMCALLER ==================== */
+
+// Faz 1 - TOP YILDIRIM: yavas ilerleyen, yakindakileri carpan enerji kuresi
+bool:Bsk_StormOrb()
+{
+    new Float:eye[3], Float:fwd[3], Float:o[3], Float:vel[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+    for (new i = 0; i < 3; i++)
+    {
+        o[i] = eye[i] + fwd[i] * 40.0;
+        vel[i] = fwd[i] * 280.0;
+    }
+    vel[2] *= 0.3;
+    return ProjSpawn(PJ_ORB, o, vel, 255, 240, 80, 1.1, 5.0, MOVETYPE_FLY, 0.0) > 0;
+}
+
+// Faz 2 - YILDIRIM ATILMASI: ileri atilir, yolundakileri carpar
+bool:Bsk_StormDash()
+{
+    g_iDashHit = 0;
+    LeapForward(g_iBoss, 1300.0, 160.0);
+    StartChannel(CH_DASH, 0.7);
+    FxFollow(g_iBoss, 255, 240, 80, 8, 20);
+    return true;
+}
+
+// Faz 3 - KASIRGA (ulti): 8 sn yagmur + karanlik; rastgele insanlara isaretli yildirim
+bool:Bsk_StormTempest()
+{
+    StartChannel(CH_TEMPEST, 8.0);
+    engfunc(EngFunc_LightStyle, 0, "c");
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_connected(id) || is_user_bot(id))
+            continue;
+        SendWeather(id, 1);
+        if (!(g_iSet[id] & SET_NO_FOG))
+            SendFogEx(id, 60, 70, 90, 35);
+    }
+    Lightning();
+    return true;
+}
+
+public task_TempestHit(params[])
+{
+    if (!BskValid(params))
+        return;
+    new Float:o[3], Float:po[3];
+    BskPos(params, o);
+    FxSkyStrike(o, 255, 255, 140);
+    FxSkyStrike(o, 255, 255, 255);
+    FxRingEx(o, 255, 240, 80, floatround(BskRad(3)) + 60, 20, 5);
+    FxStreak(o, 5, 50, 260);
+    EmitKeyPos(o, "THUNDER");
+
+    new Float:rad = BskRad(3);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(o, po);
+        if (d < 600.0)
+            FadeOne(p, 255, 255, 255, 50, 0.2);
+        if (d > rad)
+            continue;
+        ShakeEx(p, 12, 1.0, 6);
+        SlowHuman(p, 1.0);
+        BossHurt(p, BskDmg(3), DMG_SHOCK);
+    }
+}
+
+/* ==================== 7 HIVE QUEEN ==================== */
+
+// Faz 1 - ASIT TUKURUGU: baktigi yere asit firlatir, dustugu yerde asit havuzu
+bool:Bsk_HiveSpit()
+{
+    new Float:eye[3], Float:fwd[3], Float:o[3], Float:vel[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+    for (new i = 0; i < 3; i++)
+    {
+        o[i] = eye[i] + fwd[i] * 30.0;
+        vel[i] = fwd[i] * 950.0;
+    }
+    vel[2] += 140.0;
+    return ProjSpawn(PJ_ACID, o, vel, 110, 255, 0, 0.7, 4.0, MOVETYPE_TOSS, 0.7) > 0;
+}
+
+// Faz 2 - ZEHIR BULUTU: 6 sn kralicenin etrafinda zehir; zombileri iyilestirir
+bool:Bsk_HiveCloud()
+{
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    StartChannel(CH_CLOUD, 6.0);
+    ZoneSpawn(bo, BskRad(2), 110, 255, 0, 6.0, g_iBoss, false);
+    FxSprite(bo, g_sprSmoke, 40, 200);
+    return true;
+}
+
+// Faz 3 - KULUCKA (ulti): 4 yumurta birakir; 5 sn icinde kirilmayan yumurta patlar
+bool:Bsk_HiveEggs()
+{
+    new Float:bo[3], Float:pt[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    new made;
+    for (new i = 0; i < 4; i++)
+    {
+        new Float:a = float(i) * 90.0 + random_float(-20.0, 20.0);
+        pt[0] = bo[0] + floatcos(a, degrees) * 130.0;
+        pt[1] = bo[1] + floatsin(a, degrees) * 130.0;
+        pt[2] = bo[2];
+        engfunc(EngFunc_TraceLine, bo, pt, IGNORE_MONSTERS, g_iBoss, 0);
+        get_tr2(0, TR_vecEndPos, pt);
+        if (EggSpawn(pt))
+            made++;
+    }
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (is_user_alive(p) && !g_bZombie[p] && !is_user_bot(p))
+            client_print(p, print_center, "%L", p, "BSK_EGGS_TIP");
+    }
+    return made > 0;
+}
+
+EggSpawn(const Float:o[3])
+{
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return 0;
+    new Float:pos[3];
+    FloorAt(o, pos);
+    pos[2] += 14.0;
+
+    set_entvar(ent, var_classname, EGG_CLASS);
+    if (g_szSprOrb[0])
+    {
+        engfunc(EngFunc_SetModel, ent, g_szSprOrb);
+        set_entvar(ent, var_rendermode, kRenderTransAdd);
+        set_entvar(ent, var_renderamt, 230.0);
+        set_entvar(ent, var_rendercolor, Float:{110.0, 255.0, 0.0});
+        set_entvar(ent, var_scale, 0.55);
+    }
+    set_entvar(ent, var_movetype, MOVETYPE_NONE);
+    set_entvar(ent, var_solid, SOLID_BBOX);
+    engfunc(EngFunc_SetSize, ent, Float:{-14.0, -14.0, -14.0}, Float:{14.0, 14.0, 14.0});
+    engfunc(EngFunc_SetOrigin, ent, pos);
+
+    new Float:hp = 150.0 + 40.0 * float(CountHumans(true));
+    set_entvar(ent, var_takedamage, DAMAGE_YES);
+    set_entvar(ent, var_health, hp);
+    set_entvar(ent, var_max_health, hp);
+    set_entvar(ent, var_iuser3, g_iBossSerial);
+    set_entvar(ent, var_fuser1, get_gametime() + 5.0);
+    set_entvar(ent, var_effects, EF_DIMLIGHT);
+
+    SetThink(ent, "fw_EggThink");
+    set_entvar(ent, var_nextthink, get_gametime() + 0.5);
+    ZoneSpawn(pos, BskRad(3), 110, 255, 0, 5.0, 0, false);
+    FxSprite(pos, g_sprSmoke, 10, 160);
+    return ent;
+}
+
+public fw_EggThink(ent)
+{
+    if (is_nullent(ent))
+        return;
+    if (get_entvar(ent, var_iuser3) != g_iBossSerial || !g_bRoundActive)
+    {
+        set_entvar(ent, var_flags, FL_KILLME);
+        return;
+    }
+
+    new Float:o[3], Float:now = get_gametime();
+    get_entvar(ent, var_origin, o);
+    if (now >= Float:get_entvar(ent, var_fuser1))
+    {
+        // Catladi: asit patlamasi + (varsa) yardimci zombi
+        if (g_iBoss && is_user_alive(g_iBoss))
+        {
+            AcidSplash(o, BskRad(3), BskDmg(3));
+            SummonMinions(1);
+        }
+        set_entvar(ent, var_flags, FL_KILLME);
+        return;
+    }
+    FxLight(o, 110, 255, 0, 10, 6, 5);
+    set_entvar(ent, var_nextthink, now + 0.5);
+}
+
+EggTakeDamage(ent, attacker, Float:damage)
+{
+    if (!(1 <= attacker <= g_iMax) || !is_user_connected(attacker) || g_bZombie[attacker])
+        return HAM_SUPERCEDE;
+
+    new Float:hp = Float:get_entvar(ent, var_health) - damage;
+    new Float:o[3];
+    get_entvar(ent, var_origin, o);
+    if (hp <= 0.0)
+    {
+        FxSprite(o, g_sprSmoke, 15, 180);
+        FxStreak(o, 2, 40, 200);
+        EmitKeyPos(o, "NADE_INFECT");
+        Reward(attacker, 15, 3);
+        set_entvar(ent, var_takedamage, DAMAGE_NO);
+        set_entvar(ent, var_flags, FL_KILLME);
+        return HAM_SUPERCEDE;
+    }
+    set_entvar(ent, var_health, hp);
+    if (random_num(1, 3) == 1)
+        FxSparks(o);
+    return HAM_SUPERCEDE;
+}
+
+// Asit sicramasi: hasar + zehir + asit havuzu
+AcidSplash(const Float:o[3], Float:rad, Float:dmg)
+{
+    new Float:po[3];
+    FxSprite(o, g_sprSmoke, 20, 180);
+    FxStreak(o, 2, 40, 220);
+    EmitKeyPos(o, "ACID_POOL");
+    AddPool(o, 0, 6.0, rad);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+        g_iPoison[p] = max(g_iPoison[p], 3);
+        g_iPoisonBy[p] = g_iBoss;
+        FadeOne(p, 110, 255, 0, 120, 0.8);
+        BossHurt(p, dmg, DMG_ACID);
+    }
+}
+
+/* ==================== 8 VOID ==================== */
+
+// Faz 1 - BOSLUK OKU: hizli ok; carptigi insani bossa dogru ceker
+bool:Bsk_VoidBolt()
+{
+    new Float:eye[3], Float:fwd[3], Float:o[3], Float:vel[3];
+    BossEye(eye);
+    BossFwd(fwd, false);
+    for (new i = 0; i < 3; i++)
+    {
+        o[i] = eye[i] + fwd[i] * 40.0;
+        vel[i] = fwd[i] * 1100.0;
+    }
+    new Float:life = floatmax(0.3, BskRad(1) / 1100.0);
+    return ProjSpawn(PJ_VOID, o, vel, 220, 0, 140, 0.8, life, MOVETYPE_FLY, 0.0) > 0;
+}
+
+// Faz 2 - TEKILLIK: baktigi noktada 4 sn kara delik; sonunda cokme patlamasi
+bool:Bsk_VoidSingularity()
+{
+    new Float:c[3];
+    BossAimPoint(700.0, c);
+    new Float:fwd[3];
+    BossFwd(fwd, false);
+    for (new i = 0; i < 3; i++)
+        c[i] -= fwd[i] * 24.0;
+    g_fBossChannelPos = c;
+    StartChannel(CH_SINGULARITY, 4.0);
+    ZoneSpawn(c, BskRad(2), 220, 0, 140, 4.0, 0, true);
+    FxFunnel(c, g_sprFlare, false);
+    return true;
+}
+
+SingularityCollapse()
+{
+    new Float:c[3], Float:po[3];
+    c = g_fBossChannelPos;
+    FxExplosion(c);
+    FxRingEx(c, 220, 0, 140, 300, 50, 6);
+    FxRingEx(c, 255, 255, 255, 200, 20, 5);
+    FxLava(c);
+    ShakeAll(10, 1.2, 6);
+    EmitKeyPos(c, "GRAVITY_WELL");
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(c, po) > 230.0)
+            continue;
+        PushFrom(p, c, 420.0, 300.0);
+        FadeOne(p, 220, 0, 140, 160, 0.8);
+        BossHurt(p, BskDmg(2), DMG_BLAST);
+    }
+}
+
+// Faz 3 - OLAY UFKU (ulti): 6 sn tutulma; boss gorunmez olur, herkesi ceker
+bool:Bsk_VoidHorizon()
+{
+    new Float:bo[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    BossEclipse(bo);
+    g_fEclipseEnd = get_gametime() + 6.0;
+    StartChannel(CH_HORIZON, 6.0);
+    ZoneSpawn(bo, BskRad(3), 220, 0, 140, 6.0, g_iBoss, false);
+    return true;
+}
+
+/* ---------------- Mermiler (enerji kuresi, asit, bosluk oku) ---------------- */
+
+ProjSpawn(type, const Float:o[3], const Float:vel[3], r, g, b, Float:scale, Float:life, movetype, Float:gravity)
+{
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return 0;
+
+    set_entvar(ent, var_classname, PROJ_CLASS);
+    if (g_szSprOrb[0])
+    {
+        engfunc(EngFunc_SetModel, ent, g_szSprOrb);
+        set_entvar(ent, var_rendermode, kRenderTransAdd);
+        set_entvar(ent, var_renderamt, 255.0);
+        new Float:c[3];
+        c[0] = float(r);
+        c[1] = float(g);
+        c[2] = float(b);
+        set_entvar(ent, var_rendercolor, c);
+        set_entvar(ent, var_scale, scale);
+    }
+    set_entvar(ent, var_movetype, movetype);
+    set_entvar(ent, var_solid, SOLID_TRIGGER);
+    engfunc(EngFunc_SetSize, ent, Float:{-4.0, -4.0, -4.0}, Float:{4.0, 4.0, 4.0});
+    engfunc(EngFunc_SetOrigin, ent, o);
+    set_entvar(ent, var_velocity, vel);
+    if (gravity > 0.0)
+        set_entvar(ent, var_gravity, gravity);
+    set_entvar(ent, var_owner, g_iBoss);
+    set_entvar(ent, var_iuser1, type);
+    set_entvar(ent, var_iuser2, 0);
+    set_entvar(ent, var_iuser3, g_iBossSerial);
+    set_entvar(ent, var_fuser1, get_gametime() + life);
+    set_entvar(ent, var_effects, EF_DIMLIGHT);
+
+    SetTouch(ent, "fw_ProjTouch");
+    SetThink(ent, "fw_ProjThink");
+    set_entvar(ent, var_nextthink, get_gametime() + 0.05);
+    FxTrail(ent, r, g, b);
+    return ent;
+}
+
+ProjKill(ent)
+{
+    SetTouch(ent, "");
+    SetThink(ent, "");
+    set_entvar(ent, var_classname, "vex_removed");
+    set_entvar(ent, var_flags, FL_KILLME);
+}
+
+public fw_ProjThink(ent)
+{
+    if (is_nullent(ent))
+        return;
+    new Float:now = get_gametime();
+    new type = get_entvar(ent, var_iuser1);
+    if (get_entvar(ent, var_iuser3) != g_iBossSerial || !g_iBoss || !is_user_alive(g_iBoss) || !g_bRoundActive)
+    {
+        ProjKill(ent);
+        return;
+    }
+
+    new Float:o[3], Float:po[3];
+    get_entvar(ent, var_origin, o);
+
+    if (now >= Float:get_entvar(ent, var_fuser1))
+    {
+        if (type == PJ_ACID)
+            AcidSplash(o, BskRad(1), BskDmg(1));
+        else if (type == PJ_VOID)
+            FxImplosion(o, 120, 30, 4);
+        else
+        {
+            FxSparks(o);
+            FxRingEx(o, 255, 240, 80, 160, 12, 4);
+        }
+        ProjKill(ent);
+        return;
+    }
+
+    switch (type)
+    {
+        case PJ_ORB:
+        {
+            new tick = get_entvar(ent, var_iuser2) + 1;
+            set_entvar(ent, var_iuser2, tick);
+            FxLight(o, 255, 240, 80, 18, 2, 10);
+            if (tick % 3 == 0)
+            {
+                new Float:rad = BskRad(1);
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (!is_user_alive(p) || g_bZombie[p])
+                        continue;
+                    get_entvar(p, var_origin, po);
+                    if (get_distance_f(o, po) > rad)
+                        continue;
+                    FxBeamEx(o, po, g_sprLightning, 255, 240, 80, 22, 50, 2);
+                    SlowHuman(p, 0.5);
+                    BossHurt(p, BskDmg(1), DMG_SHOCK);
+                    if (random_num(1, 3) == 1)
+                        EmitKey(p, "ZAP");
+                }
+            }
+            set_entvar(ent, var_nextthink, now + 0.1);
+        }
+        case PJ_VOID:
+        {
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (!is_user_alive(p) || g_bZombie[p])
+                    continue;
+                get_entvar(p, var_origin, po);
+                if (get_distance_f(o, po) > 52.0)
+                    continue;
+                VoidBoltHit(ent, p);
+                return;
+            }
+            set_entvar(ent, var_nextthink, now + 0.05);
+        }
+        default:
+            set_entvar(ent, var_nextthink, now + 0.05);
+    }
+}
+
+VoidBoltHit(ent, p)
+{
+    new Float:bo[3], Float:po[3], Float:vel[3];
+    get_entvar(g_iBoss, var_origin, bo);
+    get_entvar(p, var_origin, po);
+    new Float:d = floatmax(1.0, get_distance_f(bo, po));
+    vel[0] = (bo[0] - po[0]) / d * 750.0;
+    vel[1] = (bo[1] - po[1]) / d * 750.0;
+    vel[2] = 180.0;
+    set_entvar(p, var_velocity, vel);
+    FxImplosion(po, 150, 40, 5);
+    FxBeamEntPoint(g_iBoss, po, g_sprLightning, 220, 0, 140, 30, 40, 5);
+    FadeOne(p, 90, 0, 90, 170, 0.8);
+    BossHurt(p, BskDmg(1), DMG_GENERIC);
+    client_print(p, print_center, "%L", p, "BSK_PULLED");
+    ProjKill(ent);
+}
+
+public fw_ProjTouch(ent, other)
+{
+    if (is_nullent(ent) || other == g_iBoss)
+        return;
+    new type = get_entvar(ent, var_iuser1);
+    new Float:o[3];
+    get_entvar(ent, var_origin, o);
+
+    // Oyuncuya / zombiye degmesi: sadece asit ve bosluk oku tepki verir
+    if (1 <= other <= g_iMax)
+    {
+        if (!is_user_alive(other) || g_bZombie[other])
+            return;
+        if (type == PJ_ACID)
+        {
+            AcidSplash(o, BskRad(1), BskDmg(1));
+            ProjKill(ent);
+        }
+        else if (type == PJ_VOID)
+            VoidBoltHit(ent, other);
+        return;
+    }
+
+    if (other > 0 && get_entvar(other, var_solid) != SOLID_BSP)
+        return;
+
+    switch (type)
+    {
+        case PJ_ACID:
+        {
+            AcidSplash(o, BskRad(1), BskDmg(1));
+            ProjKill(ent);
+        }
+        case PJ_VOID:
+        {
+            FxImplosion(o, 120, 30, 4);
+            FxSparks(o);
+            ProjKill(ent);
+        }
+        case PJ_ORB:
+        {
+            // Duvara carpinca durur, yerinde vizildamaya devam eder
+            set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
+            set_entvar(ent, var_movetype, MOVETYPE_NONE);
+        }
+    }
+}
+
+// Iki varlik arasinda takip eden isin (zincirler)
+stock BeamEnts(a, b, spr, r, g, bl, width, noise, life)
+{
+    message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
+    write_byte(TE_BEAMENTS);
+    write_short(a);
+    write_short(b);
+    write_short(spr);
+    write_byte(0);
+    write_byte(0);
+    write_byte(life);
+    write_byte(width);
+    write_byte(noise);
+    write_byte(r);
+    write_byte(g);
+    write_byte(bl);
+    write_byte(220);
+    write_byte(0);
+    message_end();
+}
+
+/* ---------------- Havuzlar (asit / yanan zemin) ---------------- */
+
+// tur: 0 = asit (insan erir, zombi iyilesir), 1 = yanan zemin
+AddPool(const Float:o[3], type, Float:life, Float:radius)
+{
+    new Float:now = get_gametime(), slot = -1, Float:oldest = 999999.0, oldi;
+    for (new s = 0; s < sizeof g_fPoolEnd; s++)
+    {
+        if (g_fPoolEnd[s] < now)
+        {
+            slot = s;
+            break;
+        }
+        if (g_fPoolEnd[s] < oldest)
+        {
+            oldest = g_fPoolEnd[s];
+            oldi = s;
+        }
+    }
+    if (slot < 0)
+        slot = oldi;
+
+    new Float:pos[3];
+    FloorAt(o, pos);
+    g_fPoolPos[slot] = pos;
+    g_fPoolEnd[slot] = now + life;
+    g_iPoolType[slot] = type;
+    g_fPoolRad[slot] = radius;
+
+    if (type == 1)
+        ZoneSpawn(pos, radius, 255, 80, 0, life, 0, false);
+    else
+        ZoneSpawn(pos, radius, 110, 255, 0, life, 0, false);
+}
+
+/* ---------------- Boss temizligi ---------------- */
+
+// Boss olunce / round bitince: kanal, mermi, yumurta, alan, gecikmeli vuruslar temizlenir
+BossCleanup()
+{
+    g_iBossSerial++;
+    if (g_iBossChannel != CH_NONE)
+        EndChannel(false);
+    remove_task(TASK_BCHAN);
+    g_fBossBuffEnd = 0.0;
+    g_fBossEmpower = 0.0;
+    for (new i = 0; i < 3; i++)
+        g_iBossTethers[i] = 0;
+
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", PROJ_CLASS)) > 0)
+        ProjKill(ent);
+    ent = 0;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", EGG_CLASS)) > 0)
+    {
+        SetThink(ent, "");
+        set_entvar(ent, var_takedamage, DAMAGE_NO);
+        set_entvar(ent, var_classname, "vex_removed");
+        set_entvar(ent, var_flags, FL_KILLME);
+    }
+    RemoveAllZones();
+}
+
+// Faz degisince: herkese "boss yeni yetenek ogrendi", bossa "yeni [R] yetenegin"
+BossSkillUnlock()
+{
+    if (!g_iBoss || !is_user_connected(g_iBoss))
+        return;
+
+    new key[16], nm[48], name[32];
+    formatex(key, charsmax(key), "BSK_%d_%d", g_iBossType, clamp(g_iBossPhase, 1, 3));
+    get_user_name(g_iBoss, name, charsmax(name));
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_connected(p) || is_user_bot(p))
+            continue;
+        formatex(nm, charsmax(nm), "%L", p, key);
+        client_print_color(p, print_team_red, "%s %L", CHAT_PREFIX, p, "BSK_UNLOCK_ALL", name, nm, g_iBossPhase);
+    }
+
+    if (!is_user_bot(g_iBoss))
+    {
+        formatex(nm, charsmax(nm), "%L", g_iBoss, key);
+        HudToS(g_iBoss, SL_PERS, 255, 200, 40, 3.5, "BSK_UNLOCK_YOU", nm);
+        PlayKey(g_iBoss, "SKILL_UNLOCK");
     }
 }
