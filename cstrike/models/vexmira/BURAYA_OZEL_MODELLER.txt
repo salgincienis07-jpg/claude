@@ -1,1 +1,1 @@
-Ozel el (v_) modellerini buraya koy: v_claws.mdl, v_plasma.mdl ... Oyuncu modelleri models/player/<isim>/<isim>.mdl seklinde olmali.
+Ozel el (v_) modellerini buraya koy (ornek: v_claws.mdl, lasermine.mdl) ve configs/vexmira.cfg icindeki vex_res satirina yolunu yaz. Oyuncu modelleri models/player/<isim>/<isim>.mdl seklinde olmali (vex_res Z0_MODEL "isim").

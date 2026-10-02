@@ -98,6 +98,7 @@
 #define TASK_LOADWAIT 9300
 #define TASK_ROUNDINF 9400
 #define TASK_HOSTNAME 9500
+#define HOSTNAME_MAX  63
 #define TASK_CFGLOAD  9600
 #define TASK_SNDSTOP  31000   // +0..63 (dongulu ses durdurma)
 #define TASK_BSK      32000   // +0..255 (boss R yetenekleri, gecikmeli vuruslar)
@@ -1455,7 +1456,7 @@ public plugin_init()
 
     // v2.0
     g_pPrefix        = register_cvar("vex_chat_prefix", "^4[^3VEX^4MIRA^4]^1");
-    g_pHostname      = register_cvar("vex_hostname", "EN/TR ZOMBIE | VEXMIRA | Boss + Round Events + Advanced Menu");
+    g_pHostname      = register_cvar("vex_hostname", "EN/TR ZOMBIE | VEXMIRA | BOSS + EVENTS + ADV. MENU");
     g_pHostDyn       = register_cvar("vex_hostname_dynamic", "1");
     g_pEnv           = register_cvar("vex_env", "1");
     g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
@@ -15819,17 +15820,25 @@ ApplyHostname()
     if (!base[0])
         return;
 
+    // Sunucu listesi 63 karakterden sonrasini keser: durum etiketi sigmazsa
+    // once kisa etiket ("BOSS"), o da sigmazsa sadece ana isim kullanilir.
     new name[128], tag[40], dyn = get_pcvar_num(g_pHostDyn);
+    copy(name, charsmax(name), base);
     if (dyn > 0 && g_iRound > 0)
     {
-        HostTag(tag, charsmax(tag));
-        if (dyn == 2)
-            formatex(name, charsmax(name), "[%s] %s", tag, base);
-        else
-            formatex(name, charsmax(name), "%s | %s", base, tag);
+        for (new pass = 0; pass < 2; pass++)
+        {
+            HostTag(tag, charsmax(tag), pass == 1);
+            if (strlen(base) + strlen(tag) + 3 > HOSTNAME_MAX)
+                continue;
+            if (dyn == 2)
+                formatex(name, charsmax(name), "[%s] %s", tag, base);
+            else
+                formatex(name, charsmax(name), "%s | %s", base, tag);
+            break;
+        }
     }
-    else
-        copy(name, charsmax(name), base);
+    name[HOSTNAME_MAX] = EOS;
 
     new cur[128];
     get_cvar_string("hostname", cur, charsmax(cur));
@@ -15837,7 +15846,7 @@ ApplyHostname()
         set_cvar_string("hostname", name);
 }
 
-HostTag(out[], len)
+HostTag(out[], len, bool:compact = false)
 {
     static const MODE_SHORT[MODE_TOTAL][] =
     {
@@ -15850,6 +15859,16 @@ HostTag(out[], len)
         "HEADHUNTER", "STORM", "BLACKOUT"
     };
     new total = RoundsTotal();
+    if (compact)
+    {
+        if (g_iMode != MODE_INFECTION && g_iMode < MODE_TOTAL)
+            copy(out, len, MODE_SHORT[g_iMode]);
+        else if (g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
+            copy(out, len, EV_SHORT[g_iEvent]);
+        else
+            formatex(out, len, "R%d", g_iRound);
+        return;
+    }
     if (g_iMode != MODE_INFECTION && g_iMode < MODE_TOTAL)
         formatex(out, len, "R%d/%d %s", g_iRound, total, MODE_SHORT[g_iMode]);
     else if (g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
@@ -15926,7 +15945,7 @@ stock ZoneSpawn(const Float:o[3], Float:radius, r, g, b, Float:life, follow = 0,
     set_entvar(ent, var_fuser1, now + life);
     set_entvar(ent, var_fuser2, now);
     set_entvar(ent, var_fuser3, radius);
-    set_entvar(ent, var_fuser4, 0.0);
+    set_entvar(ent, var_fuser4, now + 0.7);
     set_entvar(ent, var_iuser1, follow);
     set_entvar(ent, var_iuser2, (r << 16) | (g << 8) | b);
     set_entvar(ent, var_iuser3, g_iBossSerial);
@@ -15992,6 +16011,17 @@ public fw_ZoneThink(ent)
         new Float:speed = (end - now < 0.6) ? 22.0 : 7.0;
         new Float:amt = 150.0 + 90.0 * floatabs(floatsin(t * speed, radian));
         set_entvar(ent, var_renderamt, amt);
+
+        // Ek guvence: alanin sinirina periyodik (guvenilir) halka
+        if (now >= Float:get_entvar(ent, var_fuser4))
+        {
+            set_entvar(ent, var_fuser4, now + 0.7);
+            new Float:o[3];
+            get_entvar(ent, var_origin, o);
+            g_bFxReliable = true;
+            FxRingEx(o, r, g, b, floatround(radius), 5, 7, 150);
+            g_bFxReliable = false;
+        }
         set_entvar(ent, var_nextthink, now + 0.05);
     }
     else

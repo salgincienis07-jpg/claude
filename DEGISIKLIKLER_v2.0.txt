@@ -1,0 +1,93 @@
+=====================================================================
+  VEXMIRA ZOMBIE CORE v2.0  -  DEGISIKLIKLER (v1.5 -> v2.0)
+=====================================================================
+
+[DUZELTMELER - bildirilen sorunlar]
+ * Round bitince susmayan / bozulan / devam eden sesler:
+   - Dongulu (cue/loop) WAV'lar artik yuklenirken taranir. Dongulu
+     WAV ya calinmaz ya da suresi dolunca SND_STOP ile kesilir.
+   - Round sonunda muzik durur ("mp3 stop"), yeni round baslarken
+     oyuncudaki tum sesler durdurulur ("stopsound").
+   - Kalp atisi gibi tekrarlanan seslere bekleme suresi eklendi.
+   - Ayar: vex_sound_loopguard, vex_sound_loop_max, vex_round_stopsound
+ * Lazer C ile alinmiyordu -> C (radio3 / +dellaser) nisan alinan
+   lazeri ANINDA sokar. Menuye girmek gerekmez.
+ * Parasutle lazerden gecen vurulmuyordu -> isin, zombinin tum govde
+   kutusuna ve hareket yonune (hiz suruklemesi) gore kontrol edilir.
+   Parasut, zipla, egil, kos fark etmez; ayni anda birden fazla zombi.
+ * Lazer tek atmiyordu -> vex_lm_oneshot 1: degen zombi olur.
+ * Sensor bombasi hemen patliyordu -> yere oturur, kurulur (bip),
+   sadece zombi menzil + gorus hattina girince 0.25 sn uyariyla patlar.
+ * Lazer Tuzak bombasi yapismiyordu -> degdigi duvar / zemin / tavana
+   yapisir, yuzeyden dik lazer ceker, kesen zombinin ustunde patlar.
+ * "Yesil alandan uzak dur" vb. uyarilar sadece T'de gorunuyordu ->
+   alanlar gercek sprite varligi + guvenilir mesajlarla cizilir, T / CT
+   / izleyici herkes gorur. Boss HUD tek satira indirildi.
+ * "Altin isigi takip et" yaziyor ama isik yoktu -> gokyuzune uzanan
+   kalin altin isik sutunu (varlik tabanli), parlayan isaret, yere
+   inis alani ve ekranda pusula (yon + mesafe).
+ * Nemesis / Assassin tek atmiyordu -> vex_nemesis_oneshot 1,
+   vex_assassin_oneshot 1 (Survivor'a karsi ayri ayar).
+
+[BOSSLAR]
+ * 9 boss x 3 faz = 27 yeni [R] yetenegi. Faz degisince R degisir,
+   onceki yetenekler otomatik gelir, faz 3'te ULTI + ofke (hiz x1.4,
+   alinan hasar x0.7). Yeni mermiler (kure / asit / bosluk), yumurtalar
+   (kirilabilir), asit / ates havuzlari, zincir, isaret, kasirga,
+   tekillik (cekim), olay ufku, buz mezari, mutlak sifir...
+ * Her yetenegin kendi sesi (B<n>_R1..R3), uyari alani, ekran yazisi
+   ve ipucu (EN / TR). Bekleme / hasar / alan: vex_boss_skill.
+ * Boss F = atilma. vex_boss_r_auto: R'ye basmayan / bot boss icin
+   otomatik yetenek. Faz sinirlari: vex_boss_phase2 / vex_boss_phase3.
+
+[LAZER MAYINI]
+ * AP ile satis ve menuden satin alma KALDIRILDI. Her round 3 hak
+   (vex_lm_per_round / vex_lm_per_round_vip), round basinda yenilenir.
+ * Model / govde / animasyon / skin: vex_res LASERMINE_*.
+ * Isin rengi: vex_lm_color_mode (0 cana gore mavi > sari > kirmizi,
+   1 oyuncuya ozel renk, 2 sabit renk), vex_lm_color "r g b",
+   vex_lm_beam_width.
+ * Kurma / sokma / kurulma sureleri, menzil, olumde asinma ayarli.
+ * Hava ikmalinden ekstra lazer (vex_airdrop_laser).
+
+[BOMBALAR]
+ * Her round TUM bombalar otomatik (vex_give_nades "abc"), silah
+   seciminden bagimsiz.
+ * Sensor / Lazer Tuzak yeniden yazildi (yukarida). Kurulma, menzil,
+   omur, lazer uzunlugu ayarlari: vex_nade_*.
+
+[ORTAM]
+ * Her event / mod / boss icin isik + sis rengi + sis yogunlugu +
+   hava (yagmur / kar). Normal roundlarda rastgele sakin hava.
+   Tablolar: vex_env_event, vex_env_mode, vex_env_boss, vex_env_calm.
+
+[SUNUCU ADI]
+ * vex_hostname + vex_hostname_dynamic (canli round / mod etiketi,
+   63 karakter sunucu listesi sinirina gore otomatik kisaltma).
+
+[TEK AYAR DOSYASI]
+ * configs/vexmira.cfg: tum canlar, hasarlar, hizlar, odul miktarlari,
+   esya fiyat / limit / seviye / deger, siniflar, silahlar, meslekler,
+   boss / yetenek tablolari, mod kurallari, gorevler, kozmetik,
+   ortam, TUM sesler / modeller / sprite'lar (vex_res).
+ * vex_reload ile oyun icinden yeniden yukleme.
+
+[YONETIM]
+ * Admin menusu 19 secenek: event'i hemen baslat, boss simdi / sonraki
+   round, ortam secimi, round bitir (insan / zombi), ikmal dusur, bomba +
+   lazer dagit, herkese AP, geri donus ac/kapa, lazer ac/kapa, cfg yenile.
+ * Oyuncu islemleri: assassin / sniper yap, +3 lazer, bomba ver, dondur.
+ * AFK korumasi (uyari -> izleyici / at), boss ve yetkili muaf.
+
+[GORSEL / SES]
+ * 122 ozel ses + 2 muzik (boss_theme.mp3, nemesis_theme.mp3).
+ * 7 ozel sprite: zone (yer alani), target (hedef), beacon (isaret),
+   orb (kure), mark (kuru kafa isareti), fire (8 kare ates), laser.
+ * Mesaj turune gore chat rengi (kirmizi / mavi / gri), renkli onek
+   (vex_chat_prefix), yeni MOTD (TR / EN), 26 bilgi mesaji.
+
+[NOTLAR]
+ * Ozel .mdl modeller pakette yok (model dosyasi tasarimi ayri bir is);
+   kendi modellerini vex_res ile baglayabilirsin. Varsayilanlar orijinal
+   CS modelleridir, indirme gerektirmez.
+ * mp_flashlight 1 olmali (F tusu). FastDL onerilir (~7 MB ozel dosya).

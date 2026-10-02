@@ -1,1 +1,1 @@
-Ozel seslerini buraya koy (ornek isimler: configs/vexmira_resources.ini icinde). Ornek: headshot.wav, doublekill.wav, godlike.wav, ambient_loop.mp3
+Ozel seslerin burada (122 WAV + 2 MP3). Degistirmek icin ayni isimle uzerine yaz veya configs/vexmira.cfg icindeki "vex_res" satirini degistir. WAV: mono, 16 bit, 11025/22050 Hz, DONGUSUZ.

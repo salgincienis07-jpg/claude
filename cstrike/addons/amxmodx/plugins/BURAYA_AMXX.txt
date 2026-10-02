@@ -1,1 +1,1 @@
-Derledigin vexmira_zombie.amxx dosyasini buraya koy (bkz. KURULUM_OKU.txt, adim 3).
+vexmira_zombie.amxx burada hazir (AMX Mod X 1.10 + ReAPI 5.26 include ile derlendi). Kaynak kodu degistirirsen yeniden derleyip bunun uzerine yaz (bkz. KURULUM_OKU.txt, adim 3).
