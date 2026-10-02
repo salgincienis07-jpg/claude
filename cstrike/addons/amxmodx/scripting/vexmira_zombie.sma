@@ -67,7 +67,7 @@
 #define NUM_STYLES    3
 #define NUM_THEMES    6
 #define NUM_RANKS     8
-#define NUM_ADS       22
+#define NUM_ADS       26
 #define MAX_FLARES    8
 
 #define TASK_TICK     7001
@@ -320,8 +320,8 @@ new const SW_RGB[NUM_SPECIAL][3]     =
     {255, 210, 0}, {255, 60, 0}, {170, 0, 255}, {90, 0, 160}
 };
 
-// Perk maliyeti: (seviye + 1) * PERK_COST_STEP VC
-#define PERK_COST_STEP 4
+// Perk maliyeti: (seviye + 1) * vex_perk_cost_step VC
+#define PERK_COST_STEP max(1, get_pcvar_num(g_pPerkStep))
 
 // Basarim -> unvan eslesmesi (-1 = herkese acik)
 new const TITLE_ACH[NUM_TITLES] = { -1, 3, 2, 5, 7, 8, 10, 13, 12, 11 };
@@ -558,10 +558,10 @@ new g_pBossPhase2, g_pBossPhase3, g_pBossRAuto, g_pBossRCdMult, g_pBossRDmgMult,
 new g_pAfkTime, g_pAfkAction, g_pDropBeacon, g_pDropCompass, g_pLoopGuard, g_pLoopMax, g_pRoundStopSnd;
 new g_pKillXP, g_pInfectXP, g_pWinHXP, g_pWinHAP, g_pWinZXP, g_pWinZAP, g_pBossKillXP, g_pBossKillAP, g_pBossKillVC;
 new g_pSpecKillXP, g_pSpecKillAP, g_pBossBoard, g_pHsAP, g_pExchange, g_pPerkStep, g_pDailyAP, g_pAchAP, g_pAchVC;
-new g_pBurnDmg, g_pZombieBurnDmg, g_pAirdropHP, g_pBossFallback;
+new g_pBurnDmg, g_pZombieBurnDmg, g_pAirdropHP;
 
 // Ortam durumu
-new g_msgWeather, g_iCalmPreset = -1, g_iEnvWeather;
+new g_msgWeather, g_iCalmPreset = -1;
 
 // Ses: dongulu wav tespiti (yol -> bilgi). Bilgi = (dongulu ? 1 : 0) | (sure_ms << 1)
 new Trie:g_tSndInfo, g_iSndStopSlot;
@@ -1030,8 +1030,17 @@ public plugin_precache()
     }
     if (!g_sprOrb)
     {
-        g_sprOrb = g_sprFlare;
-        copy(g_szSprOrb, charsmax(g_szSprOrb), "sprites/flare6.spr");
+        // Yedek: oyunun flare6 sprite'i (precache edildiyse) ya da isaret sprite'i
+        if (file_exists("sprites/flare6.spr", true))
+        {
+            g_sprOrb = precache_model("sprites/flare6.spr");
+            copy(g_szSprOrb, charsmax(g_szSprOrb), "sprites/flare6.spr");
+        }
+        else if (g_sprBeacon)
+        {
+            g_sprOrb = g_sprBeacon;
+            copy(g_szSprOrb, charsmax(g_szSprOrb), g_szSprBeacon);
+        }
     }
     if (!g_sprMark)
         g_sprMark = g_sprHeadMark;
@@ -1495,7 +1504,6 @@ public plugin_init()
     g_pBossRCdMult   = register_cvar("vex_boss_r_cooldown_mult", "1.0");
     g_pBossRDmgMult  = register_cvar("vex_boss_r_damage_mult", "1.0");
     g_pBossAutoAbil  = register_cvar("vex_boss_auto_abilities", "1");
-    g_pBossFallback  = register_cvar("vex_boss_min_players", "2");
     g_pAfkTime       = register_cvar("vex_afk_time", "120");
     g_pAfkAction     = register_cvar("vex_afk_action", "1");
     g_pDropBeacon    = register_cvar("vex_airdrop_beacon", "1");
@@ -1995,6 +2003,9 @@ ResetPlayer(id)
     g_iCosOwned[id] = 0; g_iTrailSel[id] = 0; g_iKfxSel[id] = 0; g_iIfxSel[id] = 0;
     g_szKey[id][0] = 0; g_bLoaded[id] = false; g_iClassNext[id] = -1; g_iJobNext[id] = -1;
     g_bTrailOn[id] = false;
+    g_bLmGiven[id] = false;
+    g_iAfkSec[id] = 0;
+    g_fNextBeat[id] = 0.0;
     for (new i = 0; i < NUM_PERKS; i++)
         g_iPerk[id][i] = 0;
 
@@ -2022,6 +2033,7 @@ ResetLifeData(id)
     g_fFrozen[id] = 0.0; g_fSlow[id] = 0.0; g_fMadness[id] = 0.0;
     g_fCool[id] = 0.0; g_fShield[id] = 0.0; g_fBurst[id] = 0.0; g_fCloak[id] = 0.0;
     g_iStreak[id] = 0; g_iMulti[id] = 0; g_fLastKill[id] = 0.0;
+    g_fRage[id] = 0.0; g_fFCool[id] = 0.0;
 }
 
 public task_Welcome(tid)
@@ -2839,8 +2851,8 @@ GrantAch(id, bit)
         return;
 
     g_iAch[id] |= (1 << bit);
-    g_iVC[id] += 3;
-    AddAP(id, 25, false, false);
+    g_iVC[id] += get_pcvar_num(g_pAchVC);
+    AddAP(id, get_pcvar_num(g_pAchAP), false, false);
 
     new key[16], name[32], Float:o[3];
     formatex(key, charsmax(key), "ACH_NAME_%d", bit);
@@ -2848,7 +2860,7 @@ GrantAch(id, bit)
     get_entvar(id, var_origin, o);
 
     new txt[128];
-    formatex(txt, charsmax(txt), "%L^n%L  (+3 VC  +25 AP)", id, "ACH_POPUP", id, key);
+    formatex(txt, charsmax(txt), "%L^n%L  (+%d VC  +%d AP)", id, "ACH_POPUP", id, key, get_pcvar_num(g_pAchVC), get_pcvar_num(g_pAchAP));
     HudText(id, SL_PERS, 255, 200, 40, 4.0, txt);
 
     PlayKey(id, "ACH_UNLOCK");
@@ -2894,7 +2906,7 @@ ClaimDaily(id)
     g_iDailyDay[id] = today;
 
     new s = min(g_iDailyStreak[id], 7);
-    new ap = 20 + 10 * s;
+    new ap = get_pcvar_num(g_pDailyAP) + 10 * s;
     new vc = 1 + s / 2;
     new xp = 50 + 25 * s;
 
@@ -3354,13 +3366,13 @@ OnRoundEnd(WinStatus:status)
         HudAll(SL_ANN, 0, 255, 140, 4.0, "HUMANS_WIN");
         PlayKey(0, "HUMAN_WIN");
 
-        new xp = 25, ap = 6;
+        new xp = get_pcvar_num(g_pWinHXP), ap = get_pcvar_num(g_pWinHAP);
         switch (g_iMode)
         {
-            case MODE_BOSS:                     { xp = 70; ap = 15; }
-            case MODE_SURVIVOR, MODE_SNIPER:    { xp = 40; ap = 10; }
-            case MODE_NEMESIS, MODE_ASSASSIN:   { xp = 60; ap = 12; }
-            case MODE_ARMAGEDDON, MODE_PLAGUE:  { xp = 50; ap = 10; }
+            case MODE_BOSS:                     { xp = xp * 14 / 5; ap = ap * 5 / 2; }
+            case MODE_SURVIVOR, MODE_SNIPER:    { xp = xp * 8 / 5;  ap = ap * 5 / 3; }
+            case MODE_NEMESIS, MODE_ASSASSIN:   { xp = xp * 12 / 5; ap = ap * 2; }
+            case MODE_ARMAGEDDON, MODE_PLAGUE:  { xp = xp * 2;      ap = ap * 5 / 3; }
         }
 
         new players[32];
@@ -3388,7 +3400,7 @@ OnRoundEnd(WinStatus:status)
         for (new id = 1; id <= g_iMax; id++)
         {
             if (is_user_connected(id) && g_bZombie[id] && !g_bMinion[id])
-                Reward(id, 15, 4);
+                Reward(id, get_pcvar_num(g_pWinZXP), get_pcvar_num(g_pWinZAP));
         }
     }
 
@@ -3715,6 +3727,7 @@ public task_Tick()
         Lightning();
 
     DrawHud();
+    TickAfk();
     TickLotto();
     TickVip();
     TickCosmetics();
@@ -3874,7 +3887,7 @@ TickPlayers()
             new attacker = g_iBurnBy[id];
             if (!is_user_connected(attacker))
                 attacker = 0;
-            ExecuteHamB(Ham_TakeDamage, id, 0, attacker, g_bZombie[id] ? 35.0 : 6.0, DMG_BURN);
+            ExecuteHamB(Ham_TakeDamage, id, 0, attacker, get_pcvar_float(g_bZombie[id] ? g_pZombieBurnDmg : g_pBurnDmg), DMG_BURN);
             if (!is_user_alive(id))
                 continue;
         }
@@ -3929,7 +3942,7 @@ TickPlayers()
                 EmitZombieSound(id, "IDLE", "ZOMBIE_IDLE");
 
             if (g_bZRegen[id])
-                HealTo(id, 60, g_iMaxHP[id]);
+                HealTo(id, max(1, ITEM_VAL[IT_ZREGEN]), g_iMaxHP[id]);
             if (g_iEvent == EV_BERSERK && !g_bBoss[id])
                 HealTo(id, 40, g_iMaxHP[id]);
 
@@ -4862,7 +4875,7 @@ ApplyHumanGravity(id)
     if (g_iJob[id] == JOB_PARA)
         gr = 0.75;
     if (g_bBoots[id])
-        gr = floatmin(gr, 0.55);
+        gr = floatmin(gr, float(clamp(ITEM_VAL[IT_BOOTS], 10, 100)) / 100.0);
     if (g_iEvent == EV_LOWGRAV)
         gr *= 0.5;
     SetGravity(id, gr);
@@ -4953,7 +4966,7 @@ Infect(victim, attacker)
     if (g_iClass[attacker] == 4 && !g_bMinion[attacker])
         HealTo(attacker, 400, g_iMaxHP[attacker]);
 
-    Reward(attacker, 10, get_pcvar_num(g_pInfectAP));
+    Reward(attacker, get_pcvar_num(g_pInfectXP), get_pcvar_num(g_pInfectAP));
     PayBounty(attacker, victim);
 
     // Kisisel bildirimler
@@ -5577,8 +5590,8 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
             else
                 dmg = get_pcvar_float(g_pZombieDmg);
 
-            if (g_bRage[attacker])
-                dmg *= 1.2;
+            if (g_bRage[attacker] && dmg < 9000.0)
+                dmg *= 1.0 + float(max(0, ITEM_VAL[IT_RAGE])) / 100.0;
             if (g_bAlpha[attacker] && dmg < 9000.0)
                 dmg *= 1.2;
         }
@@ -5615,7 +5628,7 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
             if (g_iJob[attacker] == JOB_ELITE)
                 m *= 1.1;
             if (g_bDmgAmp[attacker])
-                m *= 1.3;
+                m *= 1.0 + float(max(0, ITEM_VAL[IT_DMGAMP])) / 100.0;
 
             new sw = SpecialIndex(attacker, wid);
             if (sw >= 0 && inflictor == attacker)
@@ -5915,8 +5928,8 @@ public rg_PlayerKilled(victim, attacker, gib)
         if (valid && !g_bZombie[attacker])
         {
             g_iBossK[attacker]++;
-            g_iVC[attacker] += g_bBoss[victim] ? 3 : 2;
-            Reward(attacker, g_bBoss[victim] ? 120 : 80, g_bBoss[victim] ? 25 : 15);
+            g_iVC[attacker] += g_bBoss[victim] ? get_pcvar_num(g_pBossKillVC) : max(0, get_pcvar_num(g_pBossKillVC) - 1);
+            Reward(attacker, get_pcvar_num(g_bBoss[victim] ? g_pBossKillXP : g_pSpecKillXP), get_pcvar_num(g_bBoss[victim] ? g_pBossKillAP : g_pSpecKillAP));
         }
         if (valid && !g_bZombie[attacker])
         {
@@ -5943,7 +5956,8 @@ public rg_PlayerKilled(victim, attacker, gib)
             g_iRoundKills[attacker]++;
             if (g_iJob[attacker] == JOB_HUNTER)
                 AddAP(attacker, 2, true, false);
-            Reward(attacker, g_bAlpha[victim] ? 20 : 8, get_pcvar_num(g_pKillAP) + (g_bAlpha[victim] ? 4 : 0));
+            new kxp = get_pcvar_num(g_pKillXP);
+            Reward(attacker, g_bAlpha[victim] ? kxp * 5 / 2 : kxp, get_pcvar_num(g_pKillAP) + (g_bAlpha[victim] ? 4 : 0));
             KillStreak(attacker, victim);
             QuestEvent(attacker, 0, 1);
             CosKillFx(attacker, o);
@@ -6027,7 +6041,8 @@ KillStreak(attacker, victim)
         g_iHS[attacker]++;
         g_iRoundHS[attacker]++;
         QuestEvent(attacker, 2, 1);
-        AddAP(attacker, g_iEvent == EV_HEADHUNTER ? 3 : 1, true, false);
+        new hsap = get_pcvar_num(g_pHsAP);
+        AddAP(attacker, g_iEvent == EV_HEADHUNTER ? hsap * 3 : hsap, true, false);
         formatex(ktxt, charsmax(ktxt), "%L", attacker, "HUD_HEADSHOT");
         if (!(g_iSet[attacker] & SET_NO_STREAK))
             PlayKey(attacker, "HEADSHOT");
@@ -6160,7 +6175,7 @@ public rg_ResetMaxSpeed(id)
         if (g_iEvent == EV_SPEED)       m *= get_pcvar_float(g_pSpeedHuman);
         if (g_fBlizzardEnd > now)       m *= 0.6;
         if (g_iEvent == EV_ADRENALINE)  m *= 1.08;
-        if (g_bSerum[id])               m *= 1.12;
+        if (g_bSerum[id])               m *= 1.0 + float(max(0, ITEM_VAL[IT_SERUM])) / 100.0;
         if (g_iJob[id] == JOB_SCOUT)    m *= 1.12;
         if (g_iJob[id] == JOB_NINJA)    m *= 1.06;
         if (g_iJob[id] == JOB_JUGGERNAUT) m *= 0.95;
@@ -6779,7 +6794,9 @@ ShowShopMenu(id)
         formatex(n1, charsmax(n1), "%L", id, k1);
         formatex(n2, charsmax(n2), "%L", id, k2);
 
-        if (ITEM_LIMIT[i] && g_iBought[id][i] >= ITEM_LIMIT[i])
+        if (g_iLevel[id] < ITEM_LVL[i])
+            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r] \d%s", n1, ITEM_LVL[i], n2);
+        else if (ITEM_LIMIT[i] && g_iBought[id][i] >= ITEM_LIMIT[i])
             formatex(item, charsmax(item), "\d%s \r[\w%L\r]", n1, id, "SHOP_SOLDOUT");
         else if (g_iAP[id] >= cost)
             formatex(item, charsmax(item), "\y%s \r[\w%d AP\r] \d%s", n1, cost, n2);
@@ -6791,7 +6808,7 @@ ShowShopMenu(id)
 
     if (!isZ)
     {
-        formatex(item, charsmax(item), "\r%L", id, "SHOP_EXCHANGE");
+        formatex(item, charsmax(item), "\r%L", id, "SHOP_EXCHANGE", max(1, get_pcvar_num(g_pExchange)));
         MenuAdd(menu, item, 100);
     }
 
@@ -6834,12 +6851,13 @@ public menu_shop_handler(id, menu, item)
 
 Exchange(id)
 {
-    if (g_iAP[id] < 60)
+    new xc = max(1, get_pcvar_num(g_pExchange));
+    if (g_iAP[id] < xc)
     {
         Chat(id, "SHOP_NOAP");
         return;
     }
-    AddAP(id, -60, false, false);
+    AddAP(id, -xc, false, false);
     g_iVC[id] += 1;
     PlayKey(id, "SHOP_BUY");
     Chat(id, "SHOP_EXCHANGED");
@@ -6878,11 +6896,19 @@ BuyItem(id, i)
         return;
     }
 
+    if (g_iLevel[id] < ITEM_LVL[i])
+    {
+        Chat(id, "NEED_LEVEL", ITEM_LVL[i]);
+        return;
+    }
+
     if (ITEM_LIMIT[i] && g_iBought[id][i] >= ITEM_LIMIT[i])
     {
         Chat(id, "SHOP_LIMIT");
         return;
     }
+
+    new val = ITEM_VAL[i];
 
     new cost = ItemPrice(id, i);
     if (g_iAP[id] < cost)
@@ -6895,35 +6921,44 @@ BuyItem(id, i)
     {
         case IT_MEDKIT:
         {
-            new mx = MaxHumanHP(id) + 100;
+            new mx = MaxHumanHP(id) + max(1, val);
             if (Float:get_entvar(id, var_health) >= float(mx))
             {
                 Chat(id, "SHOP_ALREADY");
                 return;
             }
-            HealTo(id, 100, mx);
+            HealTo(id, max(1, val), mx);
         }
-        case IT_ARMOR:    rg_set_user_armor(id, 200, ARMOR_VESTHELM);
+        case IT_ARMOR:    rg_set_user_armor(id, clamp(val, 1, 999), ARMOR_VESTHELM);
         case IT_FIRENADE:
         {
-            g_iFireNades[id]++;
-            GiveNadeStack(id, "weapon_hegrenade", WEAPON_HEGRENADE);
+            for (new k = 0; k < max(1, val); k++)
+            {
+                g_iFireNades[id]++;
+                GiveNadeStack(id, "weapon_hegrenade", WEAPON_HEGRENADE);
+            }
         }
         case IT_FROSTNADE:
         {
-            g_iFrostNades[id]++;
-            GiveNadeStack(id, "weapon_smokegrenade", WEAPON_SMOKEGRENADE);
+            for (new k = 0; k < max(1, val); k++)
+            {
+                g_iFrostNades[id]++;
+                GiveNadeStack(id, "weapon_smokegrenade", WEAPON_SMOKEGRENADE);
+            }
         }
         case IT_FLARE:
         {
-            g_iFlares[id]++;
-            GiveNadeStack(id, "weapon_flashbang", WEAPON_FLASHBANG);
+            for (new k = 0; k < max(1, val); k++)
+            {
+                g_iFlares[id]++;
+                GiveNadeStack(id, "weapon_flashbang", WEAPON_FLASHBANG);
+            }
         }
         case IT_DJUMP:
         {
             // Ekstra ziplama sadece VIP'lere ozel
             if (!IsVip(id)) { Chat(id, "VIP_ONLY"); return; }
-            g_iExtraJumps[id]++;
+            g_iExtraJumps[id] += max(1, val);
         }
         case IT_BOOTS:
         {
@@ -6954,13 +6989,13 @@ BuyItem(id, i)
         }
         case IT_MADNESS:
         {
-            g_fMadness[id] = now + 5.0;
+            g_fMadness[id] = now + float(max(1, val));
             ApplyRender(id);
             EmitKey(id, "MADNESS");
         }
         case IT_INFBOMB:
         {
-            if (!AllowsInfection() || g_iGlobalInfBombs >= 3)
+            if (!AllowsInfection() || g_iGlobalInfBombs >= max(1, val))
             {
                 Chat(id, "SHOP_UNAVAIL");
                 return;
@@ -6971,8 +7006,8 @@ BuyItem(id, i)
         }
         case IT_MUTAGEN:
         {
-            g_iMaxHP[id] += 1000;
-            set_entvar(id, var_health, Float:get_entvar(id, var_health) + 1000.0);
+            g_iMaxHP[id] += max(1, val);
+            set_entvar(id, var_health, Float:get_entvar(id, var_health) + float(max(1, val)));
         }
         case IT_RAGE:
         {
@@ -6988,13 +7023,13 @@ BuyItem(id, i)
         }
         case IT_ADREN:
         {
-            g_fHBoost[id] = now + 6.0;
+            g_fHBoost[id] = now + float(max(1, val));
             rg_reset_maxspeed(id);
             FadeOne(id, 255, 255, 0, 60, 0.6);
         }
         case IT_HCLOAK:
         {
-            g_fCloak[id] = now + 8.0;
+            g_fCloak[id] = now + float(max(1, val));
             ApplyRender(id);
         }
         case IT_NVG:
@@ -7004,7 +7039,7 @@ BuyItem(id, i)
         }
         case IT_ESHIELD:
         {
-            g_iEShield[id] = 2;
+            g_iEShield[id] = max(1, val);
             set_user_rendering(id, kRenderFxGlowShell, 0, 255, 255, kRenderNormal, 18);
         }
         case IT_AMMO:
@@ -7019,15 +7054,15 @@ BuyItem(id, i)
         }
         case IT_ZSPRINT:
         {
-            g_fBurst[id] = now + 6.0;
+            g_fBurst[id] = now + float(max(1, val));
             rg_reset_maxspeed(id);
         }
         case IT_ZCLOAK:
         {
-            g_fCloak[id] = now + 6.0;
+            g_fCloak[id] = now + float(max(1, val));
             ApplyRender(id);
         }
-        case IT_ZJUMP:   SetGravity(id, Float:get_entvar(id, var_gravity) * 0.6);
+        case IT_ZJUMP:   SetGravity(id, Float:get_entvar(id, var_gravity) * float(clamp(val, 10, 100)) / 100.0);
         case IT_ZREGEN:  g_bZRegen[id] = 1;
         case IT_ZNOKB:   g_bNoKB[id] = 1;
     }
@@ -8005,7 +8040,7 @@ ApplyWorldEvent()
     CurrentEnv(light, fog, weather);
     g_szLight[0] = light ? light : 'm';
     g_szLight[1] = 0;
-    g_iEnvWeather = weather;
+    #pragma unused weather
 
     engfunc(EngFunc_LightStyle, 0, g_szLight);
 
@@ -8630,6 +8665,23 @@ stock Translate(out[], len, const key[], id)
         copy(out, len, key);
 }
 
+// v2.0: mesaj turune gore ozel vurgu rengi (^3): boss / zombi = KIRMIZI,
+// lazer / ikmal / insan = MAVI, bilgi / ipucu = GRI, diger = takim rengi
+stock ChatColorFor(const key[])
+{
+    if (equal(key, "BOSS", 4) || equal(key, "BSK", 3) || equal(key, "NEM", 3) || equal(key, "ROLE", 4)
+        || equal(key, "ZOMBIE", 6) || equal(key, "YOU_INFECTED", 12) || equal(key, "LIVE_Z", 6)
+        || equal(key, "FINAL", 5) || equal(key, "ASSASSIN", 8) || equal(key, "NEMESIS", 7) || equal(key, "LAST_HUMAN", 10))
+        return print_team_red;
+    if (equal(key, "LM_", 3) || equal(key, "AIRDROP", 7) || equal(key, "LOOT", 4) || equal(key, "ANTIDOTE", 8)
+        || equal(key, "QUEST", 5) || equal(key, "LIVE_H", 6) || equal(key, "SPEED", 5) || equal(key, "VIP", 3))
+        return print_team_blue;
+    if (equal(key, "ADV_", 4) || equal(key, "HELP", 4) || equal(key, "PLAN", 4) || equal(key, "MODE_DESC", 9)
+        || equal(key, "NMODE", 5) || equal(key, "AFK", 3) || equal(key, "STORM", 5) || equal(key, "BLACKOUT", 8))
+        return print_team_grey;
+    return print_team_default;
+}
+
 stock Chat(id, const key[], any:...)
 {
     if (!is_user_connected(id) || is_user_bot(id))
@@ -8638,24 +8690,26 @@ stock Chat(id, const key[], any:...)
     new fmt[191], msg[191];
     Translate(fmt, charsmax(fmt), key, id);
     vformat(msg, charsmax(msg), fmt, 3);
-    client_print_color(id, print_team_default, "%s %s", CHAT_PREFIX, msg);
+    client_print_color(id, ChatColorFor(key), "%s %s", CHAT_PREFIX, msg);
 }
 
 stock ChatAll(const key[], iVal = 0)
 {
+    new c = ChatColorFor(key);
     for (new id = 1; id <= g_iMax; id++)
     {
         if (is_user_connected(id) && !is_user_bot(id))
-            client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, key, iVal);
+            client_print_color(id, c, "%s %L", CHAT_PREFIX, id, key, iVal);
     }
 }
 
 stock ChatAllS(const key[], const sVal[])
 {
+    new c = ChatColorFor(key);
     for (new id = 1; id <= g_iMax; id++)
     {
         if (is_user_connected(id) && !is_user_bot(id))
-            client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, key, sVal);
+            client_print_color(id, c, "%s %L", CHAT_PREFIX, id, key, sVal);
     }
 }
 
@@ -8962,7 +9016,7 @@ stock BeamCreate(const Float:start[3], const Float:end[3], r, g, b, width, brigh
         return 0;
 
     set_entvar(beam, var_flags, get_entvar(beam, var_flags) | FL_CUSTOMENTITY);
-    set_entvar(beam, var_model, "sprites/laserbeam.spr");
+    set_entvar(beam, var_model, g_szSprLaser[0] ? g_szSprLaser : "sprites/laserbeam.spr");
     set_entvar(beam, var_modelindex, g_sprLaser ? g_sprLaser : g_sprBeam);
     set_entvar(beam, var_body, 0);
     set_entvar(beam, var_frame, 0.0);
@@ -10158,11 +10212,15 @@ ShowAdminMenu(id)
     formatex(title, charsmax(title), "%s \r%L^n\d%L^n", MENU_TAG, id, "MENU_ADMIN", id, "MENU_ADMIN_SUB");
     new menu = menu_create(title, "menu_admin_handler");
 
-    for (new i = 1; i <= 9; i++)
+    for (new i = 1; i <= 19; i++)
     {
         new key[12];
         formatex(key, charsmax(key), "ADMM_%d", i);
         formatex(item, charsmax(item), "\y%L", id, key);
+        if (i == 17)
+            add(item, charsmax(item), g_bRespawnOff ? " \r[OFF]" : " \w[ON]");
+        else if (i == 18)
+            add(item, charsmax(item), get_pcvar_num(g_pLmEnable) ? " \w[ON]" : " \r[OFF]");
         MenuAdd(menu, item, i);
     }
 
@@ -10179,38 +10237,150 @@ public menu_admin_handler(id, menu, item)
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
 
+    new name[32];
+    get_user_name(id, name, charsmax(name));
+    log_to_file("vexmira_admin.log", "%s -> admin menu #%d", name, sel);
+
     switch (sel)
     {
         case 1: ShowAdminModeMenu(id, false);
         case 2: ShowAdminModeMenu(id, true);
-        case 3: ShowAdminEventMenu(id);
-        case 4: ShowAdminPlayers(id);
-        case 5: StartVote(id, 1);
-        case 6: StartVote(id, 2);
-        case 7:
+        case 3: ShowAdminEventMenu(id, false);
+        case 4: ShowAdminEventMenu(id, true);
+        case 5: ShowAdminBossMenu(id, false);
+        case 6: ShowAdminBossMenu(id, true);
+        case 7: ShowAdminPlayers(id);
+        case 8: ShowAdminEnvMenu(id);
+        case 9: StartVote(id, 1);
+        case 10: StartVote(id, 2);
+        case 11:
         {
             AdminNotify(id, "ADM_RESTART", 0);
             rg_round_end(2.0, WINSTATUS_DRAW, ROUND_END_DRAW, "", "", false);
         }
-        case 8:
+        case 12, 13:
+        {
+            if (g_bRoundActive && !g_bRoundEnded)
+            {
+                AdminNotify(id, sel == 12 ? "ADM_END_HUMANS" : "ADM_END_ZOMBIES", 0);
+                EndRound(sel == 12 ? WINSTATUS_CTS : WINSTATUS_TERRORISTS);
+            }
+            else
+                Chat(id, "ADM_NOT_ACTIVE");
+        }
+        case 14:
+        {
+            if (g_bRoundActive && g_szDropModel[0])
+            {
+                SpawnAirdrop();
+                AdminNotify(id, "ADM_AIRDROP", 0);
+            }
+            else
+                Chat(id, "ADM_NOT_ACTIVE");
+        }
+        case 15:
+        {
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (!is_user_alive(p) || g_bZombie[p])
+                    continue;
+                g_bNadesGiven[p] = false;
+                GiveStartNades(p);
+                if (LasersAllowed())
+                    g_iMines[p] = max(g_iMines[p], RoundMines(p));
+            }
+            AdminNotify(id, "ADM_GAVE_NADES", 0);
+            PlayKey(0, "AIRDROP_LOOT");
+        }
+        case 16:
         {
             for (new p = 1; p <= g_iMax; p++)
             {
                 if (is_user_connected(p) && !is_user_bot(p))
                     AddAP(p, 50, false, true);
             }
-            new name[32];
-            get_user_name(id, name, charsmax(name));
             FunAll(id, "ADM_GIFT_ALL", name, 50);
             PlayKey(0, "DAILY");
         }
-        case 9:
+        case 17:
         {
             g_bRespawnOff = !g_bRespawnOff;
             AdminNotify(id, g_bRespawnOff ? "ADM_RESPAWN_OFF" : "ADM_RESPAWN_ON", 0);
         }
+        case 18:
+        {
+            new on = get_pcvar_num(g_pLmEnable) ? 0 : 1;
+            set_pcvar_num(g_pLmEnable, on);
+            if (!on)
+                RemoveAllMines();
+            AdminNotify(id, on ? "ADM_LASER_ON" : "ADM_LASER_OFF", 0);
+        }
+        case 19:
+        {
+            new n = LoadMainConfig(false);
+            AdminNotify(id, "ADM_RELOADED", n);
+        }
     }
+    if (sel >= 11)
+        ShowAdminMenu(id);
     return PLUGIN_HANDLED;
+}
+
+/* ---------------- Admin: hava / isik (hemen) ---------------- */
+
+ShowAdminEnvMenu(id)
+{
+    new title[128], item[96], key[16];
+    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADMM_8");
+    new menu = menu_create(title, "menu_admenv");
+    for (new i = 0; i <= 9; i++)
+    {
+        formatex(key, charsmax(key), "ADME_%d", i);
+        formatex(item, charsmax(item), "\y%L", id, key);
+        MenuAdd(menu, item, i);
+    }
+    MenuFinish(id, menu);
+}
+
+public menu_admenv(id, menu, item)
+{
+    if (item == MENU_EXIT || !(get_user_flags(id) & ADMIN_BAN)) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    new sel = MenuInfo(menu, item);
+    menu_destroy(menu);
+    AdminSetEnv(sel);
+    AdminNotify(id, "ADM_ENV_SET", sel);
+    ShowAdminEnvMenu(id);
+    return PLUGIN_HANDLED;
+}
+
+// 0 sifirla, 1 gunduz, 2 alacakaranlik, 3 gece, 4 yagmur, 5 kar, 6 sis, 7 firtina, 8 kan, 9 zifiri karanlik
+AdminSetEnv(sel)
+{
+    if (sel <= 0)
+    {
+        ApplyWorldEvent();
+        return;
+    }
+    static const L[10] = { 'm', 'm', 'h', 'c', 'i', 'k', 'g', 'e', 'c', 'a' };
+    static const F[10][4] =
+    {
+        {0, 0, 0, 0}, {0, 0, 0, 0}, {90, 50, 30, 12}, {0, 0, 30, 20}, {70, 80, 90, 20},
+        {180, 190, 210, 22}, {150, 150, 150, 45}, {60, 70, 90, 35}, {100, 0, 10, 30}, {0, 0, 0, 40}
+    };
+    static const W[10] = { 0, 0, 0, 0, 1, 2, 0, 1, 0, 0 };
+    g_szLight[0] = L[sel];
+    g_szLight[1] = 0;
+    engfunc(EngFunc_LightStyle, 0, g_szLight);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_connected(p) || is_user_bot(p))
+            continue;
+        SendWeather(p, W[sel]);
+        if (!(g_iSet[p] & SET_NO_FOG))
+            SendFogEx(p, F[sel][0], F[sel][1], F[sel][2], F[sel][3]);
+    }
+    if (sel == 7)
+        Lightning();
 }
 
 // now = true -> modu hemen baslat (round yeniden baslar)
@@ -10279,6 +10449,8 @@ public menu_admboss_next(id, menu, item)
     new b = MenuInfo(menu, item);
     menu_destroy(menu);
     g_iForceBoss = (b == 99) ? -1 : b;
+    g_iForceMode = MODE_BOSS;
+    AdminNotify(id, "ADM_NEXT_BOSS", b == 99 ? -1 : b);
     return PLUGIN_HANDLED;
 }
 
@@ -10288,6 +10460,8 @@ public menu_admboss_now(id, menu, item)
     new b = MenuInfo(menu, item);
     menu_destroy(menu);
     g_iForceBoss = (b == 99) ? -1 : b;
+    g_iForceMode = MODE_BOSS;
+    AdminNotify(id, "ADM_NOW_BOSS", b == 99 ? -1 : b);
     rg_round_end(2.0, WINSTATUS_DRAW, ROUND_END_DRAW, "", "", false);
     return PLUGIN_HANDLED;
 }
@@ -10311,11 +10485,11 @@ public cmd_adm_boss(id, level, cid)
     return PLUGIN_HANDLED;
 }
 
-ShowAdminEventMenu(id)
+ShowAdminEventMenu(id, bool:now)
 {
     new title[192], item[96], key[16];
-    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADMM_3");
-    new menu = menu_create(title, "menu_admevent");
+    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, now ? "ADMM_4" : "ADMM_3");
+    new menu = menu_create(title, now ? "menu_admevent_now" : "menu_admevent");
 
     for (new e = 1; e < EV_TOTAL; e++)
     {
@@ -10332,6 +10506,18 @@ public menu_admevent(id, menu, item)
     g_iForceEvent = MenuInfo(menu, item);
     menu_destroy(menu);
     AdminNotify(id, "ADM_NEXT_EVENT", g_iForceEvent);
+    return PLUGIN_HANDLED;
+}
+
+// Event hemen: round yeniden baslar, normal enfeksiyon + secilen event
+public menu_admevent_now(id, menu, item)
+{
+    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    g_iForceEvent = MenuInfo(menu, item);
+    g_iForceMode = MODE_INFECTION;
+    menu_destroy(menu);
+    AdminNotify(id, "ADM_NOW_EVENT", g_iForceEvent);
+    rg_round_end(2.0, WINSTATUS_DRAW, ROUND_END_DRAW, "", "", false);
     return PLUGIN_HANDLED;
 }
 
@@ -10385,7 +10571,7 @@ ShowAdminActions(id)
     formatex(title, charsmax(title), "%s \r%L^n\w%s \d|| Lv.%d \d|| %d AP \d|| %d VC^n", MENU_TAG, id, "ADMM_4", name, g_iLevel[target], g_iAP[target], g_iVC[target]);
     new menu = menu_create(title, "menu_admactions");
 
-    for (new i = 1; i <= 12; i++)
+    for (new i = 1; i <= 17; i++)
     {
         new key[12];
         formatex(key, charsmax(key), "ADMA_%d", i);
@@ -10409,7 +10595,7 @@ public menu_admactions(id, menu, item)
     }
 
     // VC / XP / VIP verme RCON (owner) yetkisi ister
-    if ((sel == 2 || sel == 3 || sel >= 10) && !(get_user_flags(id) & ADMIN_RCON))
+    if ((sel == 2 || sel == 3 || (sel >= 10 && sel <= 12)) && !(get_user_flags(id) & ADMIN_RCON))
     {
         Chat(id, "ADM_NEED_OWNER");
         ShowAdminActions(id);
@@ -10449,6 +10635,20 @@ public menu_admactions(id, menu, item)
             if (g_hVipVault != INVALID_HANDLE)
                 nvault_remove(g_hVipVault, k);
             LoadVip(target);
+        }
+        case 13: if (alive && g_bRoundActive) { ClearZombieRoles(target); g_bSurvivor[target] = 0; g_bSniper[target] = 0; g_bAssassin[target] = 1; MakeZombie(target); CheckWin(); }
+        case 14: if (alive && g_bRoundActive) { MakeSurvivor(target, true); CheckWin(); }
+        case 15: if (alive && !g_bZombie[target]) { g_iMines[target] += 3; Chat(target, "LM_GIFT", 3); }
+        case 16: if (alive && !g_bZombie[target]) { g_bNadesGiven[target] = false; GiveStartNades(target); }
+        case 17:
+        {
+            if (alive)
+            {
+                g_fFrozen[target] = get_gametime() + 5.0;
+                set_entvar(target, var_velocity, Float:{0.0, 0.0, 0.0});
+                rg_reset_maxspeed(target);
+                ApplyRender(target);
+            }
         }
     }
 
@@ -12047,7 +12247,14 @@ BossDamageBoard()
     if (!ids[0])
         return;
 
-    static const PRIZE[3] = { 40, 25, 15 };
+    new PRIZE[3] = { 40, 25, 15 }, pz[32], a1[8], a2[8], a3[8];
+    get_pcvar_string(g_pBossBoard, pz, charsmax(pz));
+    if (parse(pz, a1, charsmax(a1), a2, charsmax(a2), a3, charsmax(a3)) >= 3)
+    {
+        PRIZE[0] = str_to_num(a1);
+        PRIZE[1] = str_to_num(a2);
+        PRIZE[2] = str_to_num(a3);
+    }
     ChatAll("BOSS_BOARD_TITLE");
 
     new name[32], names[3][32];
@@ -13891,6 +14098,7 @@ SpawnAirdrop()
                 set_entvar(spr, var_scale, 1.2);
                 set_entvar(spr, var_movetype, MOVETYPE_FOLLOW);
                 set_entvar(spr, var_aiment, ent);
+                set_entvar(spr, var_v_angle, Float:{0.0, 0.0, 26.0});
                 set_entvar(spr, var_solid, SOLID_NOT);
                 engfunc(EngFunc_SetOrigin, spr, top);
                 set_entvar(ent, var_iuser3, spr);
@@ -15751,7 +15959,18 @@ public fw_ZoneThink(ent)
     new follow = get_entvar(ent, var_iuser1);
     if (follow > 0)
     {
-        if (!is_user_alive(follow))
+        new bool:gone;
+        if (follow <= g_iMax)
+            gone = !is_user_alive(follow);
+        else if (is_nullent(follow) || (get_entvar(follow, var_flags) & FL_KILLME))
+            gone = true;
+        else
+        {
+            new cls[16];
+            get_entvar(follow, var_classname, cls, charsmax(cls));
+            gone = !equal(cls, "vex_airdrop");
+        }
+        if (gone)
         {
             set_entvar(ent, var_flags, FL_KILLME);
             return;
@@ -16051,7 +16270,7 @@ public BossUseR(id)
     BossCastR(clamp(g_iBossPhase, 1, 3));
 }
 
-bool:BossCastR(ph)
+bool:BossCastR(ph, bool:setCool = true)
 {
     new bool:ok;
     switch (g_iBossType * 10 + ph)
@@ -16097,8 +16316,11 @@ bool:BossCastR(ph)
 
     new Float:now = get_gametime();
     BskAnnounce(ph);
-    g_fBossRCool = now + BSK_COOL[g_iBossType][ph - 1] * floatmax(0.1, get_pcvar_float(g_pBossRCdMult));
-    g_fBossRLast = now;
+    if (setCool)
+    {
+        g_fBossRCool = now + BSK_COOL[g_iBossType][ph - 1] * floatmax(0.1, get_pcvar_float(g_pBossRCdMult));
+        g_fBossRLast = now;
+    }
     return true;
 }
 
@@ -16129,7 +16351,7 @@ bool:BossAutoOldSkill()
     new t = BossPickHuman(1200.0, -1.0);
     if (t)
         BossFace(t);
-    return BossCastR(ph) ? true : false;
+    return BossCastR(ph, false) ? true : false;
 }
 
 // Bossun bakis yonunu hedefe cevir (otomatik yetenekler icin)
@@ -16375,11 +16597,16 @@ public task_BossChannel()
                     po[0] += random_float(-40.0, 40.0);
                     po[1] += random_float(-40.0, 40.0);
                     ZoneSpawn(po, BskRad(3), 255, 240, 80, 0.65, 0, false);
+                    if (g_sprTarget)
+                        FxSprite(po, g_sprTarget, 4, 220);
                     BskTask(0.65, "task_TempestHit", po);
                 }
             }
             if (tick % 25 == 0)
-                Lightning();
+            {
+                FadeAll(255, 255, 255, 80, 0.25);
+                PlayKey(0, "LIGHTNING");
+            }
         }
         case CH_CLOUD: // Hive Queen: zehir bulutu
         {
@@ -16695,8 +16922,6 @@ bool:Bsk_OverlordPrison()
     FadeOne(t, 120, 0, 180, 140, 1.0);
     BossHurt(t, BskDmg(1), DMG_GENERIC);
 
-    new bo[3];
-    get_entvar(g_iBoss, var_origin, Float:bo);
     FxBeamEntPoint(g_iBoss, to, g_sprLightning, 150, 0, 220, 30, 30, 5);
     client_print(t, print_center, "%L", t, "BSK_PRISON_YOU");
     return true;
@@ -17027,6 +17252,8 @@ bool:Bsk_ReaperMark()
             continue;
         get_entvar(p, var_origin, po);
         ZoneSpawn(po, rad, 160, 0, 255, 3.0, 0, n == 0);
+        if (g_sprTarget)
+            FxSprite(po, g_sprTarget, 5, 230);
         BskTask(3.0, "task_DeathMark", po);
         if (g_sprMark && !is_user_bot(p))
             FxHeadMark(p, g_sprMark, 30);
@@ -17203,7 +17430,8 @@ bool:Bsk_StormTempest()
         if (!(g_iSet[id] & SET_NO_FOG))
             SendFogEx(id, 60, 70, 90, 35);
     }
-    Lightning();
+    FadeAll(255, 255, 255, 90, 0.3);
+    PlayKey(0, "THUNDER");
     return true;
 }
 
@@ -17766,5 +17994,69 @@ BossSkillUnlock()
         formatex(nm, charsmax(nm), "%L", g_iBoss, key);
         HudToS(g_iBoss, SL_PERS, 255, 200, 40, 3.5, "BSK_UNLOCK_YOU", nm);
         PlayKey(g_iBoss, "SKILL_UNLOCK");
+    }
+}
+
+/* ================================================================== */
+/*  v2.0  AFK YONETICISI                                               */
+/*  vex_afk_time saniye hic kipirdamayan (yer + bakis ayni) oyuncu     */
+/*  once uyarilir, sonra izleyiciye alinir (vex_afk_action 1) veya     */
+/*  sunucudan atilir (2). Yoneticiler (immunity) etkilenmez.           */
+/* ================================================================== */
+
+TickAfk()
+{
+    new limit = get_pcvar_num(g_pAfkTime);
+    if (limit <= 0 || !g_bRoundActive)
+        return;
+
+    new Float:o[3], Float:a[3];
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_alive(id) || is_user_bot(id) || is_user_hltv(id))
+        {
+            g_iAfkSec[id] = 0;
+            continue;
+        }
+        if (g_bBoss[id] || (get_user_flags(id) & ADMIN_IMMUNITY))
+        {
+            g_iAfkSec[id] = 0;
+            continue;
+        }
+
+        get_entvar(id, var_origin, o);
+        get_entvar(id, var_v_angle, a);
+        if (get_distance_f(o, g_fAfkPos[id]) > 4.0 || floatabs(a[1] - g_fAfkAng[id][1]) > 0.5 || floatabs(a[0] - g_fAfkAng[id][0]) > 0.5)
+        {
+            g_fAfkPos[id] = o;
+            g_fAfkAng[id] = a;
+            g_iAfkSec[id] = 0;
+            continue;
+        }
+
+        g_iAfkSec[id]++;
+        if (g_iAfkSec[id] == limit - 15)
+        {
+            Chat(id, "AFK_WARN", 15);
+            PlayKey(id, "BOSS_WARN");
+        }
+        else if (g_iAfkSec[id] >= limit)
+        {
+            g_iAfkSec[id] = 0;
+            new name[32];
+            get_user_name(id, name, charsmax(name));
+            if (get_pcvar_num(g_pAfkAction) == 2)
+            {
+                ChatAllS("AFK_KICKED", name);
+                server_cmd("kick #%d ^"AFK^"", get_user_userid(id));
+            }
+            else
+            {
+                ChatAllS("AFK_MOVED", name);
+                user_silentkill(id);
+                rg_set_user_team(id, TEAM_SPECTATOR, MODEL_UNASSIGNED, true, false);
+                CheckWin();
+            }
+        }
     }
 }
