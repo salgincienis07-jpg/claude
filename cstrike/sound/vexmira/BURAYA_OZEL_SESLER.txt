@@ -1,0 +1,1 @@
+Ozel seslerini buraya koy (ornek isimler: configs/vexmira_resources.ini icinde). Ornek: headshot.wav, doublekill.wav, godlike.wav, ambient_loop.mp3

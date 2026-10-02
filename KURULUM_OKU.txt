@@ -1,0 +1,371 @@
+=====================================================================
+  VEXMIRA ZOMBIE CORE v1.5  -  KURULUM REHBERI
+  Kurucular: SmurfSexy & Capital
+=====================================================================
+
+---------------------------------------------------------------------
+ v1.5 YENILIKLER (ozet)
+---------------------------------------------------------------------
+ - KOZMETIK (Vex Coin ile, kalici): 6 iz (gokkusagi dahil), 6 oldurme
+   efekti (yildirim, altin patlama, havai fisek...), 3 zombi enfeksiyon
+   efekti. M > Kozmetik veya /kozmetik. VIP %10, ELITE %20 indirimli.
+ - LIDERLER: tum zamanlarin ilk 15 oyuncusu (data/vexmira_top.ini dosyasinda
+   saklanir). /siralama ile sik bir pencerede ilk 10; panelde "TOP #3" etiketi;
+   ilk 3 oyuncu girince herkese duyurulur.
+ - PROFIL KARTI: /istatistik veya /kart -> level cubugu ve tum istatistikler.
+ - IZLEYICI BILGISI: olu oyuncu izledigi kisinin adini, canini, sinifini gorur.
+ - Guvenlik / denge duzeltmeleri:
+   * Oyuncu SteamID'si henuz dogrulanmamisken profil yuklenmez (profil
+     silinme / ezilme riski kapatildi). Isim degistirerek AP kopyalama kapandi.
+   * Slot makinesi artik kasa lehine (~%90 geri donus), AP basma acigi kapandi.
+   * Silah + bomba her hayatta bir kez (birak-tekrar al suistimali kapandi).
+   * Meslek / sinif degisikligi bir sonraki doguste / enfeksiyonda gecerli.
+   * Cikip girerek limitli esyalari tekrar alma kapandi.
+   * Boss / Nemesis / Survivor "kill" yazamaz.
+   * Oylama acikken diger menuler artik kapanmiyor; oylama boss getirmez.
+   * Harita degisiminde "X ayrildi" yazilari ve piyango bileti kaybi duzeldi.
+   * N tusu: gece gorusu satin alan icin gece gorusunu acar.
+
+---------------------------------------------------------------------
+ v1.4 YENILIKLER (ozet)
+---------------------------------------------------------------------
+ - Chat: yonetici yazilari artik YESIL, VIP/ELITE yazilari takim renginde.
+ - HUD: her yazi turunun kendi satiri var; ayni yere iki yazi gelirse
+   ikincisi sirada bekler -> enfeksiyon basinda ic ice yazi yok.
+   Yeni renk temalari (Neon Buz, Toksik, Kan, Ametist, Okyanus, Gun Batimi),
+   sari baslik kaldirildi. Panelde round gorevi ve lazer sayisi var.
+ - 30 ROUNDLUK HARITA: 7/15/23. roundlar BOSS, 30. round FINAL BOSS,
+   4/11/19/26 ozel mod (Nemesis, Survivor, Plague...), diger roundlar
+   event'li enfeksiyon. Hepsi vexmira.cfg'den degisir. Ust yazi
+   "ROUND 4 / 30" ve "BOSS: 3 ROUND SONRA" gosterir.
+ - 9 BOSS (4 yeni: Frostlord, Stormcaller, Hive Queen, Void), karisik sira
+   (artik hep Brute gelmez). Her bossun rengi, sesi, pasif aurasi ve 2
+   yetenegi var; sinematik giris, renkli can gostergesi, faz/delilik.
+   Boss cani oyuncu sayisina gore artar (vex_boss_hp_per_player).
+ - MVP her round sonunda ekranda + chat'te gorunur (hasar/oldurme/enfeksiyon).
+ - Hiz Tutkusu: %55 daha hizli, ziplama yavaslatmasi yok, genis gorus,
+   isik izleri, ruzgar sesi. Yeni eventler: Firtina, Elektrik Kesintisi.
+ - LAZER MAYINI: V ile kur, C ile sok. Zombiler kirabilir, boss roundunda yok.
+ - BOMBA MODLARI: bomba elindeyken sag tik -> Carpma, Sensor, Lazer Tuzak,
+   Gudumlu, Parcali.
+ - Hava ikmali, round gorevleri, ALFA zombi evrimi, harita sonu odulleri.
+ - Her haritada orijinal CS gokyuzlerinden rastgele biri.
+ - Hosgeldin / baglaniyor / katildi / ayrildi mesajlari ve Vexmira MOTD'si.
+
+Bu paket tek bir plugin'dir (vexmira_zombie). Zombi modunun tamami
+(round yonetimi, modlar, bosslar, eventler, market, meslekler, level,
+ayarlar, EN/TR dil) bu plugin'in icindedir. Baska zombi plugin'i
+KURMA (ozellikle Zombie Plague, biohazard vb. ile cakisir).
+
+
+---------------------------------------------------------------------
+ 1) SUNUCUDA OLMASI GEREKENLER (sirayla)
+---------------------------------------------------------------------
+
+ Oyunyoneticisi panelinde cogu zaman "ReHLDS" / "ReGameDLL" secenegi
+ vardir; varsa oradan acman yeterli. Yoksa FTP ile su sirayla kur:
+
+ a) ReHLDS (motor)
+    https://github.com/rehlds/ReHLDS/releases
+    -> bin/linux32 icindeki dosyalari sunucunun ana klasorune (hlds)
+       kopyala (engine_i486.so vb. degisir).
+
+ b) ReGameDLL_CS (oyun kurallari)
+    https://github.com/rehlds/ReGameDLL_CS/releases
+    -> bin/linux32/cstrike/dlls/cs.so dosyasini cstrike/dlls/ icine koy.
+
+ c) Metamod-R
+    https://github.com/rehlds/Metamod-R/releases
+    -> cstrike/addons/metamod/ icine kur, liblist.gam'da
+       gamedll_linux "addons/metamod/metamod_i386.so" olmali.
+
+ d) AMX Mod X 1.10 (1.9 da calisir)
+    https://www.amxmodx.org/downloads-new.php
+    -> Base paketi cstrike/ icine kur (cstrike paketi de onerilir).
+
+ e) ReAPI modulu (5.24 veya daha yeni olmali: lazer / ikmal varliklari
+    SetThink / SetTouch kullaniyor)
+    https://github.com/rehlds/ReAPI/releases
+    -> addons/amxmodx/modules/reapi_amxx_i386.so
+    -> addons/amxmodx/scripting/include/ altina reapi *.inc dosyalari
+    -> modules.ini'ye ayrica ekleme gerekmez (plugin otomatik ister).
+
+ Kontrol: sunucu konsolunda
+    meta list      -> AMX Mod X ve ReAPI RUNNING olmali
+    game version   -> ReGameDLL surumunu gostermeli
+    amxx modules   -> reapi, fakemeta, hamsandwich, fun, nvault running
+
+
+---------------------------------------------------------------------
+ 2) PAKET DOSYALARINI YERLESTIR
+---------------------------------------------------------------------
+
+ Bu paketteki "cstrike" klasorunu sunucundaki cstrike ile birlestir:
+
+  cstrike/addons/amxmodx/scripting/vexmira_zombie.sma   (kaynak kod)
+  cstrike/addons/amxmodx/data/lang/vexmira_zombie.txt   (EN + TR dil)
+  cstrike/addons/amxmodx/configs/vexmira.cfg            (plugin ayarlari)
+  cstrike/addons/amxmodx/configs/vexmira_resources.ini  (ses/model ayarlari)
+  cstrike/addons/amxmodx/configs/plugins-vexmira.ini    (plugin'i otomatik yukler)
+  cstrike/addons/amxmodx/configs/vexmira_motd_tr.html   (Turkce karsilama penceresi)
+  cstrike/addons/amxmodx/configs/vexmira_motd_en.html   (Ingilizce karsilama penceresi)
+
+ Tum ayarlar (oyun kurallari, sunucu adi, plugin ayarlari) tek dosyada:
+ configs/vexmira.cfg. Plugin bu dosyayi her harita basinda kendisi
+ calistirir; server.cfg veya game.cfg'ye dokunman gerekmez.
+
+
+---------------------------------------------------------------------
+ 3) DERLEME (.sma -> .amxx)
+---------------------------------------------------------------------
+
+ Plugin AMX Mod X 1.10 derleyicisiyle 0 hata / 0 uyari derlenir.
+
+ Yol A (bilgisayarinda, Windows):
+  - amxmodx.org'dan AMX Mod X 1.10 Windows base paketini indir.
+  - ReAPI release paketindeki include dosyalarini
+    addons/amxmodx/scripting/include/ icine kopyala
+    (reapi.inc, reapi_version.inc, cssdk_const.inc ... hepsi).
+  - vexmira_zombie.sma'yi scripting klasorune koy,
+    vexmira_zombie.sma dosyasini compile.exe uzerine surukle.
+  - compiled/vexmira_zombie.amxx olusur.
+
+ Yol B (sunucuda):
+  - cd cstrike/addons/amxmodx/scripting
+  - ./amxxpc vexmira_zombie.sma -o../plugins/vexmira_zombie.amxx
+
+ Cikan vexmira_zombie.amxx dosyasini
+  cstrike/addons/amxmodx/plugins/ icine koy ve haritayi degistir.
+
+ ONEMLI: Derlemede kullandigin ReAPI include dosyalari, sunucudaki
+ ReAPI modul surumuyle AYNI release'den olmali.
+
+
+---------------------------------------------------------------------
+ 4) ADMIN / VIP
+---------------------------------------------------------------------
+
+ users.ini yetkileri:
+   l (ADMIN_RCON)    -> [OWNER] tag'i, VIP verme/silme, vex_give_ap/vc/xp
+   d (ADMIN_BAN)     -> [ADMIN] tag'i (YESIL yazi), M menusunde "Admin Menusu"
+                        (sonraki round modu / eventi / bossu), vex_mode,
+                        vex_event, vex_boss <0-8 | -1>
+   t (ADMIN_LEVEL_H) -> kalici VIP
+   s (ADMIN_LEVEL_G) -> kalici ELITE
+
+ SURELI VIP (satis icin onerilen yol, users.ini ile ugrasmazsin):
+   vex_vip_add "STEAM_0:1:12345678" 30 1     -> 30 gun VIP
+   vex_vip_add "STEAM_0:1:12345678" 30 2     -> 30 gun ELITE
+   vex_vip_add Ahmet 7 1                     -> online oyuncuya 7 gun VIP
+   (SteamID mutlaka TIRNAK icinde yazilmali.)
+   Ayni kisiye tekrar verirsen sure uzar. Sure bitince VIP otomatik duser,
+   oyuncuya haber verilir; bitmesine 3 gun kala hatirlatma yapilir.
+   vex_vip_remove "STEAM_0:1:12345678"       -> VIP'i kaldir
+   vex_vip_list                              -> online VIP'ler
+   Her islem logs/vexmira_vip.log dosyasina kaydedilir.
+
+ VIP AYRICALIKLARI                         VIP          ELITE
+   Havada ziplama (cift / uclu)            cift         uclu
+   AP ve XP kazanci                        +%25         +%50
+   Her round bedava paket                  zirh+2 bomba +can, +%30 hasar, fisek
+   Zombiyken bedava paket                  +500 can     +1000 can, yetenek hazir
+   Market + ozel silah indirimi            %10          %20
+   Dogusta zirh                            +50          +100
+   Zombi geri donus suresi                 -1 sn        -2 sn
+   Gunluk odul bonusu                      +20 AP +1 VC +40 AP +2 VC
+   Renkli aura + isik izi + giris duyurusu  var          var
+   Markette "Ekstra Ziplama" (+1)          var          var
+   Chat tag'i                              [VIP]        [ELITE]
+
+ VIP satin alma adresi vexmira.cfg icindeki vex_vip_contact ile
+ ayarlanir; oyuncular /vipbilgi yazinca veya chat'te "vip nasil" diye
+ sorunca bu adres gosterilir.
+
+---------------------------------------------------------------------
+ 5) OZEL SES / MODEL / EFEKT EKLEME
+---------------------------------------------------------------------
+
+ Her sey tek dosyadan: configs/vexmira_resources.ini
+  - Varsayilan olarak hepsi orijinal CS 1.6 dosyalaridir, bir sey
+    yuklemeden calisir.
+  - Kendi dosyalarini sound/vexmira/ ve models/vexmira/ klasorlerine
+    koy, ini'de ilgili satirin basindaki ; isaretini kaldirip yolu yaz.
+  - Dosya yoksa plugin cokmez, log'a uyari yazar.
+  - FastDL (sv_downloadurl) kurman ozel dosyalar icin cok onemli.
+
+ Onerilen ozel dosyalar (isimleri ini'deki orneklerle ayni):
+  sound/vexmira/headshot.wav, doublekill.wav, triplekill.wav,
+  multikill.wav, megakill.wav, monsterkill.wav, rampage.wav,
+  unstoppable.wav, godlike.wav, zombie_infect.wav, zombie_die.wav,
+  win_humans.wav, win_zombies.wav, ambient_loop.mp3
+  models/player/vex_walker/vex_walker.mdl (zombi modelleri),
+  models/vexmira/v_claws.mdl (pence), v_plasma.mdl ... (ozel silahlar)
+
+
+---------------------------------------------------------------------
+ 6) OYUNCU KOMUTLARI (EN / TR)
+---------------------------------------------------------------------
+
+ M tusu veya /menu ......... Ana menu (her sey burada)
+ /shop  /market ............ Ammo Pack marketi (insan / zombi)
+ /special /ozel ............ Ozel silahlar
+ /guns  /silah ............. Silah secimi (kaydedilir)
+ /class /sinif ............. Zombi sinifi
+ /job   /meslek ............ Insan meslegi (16 meslek)
+ /perks /yetenek ........... Kalici yetenekler (Vex Coin)
+ /daily /gunluk ............ Gunluk odul (seri bonusu)
+ /stats /istatistik ........ Istatistikler
+ /top ...................... Online en iyiler
+ /title /unvan ............. Unvan secimi
+ /ach   /basari ............ Basarimlar
+ /style /stil .............. Chat stili
+ /settings /ayarlar ........ Kisisel ayarlar
+ /fps   /performans ........ FPS profilleri + konsol ayarlari
+ /lang  /dil ............... Dil degistir (aninda)
+ /unstuck /takildim ........ Sikisinca kurtul
+ /modes /modlar ............ Oyun modlarinin aciklamasi
+ /help  /yardim ............ Yardim
+ /lm    /lazer ............. Lazer mayini menusu (kur / sok / satin al)
+ /nades /bomba ............. Bomba modlari
+ /quest /gorev ............. Bu roundun gorevi
+ /boss  /bosslar ........... Tum bosslar ve siradaki boss
+ /round /harita ............ 30 roundluk harita plani
+ /cosmetic /kozmetik ....... Kalici iz ve efektler (Vex Coin)
+ /top10 /siralama .......... Tum zamanlarin liderleri
+ /card /kart ............... Profil karti
+ V (+setlaser) ............. Lazer kur (basili tut)
+ C (+dellaser / radio3) .... Lazer sok
+ Sag tik (bomba elde) ...... Bomba modunu degistir
+ /admin /yonetim ........... Yonetim paneli (ADMIN_BAN)
+ /vote  /oylama ............ Mod oylamasi baslat (ADMIN_BAN)
+ /vip   /vipmenu ........... VIP salonu (bedava paket, aura, iz)
+ /vipinfo /vipbilgi ........ VIP ayricaliklari ve satin alma
+ [R] tusu .................. Zombi yetenegi / Nemesis-Boss atilmasi
+
+ EGLENCE
+ /fun /eglence ............. Eglence menusu
+ /zar  /yazitura  /espri  /dans  /saat  /ping  /kim  /kurallar
+ /sayi 100 ................. 1-100 arasi sayi
+ /soru Kazanir miyiz? ...... Vexmira cevaplar
+ /slot 20 .................. Slot makinesi (5-200 AP)
+ /piyango .................. 10 AP bilet, 10 dakikada bir cekilis
+ /hediye isim 20 ........... Arkadasina AP gonder
+ /odul isim 50 ............. Birinin basina odul koy, indiren alir
+ /me el sallar ............. Emote
+ /rs /skorsifirla .......... Skorunu sifirla
+ /kurucular /iletisim ...... Kurucular ve topluluk adresi
+
+ CANLI SUNUCU
+ Sunucu oyuncularla konusur: girenleri ismiyle karsilar (yeni gelen /
+ uzun suredir gelmeyen / sik gelen ayri), cikanlara veda eder, "selam",
+ "gg", "iyi geceler", "naber", "vip nasil", "lag" gibi mesajlara cevap
+ verir, ilk enfeksiyonu, kazanma serilerini, haritanin en iyisini ve
+ son 30 saniyeyi yorumlar, saate gore (gece/sabah/ogle/aksam) konusur.
+
+
+---------------------------------------------------------------------
+ 7) BILMEN GEREKENLER
+
+ - CAKISAN PLUGIN'LER: Vexmira; ust bilgi yazisi, VIP, chat tag'leri ve
+   karsilama mesajlarini kendisi yapar. Asagidaki turde plugin'ler varsa
+   plugins.ini'de basina ; koyup kapat, yoksa ekranda yazilar ust uste
+   biner veya iki ayri VIP sistemi calisir:
+     * Ust yazi plugin'i (ornek: UstYazi.amxx)
+     * Ayri VIP plugin'i ("Vip alarak ozelliklerden..." yazan)
+     * "Servera Hosgeldiniz" gibi karsilama plugin'i
+     * Chat tag / renkli chat plugin'i
+ - Chat ve tum /komutlar oyunun komut sisteminden once yakalanir; baska
+   bir chat plugin'i "say" komutunu engellese bile Vexmira calisir.
+
+ - YONETIM PANELI (M -> Admin Menusu veya /yonetim): sonraki mod/event,
+   modu hemen baslatma, oyuncu islemleri (AP/VC/XP ver, zombi/insan/
+   nemesis/survivor yap, canlandir, oldur, VIP/ELITE ver-al), mod ve
+   event oylamasi, round yenileme, herkese AP, zombi geri donusu ac/kapa.
+   Tum islemler logs/vexmira_admin.log dosyasina yazilir.
+ - Parasut plugin'i kullaniyorsan sorun yok: parasut yercekimini bozsa
+   bile oyuncu yere indiginde Vexmira dogru yercekimini geri yukler.
+ - Hata ayiklama: plugins-vexmira.ini icinde dosya adinin yanina
+   " debug" yazarsan (vexmira_zombie.amxx debug) hata log'larinda
+   satir numarasi da gorunur; sorunu bulmak cok kolaylasir.
+---------------------------------------------------------------------
+
+ - FPS: 2013/2019 Steam guncellemelerinden beri sunucu, oyuncunun
+   fps_max / rate gibi ayarlarini zorla degistiremez (cl_filterstuffcmd).
+   Bu yuzden /fps menusu: (1) oyuncuya giden efektleri azaltan
+   profiller sunar, (2) onerilen ayarlari oyuncunun konsoluna yazar.
+ - CS 1.6 chat'inde sadece 4 renk vardir (normal, yesil, takim rengi,
+   gri/kirmizi/mavi). Resimli logo / emoji gosterilemez; logolar ve
+   ikonlar ASCII ile yapilmistir.
+ - Ilerleme nvault'a SteamID ile kaydedilir. Non-steam oyuncular
+   (STEAM_ID_LAN) isimle kaydedilir; isim degistirirse ilerleme ayri tutulur.
+   Reunion kuruluysa non-steam'lere de benzersiz ID verir.
+ - Dil: oyuncu ilk girdiginde dili GeoIP ile secilir (TR/AZ/CY -> Turkce),
+   istedigi an menuden veya /dil ile degistirir; HUD, chat ve menuler
+   aninda yeni dile gecer ve tercih kaydedilir.
+ - Ilk acilista addons/amxmodx/logs/ klasorunu kontrol et.
+ - Harita oylamasi icin AMX Mod X ile gelen mapchooser.amxx ve
+   nextmap.amxx plugins.ini'de acik kalsin (/rtv istersen hazir bir
+   rockthevote plugin'i ekleyebilirsin).
+ - Oyuncu ayrilirken piyango bileti iptal olur; ikramiye potta kalir.
+
+
+---------------------------------------------------------------------
+ 8) v1.4 DETAYLARI
+---------------------------------------------------------------------
+
+ EKRANDAKI BEYAZ YAZILAR / HOST REKLAMI
+  - "Ozel hissetmeye hazirmisiniz?", "Zombiler her an saldirabilir",
+    "Vip alarak ozelliklerden yararlanabilirsiniz", "Yoneticiler: ..."
+    gibi sol tarafta cikan BEYAZ yazilar Vexmira'ya ait degil; hosting
+    firmasinin kurdugu reklam / bilgi plugin'inden geliyor. Panelde
+    addons/amxmodx/configs/plugins.ini icinde bu plugin'in (genelde
+    "reklam", "hud_message", "advert", "adminlist" gibi isimler) basina ;
+    koyup kapat. Vexmira'nin kendi bilgi mesajlari zaten var.
+  - Girerken cikan "www.OyunYoneticisi.Com Cs 1.6 Servers" penceresi
+    sunucunun motd.txt dosyasidir. vex_motd 1 iken Vexmira onu engeller
+    ve kendi penceresini (vexmira_motd_tr.html / _en.html) acar. Metni
+    bu html dosyalarindan degistirebilirsin (en fazla ~1500 karakter).
+
+ LAZER MAYINI
+  - Oyuncu bir kere konsola yazar:  bind v +setlaser   bind c +dellaser
+    (Diger ZP sunucularinda da ayni komut kullanildigi icin cogu oyuncuda
+    zaten vardir.) Sunucu, oyuncunun tuslarini zorla degistiremez.
+  - C tusu varsayilan olarak radio3'tur; Vexmira insanlarda radio3'u
+    lazer sokma olarak yakalar, yani bind yapmayan da C ile sokebilir.
+  - V'yi bind yapmayan: M > Lazer Mayini > Lazer kur  veya  /lazerkur
+  - Kurmak / sokmak 1 saniye surer (ilerleme cubugu), kipirdarsan iptal.
+  - Isin zombiye vurur ve geri iter; her temasta mayin asinir. Zombiler
+    pencesiyle mayini kirabilir. Can azaldikca isin mavi -> sari -> kirmizi.
+  - Boss roundlarinda kurulamaz (vex_lm_boss 0). Insan enfekte olunca
+    veya olunce lazerleri soner.
+
+ BOMBA MODLARI
+  - Her doguta 1 ates + 1 buz bombasi verilir (vex_give_nades "ab").
+  - Bomba elindeyken sag tik: Normal > Carpma > Sensor > Lazer Tuzak >
+    Gudumlu > Parcali. Secim her bomba turu icin ayri hatirlanir.
+    Buz bombasi: Normal/Carpma/Sensor/Lazer, isaret fisegi: Normal/Carpma.
+
+ HIZ TUTKUSU
+  - sv_maxspeed 900 vexmira.cfg'de ayarlandi (eskiden 320 sinir koyuyordu).
+  - Oyuncunun klavye hizi cl_forwardspeed (varsayilan 400) ile sinirlidir;
+    en hizli zombiler icin oyuncular cl_forwardspeed 999 yazabilir.
+
+ GOKYUZU
+  - Her harita acilisinda SKY_LIST icinden rastgele bir ORIJINAL CS
+    gokyuzu secilir (vexmira_resources.ini). Oyun motoru gokyuzunu
+    sadece harita yuklenirken degistirebildigi icin round icinde
+    degismez; karanlik/kanli/sisli havayi eventler isik ve sis ile yapar.
+
+ 30 ROUND / HARITA OYLAMASI
+  - mp_maxrounds 30 + mp_timelimit 0. 30. round bitince harita degisir.
+  - Round sonlarinda takim skorlari guncellenir; AMX Mod X'in
+    mapchooser.amxx plugin'i son 2 roundda harita oylamasi baslatir.
+  - Plani degistirmek: vex_boss_rounds "5 10 15 20 25 30" gibi.
+
+ SES DOSYALARI
+  - Yeni varsayilan sesler Half-Life'in kendi yaratik sesleridir (zombi,
+    gargantua, nihilanth, bullchicken...). Oyunda zaten oldugu icin indirme
+    olmaz. Sunucuda bulunmayan ses otomatik olarak yedege veya kapaliya
+    duser, oyuncu "failed to transmit" hatasi almaz.
+  - Anonslar oyunun VOX sesleriyle cumle olarak yapilir
+    (ornek: VOX_BOSS = vox/warning _comma hostile presence detected).

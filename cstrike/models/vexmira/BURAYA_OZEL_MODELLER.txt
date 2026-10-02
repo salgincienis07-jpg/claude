@@ -1,0 +1,1 @@
+Ozel el (v_) modellerini buraya koy: v_claws.mdl, v_plasma.mdl ... Oyuncu modelleri models/player/<isim>/<isim>.mdl seklinde olmali.
