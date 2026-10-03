@@ -968,7 +968,7 @@ class AnimBuilder:
         """Returns (list of blends -> list of Pose, fps, linear movement). Extra bones (tails, wings, user
         extras) are animated after the main generator by _extras()."""
         blends, fps, lm = self._build_raw(sd)
-        if any(n.startswith('Tail') for n in self.rig.names) or self.st.extra_bone_anim:
+        if any(n.startswith(('Tail', 'Wing_', 'XLimb_')) for n in self.rig.names) or self.st.extra_bone_anim:
             for bl in blends:
                 n = len(bl)
                 for f, p in enumerate(bl):
@@ -984,8 +984,55 @@ class AnimBuilder:
                 for i, nm in enumerate(tails):
                     sw = amp * math.sin(2 * math.pi * (t * (2 if sd.action in ('walk', 'run', 'crouchrun') else 1) - i * 0.18))
                     pose.local_rot(nm, rig.rest_local_rot[rig.index[nm]] @ ypr(sw, 4 + 3 * i, 0))
+        self._wings(pose, sd, t)
+        self._xlimbs(pose, sd, t)
         if self.st.extra_bone_anim:
             self.st.extra_bone_anim(pose, sd, t, self)
+
+    def _wings(self, pose, sd, t):
+        """Wing_<L|R><0..2> (accessories.wing_extras): hover flapping for floaty styles, half-folded
+        breathing otherwise, a strong beat in attacks, folded back while swimming / dying."""
+        rig = self.rig
+        if 'Wing_L0' not in rig.index:
+            return
+        floaty = self.st.float_h > 0
+        w = 2 * math.pi * t
+        if sd.kind == 'death':
+            fold, lift, amp = 25 + 45 * t, -15 - 25 * t, 4.0 * (1 - t)
+        elif sd.kind == 'swim':
+            fold, lift, amp = 60.0, -10.0, 4.0
+        elif sd.kind == 'upper' and sd.action in ('shoot', 'shoot2'):
+            fold, lift, amp = 5.0, 10.0, 38.0
+        elif floaty:
+            fold, lift, amp = 12.0, 8.0, 26.0
+        else:
+            fold, lift, amp = 32.0, -6.0, 7.0
+        for side, sg in (('L', 1), ('R', -1)):
+            a = lift + amp * math.sin(w)
+            pose.local_rot('Wing_%s0' % side, ypr(sg * fold, 0, sg * a))
+            pose.local_rot('Wing_%s1' % side, ypr(sg * fold * 0.4, 0, sg * (amp * 0.5 * math.sin(w - 0.9) - 4)))
+            if 'Wing_%s2' % side in rig.index:
+                pose.local_rot('Wing_%s2' % side, ypr(0, 0, sg * amp * 0.3 * math.sin(w - 1.6)))
+
+    def _xlimbs(self, pose, sd, t):
+        """XLimb_<L|R><n>_<0..2> (accessories.limb_extras): idle sway with per-limb phase, a stab in attacks
+        and curling up in deaths."""
+        rig = self.rig
+        roots = sorted(set(n[:-2] for n in rig.names if n.startswith('XLimb_') and n.endswith('_0')))
+        w = 2 * math.pi * t
+        for i, base in enumerate(roots):
+            sg = 1 if base[6] == 'L' else -1
+            ph = i * 1.3
+            if sd.kind == 'death':
+                c = smoothstep(0.0, 0.8, t)
+                r0, p0_, r1 = -25 * c, 10 * c, -70 * c
+            elif sd.kind == 'upper' and sd.action in ('shoot', 'shoot2'):
+                s_ = float(keys(t, [(0, 0.0), (0.3, -1.0), (0.55, 1.0), (1.0, 0.0)]))
+                r0, p0_, r1 = 18 * s_, -25 * s_, -20 * max(s_, 0) + 25 * max(-s_, 0)
+            else:
+                r0, p0_, r1 = 6 * math.sin(w + ph), 5 * math.sin(w + ph + 1.0), 8 * math.sin(w + ph + 2.0)
+            pose.local_rot(base + '_0', ypr(0, p0_, sg * r0))
+            pose.local_rot(base + '_1', ypr(0, 0, sg * r1))
 
     def _tail_flatten(self, pose, t):
         rig = self.rig

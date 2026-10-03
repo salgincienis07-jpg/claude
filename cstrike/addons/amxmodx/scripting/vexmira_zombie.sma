@@ -4185,6 +4185,7 @@ public rg_RestartRound()
     remove_task(TASK_ANNOUNCE);
     remove_task(TASK_BOSSCAST);
     remove_task(TASK_BOSSHIT);
+    g_iMapVoteWait = 0;
     remove_task(TASK_BOSSFX);
     remove_task(TASK_INTRO);
     g_iBossPhase = 0;
@@ -23023,6 +23024,12 @@ public cmd_rtv(id)
     if (g_bMapDecided && g_szNextMap[0])
     {
         Chat(id, "RTV_DECIDED", g_szNextMap);
+        return PLUGIN_HANDLED;
+    }
+    new cand[MAPV_MAX][32];
+    if (!MapCandidates(cand, MAPV_MAX))
+    {
+        Chat(id, "MAPV_NONE");
         return PLUGIN_HANDLED;
     }
     new minr = get_pcvar_num(g_pRtvMinRound);

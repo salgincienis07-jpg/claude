@@ -229,7 +229,8 @@ def build_player_model(spec, out=None, preview=True, quick=False, verbose=True):
     saved = dedupe_animations(out)
     check_textures_exact(out, wd)
     # ---- validate + preview
-    rep = V.validate_player(out, budget=spec.get('budget'), expect_nine=nine)
+    rep = V.validate_player(out, budget=spec.get('budget'), expect_nine=nine, kind=st.kind,
+                            float_h=st.float_h * rig.H / 72.0)
     rep['out'] = out
     rep['stats']['dedupe_saved'] = saved
     rep['build_seconds'] = round(time.time() - t0, 1)

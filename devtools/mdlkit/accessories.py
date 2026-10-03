@@ -627,11 +627,160 @@ def emblem_patch(rig, sh, mat='patch', where='arm_L'):
     raise ValueError(where)
 
 
+
+# ============================================================================================ wings / extra limbs
+# Upper extras (parented to the spine, NOT the pelvis) -> driven by the upper-body sequences, so they move
+# in every in-game pose. anims.AnimBuilder animates bones named Wing_* (flap / glide / fold in deaths) and
+# XLimb_* (sway / strike / curl in deaths) automatically; Style(extra_bone_anim=fn) can add more.
+
+def _base_rig(spec_or_height):
+    """Rig without extras for a RigSpec (exact joint positions) or a bare height (default proportions)."""
+    from .rig_cs import Rig, RigSpec
+    if isinstance(spec_or_height, RigSpec):
+        rs = RigSpec(**{kk: v for kk, v in spec_or_height.__dict__.items() if kk != 'extras'})
+    else:
+        rs = RigSpec(height=float(spec_or_height))
+    return Rig(rs)
+
+
+def wing_extras(rig_spec_height=72.0, span=1.0, parent='Bip01 Spine3', up=1.0, back=1.0):
+    """RigSpec extras for a pair of wings: Wing_L0 (shoulder blade) -> Wing_L1 (wrist) -> Wing_L2 (tip)
+    and the mirrored R chain. span scales the reach (1.0 ~ 0.9 x body height wing span).
+    rig_spec_height: the RigSpec itself (preferred: exact joints) or its height.
+        rs = RigSpec.preset('boss'); rs.extras = wing_extras(rs)"""
+    R = _base_rig(rig_spec_height)
+    k = R.H / 72.0
+    bk = R.spec.bulk ** 0.5
+    ps = R.J(parent)
+    ex = []
+    for side, sg in (('L', 1), ('R', -1)):
+        p0 = ps + np.array([-4.2 * k * back * bk, sg * 2.8 * k * bk, 1.0 * k])
+        p1 = p0 + np.array([-5.0 * k * back, sg * 13.0 * k * span, 9.0 * k * up * span])
+        p2 = p1 + np.array([-4.0 * k * back, sg * 15.0 * k * span, -2.0 * k * span])
+        ex += [dict(name='Wing_%s0' % side, parent=parent, pos=tuple(p0)),
+               dict(name='Wing_%s1' % side, parent='Wing_%s0' % side, pos=tuple(p1)),
+               dict(name='Wing_%s2' % side, parent='Wing_%s1' % side, pos=tuple(p2))]
+    return ex
+
+
+def wings(rig, sh, mat='wing', bone_mat='bone', fingers=3, droop=1.0, tatter=0.25, seed=9, rows=6):
+    """Membrane wings (bat / demon style) on the Wing_* extras: a leading-edge bone strut, `fingers`
+    spines fanning from the wrist and a two-sided membrane whose trailing edge droops toward the hips.
+    Set the membrane material 'masked' or use a 'layers' material with holes for torn wings."""
+    k = _k(rig)
+    rng = np.random.default_rng(seed)
+    out = []
+    for side, sg in (('L', 1), ('R', -1)):
+        names = ['Wing_%s%d' % (side, i) for i in range(3)]
+        if not all(n in rig.index for n in names):
+            raise ValueError('wings accessory needs rig extras %s (accessories.wing_extras)' % names)
+        P0, P1, P2 = [rig.J(n) for n in names]
+        b0, b1, b2 = [rig.index[n] for n in names]
+        # leading edge polyline (shoulder -> wrist -> tip) and trailing edge points
+        lead = [P0 + (P1 - P0) * t for t in np.linspace(0, 1, 4)] + [P1 + (P2 - P1) * t for t in np.linspace(0, 1, 4)[1:]]
+        lead_b = [b0, b0, b0, b1, b1, b1, b1]
+        low_z = rig.J('Bip01 Spine')[2] - 2.0 * k
+        trail = []
+        for i, p in enumerate(lead):
+            u = i / (len(lead) - 1)
+            depth = (p[2] - low_z) * (0.95 - 0.55 * u ** 1.5) * droop
+            scallop = 1.0 - 0.18 * abs(math.sin(u * math.pi * fingers))
+            q = p + np.array([-2.0 * k * (1 - u), 0, -depth * scallop])
+            if tatter > 0 and 0 < i < len(lead) - 1:
+                q = q + np.array([0, 0, depth * rng.uniform(0, tatter * 0.35)])
+            trail.append(q)
+        vs, uvs, bb = [], [], []
+        for i in range(len(lead)):
+            for j in range(rows):
+                v = j / (rows - 1)
+                vs.append(lead[i] * (1 - v) + trail[i] * v)
+                uvs.append((i / (len(lead) - 1), 1.0 - v))
+                bb.append(lead_b[i] if v < 0.85 or i > 0 else b0)
+        f = []
+        for i in range(len(lead) - 1):
+            for j in range(rows - 1):
+                a = i * rows + j; b = (i + 1) * rows + j
+                tri = [(a, b, b + 1), (a, b + 1, a + 1)]
+                f += tri if sg > 0 else [(x, z, y) for x, y, z in tri]
+        span_len = float(sum(np.linalg.norm(np.diff(np.array(lead), axis=0), axis=1)))
+        m = Mesh(np.array(vs), np.array(f), np.array(uvs), None, np.array(bb), mat,
+                 size=(span_len, float(np.max([np.linalg.norm(a - b) for a, b in zip(lead, trail)]))), name='wing')
+        m.make_two_sided()
+        m.no_hitbox = True
+        out.append(m)
+        # bones: leading edge strut + finger spines
+        strut = tube([P0, P1, P2], [0.75 * k, 0.5 * k, 0.12 * k], segs=6, mat=bone_mat, bones=[b0, b1, b1])
+        strut.name = 'wingbone'
+        strut.no_hitbox = True
+        out.append(strut)
+        for fi in range(fingers):
+            i = 3 + int(round((fi + 1) * 3 / (fingers + 1)))
+            tgt = trail[min(i, len(trail) - 1)] * 0.92 + lead[min(i, len(lead) - 1)] * 0.08
+            fg = tube([P1, (P1 + tgt) / 2 + np.array([0, 0, 0.6 * k]), tgt], [0.35 * k, 0.25 * k, 0.08 * k], segs=5,
+                      mat=bone_mat, bones=b1, cap_end=False)
+            fg.name = 'wingbone'
+            fg.no_hitbox = True
+            out.append(fg)
+        claw = horn(P1, (0.3, sg * 0.2, 1.0), 2.2 * k, 0.35 * k, curve=(0.8 * k, 0, 0), mat=bone_mat, bone=b1)
+        claw.no_hitbox = True
+        out.append(claw)
+    return out
+
+
+def limb_extras(rig_spec_height=72.0, pairs=2, parent='Bip01 Spine2', reach=1.0, prefix='XLimb', front=0.0,
+                height=0.0, spread=1.0):
+    """RigSpec extras for extra limbs (spider legs on the back, extra arms, tentacles): per limb
+    <prefix>_<L|R><n>_0 (root) -> _1 (knee) -> _2 (foot/claw tip). pairs = limbs per side.
+    rig_spec_height: the RigSpec (preferred) or its height. front > 0 moves the roots toward the chest
+    (extra arms), height raises them (units at 72)."""
+    R = _base_rig(rig_spec_height)
+    k = R.H / 72.0
+    bk = R.spec.bulk ** 0.5
+    pp = R.J(parent)
+    ex = []
+    for n in range(pairs):
+        a = (n - (pairs - 1) / 2.0)            # spread the roots along the back
+        for side, sg in (('L', 1), ('R', -1)):
+            base = '%s_%s%d' % (prefix, side, n)
+            p0 = pp + np.array([(-3.5 * bk + front) * k - a * 2.0 * k, sg * 3.2 * k * bk, height * k - a * 3.0 * k])
+            dirn = np.array([-0.35 - 0.5 * a + front * 0.1, sg * 1.0 * spread, 0.0])
+            dirn /= np.linalg.norm(dirn)
+            p1 = p0 + dirn * 12.0 * k * reach + np.array([0, 0, 9.0 * k * reach])
+            p2 = p1 + dirn * 10.0 * k * reach + np.array([0, 0, -16.0 * k * reach])
+            ex += [dict(name=base + '_0', parent=parent, pos=tuple(p0)),
+                   dict(name=base + '_1', parent=base + '_0', pos=tuple(p1)),
+                   dict(name=base + '_2', parent=base + '_1', pos=tuple(p2))]
+    return ex
+
+
+def extra_limbs(rig, sh, mat='skin', claw_mat='claw', prefix='XLimb', radius=1.1, claw=2.5, joint_mat=None):
+    """Segmented limbs along every <prefix>_* chain created by limb_extras (chitin legs, bony arms)."""
+    k = _k(rig)
+    out = []
+    roots = sorted(set(n[:-2] for n in rig.names if n.startswith(prefix + '_') and n.endswith('_0')))
+    if not roots:
+        raise ValueError('extra_limbs needs rig extras from accessories.limb_extras(prefix=%r)' % prefix)
+    for base in roots:
+        P = [rig.J(base + '_%d' % i) for i in range(3)]
+        B = [rig.index[base + '_%d' % i] for i in range(3)]
+        tip = P[2] + (P[2] - P[1]) / max(np.linalg.norm(P[2] - P[1]), 1e-6) * claw * k
+        seg1 = tube([P[0], (P[0] + P[1]) / 2, P[1]], [radius * k, radius * 1.15 * k, radius * 0.8 * k], segs=7,
+                    mat=mat, bones=[B[0], B[0], B[0]])
+        seg2 = tube([P[1], (P[1] + P[2]) / 2, P[2]], [radius * 0.8 * k, radius * 0.7 * k, radius * 0.45 * k], segs=7,
+                    mat=mat, bones=[B[1], B[1], B[1]])
+        joint = ellipsoid((radius * 1.05 * k,) * 3, P[1], segs=8, rings=5, mat=joint_mat or mat, bone=B[1])
+        c = horn(P[2], tip - P[2], claw * k, radius * 0.45 * k, mat=claw_mat, bone=B[2])
+        for m, nm in ((seg1, 'xlimb'), (seg2, 'xlimb'), (joint, 'xlimb_joint'), (c, 'xlimb_claw')):
+            m.name = nm
+            m.no_hitbox = True
+            out.append(m)
+    return out
+
 ACCESSORIES = {
     'helmet': helmet, 'goggles': goggles, 'gasmask': gasmask, 'hood': hood, 'hair': hair, 'vest': vest, 'belt': belt,
     'backpack': backpack, 'shoulder_pads': shoulder_pads, 'knee_pads': knee_pads, 'bracers': bracers,
     'sleeve_cuffs': sleeve_cuffs, 'coat_skirt': coat_skirt, 'cape': cape, 'shirt_flaps': shirt_flaps, 'ribs': ribs,
     'horns': horns, 'spikes': spikes, 'crystals': crystals, 'tail': tail, 'glow_eyes': glow_eyes,
     'jaw_teeth': jaw_teeth, 'chain': chain, 'plates_on': plates_on, 'wraps': wraps, 'emblem_patch': emblem_patch,
-    'shell': shell,
+    'shell': shell, 'wings': wings, 'extra_limbs': extra_limbs,
 }

@@ -103,7 +103,8 @@ def hitbox_world(m, bones):
     return res
 
 
-def validate_player(path, budget=None, expect_nine=None, kind=None):
+def validate_player(path, budget=None, expect_nine=None, kind=None, float_h=0.0):
+    """float_h: hover height of 'floaty' characters (feet may be that much higher; no foot-slide check)."""
     E, W = [], []
     stats = {}
     m = MDL(path)
@@ -224,7 +225,7 @@ def validate_player(path, budget=None, expect_nine=None, kind=None):
         sd = m.seqs[si]
         lm = sd['linearmovement'][0]
         N = sd['numframes']
-        if lm <= 0:
+        if lm <= 0 or float_h > 0:
             continue
         worst = 0.0
         for foot in ('Bip01 L Foot', 'Bip01 R Foot'):
@@ -260,7 +261,7 @@ def validate_player(path, budget=None, expect_nine=None, kind=None):
         bones = PV.setup_bones(m, si, 0.0, (127, 127), None, 0.0, player=True)
         feet = [bones[m.bone_names.index(b)][:, 3][2] for b in ('Bip01 L Foot', 'Bip01 R Foot') if b in m.bone_names]
         stats['ankle_z_' + nm] = [round(float(f), 2) for f in feet]
-        if feet and (min(feet) < floor - 0.5 or min(feet) > floor + 8):
+        if feet and (min(feet) < floor - 0.5 or min(feet) > floor + 8 + float_h):
             E.append('%s: ankles at %s, floor is %d' % (nm, feet, floor))
     ib = PV.setup_bones(m, m.seq_by_name['idle1'], 0.0, (127, 127), None, 0.0, player=True)
     hscale = max(1.0, (ib[:, 2, 3].max() + 36 + 5) / 72.0)
