@@ -215,7 +215,8 @@ def validate_player(path, budget=None, expect_nine=None, kind=None, float_h=0.0)
                     E.append('hitbox %s (group %d) centre above/below the hull by %.1f in %s blend %s' % (bn, g, outz, seqname, bl))
                 if g in (1, 2, 3) and outxy > 4.0:
                     W.append('hitbox %s (group %d) centre %.1f outside the hull sideways in %s blend %s' % (bn, g, outxy, seqname, bl))
-                worst = max(worst, outz)
+                if g in (1, 2, 3):
+                    worst = max(worst, outz)
     stats['hitbox_max_out'] = round(worst, 2)
     # feet / deaths
     # foot sliding: replay the client's gait-frame advance (gaitframe += dist / lm * numframes) and measure
@@ -265,6 +266,9 @@ def validate_player(path, budget=None, expect_nine=None, kind=None, float_h=0.0)
             E.append('%s: ankles at %s, floor is %d' % (nm, feet, floor))
     ib = PV.setup_bones(m, m.seq_by_name['idle1'], 0.0, (127, 127), None, 0.0, player=True)
     hscale = max(1.0, (ib[:, 2, 3].max() + 36 + 5) / 72.0)
+    # a wide character lying on its side legitimately reaches higher than a human (shoulder width)
+    body_w = float(ib[:, 1, 3].max() - ib[:, 1, 3].min())
+    upright_z = max(26 * hscale, body_w + 8.0)
     stats['height_scale'] = round(float(hscale), 2)
     for s in m.seqs:
         if s['label'] in death_names:
@@ -274,7 +278,7 @@ def validate_player(path, budget=None, expect_nine=None, kind=None, float_h=0.0)
             floor = -18 if s['label'] == 'crouch_die' else -36
             if zs.min() < floor - 2.5 * hscale:
                 W.append('death %s: a joint ends %.1f units below the floor' % (s['label'], floor - zs.min()))
-            if zs.max() > floor + 26 * hscale:
+            if zs.max() > floor + upright_z:
                 W.append('death %s: body still upright at the end (max joint z %.1f)' % (s['label'], zs.max()))
     if not m.attachments:
         W.append('no attachments')

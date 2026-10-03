@@ -21,8 +21,10 @@ Conventions
     (sets mesh.bone_name); meshes without bone_name bind to the first bone. Every bone gets a hidden
     0.02-unit anchor triangle so studiomdl never drops an animated bone without geometry.
   * Sequences: dicts {name, frames=1, fps=10, loop=False, pose=fn(t)->{bone: dict(pos=(dx,dy,dz),
-    rot=(yaw,pitch,roll) degrees)}, events=[(id, frame, options)], activity='ACT_IDLE'} - pose offsets
-    are LOCAL to the bone's parent and relative to the rest pose; t runs 0..1 over the sequence.
+    rot=(yaw,pitch,roll) degrees | R=3x3 matrix)}, events=[(id, frame, options)], activity='ACT_IDLE'} -
+    offsets are LOCAL to the bone's parent and relative to the rest pose (rotation about the bone's own
+    pivot = its rest position); t runs 0..1 over the sequence. anims.ypr: yaw + = turn left (about Z),
+    pitch + = nose DOWN (+Z tips toward +X), roll + = left side up (about X).
     GoldSrc bones cannot scale: hide parts by moving them inside other geometry or use bodygroups.
   * Bodygroups: list of (name, [variant, ...]) where a variant is None (blank) or a list of meshes.
     pev->body = sum(variant_index * base); base = product of the variant counts of earlier groups
@@ -99,7 +101,7 @@ class _WorldRig:
         for i, n in enumerate(self.names):
             o = offsets.get(n, {}) if offsets else {}
             pos = self.local[i] + np.asarray(o.get('pos', (0, 0, 0)), float)
-            R = _ypr(*o.get('rot', (0, 0, 0)))
+            R = np.asarray(o['R'], float) if 'R' in o else _ypr(*o.get('rot', (0, 0, 0)))
             fr.append((pos, R))
         return fr
 
@@ -116,9 +118,19 @@ class _WorldRig:
         return out
 
 
+def _flat(meshes):
+    out = []
+    for m in meshes:
+        if isinstance(m, (list, tuple)):
+            out += _flat(m)
+        elif m is not None:
+            out.append(m)
+    return out
+
+
 def _bind(meshes, rig):
     res = []
-    for m in meshes:
+    for m in _flat(meshes):
         mm = m.copy()
         for attr in ('bone_name', 'no_hitbox'):
             if hasattr(m, attr):

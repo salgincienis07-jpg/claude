@@ -3125,10 +3125,11 @@ public client_disconnected(id, bool:drop, message[], maxlen)
     if (g_bBoss[id])
         g_iBoss = 0;
 
-    // v3.0 (C): harita oyu / RTV duser (esik yeniden kontrol edilir)
+    // v3.0 (C): mod/event + harita oyu / RTV duser (esik yeniden kontrol edilir)
+    VoteDisconnect(id);
     MapVoteDisconnect(id);
     ResetPlayer(id);
-    RtvCheck();
+    RtvCheck(id);
 
     // Son zombi cikarsa yerine yeni zombi sec
     if (g_bRoundActive && !g_bRoundEnded && wasZombie && AllowsInfection())
@@ -3185,9 +3186,10 @@ ResetPlayer(id)
     g_iHumanSkin[id] = g_iHumanModelN > 0 ? random(g_iHumanModelN) : 0;
     if (g_iRoundMvp == id)
         g_iRoundMvp = 0;
-    // v3.0 (C): efekt zamanlayicilari
+    // v3.0 (C): efekt zamanlayicilari + slotu devralan oyuncuya kalmamasi gereken durumlar
     g_fFxHitT[id] = 0.0;
     g_fFxHealT[id] = 0.0;
+    ResetPlayerLate(id);
 
     ResetRoundData(id);
     ResetLifeData(id);
@@ -8257,7 +8259,7 @@ ShowMainMenu(id)
 
 public menu_main_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -8313,7 +8315,7 @@ ShowProfileMenu(id)
 
 public menu_profile_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -8390,7 +8392,7 @@ ItemPrice(id, i)
 
 public menu_shop_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -8695,7 +8697,7 @@ SwPrice(id, i)
 
 public menu_special_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -8784,7 +8786,7 @@ ShowClassMenu(id)
 
 public menu_class_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -8792,6 +8794,8 @@ public menu_class_handler(id, menu, item)
 
     new cls = MenuInfo(menu, item);
     menu_destroy(menu);
+    if (cls < 0 || cls >= NUM_CLASSES)
+        return PLUGIN_HANDLED;
 
     if (g_iLevel[id] < CLASS_LVL[cls])
     {
@@ -8860,7 +8864,7 @@ ShowJobMenu(id)
 
 public menu_job_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -8929,7 +8933,7 @@ ShowPerkMenu(id)
 
 public menu_perk_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9004,7 +9008,7 @@ bool:TitleUnlocked(id, t)
 
 public menu_title_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9094,7 +9098,7 @@ ShowStyleMenu(id)
 
 public menu_style_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9146,7 +9150,7 @@ ShowSettingsMenu(id)
 
 public menu_settings_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9194,7 +9198,7 @@ ShowLangMenu(id)
 
 public menu_lang_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9227,7 +9231,7 @@ ShowFpsMenu(id)
 
 public menu_fps_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9379,7 +9383,7 @@ ShowPrimaryMenu(id)
 
 public menu_primary_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -9421,7 +9425,7 @@ ShowSecondaryMenu(id)
 
 public menu_secondary_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -10998,7 +11002,7 @@ ShowVipMenu(id)
 
 public menu_vip_handler(id, menu, item)
 {
-    if (item == MENU_EXIT || !IsVip(id))
+    if (item < 0 || !IsVip(id))
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -11727,7 +11731,7 @@ ShowFunMenu(id)
 
 public menu_fun_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -11979,7 +11983,7 @@ ShowAdminMenu(id)
 
 public menu_admin_handler(id, menu, item)
 {
-    if (item == MENU_EXIT || !(get_user_flags(id) & ADMIN_BAN))
+    if (item < 0 || !(get_user_flags(id) & ADMIN_BAN))
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -12096,7 +12100,7 @@ ShowAdminEnvMenu(id)
 
 public menu_admenv(id, menu, item)
 {
-    if (item == MENU_EXIT || !(get_user_flags(id) & ADMIN_BAN)) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0 || !(get_user_flags(id) & ADMIN_BAN)) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
     AdminSetEnv(sel);
@@ -12153,7 +12157,7 @@ ShowAdminModeMenu(id, bool:now)
 
 public menu_admmode_next(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     g_iForceMode = MenuInfo(menu, item);
     menu_destroy(menu);
     AdminNotify(id, "ADM_NEXT_MODE", g_iForceMode);
@@ -12164,7 +12168,7 @@ public menu_admmode_next(id, menu, item)
 
 public menu_admmode_now(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     g_iForceMode = MenuInfo(menu, item);
     menu_destroy(menu);
     AdminNotify(id, "ADM_NOW_MODE", g_iForceMode);
@@ -12200,7 +12204,7 @@ ShowAdminBossMenu(id, bool:now)
 
 public menu_admboss_next(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new b = MenuInfo(menu, item);
     menu_destroy(menu);
     g_iForceBoss = (b == 99) ? -1 : b;
@@ -12211,7 +12215,7 @@ public menu_admboss_next(id, menu, item)
 
 public menu_admboss_now(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new b = MenuInfo(menu, item);
     menu_destroy(menu);
     g_iForceBoss = (b == 99) ? -1 : b;
@@ -12268,7 +12272,7 @@ ShowAdminEventMenu(id, bool:now)
 
 public menu_admevent(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     g_iForceEvent = MenuInfo(menu, item);
     menu_destroy(menu);
     AdminNotify(id, "ADM_NEXT_EVENT", g_iForceEvent);
@@ -12278,7 +12282,7 @@ public menu_admevent(id, menu, item)
 // Event hemen: round yeniden baslar, normal enfeksiyon + secilen event
 public menu_admevent_now(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     g_iForceEvent = MenuInfo(menu, item);
     g_iForceMode = MODE_INFECTION;
     menu_destroy(menu);
@@ -12308,7 +12312,7 @@ ShowAdminPlayers(id)
 
 public menu_admplayers(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new uid = MenuInfo(menu, item);
     menu_destroy(menu);
 
@@ -12349,7 +12353,7 @@ ShowAdminActions(id)
 
 public menu_admactions(id, menu, item)
 {
-    if (item == MENU_EXIT) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    if (item < 0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
 
@@ -12553,6 +12557,14 @@ public task_VoteTick()
 }
 
 new g_iVoteMenu[33] = { -1, ... };
+
+// v3.0 (C): ayrilan oyuncunun mod / event oyu duser
+VoteDisconnect(id)
+{
+    if (g_iVoteType && 0 <= g_iVoted[id] < VOTE_OPTS)
+        g_iVoteCount[g_iVoted[id]] = max(0, g_iVoteCount[g_iVoted[id]] - 1);
+    g_iVoted[id] = -1;
+}
 
 bool:VoteMenuOpen(id)
 {
@@ -15040,7 +15052,7 @@ ShowMineMenu(id)
 
 public menu_mine_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -15731,7 +15743,7 @@ ShowNadeMenu(id)
 
 public menu_nade_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -16620,7 +16632,7 @@ ShowCosmeticMenu(id)
 
 public menu_cos_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
@@ -16658,7 +16670,7 @@ ShowCosList(id, cat)
 
 public menu_coslist_handler(id, menu, item)
 {
-    if (item == MENU_EXIT)
+    if (item < 0)
     {
         // Cikista menuyu yeniden acma: oyuncu ayriliyorsa hata olusur
         menu_destroy(menu);
@@ -22979,24 +22991,20 @@ RtvReset()
         g_bRtv[p] = false;
 }
 
-RtvNeeded()
+// ignore: ayrilmakta olan oyuncu (client_disconnected'da hala bagli gorunur)
+RtvNeeded(ignore = 0)
 {
-    new humans;
-    for (new p = 1; p <= g_iMax; p++)
-    {
-        if (is_user_connected(p) && !is_user_bot(p) && !is_user_hltv(p))
-            humans++;
-    }
+    new humans = RtvHumans(ignore);
     new Float:ratio = floatclamp(get_pcvar_float(g_pRtvRatio), 0.01, 1.0);
     return max(1, floatround(float(humans) * ratio, floatround_ceil));
 }
 
-RtvHumans()
+RtvHumans(ignore = 0)
 {
     new humans;
     for (new p = 1; p <= g_iMax; p++)
     {
-        if (is_user_connected(p) && !is_user_bot(p) && !is_user_hltv(p))
+        if (p != ignore && is_user_connected(p) && !is_user_bot(p) && !is_user_hltv(p))
             humans++;
     }
     return humans;
@@ -23064,11 +23072,11 @@ public cmd_rtv(id)
     return PLUGIN_HANDLED;
 }
 
-RtvCheck()
+RtvCheck(ignore = 0)
 {
     if (g_iRtvCount <= 0 || g_bMapVoting || g_bMapChanging || g_bMapDecided)
         return;
-    if (g_iRtvCount < RtvNeeded())
+    if (g_iRtvCount < RtvNeeded(ignore))
         return;
     ChatAll("RTV_START");
     if (!StartMapVote(0, true))
@@ -23195,4 +23203,22 @@ public task_MapChooserCheck()
     }
     else
         log_amx("[Vexmira] UYARI: mapchooser.amxx yuklu ve vex_map_vote 1: iki ayri harita oylamasi olabilir. plugins.ini'den kaldirin.");
+}
+
+/* ---------------- v3.0 (C): ResetPlayer'in dosyada sonra tanimlanan dizileri ---------------- */
+// Slotu devralan yeni oyuncuya onceki oyuncunun durumu kalmasin (bekleyen dogma, hasar
+// bankasi, gorev ilerlemesi, oy / menu kimlikleri, round bayraklari, bekleme sureleri).
+ResetPlayerLate(id)
+{
+    g_fRespawnAt[id] = 0.0;
+    g_iDmgBank[id] = 0;
+    g_iQuestProg[id] = 0;
+    g_bClassSwitched[id] = false;
+    g_bGunsGiven[id] = false;
+    g_bNadesGiven[id] = false;
+    g_fUnstuck[id] = 0.0;
+    g_fLastSay[id] = 0.0;
+    g_iVoted[id] = -1;
+    g_iVoteMenu[id] = -1;
+    g_iMapVoteMenu[id] = -1;
 }

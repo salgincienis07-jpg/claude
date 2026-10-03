@@ -58,8 +58,11 @@ def compute_hitboxes(rig, meshes, groups=None, shrink=0.88, extra=None, min_size
     return out
 
 
-def hull_fit(rig, boxes, hull_min=(-16, -16, -36), hull_max=(16, 16, 36), margin=0.5):
-    """Remap rest-pose boxes into the hull (see module doc). Returns new boxes."""
+def hull_fit(rig, boxes, hull_min=(-16, -16, -36), hull_max=(16, 16, 36), margin=0.5, keep_groups=(4, 5)):
+    """Remap rest-pose boxes into the hull (see module doc). Returns new boxes.
+    keep_groups: hitgroups left at their natural size/position (default the arms: their bones swing far
+    from the rest pose, so a remapped bone-local offset would throw the box metres away in aim poses;
+    arm boxes above the hull simply cannot be hit, which is harmless)."""
     hmin = np.array(hull_min, float) + margin
     hmax = np.array(hull_max, float) - margin
     corners_w = []
@@ -80,6 +83,9 @@ def hull_fit(rig, boxes, hull_min=(-16, -16, -36), hull_max=(16, 16, 36), margin
         return q
     out = []
     for (g, name, mn, mx), cw in zip(boxes, corners_w):
+        if g in keep_groups:
+            out.append((g, name, mn, mx))
+            continue
         i = rig.index[name]
         Rw = rig.rest_rot_world[i]; o = rig.rest_world[i]
         cm = mapw(cw)
@@ -88,12 +94,15 @@ def hull_fit(rig, boxes, hull_min=(-16, -16, -36), hull_max=(16, 16, 36), margin
     return out
 
 
-def fit_boxes_to_poses(rig, boxes, poses, margin=0.6):
+def fit_boxes_to_poses(rig, boxes, poses, margin=0.6, keep_groups=(4, 5)):
     """Vertically re-centre (and if needed shrink) hitboxes so their centres stay inside the hull in every
     sample pose. poses: list of (Pose, zlo, zhi) - e.g. standing and crouched aim poses at the 9-blend
     corners. Each box gets one bone-local offset (applied along the bone's rest-world up axis)."""
     out = []
     for g, name, mn, mx in boxes:
+        if g in keep_groups:
+            out.append((g, name, mn, mx))
+            continue
         i = rig.index[name]
         lo_d, hi_d = -1e9, 1e9
         hz_max = 0.0

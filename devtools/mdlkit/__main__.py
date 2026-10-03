@@ -4,9 +4,15 @@
 
 commands:
   info FILE.mdl                     header / bones / sequences / hitboxes / textures summary
-  validate FILE.mdl [--player|--v KIND|--p] [--budget BYTES] [--nine EXT,EXT]
+  validate FILE.mdl [--player|--v KIND|--p|--world] [--budget BYTES] [--nine EXT,EXT] [--float H]
+                                    (--v knife for claws; zombies/bosses: --nine knife)
   preview FILE.mdl [--out BASE] [--human|--zombie] [--v] [--seq NAME --frame F --view V]
-  build MODULE:FUNC [--quick]       build a player model from a spec function (python module path)
+  build MODULE:FUNC [--quick] [--lookdev] [--no-preview] [--only NAME,...]
+                                    build the spec(s) returned by FUNC (dict or list; any kind - player,
+                                    claws, vhuman, pmodel, world - see mdlkit/content/__init__.py).
+                                    MODULE = dotted module (mdlkit.content.zombies) or file path
+                                    (content/zombies.py). One compile at a time.
+  list MODULE                       list the public spec functions of a content module
   samples [walker|operator|claws|pak47|all] [--quick] [--lookdev]
   seqtable [--zombie]               print the CS player sequence table mdlkit generates
   test                              compile tiny test models and check studiomdl/engine conventions
@@ -20,6 +26,34 @@ def _arg(argv, name, default=None):
         i = argv.index(name)
         return argv[i + 1]
     return default
+
+
+def _load_module(modname):
+    import importlib
+    import importlib.util
+    if modname.endswith('.py') or os.sep in modname:
+        path = os.path.abspath(modname)
+        pk = os.path.join(os.path.dirname(os.path.abspath(__file__)), modname)
+        if not os.path.exists(path) and os.path.exists(pk):    # 'content/x.py' relative to mdlkit/
+            path = pk
+        here = os.path.dirname(os.path.abspath(__file__))
+        if path.startswith(here + os.sep):     # a file inside the package: import it as a package module
+            rel = os.path.relpath(path, os.path.dirname(here))[:-3]
+            return importlib.import_module(rel.replace(os.sep, '.'))
+        spec = importlib.util.spec_from_file_location(os.path.splitext(os.path.basename(path))[0], path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    sys.path.insert(0, os.getcwd())
+    return importlib.import_module(modname)
+
+
+def _load_specs(target):
+    """'module:func' or 'path.py:func' -> list of spec dicts (func may return a dict or a list)."""
+    modname, func = target.rsplit(':', 1)
+    mod = _load_module(modname)
+    res = getattr(mod, func)()
+    return list(res) if isinstance(res, (list, tuple)) else [res]
 
 
 def main(argv):
@@ -59,11 +93,17 @@ def main(argv):
             print(m.summary(), m.bone_names)
             rep = {'errors': [] if 'Bip01 R Hand' in m.bone_names else ['no Bip01 R Hand bone']}
             print(rep)
+        elif '--world' in rest:
+            from .world import validate_world
+            from .vmodel import _fmt
+            rep = validate_world(path, budget=float(_arg(rest, '--budget', 0.25e6)))
+            print(_fmt(rep))
         else:
             from .validate import validate_player, format_report
             nine = _arg(rest, '--nine')
             rep = validate_player(path, budget=float(_arg(rest, '--budget', 0)) or None,
-                                  expect_nine=set(nine.split(',')) if nine else None)
+                                  expect_nine=set(nine.split(',')) if nine else None,
+                                  float_h=float(_arg(rest, '--float', 0)))
             print(format_report(rep))
         return 1 if rep['errors'] else 0
     if cmd == 'preview':
@@ -87,13 +127,35 @@ def main(argv):
             print(PV.player_previews(path, base, human='--zombie' not in rest))
         return 0
     if cmd == 'build':
-        import importlib
-        modname, func = rest[0].split(':')
-        sys.path.insert(0, os.getcwd())
-        mod = importlib.import_module(modname)
-        spec = getattr(mod, func)()
-        from .api import build_player_model
-        build_player_model(spec, quick='--quick' in rest)
+        specs = _load_specs(rest[0])
+        only = _arg(rest, '--only')
+        if only:
+            want = set(only.split(','))
+            specs = [sp for sp in specs if sp.get('name') in want]
+        from .content import build
+        failed = []
+        for sp in specs:
+            print('=== build %s (%s)' % (sp.get('name'), sp.get('kind', 'player')), flush=True)
+            try:
+                rep = build(sp, quick='--quick' in rest, lookdev='--lookdev' in rest, preview='--no-preview' not in rest)
+                if '--lookdev' in rest:
+                    print(rep[0] if isinstance(rep, tuple) else rep)
+                elif not isinstance(rep, list) and rep is not None and 'errors' in rep and sp.get('kind') == 'pmodel':
+                    print(rep)
+            except Exception as e:  # keep building the rest, report at the end
+                import traceback
+                traceback.print_exc()
+                failed.append((sp.get('name'), str(e).splitlines()[0] if str(e) else type(e).__name__))
+        if failed:
+            print('FAILED:', failed)
+            return 1
+        return 0
+    if cmd == 'list':
+        import inspect
+        mod = _load_module(rest[0])
+        for n, f in inspect.getmembers(mod, inspect.isfunction):
+            if not n.startswith('_') and f.__module__ == mod.__name__:
+                print('%-24s %s' % (n, (f.__doc__ or '').strip().split('\n')[0]))
         return 0
     if cmd == 'samples':
         from .samples import main as smain

@@ -1,0 +1,5 @@
+zm_vex_laboratory
+zm_vex_harbor
+zm_vex_ruins
+zm_vex_frostbase
+zm_vex_temple
