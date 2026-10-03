@@ -4,7 +4,8 @@ spec keys used here:
   shape        body.DEFAULT_SHAPE overrides
   mats         part -> material name for the body (torso, neck, head, arm, hand, leg, foot, claw)
   materials    material name -> paint.py material dict
-  accessories  list of (accessory_name, params dict) from accessories.ACCESSORIES
+  accessories  list of (accessory_name, params dict) from accessories.ACCESSORIES (or (callable, params):
+               fn(rig, sh, **params) -> list of Mesh, for one-off custom parts)
   decals       list of paint decal dicts (3D, rest pose)
   face         dict for the automatic face decals (eyes/mouth/brows), see face_decals()
 """
@@ -103,8 +104,9 @@ def assemble(rig, spec):
     if callable(accs):
         accs = accs(rig, sh)
     for acc in accs:
-        name, params = (acc, {}) if isinstance(acc, str) else acc
-        fn = ACC.ACCESSORIES[name]
+        name, params = (acc, {}) if isinstance(acc, str) or callable(acc) else acc
+        # custom accessory: a callable fn(rig, sh, **params) -> [Mesh, ...] (content modules)
+        fn = name if callable(name) else ACC.ACCESSORIES[name]
         res = fn(rig, sh, **params)
         meshes += res
     if spec.get('face', True) is not False:
