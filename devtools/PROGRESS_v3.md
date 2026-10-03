@@ -3,7 +3,7 @@
 Bu dosya oturum sınırına / yeniden başlatmaya karşı tutulur. Yeni bir oturum buradan devam eder.
 Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + push yapılır).
 
-## Durum (en son güncelleme: 2026-10-03 14:20 UTC)
+## Durum (en son güncelleme: 2026-10-03 18:55 UTC)
 
 | Alan | Durum | Çıktı |
 |---|---|---|
@@ -22,11 +22,13 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
 
 ## Arka plan iş akışları (aynı oturum içinde devam ettirmek için)
 
-- Modeller: script `~/.claude/projects/-home-user-claude-devtools/75b34835-cf97-54a7-be23-70299b8b0f9d/workflows/scripts/vex3-models-wf_7585ba81-758.js`, run `wf_7585ba81-758`
-- Sunucu + eklenti C + haritalar: script `~/.claude/projects/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/workflows/scripts/vex3-server-plugin-maps-wf_f839418d-d31.js`, run `wf_f839418d-d31`
-- Başarısız ajan olursa: `Workflow({scriptPath, resumeFromRunId})` — biten ajanlar önbellekten döner,
-  yalnızca yarım kalanlar yeniden çalışır. Yarım kalan ajanın diskteki kısmi çıktısı korunur; yeni ajan
-  önce mevcut durumu denetleyip kaldığı yerden devam etmelidir.
+- 2026-10-03 14:35'te iki iş akışı kullanım sınırına takıldı (tüm ajanlar yarıda). 18:55'te tek iş akışında
+  birleştirilip yeniden başlatıldı (sırayla: eklenti C + mdlkit → 6 model ajanı → 5 harita → sunucu/nav/test):
+  script `~/.claude/projects/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/workflows/scripts/vex3-full-continue-wf_4b0c2ac1-207.js`,
+  run `wf_4b0c2ac1-207`.
+- Başarısız ajan olursa: `Workflow({scriptPath, resumeFromRunId: "wf_4b0c2ac1-207"})` — biten ajanlar önbellekten döner.
+  Ajan istemleri "önce diskteki kısmi işi incele, kaldığın yerden devam et" der.
+- Ara sürüm (3.0.0-ara) 18:52'de kullanıcıya gönderildi: `Vexmira_Zombie_v3.0_ARA.zip` (eklenti 245dec7 anı + ses + sprite + walker modeli + pilot harita).
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
