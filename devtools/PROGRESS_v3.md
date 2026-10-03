@@ -38,6 +38,11 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   + inceleme; sonra 3.0.1 ara sürüm), kalite yükseltme `wf/quality-upgrade.js` run `wf_a52f9d2f-924`.
   Resume: `Workflow({scriptPath: "$SP/wf/<ad>.js", resumeFromRunId: "<run>"})`.
 
+- 2026-10-04 00:00: kullanıcı isteği: 3.0.1 ara sürüm = hizalama düzeltmesi + 1 tam harita (zm_vex_laboratory) +
+  silah v_ modelleri + lazer/ikmal/w_ bomba modelleri; oyuncu modelleri sonra. Kalite yükseltme (MakeHuman) durduruldu.
+  İçerik: `wf/content301.js` run `wf_27dc55f2-a80`; hizalama: `wf/align-fix.js` run `wf_f59e0f41-149`.
+  İkisi bitince ana oturum: harita .nav kontrolü, botlu test, 3.0.1 zip (stok oyuncu modelleri, p_ YOK), gönder.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
