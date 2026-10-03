@@ -203,7 +203,7 @@ def build_player_model(spec, out=None, preview=True, quick=False, verbose=True):
                         p = ab.claw_upper('aim', crouch, yw, pt, 1)[0]
                     samples.append((p, zlo, zhi))
         for _ in range(6):   # bone rotations differ per pose -> iterate the vertical re-centring
-            boxes = fit_boxes_to_poses(rig, boxes, samples)
+            boxes = fit_boxes_to_poses(rig, boxes, samples, xy=spec.get('hull_fit_xy', 16.0))
     for g, bn, mn, mx in boxes:
         q.hbox(g, bn, mn, mx)
     k = rig.H / 72.0

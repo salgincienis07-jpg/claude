@@ -194,7 +194,7 @@ def build_world_model(name, parts, sequences=None, out=None, bones=None, bodygro
     out = out or os.path.join(CSTRIKE, 'models/vexmira/world', name + '.mdl')
     wd = _workdir(name)
     pg = pack_atlas(allm, tex[0], tex[1], pages, tex_prefix=name[:12] + '_')
-    baked = bake_textures(allm, pg, mats, list(decals), ao=ao, ao_dirs=24, toplight=toplight)
+    baked = bake_textures(allm, pg, mats, list(decals), ao=ao, ao_dirs=24, toplight=toplight, ao_slope_bias=1.5)
     texnames = write_textures(wd, baked, dither=dither)
     smd_bones = rig.smd_bones()
     rest = rig.rest_local()

@@ -504,6 +504,11 @@ def player_previews(path, outbase, human=True, weapon=None):
     # 1. turntable of the standing aim pose
     ib = setup_bones(m, idle, 0, (127, 127), None, 0)
     hs = max(1.0, (ib[:, 2, 3].max() + 36 + 6) / 72.0)
+    try:   # frame by the real mesh top (horns / crests / big heads of oversized bosses)
+        vz = max(float(me['pos'][..., 2].max()) for me in posed_triangles(m, setup_bones(m, aim, 0, (127, 127), idle, 0)))
+        hs = max(hs, (vz + 36 + 4) / 72.0)
+    except ValueError:
+        pass
     ims = [render_pose(m, aim, 0, (127, 127), idle, 0, view=v, title='aim %s %s' % (ext, v), W=300, H=400,
                        dist=105 * hs, center=(0, 0, -36 + 36 * hs), sub_models=subs)
            for v in ('front', 'q', 'left', 'qback', 'back', 'q2')]

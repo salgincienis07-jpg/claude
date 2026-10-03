@@ -651,7 +651,7 @@ def apply_decals(col, P, N, decals, mesh_name, mat_name, emis):
 # =============================================================================================== AO
 
 
-def bake_ao(meshes, points, normals, ndirs=48, res=192, max_dist=None, bias=0.6, seed=7):
+def bake_ao(meshes, points, normals, ndirs=48, res=192, max_dist=None, bias=0.6, seed=7, slope_bias=0.0):
     """Visibility-based AO: render orthographic depth maps of the whole rest-pose model from `ndirs`
     directions; a texel is 'lit' from a direction if it is not behind other geometry there."""
     V = np.vstack([m.v for m in meshes])
@@ -681,8 +681,11 @@ def bake_ao(meshes, points, normals, ndirs=48, res=192, max_dist=None, bias=0.6,
         ix = np.clip(pxy[:, 0].astype(int), 0, res - 1); iy = np.clip(pxy[:, 1].astype(int), 0, res - 1)
         # sample a 3x3 min to be conservative
         zmin = zb[iy, ix]
-        lit = pz <= zmin + bias + ext * 0.004
         w = np.clip(normals @ d, 0, 1)
+        sb = 0.0
+        if slope_bias:   # slope-scaled depth bias (big flat faces at grazing light: no triangle acne)
+            sb = slope_bias * (2 * ext / res) * np.sqrt(np.clip(1 - w * w, 0, 1)) / np.maximum(w, 0.15)
+        lit = pz <= zmin + bias + ext * 0.004 + sb
         vis += lit * w
         wsum += w
     ao = vis / np.maximum(wsum, 1e-6)
@@ -692,7 +695,7 @@ def bake_ao(meshes, points, normals, ndirs=48, res=192, max_dist=None, bias=0.6,
 
 
 def bake_textures(meshes, pages, materials, decals=(), ao=True, ao_strength=0.75, toplight=0.18,
-                  ao_dirs=40, seed=0, ao_pose=None):
+                  ao_dirs=40, seed=0, ao_pose=None, ao_slope_bias=0.0):
     """Paint all pages. Returns list of dicts {'name','rgb' (h,w,3) uint8, 'mask' (h,w) bool|None,
     'emissive' (h,w) bool}."""
     out = []
@@ -772,7 +775,7 @@ def bake_textures(meshes, pages, materials, decals=(), ao=True, ao_strength=0.75
                     Mv = ao_pose[mm.bone]
                     pm.v = np.einsum('nij,nj->ni', Mv[:, :, :3], mm.v) + Mv[:, :, 3]
                     ao_meshes.append(pm)
-            a = bake_ao(ao_meshes, pts + nrm * 0.15, nrm, ndirs=ao_dirs)
+            a = bake_ao(ao_meshes, pts + nrm * 0.15, nrm, ndirs=ao_dirs, slope_bias=ao_slope_bias)
             aomap = np.ones((H, W))
             aomap[valid] = a
             aomap = dilate(aomap, valid)

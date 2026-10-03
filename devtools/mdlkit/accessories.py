@@ -396,12 +396,15 @@ def coat_skirt(rig, sh, mat='coat', length=0.75, flare=0.3, split=True, segs=4):
     return out
 
 
-def cape(rig, sh, mat='cape', length=0.8, width=13.0, tatter=0.3, bones=None):
+def cape(rig, sh, mat='cape', length=0.8, width=13.0, tatter=0.3, bones=None, flare=1.0):
+    """Cape hanging from the shoulders. flare scales how far the hem stands off the back (1.0 = 8 units at
+    the hem of a 72-unit rig); long capes (length > 0.6) should use flare ~0.3-0.5, otherwise the rigid
+    pelvis-bound hem stands up like a sail in face-down deaths."""
     k = _k(rig)
     J = rig.J
     top = J('Bip01 Spine3') + np.array([-4.2 * k, 0, 2.5 * k])
     L = length * (top[2] + 36.0)
-    pts = [top + np.array([-1.2 * k * j - 0.4 * k * j * j, 0, -L * j / 5]) for j in range(6)]
+    pts = [top + np.array([(-1.2 * k * j - 0.4 * k * j * j) * (flare if j > 1 else 1.0), 0, -L * j / 5]) for j in range(6)]
     if bones is None:
         sb = _bi(rig, 'Bip01 Spine3')
         bones = [sb, sb, _bi(rig, 'Bip01 Spine2'), _bi(rig, 'Bip01 Spine1'), _bi(rig, 'Bip01 Spine'), _bi(rig, 'Bip01 Pelvis')]

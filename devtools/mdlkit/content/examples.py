@@ -80,6 +80,7 @@ def boss_brute(quick=False):
     rs = RigSpec.preset('boss')
     rs.hand_pose = 'claw'
     rs.hand = 0.15
+    rs.head = 0.135
     return dict(
         name='ex_b_brute', style='boss', rig=rs, hull_fit=True,
         style_params=dict(hunch=18.0, heavy=1.0, lurch=0.45),
@@ -129,10 +130,11 @@ def floaty_wraith(quick=False):
                    head=dict(jaw=0.8, chin=1.2, sockets=1.6, cheek=0.8, nose=0.5, mouth_open=0.6, jaw_drop=0.3)),
         mats=dict(torso='body', arm='body', leg='legs', foot='boot', hand='hand', neck='skin', head='head', claw='claw'),
         materials=_wraith_materials,
-        accessories=[('hair', dict(mat='hair', volume=1.3, length=1.0, style='long')),
-                     ('cape', dict(mat='cape', length=0.95, width=15.0, tatter=0.6)),
+        accessories=[('hair', dict(mat='hair', volume=1.3, length=18.0, style='long')),   # length in units (k-scaled)
+                     ('cape', dict(mat='cape', length=0.95, width=15.0, tatter=0.6, flare=0.4)),
                      ('coat_skirt', dict(mat='coat', length=0.9, flare=0.7)),
-                     ('crystals', dict(mat='crown', where=(('Bip01 Head', (-0.5, 0.0, 6.0)),), size=0.8, seed=8)),
+                     ('crystals', dict(mat='crown', where=(('Bip01 Head', (-0.5, 2.2, 8.6)), ('Bip01 Head', (-0.5, -2.2, 8.6))),
+                                       size=0.9, seed=8)),
                      ('glow_eyes', dict(mat='eyeglow', size=0.6))],
         face=dict(eye='glow', glow=(200, 225, 255), mouth='open', teeth=(200, 205, 220), brow_color=None),
         tex=dict(w=512, h=512, pages=1) if not quick else dict(w=256, h=256, pages=1),

@@ -94,7 +94,7 @@ def hull_fit(rig, boxes, hull_min=(-16, -16, -36), hull_max=(16, 16, 36), margin
     return out
 
 
-def fit_boxes_to_poses(rig, boxes, poses, margin=0.6, keep_groups=(4, 5)):
+def fit_boxes_to_poses(rig, boxes, poses, margin=0.6, keep_groups=(4, 5), xy=None):
     """Vertically re-centre (and if needed shrink) hitboxes so their centres stay inside the hull in every
     sample pose. poses: list of (Pose, zlo, zhi) - e.g. standing and crouched aim poses at the 9-blend
     corners. Each box gets one bone-local offset (applied along the bone's rest-world up axis)."""
@@ -124,5 +124,18 @@ def fit_boxes_to_poses(rig, boxes, poses, margin=0.6, keep_groups=(4, 5)):
             # world up expressed in the bone's rest frame
             up_local = rig.rest_rot_world[i].T @ np.array([0, 0, d])
             mn += up_local; mx += up_local
+        if xy:   # horizontal pass: pull centres that leave the hull sideways back inside (bone-local shift)
+            lim = xy - margin
+            for _it in range(12):
+                acc = np.zeros(3); nv = 0
+                for pose, zlo, zhi in poses:
+                    WR, WT = pose.world()
+                    cw = WR[i] @ ((mn + mx) / 2) + WT[i]
+                    v = np.array([np.clip(cw[0], -lim, lim) - cw[0], np.clip(cw[1], -lim, lim) - cw[1], 0.0])
+                    if np.abs(v).max() > 1e-3:
+                        acc += WR[i].T @ v; nv += 1
+                if not nv:
+                    break
+                mn += acc / nv; mx += acc / nv
         out.append((g, name, mn, mx))
     return out
