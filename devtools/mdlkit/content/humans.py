@@ -818,7 +818,7 @@ def _sniper_accessories(rig, sh):
         ('hum_face_mask', dict(mat='mask')),
         ('hum_monocular', dict(mat='scope_metal', lens='mono_lens', side='R')),
         ('vest', dict(mat='vest', pouch_mat='pouch', plates=False, collar=False, grow=0.5)),
-        ('cape', dict(mat='cloak', length=0.82, width=14.0, tatter=0.65, flare=0.42)),
+        ('cape', dict(mat='cloak', length=0.62, width=14.5, tatter=0.6, flare=0.3)),
         ('belt', dict(mat='belt', buckle_mat='metal', pouches=2, pouch_mat='pouch')),
         ('knee_pads', dict(mat='plate')),
         ('emblem_patch', dict(mat='patch', where='arm_L')),
