@@ -84,7 +84,7 @@ redone after 10 s. If the map has no `.nav`, a learning pass runs first (plugin 
 | `--commands F`, `--cmd "T cmd"` | timed console commands (`T` = seconds after map start; `#` comments) |
 | `--rebuild-plugin` / `--no-rebuild` / `--build-retries N` | force / skip the compile of the repo `.sma` (`devtools/plugin/build_plugin.sh`, + source snapshot for stack lines); default = compile when changed |
 | `--stub-missing` | boot once, then create server-only stand-ins for every model the design promises and every file the plugin logs as missing (`bulunamadi`), so precache counts match a complete package. Real repo files always win (sync replaces stubs by links). `--clean-stubs` removes them. |
-| `--no-ensure-nav` | do not run the nav learning pass when `maps/<map>.nav` is missing (default: run it) |
+| `--no-ensure-nav` | do not run the nav learning pass when `maps/<map>.nav` is missing or stale (bsp size changed) (default: run it) |
 | `--until-nav` / `--export-nav` | stop as soon as a `.nav` is saved / copy the server's `.nav` into the repo maps dir |
 | `--nav-all` | for every repo `cstrike/maps/zm_vex_*.bsp` except the pilot: boot with plugin off + 1 bot until the bot system saves `maps/<map>.nav`, validate it (`navfile.py`), copy it to repo `cstrike/maps/` (0644). Maps whose repo `.nav` is already valid for the current `.bsp` (size stamp) are skipped unless `--force-nav`. `--maps a,b` limits the list (naming `zm_vex_pilot` includes it), `--nav-out DIR` exports elsewhere, `--nav-timeout` (900 s) per map |
 | `--maps-smoke` | boot every repo `zm_vex_*.bsp` (pilot included) for `--smoke-seconds` (60) with `--bots` (12); missing / stale nav is generated first (server only; add `--export-nav` to also ship it). Prints a per-map table + details, saved as `$S/runs/maps_smoke_<stamp>.txt/.json`. Exit 1 if a map did not load cleanly or had AMXX errors |
@@ -113,6 +113,7 @@ precached name with its slot index), `vexmira_zombie.sma` (the compiled source),
 | stuck | bot pressed move keys but stayed within 48 u for 10 s with no enemy within 160 u (heuristic: also catches crowds pushing into each other; positions are listed) |
 | solid | living bot whose origin is inside world solid |
 | fall / world | fall-damage deaths / deaths by worldspawn, `trigger_hurt` or another non-player entity (positions listed) |
+| (details) nan | `nan_velocity`: a living player's velocity/origin became NaN or > 100000 (checked every frame; logged with the last 4 `vexmira/*` sounds = the skill that most likely caused it); `nan_death`: died with such a velocity. The engine itself only prints `PM  Got a NaN velocity` / `Got a NaN velocity on weaponbox` (counted under console warnings) |
 | precache | engine slot usage (probe) model/sound/generic of 512 |
 | err / fatal | distinct AMXX run-time errors / fatal console lines |
 | nav | areas of the validated `.nav` (or why it is missing/invalid) |

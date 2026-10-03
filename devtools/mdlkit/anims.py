@@ -195,7 +195,7 @@ def ground_points(pose, hands=True, core=False, arms=True):
         pts.append(p - np.array([0, 0, r * k]))
     if not core:
         for i, nm in enumerate(rig.names):
-            if not nm.startswith('Bip01'):
+            if not nm.startswith(('Bip01', 'Wing_', 'XLimb_')):
                 pts.append(WT[i] - np.array([0, 0, 1.2 * k]))
     for side in 'LR':
         for nm, r in (('UpperArm', 2.2), ('Forearm', 1.8), ('Hand', 1.5), ('Thigh', 3.5), ('Calf', 2.4),
@@ -1013,6 +1013,10 @@ class AnimBuilder:
             pose.local_rot('Wing_%s1' % side, ypr(sg * fold * 0.4, 0, sg * (amp * 0.5 * math.sin(w - 0.9) - 4)))
             if 'Wing_%s2' % side in rig.index:
                 pose.local_rot('Wing_%s2' % side, ypr(0, 0, sg * amp * 0.3 * math.sin(w - 1.6)))
+            if sd.kind == 'death':
+                ch = [n for n in ('Wing_%s0' % side, 'Wing_%s1' % side, 'Wing_%s2' % side) if n in rig.index]
+                self._flatten_chain(pose, ch, smoothstep(0.35, 0.95, t), down=0.25,
+                                    floor=CROUCH_FOOT_Z if sd.crouch else FOOT_Z)
 
     def _xlimbs(self, pose, sd, t):
         """XLimb_<L|R><n>_<0..2> (accessories.limb_extras): idle sway with per-limb phase, a stab in attacks
@@ -1033,31 +1037,45 @@ class AnimBuilder:
                 r0, p0_, r1 = 6 * math.sin(w + ph), 5 * math.sin(w + ph + 1.0), 8 * math.sin(w + ph + 2.0)
             pose.local_rot(base + '_0', ypr(0, p0_, sg * r0))
             pose.local_rot(base + '_1', ypr(0, 0, sg * r1))
+            if sd.kind == 'death':
+                self._flatten_chain(pose, [n for n in (base + '_0', base + '_1', base + '_2') if n in rig.index],
+                                    smoothstep(0.35, 0.95, t), down=0.3,
+                                    floor=CROUCH_FOOT_Z if sd.crouch else FOOT_Z)
+
+    def _flatten_chain(self, pose, names, w, down=0.15, lift=0.0, floor=None):
+        """Rotate each bone of a chain (in order) so its segment lies (almost) horizontal: used in deaths
+        so tails / wings / extra limbs rest on the floor instead of pointing into it or up into the air.
+        floor: keep every joint at least ~1 unit above this height."""
+        if w <= 0:
+            return
+        rig = self.rig
+        for a, b in zip(names[:-1], names[1:]):
+            WR, WT = pose.world()
+            ia, ib = rig.index[a], rig.index[b]
+            cur = WT[ib] - WT[ia]
+            L = np.linalg.norm(cur)
+            if L < 1e-6:
+                continue
+            h = cur.copy(); h[2] = 0.0
+            if np.linalg.norm(h) < 0.2 * L:
+                h = WR[ia][:, 0].copy(); h[2] = 0.0
+                if np.linalg.norm(h) < 1e-6:
+                    h = np.array([1.0, 0, 0])
+            h /= np.linalg.norm(h)
+            tgt = h - np.array([0, 0, down - lift])
+            if floor is not None:
+                tgt /= np.linalg.norm(tgt)
+                dz = float(np.clip(floor + 1.0 * self.k - WT[ia][2], tgt[2] * L, 0.6 * L)) / L
+                tgt = h * math.sqrt(max(1.0 - dz * dz, 0.0)) + np.array([0, 0, dz])
+            Rw = rot_between(cur / L, tgt / np.linalg.norm(tgt)) @ WR[ia]
+            pose.set_world_rot(a, _slerp_mat(WR[ia], Rw, w))
 
     def _tail_flatten(self, pose, t):
         rig = self.rig
         tails = [n for n in rig.names if n.startswith('Tail')]
-        if not tails:
+        if len(tails) < 2:
             return
-            # the tail falls onto the floor: point the first segment along the body's horizontal backwards
-            i0 = rig.index[tails[0]]
-            WR, WT = pose.world()
-            par = rig.parents[i0]
-            back = -WR[par][:, 0].copy()
-            if abs(back[2]) > 0.6:
-                # lying on the back / front: the tail goes out along the floor towards the feet, to one side
-                back = -WR[par][:, 2].copy() * 0.8 + WR[par][:, 1] * 0.6
-            back[2] = 0
-            if np.linalg.norm(back) < 1e-3:
-                back = np.array([-1.0, 0, 0])
-            back /= max(np.linalg.norm(back), 1e-6)
-            rest_dir = rig.rest_local_pos[rig.index[tails[1]]] if len(tails) > 1 else np.array([-1.0, 0, 0])
-            cur = WR[i0] @ rest_dir
-            Rw = rot_between(cur, back + np.array([0, 0, -0.15])) @ WR[i0]
-            w = min(1.0, t * 1.5)
-            pose.set_world_rot(tails[0], _slerp_mat(WR[i0], Rw, w))
-            for nm in tails[1:]:
-                pose.local_rot(nm, rig.rest_local_rot[rig.index[nm]] @ ypr(8 * w, 0, 0))
+        self._flatten_chain(pose, tails, smoothstep(0.25, 0.9, t), down=0.08)   # floor handled by ground align
 
     def _build_raw(self, sd):
         st = self.st

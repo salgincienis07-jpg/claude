@@ -40,6 +40,9 @@ new g_iSpawnBlocked, g_iSpawnFloating, g_iSpawnsTotal, g_iOffSpawn, g_iStacked, 
 new Float:g_fAnchor[33][3], Float:g_fAnchorT[33], g_iWantMove[33], g_iSamples[33], bool:g_bStuckLogged[33];
 new bool:g_bInSolid[33];
 new g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths;
+// NaN / runaway velocity watch (engine prints "PM Got a NaN velocity" without saying who/why)
+new bool:g_bNanLogged[33], g_iNanEvents;
+new g_szLastEmit[4][64], Float:g_fLastEmit[4], g_iLastEmitEnt[4], g_iLastEmitPos;
 
 public plugin_precache()
 {
@@ -77,6 +80,7 @@ public plugin_init()
     register_logevent("ev_RoundStart", 2, "1=Round_Start");
     register_logevent("ev_RoundEnd", 2, "1=Round_End");
     RegisterHookChain(RH_SV_StartSound, "fw_Emit", false);
+    register_forward(FM_StartFrame, "fw_StartFrame", 1);
     RegisterHookChain(RG_RoundEnd, "fw_RoundEnd", true);
     register_srvcmd("vexprobe_status", "srv_Status");
     g_tEmit = TrieCreate();
@@ -293,10 +297,55 @@ DumpList(const path[], const title[], Array:a)
     }
 }
 
+bool:BadVec(const Float:v[3])
+{
+    for (new i = 0; i < 3; i++)
+        if (v[i] != v[i] || floatabs(v[i]) > 100000.0)
+            return true;
+    return false;
+}
+
+public fw_StartFrame()
+{
+    for (new p = 1; p <= MaxClients; p++)
+    {
+        if (!is_user_alive(p))
+        {
+            g_bNanLogged[p] = false;
+            continue;
+        }
+        new Float:v[3], Float:o[3];
+        pev(p, pev_velocity, v);
+        pev(p, pev_origin, o);
+        if (g_bNanLogged[p] || (!BadVec(v) && !BadVec(o)))
+            continue;
+        g_bNanLogged[p] = true;
+        g_iNanEvents++;
+        new mdl[32], recent[300], tmp[96];
+        get_user_info(p, "model", mdl, charsmax(mdl));
+        for (new k = 0; k < 4; k++)
+        {
+            new i = (g_iLastEmitPos + 3 - k) % 4;
+            if (!g_szLastEmit[i][0])
+                continue;
+            formatex(tmp, charsmax(tmp), "%s[-%.1fs ent%d] %s", k ? ", " : "", get_gametime() - g_fLastEmit[i],
+                g_iLastEmitEnt[i], g_szLastEmit[i]);
+            add(recent, charsmax(recent), tmp);
+        }
+        log_amx("[vexprobe] nan_velocity #%d team=%d model=%s hp=%d vel=%f %f %f origin=%f %f %f flags=%d movetype=%d | last vexmira sounds: %s",
+            p, get_user_team(p), mdl, get_user_health(p), v[0], v[1], v[2], o[0], o[1], o[2], pev(p, pev_flags),
+            pev(p, pev_movetype), recent);
+    }
+}
+
 public fw_Emit(const recipients, const ent, const chan, const sample[], const vol, Float:attn, const flags, const pitch)
 {
     if (containi(sample, "vexmira") == -1)
         return HC_CONTINUE;
+    g_iLastEmitPos = (g_iLastEmitPos + 1) % 4;
+    copy(g_szLastEmit[g_iLastEmitPos], charsmax(g_szLastEmit[]), sample);
+    g_fLastEmit[g_iLastEmitPos] = get_gametime();
+    g_iLastEmitEnt[g_iLastEmitPos] = ent;
     g_iEmitTotal++;
     new n;
     if (TrieGetCell(g_tEmit, sample, n))
@@ -327,6 +376,18 @@ public fw_RoundEnd(WinStatus:status, ScenarioEventEndRound:event, Float:tmDelay)
 public fw_Killed(const victim, const attacker, const gib)
 {
     g_iKills++;
+    {
+        new Float:v[3];
+        pev(victim, pev_velocity, v);
+        if (BadVec(v))
+        {
+            new cls[32] = "world";
+            if (attacker > 0 && pev_valid(attacker))
+                pev(attacker, pev_classname, cls, charsmax(cls));
+            log_amx("[vexprobe] nan_death #%d team=%d by #%d (%s) vel=%f %f %f", victim, get_user_team(victim), attacker, cls,
+                v[0], v[1], v[2]);
+        }
+    }
     if (attacker != victim && (attacker < 1 || attacker > MaxClients))
     {
         g_iWorldDeaths++;
@@ -421,8 +482,8 @@ public plugin_end()
     }
     log_amx("[vexprobe] spawn_usage ct=%d/%d t=%d/%d spawns=%d off_spawn=%d stacked=%d in_solid=%d",
         uct, nct, ut, nt, g_iSpawnsTotal, g_iOffSpawn, g_iStacked, g_iSpawnStuck);
-    log_amx("[vexprobe] mapcheck stuck=%d in_solid=%d fall_hurt=%d fall_deaths=%d world_deaths=%d",
-        g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths);
+    log_amx("[vexprobe] mapcheck stuck=%d in_solid=%d fall_hurt=%d fall_deaths=%d world_deaths=%d nan_velocity=%d",
+        g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths, g_iNanEvents);
     new s[96], n;
     for (new i = 0; i < ArraySize(g_aEmit); i++)
     {

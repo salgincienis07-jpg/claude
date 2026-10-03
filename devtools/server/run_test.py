@@ -591,6 +591,7 @@ def summarize(console, texts, crashed, rc_before, rc, args):
     s['in_solid'] = pl('in_solid #') + pl('spawn_in_solid')
     s['fall_deaths'] = pl('fall_death')
     s['world_deaths'] = pl('world_death')
+    s['nan'] = pl('nan_velocity') + pl('nan_death')
     s['round_wins'] = dict(collections.Counter(re.findall(r'round_win t=\d+ status=(\w+)', '\n'.join(probe_lines))))
     s['round_starts'] = len([l for l in probe_lines if 'round_start' in l])
     s['round_ends'] = len([l for l in probe_lines if 'round_end' in l])
@@ -619,7 +620,7 @@ def summarize(console, texts, crashed, rc_before, rc, args):
                          r'Unable to load'),
         ('amxx', r'\[AMXX\]|\[AMX\]|Plugin file open error|Module .* failed|bad load|Function not found|'
                  r'Native .* not found|failed to load'),
-        ('warning', r'WARNING|Warning:|\bERROR\b'),
+        ('warning', r'WARNING|Warning:|\bERROR\b|NaN|Got a velocity too'),
         ('nav', r'Navigation|navigation|Analyzing|bot_nav'),
     ]
     probs = collections.OrderedDict((k, collections.Counter()) for k, _ in pats)
@@ -685,7 +686,7 @@ def format_summary(s):
     w('   %s' % (s['spawnpoints'] or 'spawnpoints: -'))
     w('   %s' % (s['spawn_usage'] or 'spawn_usage: -'))
     w('   %s' % (s['mapcheck'] or 'mapcheck: -'))
-    for k in ('spawn_problems', 'in_solid', 'stuck', 'fall_deaths', 'world_deaths'):
+    for k in ('spawn_problems', 'in_solid', 'stuck', 'fall_deaths', 'world_deaths', 'nan'):
         for l in s[k][:12]:
             w('     ' + l)
         if len(s[k]) > 12:
@@ -922,7 +923,7 @@ def format_smoke(results):
         if nav:
             import navfile
             o.append('   nav: ' + navfile.format_report(nav).replace('\n', '\n   '))
-        for k in ('spawn_problems', 'in_solid', 'stuck', 'fall_deaths', 'world_deaths'):
+        for k in ('spawn_problems', 'in_solid', 'stuck', 'fall_deaths', 'world_deaths', 'nan'):
             for l in s.get(k, [])[:8]:
                 o.append('     %s' % l)
             if len(s.get(k, [])) > 8:

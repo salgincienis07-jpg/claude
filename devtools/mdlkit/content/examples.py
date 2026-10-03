@@ -173,7 +173,9 @@ def chimera(quick=False):
     extras, animated automatically), horns, crystals. Shows the bone/size cost of extras."""
     rs = RigSpec.preset('zombie')
     rs.hand_pose = 'claw'
-    rs.extras = (tail_extras(rs.height, n=4, length=26.0) + wing_extras(rs, span=0.9) +
+    # 3 tail + 4 wing + 12 limb bones = 19 extra bones (~4.5 KB each): wing tips without bones keep the
+    # model inside the 0.45 MB zombie budget
+    rs.extras = (tail_extras(rs.height, n=3, length=26.0) + wing_extras(rs, span=0.9, tip=False) +
                  limb_extras(rs, pairs=2, reach=0.85))
     return dict(
         name='ex_z_chimera', style='zombie', rig=rs,

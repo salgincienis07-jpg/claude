@@ -388,7 +388,6 @@ def coat_skirt(rig, sh, mat='coat', length=0.75, flare=0.3, split=True, segs=4):
         th = _bi(rig, 'Bip01 %s Thigh' % side); cf = _bi(rig, 'Bip01 %s Calf' % side)
         for fb, x0 in (('f', 4.2), ('b', -4.6)):
             pts = [np.array([x0 * k + (0.3 if fb == 'f' else -0.6) * k * j, sg * (3.6 + flare * j * 1.3) * k, z0 - L * j / 4]) for j in range(5)]
-            bones = [_bi(rig, 'Bip01 Pelvis'), th, th, th if j < 3 else cf, cf]
             bones = [_bi(rig, 'Bip01 Pelvis'), th, th, cf, cf]
             r = ribbon(pts, 7.0 * k, normal_hint=(1 if fb == 'f' else -1, 0, 0), mat=mat, bones=bones, two_sided=True,
                        tatter=0.25, seed=hash((side, fb)) % 1000, width_dir=(0, 1, 0))
@@ -643,9 +642,28 @@ def _base_rig(spec_or_height):
     return Rig(rs)
 
 
-def wing_extras(rig_spec_height=72.0, span=1.0, parent='Bip01 Spine3', up=1.0, back=1.0):
+def _extra_meta(rig, name, key):
+    for e in rig.spec.extras:
+        if e['name'] == name and key in e:
+            return np.asarray(e[key], float)
+    return None
+
+
+def _chain_tip(rig, base_name, child_name):
+    """World rest position of a chain tip: the tip bone if it exists, else the 'tip' stored on the
+    previous extra (tip=False saves a bone - every bone costs ~4.5 KB of animation in a player model)."""
+    if child_name in rig.index:
+        return rig.J(child_name), rig.index[child_name]
+    t = _extra_meta(rig, base_name, 'tip')
+    if t is None:
+        raise ValueError('rig has neither %s nor a tip position on %s' % (child_name, base_name))
+    return t, rig.index[base_name]
+
+
+def wing_extras(rig_spec_height=72.0, span=1.0, parent='Bip01 Spine3', up=1.0, back=1.0, tip=True):
     """RigSpec extras for a pair of wings: Wing_L0 (shoulder blade) -> Wing_L1 (wrist) -> Wing_L2 (tip)
     and the mirrored R chain. span scales the reach (1.0 ~ 0.9 x body height wing span).
+    tip=False drops the Wing_?2 bones (saves 2 bones; the tip then just follows the wrist).
     rig_spec_height: the RigSpec itself (preferred: exact joints) or its height.
         rs = RigSpec.preset('boss'); rs.extras = wing_extras(rs)"""
     R = _base_rig(rig_spec_height)
@@ -658,8 +676,9 @@ def wing_extras(rig_spec_height=72.0, span=1.0, parent='Bip01 Spine3', up=1.0, b
         p1 = p0 + np.array([-5.0 * k * back, sg * 13.0 * k * span, 9.0 * k * up * span])
         p2 = p1 + np.array([-4.0 * k * back, sg * 15.0 * k * span, -2.0 * k * span])
         ex += [dict(name='Wing_%s0' % side, parent=parent, pos=tuple(p0)),
-               dict(name='Wing_%s1' % side, parent='Wing_%s0' % side, pos=tuple(p1)),
-               dict(name='Wing_%s2' % side, parent='Wing_%s1' % side, pos=tuple(p2))]
+               dict(name='Wing_%s1' % side, parent='Wing_%s0' % side, pos=tuple(p1), tip=tuple(p2))]
+        if tip:
+            ex.append(dict(name='Wing_%s2' % side, parent='Wing_%s1' % side, pos=tuple(p2)))
     return ex
 
 
@@ -671,11 +690,12 @@ def wings(rig, sh, mat='wing', bone_mat='bone', fingers=3, droop=1.0, tatter=0.2
     rng = np.random.default_rng(seed)
     out = []
     for side, sg in (('L', 1), ('R', -1)):
-        names = ['Wing_%s%d' % (side, i) for i in range(3)]
+        names = ['Wing_%s%d' % (side, i) for i in range(2)]
         if not all(n in rig.index for n in names):
             raise ValueError('wings accessory needs rig extras %s (accessories.wing_extras)' % names)
-        P0, P1, P2 = [rig.J(n) for n in names]
-        b0, b1, b2 = [rig.index[n] for n in names]
+        P0, P1 = [rig.J(n) for n in names]
+        b0, b1 = [rig.index[n] for n in names]
+        P2, b2 = _chain_tip(rig, 'Wing_%s1' % side, 'Wing_%s2' % side)
         # leading edge polyline (shoulder -> wrist -> tip) and trailing edge points
         lead = [P0 + (P1 - P0) * t for t in np.linspace(0, 1, 4)] + [P1 + (P2 - P1) * t for t in np.linspace(0, 1, 4)[1:]]
         lead_b = [b0, b0, b0, b1, b1, b1, b1]
@@ -728,11 +748,11 @@ def wings(rig, sh, mat='wing', bone_mat='bone', fingers=3, droop=1.0, tatter=0.2
 
 
 def limb_extras(rig_spec_height=72.0, pairs=2, parent='Bip01 Spine2', reach=1.0, prefix='XLimb', front=0.0,
-                height=0.0, spread=1.0):
+                height=0.0, spread=1.0, tip=True):
     """RigSpec extras for extra limbs (spider legs on the back, extra arms, tentacles): per limb
     <prefix>_<L|R><n>_0 (root) -> _1 (knee) -> _2 (foot/claw tip). pairs = limbs per side.
     rig_spec_height: the RigSpec (preferred) or its height. front > 0 moves the roots toward the chest
-    (extra arms), height raises them (units at 72)."""
+    (extra arms), height raises them (units at 72). tip=False drops the _2 bones (-1 bone per limb)."""
     R = _base_rig(rig_spec_height)
     k = R.H / 72.0
     bk = R.spec.bulk ** 0.5
@@ -748,8 +768,9 @@ def limb_extras(rig_spec_height=72.0, pairs=2, parent='Bip01 Spine2', reach=1.0,
             p1 = p0 + dirn * 12.0 * k * reach + np.array([0, 0, 9.0 * k * reach])
             p2 = p1 + dirn * 10.0 * k * reach + np.array([0, 0, -16.0 * k * reach])
             ex += [dict(name=base + '_0', parent=parent, pos=tuple(p0)),
-                   dict(name=base + '_1', parent=base + '_0', pos=tuple(p1)),
-                   dict(name=base + '_2', parent=base + '_1', pos=tuple(p2))]
+                   dict(name=base + '_1', parent=base + '_0', pos=tuple(p1), tip=tuple(p2))]
+            if tip:
+                ex.append(dict(name=base + '_2', parent=base + '_1', pos=tuple(p2)))
     return ex
 
 
@@ -761,8 +782,11 @@ def extra_limbs(rig, sh, mat='skin', claw_mat='claw', prefix='XLimb', radius=1.1
     if not roots:
         raise ValueError('extra_limbs needs rig extras from accessories.limb_extras(prefix=%r)' % prefix)
     for base in roots:
-        P = [rig.J(base + '_%d' % i) for i in range(3)]
-        B = [rig.index[base + '_%d' % i] for i in range(3)]
+        P = [rig.J(base + '_%d' % i) for i in range(2)]
+        B = [rig.index[base + '_%d' % i] for i in range(2)]
+        p2, b2 = _chain_tip(rig, base + '_1', base + '_2')
+        P.append(p2)
+        B.append(b2)
         tip = P[2] + (P[2] - P[1]) / max(np.linalg.norm(P[2] - P[1]), 1e-6) * claw * k
         seg1 = tube([P[0], (P[0] + P[1]) / 2, P[1]], [radius * k, radius * 1.15 * k, radius * 0.8 * k], segs=7,
                     mat=mat, bones=[B[0], B[0], B[0]])
