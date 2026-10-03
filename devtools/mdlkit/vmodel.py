@@ -43,7 +43,7 @@ WEAPON_SETS = {
              ('add_silencer', 'attach', 25, 12, False), ('idle_unsil', 'idle', 31, 15, True),
              ('shoot1_unsil', 'shoot', 7, 30, False), ('shoot2_unsil', 'shoot', 7, 30, False),
              ('shoot3_unsil', 'shoot', 7, 30, False), ('reload_unsil', 'reload', 31, 10, False),
-             ('draw_unsil', 'draw', 14, 24, False), ('detach_silencer', 'attach', 25, 12, False)],
+             ('draw_unsil', 'draw', 14, 24, False), ('detach_silencer', 'detach', 25, 12, False)],
     'm249': [('idle1', 'idle', 31, 15, True), ('shoot1', 'shoot', 7, 30, False), ('shoot2', 'shoot', 7, 30, False),
              ('reload', 'reload_box', 41, 8, False), ('draw', 'draw', 14, 24, False)],
     'awp': [('idle', 'idle', 31, 15, True), ('shoot', 'shoot_bolt', 25, 18, False), ('shoot2', 'shoot_bolt', 25, 18, False),
@@ -63,7 +63,8 @@ WEAPON_SETS['hegrenade'] = WEAPON_SETS['flashbang'] = WEAPON_SETS['smokegrenade'
 STOCK_SOUNDS = {
     'ak47': {'reload': [(0.25, 'weapons/ak47_clipout.wav'), (0.62, 'weapons/ak47_clipin.wav'), (0.85, 'weapons/ak47_boltpull.wav')]},
     'm4a1': {'reload': [(0.25, 'weapons/m4a1_clipout.wav'), (0.62, 'weapons/m4a1_clipin.wav'), (0.85, 'weapons/m4a1_boltpull.wav')],
-             'draw': [(0.3, 'weapons/m4a1_deploy.wav')], 'attach': [(0.6, 'weapons/m4a1_silencer_on.wav')]},
+             'draw': [(0.3, 'weapons/m4a1_deploy.wav')], 'attach': [(0.6, 'weapons/m4a1_silencer_on.wav')],
+             'detach': [(0.4, 'weapons/m4a1_silencer_off.wav')]},
     'sg550': {'reload': [(0.25, 'weapons/sg550_clipout.wav'), (0.62, 'weapons/sg550_clipin.wav'), (0.85, 'weapons/sg550_boltpull.wav')]},
     'p90': {'reload': [(0.2, 'weapons/p90_cliprelease.wav'), (0.3, 'weapons/p90_clipout.wav'), (0.62, 'weapons/p90_clipin.wav'),
                        (0.85, 'weapons/p90_boltpull.wav')]},
@@ -84,14 +85,17 @@ MUZZLE = {'ak47': '30', 'm4a1': '20', 'sg550': '20', 'p90': '10', 'm249': '30', 
 
 # grip pose (gun frame origin in view space, yaw/pitch/roll of the gun) per weapon family
 VIEW_HOLD = {
-    'rifle': dict(grip=(5.6, -5.0, -7.0), rot=(3.5, -2.5, 0.0), fore=9.0, fore_z=1.9),
-    'lmg': dict(grip=(5.4, -5.4, -7.8), rot=(3.0, -2.0, 0.0), fore=9.0, fore_z=1.9),
-    'sniper': dict(grip=(5.4, -5.2, -7.2), rot=(3.0, -2.0, 0.0), fore=9.0, fore_z=1.9),
-    'smg': dict(grip=(6.2, -4.8, -6.9), rot=(4.0, -3.0, 0.0), fore=6.5, fore_z=1.9),
-    'shotgun': dict(grip=(5.6, -5.0, -7.2), rot=(3.5, -2.5, 0.0), fore=9.3, fore_z=1.5),
-    'pistol': dict(grip=(9.0, -3.6, -6.8), rot=(5.0, -4.0, 0.0), fore=None),
-    'knife': dict(grip=(9.0, -6.2, -6.6), rot=(15.0, -30.0, -15.0), fore=None),
-    'grenade': dict(grip=(8.6, -5.6, -6.6), rot=(10.0, -10.0, 0.0), fore=None),
+    # grip = gun-frame origin (grip centre) in view space, rot = (yaw, pitch, roll) of the gun: roll > 0 cants
+    # the top to the right so the left side faces the camera (classic CS staging); scale = gun mesh scale
+    # (v_ guns are drawn ~1.3x larger than p_ guns); fore/fore_z = support-hand point (unscaled gun units)
+    'rifle': dict(grip=(9.5, -6.4, -7.6), rot=(6.0, -2.0, 26.0), fore=9.0, fore_z=1.9, scale=1.3),
+    'lmg': dict(grip=(9.0, -6.6, -8.4), rot=(5.0, -1.5, 22.0), fore=9.0, fore_z=1.9, scale=1.25),
+    'sniper': dict(grip=(9.5, -6.4, -7.8), rot=(6.0, -2.0, 24.0), fore=9.0, fore_z=1.9, scale=1.25),
+    'smg': dict(grip=(9.0, -5.8, -7.2), rot=(7.0, -3.0, 24.0), fore=6.5, fore_z=1.9, scale=1.3),
+    'shotgun': dict(grip=(9.5, -6.2, -7.6), rot=(6.0, -2.0, 24.0), fore=9.3, fore_z=1.5, scale=1.25),
+    'pistol': dict(grip=(11.0, -4.6, -6.4), rot=(6.0, -6.0, 18.0), fore=None, scale=1.35),
+    'knife': dict(grip=(9.0, -6.2, -6.6), rot=(15.0, -30.0, -15.0), fore=None, scale=1.2),
+    'grenade': dict(grip=(10.5, -5.0, -5.6), rot=(15.0, -25.0, 10.0), fore=None, scale=1.3),
 }
 FAMILY = {'ak47': 'rifle', 'm4a1': 'rifle', 'sg550': 'sniper', 'awp': 'sniper', 'p90': 'smg', 'm249': 'lmg',
           'xm1014': 'shotgun', 'deagle': 'pistol', 'knife': 'knife', 'hegrenade': 'grenade', 'flashbang': 'grenade',
@@ -231,7 +235,7 @@ class ViewAnim:
 
     # ------------------------------------------------------------------ guns (generic)
     def gun_pose(self, motion, t):
-        h = VIEW_HOLD[self.fam]
+        h = dict(VIEW_HOLD[self.fam], **(self.st.get('hold') or {}))
         p = self.base()
         k = self.k
         gp = np.array(h['grip'])
@@ -262,7 +266,7 @@ class ViewAnim:
             roll -= 25 * tilt; pit += 10 * tilt; yaw += 10 * tilt
             m = float(keys(t, [(0, 0), (0.25, 0), (0.35, 1), (0.55, 1), (0.66, 0), (1, 0)]))
             mag_off = np.array([0.5, 0, -6.0]) * m
-        elif motion == 'attach':
+        elif motion in ('attach', 'detach'):
             u = float(keys(t, [(0, 0), (0.2, 1), (0.8, 1), (1, 0)]))
             gp = gp + np.array([-1.0, 2.5, 0.5]) * u
             yaw += 15 * u
@@ -297,8 +301,9 @@ class ViewAnim:
         grip = gp * k
         self.place(p, 'R', grip, G, np.array([-0.3, -1.0, -0.9]))
         # support hand
+        gs = self.st.get('gun_scale', h.get('scale', 1.0))
         if h.get('fore'):
-            fp = grip + G @ np.array([h['fore'] * k, 0, h['fore_z'] * k])
+            fp = grip + G @ np.array([h['fore'] * k * gs, 0, h['fore_z'] * k * gs])
             RL = support_rot_for_fore(G)
             if motion in ('reload', 'reload_box'):
                 mw = grip + G @ (np.array([2.8, 0, -4.0]) + mag_off) * k
@@ -374,9 +379,10 @@ def build_vmodel(name, arms_spec, kind='knife', gun_meshes=None, out=None, claws
         wi = rig.index['v_weapon']
         G = rig.rest_rot_world[wi]
         o = rig.rest_world[wi]
+        gs = (style or {}).get('gun_scale', VIEW_HOLD[FAMILY.get(kind, 'rifle')].get('scale', 1.0))
         for gm in gun_meshes:
             m = gm.copy()
-            m.v = m.v @ G.T + o
+            m.v = (m.v * gs) @ G.T + o
             m.n = m.n @ G.T
             nm = m.name or ''
             b = 'v_mag' if nm.startswith('mag') else ('v_slide' if nm.startswith(('slide', 'pump')) else 'v_weapon')
@@ -396,7 +402,7 @@ def build_vmodel(name, arms_spec, kind='knife', gun_meshes=None, out=None, claws
     q.body('arms', 'ref')
     if gun_meshes is not None:
         wi = rig.index['v_weapon']
-        mz = muzzle_point(gun_meshes)
+        mz = muzzle_point(gun_meshes) * gs
         q.attachment(0, 'v_weapon', mz)
     else:
         q.attachment(0, 'Bip01 R Hand', grip_offset(rig, 'R') + np.array([6.0, 0, 0]))
@@ -496,3 +502,30 @@ def build_claws_sample(quick=False):
     from .samples import walker_spec
     out = os.path.join(CSTRIKE, 'models/vexmira/claws/v_walker.mdl')
     return build_claws(walker_spec(), out)
+
+
+# ============================================================================================ human v_ models
+
+# v_ kind -> standard gun shape (guns.STANDARD key) used when no gun meshes are given
+HUMAN_V_GUN = {'knife': 'knife', 'hegrenade': 'hegrenade', 'flashbang': 'flashbang', 'smokegrenade': 'smokegrenade',
+               'ak47': 'ak47', 'm4a1': 'm4a1', 'm249': 'm249', 'awp': 'awp', 'xm1014': 'xm1014', 'deagle': 'deagle',
+               'p90': 'p90', 'sg550': 'sg550'}
+
+
+def build_human_vmodel(name, kind, gun_meshes=None, out=None, arms_spec=None, materials=None, sounds=None,
+                       muzzle=None, tex=(256, 256), budget=0.4e6, preview=True, style=None):
+    """Vexmira CT arms (operator spec unless arms_spec is given) + a gun, with the exact ReGameDLL sequence
+    order of `kind` (WEAPON_SETS: knife, hegrenade, flashbang, smokegrenade, ak47, m4a1, m249, awp, xm1014,
+    deagle, p90, sg550), 5001 muzzle-flash events on shoot sequences (attachment 0 = muzzle) and 5004
+    stock sound events (STOCK_SOUNDS, override per motion with sounds={'reload': [(0.3, 'weapons/x.wav')]}).
+    gun_meshes: GUN SPACE meshes (guns.standard_gun / pmodel.gun_preset / your own); default = the
+    standard shape of the base weapon. Meshes named mag* follow v_mag, slide*/pump* follow v_slide.
+    out default: cstrike/models/vexmira/weapons/<name>.mdl"""
+    from .guns import standard_gun, standard_materials
+    from .samples import operator_spec
+    std = HUMAN_V_GUN[kind]
+    gm = gun_meshes if gun_meshes is not None else standard_gun(std)
+    mats = standard_materials(std)
+    mats.update(materials or {})
+    return build_vmodel(name, arms_spec or operator_spec(), kind=kind, gun_meshes=gm, out=out, tex=tex,
+                        materials=mats, sounds=sounds, muzzle=muzzle, preview=preview, style=style, budget=budget)

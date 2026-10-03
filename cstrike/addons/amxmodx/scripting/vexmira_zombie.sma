@@ -680,6 +680,12 @@ new g_pZc[ZCV_TOTAL];
 #define ZP_WEB        2
 #define BEAM_MARK_HOOK 7779
 #define TASK_ZCTICK   33500
+// v3.0 (C)
+#define TASK_AMBREST  34000   // ortam sesleri (ambient_generic) yeniden baslatma
+#define TASK_MAPVOTE  34100   // harita oylamasi sayaci
+#define TASK_MAPCHG   34200   // harita degisimi (ara ekran + changelevel)
+#define TASK_MAPHOLD  34300   // son round: yeni round baslamasin
+#define TASK_MAPWARN  34400   // mapchooser.amxx kontrolu
 
 // [R] / [F] tetikleme (tus / komut / chat) - ayni tetik 0.2 sn icinde tekrar islenmez
 new Float:g_fSkillTrig[33][3], Float:g_fLeapCool[33];
@@ -699,6 +705,18 @@ new g_msgFlashlight, g_msgNVGToggle;
 // v3.0 kaynaklar (yoksa orijinal efektlere duser)
 new g_szSprChain[64], g_sprChain, g_szSprWeb[64], g_sprWeb, g_szSprSpore[64], g_sprSpore, g_szSprEmp[64], g_sprEmp;
 new g_szHookModel[96], g_szSporeModel[96];
+
+/* ---------------- v3.0 (C): efekt sprite'lari ---------------- */
+// Element: 0 ates, 1 buz, 2 zehir, 3 bosluk, 4 sok (kinetik / elektrik / ses)
+enum { EL_FIRE = 0, EL_ICE, EL_TOXIC, EL_VOID, EL_SHOCK, EL_TOTAL };
+enum { FXS_EXFIRE = 0, FXS_EXICE, FXS_EXTOXIC, FXS_EXVOID, FXS_HEAL, FXS_LEVELUP, FXS_INFECT, FXS_SHOCK, FXS_SLASH, FXS_ICE, FXS_VOID, FXS_TOXIC, FXS_TOTAL };
+new const FXS_KEY[FXS_TOTAL][] = { "SPR_EXPLO_FIRE", "SPR_EXPLO_ICE", "SPR_EXPLO_TOXIC", "SPR_EXPLO_VOID", "SPR_HEAL", "SPR_LEVELUP",
+    "SPR_INFECT", "SPR_SHOCK", "SPR_SLASH", "SPR_ICE", "SPR_VOID", "SPR_TOXIC" };
+new g_sprFx[FXS_TOTAL], g_iFxSprN;
+// Boss elementleri (boss no -> element): Brute sok, Banshee sok (ses), Overlord bosluk, Inferno ates,
+// Reaper bosluk, Frostlord buz, Stormcaller sok (elektrik), Hive Queen zehir, Void bosluk
+new const BOSS_ELEM[NUM_BOSSES] = { EL_SHOCK, EL_SHOCK, EL_VOID, EL_FIRE, EL_VOID, EL_ICE, EL_SHOCK, EL_TOXIC, EL_VOID };
+new Float:g_fFxHitT[33], Float:g_fFxHealT[33];
 
 /* ---------------- v3.0 (B): gorsel kimlik, kaynaklar, precache butcesi ---------------- */
 // HUD renk paleti (DESIGN bolum 9). Kullanim: HudAll(SL_ALERT, CLR_DANGER, 3.0, "KEY")
@@ -731,6 +749,11 @@ new g_iDropBodyChute, g_iDropBodyLanded, g_szDropSeqFall[24], g_szDropSeqIdle[24
 new Trie:g_tSnd2D, Trie:g_tSnd3D, Trie:g_tMdlDone;
 new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_iMdlBudget, g_iSndSkipped, g_iMdlSkipped;
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
+// v3.0 (C): haritanin dongulu ortam sesleri (ambient_generic). Round basindaki "stopsound"
+// istemcide bunlari da susturur; round basladiktan kisa sure sonra yeniden calinirlar.
+#define MAX_AMB 64
+new g_iAmbEnt[MAX_AMB], g_szAmbSnd[MAX_AMB][64], Float:g_fAmbVol[MAX_AMB], Float:g_fAmbAttn[MAX_AMB];
+new g_iAmbPitch[MAX_AMB], bool:g_bAmbOn[MAX_AMB], g_iAmbN, g_iAmbRestored, bool:g_bAmbReplay;
 
 // Kafa ustu gostergeler: boss can bari + amblem, kucuk can bari, ikonlar
 #define OVH_CLASS     "vex_ovh"
@@ -1099,8 +1122,26 @@ SetModelResources()
     // Precache butcesi (GoldSrc: 512 ses / 512 model / 512 generic; stok CS + harita payi)
     TrieSetString(g_tRes, "BOSS_PRELOAD",      "4");    // bir haritada en fazla kac boss yuklenir
     TrieSetString(g_tRes, "BOSS_PRELOAD_LIST", "");     // bos = otomatik (haritadan haritaya doner)
-    TrieSetString(g_tRes, "SOUND_BUDGET",      "160");  // eklentinin 3D ses (precache_sound) siniri
+    TrieSetString(g_tRes, "SOUND_BUDGET",      "200");  // eklentinin 3D ses (precache_sound) siniri
     TrieSetString(g_tRes, "MODEL_BUDGET",      "250");  // eklentinin model + sprite siniri
+    // v3.0 (C): bu modda HIC calinmayan stok sesler (C4, rehine/VIP telsizi, bot duzenleme, tutor,
+    // geiger, silah HUD'u) oyunun precache listesinden cikarilir -> ~35 ses yuvasi bosalir
+    TrieSetString(g_tRes, "SOUND_BLOCK_STOCK", "1");
+    TrieSetString(g_tRes, "SOUND_BLOCK_EXTRA", "");     // ek engellenecek sesler (bosluklu liste)
+
+    // v3.0 (C): efekt sprite'lari (dosya yoksa eski efekt / oyun sprite'i kullanilir)
+    TrieSetString(g_tRes, "SPR_EXPLO_FIRE",  "sprites/vexmira/explo_fire.spr");
+    TrieSetString(g_tRes, "SPR_EXPLO_ICE",   "sprites/vexmira/explo_ice.spr");
+    TrieSetString(g_tRes, "SPR_EXPLO_TOXIC", "sprites/vexmira/explo_toxic.spr");
+    TrieSetString(g_tRes, "SPR_EXPLO_VOID",  "sprites/vexmira/explo_void.spr");
+    TrieSetString(g_tRes, "SPR_HEAL",        "sprites/vexmira/heal.spr");
+    TrieSetString(g_tRes, "SPR_LEVELUP",     "sprites/vexmira/levelup.spr");
+    TrieSetString(g_tRes, "SPR_INFECT",      "sprites/vexmira/infect.spr");
+    TrieSetString(g_tRes, "SPR_SHOCK",       "sprites/vexmira/shock.spr");
+    TrieSetString(g_tRes, "SPR_SLASH",       "sprites/vexmira/slash.spr");
+    TrieSetString(g_tRes, "SPR_ICE",         "sprites/vexmira/ice.spr");
+    TrieSetString(g_tRes, "SPR_VOID",        "sprites/vexmira/void.spr");
+    TrieSetString(g_tRes, "SPR_TOXIC",       "sprites/vexmira/toxic.spr");
 }
 
 // Model anahtari: ilk dosya varsa o, yoksa ikinci (ikisi de yoksa ilk yazilir; precache'te elenir)
@@ -1211,8 +1252,12 @@ public plugin_precache()
     g_iFwPcSnd = register_forward(FM_PrecacheSound, "fw_PcSoundPost", 1);
     g_iFwPcMdl = register_forward(FM_PrecacheModel, "fw_PcModelPost", 1);
     g_iFwPcGen = register_forward(FM_PrecacheGeneric, "fw_PcGenericPost", 1);
+    // v3.0 (C): harita ortam seslerinin durumu (round basinda yeniden baslatmak icin)
+    register_forward(FM_EmitAmbientSound, "fw_AmbientPost", 1);
 
-    g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "160")), 40, 480);
+    g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "200")), 40, 480);
+    // v3.0 (C): kullanilmayan stok sesleri engelle (oyun DLL'i precache'i bu fonksiyondan SONRA yapar)
+    SetupStockSoundBlock();
     g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
 
     // Bu haritanin boss plani: sadece bu bosslarin modeli / pencesi / sesleri yuklenir
@@ -1231,8 +1276,10 @@ public plugin_precache()
     }
     // Geri sayim (VOX): oyuncunun oyununda zaten var (valve/sound/vox), precache gerekmez
 
-    // Bosslar (sadece yuklenenler)
-    static const BEV3D[][] = { "IDLE", "PAIN", "PAIN2", "DEATH", "STEP", "ATTACK", "PHASE", "KILL", "R1", "R2", "R3" };
+    // Bosslar (sadece yuklenenler). v3.0 (C): olum / faz / alay / R yetenek sesleri her zaman
+    // herkese (ATTN_NONE) calinir -> konumsuz: generic + spk (ses yuvasi harcamaz)
+    static const BEV3D[][] = { "IDLE", "PAIN", "PAIN2", "STEP", "ATTACK" };
+    static const BEV2D[][] = { "DEATH", "PHASE", "KILL", "R1", "R2", "R3" };
     for (new b = 0; b < NUM_BOSSES; b++)
     {
         if (!g_bBossLoaded[b])
@@ -1247,14 +1294,21 @@ public plugin_precache()
             formatex(key, charsmax(key), "B%d_%s", b, BEV3D[e]);
             PrecacheSoundKeyEx(key, false);
         }
+        for (new e = 0; e < sizeof BEV2D; e++)
+        {
+            formatex(key, charsmax(key), "B%d_%s", b, BEV2D[e]);
+            PrecacheSoundKeyEx(key, true);
+        }
         formatex(key, charsmax(key), "B%d_MUSIC", b);
         PrecacheSoundKeyEx(key, true);
     }
 
-    // Nemesis / Assassin
-    static const SEV3D[][] = { "IDLE", "PAIN", "DEATH", "ATTACK" };
+    // Nemesis / Assassin (olum sesi herkese: 2D)
+    static const SEV3D[][] = { "IDLE", "PAIN", "ATTACK" };
     PrecacheSoundKeyEx("NEMESIS_INTRO", true);
     PrecacheSoundKeyEx("ASSASSIN_INTRO", true);
+    PrecacheSoundKeyEx("NEMESIS_DEATH", true);
+    PrecacheSoundKeyEx("ASSASSIN_DEATH", true);
     for (new e = 0; e < sizeof SEV3D; e++)
     {
         formatex(key, charsmax(key), "NEMESIS_%s", SEV3D[e]);
@@ -1327,6 +1381,15 @@ public plugin_precache()
     {
         if (!IsFallbackOnly(SOUND_KEYS[i]))
             continue;
+        // v3.0 (C): genel zombi aci / olum / bekleme sesi sadece kendi sesi olmayan sinif varsa
+        if (equal(SOUND_KEYS[i], "ZOMBIE_PAIN") || equal(SOUND_KEYS[i], "ZOMBIE_DIE") || equal(SOUND_KEYS[i], "ZOMBIE_IDLE"))
+        {
+            if (AnyClassLacks(SOUND_KEYS[i][7]))
+                PrecacheSoundKeyEx(SOUND_KEYS[i], false);
+            else
+                TrieSetString(g_tRes, SOUND_KEYS[i], "");
+            continue;
+        }
         if (equal(SOUND_KEYS[i], "BOSS_", 5))
         {
             // BOSS_SCREAM ayrica herkese (2D) calinir: gerekmiyorsa sadece indirilir
@@ -1400,6 +1463,16 @@ public plugin_precache()
     g_sprWeb   = PrecacheResSprite("SPR_WEB", g_szSprWeb, charsmax(g_szSprWeb));
     g_sprSpore = PrecacheResSprite("SPR_SPORE", g_szSprSpore, charsmax(g_szSprSpore));
     g_sprEmp   = PrecacheResSprite("SPR_EMP", g_szSprEmp, charsmax(g_szSprEmp));
+
+    // v3.0 (C): efekt sprite'lari (patlamalar, iyilesme, level, enfeksiyon, pence, sok, buz, bosluk, zehir)
+    new fxbuf[64];
+    g_iFxSprN = 0;
+    for (new i = 0; i < FXS_TOTAL; i++)
+    {
+        g_sprFx[i] = PrecacheResSprite(FXS_KEY[i], fxbuf, charsmax(fxbuf));
+        if (g_sprFx[i])
+            g_iFxSprN++;
+    }
 
     // Kafa ustu gostergeler (boss bari once: en onemlisi)
     static const OVKEY[OVS_TOTAL][] = { "SPR_BOSSBAR", "SPR_BOSSICON", "SPR_HPBAR", "SPR_ICON_VIP", "SPR_ICON_ADMIN", "SPR_ICON_MVP", "SPR_ICON_LAST", "SPR_ICON_ALPHA" };
@@ -1502,6 +1575,7 @@ public plugin_precache()
     log_amx("[Vexmira] precache: sound=%d model=%d generic=%d", g_iPcSnd, g_iPcMdl, g_iPcGen);
     log_amx("[Vexmira] precache detay: eklenti 3D ses %d/%d, model+sprite %d/%d, generic %d, butceden atlanan ses %d / model %d, yuklenen boss %d",
         g_iMySnd, g_iSndBudget, g_iMyMdl, g_iMdlBudget, g_iMyGen, g_iSndSkipped, g_iMdlSkipped, g_iBossLoadN);
+    log_amx("[Vexmira] efekt sprite'lari: %d/%d yuklendi (model+sprite butcesi %d/%d)", g_iFxSprN, FXS_TOTAL, g_iMyMdl, g_iMdlBudget);
     copy(path, charsmax(path), "");
 }
 
@@ -1581,7 +1655,9 @@ new const SOUND_2D_KEYS[][] =
     "HEADSHOT", "HEARTBEAT", "HUMAN_WIN", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "KILL_MONSTER",
     "LAST_HUMAN", "LEVEL_UP", "LIGHTNING", "LM_DENY", "MAP_END", "METEOR", "MODE_START", "MVP", "NADE_FROST", "NADE_MODE",
     "PLAYER_JOIN", "PLAYER_LEAVE", "QUEST_DONE", "ROUND_START", "SHOP_BUY", "SKILL_UNLOCK", "SPEED_START", "SPEED_WIND",
-    "STORM_STRIKE", "STREAK_5", "STREAK_10", "STREAK_15", "VIP_JOIN", "WELCOME", "ZOMBIE_WIN", "UI_OPEN"
+    "STORM_STRIKE", "STREAK_5", "STREAK_10", "STREAK_15", "VIP_JOIN", "WELCOME", "ZOMBIE_WIN", "UI_OPEN",
+    // v3.0 (C): sadece ATTN_NONE (herkes duyar) ile calinanlar
+    "NEM_RAGE"
 };
 
 // Sadece yedek olarak kullanilan ses anahtarlari (sinifin / bossun kendi sesi varsa gereksiz)
@@ -1590,7 +1666,8 @@ bool:IsFallbackOnly(const key[])
     static const FB[][] =
     {
         "ABILITY_BURST", "ABILITY_SHIELD", "ABILITY_SCREAM", "ABILITY_DRAIN", "ABILITY_CLOAK", "ABILITY_TOXIC", "ABILITY_FROST",
-        "ZOMBIE_ACID", "ZOMBIE_HEAL", "ZOMBIE_BLINK", "ZOMBIE_SHOCK", "BOSS_ROAR", "BOSS_SCREAM"
+        "ZOMBIE_ACID", "ZOMBIE_HEAL", "ZOMBIE_BLINK", "ZOMBIE_SHOCK", "BOSS_ROAR", "BOSS_SCREAM",
+        "ZOMBIE_PAIN", "ZOMBIE_DIE", "ZOMBIE_IDLE"
     };
     for (new i = 0; i < sizeof FB; i++)
     {
@@ -1640,11 +1717,15 @@ PrecacheSoundKeyEx(const key[], bool:twoD)
 }
 
 // 3D ses (precache_sound). 0 = butce dolu, atlandi.
+// Ayni dosyayi isteyen anahtarlar tek yuva kullanir (motor buyuk/kucuk harf ayirmaz: anahtar kucuk harf)
 PcSound(const path[])
 {
     if (!path[0])
         return 0;
-    if (TrieKeyExists(g_tSnd3D, path))
+    new low[128];
+    copy(low, charsmax(low), path);
+    strtolower(low);
+    if (TrieKeyExists(g_tSnd3D, path) || TrieKeyExists(g_tSnd3D, low))
         return 1;
     if (g_iMySnd >= g_iSndBudget)
     {
@@ -1656,6 +1737,8 @@ PcSound(const path[])
     g_iMySnd++;
     g_iPcSnd = max(g_iPcSnd, idx);
     TrieSetCell(g_tSnd3D, path, idx);
+    if (!equal(low, path))
+        TrieSetCell(g_tSnd3D, low, idx);
     ScanWav(path);
     return 1;
 }
@@ -1692,6 +1775,102 @@ PcModel(const path[], bool:optional = true)
     return idx;
 }
 
+// Bir sinifin kendi <olay> sesi yok mu? (varsa genel ZOMBIE_<olay> sesi gereksiz)
+bool:AnyClassLacks(const ev[])
+{
+    new key[24], tmp[8];
+    for (new i = 0; i < NUM_CLASSES; i++)
+    {
+        formatex(key, charsmax(key), "Z%d_%s", i, ev);
+        if (!TrieGetString(g_tRes, key, tmp, charsmax(tmp)) || !tmp[0])
+            return true;
+    }
+    return false;
+}
+
+/* ---------------- v3.0 (C): kullanilmayan stok sesleri engelleme ---------------- */
+// Oyun DLL'i (ReGameDLL) worldspawn precache'inde bu sesleri her haritada yukler ama bu modda
+// sunucu tarafinda HIC calinmazlar:
+//  - C4 / bomba: bomba verilmez (rg_MakeBomber engelli), haritalarda bomba bolgesi yok
+//  - telsiz (radio/*): round basi / rehine telsizi istemcide SendAudio ile calinir (sunucu yuvasi gerekmez)
+//  - bot duzenleme (buttons/*): sadece bot_debug / nav duzenleme + yerel (listen) sunucu
+//  - tutor / kariyer (events/*): sadece listen sunucu / kariyer modu
+//  - geiger + silah HUD sesleri: istemci kendi calar
+// Pencere: plugin_precache -> haritanin ilk varligi dogana kadar (sadece oyunun kendi
+// precache'i). Harita varliklari (kapi / buton / ambient_generic) ayni sesi isterse yuklenir.
+new const STOCK_SND_BLOCK[][] =
+{
+    "weapons/c4_click.wav", "weapons/c4_beep1.wav", "weapons/c4_beep2.wav", "weapons/c4_beep3.wav",
+    "weapons/c4_beep4.wav", "weapons/c4_beep5.wav", "weapons/c4_explode1.wav", "weapons/c4_plant.wav",
+    "weapons/c4_disarm.wav", "weapons/c4_disarmed.wav",
+    "radio/locknload.wav", "radio/letsgo.wav", "radio/moveout.wav", "radio/com_go.wav", "radio/rescued.wav",
+    "radio/rounddraw.wav",
+    "buttons/bell1.wav", "buttons/blip1.wav", "buttons/blip2.wav", "buttons/button11.wav",
+    "buttons/latchunlocked2.wav", "buttons/lightswitch2.wav",
+    "events/tutor_msg.wav", "events/enemy_died.wav", "events/friend_died.wav", "events/task_complete.wav",
+    "player/geiger1.wav", "player/geiger2.wav", "player/geiger3.wav", "player/geiger4.wav", "player/geiger5.wav",
+    "player/geiger6.wav",
+    "common/wpn_hudoff.wav", "common/wpn_hudon.wav", "common/wpn_moveselect.wav"
+};
+new Trie:g_tSndBlock, g_iFwSndBlock, g_iFwSpawnWin, bool:g_bSndBlockWin, g_iSndBlocked;
+
+SetupStockSoundBlock()
+{
+    if (str_to_num(GetResString("SOUND_BLOCK_STOCK", "1")) <= 0)
+        return;
+    g_tSndBlock = TrieCreate();
+    for (new i = 0; i < sizeof STOCK_SND_BLOCK; i++)
+        TrieSetCell(g_tSndBlock, STOCK_SND_BLOCK[i], 1);
+    new list[256], tmp[96], pos;
+    copy(list, charsmax(list), GetResString("SOUND_BLOCK_EXTRA", ""));
+    while ((pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
+    {
+        if (tmp[0])
+        {
+            strtolower(tmp);
+            TrieSetCell(g_tSndBlock, tmp, 1);
+        }
+    }
+    g_bSndBlockWin = true;
+    g_iFwSndBlock = register_forward(FM_PrecacheSound, "fw_PcSoundBlock", 0);
+    g_iFwSpawnWin = register_forward(FM_Spawn, "fw_SpawnBlockWin", 0);
+}
+
+public fw_PcSoundBlock(const sample[])
+{
+    if (!g_bSndBlockWin || g_tSndBlock == Invalid_Trie)
+        return FMRES_IGNORED;
+    new low[96];
+    copy(low, charsmax(low), sample);
+    strtolower(low);
+    // Eklentinin kendisi yuklediyse (or. yedek ses) oyun da ayni yuvayi alsin
+    if (!TrieKeyExists(g_tSndBlock, low) || TrieKeyExists(g_tSnd3D, low))
+        return FMRES_IGNORED;
+    g_iSndBlocked++;
+    forward_return(FMV_CELL, 0);
+    return FMRES_SUPERCEDE;
+}
+
+// Haritanin ilk varligi dogdu: oyunun kendi precache'i bitti -> pencere kapanir
+public fw_SpawnBlockWin(ent)
+{
+    if (!g_bSndBlockWin || !pev_valid(ent))
+        return FMRES_IGNORED;
+    new cls[32];
+    pev(ent, pev_classname, cls, charsmax(cls));
+    if (equal(cls, "worldspawn"))
+        return FMRES_IGNORED;
+    StockSoundBlockEnd();
+    return FMRES_IGNORED;
+}
+
+StockSoundBlockEnd()
+{
+    g_bSndBlockWin = false;
+    if (g_iFwSndBlock) { unregister_forward(FM_PrecacheSound, g_iFwSndBlock, 0); g_iFwSndBlock = 0; }
+    if (g_iFwSpawnWin) { unregister_forward(FM_Spawn, g_iFwSpawnWin, 0); g_iFwSpawnWin = 0; }
+}
+
 // Toplam sayac: oyun DLL'i / harita / diger eklentilerin precache'leri (indeks = en buyuk)
 public fw_PcSoundPost(const s[])
 {
@@ -1714,6 +1893,9 @@ public fw_PcGenericPost(const s[])
 // plugin_init: harita varliklari da yuklendi -> toplam sayilar
 PrecacheReportTotals()
 {
+    StockSoundBlockEnd();
+    if (g_tSndBlock != Invalid_Trie)
+        log_amx("[Vexmira] kullanilmayan stok ses engellendi: %d (C4 / telsiz / bot duzenleme / tutor / geiger)", g_iSndBlocked);
     if (g_iFwPcSnd) { unregister_forward(FM_PrecacheSound, g_iFwPcSnd, 1); g_iFwPcSnd = 0; }
     if (g_iFwPcMdl) { unregister_forward(FM_PrecacheModel, g_iFwPcMdl, 1); g_iFwPcMdl = 0; }
     if (g_iFwPcGen) { unregister_forward(FM_PrecacheGeneric, g_iFwPcGen, 1); g_iFwPcGen = 0; }
@@ -1739,6 +1921,8 @@ public srv_PrecacheStats()
     server_print("[Vexmira] eklenti: 3D ses %d/%d  model+sprite %d/%d  generic %d  atlanan ses %d / model %d",
         g_iMySnd, g_iSndBudget, g_iMyMdl, g_iMdlBudget, g_iMyGen, g_iSndSkipped, g_iMdlSkipped);
     server_print("[Vexmira] yuklenen bosslar (%d): %s", g_iBossLoadN, list[0] ? list : "-");
+    server_print("[Vexmira] engellenen stok ses: %d  |  ortam sesi (ambient_generic) kaydi: %d, yeniden baslatma: %d",
+        g_iSndBlocked, g_iAmbN, g_iAmbRestored);
     new ovh[160];
     for (new i = 0; i < OVS_TOTAL; i++)
     {
@@ -3763,6 +3947,7 @@ LevelUp(id, old)
 
     FxRing(o, 0, 255, 140, 260);
     FxLight(o, 0, 255, 140, 25, 12, 30);
+    FxSpr(o, g_sprFx[FXS_LEVELUP], 9, 230, 20.0);
     FadeOne(id, 0, 255, 140, 90, 0.6);
     PlayKey(id, "LEVEL_UP");
     HudTo(id, SL_PERS, CLR_REWARD, 3.5, "LEVEL_UP_HUD", g_iLevel[id]);
@@ -3953,9 +4138,14 @@ public rg_MakeBomber(id)
 
 public rg_RestartRound()
 {
-    // Onceki roundun sesleri (kalp atisi, muzik, yanma, ruzgar...) tamamen susar
+    // Onceki roundun sesleri (kalp atisi, muzik, yanma, ruzgar...) tamamen susar.
+    // "stopsound" haritanin dongulu ortam seslerini de susturur: kisa sure sonra yeniden baslar.
     if (get_pcvar_num(g_pRoundStopSnd))
+    {
         StopAllClientSounds();
+        remove_task(TASK_AMBREST);
+        set_task(0.8, "task_AmbientRestore", TASK_AMBREST);
+    }
 
     remove_task(TASK_ANNOUNCE);
     remove_task(TASK_BOSSCAST);
@@ -5051,7 +5241,12 @@ HealTo(id, amount, maxhp)
 {
     new Float:hp = Float:get_entvar(id, var_health);
     if (hp < float(maxhp))
+    {
         set_entvar(id, var_health, floatmin(float(maxhp), hp + float(amount)));
+        // v3.0 (C): iyilesme sprite'i (kucuk / surekli iyilesmelerde 1 sn'de bir)
+        if (amount >= 5)
+            FxHeal(id);
+    }
 }
 
 DoctorAura(id, const Float:o[3])
@@ -6014,6 +6209,7 @@ Infect(victim, attacker)
     new Float:vo[3];
     get_entvar(victim, var_origin, vo);
     CosInfectFx(attacker, vo);
+    FxSpr(vo, g_sprFx[FXS_INFECT], 7, 220, 10.0);
 
     // Skor tablosu + olum mesaji
     set_entvar(attacker, var_frags, Float:get_entvar(attacker, var_frags) + 1.0);
@@ -6738,6 +6934,8 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
         {
             if (inflictor != attacker)
                 return HC_CONTINUE;
+            // v3.0 (C): pence izi (zirh / kalkan / enfeksiyon dahil her isabet)
+            FxClawHit(victim);
 
             // v3.0 Taklitci: kiliktayken ilk vurus x2 hasar ve kilik acilir
             new Float:mimicMult = 1.0;
@@ -7152,6 +7350,9 @@ Freeze(victim, Float:dur)
     rg_reset_maxspeed(victim);
     ApplyRender(victim);
     EmitKey(victim, "FREEZE");
+    new Float:vo[3];
+    get_entvar(victim, var_origin, vo);
+    FxElSmall(vo, EL_ICE, 7);
 }
 
 ChainLightning(victim, attacker)
@@ -7842,7 +8043,8 @@ public rg_ExplodeHe(ent, tracehandle, bits)
 
     if (type == NADE_FIRE)
     {
-        FxExplosion(o);
+        if (!FxExploEl(o, EL_FIRE, 24, 16))
+            FxExplosion(o);
         FxRing(o, 255, 80, 0, 300);
         FxLava(o);
         FxLight(o, 255, 80, 0, 40, 15, 20);
@@ -7866,7 +8068,8 @@ public rg_ExplodeHe(ent, tracehandle, bits)
     {
         FxRing(o, 0, 255, 0, 300);
         FxLight(o, 0, 255, 0, 40, 15, 20);
-        FxSprite(o, g_sprSmoke, 30, 200);
+        if (!FxExploEl(o, EL_TOXIC, 24, 14))
+            FxSprite(o, g_sprSmoke, 30, 200);
         PlayKey(0, "NADE_INFECT");
 
         if (g_bRoundActive && AllowsInfection() && is_user_connected(owner) && g_bZombie[owner])
@@ -7901,6 +8104,7 @@ public rg_ExplodeSmoke(ent)
 
     FxRing(o, 0, 150, 255, 300);
     FxRing(o, 200, 240, 255, 200);
+    FxExploEl(o, EL_ICE, 24, 14);
     FxDisk(o, 0, 120, 255, 260, 5);
     FxStreak(o, 7, 60, 300);
     FxLight(o, 0, 150, 255, 40, 15, 20);
@@ -9758,6 +9962,112 @@ stock FxExplosion(const Float:o[3])
     }
 }
 
+/* ---------------- v3.0 (C): efekt sprite yardimcilari ---------------- */
+
+// Tek seferlik katkili sprite (TE_SPRITE, 10 kare/sn). Sprite yoksa false (cagiran yedegi cizer).
+stock bool:FxSpr(const Float:o[3], spr, scale, bright = 200, Float:zofs = 0.0)
+{
+    if (!spr)
+        return false;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!FxWants(p, o))
+            continue;
+        FxBegin(o, p);
+        write_byte(TE_SPRITE);
+        engfunc(EngFunc_WriteCoord, o[0]);
+        engfunc(EngFunc_WriteCoord, o[1]);
+        engfunc(EngFunc_WriteCoord, o[2] + zofs);
+        write_short(spr);
+        write_byte(scale);
+        write_byte(bright);
+        message_end();
+    }
+    return true;
+}
+
+// Element patlamasi (TE_EXPLOSION, 12 kare). Sprite yoksa false.
+stock bool:FxExploEl(const Float:o[3], el, scale = 22, rate = 16)
+{
+    new spr;
+    switch (el)
+    {
+        case EL_FIRE:  spr = g_sprFx[FXS_EXFIRE];
+        case EL_ICE:   spr = g_sprFx[FXS_EXICE];
+        case EL_TOXIC: spr = g_sprFx[FXS_EXTOXIC];
+        case EL_VOID:  spr = g_sprFx[FXS_EXVOID];
+        default:       spr = g_sprFx[FXS_SHOCK];
+    }
+    if (!spr)
+        return false;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!FxWants(p, o))
+            continue;
+        FxBegin(o, p);
+        write_byte(TE_EXPLOSION);
+        engfunc(EngFunc_WriteCoord, o[0]);
+        engfunc(EngFunc_WriteCoord, o[1]);
+        engfunc(EngFunc_WriteCoord, o[2] + 16.0);
+        write_short(spr);
+        write_byte(scale);
+        write_byte(rate);
+        write_byte(TE_EXPLFLAG_NOSOUND | TE_EXPLFLAG_NODLIGHTS | TE_EXPLFLAG_NOPARTICLES);
+        message_end();
+    }
+    return true;
+}
+
+// Kucuk element izi (vurulan oyuncunun ustunde): buz / bosluk / zehir / sok halkasi
+stock bool:FxElSmall(const Float:o[3], el, scale = 6)
+{
+    switch (el)
+    {
+        case EL_FIRE:  return FxSpr(o, g_sprFx[FXS_EXFIRE] ? g_sprFx[FXS_EXFIRE] : g_sprFire, scale / 2 + 2, 210, 8.0);
+        case EL_ICE:   return FxSpr(o, g_sprFx[FXS_ICE], scale, 200, 8.0);
+        case EL_TOXIC: return FxSpr(o, g_sprFx[FXS_TOXIC], scale, 190, 8.0);
+        case EL_VOID:  return FxSpr(o, g_sprFx[FXS_VOID], scale, 210, 8.0);
+    }
+    return FxSpr(o, g_sprFx[FXS_SHOCK], scale, 190, 0.0);
+}
+
+// Boss yetenegi: bossun elementine gore alan patlamasi (yaricapa gore olcek)
+stock FxBossElement(const Float:c[3], Float:radius)
+{
+    if (!(0 <= g_iBossType < NUM_BOSSES))
+        return;
+    new scale = clamp(floatround(radius / 14.0), 10, 40);
+    FxExploEl(c, BOSS_ELEM[g_iBossType], scale, 14);
+}
+
+// Pence darbesi: kurbanin gogsunde pence izi (oyuncu basina 0.3 sn'de bir)
+stock FxClawHit(victim)
+{
+    if (!g_sprFx[FXS_SLASH])
+        return;
+    new Float:now = get_gametime();
+    if (now < g_fFxHitT[victim])
+        return;
+    g_fFxHitT[victim] = now + 0.3;
+    new Float:o[3];
+    get_entvar(victim, var_origin, o);
+    FxSpr(o, g_sprFx[FXS_SLASH], 4, 220, 12.0);
+}
+
+// Iyilesme (oyuncu basina 1 sn'de bir)
+stock FxHeal(id)
+{
+    if (!g_sprFx[FXS_HEAL] || !is_user_alive(id))
+        return;
+    new Float:now = get_gametime();
+    if (now < g_fFxHealT[id])
+        return;
+    g_fFxHealT[id] = now + 1.0;
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    FxSpr(o, g_sprFx[FXS_HEAL], 5, 210, 10.0);
+}
+
 stock FxTrail(ent, r, g, b)
 {
     message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
@@ -10120,6 +10430,79 @@ stock StopAllClientSounds()
         if (is_user_connected(id) && !is_user_bot(id))
             client_cmd(id, "mp3 stop;stopsound");
     }
+}
+
+/* ---------------- v3.0 (C): harita ortam sesleri (ambient_generic) ---------------- */
+// Oyun (ReGameDLL) her round basinda dongulu ambient_generic seslerini yeniden calar, ama
+// eklentinin "stopsound" komutu istemcide ayni karede islenince onlari da susturur. Bu yuzden
+// her ambient_generic'in son durumu (ses / ses duzeyi / perde / acik-kapali) kaydedilir ve
+// "stopsound"dan sonra sadece ACIK + DONGULU olanlar yeniden calinir. Eklenti sesleri
+// (spk / mp3 / emit) yeniden calinmaz: round sonunda susma garantisi aynen gecerli.
+public fw_AmbientPost(ent, const Float:pos[3], const sample[], Float:vol, Float:attn, flags, pitch)
+{
+    if (g_bAmbReplay || ent <= MaxClients || !pev_valid(ent) || !sample[0])
+        return FMRES_IGNORED;
+    new cls[20];
+    pev(ent, pev_classname, cls, charsmax(cls));
+    if (!equal(cls, "ambient_generic") || (pev(ent, pev_spawnflags) & 32))   // 32 = dongusuz (tek sefer)
+        return FMRES_IGNORED;
+
+    new slot = -1;
+    for (new i = 0; i < g_iAmbN; i++)
+    {
+        if (g_iAmbEnt[i] == ent)
+        {
+            slot = i;
+            break;
+        }
+    }
+    if (slot < 0)
+    {
+        if (g_iAmbN >= MAX_AMB)
+            return FMRES_IGNORED;
+        slot = g_iAmbN++;
+        g_iAmbEnt[slot] = ent;
+        g_bAmbOn[slot] = false;
+    }
+
+    if (flags & SND_STOP)
+    {
+        g_bAmbOn[slot] = false;
+        return FMRES_IGNORED;
+    }
+    if (flags & (SND_CHANGE_VOL | SND_CHANGE_PITCH))
+    {
+        // Rampa / perde degisimi: sadece calan ses guncellenir
+        if (flags & SND_CHANGE_VOL)
+            g_fAmbVol[slot] = vol;
+        if (flags & SND_CHANGE_PITCH)
+            g_iAmbPitch[slot] = pitch;
+        return FMRES_IGNORED;
+    }
+    copy(g_szAmbSnd[slot], charsmax(g_szAmbSnd[]), sample);
+    g_fAmbVol[slot] = vol;
+    g_fAmbAttn[slot] = attn;
+    g_iAmbPitch[slot] = pitch;
+    g_bAmbOn[slot] = true;   // ses duzeyi 0 olsa bile (spin-up rampasi) sonraki degisimler bu kanala uygulanir
+    return FMRES_IGNORED;
+}
+
+public task_AmbientRestore()
+{
+    new Float:o[3], n;
+    g_bAmbReplay = true;
+    for (new i = 0; i < g_iAmbN; i++)
+    {
+        new ent = g_iAmbEnt[i];
+        if (!g_bAmbOn[i] || !g_szAmbSnd[i][0] || !pev_valid(ent))
+            continue;
+        pev(ent, pev_origin, o);
+        engfunc(EngFunc_EmitAmbientSound, ent, o, g_szAmbSnd[i], g_fAmbVol[i], g_fAmbAttn[i], 0, g_iAmbPitch[i]);
+        n++;
+    }
+    g_bAmbReplay = false;
+    if (n)
+        g_iAmbRestored++;
 }
 
 /* ---------------- v1.4 ek efektler ---------------- */
@@ -12417,6 +12800,14 @@ BossHurt(id, Float:dmg, bits)
     if (g_bFinalBoss)
         dmg *= 1.15;
 
+    // v3.0 (C): vurulan insanin ustunde bossun element izi (0.4 sn'de bir)
+    if (0 <= g_iBossType < NUM_BOSSES && get_gametime() >= g_fFxHitT[id])
+    {
+        g_fFxHitT[id] = get_gametime() + 0.4;
+        new Float:vo[3];
+        get_entvar(id, var_origin, vo);
+        FxElSmall(vo, BOSS_ELEM[g_iBossType], 6);
+    }
     ExecuteHamB(Ham_TakeDamage, id, 0, (g_iBoss && is_user_connected(g_iBoss)) ? g_iBoss : 0, dmg, bits);
 }
 
@@ -12823,6 +13214,8 @@ public task_BossCast(params[])
 BossAoE(const Float:c[3], Float:radius, Float:dmg, r, g, b, Float:up = 0.0)
 {
     new Float:po[3], Float:vel[3], hits;
+    // v3.0 (C): bossun elementine gore patlama sprite'i
+    FxBossElement(c, radius);
     for (new id = 1; id <= g_iMax; id++)
     {
         if (!is_user_alive(id) || g_bZombie[id])
@@ -17670,6 +18063,14 @@ BskAnnounce(ph)
     // Yetenek sesi (B<n>_R<faz>): bossun uzerinden, herkes duyar
     formatex(key, charsmax(key), "B%d_R%d", g_iBossType, ph);
     EmitKey(g_iBoss, key, CHAN_STATIC, ATTN_NONE);
+
+    // v3.0 (C): yetenek baslangici: bossun elementine gore sprite (faz arttikca buyur)
+    if (g_iBoss && is_user_alive(g_iBoss) && 0 <= g_iBossType < NUM_BOSSES)
+    {
+        new Float:bo[3];
+        get_entvar(g_iBoss, var_origin, bo);
+        FxElSmall(bo, BOSS_ELEM[g_iBossType], 8 + clamp(ph, 1, 3) * 3);
+    }
 }
 
 /* ---------------- R tusu / yapay zeka ---------------- */
@@ -18411,6 +18812,7 @@ public task_NovaBand(params[])
     FxRingEx(feet, 170, 0, 255, floatround(outer), 40, 4);
     FxRingEx(feet, 255, 255, 255, floatround(outer * 0.92), 12, 3);
     FxImplosion(o, 200, 40, 4);
+    FxElSmall(o, EL_VOID, 12);
     EmitKeyPos(o, "BOSS_SUMMON");
 
     for (new p = 1; p <= g_iMax; p++)
@@ -18505,7 +18907,8 @@ public task_FirePillar(params[])
         FxSprite(h, spr, 10, 240);
     }
     FxLava(o);
-    FxExplosion(o);
+    if (!FxExploEl(o, EL_FIRE, 20, 15))
+        FxExplosion(o);
     FxLight(o, 255, 100, 0, 35, 6, 30);
     EmitKeyPos(o, "NADE_FIRE");
 
@@ -18554,7 +18957,8 @@ public task_Supernova(params[])
     ApplyRender(g_iBoss);
 
     new Float:rad = BskRad(3);
-    FxExplosion(o);
+    if (!FxExploEl(o, EL_FIRE, 36, 15))
+        FxExplosion(o);
     FxLava(o);
     FxRingEx(o, 255, 90, 0, floatround(rad), 60, 7);
     FxRingEx(o, 255, 240, 120, floatround(rad * 0.6), 30, 6);
@@ -18766,6 +19170,7 @@ bool:Bsk_FrostTomb()
     new Float:to[3], Float:po[3];
     get_entvar(t, var_origin, to);
     RootHuman(t, 3.0);
+    FxExploEl(to, EL_ICE, 14, 12);
     FxRingEx(to, 150, 220, 255, 160, 30, 5);
     FxDisk(to, 120, 200, 255, 120, 8);
     FxStreak(to, 7, 80, 300);
@@ -19048,7 +19453,8 @@ EggTakeDamage(ent, attacker, Float:damage)
 AcidSplash(const Float:o[3], Float:rad, Float:dmg)
 {
     new Float:po[3];
-    FxSprite(o, g_sprSmoke, 20, 180);
+    if (!FxExploEl(o, EL_TOXIC, clamp(floatround(rad / 14.0), 10, 30), 14))
+        FxSprite(o, g_sprSmoke, 20, 180);
     FxStreak(o, 2, 40, 220);
     EmitKeyPos(o, "ACID_POOL");
     AddPool(o, 0, 6.0, rad);
@@ -19103,7 +19509,8 @@ SingularityCollapse()
 {
     new Float:c[3], Float:po[3];
     c = g_fBossChannelPos;
-    FxExplosion(c);
+    if (!FxExploEl(c, EL_VOID, 30, 12))
+        FxExplosion(c);
     FxRingEx(c, 220, 0, 140, 300, 50, 6);
     FxRingEx(c, 255, 255, 255, 200, 20, 5);
     FxLava(c);
@@ -19270,6 +19677,7 @@ VoidBoltHit(ent, p)
     vel[2] = 180.0;
     set_entvar(p, var_velocity, vel);
     FxImplosion(po, 150, 40, 5);
+    FxElSmall(po, EL_VOID, 9);
     FxBeamEntPoint(g_iBoss, po, g_sprLightning, 220, 0, 140, 30, 40, 5);
     FadeOne(p, 90, 0, 90, 170, 0.8);
     BossHurt(p, BskDmg(1), DMG_GENERIC);
@@ -20119,6 +20527,7 @@ HunterImpact(id)
 
     FxRingEx(o, 130, 130, 170, floatround(rad * 2.5), 14, 4);
     FxSprite(o, g_sprSmoke, 10, 120);
+    FxSpr(o, g_sprFx[FXS_SHOCK], clamp(floatround(rad / 10.0), 6, 20), 200, -20.0);
     if (hits)
     {
         // Avinin ustune konar
@@ -20584,6 +20993,7 @@ BurrowErupt(id)
     FxRingEx(o, 140, 100, 50, floatround(rad), 26, 5);
     FxRingEx(o, 200, 160, 90, floatround(rad * 0.5), 14, 3);
     FxSprite(o, g_sprSmoke, 35, 200);
+    FxSpr(o, g_sprFx[FXS_SHOCK], clamp(floatround(rad / 12.0), 8, 30), 210, -20.0);
     FxParticles(o, 140, 22, 10);
     FxLight(o, 160, 110, 50, 30, 8, 20);
     EmitKey(id, "BURROWER_ERUPT", CHAN_BODY);
@@ -20846,6 +21256,7 @@ SporeBurst(ent, owner)
     }
 
     FxSprite(o, g_sprSpore ? g_sprSpore : g_sprSmoke, g_sprSpore ? 12 : 25, 220);
+    FxExploEl(o, EL_TOXIC, clamp(floatround(rad / 14.0), 8, 24), 14);
     FxParticles(o, 120, 60, 8);
     FxRingEx(o, 110, 200, 60, floatround(rad), 14, 4);
     FxLight(o, 110, 220, 60, 30, 8, 20);

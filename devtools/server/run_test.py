@@ -122,26 +122,50 @@ def sync_package(server=SERVER, verbose=True):
     return made
 
 
-def build_plugin(server=SERVER):
+def build_plugin(server=SERVER, retries=0, wait=60):
+    """Compile the repo .sma (devtools/plugin/build_plugin.sh) into a temp file; install it (and the
+    source snapshot used for stack-trace lines) only when the build is clean. Another agent may be
+    editing the plugin: with retries > 0 a failed build is retried after `wait` seconds."""
+    out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')
+    tmp = out[:-len('.amxx')] + '.new.amxx'      # amxxpc wants the .amxx suffix
+    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting', 'vexmira_zombie.sma')
+    for attempt in range(retries + 1):
+        snap = open(src, 'rb').read()
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        p = subprocess.run(['bash', os.path.join(REPO, 'devtools', 'plugin', 'build_plugin.sh'), tmp],
+                           capture_output=True, text=True)
+        log = p.stdout + p.stderr
+        errs = [l for l in log.splitlines() if re.search(r'\berror\b', l, re.I)]
+        warns = [l for l in log.splitlines() if re.search(r'\bwarning\b', l, re.I)]
+        ok = os.path.exists(tmp) and os.path.getsize(tmp) > 0 and not errs
+        changed = open(src, 'rb').read() != snap        # edited while compiling -> snapshot unreliable
+        print('[build] vexmira_zombie.amxx: %s (%d errors, %d warnings, %d bytes)%s' % (
+            'OK' if ok else 'FAILED', len(errs), len(warns), os.path.getsize(tmp) if os.path.exists(tmp) else 0,
+            ' (source changed during build)' if changed else ''))
+        for l in (errs + warns)[:30]:
+            print('   ' + l)
+        if ok and not changed:
+            os.replace(tmp, out)
+            with open(SNAPSHOT, 'wb') as f:
+                f.write(snap)
+            return True
+        if not ok:
+            print(log[-3000:])
+        if attempt < retries:
+            print('[build] retry %d/%d in %ds (plugin may be mid-edit)' % (attempt + 1, retries, wait))
+            time.sleep(wait)
+    if os.path.exists(tmp):
+        os.unlink(tmp)
+    return False
+
+
+def plugin_stale(server=SERVER):
     out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')
     src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting', 'vexmira_zombie.sma')
-    snap = open(src, 'rb').read()
-    p = subprocess.run(['bash', os.path.join(REPO, 'devtools', 'plugin', 'build_plugin.sh'), out],
-                       capture_output=True, text=True)
-    # source snapshot = exactly what was compiled (stack-trace line numbers refer to it)
-    with open(SNAPSHOT, 'wb') as f:
-        f.write(snap)
-    log = p.stdout + p.stderr
-    errs = [l for l in log.splitlines() if re.search(r'\berror\b', l, re.I)]
-    warns = [l for l in log.splitlines() if re.search(r'\bwarning\b', l, re.I)]
-    ok = os.path.exists(out) and not errs
-    print('[build] vexmira_zombie.amxx: %s (%d errors, %d warnings, %d bytes)' % (
-        'OK' if ok else 'FAILED', len(errs), len(warns), os.path.getsize(out) if os.path.exists(out) else 0))
-    for l in (errs + warns)[:30]:
-        print('   ' + l)
-    if not ok:
-        print(log[-3000:])
-    return ok
+    if not os.path.exists(out) or not os.path.exists(SNAPSHOT):
+        return True
+    return open(src, 'rb').read() != open(SNAPSHOT, 'rb').read()
 
 
 def build_probe(server=SERVER):
@@ -209,6 +233,21 @@ def parse_commands(path, inline):
     return cmds
 
 
+def free_port(port):
+    """First UDP port >= port that nobody listens on (another harness run may be active)."""
+    import socket
+    for p in range(port, port + 50):
+        sk = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            sk.bind(('127.0.0.1', p))
+            return p
+        except OSError:
+            continue
+        finally:
+            sk.close()
+    return port
+
+
 class Server:
     def __init__(self, args, rundir):
         self.args = args
@@ -224,6 +263,7 @@ class Server:
 
     def launch(self):
         a = self.args
+        a.port = free_port(a.port)
         cmd = ['./hlds_linux', '-game', 'cstrike', '-insecure', '-nomaster', '+sv_lan', '1', '+maxplayers',
                str(a.maxplayers), '-port', str(a.port), '+ip', '127.0.0.1', '+map', a.map]
         env = dict(os.environ)
@@ -324,7 +364,11 @@ class Server:
         self.log.close()
 
 
+LAST = {}
+
+
 def run(args, quiet=False, collect_missing=False):
+    set_vexmira_ini(enabled=not args.no_vexmira, debug=not args.no_debug)
     stamp = time.strftime('%Y%m%d_%H%M%S')
     rundir = os.path.join(SERVER, 'runs', '%s_%s' % (stamp, args.map))
     os.makedirs(rundir, exist_ok=True)
@@ -385,6 +429,11 @@ def run(args, quiet=False, collect_missing=False):
         shutil.copy(SNAPSHOT, os.path.join(rundir, 'vexmira_zombie.sma'))
     console = [l for _, l in srv.lines]
     summ = summarize(console, texts, crashed, rc_before, srv.proc.returncode, args)
+    summ['map_up'] = srv.map_up.is_set()
+    summ['nav_saved'] = srv.nav_saved.is_set()
+    summ['rundir'] = rundir
+    LAST.clear()
+    LAST.update(summ)
     with open(os.path.join(rundir, 'summary.json'), 'w') as f:
         json.dump(summ, f, indent=1)
     txt = format_summary(summ)
@@ -531,6 +580,16 @@ def summarize(console, texts, crashed, rc_before, rc, args):
             maxhp[m.group(3)] = max(maxhp[m.group(3)], int(m.group(1)))
     s['special_model_samples'] = dict(special)
     s['max_hp_by_model'] = dict(maxhp)
+    def pl(tag):
+        return [l.split('[vexprobe] ', 1)[1] for l in probe_lines if '[vexprobe] %s' % tag in l]
+    s['spawnpoints'] = (pl('spawnpoints ') or [''])[-1]
+    s['spawn_problems'] = pl('spawn_blocked') + pl('spawn_floating')
+    s['spawn_usage'] = (pl('spawn_usage') or [''])[-1]
+    s['mapcheck'] = (pl('mapcheck') or [''])[-1]
+    s['stuck'] = pl('stuck ')
+    s['in_solid'] = pl('in_solid #') + pl('spawn_in_solid')
+    s['fall_deaths'] = pl('fall_death')
+    s['world_deaths'] = pl('world_death')
     s['round_wins'] = dict(collections.Counter(re.findall(r'round_win t=\d+ status=(\w+)', '\n'.join(probe_lines))))
     s['round_starts'] = len([l for l in probe_lines if 'round_start' in l])
     s['round_ends'] = len([l for l in probe_lines if 'round_end' in l])
@@ -620,6 +679,16 @@ def format_summary(s):
         w('   vexmira sounds emitted (%d unique):' % len(s['emitted']))
         for l in s['emitted'][:60]:
             w('     ' + l)
+    w('-' * 100)
+    w('MAP CHECKS (vexprobe)')
+    w('   %s' % (s['spawnpoints'] or 'spawnpoints: -'))
+    w('   %s' % (s['spawn_usage'] or 'spawn_usage: -'))
+    w('   %s' % (s['mapcheck'] or 'mapcheck: -'))
+    for k in ('spawn_problems', 'in_solid', 'stuck', 'fall_deaths', 'world_deaths'):
+        for l in s[k][:12]:
+            w('     ' + l)
+        if len(s[k]) > 12:
+            w('     ... %d more %s' % (len(s[k]) - 12, k))
     if s['perf']:
         w('-' * 100)
         w('AMXX PERF LOG (amxmodx_perflog; inflated by the debug flag)')
@@ -654,23 +723,258 @@ def format_summary(s):
     return '\n'.join(o) + '\n'
 
 
+# ------------------------------------------------------------------------------------- plugin ini
+def set_vexmira_ini(enabled=True, debug=True, server=SERVER):
+    """configs/plugins-vexmira.ini in the server: absent (plugin off), a server-local copy with the
+    AMXX "debug" flag (stack traces with .sma lines) or a link to the repo file."""
+    ini = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
+    for p in (ini, ini + '.off'):          # .off = leftover of older harness versions
+        if os.path.lexists(p):
+            os.unlink(p)
+    if not enabled:
+        return
+    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
+    if not debug:
+        os.symlink(src, ini)
+        return
+    lines = []
+    for l in open(src).read().splitlines():
+        t = l.split(';')[0].strip()
+        if t.endswith('.amxx'):
+            l = t + ' debug'
+        lines.append(l)
+    open(ini, 'w').write('\n'.join(lines) + '\n')
+
+
+# ------------------------------------------------------------------------------------- nav / maps
+SERVER_MAPS = os.path.join(SERVER, 'cstrike', 'maps')
+REPO_MAPS = os.path.join(REPO, 'cstrike', 'maps')
+PILOT = 'zm_vex_pilot'
+
+
+def repo_maps(include_pilot=True, only=None):
+    names = sorted(os.path.splitext(os.path.basename(f))[0] for f in glob.glob(os.path.join(REPO_MAPS, 'zm_vex_*.bsp')))
+    if not include_pilot:
+        names = [n for n in names if n != PILOT]
+    if only:
+        want = [m.strip() for m in only.split(',') if m.strip()]
+        names = [n for n in names if n in want or n.replace('zm_vex_', '') in want]
+    return names
+
+
+def nav_state(mapname, where=SERVER_MAPS):
+    """(ok, report) of maps/<map>.nav in `where`, checked against the map's bsp."""
+    import navfile
+    nav = os.path.join(where, mapname + '.nav')
+    bsp = os.path.join(SERVER_MAPS, mapname + '.bsp')
+    if not os.path.exists(nav):
+        return False, {'nav': nav, 'errors': ['missing'], 'warnings': []}
+    return navfile.validate(nav, bsp if os.path.exists(bsp) else None)
+
+
+def generate_nav(args, mapname, timeout=900):
+    """Boot `mapname` with the Vexmira plugin disabled and 1 bot; the bot system builds the mesh and
+    saves maps/<map>.nav (server tree). Returns the nav path or None."""
+    nav = os.path.join(SERVER_MAPS, mapname + '.nav')
+    if os.path.lexists(nav):
+        os.unlink(nav)                     # link to the repo nav or an old local one
+    a = argparse.Namespace(**vars(args))
+    a.map, a.bots, a.seconds, a.until_nav, a.commands, a.cmd, a.no_vexmira = mapname, 1, timeout, True, None, None, True
+    t = time.monotonic()
+    run(a, quiet=True)
+    took = time.monotonic() - t
+    ok = os.path.exists(nav) and LAST.get('nav_saved')
+    print('[nav] %s: %s in %.0fs' % (mapname, ('saved %d bytes' % os.path.getsize(nav)) if ok else 'NOT generated', took))
+    if not ok and os.path.lexists(nav):
+        os.unlink(nav)
+    return nav if ok else None
+
+
+def export_nav(nav, out_dir=None):
+    out_dir = out_dir or REPO_MAPS
+    os.makedirs(out_dir, exist_ok=True)
+    dst = os.path.join(out_dir, os.path.basename(nav))
+    shutil.copyfile(nav, dst)
+    os.chmod(dst, 0o644)
+    return dst
+
+
+def nav_all(args):
+    """--nav-all: (re)generate maps/<map>.nav for every repo zm_vex_*.bsp (pilot excluded unless named)
+    and copy it into the repo cstrike/maps/ (shipped with the package)."""
+    maps = repo_maps(include_pilot=bool(args.maps and PILOT in args.maps), only=args.maps)
+    if not maps:
+        print('[nav-all] no zm_vex_*.bsp in %s (pilot excluded)' % REPO_MAPS)
+        return 0
+    rows, rc = [], 0
+    for m in maps:
+        ok, rep = nav_state(m, args.nav_out or REPO_MAPS)
+        if ok and not args.force_nav:
+            print('[nav-all] %s: repo nav is valid for the current bsp, skipped (--force-nav regenerates)' % m)
+            rows.append((m, 'kept', rep))
+            continue
+        nav = generate_nav(args, m, args.nav_timeout)
+        if not nav:
+            rows.append((m, 'FAILED', {'errors': ['nav not saved (see %s)' % LAST.get('rundir')], 'warnings': []}))
+            rc = 1
+            continue
+        ok, rep = nav_state(m)
+        if not ok:
+            rows.append((m, 'INVALID', rep))
+            rc = 1
+            continue
+        dst = export_nav(nav, args.nav_out)
+        rows.append((m, 'exported', rep))
+        print('[nav-all] %s -> %s' % (m, dst))
+    import navfile
+    print('=' * 100)
+    print('NAV-ALL  (%d maps)' % len(rows))
+    for m, st, rep in rows:
+        print('  %-22s %-9s %s' % (m, st, navfile.format_report(rep) if 'areas' in rep or rep.get('errors') else ''))
+    print('=' * 100)
+    return rc
+
+
+def maps_smoke(args):
+    """--maps-smoke: boot every repo zm_vex_*.bsp for --smoke-seconds with --bots bots and report
+    per map: loaded ok, spawn usage, stuck / in-solid bots, fall + world deaths, precache, errors."""
+    maps = repo_maps(include_pilot=True, only=args.maps)
+    if not maps:
+        print('[smoke] no zm_vex_*.bsp in %s' % REPO_MAPS)
+        return 1
+    results = []
+    for m in maps:
+        nok, nrep = nav_state(m)
+        if not nok:
+            print('[smoke] %s: nav %s -> generating (server only%s)' % (
+                m, '; '.join(nrep['errors']), ', exported' if args.export_nav else ''))
+            nav = generate_nav(args, m, args.nav_timeout)
+            if nav and args.export_nav:
+                export_nav(nav)
+            nok, nrep = nav_state(m)
+        a = argparse.Namespace(**vars(args))
+        a.map, a.seconds, a.until_nav = m, args.smoke_seconds, False
+        rc = run(a, quiet=True)
+        s = dict(LAST)
+        s['rc'] = rc
+        s['nav_ok'] = nok
+        s['nav_report'] = nrep
+        results.append(s)
+    stamp = time.strftime('%Y%m%d_%H%M%S')
+    txt = format_smoke(results)
+    out = os.path.join(SERVER, 'runs', 'maps_smoke_%s' % stamp)
+    with open(out + '.txt', 'w') as f:
+        f.write(txt)
+    with open(out + '.json', 'w') as f:
+        json.dump(results, f, indent=1, default=str)
+    print(txt)
+    print('[smoke] report: %s.txt / .json' % out)
+    return max([r['rc'] for r in results] + [0 if all(_loaded(r) for r in results) else 1])
+
+
+def _loaded(s):
+    return bool(s.get('map_up') and not s.get('crash') and not s.get('fatal')
+                and s.get('plugin_status') in ('running', 'debug'))
+
+
+def _kv(line, key):
+    m = re.search(r'\b%s=(\S+)' % re.escape(key), line or '')
+    return m.group(1) if m else '-'
+
+
+def format_smoke(results):
+    o = ['=' * 118, 'MAPS SMOKE  %d maps' % len(results), '=' * 118]
+    o.append('%-20s %-6s %-11s %-11s %-6s %-5s %-5s %-6s %-5s %-6s %-21s %-4s %-5s %s' % (
+        'map', 'loaded', 'spawns ct/t', 'used ct/t', 'blk/fl', 'stack', 'stuck', 'solid', 'fall', 'world',
+        'precache mdl/snd/gen', 'err', 'fatal', 'nav'))
+    for s in results:
+        sp = s.get('spawnpoints', '')
+        su = s.get('spawn_usage', '')
+        mc = s.get('mapcheck', '')
+        pc = (s.get('precache_probe') or [''])[0]
+        m = re.search(r'model=(\d+)/512 sound=(\d+)/512 generic=(\d+)/512', pc)
+        nav = s.get('nav_report', {})
+        o.append('%-20s %-6s %-11s %-11s %-6s %-5s %-5s %-6s %-5s %-6s %-21s %-4d %-5d %s' % (
+            s['map'], 'OK' if _loaded(s) else 'NO',
+            '%s/%s' % (_kv(sp, 'ct'), _kv(sp, 't')),
+            '%s/%s' % (_kv(su, 'ct').split('/')[0], _kv(su, 't').split('/')[0]),
+            '%s/%s' % (_kv(sp, 'blocked'), _kv(sp, 'floating')),
+            _kv(su, 'stacked'), _kv(mc, 'stuck'), _kv(mc, 'in_solid'), _kv(mc, 'fall_deaths'),
+            _kv(mc, 'world_deaths'), '%s/%s/%s' % m.groups() if m else '-',
+            len(s.get('runtime_errors', [])), len(s.get('fatal', [])),
+            ('%d areas' % nav['areas']) if 'areas' in nav else ','.join(nav.get('errors', [])) or '-'))
+    o.append('-' * 118)
+    o.append('columns: spawns = info_player_start/deathmatch count; used = distinct spawn points players spawned on;')
+    o.append('  blk/fl = spawns whose player hull is inside solid / >18u above the floor; stack = spawned on another')
+    o.append('  player; stuck = bot pressed move keys but stayed within 48u for 10 s; solid = bot origin in world solid;')
+    o.append('  fall = fall-damage deaths; world = deaths by world/trigger_hurt/non-player; err = AMXX run-time errors')
+    for s in results:
+        o.append('-' * 118)
+        o.append('%s  (%ss, %d bots, rounds %d, kills %d, exit %s)  %s' % (
+            s['map'], s['seconds'], s['bots'], s.get('game_rounds', 0), s.get('kills_logged', 0), s.get('exit_code'),
+            s.get('rundir', '')))
+        o.append('   plugin: %s   %s' % (s.get('plugin_status'), s.get('final', '')))
+        o.append('   %s | %s | %s' % (s.get('spawnpoints') or '-', s.get('spawn_usage') or '-', s.get('mapcheck') or '-'))
+        for l in (s.get('precache_probe') or [])[:1]:
+            o.append('   ' + l)
+        nav = s.get('nav_report')
+        if nav:
+            import navfile
+            o.append('   nav: ' + navfile.format_report(nav).replace('\n', '\n   '))
+        for k in ('spawn_problems', 'in_solid', 'stuck', 'fall_deaths', 'world_deaths'):
+            for l in s.get(k, [])[:8]:
+                o.append('     %s' % l)
+            if len(s.get(k, [])) > 8:
+                o.append('     ... %d more %s' % (len(s[k]) - 8, k))
+        for e in s.get('runtime_errors', []):
+            o.append('   AMXX %dx %s' % (e['count'], e['msg']))
+            for st in e['stack'][:3]:
+                o.append('        %s' % st)
+        for l in s.get('fatal', []):
+            o.append('   FATAL ' + l)
+        for k, v in s.get('console_problems', {}).items():
+            if k == 'nav':
+                continue
+            for l in v[:8]:
+                o.append('   console %s: %s' % (k, l))
+        if s.get('console_tail'):
+            o.append('   console tail:')
+            o += ['     ' + l for l in s['console_tail'][-10:]]
+    o.append('=' * 118)
+    return '\n'.join(o) + '\n'
+
+
 # ------------------------------------------------------------------------------------- main
 def main(argv=None):
     ap = argparse.ArgumentParser(description='Vexmira headless CS 1.6 test server harness')
     ap.add_argument('--map', default='zm_vex_testroom')
-    ap.add_argument('--seconds', type=int, default=120, help='run time after the map is up')
-    ap.add_argument('--bots', type=int, default=0)
+    ap.add_argument('--seconds', type=int, default=150, help='run time after the map is up')
+    ap.add_argument('--bots', type=int, default=12, help='bot_quota after map start (0 = no bots)')
     ap.add_argument('--commands', help='timed command file ("<sec> <command>" per line)')
     ap.add_argument('--cmd', action='append', help='inline timed command "<sec> <command>"')
-    ap.add_argument('--rebuild-plugin', action='store_true', help='compile the repo .sma into the server first')
+    ap.add_argument('--rebuild-plugin', action='store_true',
+                    help='always compile the repo .sma (default: only when it differs from the last build)')
+    ap.add_argument('--no-rebuild', action='store_true', help='never compile, use the installed .amxx')
+    ap.add_argument('--build-retries', type=int, default=3,
+                    help='retry a failed build N times, 60 s apart (plugin edited in parallel)')
     ap.add_argument('--no-vexmira', action='store_true', help='run without the Vexmira plugin (baseline)')
     ap.add_argument('--no-probe', action='store_true')
     ap.add_argument('--no-debug', action='store_true', help='load the plugin without the AMXX debug flag')
     ap.add_argument('--no-sync', action='store_true', help='do not refresh repo symlinks')
-    ap.add_argument('--ensure-nav', action='store_true',
-                    help='if maps/<map>.nav is missing, first run a bot learning pass (plugin disabled)')
+    ap.add_argument('--ensure-nav', action='store_true', default=True,
+                    help='(default) if maps/<map>.nav is missing, first run a bot learning pass (plugin disabled)')
+    ap.add_argument('--no-ensure-nav', dest='ensure_nav', action='store_false')
     ap.add_argument('--until-nav', action='store_true', help='stop as soon as a .nav file is saved')
-    ap.add_argument('--export-nav', action='store_true', help='copy the generated .nav into the repo maps dir')
+    ap.add_argument('--export-nav', action='store_true', help='copy a generated .nav into the repo maps dir')
+    ap.add_argument('--nav-all', action='store_true',
+                    help='generate + validate + export maps/<map>.nav for every repo zm_vex_*.bsp (pilot excluded)')
+    ap.add_argument('--force-nav', action='store_true', help='--nav-all: regenerate even if the repo nav is valid')
+    ap.add_argument('--nav-out', help='--nav-all: export dir (default: repo cstrike/maps)')
+    ap.add_argument('--nav-timeout', type=int, default=900, help='max seconds per nav learning pass')
+    ap.add_argument('--maps-smoke', action='store_true',
+                    help='boot every repo zm_vex_*.bsp for --smoke-seconds with --bots bots, per-map report')
+    ap.add_argument('--smoke-seconds', type=int, default=60)
+    ap.add_argument('--maps', help='--nav-all / --maps-smoke: comma list of maps (zm_vex_x or x)')
     ap.add_argument('--stub-missing', action='store_true',
                     help='boot once, then create server-only stand-ins for every file the plugin reports as '
                          'missing ("bulunamadi"), so precache counts match a complete package')
@@ -680,35 +984,22 @@ def main(argv=None):
     ap.add_argument('--boot-timeout', type=int, default=60)
     ap.add_argument('--echo', action='store_true', help='echo interesting console lines live')
     args = ap.parse_args(argv)
+    sys.path.insert(0, HERE)
 
-    vex_ini = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
-    _disable_vexmira(vex_ini, False)   # recover from an interrupted --no-vexmira / nav pass
     if not args.no_sync:
         sync_package()
-    if not args.no_debug:
-        # replace the repo symlink by a server-local copy with the AMXX "debug" flag (stack traces
-        # with .sma line numbers); the next sync without debug restores the link
-        src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
-        lines = []
-        for l in open(src).read().splitlines():
-            t = l.split(';')[0].strip()
-            if t.endswith('.amxx'):
-                l = t + ' debug'
-            lines.append(l)
-        if os.path.lexists(vex_ini):
-            os.unlink(vex_ini)
-        open(vex_ini, 'w').write('\n'.join(lines) + '\n')
     if args.no_probe:
         ensure_plugins_ini(probe=False)
     else:
-        build_probe()
+        if not build_probe():
+            return 1
         ensure_plugins_ini(probe=True)
-    if args.rebuild_plugin or not os.path.exists(
-            os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')):
-        if not build_plugin():
+    if args.nav_all:
+        return nav_all(args)
+    if not args.no_rebuild and (args.rebuild_plugin or plugin_stale()):
+        if not build_plugin(retries=args.build_retries):
             return 1
 
-    sys.path.insert(0, HERE)
     import make_placeholders as MP
     if args.clean_stubs:
         print('[stub] removed %d stand-ins' % MP.clean_stubs(SERVER))
@@ -720,40 +1011,19 @@ def main(argv=None):
         missing = run(pre, quiet=True, collect_missing=True)
         made = MP.stub_files(sorted(set(missing) | set(MP.design_package_paths())), SERVER)
         print('[stub] %d missing reported, %d stand-ins created' % (len(missing), len(made)))
-    nav = os.path.join(SERVER, 'cstrike', 'maps', args.map + '.nav')
-    if args.ensure_nav and not os.path.exists(nav):
+    if args.maps_smoke:
+        return maps_smoke(args)
+    if not os.path.exists(os.path.join(SERVER_MAPS, args.map + '.bsp')):
+        print('[run] map %s not found in %s' % (args.map, SERVER_MAPS))
+        return 1
+    nav = os.path.join(SERVER_MAPS, args.map + '.nav')
+    if args.ensure_nav and args.bots and not args.until_nav and not os.path.exists(nav):
         print('[nav] %s missing -> learning pass (plugin disabled, 1 bot)' % os.path.basename(nav))
-        navargs = argparse.Namespace(**vars(args))
-        navargs.bots, navargs.seconds, navargs.until_nav, navargs.commands, navargs.cmd = 1, 900, True, None, None
-        _disable_vexmira(vex_ini, True)
-        try:
-            run(navargs)
-        finally:
-            _disable_vexmira(vex_ini, False)
-        print('[nav] %s' % ('saved %d bytes' % os.path.getsize(nav) if os.path.exists(nav) else 'NOT generated'))
-    if args.no_vexmira:
-        _disable_vexmira(vex_ini, True)
-    try:
-        rc = run(args)
-    finally:
-        if args.no_vexmira:
-            _disable_vexmira(vex_ini, False)
+        generate_nav(args, args.map, args.nav_timeout)
+    rc = run(args)
     if args.export_nav and os.path.exists(nav) and not os.path.islink(nav):
-        dst = os.path.join(REPO, 'cstrike', 'maps', os.path.basename(nav))
-        shutil.copyfile(nav, dst)
-        print('[nav] exported to %s' % dst)
+        print('[nav] exported to %s' % export_nav(nav))
     return rc
-
-
-def _disable_vexmira(ini, off):
-    off_path = ini + '.off'
-    if off:
-        if os.path.lexists(ini):
-            os.replace(ini, off_path)
-    else:
-        if os.path.lexists(off_path):
-            os.replace(off_path, ini)
-        sync_package(verbose=False)
 
 
 if __name__ == '__main__':

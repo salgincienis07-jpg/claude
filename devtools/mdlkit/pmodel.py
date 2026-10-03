@@ -268,8 +268,9 @@ def build_pmodel(name, gun_meshes, out, materials=None, dual=False, tex=(128, 12
     return rep
 
 
-def preview_pmodel(path, outbase, player=None):
-    """Render the gun alone and merged into a player model's right hand (if a player model exists)."""
+def preview_pmodel(path, outbase, player=None, ext='ak47'):
+    """Render the gun alone and merged into a player model's hands (if a player model exists), posed with
+    the weapon's animation extension `ext` (guns.STANDARD[w]['ext'], e.g. rifle, onehanded, dualpistols)."""
     from . import preview as PV
     from .mdl_read import MDL
     from . import CSTRIKE
@@ -280,7 +281,6 @@ def preview_pmodel(path, outbase, player=None):
     pl = player or os.path.join(CSTRIKE, 'models/player/vex_operator/vex_operator.mdl')
     if os.path.exists(pl):
         P = MDL(pl)
-        ext = 'ak47'
         for seq, view in (('ref_aim_' + ext, 'q'), ('ref_aim_' + ext, 'left'), ('ref_reload_' + ext, 'q'),
                           ('crouch_aim_' + ext, 'q')):
             if seq in P.seq_by_name:

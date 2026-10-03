@@ -7,6 +7,13 @@
  *    teams / alive / infections (CT->T while alive) / max HP player (boss detection) /
  *    player model histogram / missing player-model files / entity count
  *  At map end: kills, rounds, round winners, vexmira sounds emitted (proof that skills ran).
+ *  Map checks (run_test.py --maps-smoke):
+ *    - every info_player_start / info_player_deathmatch: hull trace -> blocked / floating spawns
+ *    - every player spawn: which spawn point was used (usage per team), spawned inside solid,
+ *      spawned on top of another player, spawned away from any spawn point (plugin teleport)
+ *    - alive bots sampled every second: "stuck" = pressing move keys but stayed within 48 units
+ *      for STUCK_SECS while no enemy was within 160 units; "in_solid" = origin inside world solid
+ *    - fall damage / fall deaths and deaths caused by the world or a non-player entity
  *
  *  All output goes through log_amx with the "[vexprobe]" prefix (parsed by run_test.py).
  */
@@ -16,6 +23,9 @@
 #include <reapi>
 
 #define PROBE_INTERVAL 5.0
+#define MOVE_INTERVAL 1.0
+#define STUCK_SECS 10.0
+#define MAX_SPAWNS 160
 
 new g_iMaxMdl, g_iMaxSnd, g_iMaxGen;
 new Trie:g_tMdl, Trie:g_tSnd, Trie:g_tGen, Trie:g_tEmit, Array:g_aEmit;
@@ -24,6 +34,12 @@ new HookChain:g_hcMdl, HookChain:g_hcSnd, HookChain:g_hcGen;
 new g_iTeamPrev[33], g_iInfections, g_iKills, g_iRounds, g_iCTWin, g_iTWin, g_iMaxEnts, g_iTicks;
 new Float:g_fStart;
 new g_iEmitTotal;
+// map checks
+new Float:g_fSpawn[MAX_SPAWNS][3], g_iSpawnTeam[MAX_SPAWNS], g_iSpawnUse[MAX_SPAWNS], g_iSpawnCount;
+new g_iSpawnBlocked, g_iSpawnFloating, g_iSpawnsTotal, g_iOffSpawn, g_iStacked, g_iSpawnStuck;
+new Float:g_fAnchor[33][3], Float:g_fAnchorT[33], g_iWantMove[33], g_iSamples[33], bool:g_bStuckLogged[33];
+new bool:g_bInSolid[33];
+new g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths;
 
 public plugin_precache()
 {
@@ -56,6 +72,8 @@ public plugin_init()
 {
     register_plugin("vexprobe", "1.0", "vexmira-devtools");
     RegisterHookChain(RG_CBasePlayer_Killed, "fw_Killed", true);
+    RegisterHookChain(RG_CBasePlayer_Spawn, "fw_Spawn", true);
+    RegisterHookChain(RG_CBasePlayer_TakeDamage, "fw_TakeDamage", false);
     register_logevent("ev_RoundStart", 2, "1=Round_Start");
     register_logevent("ev_RoundEnd", 2, "1=Round_End");
     RegisterHookChain(RH_SV_StartSound, "fw_Emit", false);
@@ -65,6 +83,184 @@ public plugin_init()
     g_aEmit = ArrayCreate(96);
     g_fStart = get_gametime();
     set_task(PROBE_INTERVAL, "task_Status", 9301, _, _, "b");
+    set_task(MOVE_INTERVAL, "task_Move", 9302, _, _, "b");
+    CollectSpawns("info_player_start", 2);
+    CollectSpawns("info_player_deathmatch", 1);
+    new ct, t;
+    for (new i = 0; i < g_iSpawnCount; i++)
+        if (g_iSpawnTeam[i] == 2) ct++; else t++;
+    log_amx("[vexprobe] spawnpoints ct=%d t=%d blocked=%d floating=%d", ct, t, g_iSpawnBlocked, g_iSpawnFloating);
+}
+
+CollectSpawns(const cls[], team)
+{
+    new ent = -1;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", cls)) > 0)
+    {
+        if (g_iSpawnCount >= MAX_SPAWNS)
+            break;
+        new Float:o[3], Float:e[3];
+        pev(ent, pev_origin, o);
+        o[2] += 1.0;                       // CBasePlayer::Spawn puts the player 1 unit above the entity
+        g_fSpawn[g_iSpawnCount] = o;
+        g_iSpawnTeam[g_iSpawnCount] = team;
+        g_iSpawnCount++;
+        new tr = create_tr2();
+        engfunc(EngFunc_TraceHull, o, o, IGNORE_MONSTERS, HULL_HUMAN, 0, tr);
+        if (get_tr2(tr, TR_StartSolid) || get_tr2(tr, TR_AllSolid))
+        {
+            g_iSpawnBlocked++;
+            log_amx("[vexprobe] spawn_blocked %s %.0f %.0f %.0f (player hull inside solid)", team == 2 ? "ct" : "t",
+                o[0], o[1], o[2]);
+        }
+        else
+        {
+            e = o;
+            e[2] -= 512.0;
+            engfunc(EngFunc_TraceHull, o, e, IGNORE_MONSTERS, HULL_HUMAN, 0, tr);
+            new Float:f;
+            get_tr2(tr, TR_flFraction, f);
+            if (f * 512.0 > 18.0)
+            {
+                g_iSpawnFloating++;
+                log_amx("[vexprobe] spawn_floating %s %.0f %.0f %.0f drop=%.0f", team == 2 ? "ct" : "t",
+                    o[0], o[1], o[2], f * 512.0);
+            }
+        }
+        free_tr2(tr);
+    }
+}
+
+public fw_Spawn(const id)
+{
+    if (!is_user_alive(id))
+        return HC_CONTINUE;
+    new team = get_user_team(id);
+    if (team != 1 && team != 2)
+        return HC_CONTINUE;
+    new Float:o[3];
+    pev(id, pev_origin, o);
+    g_iSpawnsTotal++;
+    new best = -1, Float:bd = 999999.0;
+    for (new i = 0; i < g_iSpawnCount; i++)
+    {
+        new Float:d = get_distance_f(o, g_fSpawn[i]);
+        if (d < bd) { bd = d; best = i; }
+    }
+    if (best >= 0 && bd <= 4.0)
+        g_iSpawnUse[best]++;
+    else
+        g_iOffSpawn++;
+    new tr = create_tr2();
+    engfunc(EngFunc_TraceHull, o, o, IGNORE_MONSTERS, (pev(id, pev_flags) & FL_DUCKING) ? HULL_HEAD : HULL_HUMAN, id, tr);
+    if (get_tr2(tr, TR_StartSolid) || get_tr2(tr, TR_AllSolid))
+    {
+        g_iSpawnStuck++;
+        log_amx("[vexprobe] spawn_in_solid #%d team=%d %.0f %.0f %.0f", id, team, o[0], o[1], o[2]);
+    }
+    free_tr2(tr);
+    for (new p = 1; p <= MaxClients; p++)
+    {
+        if (p == id || !is_user_alive(p))
+            continue;
+        new Float:q[3];
+        pev(p, pev_origin, q);
+        if (floatabs(q[0] - o[0]) < 32.0 && floatabs(q[1] - o[1]) < 32.0 && floatabs(q[2] - o[2]) < 72.0)
+        {
+            g_iStacked++;
+            break;
+        }
+    }
+    ResetAnchor(id, o);
+    g_bInSolid[id] = false;
+    return HC_CONTINUE;
+}
+
+ResetAnchor(id, const Float:o[3])
+{
+    g_fAnchor[id] = o;
+    g_fAnchorT[id] = get_gametime();
+    g_iWantMove[id] = 0;
+    g_iSamples[id] = 0;
+    g_bStuckLogged[id] = false;
+}
+
+public task_Move()
+{
+    new Float:now = get_gametime();
+    for (new p = 1; p <= MaxClients; p++)
+    {
+        if (!is_user_alive(p) || !is_user_bot(p))
+            continue;
+        new Float:o[3];
+        pev(p, pev_origin, o);
+        if (engfunc(EngFunc_PointContents, o) == CONTENTS_SOLID)
+        {
+            if (!g_bInSolid[p])
+            {
+                g_iInSolid++;
+                log_amx("[vexprobe] in_solid #%d team=%d %.0f %.0f %.0f", p, get_user_team(p), o[0], o[1], o[2]);
+            }
+            g_bInSolid[p] = true;
+        }
+        else
+            g_bInSolid[p] = false;
+        new Float:ms;
+        pev(p, pev_maxspeed, ms);
+        if ((pev(p, pev_flags) & FL_FROZEN) || ms < 5.0 || get_distance_f(o, g_fAnchor[p]) > 48.0)
+        {
+            ResetAnchor(p, o);
+            continue;
+        }
+        if (EnemyNear(p, o, 160.0))       // fighting / clawing at a human is not "stuck"
+        {
+            ResetAnchor(p, o);
+            continue;
+        }
+        g_iSamples[p]++;
+        if (pev(p, pev_button) & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT))
+            g_iWantMove[p]++;
+        if (!g_bStuckLogged[p] && now - g_fAnchorT[p] >= STUCK_SECS && g_iWantMove[p] * 2 >= g_iSamples[p])
+        {
+            g_bStuckLogged[p] = true;
+            g_iStuckEvents++;
+            new name[32], mdl[32];
+            get_user_name(p, name, charsmax(name));
+            get_user_info(p, "model", mdl, charsmax(mdl));
+            log_amx("[vexprobe] stuck #%d %s team=%d model=%s at %.0f %.0f %.0f (%.0fs within 48u, move keys %d/%d samples)",
+                p, name, get_user_team(p), mdl, o[0], o[1], o[2], now - g_fAnchorT[p], g_iWantMove[p], g_iSamples[p]);
+        }
+    }
+}
+
+bool:EnemyNear(id, const Float:o[3], Float:r)
+{
+    new team = get_user_team(id);
+    for (new q = 1; q <= MaxClients; q++)
+    {
+        if (q == id || !is_user_alive(q) || get_user_team(q) == team)
+            continue;
+        new Float:e[3];
+        pev(q, pev_origin, e);
+        if (get_distance_f(o, e) < r)
+            return true;
+    }
+    return false;
+}
+
+public fw_TakeDamage(const id, const inflictor, const attacker, Float:dmg, const bits)
+{
+    if (!(bits & DMG_FALL) || !is_user_alive(id))
+        return HC_CONTINUE;
+    g_iFallHurt++;
+    if (dmg >= float(get_user_health(id)))
+    {
+        g_iFallDeaths++;
+        new Float:o[3];
+        pev(id, pev_origin, o);
+        log_amx("[vexprobe] fall_death #%d team=%d dmg=%.0f at %.0f %.0f %.0f", id, get_user_team(id), dmg, o[0], o[1], o[2]);
+    }
+    return HC_CONTINUE;
 }
 
 public plugin_cfg()
@@ -131,6 +327,17 @@ public fw_RoundEnd(WinStatus:status, ScenarioEventEndRound:event, Float:tmDelay)
 public fw_Killed(const victim, const attacker, const gib)
 {
     g_iKills++;
+    if (attacker != victim && (attacker < 1 || attacker > MaxClients))
+    {
+        g_iWorldDeaths++;
+        new cls[32], Float:o[3];
+        if (attacker > 0 && pev_valid(attacker))
+            pev(attacker, pev_classname, cls, charsmax(cls));
+        else
+            copy(cls, charsmax(cls), "world");
+        pev(victim, pev_origin, o);
+        log_amx("[vexprobe] world_death #%d team=%d by %s at %.0f %.0f %.0f", victim, get_user_team(victim), cls, o[0], o[1], o[2]);
+    }
     return HC_CONTINUE;
 }
 
@@ -206,6 +413,16 @@ public plugin_end()
 {
     log_amx("[vexprobe] final rounds=%d ct_wins=%d t_wins=%d kills=%d infections=%d max_ents=%d vexmira_sounds_emitted=%d unique=%d",
         g_iRounds, g_iCTWin, g_iTWin, g_iKills, g_iInfections, g_iMaxEnts, g_iEmitTotal, ArraySize(g_aEmit));
+    new uct, ut, nct, nt;
+    for (new i = 0; i < g_iSpawnCount; i++)
+    {
+        if (g_iSpawnTeam[i] == 2) { nct++; if (g_iSpawnUse[i]) uct++; }
+        else { nt++; if (g_iSpawnUse[i]) ut++; }
+    }
+    log_amx("[vexprobe] spawn_usage ct=%d/%d t=%d/%d spawns=%d off_spawn=%d stacked=%d in_solid=%d",
+        uct, nct, ut, nt, g_iSpawnsTotal, g_iOffSpawn, g_iStacked, g_iSpawnStuck);
+    log_amx("[vexprobe] mapcheck stuck=%d in_solid=%d fall_hurt=%d fall_deaths=%d world_deaths=%d",
+        g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths);
     new s[96], n;
     for (new i = 0; i < ArraySize(g_aEmit); i++)
     {
