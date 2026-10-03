@@ -670,7 +670,7 @@ def hulk(quick=False):
     rs = RigSpec(height=74.0, shoulder_w=0.34, hip_w=0.14, leg=0.43, arm=0.43, hand=0.155, head=0.11, bulk=1.55,
                  limb_thick=1.45, arm_thick=1.4, leg_thick=1.1)
     return _zspec('hulk', rs,
-                  dict(hunch=32.0, heavy=0.85, lurch=0.5, walk_D=58.0, run_D=94.0, run_lean=12.0, stance_w=1.45,
+                  dict(hunch=28.0, heavy=0.85, lurch=0.5, crouch_spine=0.0, crouch_tilt=12.0, walk_D=58.0, run_D=94.0, run_lean=12.0, stance_w=1.45,
                        arm_swing=1.35, knee_bend=0.18, aggression=1.3, claw_spread=0.7),
                   dict(muscle=1.0, hump=0.8, chest=1.25, waist=0.95, shoulders=1.25, arm=1.15, forearm=1.3, claw_len=0.55,
                        head=dict(jaw=1.7, brow=1.9, w=1.0, sockets=1.1, ears=0.4, mouth_open=0.4, cranium=0.9)),
@@ -809,7 +809,7 @@ def phantom(quick=False):
     rs = RigSpec(height=68.0, shoulder_w=0.2, hip_w=0.11, leg=0.5, arm=0.39, hand=0.13, head=0.14, limb_thick=0.75,
                  bulk=0.8)
     return _zspec('phantom', rs,
-                  dict(hunch=10.0, float_h=5.0, lurch=0.15, arm_swing=0.5, claw_spread=1.4, aggression=1.1),
+                  dict(hunch=10.0, float_h=5.0, lurch=0.15, crouch_h=0.28, crouch_tilt=26.0, crouch_spine=10.0, arm_swing=0.5, claw_spread=1.4, aggression=1.1),
                   dict(gaunt=0.6, muscle=0.05, chest=0.88, waist=0.75, claw_len=1.6,
                        head=dict(jaw=0.8, sockets=1.9, cheek=0.7, nose=0.2, mouth_open=0.7, jaw_drop=0.4, w=0.92)),
                   _phantom_mats,
