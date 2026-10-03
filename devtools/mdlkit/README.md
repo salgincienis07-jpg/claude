@@ -41,6 +41,9 @@ byte-identical models). Previews go to `$SP/previews/<area>/` (`MDLKIT_PREVIEWS`
 | `preview` | software renderer of COMPILED models with the client's bone setup (9-blend, gait merge, walk hack) |
 | `validate` | engine/client/server rule checks |
 | `samples` | proof samples = reference specs |
+| `guns` | stock shapes + palettes of every standard CS weapon (`STANDARD`), `build_standard_pmodel` |
+| `world` | world/prop models: bones, named animated sequences, bodygroups, attachments |
+| `content` | one-import API for content agents + `build(spec)` dispatcher; `content/examples.py` = proof specs |
 
 ## Coordinate systems & studiomdl conventions (all verified by `mdlkit test`)
 
@@ -162,6 +165,10 @@ crystals, tail (+`tail_extras` rig bones), glow_eyes, jaw_teeth, chain, plates_o
   View space: origin = eye, +X view direction (fov 90).
 * `pmodel.gun_preset(kind)` + parts (receiver, barrel, handguard, pistol_grip, magazine, stock, scope,
   rail, muzzle_brake, glow_strip …); `pmodel.build_pmodel(name, meshes, out, dual=False)`.
+* `vmodel.build_human_vmodel(name, vkind, gun_meshes=None, materials=..)` — the Vexmira CT arms + any gun
+  (default: the stock shape of `vkind`); meshes named `mag*` follow the `v_mag` bone, `slide*`/`pump*` `v_slide`.
+* `guns.STANDARD` / `guns.standard_gun(w)` / `guns.build_standard_pmodel(w)` — every standard CS weapon.
+* `world.build_world_model(name, parts, sequences, bones, bodygroups, attachments, materials)` — props.
 
 ## How to add a new character
 
@@ -170,6 +177,79 @@ crystals, tail (+`tail_extras` rig bones), glow_eyes, jaw_teeth, chain, plates_o
 2. Iterate the look with `preview_textures(spec)` (seconds) and read the PNG.
 3. `build_player_model(spec)`; read all 6 preview sheets (turn, blend9, moves, actions, deaths, hitbox).
 4. For zombies/bosses also `vmodel.build_claws(spec, 'cstrike/models/vexmira/claws/v_<name>.mdl')`.
+
+## Content recipe (for content agents)
+
+Write ONE new module per area under `devtools/mdlkit/content/` (e.g. `zombies.py`, `bosses.py`,
+`humans.py`, `weapons.py`, `props.py`). Never edit the shared library files except for small additive,
+backward-compatible fixes (then run `python3 -m mdlkit test`). Every public function returns a spec dict
+or a list of specs; `from . import *` gives you the whole API (RigSpec, geometry, accessories, materials
+helpers `skin/cloth/metal/glow/layers`, palettes `CLASS_RGB`, `BOSS_RGB`, `VEX_PURPLE`, `VEX_CYAN`, size
+`BUDGET`, output paths `player_out/claws_out/weapon_out/world_out`, `STANDARD`, `standard_gun`, ...).
+
+```
+cd devtools
+python3 -m mdlkit list  mdlkit.content.zombies                    # public spec functions + docstrings
+python3 -m mdlkit build mdlkit.content.zombies:runner --lookdev   # textures only (seconds), read the PNG
+python3 -m mdlkit build mdlkit.content.zombies:runner             # compile + validate + previews (+claws)
+python3 -m mdlkit build mdlkit.content.zombies:all --only vex_z_runner,vex_z_tank
+python3 -m mdlkit build content/zombies.py:all --no-preview        # file-path form
+```
+`build` exits non-zero (and prints `FAILED: [...]`) if any spec raised / failed validation. Compile one
+model at a time (the machine has 4 shared CPUs; a player model takes ~1 min, a v_ ~10 s, a p_/prop ~5 s).
+
+**Spec kinds** (`kind`, default `player`) - complete working example of each in `content/examples.py`:
+
+| kind | builder | notes |
+|---|---|---|
+| `player` | `api.build_player_model` | `style` human / zombie / boss / floaty; `claws=True` (or `dict(out=..)`) also builds `models/vexmira/claws/v_<short>.mdl` from the same spec |
+| `claws` | `vmodel.build_claws(spec['of'], out)` | claws only, from a player spec |
+| `vhuman` | `vmodel.build_human_vmodel` | `vkind` = knife, hegrenade, flashbang, smokegrenade, m4a1, m249, awp, xm1014, deagle, p90, ak47, sg550 (v_sw0..7 = m4a1 m249 awp xm1014 deagle p90 ak47 sg550); `gun` = GUN SPACE meshes (default: stock shape), `materials` override `gun_*` mats; sequences/5001/5004 are automatic |
+| `pmodel` | `guns.build_standard_pmodel` / `pmodel.build_pmodel` | `weapon=<STANDARD key>` for stock shapes (all 24 guns + knife + 3 grenades + dual elite), or `name` + `meshes` (+`ext` for the preview) for special guns |
+| `world` | `world.build_world_model` | `parts`, `bones=[Bone(..)]`, `sequences=[dict(name, frames, fps, loop, pose=fn(t))]`, `bodygroups=[(name, [None, meshes])]`, `attachments`, `materials` (see `world.py` doc) |
+
+Default output paths are the real `cstrike/` paths (players `models/player/<n>/<n>.mdl`, claws
+`models/vexmira/claws/v_<short>.mdl`, v_/p_ `models/vexmira/weapons/`, props `models/vexmira/world/`);
+`out=` overrides (examples write to `$SP/mdlwork/out/examples`). `preview_area=` picks
+`$SP/previews/<area>/` for player/p_/world previews; v_/claws previews go to `$SP/previews/mdlkit/v_<n>_view.png`.
+
+**Styles** (`style_params`, see `anims.Style`): `hunch`, `lurch`, `limp`, `heavy` (boss gait weight),
+`knee_bend`, `stance_w`, `run_D`/`walk_D`/`crouch_D` (stride), `run_lean`, `crouch_h`, `crouch_tilt`,
+`arm_swing`, `claw_spread`, `aggression`, `float_h` (floaty hover height in units at 72, scaled by
+height/72), `extra_bone_anim=fn(pose, sd, t, builder)` for your own extra bones.
+* `boss`: heavy gait, shallow crouch. Rig `RigSpec.preset('boss')` (110 units) or `RigSpec(height=..)`;
+  set `hull_fit=True` - hitboxes are remapped into the 32x32x72 hull and re-centred per aim pose (vertical
+  and, since v3, horizontal `hull_fit_xy=16`); a few "centre outside sideways" warnings in twisted blends
+  are harmless. Budget 0.7 MB (`BUDGET['boss']`), 512x512 skin fits.
+* `floaty`: hovers `float_h` above the floor with dangling toes-down legs and glide locomotion (still
+  with correct linear movement); deaths drop to the floor. Validate with `--float <float_h*height/72>`
+  (the build does this itself).
+* Claws inherit the style; they look at the spec's `hand`/`claw` materials and `shape['claw_len']`.
+
+**Creature extras** (bones are cheap but each costs ~4.5 KB of animation): `rs.extras = tail_extras(rs.height,
+n, length)` (lower extra, gait-driven) + `wing_extras(rs, span, tip=False)` + `limb_extras(rs, pairs, reach,
+front=, height=)` (extra arms / spider legs / tentacles, upper extras). Then add the matching accessories
+`('tail', ..)`, `('wings', ..)`, `('extra_limbs', ..)`; they are animated automatically (tail sway, wing
+breathing/flapping/folding, limb idle sway / stab in attacks / curling up in deaths). `horns`, `crystals`, `spikes`,
+`shell`, `plates_on` are mesh-only. Example: `examples.chimera` (19 extra bones, 0.45 MB zombie).
+
+**Gotchas found while proving the toolkit**
+* `hair(length=..)` is in UNITS at 72 (k-scaled), e.g. 14-20 for long hair; `length=1` gives a cap.
+* Long capes (`length > 0.6`): pass `flare=0.3..0.5`, otherwise the pelvis-bound hem stands up like a
+  sail in face-down deaths.
+* `crystals(where=((bone, offset),..))` offsets are bone-relative in units at 72 - put crowns ~8.5
+  above `Bip01 Head` or they hide inside the skull/hair.
+* Head size of big bosses: `RigSpec.preset('boss').head = 0.12` reads small at 110 units - use 0.13-0.14.
+* World props: base at z = 0; GoldSrc cannot scale bones (hide parts with bodygroups or by moving them
+  inside geometry); `world_body_value(bodygroups, {'parachute': 1})` gives the `pev->body` value for the plugin.
+* Bevel boxes (`geom.box(bevel>0)`, `guns.bx`) had half their faces inward before v3 (fixed) - rebuild any
+  model compiled before that fix (sample p_ak47/operator gear).
+* Read at least: player turn + deaths (+ actions) sheets, v_ view sheet, p_ preview, world sheet. The
+  player sheets frame by the real mesh top, so oversized bosses fit.
+
+**Validation** runs automatically in every build and raises on errors; manual re-check:
+`python3 -m mdlkit validate F.mdl --nine knife --budget 450000` (zombie) / `--budget 700000` (boss) /
+`--v knife --budget 200000` (claws) / `--v <vkind>` (v_ human) / `--p` (p_) / `--world` (props).
 
 ## Quality checklist
 

@@ -9,6 +9,8 @@
                                                                       # bodygroup), hive egg, spore pod, hook, w_ nade
     python3 -m mdlkit build mdlkit.content.examples:v_special         # v_ special weapon on the AK47 enum
     python3 -m mdlkit build mdlkit.content.examples:p_special         # p_ of the same gun
+    python3 -m mdlkit build mdlkit.content.examples:v_human_all       # all 12 human v_ bases (enum order)
+    python3 -m mdlkit build mdlkit.content.examples:p_standard_all    # p_ of every standard CS weapon
 
 Copy a function into your own content module, rename (vex_b_brute ...), drop the 'out' override (the
 default output paths are the real cstrike/ paths) and iterate on the look.
