@@ -295,7 +295,7 @@ def tank(quick=False):
     rs = RigSpec(height=74.0, shoulder_w=0.31, hip_w=0.145, leg=0.45, arm=0.36, hand=0.13, head=0.12, bulk=1.5,
                  limb_thick=1.45, arm_thick=1.1)
     return _zspec('tank', rs,
-                  dict(hunch=12.0, heavy=0.65, lurch=0.35, run_D=86.0, walk_D=56.0, stance_w=1.35, arm_swing=0.55,
+                  dict(hunch=12.0, heavy=0.65, lurch=0.35, crouch_h=0.24, crouch_spine=8.0, crouch_tilt=20.0, run_D=86.0, walk_D=56.0, stance_w=1.35, arm_swing=0.55,
                        knee_bend=0.14, run_lean=8.0, aggression=0.8, claw_spread=0.8),
                   dict(muscle=1.0, hump=0.45, chest=1.2, waist=1.05, belly=0.15, claw_len=0.6, neck=1.15,
                        head=dict(jaw=1.6, brow=1.7, w=1.1, sockets=1.2, ears=0.6, mouth_open=0.3, flat_top=0.4)),
@@ -670,7 +670,7 @@ def hulk(quick=False):
     rs = RigSpec(height=74.0, shoulder_w=0.34, hip_w=0.14, leg=0.43, arm=0.43, hand=0.155, head=0.11, bulk=1.55,
                  limb_thick=1.45, arm_thick=1.4, leg_thick=1.1)
     return _zspec('hulk', rs,
-                  dict(hunch=28.0, heavy=0.85, lurch=0.5, crouch_spine=0.0, crouch_tilt=12.0, walk_D=58.0, run_D=94.0, run_lean=12.0, stance_w=1.45,
+                  dict(hunch=28.0, heavy=0.85, lurch=0.5, crouch_spine=6.0, crouch_tilt=18.0, crouch_h=0.22, walk_D=58.0, run_D=94.0, run_lean=12.0, stance_w=1.45,
                        arm_swing=1.35, knee_bend=0.18, aggression=1.3, claw_spread=0.7),
                   dict(muscle=1.0, hump=0.8, chest=1.25, waist=0.95, shoulders=1.25, arm=1.15, forearm=1.3, claw_len=0.55,
                        head=dict(jaw=1.7, brow=1.9, w=1.0, sockets=1.1, ears=0.4, mouth_open=0.4, cranium=0.9)),
