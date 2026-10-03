@@ -71,11 +71,11 @@ def _beret(rig, sh, mat='beret', band='beret_band', badge='badge', tilt=0.32):
     top.name = 'beret'
     zb = c[2] + rz * 0.42
     s = math.sqrt(max(0.05, 1 - 0.42 ** 2))
-    ring = lathe([(-0.55 * k, 1.0), (0.55 * k, 1.0)], axis_start=(0, 0, 0), segs=16, mat=band, bone=hb,
+    ring = lathe([(-0.32 * k, 1.0), (0.32 * k, 1.0)], axis_start=(0, 0, 0), segs=16, mat=band, bone=hb,
                  cap_start=False, cap_end=False)
     ring.transform(None, (c[0] - 0.25 * k, c[1], zb), scale=(rx * s + 0.45 * k, ry * s + 0.5 * k, 1.0))
     ring.name = 'beret_band'
-    bd = box((0.35 * k, 1.3 * k, 1.5 * k), center=(c[0] + rx * 0.9, c[1] + ry * 0.38, c[2] + rz * 0.62),
+    bd = box((0.3 * k, 0.9 * k, 1.0 * k), center=(c[0] + rx * 0.92, c[1] + ry * 0.4, c[2] + rz * 0.6),
              bevel=0.1 * k, mat=badge, bone=hb)
     bd.name = 'badge'
     out = [top, ring, bd]
@@ -138,7 +138,7 @@ def _faceplate(rig, sh, mat='lens', frame='mask'):
     k = fa['k']; c = fa['center']; rx, ry, rz = fa['radii']
     hb = _bi(rig, 'Bip01 Head')
     e = (fa['eye_L'] + fa['eye_R']) / 2
-    rim = ellipsoid((1.7 * k, ry * 1.08, 2.0 * k), (e[0] - 0.55 * k, 0, e[2] + 0.2 * k), segs=14, rings=7, mat=frame, bone=hb)
+    rim = ellipsoid((1.8 * k, ry * 1.1, 2.5 * k), (e[0] - 0.6 * k, 0, e[2] - 0.2 * k), segs=14, rings=7, mat=frame, bone=hb)
     rim.name = 'face_rim'
     lens = ellipsoid((1.55 * k, ry * 0.95, 1.7 * k), (e[0] - 0.25 * k, 0, e[2] + 0.25 * k), segs=14, rings=7, mat=mat, bone=hb)
     lens.name = 'face_lens'
@@ -156,11 +156,12 @@ def _hose(rig, sh, mat='hose', tank_x=None):
     tx = J('Bip01 Spine2')[0] - 4.6 * k - 0.75 * k - 1.5 * k if tank_x is None else tank_x
     hb = _bi(rig, 'Bip01 Head'); nb = _bi(rig, 'Bip01 Neck'); sb = _bi(rig, 'Bip01 Spine3')
     n = J('Bip01 Neck')
-    pts = [m0 + np.array([1.4 * k, -0.9 * k, -1.9 * k]),
-           np.array([n[0] + 3.2 * k, -2.6 * k, n[2] - 0.2 * k]),
-           np.array([n[0] + 0.6 * k, -4.4 * k, n[2] - 1.6 * k]),
-           np.array([n[0] - 3.5 * k, -4.0 * k, n[2] - 1.2 * k]),
-           np.array([tx + 0.3 * k, -1.7 * k, zc + 7.6 * k])]
+    ua = J('Bip01 R UpperArm')
+    pts = [m0 + np.array([1.2 * k, -1.0 * k, -1.6 * k]),
+           np.array([n[0] + 2.6 * k, -3.0 * k, n[2] + 0.6 * k]),
+           np.array([n[0] + 0.4 * k, ua[1] * 0.55, ua[2] + 3.4 * k]),
+           np.array([n[0] - 3.2 * k, ua[1] * 0.5, ua[2] + 3.0 * k]),
+           np.array([tx + 0.6 * k, -1.7 * k, zc + 8.0 * k])]
     h = tube(pts, 0.5 * k, segs=7, mat=mat, bones=[hb, nb, sb, sb, sb], cap_start=True, cap_end=True)
     h.name = 'hose'
     return [h]
@@ -379,7 +380,7 @@ def ranger(quick=False):
     """vex_ranger - sand/khaki field soldier, purple beret + bandana, backpack with bedroll."""
     rs = RigSpec(height=72.0, shoulder_w=0.205, limb_thick=1.0)
     return _base('vex_ranger', rs, _ranger_materials, _ranger_accessories, _ranger_decals,
-                 face=dict(eye='human', eye_color=(90, 70, 45), brow_color=(55, 40, 28), mouth='closed',
+                 face=dict(eye='human', eye_color=(62, 48, 34), brow_color=(55, 40, 28), mouth='closed',
                            hair=(58, 42, 30), stubble=0.6, brow_shadow=0.5),
                  shape=dict(hands='glove', feet='boot', muscle=0.5, chest=1.02,
                             head=dict(jaw=1.25, chin=1.1, brow=1.2, w=1.03, nose=1.1)),
@@ -505,7 +506,7 @@ def _vip_materials(rig, sh):
         'boot': layers(white, (gold, {'z': (-60, -34.5), 'soft': 0.2})),
         'gold': gold,
         'white': white,
-        'visor': {'type': 'visor', 'color': (240, 170, 30), 'color2': (255, 244, 190)},
+        'visor': {'type': 'glow', 'color': (255, 186, 40), 'color2': (255, 246, 200), 'freq': 1.4},
         'vest': layers(white, (cy, {'x': (2.0 * k, 30), 'z': (J('Bip01 Spine3')[2] + 1.0 * k, J('Bip01 Spine3')[2] + 1.4 * k), 'soft': 0.15}),
                        (gold, {'z': (-60, J('Bip01 Spine')[2] + 0.2 * k)})),
         'plate': gold,

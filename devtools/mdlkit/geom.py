@@ -110,6 +110,8 @@ class Mesh:
         self.bone = np.concatenate([self.bone, back.bone])
         for k in list(self.attrs):
             self.attrs[k] = np.concatenate([self.attrs[k], self.attrs[k]])
+        # mark the added back side: texture baking lets the front faces win the shared texels
+        self.attrs['_back'] = np.concatenate([np.zeros(nv), np.ones(nv)])
         return self
 
     def mirrored(self, axis=1, bone_map=None):

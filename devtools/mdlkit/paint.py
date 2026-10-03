@@ -707,13 +707,19 @@ def bake_textures(meshes, pages, materials, decals=(), ao=True, ao_strength=0.75
         for mi in ids:
             m = meshes[mi]
             px = np.column_stack([m.attrs['_px'], m.attrs['_py']])
-            xy = px[m.f]
+            # two-sided meshes share texels between both sides: draw the back faces first so the front
+            # (outward) faces overwrite them (otherwise AO / light are baked for the inner side)
+            mf = m.f
+            bk = m.attrs.get('_back')
+            if bk is not None and len(bk) == len(m.v):
+                mf = m.f[np.argsort(-bk[m.f].min(1), kind='stable')]
+            xy = px[mf]
             # attributes: P(3) N(3) uv(2) t theta
             t = m.attrs.get('t', np.zeros(len(m.v)))
             th = m.attrs.get('theta', np.zeros(len(m.v)))
             A = np.column_stack([m.v, m.n, m.uv, t, th])
             tri_xy.append(xy)
-            tri_attr.append(A[m.f])
+            tri_attr.append(A[mf])
             tri_mesh.append(np.full(len(m.f), mi))
         tri_xy = np.vstack(tri_xy); tri_attr = np.vstack(tri_attr); tri_mesh = np.concatenate(tri_mesh)
         # make orientation irrelevant (UV islands may be mirrored)
