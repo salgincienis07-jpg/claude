@@ -3,7 +3,7 @@
 Bu dosya oturum sınırına / yeniden başlatmaya karşı tutulur. Yeni bir oturum buradan devam eder.
 Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + push yapılır).
 
-## Durum (en son güncelleme: 2026-10-03 18:55 UTC)
+## Durum (en son güncelleme: 2026-10-03 23:55 UTC)
 
 | Alan | Durum | Çıktı |
 |---|---|---|
@@ -32,6 +32,11 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   dünya modelleri) v2 boru hattıyla yeniden üretilecek; sonra sunucu/nav/test + tam zip.
 - Eklenti C, mdlkit v1, sesler, sprite'lar bitti (önceki run wf_4b0c2ac1-207, durduruldu).
 - Ara sürüm (3.0.0-ara) kullanıcıya gönderildi: `Vexmira_Zombie_v3.0_ARA.zip`.
+
+- 2026-10-03 23:55: kullanım sınırı sonrası yeniden başlatıldı (iş akışı betikleri scratchpad/wf/ altına kopyalandı):
+  hizalama düzeltmesi `wf/align-fix.js` run `wf_f59e0f41-149` (can barı/ikonlar oyuncunun içinde, lazer ters → düzelt
+  + inceleme; sonra 3.0.1 ara sürüm), kalite yükseltme `wf/quality-upgrade.js` run `wf_a52f9d2f-924`.
+  Resume: `Workflow({scriptPath: "$SP/wf/<ad>.js", resumeFromRunId: "<run>"})`.
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
