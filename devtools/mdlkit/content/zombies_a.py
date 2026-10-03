@@ -63,6 +63,31 @@ def pustules(rig, sh, mat='pustule', where=(), seed=3):
     return out
 
 
+def torso_boils(rig, sh, mat='pustule', n=10, z=(0, 1), ang=(-60, 60), r=1.3, seed=4, sink=0.35):
+    """Boils sitting ON the torso surface: n random spots between heights z (model space) and around-angles
+    ang (deg, 0 = front, +90 = left, 180 = back)."""
+    from ..body import torso_mesh
+    from ..accessories import _spine_bone_for_z
+    k = rig.H / 72.0
+    t = torso_mesh(rig, sh, 'tmp')
+    rng = np.random.default_rng(seed)
+    cx = rig.J('Bip01 Spine1')[0]
+    a = np.degrees(np.arctan2(t.v[:, 1], t.v[:, 0] - cx))
+    sel = (t.v[:, 2] > z[0]) & (t.v[:, 2] < z[1]) & (a > ang[0]) & (a < ang[1])
+    V = t.v[sel]
+    out = []
+    if not len(V):
+        return out
+    for i in rng.choice(len(V), size=min(n, len(V)), replace=False):
+        p = V[i] + rng.uniform(-0.6, 0.6, 3) * k
+        d = np.array([p[0] - cx, p[1], 0.0])
+        d /= max(np.linalg.norm(d), 1e-6)
+        rr = r * rng.uniform(0.6, 1.2) * k
+        c = p + d * rr * (1 - sink)
+        out.append(ellipsoid((rr, rr, rr * 0.9), c, segs=8, rings=5, mat=mat, bone=_spine_bone_for_z(rig, c[2])))
+    return out
+
+
 def lamprey_mouth(rig, sh, mat='lip', inner='maw', length=2.6, radius=1.5):
     """Leech: a round sucker mouth pushed out of the face (funnel + dark throat disc)."""
     fa = face_anchor(rig, sh)
@@ -99,7 +124,7 @@ def face_mask(rig, sh, mat='mask', horn_mat=None):
         q = p.copy()
         q[:, 0] -= np.clip(-u[:, 0], 0, 1) * rx * 0.9          # flatten the back -> shield shape
         return q
-    m = ellipsoid((0.9 * k, ry * 1.08, rz * 1.32), c + np.array([rx * 0.92, 0, -0.6 * k]), segs=12, rings=8, mat=mat,
+    m = ellipsoid((0.9 * k, ry * 0.92, rz * 1.12), c + np.array([rx * 0.95, 0, -0.5 * k]), segs=12, rings=8, mat=mat,
                   bone=hb, deform=deform)
     out = [m]
     if horn_mat:
@@ -133,6 +158,11 @@ def bone_charms(rig, sh, mat='bone', n=7):
         else:
             out.append(cone(p, p + np.array([0.3, 0, -1.8]) * k, 0.4 * k, segs=5, mat=mat, bone=b))
     return out
+
+
+def _shell(rig, sh, **kw):
+    from ..accessories import shell
+    return [shell(rig, sh, **kw)]
 
 
 def _chain_pts(rig, k, z_drop=2.0):
@@ -177,10 +207,9 @@ def _runner_mats(rig, sh):
         'legs': layers(sk, (pants, {'meshes': ['leg'], 't': (-1.0, 1.75), 'ragged': 1.1, 'holes': 0.25, 'seed': 8},
                             (20, 20, 24)),
                        (orange, {'meshes': ['leg'], 't': (-1.0, 1.7), 'x': (-0.55 * k, 0.55 * k), 'ragged': 0.2, 'seed': 9})),
-        'boot': layers(dict(sk, seed=1108), ({'type': 'rubber', 'color': (215, 210, 200)}, {'meshes': ['foot_L'],
-                                                                                           'z': (-60, -34.0)}),
-                       (cloth((60, 64, 80), seed=1109, weave=0.15, dirt=0.9, dirt_color=(70, 55, 40)),
-                        {'meshes': ['foot_L'], 'z': (-34.0, 60)})),
+        'boot': layers(cloth((60, 64, 80), seed=1109, weave=0.15, dirt=0.9, dirt_color=(70, 55, 40), blood=0.3),
+                       ({'type': 'rubber', 'color': (215, 210, 200)}, {'z': (-60, -34.6)}),
+                       (cloth(_dim(c, 0.9), seed=1115, weave=0.0, dirt=0.6), {'z': (-34.6, -33.6), 'x': (-60, 0.5 * k)})),
         'claw': {'type': 'bone', 'color': (200, 180, 130), 'tip_color': (60, 25, 10), 'tip_dark': 0.8, 'seed': 1110},
         'shirt': dict(jacket, seed=1111),
         'hair': {'type': 'hair', 'color': (60, 40, 26), 'tip': (110, 80, 50), 'seed': 1112},
@@ -198,7 +227,7 @@ def runner(quick=False):
     return _zspec('runner', rs,
                   dict(hunch=30.0, lurch=0.25, run_D=124.0, walk_D=72.0, run_lean=24.0, arm_swing=1.7, knee_bend=0.16,
                        aggression=1.35, claw_spread=1.1, stance_w=0.85),
-                  dict(gaunt=0.55, muscle=0.12, chest=0.88, waist=0.82, claw_len=0.9,
+                  dict(gaunt=0.55, muscle=0.12, chest=0.88, waist=0.82, claw_len=0.9, feet='shoe',
                        head=dict(jaw_drop=0.4, sockets=1.5, cheek=1.4, mouth_open=0.9, w=0.92, nose=0.7)),
                   _runner_mats,
                   [('hair', dict(mat='hair', volume=0.4)),
@@ -215,7 +244,7 @@ def _tank_mats(rig, sh):
     J = rig.J
     k = rig.H / 72.0
     c = CLASS_RGB['tank']
-    sk = skin((122, 116, 128), seed=1201, variation=0.18, tint2=(90, 96, 130), tint2_amount=0.55, veins=0.7,
+    sk = skin((118, 118, 134), seed=1201, variation=0.18, tint2=(80, 96, 160), tint2_amount=0.6, veins=0.7,
               vein_color=(40, 60, 150), scars=0.8, wounds=0.35, blood=0.3, pores=0.2, rot=0.2)
     plate = metal((95, 100, 110), seed=1202, paint=_dim(c, 0.75), chipping=0.45, edge_wear=0.9, rust=0.35, scratches=0.6)
     pants = cloth((58, 62, 50), seed=1203, weave=0.12, dirt=0.9, dirt_color=(70, 60, 40), stains=0.6, blood=0.35)
@@ -233,22 +262,28 @@ def _tank_mats(rig, sh):
 
 
 def _tank_acc(rig, sh):
+    from ..accessories import _shell_front_x
     J = rig.J
     k = rig.H / 72.0
 
-    def at(bone, off):
-        return tuple((J(bone) + np.array(off) * k) / k)
+    def front(bone, y, dz, rot, size, back=False):
+        z = J(bone)[2] + dz * k
+        x = _shell_front_x(rig, sh, z, 0.3)
+        if back:
+            x = J(bone)[0] - (x - J(bone)[0]) * 0.85
+        return (bone, (x / k, y, z / k), size, rot)
     return [
-        ('shoulder_pads', dict(mat='plate', size=1.35, spikes=2, spike_mat='shard')),
+        (_shell, dict(mat='plate', name='chestplate', z0=J('Bip01 Spine2')[2] - 1.0 * k, z1=J('Bip01 Spine3')[2] + 2.6 * k,
+                       grow=0.7, front=1.0, back=0.9, segs=14, rings=5)),
+        ('helmet', dict(mat='plate', size=1.05, low=0.3, crest=0.6, rails=False, mount=False, style='full')),
+        ('shoulder_pads', dict(mat='plate', size=1.5, spikes=2, spike_mat='shard')),
         ('bracers', dict(mat='plate', grow=0.8)),
         ('plates_on', dict(mat='plate', items=[
-            ('Bip01 Spine2', at('Bip01 Spine2', (6.6, 1.8, 0.5)), (1.0, 4.6, 5.2), (8, -12, 6)),
-            ('Bip01 Spine', at('Bip01 Spine', (5.6, -2.2, 0.0)), (1.0, 4.0, 3.6), (-10, -6, -4)),
-            ('Bip01 Spine3', at('Bip01 Spine3', (-5.5, 0, 0.5)), (1.0, 6.4, 5.0), (0, 14, 0)),
-            ('Bip01 L Thigh', at('Bip01 L Thigh', (2.6, 1.0, -7.0)), (1.0, 3.2, 4.4), (0, -8, 10)),
-            ('Bip01 Head', at('Bip01 Head', (-0.5, 0, 6.6)), (5.0, 4.6, 0.9), (0, -6, 0))])),
-        ('spikes', dict(mat='shard', n=4, length=4.0, radius=0.9, seed=7)),
-        ('chain', dict(mat='strap', points=_chain_pts(rig, k, 3.5), bones=[_bi(rig, 'Bip01 Spine3')] * 3, link=1.2)),
+            front('Bip01 Spine', -2.4, 0.0, (-10, -6, -4), (1.0, 4.4, 3.8)),
+            front('Bip01 Spine1', 2.6, 0.5, (8, -4, 8), (1.0, 3.4, 3.0)),
+            ('Bip01 L Thigh', tuple((J('Bip01 L Thigh') + np.array([3.6, 0.6, -7.0]) * k) / k), (1.0, 3.6, 4.6), (0, -8, 10)),
+            ('Bip01 R Calf', tuple((J('Bip01 R Calf') + np.array([3.0, -0.4, -4.0]) * k) / k), (1.0, 3.0, 4.0), (0, -4, -8))])),
+        ('spikes', dict(mat='shard', n=4, length=4.5, radius=1.0, seed=7)),
         ('jaw_teeth', dict(mat='teeth', n=4, size=1.2)),
         ('glow_eyes', dict(mat='eyeglow', size=0.55)),
     ]
@@ -262,7 +297,7 @@ def tank(quick=False):
     return _zspec('tank', rs,
                   dict(hunch=12.0, heavy=0.65, lurch=0.35, run_D=86.0, walk_D=56.0, stance_w=1.35, arm_swing=0.55,
                        knee_bend=0.14, run_lean=8.0, aggression=0.8, claw_spread=0.8),
-                  dict(muscle=1.0, hump=0.45, chest=1.2, waist=1.05, belly=0.15, claw_len=0.6, neck=1.4,
+                  dict(muscle=1.0, hump=0.45, chest=1.2, waist=1.05, belly=0.15, claw_len=0.6, neck=1.15,
                        head=dict(jaw=1.6, brow=1.7, w=1.1, sockets=1.2, ears=0.6, mouth_open=0.3, flat_top=0.4)),
                   _tank_mats, _tank_acc,
                   dict(eye='glow', glow=(80, 150, 255), mouth='snarl', teeth=(200, 190, 150), brow_color=None, eye_size=0.75),
@@ -276,7 +311,7 @@ def _banshee_mats(rig, sh):
     c = CLASS_RGB['banshee']
     pale = skin((196, 198, 222), seed=1301, variation=0.08, veins=0.7, vein_color=(110, 110, 190), rot=0.12,
                 rot_color=(150, 150, 190), wounds=0.15, blood=0.15, pores=0.05)
-    dress = cloth(_dim(c, 0.82), seed=1302, weave=0.25, weave_freq=5.0, dirt=0.4, dirt_color=(80, 80, 110), tears=0.4,
+    dress = cloth(_dim(c, 0.82), seed=1302, weave=0.07, weave_freq=3.0, dirt=0.4, dirt_color=(80, 80, 110), tears=0.4,
                   stains=0.3, blood=0.2)
     return {
         'skin': pale, 'head': dict(pale, seed=1303, veins=0.4), 'hand': dict(pale, seed=1304), 'boot': dict(pale, seed=1305),
@@ -343,7 +378,7 @@ def leech(quick=False):
     rs = RigSpec(height=70.0, shoulder_w=0.22, hip_w=0.115, leg=0.49, arm=0.38, hand=0.12, head=0.135, limb_thick=0.88,
                  bulk=0.95)
     return _zspec('leech', rs,
-                  dict(hunch=34.0, lurch=0.9, limp=0.1, walk_D=58.0, run_D=100.0, run_lean=16.0, knee_bend=0.22,
+                  dict(hunch=34.0, lurch=0.9, crouch_spine=4.0, crouch_tilt=20.0, limp=0.1, walk_D=58.0, run_D=100.0, run_lean=16.0, knee_bend=0.22,
                        arm_swing=0.8, stance_w=1.15, claw_spread=1.3, aggression=1.25, crouch_h=0.27),
                   dict(gaunt=0.45, hump=0.4, muscle=0.25, chest=0.95, waist=0.85, claw_len=1.1, neck_len=1.2,
                        head=dict(snout=0.5, jaw=0.7, chin=0.6, sockets=1.7, nose=0.0, ears=0.3, cranium=1.1, w=0.95)),
@@ -388,7 +423,7 @@ def stalker(quick=False):
     rs = RigSpec(height=73.0, shoulder_w=0.19, hip_w=0.11, leg=0.53, arm=0.41, hand=0.14, head=0.13, limb_thick=0.72,
                  bulk=0.78)
     return _zspec('stalker', rs,
-                  dict(hunch=26.0, lurch=0.2, knee_bend=0.26, stance_w=1.3, walk_D=70.0, run_D=118.0, run_lean=20.0,
+                  dict(hunch=26.0, lurch=0.2, crouch_spine=4.0, crouch_tilt=20.0, knee_bend=0.26, stance_w=1.3, walk_D=70.0, run_D=118.0, run_lean=20.0,
                        arm_swing=0.35, claw_spread=1.5, aggression=1.15, crouch_h=0.26),
                   dict(gaunt=0.7, muscle=0.15, chest=0.86, waist=0.78, claw_len=2.3, claw_count=3,
                        head=dict(jaw=0.8, sockets=1.8, cheek=0.7, nose=0.4, mouth_open=0.3, w=0.9)),
@@ -449,14 +484,15 @@ def bomber(quick=False):
 
     def acc(rig, sh):
         return [
-            (pustules, dict(mat='pustule', seed=5, where=[
-                ('Bip01 Spine', (8.5, 0, 0.5), 1.5, 9, (1.0, 4.5, 3.5)),
-                ('Bip01 Spine1', (7.0, 0, 1.5), 1.2, 4, (1.0, 4.0, 2.0)),
-                ('Bip01 Spine2', (-5.0, 0, 0), 1.3, 6, (1.0, 4.5, 3.0)),
-                ('Bip01 L UpperArm', (0, 2.2, -3.0), 0.9, 3, (1.2, 0.6, 2.5)),
-                ('Bip01 R UpperArm', (0, -2.2, -3.0), 0.9, 3, (1.2, 0.6, 2.5)),
-                ('Bip01 Neck', (0, 2.0, 0.5), 0.8, 2, (1.0, 0.5, 0.8)),
-                ('Bip01 L Thigh', (2.0, 1.5, -6.0), 0.9, 2, (1.0, 1.0, 3.0))])),
+            (torso_boils, dict(mat='pustule', n=14, z=(rig.J('Bip01 Pelvis')[2] + 1.0 * rig.H / 72, rig.J('Bip01 Spine2')[2]),
+                               ang=(-75, 75), r=1.5, seed=5)),
+            (torso_boils, dict(mat='pustule', n=7, z=(rig.J('Bip01 Spine1')[2], rig.J('Bip01 Spine3')[2] + 2.0 * rig.H / 72),
+                               ang=(110, 250), r=1.3, seed=6)),
+            (pustules, dict(mat='pustule', seed=7, where=[
+                ('Bip01 L UpperArm', (0, 2.0, -3.0), 0.9, 3, (1.0, 0.4, 2.5)),
+                ('Bip01 R UpperArm', (0, -2.0, -3.0), 0.9, 3, (1.0, 0.4, 2.5)),
+                ('Bip01 Neck', (0, 1.9, 0.5), 0.8, 2, (0.8, 0.3, 0.8)),
+                ('Bip01 L Thigh', (2.6, 1.2, -6.0), 0.9, 2, (0.6, 1.0, 3.0))])),
             ('shirt_flaps', dict(mat='shirt', n=6, length=4.5, seed=17)),
             ('jaw_teeth', dict(mat='teeth', n=5, size=0.9)),
             ('glow_eyes', dict(mat='eyeglow', size=0.5)),
@@ -464,7 +500,7 @@ def bomber(quick=False):
     return _zspec('bomber', rs,
                   dict(hunch=8.0, lurch=1.0, limp=0.3, heavy=0.35, walk_D=50.0, run_D=82.0, run_lean=6.0, stance_w=1.4,
                        arm_swing=0.75, knee_bend=0.14, aggression=0.9, claw_spread=0.9),
-                  dict(belly=1.25, chest=1.1, waist=1.3, hips=1.15, muscle=0.05, gaunt=0.0, claw_len=0.7,
+                  dict(belly=2.6, chest=1.1, waist=1.35, hips=1.15, muscle=0.05, gaunt=0.0, claw_len=0.7,
                        head=dict(jaw=1.2, cheek=1.5, sockets=1.2, mouth_open=0.8, jaw_drop=0.3, w=1.08)),
                   _bomber_mats, acc,
                   dict(eye='glow', glow=(160, 255, 40), mouth='open', teeth=(180, 180, 110), brow_color=None, eye_size=0.8),
@@ -507,11 +543,11 @@ def frost(quick=False):
                   dict(gaunt=0.3, muscle=0.35, hump=0.2, claw_len=1.1,
                        head=dict(jaw=1.1, sockets=1.4, brow=1.3, mouth_open=0.5, jaw_drop=0.25)),
                   _frost_mats,
-                  [('crystals', dict(mat='ice', size=1.15, seed=31, where=(
-                      ('Bip01 Spine3', (-4.0, 2.4, 1.0)), ('Bip01 Spine2', (-4.2, -2.6, 0.0)), ('Bip01 Spine1', (-4.0, 1.0, 0.0)),
-                      ('Bip01 L UpperArm', (0, 1.8, 0.5)), ('Bip01 R UpperArm', (0, -1.8, 0.5)),
-                      ('Bip01 Head', (-1.0, 1.0, 7.4)), ('Bip01 L Forearm', (0.5, 1.2, -4.0)),
-                      ('Bip01 R Calf', (1.5, -0.5, -2.0))))),
+                  [('crystals', dict(mat='ice', size=1.55, seed=31, where=(
+                      ('Bip01 Spine3', (-4.6, 2.6, 1.5)), ('Bip01 Spine2', (-4.8, -2.8, 0.0)), ('Bip01 Spine1', (-4.4, 1.4, 0.0)),
+                      ('Bip01 L Clavicle', (0.0, 2.5, 2.2)), ('Bip01 R UpperArm', (0, -2.0, 0.8)),
+                      ('Bip01 Head', (-1.6, 1.4, 6.6)), ('Bip01 Head', (-1.8, -1.6, 6.2)), ('Bip01 L Forearm', (0.5, 1.3, -4.0)),
+                      ('Bip01 R Calf', (1.8, -0.6, -2.0))))),
                    ('hair', dict(mat='hair', volume=0.45)),
                    ('jaw_teeth', dict(mat='teeth', n=5, size=1.0)),
                    ('glow_eyes', dict(mat='eyeglow', size=0.55))],
@@ -552,9 +588,13 @@ def _spitter_decals(rig, sh):
     return [
         dict(kind='sphere', center=fa['mouth'] + np.array([0.4, 0, -1.6]) * k, radius=1.6 * k, scale=(1, 0.9, 2.4),
              soft=0.5, color=c, color2=(80, 160, 0), mode='glow', alpha=0.9),
-        dict(kind='band', normal=(0, 1, 0), offset=0.3 * k, width=1.8 * k, soft=0.7, color=c, mode='glow', alpha=0.75,
-             region=((J('Bip01 Spine')[0] + 2.0, -10, J('Bip01 Spine1')[2]), (20, 10, J('Bip01 Neck')[2])),
-             target=['body', 'torso']),
+    ] + [
+        # acid drips running down the neck and chest
+        dict(kind='sphere', center=J(bone) + np.array([dx, dy, dz]) * k, radius=r * k, scale=(1.0, 0.7, 2.6), soft=0.6,
+             color=c, color2=(70, 150, 0), mode='glow', alpha=0.8, target=['body', 'torso', 'skin'])
+        for bone, dx, dy, dz, r in (('Bip01 Neck', 2.2, 0.4, 0.0, 0.9), ('Bip01 Spine3', 5.0, -0.8, 0.5, 1.1),
+                                    ('Bip01 Spine2', 6.0, 1.2, 0.0, 0.9), ('Bip01 Spine1', 6.4, -1.4, 0.5, 0.7))
+    ] + [
         dict(kind='sphere', center=J('Bip01 Spine2') + np.array([5.0, -3.0, -2.0]) * k, radius=2.4 * k, soft=0.6,
              color=(60, 70, 10), mode='multiply', alpha=0.7, target=['body', 'torso']),
     ]
@@ -576,7 +616,7 @@ def spitter(quick=False):
             ('glow_eyes', dict(mat='eyeglow', size=0.5)),
         ]
     return _zspec('spitter', rs,
-                  dict(hunch=24.0, lurch=0.55, limp=0.15, walk_D=62.0, run_D=98.0, run_lean=14.0, arm_swing=0.9,
+                  dict(hunch=24.0, lurch=0.55, crouch_spine=4.0, crouch_tilt=20.0, limp=0.15, walk_D=62.0, run_D=98.0, run_lean=14.0, arm_swing=0.9,
                        knee_bend=0.13, stance_w=1.0, aggression=1.2, claw_spread=1.0),
                   dict(gaunt=0.6, muscle=0.15, chest=0.92, waist=0.8, neck=0.75, neck_len=2.0, claw_len=1.0,
                        head=dict(jaw=1.3, snout=0.3, sockets=1.5, mouth_open=1.0, jaw_drop=0.6, nose=0.3, d=1.1)),
@@ -590,8 +630,8 @@ def _hulk_mats(rig, sh):
     J = rig.J
     k = rig.H / 72.0
     c = CLASS_RGB['hulk']
-    sk = skin((112, 96, 88), seed=1901, variation=0.2, tint2=(140, 90, 70), tint2_amount=0.45, veins=0.8,
-              vein_color=(255, 100, 0), scars=0.9, wounds=0.4, blood=0.2, pores=0.3)
+    sk = skin((112, 98, 92), seed=1901, variation=0.2, tint2=(130, 96, 84), tint2_amount=0.45, veins=0.45,
+              vein_color=(150, 50, 20), scars=0.9, wounds=0.4, blood=0.2, pores=0.3)
     wound = {'type': 'lava', 'color': (90, 60, 50), 'hot': c, 'core': (255, 200, 110), 'freq': 0.5, 'crack_width': 0.06,
              'seed': 1902}
     pants = cloth((52, 50, 60), seed=1903, weave=0.1, dirt=0.9, dirt_color=(80, 60, 40), stains=0.6, blood=0.4, tears=0.5)
@@ -743,7 +783,7 @@ def _phantom_mats(rig, sh):
     c = CLASS_RGB['phantom']
     ecto = skin((134, 134, 196), seed=2101, variation=0.15, tint2=(100, 90, 200), tint2_amount=0.6, veins=0.9,
                 vein_color=(190, 200, 255), rot=0.15, rot_color=(90, 80, 160), wounds=0.0, blood=0.0)
-    mist = cloth(_dim(c, 0.55), seed=2102, weave=0.3, weave_freq=4.0, dirt=0.5, dirt_color=(30, 20, 70), tears=0.6, stains=0.2)
+    mist = cloth(_dim(c, 0.55), seed=2102, weave=0.07, weave_freq=3.0, dirt=0.5, dirt_color=(30, 20, 70), tears=0.6, stains=0.2)
     wisp = {'type': 'glow', 'color': _dim(c, 0.9), 'color2': (210, 210, 255), 'freq': 0.9}
     return {
         'skin': ecto, 'head': dict(ecto, seed=2103), 'hand': dict(ecto, seed=2104), 'boot': dict(ecto, seed=2105),

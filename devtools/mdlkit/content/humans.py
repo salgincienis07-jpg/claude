@@ -196,18 +196,18 @@ def _officer_cap(rig, sh, mat='cap', band='cap_band', peak='cap_peak', badge='ba
     return out
 
 
-def _visor_band(rig, sh, mat='redvisor', frame='visor_frame', width=1.5, spread=1.15):
+def _visor_band(rig, sh, mat='redvisor', frame='visor_frame', width=1.5, spread=1.15, grow=0.0):
     """Glowing visor band across the eyes (wraps to the temples)."""
     fa = face_anchor(rig, sh)
     k = fa['k']; c = fa['center']; rx, ry, rz = fa['radii']
     hb = _bi(rig, 'Bip01 Head')
     vz = fa['eye_L'][2] + 0.1 * k
     ang = np.linspace(-spread, spread, 11)
-    pts = np.array([[c[0] + (rx + 0.75 * k) * math.cos(a), c[1] + (ry + 0.8 * k) * math.sin(a), vz] for a in ang])
+    pts = np.array([[c[0] + (rx + (0.75 + grow) * k) * math.cos(a), c[1] + (ry + (0.8 + grow) * k) * math.sin(a), vz] for a in ang])
     vis = ribbon(pts, width * k, normal_hint=(1, 0, 0), mat=mat, bones=hb, two_sided=True, width_dir=(0, 0, 1))
     vis.name = 'visor'
     ang2 = np.linspace(-spread - 0.15, spread + 0.15, 13)
-    pts2 = np.array([[c[0] + (rx + 0.45 * k) * math.cos(a), c[1] + (ry + 0.5 * k) * math.sin(a), vz] for a in ang2])
+    pts2 = np.array([[c[0] + (rx + (0.45 + grow) * k) * math.cos(a), c[1] + (ry + (0.5 + grow) * k) * math.sin(a), vz] for a in ang2])
     fr = tube(pts2, 0.25 * k, segs=4, mat=frame, bones=hb, radii_b=(width * 0.5 + 0.3) * k, cap_start=True,
               cap_end=True, ref=np.array([0, 0, 1.0]))
     fr.name = 'visor_frame'
@@ -221,8 +221,8 @@ def _face_mask(rig, sh, mat='mask'):
     fa = face_anchor(rig, sh)
     k = fa['k']; c = fa['center']; rx, ry, rz = fa['radii']
     hb = _bi(rig, 'Bip01 Head')
-    zc = fa['mouth'][2] + 0.25 * k
-    m = ellipsoid((rx * 1.0 + 0.4 * k, ry * 1.06 + 0.35 * k, 2.6 * k), (c[0] + 0.0 * k, c[1], zc), segs=14, rings=7,
+    zc = fa['mouth'][2] + 0.1 * k
+    m = ellipsoid((rx + 1.5 * k, ry * 1.06 + 0.4 * k, 2.5 * k), (c[0] - 0.3 * k, c[1], zc), segs=14, rings=7,
                   mat=mat, bone=hb,
                   deform=lambda u, q: np.where((u[:, 0:1] < -0.2), q * np.array([0.92, 1, 1]), q))
     m.name = 'facemask'
@@ -237,9 +237,9 @@ def _monocular(rig, sh, mat='scope_metal', lens='mono_lens', side='R'):
     e = fa['eye_' + side]
     sg = 1 if side == 'L' else -1
     p0 = e + np.array([0.1 * k, 0, 0.1 * k]); p1 = e + np.array([2.3 * k, sg * 0.1 * k, 0.1 * k])
-    tb = cylinder(p0, p1, 0.85 * k, 0.95 * k, segs=10, mat=mat, bone=hb)
+    tb = cylinder(p0, p1, 0.7 * k, 0.8 * k, segs=10, mat=mat, bone=hb)
     tb.name = 'monocular'
-    ln = ellipsoid((0.15 * k, 0.8 * k, 0.8 * k), p1 + np.array([0.05 * k, 0, 0]), segs=10, rings=5, mat=lens, bone=hb)
+    ln = ellipsoid((0.15 * k, 0.66 * k, 0.66 * k), p1 + np.array([0.05 * k, 0, 0]), segs=10, rings=5, mat=lens, bone=hb)
     ln.name = 'mono_lens'
     # strap arm to the temple
     arm = box((2.6 * k, 0.3 * k, 0.5 * k), center=(e[0] - 0.9 * k, e[1] + sg * 1.6 * k, e[2] + 0.4 * k), mat=mat, bone=hb)
@@ -440,9 +440,9 @@ def _hazmat_decals(rig, sh):
     z2 = J('Bip01 Spine2')[2] + 1.6 * k
     return [
         # Vexmira emblem on the chest (cyan) with a purple ring, biohazard-like ring on the back
-        _emblem((J('Bip01 Spine2')[0] + 6.0 * k, 3.0 * k, z2), (0, -1, 0), (0, 0, 1), 1.5 * k, target=['body'], depth=3.0),
-        _emblem((J('Bip01 Spine2')[0] + 6.0 * k, 3.0 * k, z2), (0, -1, 0), (0, 0, 1), 2.1 * k, color=PURPLE,
-                shape='ring', target=['body'], depth=3.0, mode='paint'),
+        _emblem((J('Bip01 Spine2')[0] + 6.0 * k, 3.0 * k, z2), (0, -1, 0), (0, 0, 1), 2.3 * k, color=PURPLE,
+                shape='diamond', target=['body'], depth=3.0, mode='paint'),
+        _emblem((J('Bip01 Spine2')[0] + 6.0 * k, 3.0 * k, z2), (0, -1, 0), (0, 0, 1), 1.6 * k, target=['body'], depth=3.0),
         _emblem((J('Bip01 Spine2')[0] - 6.0 * k, 0, J('Bip01 Spine1')[2] - 1.2 * k), (0, 1, 0), (0, 0, 1), 2.2 * k,
                 color=(30, 30, 30), shape='ring', target=['body'], depth=3.0, mode='paint'),
         _emblem((J('Bip01 Spine2')[0] - 6.0 * k, 0, J('Bip01 Spine1')[2] - 1.2 * k), (0, 1, 0), (0, 0, 1), 1.3 * k,
@@ -485,7 +485,7 @@ def _vip_materials(rig, sh):
     J = rig.J
     k = rig.H / 72.0
     gold = metal(GOLD_M, seed=401, scratches=0.25, shine=0.7, edge_wear=0.5, chipping=0.05)
-    white = metal(WHITE_A, seed=402, paint=WHITE_A, scratches=0.2, shine=0.45, edge_wear=0.4, chipping=0.1, panels=0.5)
+    white = metal(WHITE_A, seed=402, paint=WHITE_A, scratches=0.12, shine=0.45, edge_wear=0.4, chipping=0.06, panels=0.2)
     under = cloth((46, 30, 74), seed=403, weave=0.1, weave_freq=5.0, dirt=0.1)
     suit = cloth((214, 214, 222), seed=404, weave=0.06, weave_freq=4.0, dirt=0.15, fold_freq=0.2)
     cy = _cyan_glow()
@@ -546,7 +546,7 @@ def _vip_accessories(rig, sh):
         ('bracers', dict(mat='gold', grow=0.45)),
         ('knee_pads', dict(mat='gold')),
         ('belt', dict(mat='belt', buckle_mat='gold', pouches=0)),
-        ('cape', dict(mat='cape', length=0.72, width=7.0, tatter=0.0, flare=0.4)),
+        ('cape', dict(mat='cape', length=0.55, width=7.5, tatter=0.0, flare=0.25)),
     ]
 
 
@@ -594,7 +594,7 @@ def _admin_materials(rig, sh):
         'cap_band': red,
         'cap_peak': {'type': 'leather', 'color': (14, 14, 16), 'seed': 508},
         'badge': metal((210, 30, 36), seed=509, shine=0.7, scratches=0.1),
-        'redvisor': {'type': 'glow', 'color': (255, 30, 30), 'color2': (255, 170, 150), 'freq': 0.9},
+        'redvisor': {'type': 'glow', 'color': (255, 22, 18), 'color2': (255, 96, 70), 'freq': 1.1},
         'visor_frame': metal((40, 40, 46), seed=510, shine=0.6),
         'plate': layers(metal((32, 30, 36), seed=511, shine=0.55, edge_wear=0.5, scratches=0.25),
                         (red, {'z': (J('Bip01 L UpperArm')[2] + 1.4 * k, 60)})),
@@ -612,7 +612,7 @@ def _admin_decals(rig, sh):
     k = rig.H / 72.0
     zc = J('Bip01 Spine2')[2] + 1.6 * k
     return [
-        _emblem((J('Bip01 Spine2')[0] + 6.0 * k, 3.2 * k, zc), (0, -1, 0), (0, 0, 1), 1.3 * k, color=PURPLE,
+        _emblem((J('Bip01 Spine2')[0] + 6.0 * k, 3.4 * k, zc), (0, -1, 0), (0, 0, 1), 1.9 * k, color=PURPLE,
                 target=['vest', 'coat'], depth=3.0),
         # back: large Vexmira emblem in purple glow with a red ring
         _emblem((J('Bip01 Spine2')[0] - 7.0 * k, 0, zc), (0, 1, 0), (0, 0, 1), 3.0 * k, color=PURPLE,
@@ -677,7 +677,7 @@ def _survivor_materials(rig, sh):
                        (armor, {'meshes': ['leg'], 't': (0.12, 0.62), 'x': (-1.0 * k, 30)}),
                        (armor, {'meshes': ['leg'], 't': (1.1, 2.2)})),
         'boot': layers({'type': 'leather', 'color': (44, 40, 36), 'seed': 605, 'blood': 0.3},
-                       (metal((70, 74, 72), seed=606, rust=0.4, chipping=0.4), {'z': (-60, -34.0), 'soft': 0.2})),
+                       (metal((52, 56, 54), seed=606, rust=0.4, chipping=0.4, shine=0.12), {'z': (-60, -34.6), 'soft': 0.2})),
         'armor': armor,
         'helmet': layers(armor, (cy, {'y': (-0.3 * k, 0.3 * k), 'x': (-20, 20), 'z': (J('Bip01 Head')[2] + 7.2 * k, 60)})),
         'slit': {'type': 'glow', 'color': CYAN, 'color2': (210, 255, 255), 'freq': 1.2},
@@ -721,18 +721,20 @@ def _survivor_accessories(rig, sh):
     th = lambda s, d: tuple((J('Bip01 %s Thigh' % s) + np.array(d) * k) / k)
     cf = lambda s, d: tuple((J('Bip01 %s Calf' % s) + np.array(d) * k) / k)
     return [
-        ('helmet', dict(mat='helmet', visor_mat='slit', style='full', ear_guards=True, size=1.1, low=0.4, rails=True,
+        ('helmet', dict(mat='helmet', style='full', ear_guards=True, size=1.08, low=0.4, rails=True,
                         rail_mat='plate', mount=False)),
+        ('hum_visor_band', dict(mat='slit', frame='plate', width=1.25, spread=1.0, grow=1.0)),
         ('hum_gorget', dict(mat='armor', grow=1.3)),
         ('vest', dict(mat='vest', pouch_mat='pouch', plate_mat='plate', grow=1.5, collar=False)),
         ('shoulder_pads', dict(mat='plate', size=1.65)),
         ('bracers', dict(mat='plate', grow=0.9)),
         ('knee_pads', dict(mat='plate')),
         ('belt', dict(mat='belt', buckle_mat='metal', pouches=4, pouch_mat='pouch', grow=1.6)),
-        ('wraps', dict(mat='bandage', where=(('L', 'UpperArm', 0.62, 0.95), ('R', 'Thigh', 0.62, 0.9)), grow=0.35)),
+        ('wraps', dict(mat='bandage', where=(('L', 'UpperArm', 0.62, 0.95),), grow=0.35)),
+        ('wraps', dict(mat='bandage', where=(('R', 'Thigh', 0.6, 0.86),), grow=1.5)),
         ('plates_on', dict(mat='plate', items=[
-            ('Bip01 L Thigh', th('L', (2.6, 0.6, -7.0)), (1.4, 4.4, 6.5), (0, -6, 0)),
-            ('Bip01 R Thigh', th('R', (2.6, -0.6, -7.0)), (1.4, 4.4, 6.5), (0, -6, 0)),
+            ('Bip01 L Thigh', th('L', (4.3, 0.4, -7.0)), (1.2, 4.6, 7.0), (0, -6, 0)),
+            ('Bip01 R Thigh', th('R', (4.3, -0.4, -7.0)), (1.2, 4.6, 7.0), (0, -6, 0)),
             ('Bip01 L Calf', cf('L', (2.4, 0.0, -7.5)), (1.3, 3.4, 8.5), (0, -4, 0)),
             ('Bip01 R Calf', cf('R', (2.4, 0.0, -7.5)), (1.3, 3.4, 8.5), (0, -4, 0))])),
     ]
@@ -817,7 +819,6 @@ def _sniper_accessories(rig, sh):
         ('hum_monocular', dict(mat='scope_metal', lens='mono_lens', side='R')),
         ('vest', dict(mat='vest', pouch_mat='pouch', plates=False, collar=False, grow=0.5)),
         ('cape', dict(mat='cloak', length=0.82, width=14.0, tatter=0.65, flare=0.42)),
-        ('shirt_flaps', dict(mat='ghillie', n=10, length=5.0, seed=7, z=J('Bip01 Spine3')[2] + 1.5 * k)),
         ('belt', dict(mat='belt', buckle_mat='metal', pouches=2, pouch_mat='pouch')),
         ('knee_pads', dict(mat='plate')),
         ('emblem_patch', dict(mat='patch', where='arm_L')),
@@ -830,7 +831,7 @@ def sniper(quick=False):
     return _base('vex_sniper', rs, _sniper_materials, _sniper_accessories, _sniper_decals,
                  face=dict(eye='human', eye_color=(70, 90, 60), brow_color=(50, 40, 30), mouth='closed', stubble=0.3,
                            brow_shadow=0.6),
-                 shape=dict(hands='glove', feet='boot', muscle=0.35, chest=1.0, head=dict(jaw=1.1, brow=1.2)),
+                 shape=dict(hands='glove', feet='boot', muscle=0.35, chest=1.0, head=dict(jaw=1.1, brow=1.2, nose=0.6)),
                  quick=quick)
 
 
