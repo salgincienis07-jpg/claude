@@ -240,12 +240,20 @@ class Gait:
             pose.two_bone_ik('Bip01 %s Thigh' % side, 'Bip01 %s Calf' % side, 'Bip01 %s Foot' % side, ank, pole,
                              end_rot=R)
 
-    def standing(self, pose, crouch=False, t=0.0, spread=1.0, bob=0.0):
+    def hover_h(self, crouch=False):
+        """Height of the floating floor above the real floor ('floaty' style: float_h > 0)."""
+        return self.st.float_h * (0.6 if crouch else 1.0) * self.k
+
+    def standing(self, pose, crouch=False, t=0.0, spread=1.0, bob=0.0, hover=0.0):
         """Neutral stance (frame 0 of idle1 / crouch_idle). Crouch keeps the whole body inside the
-        36-unit crouch hull: deep squat, pelvis ~0.36 of the standing hip height, forward lean."""
+        36-unit crouch hull: deep squat, pelvis ~0.36 of the standing hip height, forward lean.
+        Floaty styles (float_h > 0) hover float_h (+hover) above the floor with dangling, toes-down feet."""
         floor = CROUCH_FOOT_Z if crouch else FOOT_Z
         st = self.st
         k = self.k
+        floaty = st.float_h > 0
+        if floaty:
+            floor = floor + self.hover_h(crouch) + hover
         if crouch:
             ph = self.hip_h * st.crouch_h
         else:
@@ -265,6 +273,10 @@ class Gait:
                 fz = floor + self.ankle_h
                 Rf = ypr(sg * (6 + 6 * (st.kind != 'human')), 0, 0)
                 fy = sg * abs(self.foot_y) * spread
+            if floaty:   # dangling legs: feet a little apart and back, toes pointing down
+                fx = (0.5 if side == 'L' else -2.0) * k
+                fz = floor + self.ankle_h + (0.8 if side == 'L' else 1.6) * k
+                Rf = ypr(sg * 8, 38 if side == 'L' else 48, 0)
             feet[side] = (np.array([fx, fy, fz]), Rf)
         poles = {s: np.array([1.0, sg * (0.45 if crouch else 0.15), 0.0]) for s, sg in (('L', 1), ('R', -1))}
         self.place_legs(pose, feet, poles)
@@ -285,6 +297,8 @@ class Gait:
             lift *= 0.8; bob_a *= 1.5
         floor = CROUCH_FOOT_Z if crouch else FOOT_Z
         N = nframes
+        if st.float_h > 0:
+            return self._glide(kind, N, D, lean, floor + self.hover_h(crouch), crouch)
         frames = []
         for f in range(N):
             ph = f / (N - 1)
@@ -339,6 +353,35 @@ class Gait:
         lm = D * N / (N - 1)
         return frames, lm
 
+    def _glide(self, kind, N, D, lean, floor, crouch):
+        """'floaty' locomotion: no steps - the body glides with a slow bob, leaning into the motion while
+        the dangling legs trail behind and sway. Linear movement is kept (the client needs it)."""
+        st = self.st
+        k = self.k
+        frames = []
+        run = kind == 'run'
+        hh = self.hip_h * (st.crouch_h + 0.02 if crouch else (1 - st.knee_bend))
+        for f in range(N):
+            ph = f / (N - 1)
+            pose = Pose(self.rig)
+            w = 2 * math.pi * ph
+            bob = 1.2 * k * math.sin(w)
+            yaw = 4.0 * math.sin(w) - (WALK_HACK_DEG if kind == 'walk' else 0.0)
+            tilt = (lean + (14.0 if run else 7.0)) if not crouch else lean
+            root = np.array([0.0, 0.6 * k * math.sin(w), floor + hh + bob])
+            pose.set_root(root, ypr(yaw, tilt + 2.0 * math.sin(w + 0.7), 3.0 * math.sin(w)))
+            feet = {}
+            for side, sg, off in (('L', 1, 0.0), ('R', -1, math.pi)):
+                sw = math.sin(w + off)
+                trail = (5.0 if run else 3.0) * k
+                ank = np.array([-trail + 1.5 * k * sw, sg * abs(self.foot_y) * 0.9,
+                                floor + self.ankle_h + (2.0 + 1.2 * sw) * k + (2.0 * k if run else 0.0)])
+                feet[side] = (ank, ypr(sg * 8, 50 + 10 * sw, 0))
+            poles = {s_: np.array([1.0, sg_ * 0.15, 0.0]) for s_, sg_ in (('L', 1), ('R', -1))}
+            self.place_legs(pose, feet, poles)
+            frames.append(pose)
+        return frames, D * N / (N - 1)
+
     def jump(self, nframes, long=False):
         """ACT_HOP / ACT_LEAP gait: legs tuck up while airborne (the player origin moves, not the model)."""
         frames = []
@@ -347,17 +390,17 @@ class Gait:
             t = f / (nframes - 1)
             pose = Pose(self.rig)
             tuck = keys(t, [(0, 0.15), (0.3, 1.0), (0.75, 0.85), (1.0, 0.4)])
-            root = np.array([0.0, 0.0, FOOT_Z + self.hip_h * (1 - self.st.knee_bend) + 1.5 * k * tuck])
+            root = np.array([0.0, 0.0, FOOT_Z + self.hover_h() + self.hip_h * (1 - self.st.knee_bend) + 1.5 * k * tuck])
             pose.set_root(root, ypr(0, (10 if long else 6) * tuck, 0))
             feet = {}
             for side, sg in (('L', 1), ('R', -1)):
                 if long:
                     fx = (10.0 if side == 'L' else -12.0) * k * tuck
-                    fz = FOOT_Z + self.ankle_h + tuck * (14.0 if side == 'L' else 8.0) * k
+                    fz = FOOT_Z + self.hover_h() + self.ankle_h + tuck * (14.0 if side == 'L' else 8.0) * k
                     pitch = (-10 if side == 'L' else 45) * tuck
                 else:
                     fx = (2.0 if side == 'L' else -2.5) * k * tuck
-                    fz = FOOT_Z + self.ankle_h + tuck * (17.0 if side == 'L' else 13.0) * k
+                    fz = FOOT_Z + self.hover_h() + self.ankle_h + tuck * (17.0 if side == 'L' else 13.0) * k
                     pitch = 35 * tuck
                 feet[side] = (np.array([fx, sg * abs(self.foot_y) * 1.1, fz]), ypr(sg * 8, pitch, 0))
             poles = {s: np.array([1.0, sg * 0.2, 0]) for s, sg in (('L', 1), ('R', -1))}
@@ -871,7 +914,8 @@ class AnimBuilder:
             zall = ground_points(pose)[:, 2].min()
             zcore = ground_points(pose, core=True)[:, 2].min()
             wc = smoothstep(0.55, 0.95, a_c)
-            pose.t[0] = pose.t[0] + np.array([0, 0, floor - (zall * (1 - wc) + zcore * wc)])
+            fl0 = floor + self.gait.hover_h(crouch) * (1 - smoothstep(0.0, 0.7, a_c))
+            pose.t[0] = pose.t[0] + np.array([0, 0, fl0 - (zall * (1 - wc) + zcore * wc)])
             pose.dirty()
             # late phase: drop the feet onto the floor (no legs sticking up in the air)
             dropw = smoothstep(0.5, 1.0, a_c)
@@ -982,7 +1026,10 @@ class AnimBuilder:
                 n = 16
                 for f in range(n):
                     p = Pose(self.rig)
-                    self.gait.standing(p, bob=0.25 * self.k * (1 - math.cos(2 * math.pi * f / (n - 1))) / 2)
+                    if st.float_h > 0:   # hovering: the whole body bobs up and down
+                        self.gait.standing(p, hover=-1.4 * self.k * (1 - math.cos(2 * math.pi * f / (n - 1))) / 2)
+                    else:
+                        self.gait.standing(p, bob=0.25 * self.k * (1 - math.cos(2 * math.pi * f / (n - 1))) / 2)
                     frs.append(p)
                 return [frs], 8.0, 0.0
             if a == 'crouch_idle':

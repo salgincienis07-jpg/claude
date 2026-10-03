@@ -66,10 +66,10 @@ def sync_package(server=SERVER, verbose=True):
     amx_r = os.path.join(rc, 'addons', 'amxmodx')
     amx_s = os.path.join(sc, 'addons', 'amxmodx')
     made = []
-    # configs: vexmira*.cfg/ini/html + plugins-vexmira.ini
+    # configs: vexmira*.cfg/ini/html
     for f in sorted(glob.glob(os.path.join(amx_r, 'configs', '*'))):
         b = os.path.basename(f)
-        if b.startswith('vexmira') or b.startswith('plugins-vexmira'):
+        if b.startswith('vexmira'):        # plugins-vexmira.ini is written per run (set_vexmira_ini)
             if _link(f, os.path.join(amx_s, 'configs', b)):
                 made.append('configs/' + b)
     # lang files (only ours; AMXX keeps its own)
@@ -153,8 +153,9 @@ def build_plugin(server=SERVER, retries=0, wait=60):
         if not ok:
             print(log[-3000:])
         if attempt < retries:
-            print('[build] retry %d/%d in %ds (plugin may be mid-edit)' % (attempt + 1, retries, wait))
-            time.sleep(wait)
+            w = wait if not ok else 10           # clean build of a file that changed meanwhile: retry soon
+            print('[build] retry %d/%d in %ds (plugin may be mid-edit)' % (attempt + 1, retries, w))
+            time.sleep(w)
     if os.path.exists(tmp):
         os.unlink(tmp)
     return False
@@ -1017,9 +1018,12 @@ def main(argv=None):
         print('[run] map %s not found in %s' % (args.map, SERVER_MAPS))
         return 1
     nav = os.path.join(SERVER_MAPS, args.map + '.nav')
-    if args.ensure_nav and args.bots and not args.until_nav and not os.path.exists(nav):
-        print('[nav] %s missing -> learning pass (plugin disabled, 1 bot)' % os.path.basename(nav))
-        generate_nav(args, args.map, args.nav_timeout)
+    if args.ensure_nav and args.bots and not args.until_nav:
+        _ok, rep = nav_state(args.map)
+        why = [e for e in rep['errors'] if e == 'missing' or 'stale' in e]
+        if why:
+            print('[nav] %s: %s -> learning pass (plugin disabled, 1 bot)' % (os.path.basename(nav), why[0]))
+            generate_nav(args, args.map, args.nav_timeout)
     rc = run(args)
     if args.export_nav and os.path.exists(nav) and not os.path.islink(nav):
         print('[nav] exported to %s' % export_nav(nav))
