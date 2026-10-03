@@ -141,7 +141,12 @@ def main(argv):
                 if '--lookdev' in rest:
                     print(rep[0] if isinstance(rep, tuple) else rep)
                 elif not isinstance(rep, list) and rep is not None and 'errors' in rep and sp.get('kind') == 'pmodel':
-                    print(rep)
+                    print('  %s size %d errors %s warnings %s ext %s' % (rep['out'], rep['size'], rep['errors'],
+                                                                     rep.get('warnings'), rep.get('ext')))
+                    for pv in rep.get('previews') or []:
+                        print('  preview', pv)
+                    if rep['errors']:
+                        raise RuntimeError('; '.join(rep['errors']))
             except Exception as e:  # keep building the rest, report at the end
                 import traceback
                 traceback.print_exc()

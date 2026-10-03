@@ -2706,6 +2706,7 @@ public plugin_init()
     RegisterHookChain(RG_CBasePlayer_Spawn,              "rg_PlayerSpawn", true);
     RegisterHookChain(RG_CBasePlayer_TakeDamage,         "rg_TakeDamage", false);
     RegisterHookChain(RG_CBasePlayer_TakeDamage,         "rg_TakeDamagePost", true);
+    RegisterHookChain(RG_CBasePlayer_Killed,             "rg_PlayerKilledPre", false);
     RegisterHookChain(RG_CBasePlayer_Killed,             "rg_PlayerKilled", true);
     RegisterHookChain(RG_CBasePlayer_ResetMaxSpeed,      "rg_ResetMaxSpeed", true);
     RegisterHookChain(RG_CBasePlayer_HasRestrictItem,    "rg_HasRestrictItem", false);
@@ -7426,6 +7427,42 @@ ChainLightning(victim, attacker)
         EmitKey(victim, "ZAP");
 
     g_bChaining = false;
+}
+
+// v3.0 (C): patlama hasariyla (DMG_BLAST) olen oyuncuyu oyun m_vBlastVector yonune savurur
+// (hiz = v / |v|). Hasar inflictor'suz (0 = worldspawn) ya da ayni noktadan gelirse vektor
+// sifir kalir -> NaN hiz ("Got a NaN velocity", silah kutusu da NaN). Sifirsa kucuk bir yon ver.
+public rg_PlayerKilledPre(victim, attacker, gib)
+{
+    if (!is_user_connected(victim))
+        return HC_CONTINUE;
+    new Float:v[3];
+    get_member(victim, m_vBlastVector, v);
+    if (v[0] != v[0] || v[1] != v[1] || v[2] != v[2] || vector_length(v) < 1.0)
+    {
+        new Float:o[3], Float:ao[3];
+        get_entvar(victim, var_origin, o);
+        if (attacker != victim && attacker > 0 && is_entity(attacker))
+        {
+            get_entvar(attacker, var_origin, ao);
+            v[0] = o[0] - ao[0];
+            v[1] = o[1] - ao[1];
+            v[2] = 0.0;
+        }
+        if (vector_length(v) < 1.0)
+        {
+            new Float:yaw = random_float(0.0, 360.0);
+            v[0] = floatcos(yaw, degrees);
+            v[1] = floatsin(yaw, degrees);
+            v[2] = 0.0;
+        }
+        new Float:len = vector_length(v);
+        v[0] = v[0] / len * 200.0;
+        v[1] = v[1] / len * 200.0;
+        v[2] = 0.0;
+        set_member(victim, m_vBlastVector, v);
+    }
+    return HC_CONTINUE;
 }
 
 public rg_PlayerKilled(victim, attacker, gib)

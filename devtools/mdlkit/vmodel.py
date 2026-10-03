@@ -286,7 +286,8 @@ class ViewAnim:
                 s_ = float(keys(t, [(0, 0), (0.28, -1), (0.55, 1), (0.8, 0.7), (1, 0)]))
                 if back:
                     s_ = -s_
-                gp = gp + np.array([4.0 * (1 - abs(s_)) + 3.0, 7.0 * s_, (1.0 if mid else 4.0) * -s_])
+                env = float(keys(t, [(0, 0), (0.18, 1), (0.85, 1), (1, 0)]))   # start/end exactly at idle
+                gp = gp + np.array([(4.0 * (1 - abs(s_)) + 3.0) * env, 7.0 * s_, (1.0 if mid else 4.0) * -s_])
                 yaw += 45 * s_
                 roll += (25 if mid else 60) * s_
                 pit += (5 if mid else 25) * s_
@@ -331,6 +332,15 @@ class ViewAnim:
                     tgt = keys(t, [(0, tgt), (0.25, grip + G @ np.array([0, 2.5, -6.0]) * k),
                                    (0.45, np.array([6, 6, -20.0]) * k), (0.6, grip + G @ np.array([0, 2.5, -6.0]) * k),
                                    (1.0, tgt)])
+                self.place(p, 'L', tgt, RL, np.array([-0.3, 1.0, -0.9]), is_grip=False)
+            elif motion == 'pullpin' and self.fam == 'grenade':
+                # left hand comes in, pinches the pin ring on top of the grenade and pulls it away
+                rest = np.array([10.0, 9.0, -14.0]) * k
+                ring = grip + G @ np.array([0.0, 1.2, 3.2]) * k
+                tgt = keys(t, [(0, rest), (0.3, ring + np.array([0, 1.5 * k, 0])), (0.5, ring),
+                               (0.75, ring + np.array([-1.0, 5.0, 1.5]) * k), (1.0, rest)])
+                w = float(keys(t, [(0, 0), (0.3, 1), (0.8, 1), (1, 0)]))
+                RL = _slerp_mat(ypr(-30, 20, 60), G @ ypr(-90, 0, 80), w)
                 self.place(p, 'L', tgt, RL, np.array([-0.3, 1.0, -0.9]), is_grip=False)
             else:
                 self.place(p, 'L', np.array([10.0, 9.0, -14.0]) * k, ypr(-30, 20, 60), np.array([-0.3, 1.0, -0.9]),

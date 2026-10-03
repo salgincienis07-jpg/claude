@@ -397,5 +397,20 @@ def p_special():
                 preview_area=AREA)
 
 
+HUMAN_V_KINDS = ('knife', 'hegrenade', 'flashbang', 'smokegrenade', 'm4a1', 'm249', 'awp', 'xm1014', 'deagle', 'p90',
+                 'ak47', 'sg550')
+
+
+def v_human_all():
+    """All 12 human v_ bases (knife, 3 grenades, the 8 special-weapon bases in v_sw0..7 order) with the
+    standard gun shapes - the proof that every enum builds and validates."""
+    return [dict(kind='vhuman', name='v_ex_' + k, vkind=k, out=_out('v_ex_' + k)) for k in HUMAN_V_KINDS]
+
+
+def p_standard_all():
+    """p_ models of every standard CS weapon (+ knife, 3 grenades, dual elites) with the stock shapes."""
+    return [dict(kind='pmodel', weapon=w, name='p_ex_' + w, out=_out('p_ex_' + w), preview_area=AREA) for w in STANDARD]
+
+
 def all_examples():
     return [boss_brute(), floaty_wraith(), chimera()] + world_all() + [v_special(), p_special()]

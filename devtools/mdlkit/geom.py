@@ -233,8 +233,11 @@ def box(size=(1, 1, 1), center=(0, 0, 0), bevel=0.0, mat='default', bone=0, segs
         # rebuild as hull mesh with box-projected UVs
         hv = pts
         hf = tris.copy()
+        # scipy hull simplices have arbitrary winding: orient EVERY face outward (the hull is convex)
+        fn = np.cross(hv[hf[:, 1]] - hv[hf[:, 0]], hv[hf[:, 2]] - hv[hf[:, 0]])
+        inward = np.einsum('ij,ij->i', fn, hv[hf].mean(1)) < 0
+        hf[inward] = hf[inward][:, ::-1]
         hm = Mesh(hv, hf, None, None, bone, mat, size=m.size)
-        _orient_outward(hm, center=(0, 0, 0))
         hm = flat_shaded(hm)
         hm.uv = box_project_uv(hm.v, hm.n, half)
         hm.translate(center)
