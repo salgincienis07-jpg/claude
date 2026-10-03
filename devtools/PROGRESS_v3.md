@@ -9,11 +9,11 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
 |---|---|---|
 | Tasarım sözleşmesi | bitti | `devtools/DESIGN_v3.md` |
 | mapkit (harita kiti) | bitti | `devtools/mapkit`, `cstrike/maps/zm_vex_pilot.bsp` |
-| mdlkit (model kiti) | son kontrol sürüyor | `devtools/mdlkit`, 4 örnek model |
+| mdlkit (model kiti) | v1 bitti; v2 (MakeHuman tabanlı) yapılıyor | `devtools/mdlkit`, 4 örnek model |
 | Test sunucusu | son kontrol sürüyor | `devtools/server` (sunucu: `$SP/server`, kurulum README'de) |
 | Eklenti A (F tuşu, 12 yeni sınıf, kanca) | bitti | `.sma`, cfg, lang |
 | Eklenti B (boss barı, HUD/renk, model/ses bağlama, precache) | bitti | `.sma`, cfg, lang |
-| Eklenti C (harita oylaması, ses slotları, efekt sprite, ambiyans, tutarlılık) | sürüyor | |
+| Eklenti C (harita oylaması, ses slotları, efekt sprite, ambiyans, tutarlılık) | bitti | |
 | Sesler v3 (204 dosya) | bitti | `cstrike/sound/vexmira/{boss,class,special,hook,ui}` |
 | Sprite v3 (25 dosya) | bitti | `cstrike/sprites/vexmira/` |
 | Modeller (insan 7, zombi 24+24 pençe, boss 9+2 + 11 pençe, silah v_/p_, dünya) | bekliyor | `cstrike/models/...` |
@@ -22,13 +22,16 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
 
 ## Arka plan iş akışları (aynı oturum içinde devam ettirmek için)
 
-- 2026-10-03 14:35'te iki iş akışı kullanım sınırına takıldı (tüm ajanlar yarıda). 18:55'te tek iş akışında
-  birleştirilip yeniden başlatıldı (sırayla: eklenti C + mdlkit → 6 model ajanı → 5 harita → sunucu/nav/test):
-  script `~/.claude/projects/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/workflows/scripts/vex3-full-continue-wf_4b0c2ac1-207.js`,
-  run `wf_4b0c2ac1-207`.
-- Başarısız ajan olursa: `Workflow({scriptPath, resumeFromRunId: "wf_4b0c2ac1-207"})` — biten ajanlar önbellekten döner.
-  Ajan istemleri "önce diskteki kısmi işi incele, kaldığın yerden devam et" der.
-- Ara sürüm (3.0.0-ara) 18:52'de kullanıcıya gönderildi: `Vexmira_Zombie_v3.0_ARA.zip` (eklenti 245dec7 anı + ses + sprite + walker modeli + pilot harita).
+- 2026-10-03 ~20:00: kullanıcı ilk prosedürel modelleri "acemice" buldu (devtools/previews_models_v3.png).
+  Model üretimi durduruldu; yeni iş akışı: MakeHuman (CC0) anatomisi + detaylı doku pişirme ile model boru hattı v2
+  (3 kanıt model: vex_operator, vex_z_walker, vex_b_brute + karşılaştırma görseli devtools/previews_mdlkit2_compare.png)
+  ve paralel olarak 5 harita (sırayla).
+  script `~/.claude/projects/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/workflows/scripts/vex3-quality-upgrade-wf_a52f9d2f-924.js`,
+  run `wf_a52f9d2f-924`. Yarıda kalırsa: `Workflow({scriptPath, resumeFromRunId: "wf_a52f9d2f-924"})`.
+- Kanıt modeller beğenilirse: tüm modeller (7 insan, 24 zombi + pençe, 9 boss + Nemesis/Assassin + pençe, silahlar,
+  dünya modelleri) v2 boru hattıyla yeniden üretilecek; sonra sunucu/nav/test + tam zip.
+- Eklenti C, mdlkit v1, sesler, sprite'lar bitti (önceki run wf_4b0c2ac1-207, durduruldu).
+- Ara sürüm (3.0.0-ara) kullanıcıya gönderildi: `Vexmira_Zombie_v3.0_ARA.zip`.
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
