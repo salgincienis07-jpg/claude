@@ -55,7 +55,7 @@
 /* ------------------------------------------------------------------ */
 
 #define MAX_LEVEL     60
-#define NUM_CLASSES   12
+#define NUM_CLASSES   24
 #define NUM_BOSSES    9
 #define NUM_JOBS      26
 #define NUM_ITEMS     28
@@ -251,18 +251,44 @@ new const SOUND_KEYS[][] =
     "ZONE_WARN", "SKILL_UNLOCK", "NEM_RAGE", "ASN_VEIL", "LM_KILL", "NADE_TRIGGER", "UI_OPEN", "LM_DENY"
 };
 
-// Zombi siniflari: Walker, Runner, Tank, Banshee, Leech, Stalker, Bomber, Frost
-new Float:CLASS_HP[NUM_CLASSES]   = { 1.0, 0.70, 1.80, 0.90, 1.10, 0.80, 1.00, 1.05, 0.90, 1.60, 0.95, 0.75 };
-new CLASS_SPD[NUM_CLASSES]        = { 270,  310,  235,  285,  265,  295,  260,  270,  280,  245,  275,  300 };
-new Float:CLASS_GRAV[NUM_CLASSES] = { 0.80, 0.70, 1.00, 0.80, 0.85, 0.75, 0.90, 0.80, 0.80, 1.00, 0.80, 0.70 };
-new Float:CLASS_KB[NUM_CLASSES]   = { 1.00, 1.30, 0.40, 1.00, 0.90, 1.10, 0.90, 0.90, 1.00, 0.50, 1.00, 1.20 };
-new Float:CLASS_COOL[NUM_CLASSES] = { 15.0, 8.0, 14.0, 12.0, 20.0, 18.0, 16.0, 18.0, 12.0, 16.0, 18.0, 9.0 };
-new CLASS_LVL[NUM_CLASSES]        = { 1, 1, 1, 1, 5, 8, 12, 16, 18, 20, 22, 25 };
+// Zombi siniflari: 0 Walker 1 Runner 2 Tank 3 Banshee 4 Leech 5 Stalker 6 Bomber 7 Frost
+// 8 Spitter 9 Hulk 10 Voodoo 11 Phantom | v3.0: 12 Butcher 13 Hunter 14 Charger 15 Arachne
+// 16 Magma 17 Volt 18 Mimic 19 Burrower 20 Siren 21 Bulwark 22 Sporemother 23 Nightmare
+new Float:CLASS_HP[NUM_CLASSES]   = { 1.0, 0.70, 1.80, 0.90, 1.10, 0.80, 1.00, 1.05, 0.90, 1.60, 0.95, 0.75,
+                                      1.35, 0.85, 1.40, 0.85, 1.10, 0.95, 0.90, 1.00, 0.90, 1.70, 1.00, 0.90 };
+new CLASS_SPD[NUM_CLASSES]        = { 270,  310,  235,  285,  265,  295,  260,  270,  280,  245,  275,  300,
+                                      255,  300,  250,  290,  265,  280,  275,  270,  280,  240,  265,  290 };
+new Float:CLASS_GRAV[NUM_CLASSES] = { 0.80, 0.70, 1.00, 0.80, 0.85, 0.75, 0.90, 0.80, 0.80, 1.00, 0.80, 0.70,
+                                      0.90, 0.70, 1.00, 0.60, 0.80, 0.80, 0.80, 0.85, 0.80, 1.00, 0.80, 0.80 };
+new Float:CLASS_KB[NUM_CLASSES]   = { 1.00, 1.30, 0.40, 1.00, 0.90, 1.10, 0.90, 0.90, 1.00, 0.50, 1.00, 1.20,
+                                      0.60, 1.10, 0.50, 1.00, 0.90, 1.00, 1.00, 0.90, 1.00, 0.30, 1.00, 1.00 };
+new Float:CLASS_COOL[NUM_CLASSES] = { 15.0, 8.0, 14.0, 12.0, 20.0, 18.0, 16.0, 18.0, 12.0, 16.0, 18.0, 9.0,
+                                      16.0, 12.0, 15.0, 13.0, 18.0, 18.0, 22.0, 18.0, 17.0, 18.0, 15.0, 20.0 };
+new CLASS_LVL[NUM_CLASSES]        = { 1, 1, 1, 1, 5, 8, 12, 16, 18, 20, 22, 25,
+                                      3, 6, 9, 11, 13, 15, 17, 19, 21, 23, 26, 28 };
 new CLASS_RGB[NUM_CLASSES][3]     =
 {
     {0, 140, 0}, {255, 140, 0}, {40, 90, 255}, {200, 200, 255},
     {200, 0, 0}, {0, 110, 110}, {120, 255, 0}, {0, 200, 255},
-    {150, 255, 0}, {255, 80, 0}, {255, 0, 180}, {120, 120, 255}
+    {150, 255, 0}, {255, 80, 0}, {255, 0, 180}, {120, 120, 255},
+    {180, 30, 30}, {90, 90, 110}, {200, 120, 60}, {140, 0, 200},
+    {255, 90, 0}, {80, 180, 255}, {160, 160, 160}, {140, 100, 50},
+    {255, 90, 200}, {120, 140, 120}, {110, 200, 60}, {120, 0, 0}
+};
+// Sinif dosya adlari: modeller vex_z_<ad>, pence models/vexmira/claws/v_<ad>.mdl,
+// sesler sound/vexmira/class/<ad>_pain/die/idle/ability.wav
+new const CLASS_FILE[NUM_CLASSES][] =
+{
+    "walker", "runner", "tank", "banshee", "leech", "stalker", "bomber", "frost",
+    "spitter", "hulk", "voodoo", "phantom", "butcher", "hunter", "charger", "arachne",
+    "magma", "volt", "mimic", "burrower", "siren", "bulwark", "sporemother", "nightmare"
+};
+// Ozel model sunucuda yoksa kullanilan orijinal CS modeli (v2.0 varsayilanlari)
+new const CLASS_OLDMODEL[NUM_CLASSES][] =
+{
+    "terror", "leet", "arctic", "guerilla", "terror", "leet", "arctic", "guerilla",
+    "terror", "arctic", "guerilla", "leet", "terror", "leet", "arctic", "guerilla",
+    "terror", "arctic", "guerilla", "leet", "guerilla", "arctic", "terror", "leet"
 };
 
 // Silah adlari (WeaponIdType sirasiyla) - V_<AD> / P_<AD> ayarlari icin
@@ -333,15 +359,15 @@ new const RANK_LVL[NUM_RANKS] = { 1, 5, 10, 18, 26, 35, 45, 55 };
 // Tema renkleri: A = ana (marka satiri, panel basligi), B = vurgu (sayilar), C = panel govdesi
 new const THEME_A[NUM_THEMES][3] =
 {
-    {0, 200, 255}, {70, 255, 110}, {255, 55, 55}, {175, 95, 255}, {40, 150, 255}, {255, 130, 40}
+    {160, 90, 255}, {70, 255, 110}, {255, 55, 55}, {175, 95, 255}, {40, 150, 255}, {255, 130, 40}
 };
 new const THEME_B[NUM_THEMES][3] =
 {
-    {255, 70, 110}, {255, 90, 60}, {255, 170, 60}, {255, 90, 190}, {0, 230, 200}, {255, 60, 120}
+    {0, 220, 255}, {255, 90, 60}, {255, 170, 60}, {255, 90, 190}, {0, 230, 200}, {255, 60, 120}
 };
 new const THEME_C[NUM_THEMES][3] =
 {
-    {120, 220, 255}, {160, 255, 180}, {255, 150, 140}, {210, 170, 255}, {140, 200, 255}, {255, 195, 140}
+    {0, 200, 255}, {160, 255, 180}, {255, 150, 140}, {210, 170, 255}, {140, 200, 255}, {255, 195, 140}
 };
 
 // Silah menusu
@@ -515,7 +541,8 @@ new g_iMapInf[33], g_iMapBossDmg[33];
 new g_iMines[33], g_iPlantAction[33], bool:g_bMineHint[33];
 new g_iNadeMode[33][3], Float:g_fNadeHud[33];
 new g_iAirdropClock, g_iBossFxStep, Float:g_fBossFxPos[3];
-new Float:g_fPoolPos[6][3], Float:g_fPoolEnd[6], Float:g_fEclipseEnd, Float:g_fBlizzardEnd;
+#define MAX_POOLS 16
+new Float:g_fPoolPos[MAX_POOLS][3], Float:g_fPoolEnd[MAX_POOLS], Float:g_fEclipseEnd, Float:g_fBlizzardEnd;
 new g_sprLaser, g_sprFlare, g_szMineModel[96], g_szDropModel[96], g_szSky[32];
 new Float:g_fBossIntro, g_iPoison[33], g_iPoisonBy[33];
 
@@ -541,7 +568,7 @@ new g_pNadeModes, g_pNadeProx, g_pNadeLaser, g_pNadeHoming, g_pCluster;
 new g_pAirdrop, g_pAirdropEvery, g_pMotd, g_pQuests, g_pEvolve, g_pJoinMsg;
 
 /* ---------------- v2.0 globaller ---------------- */
-new g_szPrefix[64] = "^4[^3VEX^4MIRA^4]^1";
+new g_szPrefix[64] = "^4[VEX]^1";
 
 // v2.0 kaynaklar
 new g_szSprZone[64], g_szSprTarget[64], g_szSprBeacon[64], g_szSprOrb[64], g_szSprMark[64], g_szSprFire[64], g_szSprLaser[64];
@@ -616,7 +643,128 @@ enum
 };
 
 new g_iDashHit;
-new g_iPoolType[6], Float:g_fPoolRad[6];
+new g_iPoolType[MAX_POOLS], Float:g_fPoolRad[MAX_POOLS], g_iPoolOwner[MAX_POOLS];
+
+/* ---------------- v3.0: yeni zombi siniflari (12-23) + [F] tusu duzeltmesi ---------------- */
+enum
+{
+    ZC_WALKER = 0, ZC_RUNNER, ZC_TANK, ZC_BANSHEE, ZC_LEECH, ZC_STALKER, ZC_BOMBER, ZC_FROST,
+    ZC_SPITTER, ZC_HULK, ZC_VOODOO, ZC_PHANTOM,
+    ZC_BUTCHER, ZC_HUNTER, ZC_CHARGER, ZC_ARACHNE, ZC_MAGMA, ZC_VOLT, ZC_MIMIC, ZC_BURROWER,
+    ZC_SIREN, ZC_BULWARK, ZC_SPOREMOTHER, ZC_NIGHTMARE
+};
+
+// Sinif yetenek ayarlari (vexmira.cfg: vex_<sinif>_<ayar>)
+enum
+{
+    ZCV_HOOK_SPEED = 0, ZCV_HOOK_RANGE, ZCV_HOOK_PULL, ZCV_HOOK_TIME, ZCV_HOOK_DMG,
+    ZCV_HUNT_POWER, ZCV_HUNT_UP, ZCV_HUNT_RAD, ZCV_HUNT_STUN, ZCV_HUNT_DMG,
+    ZCV_CHG_TIME, ZCV_CHG_SPEED, ZCV_CHG_DMG, ZCV_CHG_PUSH, ZCV_CHG_STUN,
+    ZCV_WEB_SPEED, ZCV_WEB_RANGE, ZCV_WEB_ROOT, ZCV_WEB_SLOW, ZCV_WEB_DMG,
+    ZCV_MAG_TIME, ZCV_MAG_LIFE, ZCV_MAG_RAD, ZCV_MAG_DMG, ZCV_MAG_IMMUNE,
+    ZCV_VOLT_RAD, ZCV_VOLT_MINE, ZCV_VOLT_LIGHT, ZCV_VOLT_DMG, ZCV_VOLT_SLOW,
+    ZCV_MIM_TIME, ZCV_MIM_MULT,
+    ZCV_BUR_TIME, ZCV_BUR_SPEED, ZCV_BUR_RAD, ZCV_BUR_UP, ZCV_BUR_DMG,
+    ZCV_SIR_RAD, ZCV_SIR_TIME, ZCV_SIR_PULL,
+    ZCV_BUL_TIME, ZCV_BUL_REDUCE, ZCV_BUL_REFLECT,
+    ZCV_SPO_MAX, ZCV_SPO_RAD, ZCV_SPO_HP, ZCV_SPO_POISON, ZCV_SPO_LIFE, ZCV_SPO_SLOW,
+    ZCV_NM_RAD, ZCV_NM_BLIND, ZCV_NM_BOOST, ZCV_NM_SPEED,
+    ZCV_BOT, ZCV_ALTKEYS,
+    ZCV_TOTAL
+};
+new g_pZc[ZCV_TOTAL];
+
+#define ZPROJ_CLASS   "vex_zproj"     // kasap kancasi / orumcek agi mermisi
+#define SPORE_CLASS   "vex_spore"     // spor kesesi tuzagi
+#define ZP_HOOK       1
+#define ZP_WEB        2
+#define BEAM_MARK_HOOK 7779
+#define TASK_ZCTICK   33500
+
+// [R] / [F] tetikleme (tus / komut / chat) - ayni tetik 0.2 sn icinde tekrar islenmez
+new Float:g_fSkillTrig[33][3], Float:g_fLeapCool[33];
+// Kasap kancasi
+new g_iHookEnt[33], g_iHookedBy[33];
+// Avci / Boga
+new Float:g_fPounce[33], Float:g_fCharge[33], Float:g_fChargeT0[33], Float:g_fChargeDir[33][3], g_iChargeHit[33];
+// Magma lav izi
+new Float:g_fLava[33], Float:g_fLavaPos[33][3];
+// Insan: fener / gece gorusu kilidi (Volt EMP, Kabus), Kabus karartmasi, Siren ninnisi
+new Float:g_fNoLight[33], Float:g_fBlind[33], Float:g_fLure[33], g_iLureBy[33];
+new Float:g_fWebbed[33];
+// Taklitci / Kostebek / Kale / Kabus
+new Float:g_fDisguise[33], Float:g_fBurrow[33], Float:g_fFortify[33], Float:g_fTerror[33];
+new bool:g_bReflecting, g_iZcTick, g_iReflVictim, g_iReflAttacker, Float:g_fReflAmount;
+new g_msgFlashlight, g_msgNVGToggle;
+// v3.0 kaynaklar (yoksa orijinal efektlere duser)
+new g_szSprChain[64], g_sprChain, g_szSprWeb[64], g_sprWeb, g_szSprSpore[64], g_sprSpore, g_szSprEmp[64], g_sprEmp;
+new g_szHookModel[96], g_szSporeModel[96];
+
+/* ---------------- v3.0 (B): gorsel kimlik, kaynaklar, precache butcesi ---------------- */
+// HUD renk paleti (DESIGN bolum 9). Kullanim: HudAll(SL_ALERT, CLR_DANGER, 3.0, "KEY")
+#define CLR_BRAND   160, 90, 255     // Vexmira moru (marka / sistem basliklari)
+#define CLR_CYAN    0, 220, 255      // marka ikinci rengi
+#define CLR_HUMAN   0, 200, 255      // insan bilgisi / insan uyarilari
+#define CLR_ZOMBIE  120, 255, 40     // zombi bilgisi
+#define CLR_DANGER  255, 40, 40      // tehlike / boss
+#define CLR_WARN    255, 170, 0      // uyari (tehlikenin acik tonu)
+#define CLR_EVENT   255, 190, 0      // event duyurulari
+#define CLR_REWARD  255, 215, 0      // AP / XP / VC kazanimi
+#define CLR_COOL    180, 180, 180    // bekleme suresi / pasif bilgi
+#define CLR_GOOD    0, 255, 140      // basari / insan zaferi
+
+// Boss dosya adlari (model vex_b_<ad>, pence v_<ad>.mdl, sesler boss/<ad>_*.wav)
+new const BOSS_FILE[NUM_BOSSES][] = { "brute", "banshee", "overlord", "inferno", "reaper", "frostlord", "stormcaller", "hivequeen", "void" };
+// Ozel model yoksa kullanilan orijinal CS modelleri
+new const BOSS_OLDMODEL[NUM_BOSSES][] = { "terror", "vip", "leet", "arctic", "gsg9", "sas", "gign", "guerilla", "urban" };
+
+// Bu haritada yuklenen bosslar (precache butcesi: en fazla BOSS_PRELOAD tanesi)
+new bool:g_bBossLoaded[NUM_BOSSES], g_iBossLoadN, g_iBossLoadList[NUM_BOSSES];
+new g_szPreBossRounds[128], g_iPreBossEvery, g_iPreRoundsTotal;
+// Insan modelleri (rastgele; oyuncu basina sabit)
+#define MAX_HMODELS 6
+new g_szHumanModels[MAX_HMODELS][32], g_iHumanModelN, g_iHumanSkin[33];
+// Firlatilan bombalarin dunya (w_) modelleri: 0 ates (HE) 1 buz (duman) 2 isaret fisegi (flash)
+new g_szWNade[3][96], g_szEggModel[96];
+new g_iDropBodyChute, g_iDropBodyLanded, g_szDropSeqFall[24], g_szDropSeqIdle[24], g_szMineSeqName[24], g_szMineDeploySeq[24];
+// Precache sayaclari: Trie g_tSnd3D = precache_sound edilenler, g_tSnd2D = sadece indirilen (spk ile)
+new Trie:g_tSnd2D, Trie:g_tSnd3D, Trie:g_tMdlDone;
+new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_iMdlBudget, g_iSndSkipped, g_iMdlSkipped;
+new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
+
+// Kafa ustu gostergeler: boss can bari + amblem, kucuk can bari, ikonlar
+#define OVH_CLASS     "vex_ovh"
+#define OVH_CTL_CLASS "vex_ovhctl"
+enum { OVS_BOSSBAR = 0, OVS_BOSSICON, OVS_SMALLBAR, OVS_VIP, OVS_ADMIN, OVS_MVP, OVS_LAST, OVS_ALPHA, OVS_TOTAL };
+new g_szOvhSpr[OVS_TOTAL][64], g_iOvhFrames[OVS_TOTAL], g_iOvhWidth[OVS_TOTAL], g_iOvhHeight[OVS_TOTAL], g_iOvhMode[OVS_TOTAL];
+new g_iOvhBar[33], g_iOvhEmb[33], g_iOvhIcon[33], g_iOvhIconType[33], g_iOvhBarType[33], g_iOvhCtl;
+new g_iRoundMvp, Float:g_fStepDist[33];
+new g_iOvhTick, g_iOvhCount, g_iOvhHumans;
+// Son gonderilen durum (degismeyen deger tekrar yazilmaz: ag / islemci tasarrufu)
+new g_iOvhSent[33], Float:g_fOvhSentTop[33];
+new g_pOvhEnable, g_pBossBarW, g_pBossBarH, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf;
+// Boss / ozel karakter sesleri: bekleme sureleri
+new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
+new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
+new g_szPrefixBoss[64] = "^3[BOSS]^1", g_szPrefixEvent[64] = "^4[^1EVENT^4]^1";
+new g_szPrefixVip[64] = "^4[^3VIP^4]^1", g_szPrefixAdmin[64] = "^3[ADMIN]^1";
+new g_pPrefixBoss, g_pPrefixEvent, g_pPrefixVip, g_pPrefixAdmin;
+
+// v3.0: mesaj turune gore sohbet etiketi. [VEX] sistem, [BOSS] boss / yetenek,
+// [EVENT] event / hava olaylari, [VIP] VIP / ELITE, [ADMIN] admin islemleri.
+stock ChatTag(const key[])
+{
+    if (equal(key, "BOSS", 4) || equal(key, "BSK", 3) || equal(key, "FINAL_BOSS", 10))
+        return g_szPrefixBoss;
+    if (equal(key, "EV_", 3) || equal(key, "EVENT", 5) || equal(key, "STORM", 5) || equal(key, "BLACKOUT", 8)
+        || equal(key, "SPEED", 5) || equal(key, "METEOR", 6) || equal(key, "GOLD", 4))
+        return g_szPrefixEvent;
+    if (equal(key, "VIP", 3) || equal(key, "ELITE", 5))
+        return g_szPrefixVip;
+    if (equal(key, "ADM", 3))
+        return g_szPrefixAdmin;
+    return g_szPrefix;
+}
 
 /* ================================================================== */
 /*  MODUL FILTRESI (GeoIP istege bagli)                                */
@@ -763,8 +911,11 @@ SetDefaultResources()
     DefSound("UI_OPEN",          "vexmira/ui_open.wav",          "");
     DefSound("LM_DENY",          "vexmira/deny.wav",             "buttons/button10.wav");
 
-    // Boss'lara ozel sesler (B<no>_<olay>): yoksa genel BOSS_<olay> kullanilir
-    static const BEV[][] = { "SPAWN", "ROAR", "SCREAM", "ABILITY", "DEATH" };
+    // v3.0: her bossun kendi ses seti  sound/vexmira/boss/<ad>_<olay>.wav
+    // B<no>_INTRO (2D giris) / IDLE (ara sira hirlama) / PAIN + PAIN2 (aci, sirayla) /
+    // DEATH / STEP (adim) / ATTACK (pence) / PHASE (faz degisimi) / KILL (oldurme alayi).
+    // Dosya yoksa eski Half-Life sesine (yedek) duser. Eski anahtarlar (SPAWN / ROAR /
+    // SCREAM / ABILITY) yeni olaylara baglidir: BossEvKey().
     static const BSND[NUM_BOSSES][5][] =
     {
         { "garg/gar_alert1.wav", "garg/gar_attack1.wav", "garg/gar_alert2.wav", "garg/gar_stomp1.wav", "garg/gar_die1.wav" },
@@ -790,13 +941,18 @@ SetDefaultResources()
         { "vexmira/hive_spit.wav",       "vexmira/hive_cloud.wav",      "vexmira/hive_eggs.wav" },
         { "vexmira/void_bolt.wav",       "vexmira/void_singularity.wav", "vexmira/void_horizon.wav" }
     };
-    new key[24];
+    // yeni olay -> dosya eki, eski yedek ses (BSND sutunu, -1 = yok)
+    static const BEVN[][] = { "INTRO", "IDLE", "PAIN", "PAIN2", "DEATH", "STEP", "ATTACK", "PHASE", "KILL" };
+    static const BEVF[][] = { "intro", "idle", "pain1", "pain2", "death", "step", "attack", "phase", "kill" };
+    static const BEVO[]   = { 0, 1, -1, -1, 4, -1, 3, 2, -1 };
+    new key[24], snd[96];
     for (new b = 0; b < NUM_BOSSES; b++)
     {
-        for (new e = 0; e < 5; e++)
+        for (new e = 0; e < sizeof BEVN; e++)
         {
-            formatex(key, charsmax(key), "B%d_%s", b, BEV[e]);
-            DefSound(key, BSND[b][e], "");
+            formatex(key, charsmax(key), "B%d_%s", b, BEVN[e]);
+            formatex(snd, charsmax(snd), "vexmira/boss/%s_%s.wav", BOSS_FILE[b], BEVF[e]);
+            DefSound(key, snd, BEVO[e] >= 0 ? BSND[b][BEVO[e]] : "");
         }
         for (new p = 0; p < 3; p++)
         {
@@ -804,6 +960,26 @@ SetDefaultResources()
             DefSound(key, BRSND[b][p], BSND[b][3]);
         }
     }
+
+    // Nemesis / Assassin: sound/vexmira/special/<ad>_<olay>.wav
+    static const SEV[][] = { "INTRO", "IDLE", "PAIN", "DEATH", "ATTACK" };
+    static const SEVF[][] = { "intro", "idle", "pain", "death", "attack" };
+    for (new e = 0; e < sizeof SEV; e++)
+    {
+        formatex(key, charsmax(key), "NEMESIS_%s", SEV[e]);
+        formatex(snd, charsmax(snd), "vexmira/special/nemesis_%s.wav", SEVF[e]);
+        DefSound(key, snd, "");
+        formatex(key, charsmax(key), "ASSASSIN_%s", SEV[e]);
+        formatex(snd, charsmax(snd), "vexmira/special/assassin_%s.wav", SEVF[e]);
+        DefSound(key, snd, "");
+    }
+
+    // Arayuz sesleri (2D, ses yuvasi harcamaz)
+    DefSound("UI_VOTE_START",   "vexmira/ui/vote_start.wav",   "buttons/bell1.wav");
+    DefSound("UI_VOTE_END",     "vexmira/ui/vote_end.wav",     "buttons/blip2.wav");
+    DefSound("UI_BOSS_BAR",     "vexmira/ui/boss_bar.wav",     "");
+    DefSound("UI_MENU_SELECT",  "vexmira/ui/menu_select.wav",  "");
+    DefSound("UI_CLASS_SELECT", "vexmira/ui/class_select.wav", "");
 
     // Muzik (istege bagli, MP3): boss / ozel mod roundlarinda
     DefSound("MODE9_MUSIC", "sound/vexmira/boss_theme.mp3", "");
@@ -824,36 +1000,12 @@ SetDefaultResources()
     TrieSetString(g_tRes, "VOX_MAPEND",   "vox/all objective secured");
 
     // Modeller (bos = oyunun varsayilan modeli)
-    TrieSetString(g_tRes, "Z0_MODEL", "terror");
-    TrieSetString(g_tRes, "Z1_MODEL", "leet");
-    TrieSetString(g_tRes, "Z2_MODEL", "arctic");
-    TrieSetString(g_tRes, "Z3_MODEL", "guerilla");
-    TrieSetString(g_tRes, "Z4_MODEL", "terror");
-    TrieSetString(g_tRes, "Z5_MODEL", "leet");
-    TrieSetString(g_tRes, "Z6_MODEL", "arctic");
-    TrieSetString(g_tRes, "Z7_MODEL", "guerilla");
-    TrieSetString(g_tRes, "Z8_MODEL", "terror");
-    TrieSetString(g_tRes, "Z9_MODEL", "arctic");
-    TrieSetString(g_tRes, "Z10_MODEL", "guerilla");
-    TrieSetString(g_tRes, "Z11_MODEL", "leet");
-    TrieSetString(g_tRes, "B0_MODEL", "terror");
-    TrieSetString(g_tRes, "B1_MODEL", "vip");
-    TrieSetString(g_tRes, "B2_MODEL", "leet");
-    TrieSetString(g_tRes, "B3_MODEL", "arctic");
-    TrieSetString(g_tRes, "B4_MODEL", "gsg9");
-    TrieSetString(g_tRes, "B5_MODEL", "sas");
-    TrieSetString(g_tRes, "B6_MODEL", "gign");
-    TrieSetString(g_tRes, "B7_MODEL", "guerilla");
-    TrieSetString(g_tRes, "B8_MODEL", "urban");
-    TrieSetString(g_tRes, "NEMESIS_MODEL",  "terror");
-    TrieSetString(g_tRes, "ASSASSIN_MODEL", "leet");
-    TrieSetString(g_tRes, "SURVIVOR_MODEL", "gign");
-    TrieSetString(g_tRes, "SNIPER_MODEL",   "sas");
+    // v3.0 zombi siniflari (24): model vex_z_<ad> (yoksa CLASS_OLDMODEL), pence
+    // models/vexmira/claws/v_<ad>.mdl (yoksa CLAW_MODEL / bicak), sinif sesleri
+    // vexmira/class/<ad>_pain|die|idle|ability.wav (yoksa genel ZOMBIE_* sesi)
+    SetClassResources();
+    SetModelResources();
 
-    // Lazer mayini: model + govde/animasyon/kaplama (v_tripmine icin govde 3, animasyon 7)
-    TrieSetString(g_tRes, "LASERMINE_MODEL", "models/v_tripmine.mdl");
-    // LASERMINE_BODY / LASERMINE_SEQUENCE / LASERMINE_SKIN: yazilmazsa modele gore secilir
-    TrieSetString(g_tRes, "AIRDROP_MODEL",   "models/w_weaponbox.mdl");
     TrieSetString(g_tRes, "SKY_MODE", "1");
     TrieSetString(g_tRes, "SKY_LIST", "night de_storm tornsky black space hav office cx backalley city");
 
@@ -866,6 +1018,157 @@ SetDefaultResources()
     TrieSetString(g_tRes, "SPR_FIRE",   "sprites/vexmira/fire.spr");
     TrieSetString(g_tRes, "SPR_LASER",  "sprites/vexmira/laser.spr");
 }
+
+// v3.0 (B): insan / boss / ozel karakter / silah / dunya modelleri ve kafa ustu sprite'lari.
+// Dosya yoksa: oyuncu modeli -> orijinal CS modeli, el/silah modeli -> oyunun kendi modeli,
+// dunya modeli -> eski model / sprite, sprite -> o ozellik sessizce kapanir.
+SetModelResources()
+{
+    new key[24], val[96];
+    for (new b = 0; b < NUM_BOSSES; b++)
+    {
+        formatex(key, charsmax(key), "B%d_MODEL", b);
+        formatex(val, charsmax(val), "vex_b_%s", BOSS_FILE[b]);
+        TrieSetString(g_tRes, key, val);
+        formatex(key, charsmax(key), "B%d_CLAW", b);
+        formatex(val, charsmax(val), "models/vexmira/claws/v_%s.mdl", BOSS_FILE[b]);
+        TrieSetString(g_tRes, key, val);
+    }
+    TrieSetString(g_tRes, "NEMESIS_MODEL",  "vex_nemesis");
+    TrieSetString(g_tRes, "ASSASSIN_MODEL", "vex_assassin");
+    TrieSetString(g_tRes, "NEMESIS_CLAW",   "models/vexmira/claws/v_nemesis.mdl");
+    TrieSetString(g_tRes, "ASSASSIN_CLAW",  "models/vexmira/claws/v_assassin.mdl");
+    TrieSetString(g_tRes, "SURVIVOR_MODEL", "vex_survivor");
+    TrieSetString(g_tRes, "SNIPER_MODEL",   "vex_sniper");
+    TrieSetString(g_tRes, "VIP_MODEL",      "vex_vip");
+    TrieSetString(g_tRes, "ADMIN_MODEL",    "vex_admin");
+    // Insanlar: listeden rastgele (oyuncu basina sabit). HUMAN_MODEL (tek) de eklenir.
+    TrieSetString(g_tRes, "HUMAN_MODELS",   "vex_operator vex_ranger vex_hazmat");
+
+    // Insan el modelleri (Vexmira eldiveni) + elde gorunen (p_) modeller
+    TrieSetString(g_tRes, "V_KNIFE",        "models/vexmira/weapons/v_vexblade.mdl");
+    TrieSetString(g_tRes, "V_HEGRENADE",    "models/vexmira/weapons/v_firebomb.mdl");
+    TrieSetString(g_tRes, "V_SMOKEGRENADE", "models/vexmira/weapons/v_frostbomb.mdl");
+    TrieSetString(g_tRes, "V_FLASHBANG",    "models/vexmira/weapons/v_flare.mdl");
+    new lower[24];
+    for (new w = 1; w < sizeof WEAPON_KEYNAME; w++)
+    {
+        if (!WEAPON_KEYNAME[w][0] || equal(WEAPON_KEYNAME[w], "C4") || equal(WEAPON_KEYNAME[w], "GLOCK"))
+            continue;
+        copy(lower, charsmax(lower), WEAPON_KEYNAME[w]);
+        strtolower(lower);
+        formatex(key, charsmax(key), "P_%s", WEAPON_KEYNAME[w]);
+        formatex(val, charsmax(val), "models/vexmira/weapons/p_%s.mdl", lower);
+        TrieSetString(g_tRes, key, val);
+    }
+    // Bombalar / bicak: ozel adli p_ modeli varsa o, yoksa silah adli olan
+    DefModel("P_KNIFE",        "models/vexmira/weapons/p_vexblade.mdl",  "models/vexmira/weapons/p_knife.mdl");
+    DefModel("P_HEGRENADE",    "models/vexmira/weapons/p_firebomb.mdl",  "models/vexmira/weapons/p_hegrenade.mdl");
+    DefModel("P_SMOKEGRENADE", "models/vexmira/weapons/p_frostbomb.mdl", "models/vexmira/weapons/p_smokegrenade.mdl");
+    DefModel("P_FLASHBANG",    "models/vexmira/weapons/p_flare.mdl",     "models/vexmira/weapons/p_flashbang.mdl");
+    for (new i = 0; i < NUM_SPECIAL; i++)
+    {
+        formatex(key, charsmax(key), "SW%d_VMODEL", i);
+        formatex(val, charsmax(val), "models/vexmira/weapons/v_sw%d.mdl", i);
+        TrieSetString(g_tRes, key, val);
+        formatex(key, charsmax(key), "SW%d_PMODEL", i);
+        formatex(val, charsmax(val), "models/vexmira/weapons/p_sw%d.mdl", i);
+        TrieSetString(g_tRes, key, val);
+    }
+
+    // Dunya modelleri
+    TrieSetString(g_tRes, "LASERMINE_MODEL", "models/vexmira/world/lasermine.mdl");
+    // LASERMINE_BODY / LASERMINE_SEQUENCE / LASERMINE_SKIN: yazilmazsa modele gore secilir
+    // (Vexmira lazeri: govde 0, animasyon "idle"; kurulurken "deploy")
+    TrieSetString(g_tRes, "AIRDROP_MODEL",   "models/vexmira/world/supply_crate.mdl");
+    TrieSetString(g_tRes, "EGG_MODEL",       "models/vexmira/world/hive_egg.mdl");
+    TrieSetString(g_tRes, "W_HEGRENADE",     "models/vexmira/world/w_firebomb.mdl");
+    TrieSetString(g_tRes, "W_SMOKEGRENADE",  "models/vexmira/world/w_frostbomb.mdl");
+    TrieSetString(g_tRes, "W_FLASHBANG",     "models/vexmira/world/w_flare.mdl");
+
+    // Kafa ustu gostergeler (sprite yoksa o gosterge kapali)
+    TrieSetString(g_tRes, "SPR_BOSSBAR",     "sprites/vexmira/bossbar.spr");
+    TrieSetString(g_tRes, "SPR_BOSSICON",    "sprites/vexmira/bossicon.spr");
+    TrieSetString(g_tRes, "SPR_HPBAR",       "sprites/vexmira/hpbar_small.spr");
+    TrieSetString(g_tRes, "SPR_ICON_VIP",    "sprites/vexmira/icon_vip.spr");
+    TrieSetString(g_tRes, "SPR_ICON_ADMIN",  "sprites/vexmira/icon_admin.spr");
+    TrieSetString(g_tRes, "SPR_ICON_MVP",    "sprites/vexmira/icon_mvp.spr");
+    TrieSetString(g_tRes, "SPR_ICON_LAST",   "sprites/vexmira/icon_lasthuman.spr");
+    TrieSetString(g_tRes, "SPR_ICON_ALPHA",  "sprites/vexmira/icon_alpha.spr");
+
+    // Precache butcesi (GoldSrc: 512 ses / 512 model / 512 generic; stok CS + harita payi)
+    TrieSetString(g_tRes, "BOSS_PRELOAD",      "4");    // bir haritada en fazla kac boss yuklenir
+    TrieSetString(g_tRes, "BOSS_PRELOAD_LIST", "");     // bos = otomatik (haritadan haritaya doner)
+    TrieSetString(g_tRes, "SOUND_BUDGET",      "160");  // eklentinin 3D ses (precache_sound) siniri
+    TrieSetString(g_tRes, "MODEL_BUDGET",      "250");  // eklentinin model + sprite siniri
+}
+
+// Model anahtari: ilk dosya varsa o, yoksa ikinci (ikisi de yoksa ilk yazilir; precache'te elenir)
+DefModel(const key[], const first[], const second[])
+{
+    if (first[0] && file_exists(first, true))
+        TrieSetString(g_tRes, key, first);
+    else if (second[0] && file_exists(second, true))
+        TrieSetString(g_tRes, key, second);
+    else
+        TrieSetString(g_tRes, key, first);
+}
+
+// v3.0: sinif kaynaklari (24 sinif) + yeni yetenek sesleri / modelleri / sprite'lari
+SetClassResources()
+{
+    new key[24], val[96], snd[96];
+    static const CEV[][] = { "pain", "die", "idle", "ability" };
+    static const CEVKEY[][] = { "PAIN", "DIE", "IDLE", "ABILITY" };
+    for (new i = 0; i < NUM_CLASSES; i++)
+    {
+        formatex(key, charsmax(key), "Z%d_MODEL", i);
+        formatex(val, charsmax(val), "vex_z_%s", CLASS_FILE[i]);
+        TrieSetString(g_tRes, key, val);
+
+        formatex(key, charsmax(key), "Z%d_CLAW", i);
+        formatex(val, charsmax(val), "models/vexmira/claws/v_%s.mdl", CLASS_FILE[i]);
+        TrieSetString(g_tRes, key, val);
+
+        for (new e = 0; e < sizeof CEV; e++)
+        {
+            formatex(key, charsmax(key), "Z%d_%s", i, CEVKEY[e]);
+            formatex(snd, charsmax(snd), "vexmira/class/%s_%s.wav", CLASS_FILE[i], CEV[e]);
+            DefSound(key, snd, "");
+        }
+    }
+
+    // Yeni sinif yeteneklerinin carpma / ozel sesleri (yoksa orijinal HL sesleri)
+    DefSound("HUNTER_IMPACT",     "vexmira/class/hunter_impact.wav",     "garg/gar_stomp1.wav");
+    DefSound("CHARGER_IMPACT",    "vexmira/class/charger_impact.wav",    "garg/gar_stomp1.wav");
+    DefSound("ARACHNE_WEBHIT",    "vexmira/class/arachne_webhit.wav",    "bullchicken/bc_spithit1.wav");
+    DefSound("BURROWER_ERUPT",    "vexmira/class/burrower_erupt.wav",    "garg/gar_stomp1.wav");
+    DefSound("SPOREMOTHER_BURST", "vexmira/class/sporemother_burst.wav", "bullchicken/bc_acid1.wav");
+    DefSound("MIMIC_REVEAL",      "vexmira/class/mimic_reveal.wav",      "zombie/zo_alert30.wav");
+    DefSound("VOLT_ZAP",          "vexmira/class/volt_zap.wav",          "weapons/electro4.wav");
+
+    // Kasap kancasi
+    DefSound("HOOK_THROW", "vexmira/hook/throw.wav", "zombie/claw_miss1.wav");
+    DefSound("HOOK_CHAIN", "vexmira/hook/chain.wav", "");
+    DefSound("HOOK_HIT",   "vexmira/hook/hit.wav",   "zombie/claw_strike1.wav");
+    DefSound("HOOK_PULL",  "vexmira/hook/pull.wav",  "");
+    DefSound("HOOK_MISS",  "vexmira/hook/miss.wav",  "zombie/claw_miss2.wav");
+
+    // Modeller / sprite'lar (dosya yoksa: sprite -> orijinal efekt, model -> sprite)
+    TrieSetString(g_tRes, "HOOK_MODEL",  "models/vexmira/world/hook.mdl");
+    TrieSetString(g_tRes, "SPORE_MODEL", "models/vexmira/world/spore_pod.mdl");
+    TrieSetString(g_tRes, "SPR_CHAIN",   "sprites/vexmira/chain.spr");
+    TrieSetString(g_tRes, "SPR_WEB",     "sprites/vexmira/web.spr");
+    TrieSetString(g_tRes, "SPR_SPORE",   "sprites/vexmira/spore.spr");
+    TrieSetString(g_tRes, "SPR_EMP",     "sprites/vexmira/emp.spr");
+}
+
+// v3.0 yeni ses anahtarlari (precache)
+new const SOUND_KEYS_V3[][] =
+{
+    "HUNTER_IMPACT", "CHARGER_IMPACT", "ARACHNE_WEBHIT", "BURROWER_ERUPT", "SPOREMOTHER_BURST", "MIMIC_REVEAL", "VOLT_ZAP",
+    "HOOK_THROW", "HOOK_CHAIN", "HOOK_HIT", "HOOK_PULL", "HOOK_MISS"
+};
 
 // Ses dosyasi sunucuda var mi? (yoksa oyuncular "failed to transmit" ile atilir)
 bool:SoundExists(const path[])
@@ -895,116 +1198,158 @@ public plugin_precache()
 {
     g_tRes = TrieCreate();
     g_tSndInfo = TrieCreate();
+    g_tSnd2D = TrieCreate();
+    g_tSnd3D = TrieCreate();
+    g_tMdlDone = TrieCreate();
     SetDefaultResources();
     // Eski surum uyumlulugu: vexmira_resources.ini varsa once o okunur,
     // sonra TEK AYAR DOSYASI vexmira.cfg icindeki "vex_res" satirlari ustune yazar.
     LoadResourceIni();
     LoadMainConfig(true);
 
+    // Toplam precache sayaci (oyun + harita + diger eklentiler): plugin_init'te loglanir
+    g_iFwPcSnd = register_forward(FM_PrecacheSound, "fw_PcSoundPost", 1);
+    g_iFwPcMdl = register_forward(FM_PrecacheModel, "fw_PcModelPost", 1);
+    g_iFwPcGen = register_forward(FM_PrecacheGeneric, "fw_PcGenericPost", 1);
+
+    g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "160")), 40, 480);
+    g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
+
+    // Bu haritanin boss plani: sadece bu bosslarin modeli / pencesi / sesleri yuklenir
+    PlanBossLoad();
+
     new path[128], key[24];
 
-    // Sesler
+    // ---------------- SESLER (oncelik sirasiyla; butce dolarsa sonrakiler genel sese duser) ----------------
+    // 2D sesler (anons / arayuz / muzik) precache_generic ile indirilir ve "spk" ile calinir:
+    // ses yuvasi harcamaz. Sadece konumlu (3D) sesler precache_sound kullanir.
     for (new i = 0; i < sizeof SOUND_KEYS; i++)
-        PrecacheSoundKey(SOUND_KEYS[i]);
-
-    // Geri sayim sesi (VOX)
-    if (g_bVoxCountdown)
     {
-        for (new i = 1; i <= 10; i++)
+        // Sadece yedek olan anahtarlar sonra (gerekirse) yuklenir
+        if (!IsFallbackOnly(SOUND_KEYS[i]))
+            PrecacheSoundKey(SOUND_KEYS[i]);
+    }
+    // Geri sayim (VOX): oyuncunun oyununda zaten var (valve/sound/vox), precache gerekmez
+
+    // Bosslar (sadece yuklenenler)
+    static const BEV3D[][] = { "IDLE", "PAIN", "PAIN2", "DEATH", "STEP", "ATTACK", "PHASE", "KILL", "R1", "R2", "R3" };
+    for (new b = 0; b < NUM_BOSSES; b++)
+    {
+        if (!g_bBossLoaded[b])
         {
-            formatex(path, charsmax(path), "vox/%s.wav", VOX_NUM[i]);
-            precache_sound(path);
+            BossClearKeys(b);
+            continue;
+        }
+        formatex(key, charsmax(key), "B%d_INTRO", b);
+        PrecacheSoundKeyEx(key, true);
+        for (new e = 0; e < sizeof BEV3D; e++)
+        {
+            formatex(key, charsmax(key), "B%d_%s", b, BEV3D[e]);
+            PrecacheSoundKeyEx(key, false);
+        }
+        formatex(key, charsmax(key), "B%d_MUSIC", b);
+        PrecacheSoundKeyEx(key, true);
+    }
+
+    // Nemesis / Assassin
+    static const SEV3D[][] = { "IDLE", "PAIN", "DEATH", "ATTACK" };
+    PrecacheSoundKeyEx("NEMESIS_INTRO", true);
+    PrecacheSoundKeyEx("ASSASSIN_INTRO", true);
+    for (new e = 0; e < sizeof SEV3D; e++)
+    {
+        formatex(key, charsmax(key), "NEMESIS_%s", SEV3D[e]);
+        PrecacheSoundKeyEx(key, false);
+        formatex(key, charsmax(key), "ASSASSIN_%s", SEV3D[e]);
+        PrecacheSoundKeyEx(key, false);
+    }
+
+    // Arayuz (2D)
+    PrecacheSoundKeyEx("UI_VOTE_START", true);
+    PrecacheSoundKeyEx("UI_VOTE_END", true);
+    PrecacheSoundKeyEx("UI_BOSS_BAR", true);
+    PrecacheSoundKeyEx("UI_MENU_SELECT", true);
+    PrecacheSoundKeyEx("UI_CLASS_SELECT", true);
+
+    // Kanca / yeni sinif carpma sesleri
+    for (new i = 0; i < sizeof SOUND_KEYS_V3; i++)
+        PrecacheSoundKey(SOUND_KEYS_V3[i]);
+
+    // Sinif sesleri: once yetenek / aci / olum, sonra bekleme (idle), en son ozel pence sesleri
+    static const ZEV1[][] = { "ABILITY", "PAIN", "DIE" };
+    static const ZEV2[][] = { "SLASH", "HIT", "STAB", "HITWALL", "INFECT" };
+    for (new e = 0; e < sizeof ZEV1; e++)
+    {
+        for (new i = 0; i < NUM_CLASSES; i++)
+        {
+            formatex(key, charsmax(key), "Z%d_%s", i, ZEV1[e]);
+            PrecacheSoundKeyEx(key, false);
         }
     }
-
-    // Zombi / boss / ozel karakter modelleri
     for (new i = 0; i < NUM_CLASSES; i++)
     {
-        formatex(key, charsmax(key), "Z%d_MODEL", i);
-        GetPlayerModel(key, g_szZModel[i], charsmax(g_szZModel[]));
+        formatex(key, charsmax(key), "Z%d_IDLE", i);
+        PrecacheSoundKeyEx(key, false);
     }
-    for (new i = 0; i < NUM_BOSSES; i++)
+    for (new e = 0; e < sizeof ZEV2; e++)
     {
-        formatex(key, charsmax(key), "B%d_MODEL", i);
-        GetPlayerModel(key, g_szBModel[i], charsmax(g_szBModel[]));
-    }
-    GetPlayerModel("NEMESIS_MODEL",  g_szNemModel,   charsmax(g_szNemModel));
-    GetPlayerModel("ASSASSIN_MODEL", g_szAsnModel,   charsmax(g_szAsnModel));
-    GetPlayerModel("SURVIVOR_MODEL", g_szSurvModel,  charsmax(g_szSurvModel));
-    GetPlayerModel("SNIPER_MODEL",   g_szSnipModel,  charsmax(g_szSnipModel));
-    GetPlayerModel("HUMAN_MODEL",    g_szHumanModel, charsmax(g_szHumanModel));
-    GetPlayerModel("VIP_MODEL",      g_szVipModel,   charsmax(g_szVipModel));
-    GetPlayerModel("ADMIN_MODEL",    g_szAdminModel, charsmax(g_szAdminModel));
-
-    // Pence modelleri (genel + sinif / boss / ozel karakter bazinda)
-    GetFileModel("CLAW_MODEL", g_szClawModel, charsmax(g_szClawModel));
-    for (new i = 0; i < NUM_CLASSES; i++)
-    {
-        formatex(key, charsmax(key), "Z%d_CLAW", i);
-        GetFileModel(key, g_szZClaw[i], charsmax(g_szZClaw[]));
-    }
-    for (new i = 0; i < NUM_BOSSES; i++)
-    {
-        formatex(key, charsmax(key), "B%d_CLAW", i);
-        GetFileModel(key, g_szBClaw[i], charsmax(g_szBClaw[]));
-    }
-    GetFileModel("NEMESIS_CLAW", g_szNemClaw, charsmax(g_szNemClaw));
-    GetFileModel("ASSASSIN_CLAW", g_szAsnClaw, charsmax(g_szAsnClaw));
-
-    // Ozel silah modelleri
-    for (new i = 0; i < NUM_SPECIAL; i++)
-    {
-        formatex(key, charsmax(key), "SW%d_VMODEL", i);
-        GetFileModel(key, g_szSWView[i], charsmax(g_szSWView[]));
-        formatex(key, charsmax(key), "SW%d_PMODEL", i);
-        GetFileModel(key, g_szSWPlayer[i], charsmax(g_szSWPlayer[]));
-    }
-
-    // Normal silah modelleri: V_AK47 / P_AK47 ...
-    for (new w = 1; w < 31; w++)
-    {
-        formatex(key, charsmax(key), "V_%s", WEAPON_KEYNAME[w]);
-        GetFileModel(key, g_szWepV[w], charsmax(g_szWepV[]));
-        formatex(key, charsmax(key), "P_%s", WEAPON_KEYNAME[w]);
-        GetFileModel(key, g_szWepP[w], charsmax(g_szWepP[]));
-    }
-
-    // Sinif ve boss'a ozel sesler (sadece ini'de tanimlanmissa)
-    static const ZEV[][] = { "PAIN", "DIE", "IDLE", "SLASH", "HIT", "STAB", "HITWALL", "INFECT", "ABILITY" };
-    static const BEV[][] = { "SPAWN", "ROAR", "SCREAM", "ABILITY", "DEATH", "MUSIC" };
-    for (new i = 0; i < NUM_CLASSES; i++)
-    {
-        for (new e = 0; e < sizeof ZEV; e++)
+        for (new i = 0; i < NUM_CLASSES; i++)
         {
-            formatex(key, charsmax(key), "Z%d_%s", i, ZEV[e]);
-            PrecacheSoundKey(key);
-        }
-    }
-    for (new i = 0; i < NUM_BOSSES; i++)
-    {
-        for (new e = 0; e < sizeof BEV; e++)
-        {
-            formatex(key, charsmax(key), "B%d_%s", i, BEV[e]);
-            PrecacheSoundKey(key);
-        }
-        for (new r = 1; r <= 3; r++)
-        {
-            formatex(key, charsmax(key), "B%d_R%d", i, r);
-            PrecacheSoundKey(key);
+            formatex(key, charsmax(key), "Z%d_%s", i, ZEV2[e]);
+            PrecacheSoundKeyEx(key, false);
         }
     }
     for (new m = 0; m < MODE_TOTAL; m++)
     {
         formatex(key, charsmax(key), "MODE%d_MUSIC", m);
-        PrecacheSoundKey(key);
+        PrecacheSoundKeyEx(key, true);
     }
 
-    // Sprite'lar (orijinal dosyalar)
-    g_sprRing      = precache_model("sprites/shockwave.spr");
-    g_sprBeam      = precache_model("sprites/laserbeam.spr");
-    g_sprLightning = precache_model("sprites/lgtning.spr");
-    g_sprExplode   = precache_model("sprites/zerogxplode.spr");
-    g_sprSmoke     = precache_model("sprites/steam1.spr");
+    // Yedek sesler: sadece bir sinifin / bossun kendi sesi yoksa gerekir (yoksa ses yuvasi harcamaz)
+    new bool:needZ, bool:needB, tmp[8];
+    for (new i = 0; i < NUM_CLASSES && !needZ; i++)
+    {
+        formatex(key, charsmax(key), "Z%d_ABILITY", i);
+        if (!TrieGetString(g_tRes, key, tmp, charsmax(tmp)) || !tmp[0])
+            needZ = true;
+    }
+    for (new b = 0; b < NUM_BOSSES && !needB; b++)
+    {
+        if (!g_bBossLoaded[b])
+            continue;
+        formatex(key, charsmax(key), "B%d_IDLE", b);
+        if (!TrieGetString(g_tRes, key, tmp, charsmax(tmp)) || !tmp[0])
+            needB = true;
+        formatex(key, charsmax(key), "B%d_ATTACK", b);
+        if (!TrieGetString(g_tRes, key, tmp, charsmax(tmp)) || !tmp[0])
+            needB = true;
+    }
+    for (new i = 0; i < sizeof SOUND_KEYS; i++)
+    {
+        if (!IsFallbackOnly(SOUND_KEYS[i]))
+            continue;
+        if (equal(SOUND_KEYS[i], "BOSS_", 5))
+        {
+            // BOSS_SCREAM ayrica herkese (2D) calinir: gerekmiyorsa sadece indirilir
+            if (needB)
+                PrecacheSoundKeyEx(SOUND_KEYS[i], false);
+            else if (equal(SOUND_KEYS[i], "BOSS_SCREAM"))
+                PrecacheSoundKeyEx(SOUND_KEYS[i], true);
+            else
+                TrieSetString(g_tRes, SOUND_KEYS[i], "");
+        }
+        else if (needZ)
+            PrecacheSoundKeyEx(SOUND_KEYS[i], false);
+        else
+            TrieSetString(g_tRes, SOUND_KEYS[i], "");
+    }
+
+    // ---------------- SPRITE'LAR ----------------
+    // Orijinal oyun sprite'lari (her sunucuda var)
+    g_sprRing      = PcModel("sprites/shockwave.spr", false);
+    g_sprBeam      = PcModel("sprites/laserbeam.spr", false);
+    g_sprLightning = PcModel("sprites/lgtning.spr", false);
+    g_sprExplode   = PcModel("sprites/zerogxplode.spr", false);
+    g_sprSmoke     = PcModel("sprites/steam1.spr", false);
 
     // Istege bagli sprite'lar: dosya yoksa sunucu cokmesin diye kontrol edilir
     g_sprBlood      = PrecacheSafe("sprites/blood.spr");
@@ -1032,9 +1377,9 @@ public plugin_precache()
     if (!g_sprOrb)
     {
         // Yedek: oyunun flare6 sprite'i (precache edildiyse) ya da isaret sprite'i
-        if (file_exists("sprites/flare6.spr", true))
+        if (g_sprFlare && file_exists("sprites/flare6.spr", true))
         {
-            g_sprOrb = precache_model("sprites/flare6.spr");
+            g_sprOrb = g_sprFlare;
             copy(g_szSprOrb, charsmax(g_szSprOrb), "sprites/flare6.spr");
         }
         else if (g_sprBeacon)
@@ -1050,31 +1395,128 @@ public plugin_precache()
     else
         copy(g_szSprLaser, charsmax(g_szSprLaser), "sprites/laserbeam.spr");
 
-    // Lazer mayini + hava ikmali modelleri (vexmira.cfg: vex_res LASERMINE_MODEL ...)
-    GetFileModel("LASERMINE_MODEL", g_szMineModel, charsmax(g_szMineModel));
-    if (!g_szMineModel[0] && file_exists("models/v_tripmine.mdl", true))
+    // v3.0 sinif yetenek sprite'lari
+    g_sprChain = PrecacheResSprite("SPR_CHAIN", g_szSprChain, charsmax(g_szSprChain));
+    g_sprWeb   = PrecacheResSprite("SPR_WEB", g_szSprWeb, charsmax(g_szSprWeb));
+    g_sprSpore = PrecacheResSprite("SPR_SPORE", g_szSprSpore, charsmax(g_szSprSpore));
+    g_sprEmp   = PrecacheResSprite("SPR_EMP", g_szSprEmp, charsmax(g_szSprEmp));
+
+    // Kafa ustu gostergeler (boss bari once: en onemlisi)
+    static const OVKEY[OVS_TOTAL][] = { "SPR_BOSSBAR", "SPR_BOSSICON", "SPR_HPBAR", "SPR_ICON_VIP", "SPR_ICON_ADMIN", "SPR_ICON_MVP", "SPR_ICON_LAST", "SPR_ICON_ALPHA" };
+    for (new i = 0; i < OVS_TOTAL; i++)
     {
-        copy(g_szMineModel, charsmax(g_szMineModel), "models/v_tripmine.mdl");
-        precache_model(g_szMineModel);
+        if (PrecacheResSprite(OVKEY[i], g_szOvhSpr[i], charsmax(g_szOvhSpr[])))
+            ReadSprInfo(i);
+        else
+            g_szOvhSpr[i][0] = 0;
     }
-    if (!g_szMineModel[0] && file_exists("models/w_c4.mdl", true))
+
+    // ---------------- OYUNCU MODELLERI ----------------
+    // Insanlar (rastgele liste) + VIP / admin / survivor / sniper
+    LoadHumanModels();
+    GetPlayerModel("VIP_MODEL",      g_szVipModel,   charsmax(g_szVipModel));
+    GetPlayerModel("ADMIN_MODEL",    g_szAdminModel, charsmax(g_szAdminModel));
+    GetPlayerModel("SURVIVOR_MODEL", g_szSurvModel,  charsmax(g_szSurvModel));
+    if (!g_szSurvModel[0])
+        PlayerModelFallback("gign", g_szSurvModel, charsmax(g_szSurvModel));
+    GetPlayerModel("SNIPER_MODEL",   g_szSnipModel,  charsmax(g_szSnipModel));
+    if (!g_szSnipModel[0])
+        PlayerModelFallback("sas", g_szSnipModel, charsmax(g_szSnipModel));
+
+    // Ozel zombiler + yuklenen bosslar
+    GetPlayerModel("NEMESIS_MODEL",  g_szNemModel,   charsmax(g_szNemModel));
+    if (!g_szNemModel[0])
+        PlayerModelFallback("terror", g_szNemModel, charsmax(g_szNemModel));
+    GetPlayerModel("ASSASSIN_MODEL", g_szAsnModel,   charsmax(g_szAsnModel));
+    if (!g_szAsnModel[0])
+        PlayerModelFallback("leet", g_szAsnModel, charsmax(g_szAsnModel));
+    for (new i = 0; i < NUM_BOSSES; i++)
     {
-        copy(g_szMineModel, charsmax(g_szMineModel), "models/w_c4.mdl");
-        precache_model(g_szMineModel);
+        g_szBModel[i][0] = 0;
+        g_szBClaw[i][0] = 0;
+        if (!g_bBossLoaded[i])
+            continue;
+        formatex(key, charsmax(key), "B%d_MODEL", i);
+        GetPlayerModel(key, g_szBModel[i], charsmax(g_szBModel[]));
+        if (!g_szBModel[i][0])
+            PlayerModelFallback(BOSS_OLDMODEL[i], g_szBModel[i], charsmax(g_szBModel[]));
     }
-    // Govde / animasyon / kaplama: orijinal tripmine modelinde 3 / 7 / 0, baska modelde cfg'den
-    new bool:tripmine = (containi(g_szMineModel, "tripmine") != -1) ? true : false;
-    g_iMineBody = str_to_num(GetResString("LASERMINE_BODY", tripmine ? "3" : "0"));
-    g_iMineSeq  = str_to_num(GetResString("LASERMINE_SEQUENCE", tripmine ? "7" : "0"));
-    g_iMineSkin = str_to_num(GetResString("LASERMINE_SKIN", "0"));
-    GetFileModel("AIRDROP_MODEL", g_szDropModel, charsmax(g_szDropModel));
-    if (!g_szDropModel[0] && file_exists("models/w_weaponbox.mdl", true))
+
+    // Zombi siniflari
+    for (new i = 0; i < NUM_CLASSES; i++)
     {
-        copy(g_szDropModel, charsmax(g_szDropModel), "models/w_weaponbox.mdl");
-        precache_model(g_szDropModel);
+        formatex(key, charsmax(key), "Z%d_MODEL", i);
+        GetPlayerModel(key, g_szZModel[i], charsmax(g_szZModel[]));
+        // v3.0: ozel sinif modeli yoksa eski (orijinal CS) modele duser
+        if (!g_szZModel[i][0])
+            PlayerModelFallback(CLASS_OLDMODEL[i], g_szZModel[i], charsmax(g_szZModel[]));
+    }
+
+    // ---------------- EL (v_) MODELLERI ----------------
+    // Pence modelleri (genel + boss / ozel karakter / sinif bazinda)
+    GetFileModel("CLAW_MODEL", g_szClawModel, charsmax(g_szClawModel));
+    for (new i = 0; i < NUM_BOSSES; i++)
+    {
+        if (!g_bBossLoaded[i])
+            continue;
+        formatex(key, charsmax(key), "B%d_CLAW", i);
+        GetFileModel(key, g_szBClaw[i], charsmax(g_szBClaw[]));
+    }
+    GetFileModel("NEMESIS_CLAW", g_szNemClaw, charsmax(g_szNemClaw));
+    GetFileModel("ASSASSIN_CLAW", g_szAsnClaw, charsmax(g_szAsnClaw));
+    for (new i = 0; i < NUM_CLASSES; i++)
+    {
+        formatex(key, charsmax(key), "Z%d_CLAW", i);
+        GetFileModel(key, g_szZClaw[i], charsmax(g_szZClaw[]));
+    }
+
+    // Insan el modelleri: V_AK47 / V_KNIFE ...
+    for (new w = 1; w < 31; w++)
+    {
+        formatex(key, charsmax(key), "V_%s", WEAPON_KEYNAME[w]);
+        GetFileModel(key, g_szWepV[w], charsmax(g_szWepV[]));
+    }
+    // Ozel silah modelleri
+    for (new i = 0; i < NUM_SPECIAL; i++)
+    {
+        formatex(key, charsmax(key), "SW%d_VMODEL", i);
+        GetFileModel(key, g_szSWView[i], charsmax(g_szSWView[]));
+        formatex(key, charsmax(key), "SW%d_PMODEL", i);
+        GetFileModel(key, g_szSWPlayer[i], charsmax(g_szSWPlayer[]));
+    }
+
+    // ---------------- DUNYA MODELLERI ----------------
+    LoadWorldModels();
+
+    // En dusuk oncelik: elde gorunen (p_) silah modelleri (butce dolarsa oyunun kendi modeli)
+    for (new w = 1; w < 31; w++)
+    {
+        formatex(key, charsmax(key), "P_%s", WEAPON_KEYNAME[w]);
+        GetFileModel(key, g_szWepP[w], charsmax(g_szWepP[]));
     }
 
     PickSky();
+
+    // Ozet (precache_* donus indekslerinden). Bu noktada oyun / harita henuz kendi
+    // dosyalarini eklemedi: toplam (harita + oyun dahil) plugin_init'te ayrica loglanir.
+    log_amx("[Vexmira] precache: sound=%d model=%d generic=%d", g_iPcSnd, g_iPcMdl, g_iPcGen);
+    log_amx("[Vexmira] precache detay: eklenti 3D ses %d/%d, model+sprite %d/%d, generic %d, butceden atlanan ses %d / model %d, yuklenen boss %d",
+        g_iMySnd, g_iSndBudget, g_iMyMdl, g_iMdlBudget, g_iMyGen, g_iSndSkipped, g_iMdlSkipped, g_iBossLoadN);
+    copy(path, charsmax(path), "");
+}
+
+// Ozel model yoksa yedek oyuncu modeli (orijinal CS modelleri her sunucuda vardir)
+PlayerModelFallback(const name[], out[], len)
+{
+    out[0] = 0;
+    if (!name[0])
+        return;
+    new model[128];
+    formatex(model, charsmax(model), "models/player/%s/%s.mdl", name, name);
+    if (!file_exists(model, true))
+        return;
+    if (PcModel(model, false))
+        copy(out, len, name);
 }
 
 // Gokyuzu: listeden (orijinal CS gokyuzleri) her haritada rastgele biri
@@ -1106,7 +1548,7 @@ PickSky()
     for (new i = 0; i < 6; i++)
     {
         formatex(path, charsmax(path), "gfx/env/%s%s.tga", g_szSky, SIDE[i]);
-        precache_generic(path);
+        PcGeneric(path);
     }
 }
 
@@ -1124,17 +1566,450 @@ bool:SkyExists(const name[])
     return true;
 }
 
+// Ses anahtari: 2D (anons / arayuz) ise generic olarak indirilir, degilse precache_sound
 PrecacheSoundKey(const key[])
 {
-    new path[128];
+    PrecacheSoundKeyEx(key, IsKey2D(key));
+}
+
+// Sadece oyuncuya "spk" ile (2D) calinan sesler: precache_generic yeterli (ses yuvasi harcamaz).
+// Konumdan (3D) de calinan anahtarlar BURADA OLMAMALI.
+new const SOUND_2D_KEYS[][] =
+{
+    "ACH_UNLOCK", "AIRDROP_INCOMING", "AMBIENT", "BLACKOUT", "BOSS_DEATH", "BOSS_ENRAGE", "BOSS_INTRO", "BOSS_PHASE",
+    "BOSS_SOON", "BOSS_SPAWN", "BOSS_WARN", "COUNTDOWN_BEEP", "DAILY", "ECLIPSE", "EVENT_START", "FINAL_ROUND",
+    "HEADSHOT", "HEARTBEAT", "HUMAN_WIN", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "KILL_MONSTER",
+    "LAST_HUMAN", "LEVEL_UP", "LIGHTNING", "LM_DENY", "MAP_END", "METEOR", "MODE_START", "MVP", "NADE_FROST", "NADE_MODE",
+    "PLAYER_JOIN", "PLAYER_LEAVE", "QUEST_DONE", "ROUND_START", "SHOP_BUY", "SKILL_UNLOCK", "SPEED_START", "SPEED_WIND",
+    "STORM_STRIKE", "STREAK_5", "STREAK_10", "STREAK_15", "VIP_JOIN", "WELCOME", "ZOMBIE_WIN", "UI_OPEN"
+};
+
+// Sadece yedek olarak kullanilan ses anahtarlari (sinifin / bossun kendi sesi varsa gereksiz)
+bool:IsFallbackOnly(const key[])
+{
+    static const FB[][] =
+    {
+        "ABILITY_BURST", "ABILITY_SHIELD", "ABILITY_SCREAM", "ABILITY_DRAIN", "ABILITY_CLOAK", "ABILITY_TOXIC", "ABILITY_FROST",
+        "ZOMBIE_ACID", "ZOMBIE_HEAL", "ZOMBIE_BLINK", "ZOMBIE_SHOCK", "BOSS_ROAR", "BOSS_SCREAM"
+    };
+    for (new i = 0; i < sizeof FB; i++)
+    {
+        if (equal(key, FB[i]))
+            return true;
+    }
+    return false;
+}
+
+bool:IsKey2D(const key[])
+{
+    if (equal(key, "UI_", 3) || containi(key, "_MUSIC") != -1)
+        return true;
+    new len = strlen(key);
+    if (len > 6 && equal(key[len - 6], "_INTRO"))
+        return true;
+    for (new i = 0; i < sizeof SOUND_2D_KEYS; i++)
+    {
+        if (equal(key, SOUND_2D_KEYS[i]))
+            return true;
+    }
+    return false;
+}
+
+PrecacheSoundKeyEx(const key[], bool:twoD)
+{
+    new path[128], full[160];
     if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
         return;
     if (containi(path, ".mp3") != -1)
-        precache_generic(path);
+    {
+        PcGeneric(path);
+        return;
+    }
+    if (twoD)
+    {
+        // 2D: istemci dosyayi indirir, "spk" ile calar (sunucu ses tablosuna girmez)
+        formatex(full, charsmax(full), "sound/%s", path);
+        PcGeneric(full);
+        TrieSetCell(g_tSnd2D, path, 1);
+        ScanWav(path);
+        return;
+    }
+    // 3D: butce doluysa anahtar kapanir ve kod genel (yedek) sese duser
+    if (!PcSound(path))
+        TrieSetString(g_tRes, key, "");
+}
+
+// 3D ses (precache_sound). 0 = butce dolu, atlandi.
+PcSound(const path[])
+{
+    if (!path[0])
+        return 0;
+    if (TrieKeyExists(g_tSnd3D, path))
+        return 1;
+    if (g_iMySnd >= g_iSndBudget)
+    {
+        if (++g_iSndSkipped <= 8)
+            log_amx("[Vexmira] Ses butcesi dolu (SOUND_BUDGET %d), atlandi: %s", g_iSndBudget, path);
+        return 0;
+    }
+    new idx = precache_sound(path);
+    g_iMySnd++;
+    g_iPcSnd = max(g_iPcSnd, idx);
+    TrieSetCell(g_tSnd3D, path, idx);
+    ScanWav(path);
+    return 1;
+}
+
+// Indirilecek dosya (2D ses / mp3 / gokyuzu)
+PcGeneric(const path[])
+{
+    if (!path[0] || TrieKeyExists(g_tMdlDone, path))
+        return;
+    TrieSetCell(g_tMdlDone, path, 1);
+    new idx = precache_generic(path);
+    g_iMyGen++;
+    g_iPcGen = max(g_iPcGen, idx);
+}
+
+// Model / sprite. optional = butceye tabi (doluysa 0 doner ve ozellik eski haline duser)
+PcModel(const path[], bool:optional = true)
+{
+    if (!path[0])
+        return 0;
+    new idx;
+    if (TrieGetCell(g_tMdlDone, path, idx))
+        return idx;
+    if (optional && g_iMyMdl >= g_iMdlBudget)
+    {
+        if (++g_iMdlSkipped <= 8)
+            log_amx("[Vexmira] Model butcesi dolu (MODEL_BUDGET %d), atlandi: %s", g_iMdlBudget, path);
+        return 0;
+    }
+    idx = precache_model(path);
+    g_iMyMdl++;
+    g_iPcMdl = max(g_iPcMdl, idx);
+    TrieSetCell(g_tMdlDone, path, idx);
+    return idx;
+}
+
+// Toplam sayac: oyun DLL'i / harita / diger eklentilerin precache'leri (indeks = en buyuk)
+public fw_PcSoundPost(const s[])
+{
+    g_iTotSnd = max(g_iTotSnd, get_orig_retval());
+    return FMRES_IGNORED;
+}
+
+public fw_PcModelPost(const s[])
+{
+    g_iTotMdl = max(g_iTotMdl, get_orig_retval());
+    return FMRES_IGNORED;
+}
+
+public fw_PcGenericPost(const s[])
+{
+    g_iTotGen = max(g_iTotGen, get_orig_retval());
+    return FMRES_IGNORED;
+}
+
+// plugin_init: harita varliklari da yuklendi -> toplam sayilar
+PrecacheReportTotals()
+{
+    if (g_iFwPcSnd) { unregister_forward(FM_PrecacheSound, g_iFwPcSnd, 1); g_iFwPcSnd = 0; }
+    if (g_iFwPcMdl) { unregister_forward(FM_PrecacheModel, g_iFwPcMdl, 1); g_iFwPcMdl = 0; }
+    if (g_iFwPcGen) { unregister_forward(FM_PrecacheGeneric, g_iFwPcGen, 1); g_iFwPcGen = 0; }
+    g_iTotSnd = max(g_iTotSnd, g_iPcSnd);
+    g_iTotMdl = max(g_iTotMdl, g_iPcMdl);
+    g_iTotGen = max(g_iTotGen, g_iPcGen);
+    log_amx("[Vexmira] precache toplam (oyun + harita dahil): sound=%d/512 model=%d/512 generic=%d/512", g_iTotSnd, g_iTotMdl, g_iTotGen);
+    if (g_iTotSnd > 480 || g_iTotMdl > 480)
+        log_amx("[Vexmira] UYARI: precache limitine yakin! vexmira.cfg: vex_res SOUND_BUDGET / MODEL_BUDGET / BOSS_PRELOAD dusur.");
+}
+
+// Sunucu komutu: vex_precache_stats
+public srv_PrecacheStats()
+{
+    new list[96], nm[16];
+    for (new i = 0; i < g_iBossLoadN; i++)
+    {
+        formatex(nm, charsmax(nm), "%s%s", i ? ", " : "", BOSS_FILE[g_iBossLoadList[i]]);
+        add(list, charsmax(list), nm);
+    }
+    server_print("[Vexmira] precache: sound=%d model=%d generic=%d (eklenti)", g_iPcSnd, g_iPcMdl, g_iPcGen);
+    server_print("[Vexmira] toplam (oyun + harita dahil): sound=%d/512 model=%d/512 generic=%d/512", g_iTotSnd, g_iTotMdl, g_iTotGen);
+    server_print("[Vexmira] eklenti: 3D ses %d/%d  model+sprite %d/%d  generic %d  atlanan ses %d / model %d",
+        g_iMySnd, g_iSndBudget, g_iMyMdl, g_iMdlBudget, g_iMyGen, g_iSndSkipped, g_iMdlSkipped);
+    server_print("[Vexmira] yuklenen bosslar (%d): %s", g_iBossLoadN, list[0] ? list : "-");
+    new ovh[160];
+    for (new i = 0; i < OVS_TOTAL; i++)
+    {
+        if (g_szOvhSpr[i][0])
+        {
+            formatex(nm, charsmax(nm), " %d:%dx%dx%d", i, g_iOvhWidth[i], g_iOvhHeight[i], g_iOvhFrames[i]);
+            add(ovh, charsmax(ovh), nm);
+        }
+    }
+    server_print("[Vexmira] kafa ustu sprite'lar (tur:GxYxKare):%s", ovh[0] ? ovh : " yok");
+    // Canli gostergeler (test icin)
+    new live, bars, icons;
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (g_iOvhBar[id])
+        {
+            bars++;
+            server_print("[Vexmira]   #%d bar tur %d kare %d", id, g_iOvhBarType[id], floatround(Float:get_entvar(g_iOvhBar[id], var_frame)));
+        }
+        if (g_iOvhIcon[id])
+            icons++;
+        if (g_iOvhEmb[id])
+            live++;
+    }
+    server_print("[Vexmira] canli gostergeler: %d (bar %d, amblem %d, ikon %d)", g_iOvhCount, bars, live, icons);
+    return PLUGIN_HANDLED;
+}
+
+/* ---------------- Boss yukleme plani (precache butcesi) ----------------
+   Her haritada sadece en fazla BOSS_PRELOAD (4) boss yuklenir: model + pence + sesler.
+   Secim: BOSS_PRELOAD_LIST doluysa o; degilse haritanin boss round sayisi kadar boss,
+   onceki haritalarda gelmeyenler oncelikli (sunucu acik kaldikca tum bosslar doner). */
+PlanBossLoad()
+{
+    g_iBossLoadN = 0;
+    for (new b = 0; b < NUM_BOSSES; b++)
+        g_bBossLoaded[b] = false;
+
+    new maxN = clamp(str_to_num(GetResString("BOSS_PRELOAD", "4")), 1, NUM_BOSSES);
+    new list[64], tmp[8], pos;
+    copy(list, charsmax(list), GetResString("BOSS_PRELOAD_LIST", ""));
+    while (g_iBossLoadN < maxN && (pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
+    {
+        if (!isdigit(tmp[0]))
+            continue;
+        new b = str_to_num(tmp);
+        if (b < 0 || b >= NUM_BOSSES || g_bBossLoaded[b])
+            continue;
+        g_bBossLoaded[b] = true;
+        g_iBossLoadList[g_iBossLoadN++] = b;
+    }
+
+    if (!g_iBossLoadN)
+    {
+        new need = clamp(PlanBossRoundCount(), 1, maxN);
+        new info[16];
+        get_localinfo("vex_bossrot", info, charsmax(info));
+        new used = str_to_num(info) & ((1 << NUM_BOSSES) - 1);
+
+        new cand[NUM_BOSSES], nc;
+        for (new b = 0; b < NUM_BOSSES; b++)
+        {
+            if (!(used & (1 << b)))
+                cand[nc++] = b;
+        }
+        // Yeterli gelmemis boss yoksa: once kalanlar, sonra digerleri
+        while (g_iBossLoadN < need && nc > 0)
+        {
+            new r = random(nc), b = cand[r];
+            cand[r] = cand[--nc];
+            g_bBossLoaded[b] = true;
+            g_iBossLoadList[g_iBossLoadN++] = b;
+        }
+        if (g_iBossLoadN < need)
+        {
+            used = 0;
+            nc = 0;
+            for (new b = 0; b < NUM_BOSSES; b++)
+            {
+                if (!g_bBossLoaded[b])
+                    cand[nc++] = b;
+            }
+            while (g_iBossLoadN < need && nc > 0)
+            {
+                new r = random(nc), b = cand[r];
+                cand[r] = cand[--nc];
+                g_bBossLoaded[b] = true;
+                g_iBossLoadList[g_iBossLoadN++] = b;
+            }
+        }
+        for (new i = 0; i < g_iBossLoadN; i++)
+            used |= (1 << g_iBossLoadList[i]);
+        num_to_str(used, info, charsmax(info));
+        set_localinfo("vex_bossrot", info);
+    }
+    g_iBossBagPos = NUM_BOSSES;  // torba yuklenen bosslardan yeniden olusturulur
+}
+
+// Haritanin plani kac boss roundu iceriyor? (vexmira.cfg precache sirasinda okunur)
+PlanBossRoundCount()
+{
+    new total = g_iPreRoundsTotal > 0 ? g_iPreRoundsTotal : 30;
+    new list[128], tmp[8], pos, n;
+    copy(list, charsmax(list), g_szPreBossRounds);
+    trim(list);
+    if (list[0])
+    {
+        while ((pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
+        {
+            new r = str_to_num(tmp);
+            if (r >= 1 && r <= total)
+                n++;
+        }
+        return n;
+    }
+    new every = g_iPreBossEvery > 0 ? g_iPreBossEvery : 6;
+    return total / every;
+}
+
+// Yuklenmeyen bossun ses anahtarlari bosaltilir (precache edilmemis ses calinmaz)
+BossClearKeys(b)
+{
+    static const EV[][] = { "INTRO", "IDLE", "PAIN", "PAIN2", "DEATH", "STEP", "ATTACK", "PHASE", "KILL", "R1", "R2", "R3",
+        "SPAWN", "ROAR", "SCREAM", "ABILITY", "MUSIC" };
+    new key[24];
+    for (new e = 0; e < sizeof EV; e++)
+    {
+        formatex(key, charsmax(key), "B%d_%s", b, EV[e]);
+        TrieSetString(g_tRes, key, "");
+    }
+}
+
+bool:BossIsLoaded(b)
+{
+    return (0 <= b < NUM_BOSSES && g_bBossLoaded[b]) ? true : false;
+}
+
+// Insan modelleri: HUMAN_MODELS listesi (+ HUMAN_MODEL). Hicbiri yoksa oyunun CT modeli.
+LoadHumanModels()
+{
+    new list[192], tmp[32], pos, out[32];
+    g_iHumanModelN = 0;
+    copy(list, charsmax(list), GetResString("HUMAN_MODELS", ""));
+    add(list, charsmax(list), " ");
+    add(list, charsmax(list), GetResString("HUMAN_MODEL", ""));
+    while (g_iHumanModelN < MAX_HMODELS && (pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
+    {
+        if (!tmp[0])
+            continue;
+        new dup;
+        for (new i = 0; i < g_iHumanModelN; i++)
+        {
+            if (equali(g_szHumanModels[i], tmp))
+                dup = 1;
+        }
+        if (dup)
+            continue;
+        PlayerModelFile(tmp, out, charsmax(out));
+        if (out[0])
+            copy(g_szHumanModels[g_iHumanModelN++], charsmax(g_szHumanModels[]), out);
+    }
+    g_szHumanModel[0] = 0;
+    if (g_iHumanModelN)
+        copy(g_szHumanModel, charsmax(g_szHumanModel), g_szHumanModels[0]);
+}
+
+// Oyuncu modeli adi -> dosya kontrolu + precache (yoksa out bos)
+PlayerModelFile(const name[], out[], len)
+{
+    out[0] = 0;
+    new model[128];
+    formatex(model, charsmax(model), "models/player/%s/%s.mdl", name, name);
+    if (!file_exists(model, true))
+    {
+        log_amx("[Vexmira] Model bulunamadi: %s - varsayilan kullanilacak", model);
+        return;
+    }
+    if (PcModel(model))
+        copy(out, len, name);
+}
+
+// Dunya modelleri: lazer mayini, ikmal kutusu, kovan yumurtasi, firlatilan bombalar, kanca, spor
+LoadWorldModels()
+{
+    new cfgModel[96];
+    copy(cfgModel, charsmax(cfgModel), GetResString("LASERMINE_MODEL", ""));
+    GetFileModel("LASERMINE_MODEL", g_szMineModel, charsmax(g_szMineModel));
+    if (!g_szMineModel[0] && file_exists("models/v_tripmine.mdl", true))
+    {
+        copy(g_szMineModel, charsmax(g_szMineModel), "models/v_tripmine.mdl");
+        PcModel(g_szMineModel, false);
+    }
+    if (!g_szMineModel[0] && file_exists("models/w_c4.mdl", true))
+    {
+        copy(g_szMineModel, charsmax(g_szMineModel), "models/w_c4.mdl");
+        PcModel(g_szMineModel, false);
+    }
+    // Govde / animasyon / kaplama: orijinal tripmine modelinde 3 / 7 / 0, baska modelde cfg'den.
+    // Yedek modele dusulduyse cfg'deki (Vexmira modeline ait) degerler kullanilmaz.
+    new bool:tripmine = (containi(g_szMineModel, "tripmine") != -1) ? true : false;
+    new bool:fellBack = !equal(cfgModel, g_szMineModel);
+    new seq[24];
+    g_iMineBody = fellBack ? (tripmine ? 3 : 0) : str_to_num(GetResString("LASERMINE_BODY", tripmine ? "3" : "0"));
+    copy(seq, charsmax(seq), fellBack ? (tripmine ? "7" : "0") : GetResString("LASERMINE_SEQUENCE", tripmine ? "7" : "idle"));
+    // Sayi degilse animasyon ADI (model yuklenince aranir)
+    g_szMineSeqName[0] = 0;
+    if (isdigit(seq[0]))
+        g_iMineSeq = str_to_num(seq);
     else
     {
-        precache_sound(path);
-        ScanWav(path);
+        g_iMineSeq = 0;
+        copy(g_szMineSeqName, charsmax(g_szMineSeqName), seq);
+    }
+    copy(g_szMineDeploySeq, charsmax(g_szMineDeploySeq), fellBack ? "" : GetResString("LASERMINE_DEPLOY_SEQ", tripmine ? "" : "deploy"));
+    g_iMineSkin = fellBack ? 0 : str_to_num(GetResString("LASERMINE_SKIN", "0"));
+
+    copy(cfgModel, charsmax(cfgModel), GetResString("AIRDROP_MODEL", ""));
+    GetFileModel("AIRDROP_MODEL", g_szDropModel, charsmax(g_szDropModel));
+    if (!g_szDropModel[0] && file_exists("models/w_weaponbox.mdl", true))
+    {
+        copy(g_szDropModel, charsmax(g_szDropModel), "models/w_weaponbox.mdl");
+        PcModel(g_szDropModel, false);
+    }
+    fellBack = !equal(cfgModel, g_szDropModel);
+    // Ikmal kutusu: dususte parasut govdesi + "fall" animasyonu, yerde "idle"
+    g_iDropBodyChute  = fellBack ? 0 : str_to_num(GetResString("AIRDROP_BODY_CHUTE", "1"));
+    g_iDropBodyLanded = fellBack ? 0 : str_to_num(GetResString("AIRDROP_BODY_LANDED", "0"));
+    copy(g_szDropSeqFall, charsmax(g_szDropSeqFall), fellBack ? "" : GetResString("AIRDROP_SEQ_FALL", "fall"));
+    copy(g_szDropSeqIdle, charsmax(g_szDropSeqIdle), fellBack ? "" : GetResString("AIRDROP_SEQ_IDLE", "idle"));
+
+    GetFileModel("EGG_MODEL", g_szEggModel, charsmax(g_szEggModel));
+    GetFileModel("HOOK_MODEL", g_szHookModel, charsmax(g_szHookModel));
+    GetFileModel("SPORE_MODEL", g_szSporeModel, charsmax(g_szSporeModel));
+    GetFileModel("W_HEGRENADE", g_szWNade[0], charsmax(g_szWNade[]));
+    GetFileModel("W_SMOKEGRENADE", g_szWNade[1], charsmax(g_szWNade[]));
+    GetFileModel("W_FLASHBANG", g_szWNade[2], charsmax(g_szWNade[]));
+}
+
+// Sprite dosya basligi: kare sayisi, boyut ve doku bicimi (cizim modu buna gore secilir)
+// SPR: "IDSP" ver type texFormat radius width height numframes ...
+ReadSprInfo(slot)
+{
+    g_iOvhFrames[slot] = 1;
+    g_iOvhWidth[slot] = 64;
+    g_iOvhHeight[slot] = 16;
+    g_iOvhMode[slot] = kRenderTransAlpha;
+    new fp = fopen(g_szOvhSpr[slot], "rb", true);
+    if (!fp)
+        return;
+    new ident, ver, type, fmt, radius, w, h, frames;
+    fread(fp, ident, BLOCK_INT);
+    fread(fp, ver, BLOCK_INT);
+    fread(fp, type, BLOCK_INT);
+    fread(fp, fmt, BLOCK_INT);
+    fread(fp, radius, BLOCK_INT);
+    fread(fp, w, BLOCK_INT);
+    fread(fp, h, BLOCK_INT);
+    fread(fp, frames, BLOCK_INT);
+    fclose(fp);
+    if (ident != 0x50534449)   // "IDSP"
+        return;
+    g_iOvhFrames[slot] = clamp(frames, 1, 256);
+    g_iOvhWidth[slot] = clamp(w, 1, 1024);
+    g_iOvhHeight[slot] = clamp(h, 1, 1024);
+    // 0 normal 1 additive 2 indexalpha 3 alphtest
+    switch (fmt)
+    {
+        case 1: g_iOvhMode[slot] = kRenderTransAdd;
+        case 2: g_iOvhMode[slot] = kRenderTransTexture;
+        case 3: g_iOvhMode[slot] = kRenderTransAlpha;
+        default: g_iOvhMode[slot] = kRenderNormal;
     }
 }
 
@@ -1228,7 +2103,7 @@ PrecacheSafe(const path[])
             log_amx("[Vexmira] Dosya bulunamadi, atlandi: %s", path);
         return 0;
     }
-    return precache_model(path);
+    return PcModel(path, false);
 }
 
 // Ayardaki sprite (vex_res SPR_...): varsa precache, yoksa 0
@@ -1243,8 +2118,10 @@ PrecacheResSprite(const key[], out[], len)
         log_amx("[Vexmira] Sprite bulunamadi: %s (%s) - orijinal efekt kullanilacak", path, key);
         return 0;
     }
-    copy(out, len, path);
-    return precache_model(path);
+    new idx = PcModel(path);
+    if (idx)
+        copy(out, len, path);
+    return idx;
 }
 
 GetResString(const key[], const def[])
@@ -1271,7 +2148,8 @@ GetPlayerModel(const key[], out[], len)
         out[0] = 0;
         return;
     }
-    precache_model(model);
+    if (!PcModel(model))
+        out[0] = 0;
 }
 
 GetFileModel(const key[], out[], len)
@@ -1286,7 +2164,8 @@ GetFileModel(const key[], out[], len)
         out[0] = 0;
         return;
     }
-    precache_model(out);
+    if (!PcModel(out))
+        out[0] = 0;
 }
 
 // Tek kaynak ayari: ANAHTAR -> deger. Ses dosyasi sunucuda yoksa varsayilan korunur
@@ -1455,7 +2334,7 @@ public plugin_init()
     g_pJoinMsg      = register_cvar("vex_join_messages", "1");
 
     // v2.0
-    g_pPrefix        = register_cvar("vex_chat_prefix", "^4[^3VEX^4MIRA^4]^1");
+    g_pPrefix        = register_cvar("vex_chat_prefix", "^4[VEX]^1");
     g_pHostname      = register_cvar("vex_hostname", "EN/TR ZOMBIE | VEXMIRA | BOSS + EVENTS + ADV. MENU");
     g_pHostDyn       = register_cvar("vex_hostname_dynamic", "1");
     g_pEnv           = register_cvar("vex_env", "1");
@@ -1534,6 +2413,86 @@ public plugin_init()
     g_pBurnDmg       = register_cvar("vex_burn_damage_human", "6");
     g_pZombieBurnDmg = register_cvar("vex_burn_damage_zombie", "35");
 
+    // v3.0: yeni zombi siniflari (12-23) yetenek ayarlari
+    g_pZc[ZCV_HOOK_SPEED]  = register_cvar("vex_butcher_hook_speed", "1400");
+    g_pZc[ZCV_HOOK_RANGE]  = register_cvar("vex_butcher_hook_range", "900");
+    g_pZc[ZCV_HOOK_PULL]   = register_cvar("vex_butcher_pull_speed", "600");
+    g_pZc[ZCV_HOOK_TIME]   = register_cvar("vex_butcher_pull_time", "1.2");
+    g_pZc[ZCV_HOOK_DMG]    = register_cvar("vex_butcher_hook_damage", "10");
+    g_pZc[ZCV_HUNT_POWER]  = register_cvar("vex_hunter_pounce_power", "860");
+    g_pZc[ZCV_HUNT_UP]     = register_cvar("vex_hunter_pounce_up", "330");
+    g_pZc[ZCV_HUNT_RAD]    = register_cvar("vex_hunter_radius", "70");
+    g_pZc[ZCV_HUNT_STUN]   = register_cvar("vex_hunter_stun", "1.0");
+    g_pZc[ZCV_HUNT_DMG]    = register_cvar("vex_hunter_damage", "15");
+    g_pZc[ZCV_CHG_TIME]    = register_cvar("vex_charger_time", "1.5");
+    g_pZc[ZCV_CHG_SPEED]   = register_cvar("vex_charger_speed", "650");
+    g_pZc[ZCV_CHG_DMG]     = register_cvar("vex_charger_damage", "20");
+    g_pZc[ZCV_CHG_PUSH]    = register_cvar("vex_charger_push", "550");
+    g_pZc[ZCV_CHG_STUN]    = register_cvar("vex_charger_self_stun", "0.5");
+    g_pZc[ZCV_WEB_SPEED]   = register_cvar("vex_arachne_web_speed", "1100");
+    g_pZc[ZCV_WEB_RANGE]   = register_cvar("vex_arachne_web_range", "1000");
+    g_pZc[ZCV_WEB_ROOT]    = register_cvar("vex_arachne_root", "1.5");
+    g_pZc[ZCV_WEB_SLOW]    = register_cvar("vex_arachne_slow", "3.0");
+    g_pZc[ZCV_WEB_DMG]     = register_cvar("vex_arachne_damage", "5");
+    g_pZc[ZCV_MAG_TIME]    = register_cvar("vex_magma_trail_time", "5");
+    g_pZc[ZCV_MAG_LIFE]    = register_cvar("vex_magma_pool_life", "4");
+    g_pZc[ZCV_MAG_RAD]     = register_cvar("vex_magma_pool_radius", "60");
+    g_pZc[ZCV_MAG_DMG]     = register_cvar("vex_magma_pool_damage", "6");
+    g_pZc[ZCV_MAG_IMMUNE]  = register_cvar("vex_magma_fire_immune", "1");
+    g_pZc[ZCV_VOLT_RAD]    = register_cvar("vex_volt_radius", "350");
+    g_pZc[ZCV_VOLT_MINE]   = register_cvar("vex_volt_mine_off", "6");
+    g_pZc[ZCV_VOLT_LIGHT]  = register_cvar("vex_volt_light_off", "6");
+    g_pZc[ZCV_VOLT_DMG]    = register_cvar("vex_volt_damage", "8");
+    g_pZc[ZCV_VOLT_SLOW]   = register_cvar("vex_volt_slow", "1.5");
+    g_pZc[ZCV_MIM_TIME]    = register_cvar("vex_mimic_time", "10");
+    g_pZc[ZCV_MIM_MULT]    = register_cvar("vex_mimic_damage_mult", "2.0");
+    g_pZc[ZCV_BUR_TIME]    = register_cvar("vex_burrower_time", "3");
+    g_pZc[ZCV_BUR_SPEED]   = register_cvar("vex_burrower_speed", "1.5");
+    g_pZc[ZCV_BUR_RAD]     = register_cvar("vex_burrower_radius", "220");
+    g_pZc[ZCV_BUR_UP]      = register_cvar("vex_burrower_knockup", "450");
+    g_pZc[ZCV_BUR_DMG]     = register_cvar("vex_burrower_damage", "15");
+    g_pZc[ZCV_SIR_RAD]     = register_cvar("vex_siren_radius", "400");
+    g_pZc[ZCV_SIR_TIME]    = register_cvar("vex_siren_time", "2.5");
+    g_pZc[ZCV_SIR_PULL]    = register_cvar("vex_siren_pull", "170");
+    g_pZc[ZCV_BUL_TIME]    = register_cvar("vex_bulwark_time", "5");
+    g_pZc[ZCV_BUL_REDUCE]  = register_cvar("vex_bulwark_reduce", "50");
+    g_pZc[ZCV_BUL_REFLECT] = register_cvar("vex_bulwark_reflect", "25");
+    g_pZc[ZCV_SPO_MAX]     = register_cvar("vex_sporemother_max", "2");
+    g_pZc[ZCV_SPO_RAD]     = register_cvar("vex_sporemother_radius", "120");
+    g_pZc[ZCV_SPO_HP]      = register_cvar("vex_sporemother_hp", "120");
+    g_pZc[ZCV_SPO_POISON]  = register_cvar("vex_sporemother_poison", "6");
+    g_pZc[ZCV_SPO_LIFE]    = register_cvar("vex_sporemother_life", "60");
+    g_pZc[ZCV_SPO_SLOW]    = register_cvar("vex_sporemother_slow", "3.0");
+    g_pZc[ZCV_NM_RAD]      = register_cvar("vex_nightmare_radius", "450");
+    g_pZc[ZCV_NM_BLIND]    = register_cvar("vex_nightmare_blind", "2.5");
+    g_pZc[ZCV_NM_BOOST]    = register_cvar("vex_nightmare_boost", "3");
+    g_pZc[ZCV_NM_SPEED]    = register_cvar("vex_nightmare_speed", "1.35");
+    g_pZc[ZCV_BOT]         = register_cvar("vex_bot_abilities", "1");
+    g_pZc[ZCV_ALTKEYS]     = register_cvar("vex_skill_alt_keys", "1");
+
+    // v3.0 (B): kafa ustu gostergeler, boss / ozel karakter sesleri, sohbet etiketleri
+    g_pOvhEnable     = register_cvar("vex_overhead", "1");
+    g_pBossBarW      = register_cvar("vex_bossbar_width", "110");
+    g_pBossBarH      = register_cvar("vex_bossbar_height", "92");
+    g_pSmallBarW     = register_cvar("vex_hpbar_width", "44");
+    g_pIconSize      = register_cvar("vex_head_icon_size", "18");
+    g_pIcons         = register_cvar("vex_head_icons", "31");
+    g_pOvhSelf       = register_cvar("vex_overhead_self", "0");
+    g_pBossIdleMin   = register_cvar("vex_boss_idle_min", "9");
+    g_pBossIdleMax   = register_cvar("vex_boss_idle_max", "16");
+    g_pBossPainCd    = register_cvar("vex_boss_pain_cd", "0.9");
+    g_pBossAtkCd     = register_cvar("vex_boss_attack_cd", "1.1");
+    g_pBossStepDist  = register_cvar("vex_boss_step_dist", "120");
+    g_pPrefixBoss    = register_cvar("vex_chat_prefix_boss", "^3[BOSS]^1");
+    g_pPrefixEvent   = register_cvar("vex_chat_prefix_event", "^4[^1EVENT^4]^1");
+    g_pPrefixVip     = register_cvar("vex_chat_prefix_vip", "^4[^3VIP^4]^1");
+    g_pPrefixAdmin   = register_cvar("vex_chat_prefix_admin", "^3[ADMIN]^1");
+    register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
+    register_forward(FM_SetModel, "fw_SetModelPost", 1);
+    register_forward(FM_AddToFullPack, "fw_AddToFullPackPost", 1);
+    PrecacheReportTotals();
+    OvhInit();
+
     g_msgWeather = get_user_msgid("ReceiveW");
 
     // Tek ayar dosyasi tablolari (konsoldan da calisir)
@@ -1568,6 +2527,8 @@ public plugin_init()
     RegisterHookChain(RG_CGrenade_ExplodeSmokeGrenade,   "rg_ExplodeSmoke", false);
     RegisterHookChain(RG_CGrenade_ExplodeFlashbang,      "rg_ExplodeFlash", false);
     RegisterHookChain(RG_CBasePlayer_Jump,               "rg_PlayerJump", false);
+    // v3.0: [F] yedegi - baska bir plugin CmdStart'ta impulse 100'u yutsa bile yakalanir
+    RegisterHookChain(RG_CBasePlayer_ImpulseCommands,    "rg_ImpulseCommands", false);
 
     // Lazer mayini hasari, bomba temasi, bomba modu degistirme (sag tik)
     RegisterHam(Ham_TakeDamage, "info_target", "fw_EntTakeDamage", 0);
@@ -1598,6 +2559,14 @@ public plugin_init()
     register_clcmd("chooseteam", "cmd_menu");
     register_clcmd("vexmenu", "cmd_menu");
     register_clcmd("nightvision", "cmd_nvg");
+    // v3.0: yetenek tuslari icin yedek yollar (G = drop, konsol: vex_skill / vex_skill2)
+    register_clcmd("drop", "cmd_drop");
+    register_clcmd("vex_skill", "cmd_skill");
+    register_clcmd("vex_skill2", "cmd_skill2");
+    register_clcmd("+vex_skill", "cmd_skill");
+    register_clcmd("-vex_skill", "cmd_skill_release");
+    register_clcmd("+vex_skill2", "cmd_skill2");
+    register_clcmd("-vex_skill2", "cmd_skill_release");
 
     RegisterSay("menu",     "",          "cmd_menu");
     RegisterSay("shop",     "market",    "cmd_shop");
@@ -1649,6 +2618,8 @@ public plugin_init()
     RegisterSay("card",     "kart",      "cmd_card");
     RegisterSay("cosmetic", "kozmetik",  "cmd_cosmetic");
     RegisterSay("trail",    "iz",        "cmd_cosmetic");
+    RegisterSay("skill",    "beceri",    "cmd_skill");
+    RegisterSay("skill2",   "beceri2",   "cmd_skill2");
 
     // Lazer: V = +setlaser, C = +dellaser (C varsayilan olarak radio3: hedef mayinsa sokulur)
     register_clcmd("+setlaser", "cmd_lm_plant");
@@ -1676,6 +2647,10 @@ public plugin_init()
     set_task(0.25, "task_ZombieVision", TASK_ZVISION, _, _, "b");
     set_task(0.2, "task_HudQueue", TASK_HUDQ, _, _, "b");
     set_task(0.1, "task_NadeTick", TASK_NADES, _, _, "b");
+    set_task(0.1, "task_ZcTick", TASK_ZCTICK, _, _, "b");
+
+    g_msgFlashlight = get_user_msgid("Flashlight");
+    g_msgNVGToggle  = get_user_msgid("NVGToggle");
 
     g_fMapStart = get_gametime();
     g_iRound = 1;
@@ -1802,9 +2777,9 @@ public client_connect(id)
         if (!is_user_connected(p) || is_user_bot(p) || p == id)
             continue;
         if (country[0])
-            client_print_color(p, print_team_default, "%s %L", CHAT_PREFIX, p, "JOIN_CONNECTING_C", name, country);
+            client_print_color(p, print_team_default, "%s %L", ChatTag("JOIN_CONNECTING_C"), p, "JOIN_CONNECTING_C", name, country);
         else
-            client_print_color(p, print_team_default, "%s %L", CHAT_PREFIX, p, "JOIN_CONNECTING", name);
+            client_print_color(p, print_team_default, "%s %L", ChatTag("JOIN_CONNECTING"), p, "JOIN_CONNECTING", name);
     }
 }
 
@@ -1827,7 +2802,7 @@ public client_putinserver(id)
     {
         g_iPrim[id] = random(5);
         g_iSec[id] = random(3);
-        g_iClass[id] = random(4);
+        g_iClass[id] = random(NUM_CLASSES);
         g_iClassPicked[id] = 1;
         g_iJob[id] = random(3);
         return;
@@ -2009,6 +2984,10 @@ ResetPlayer(id)
     g_fNextBeat[id] = 0.0;
     for (new i = 0; i < NUM_PERKS; i++)
         g_iPerk[id][i] = 0;
+    // v3.0: insan modeli oyuncu basina sabit (listeden rastgele); MVP ikonu el degistirir
+    g_iHumanSkin[id] = g_iHumanModelN > 0 ? random(g_iHumanModelN) : 0;
+    if (g_iRoundMvp == id)
+        g_iRoundMvp = 0;
 
     ResetRoundData(id);
     ResetLifeData(id);
@@ -2035,6 +3014,13 @@ ResetLifeData(id)
     g_fCool[id] = 0.0; g_fShield[id] = 0.0; g_fBurst[id] = 0.0; g_fCloak[id] = 0.0;
     g_iStreak[id] = 0; g_iMulti[id] = 0; g_fLastKill[id] = 0.0;
     g_fRage[id] = 0.0; g_fFCool[id] = 0.0;
+    // v3.0: sinif yetenekleri (varliklar + kurban durumlari)
+    ZcCleanup(id);
+    g_fLeapCool[id] = 0.0;
+    g_fSkillTrig[id][0] = 0.0; g_fSkillTrig[id][1] = 0.0; g_fSkillTrig[id][2] = 0.0;
+    // v3.0 (B): kafa ustu gostergeler + boss / ozel karakter ses sayaclari
+    OvhRemove(id);
+    VoiceReset(id);
 }
 
 public task_Welcome(tid)
@@ -2297,6 +3283,12 @@ public cmd_menu(id)
 // N tusu: gece gorusu varsa acilsin, yoksa menu
 public cmd_nvg(id)
 {
+    // v3.0: Volt EMP / Kabus sirasinda gece gorusu acilamaz
+    if (is_user_alive(id) && !g_bZombie[id] && g_fNoLight[id] > get_gametime() && get_member(id, m_bHasNightVision))
+    {
+        LightsBlockedMsg(id);
+        return PLUGIN_HANDLED;
+    }
     if (is_user_alive(id) && get_member(id, m_bHasNightVision))
         return PLUGIN_CONTINUE;
     return cmd_menu(id);
@@ -2471,7 +3463,7 @@ AdminNotify(id, const key[], val)
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p) && (get_user_flags(p) & ADMIN_BAN))
-            client_print_color(p, print_team_default, "%s %L", CHAT_PREFIX, p, key, name, val);
+            client_print_color(p, print_team_red, "%s %L", ChatTag(key), p, key, name, val);
     }
     console_print(id, "[Vexmira] OK (%d)", val);
 }
@@ -2699,7 +3691,7 @@ AddAP(id, amount, bool:mult = true, bool:show = true)
 
     if (show && amount > 0 && !is_user_bot(id))
     {
-        set_hudmessage(255, 215, 0, 0.535, 0.47, 0, 0.0, 0.9, 0.05, 0.25, 4);
+        set_hudmessage(CLR_REWARD, 0.535, 0.47, 0, 0.0, 0.9, 0.05, 0.25, 4);
         show_hudmessage(id, "+%d AP", amount);
     }
 }
@@ -2708,6 +3700,9 @@ AddAP(id, amount, bool:mult = true, bool:show = true)
 SyncMoney(id)
 {
     if (!is_user_connected(id) || is_user_hltv(id))
+        return;
+    // Bot / yeni baglanan oyuncuda ozel veri henuz hazir olmayabilir (client_putinserver)
+    if (pev_valid(id) != 2)
         return;
 
     new TeamName:t = get_member(id, m_iTeam);
@@ -2742,7 +3737,7 @@ Reward(id, xp, ap)
             formatex(txt, charsmax(txt), "+%d XP   +%d AP", xp, max(1, floatround(float(ap) * APMult(id))));
         else
             formatex(txt, charsmax(txt), "+%d XP", xp);
-        HudText(id, SL_REWARD, 0, 255, 160, 1.0, txt);
+        HudText(id, SL_REWARD, CLR_REWARD, 1.0, txt);
     }
 
     if (g_iLevel[id] > old)
@@ -2770,13 +3765,13 @@ LevelUp(id, old)
     FxLight(o, 0, 255, 140, 25, 12, 30);
     FadeOne(id, 0, 255, 140, 90, 0.6);
     PlayKey(id, "LEVEL_UP");
-    HudTo(id, SL_PERS, 0, 255, 140, 3.5, "LEVEL_UP_HUD", g_iLevel[id]);
+    HudTo(id, SL_PERS, CLR_REWARD, 3.5, "LEVEL_UP_HUD", g_iLevel[id]);
     Chat(id, "LEVELUP_VC", vc);
 
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p) && p != id)
-            client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "LEVELUP_CHAT", name, g_iLevel[id]);
+            client_print_color(p, id, "%s %L", ChatTag("LEVELUP_CHAT"), p, "LEVELUP_CHAT", name, g_iLevel[id]);
     }
 
     // Yeni acilan icerik bildirimi
@@ -2806,7 +3801,7 @@ LevelUp(id, old)
                 continue;
             new rn[32];
             formatex(rn, charsmax(rn), "%L", p, key);
-            client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "RANKUP_CHAT", name, rn);
+            client_print_color(p, id, "%s %L", ChatTag("RANKUP_CHAT"), p, "RANKUP_CHAT", name, rn);
         }
     }
 
@@ -2862,7 +3857,7 @@ GrantAch(id, bit)
 
     new txt[128];
     formatex(txt, charsmax(txt), "%L^n%L  (+%d VC  +%d AP)", id, "ACH_POPUP", id, key, get_pcvar_num(g_pAchVC), get_pcvar_num(g_pAchAP));
-    HudText(id, SL_PERS, 255, 200, 40, 4.0, txt);
+    HudText(id, SL_PERS, CLR_REWARD, 4.0, txt);
 
     PlayKey(id, "ACH_UNLOCK");
     FxRing(o, 255, 215, 0, 260);
@@ -2874,7 +3869,7 @@ GrantAch(id, bit)
             continue;
         new an[48];
         formatex(an, charsmax(an), "%L", p, key);
-        client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "ACH_CHAT", name, an);
+        client_print_color(p, id, "%s %L", ChatTag("ACH_CHAT"), p, "ACH_CHAT", name, an);
     }
 
     // Unvan acildi mi?
@@ -2929,7 +3924,7 @@ ClaimDaily(id)
     PlayKey(id, "DAILY");
     new txt[128];
     formatex(txt, charsmax(txt), "%L", id, "DAILY_HUD", g_iDailyStreak[id], ap, vc, xp);
-    HudText(id, SL_PERS, 255, 200, 40, 4.0, txt);
+    HudText(id, SL_PERS, CLR_REWARD, 4.0, txt);
     Chat(id, "DAILY_CHAT", g_iDailyStreak[id], ap, vc, xp);
 
     if (g_iDailyStreak[id] < 7)
@@ -2992,6 +3987,9 @@ public rg_RestartRound()
     RemoveAllMines();
     RemoveAllDrops();
     BossCleanup();
+    ZcCleanupAll();
+    OvhRemoveAll();
+    g_fSndKill = 0.0;
     TrieClear(g_tRoundBuys);
     g_iStartTries = 0;
     g_bAnnounced = false;
@@ -3080,32 +4078,39 @@ RoundsToBoss()
     return 0;
 }
 
-// Bosslar karisik sirayla gelir, ayni boss arka arkaya gelmez
+// Bosslar karisik sirayla gelir, ayni boss arka arkaya gelmez.
+// v3.0: torbada sadece bu haritada YUKLENEN bosslar var (precache butcesi).
 ShuffleBosses()
 {
-    new last = (g_iBossBagPos > 0 && g_iBossBagPos <= NUM_BOSSES) ? g_iBossBag[NUM_BOSSES - 1] : -1;
-    for (new i = 0; i < NUM_BOSSES; i++)
-        g_iBossBag[i] = i;
-    for (new i = NUM_BOSSES - 1; i > 0; i--)
+    new n = BossBagSize();
+    new last = (g_iBossBagPos > 0 && g_iBossBagPos <= n) ? g_iBossBag[n - 1] : -1;
+    for (new i = 0; i < n; i++)
+        g_iBossBag[i] = g_iBossLoadN > 0 ? g_iBossLoadList[i] : i;
+    for (new i = n - 1; i > 0; i--)
     {
         new j = random(i + 1), t = g_iBossBag[i];
         g_iBossBag[i] = g_iBossBag[j];
         g_iBossBag[j] = t;
     }
-    if (g_iBossBag[0] == last)
+    if (n > 1 && g_iBossBag[0] == last)
     {
         new t = g_iBossBag[0];
-        g_iBossBag[0] = g_iBossBag[NUM_BOSSES - 1];
-        g_iBossBag[NUM_BOSSES - 1] = t;
+        g_iBossBag[0] = g_iBossBag[n - 1];
+        g_iBossBag[n - 1] = t;
     }
     g_iBossBagPos = 0;
 }
 
+BossBagSize()
+{
+    return g_iBossLoadN > 0 ? g_iBossLoadN : NUM_BOSSES;
+}
+
 NextBoss()
 {
-    if (g_iBossBagPos >= NUM_BOSSES)
+    if (g_iBossBagPos >= BossBagSize())
         ShuffleBosses();
-    return g_iBossBag[g_iBossBagPos++];
+    return g_iBossBag[clamp(g_iBossBagPos++, 0, NUM_BOSSES - 1)];
 }
 
 PickSpecialMode(players)
@@ -3152,7 +4157,7 @@ PickMode()
     if (g_iMode == MODE_BOSS)
     {
         g_bFinalBoss = (g_iRound >= RoundsTotal()) ? true : false;
-        if (g_iForceBoss >= 0 && g_iForceBoss < NUM_BOSSES)
+        if (g_iForceBoss >= 0 && g_iForceBoss < NUM_BOSSES && BossIsLoaded(g_iForceBoss))
         {
             g_iBossType = g_iForceBoss;
             g_iForceBoss = -1;
@@ -3206,7 +4211,7 @@ public task_Announce()
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p) && !is_user_bot(p))
-            client_print_color(p, print_team_default, "%s %L", CHAT_PREFIX, p, "ROUND_CHAT2", g_iRound, total);
+            client_print_color(p, print_team_default, "%s %L", ChatTag("ROUND_CHAT2"), p, "ROUND_CHAT2", g_iRound, total);
     }
 
     AssignQuests();
@@ -3226,7 +4231,7 @@ public task_Announce()
         formatex(key, charsmax(key), "BOSS_ANN_%d", g_iBossType);
         HudAll(SL_ANN, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], 4.0, key);
         if (g_bFinalBoss)
-            HudAll(SL_ALERT, 255, 40, 40, 3.0, "FINAL_BOSS_HUD");
+            HudAll(SL_ALERT, CLR_DANGER, 3.0, "FINAL_BOSS_HUD");
         PlayKey(0, "BOSS_SPAWN");
         PlayVoxAll("VOX_BOSS");
         FadeAll(BOSS_RGB[g_iBossType][0] / 2, BOSS_RGB[g_iBossType][1] / 2, BOSS_RGB[g_iBossType][2] / 2, 90, 2.0);
@@ -3239,7 +4244,7 @@ public task_Announce()
     if (g_iMode != MODE_INFECTION && g_iMode != MODE_MULTI)
     {
         formatex(key, charsmax(key), "MODE_ANN_%d", g_iMode);
-        HudAll(SL_ANN, 255, 110, 30, 4.0, key);
+        HudAll(SL_ANN, CLR_WARN, 4.0, key);
         PlayKey(0, "MODE_START");
         FadeAll(255, 80, 0, 50, 1.2);
         BossTeaser();
@@ -3256,7 +4261,7 @@ public task_Announce()
         EventStartFx();
     }
     else
-        HudAll(SL_ANN, 0, 200, 255, 3.5, "ROUND_CALM", g_iRound);
+        HudAll(SL_ANN, CLR_CYAN, 3.5, "ROUND_CALM", g_iRound);
 
     BossTeaser();
 }
@@ -3350,6 +4355,10 @@ OnRoundEnd(WinStatus:status)
 
     // Mod / boss muzigi round bitince susar
     StopRoundMusic();
+    // v3.0: sinif yetenekleri (kanca, lav, keseler, karartma...) round bitince durur
+    ZcCleanupAll();
+    // v3.0 (B): can barlari round bitince kalkar (ikonlar sonraki kontrolde yeniden gelir)
+    OvhRemoveAll();
 
     new bool:wasActive = g_bRoundActive;
     g_bRoundActive = false;
@@ -3364,7 +4373,7 @@ OnRoundEnd(WinStatus:status)
         if (g_iHumanStreak >= 3)
             LiveAll(0, "LIVE_HSTREAK", 2, g_iHumanStreak);
 
-        HudAll(SL_ANN, 0, 255, 140, 4.0, "HUMANS_WIN");
+        HudAll(SL_ANN, CLR_GOOD, 4.0, "HUMANS_WIN");
         PlayKey(0, "HUMAN_WIN");
 
         new xp = get_pcvar_num(g_pWinHXP), ap = get_pcvar_num(g_pWinHAP);
@@ -3395,7 +4404,7 @@ OnRoundEnd(WinStatus:status)
         if (g_iZombieStreak >= 3)
             LiveAll(0, "LIVE_ZSTREAK", 2, g_iZombieStreak);
 
-        HudAll(SL_ANN, 255, 50, 50, 4.0, "ZOMBIES_WIN");
+        HudAll(SL_ANN, CLR_DANGER, 4.0, "ZOMBIES_WIN");
         PlayKey(0, "ZOMBIE_WIN");
 
         for (new id = 1; id <= g_iMax; id++)
@@ -3437,6 +4446,7 @@ RoundSummary()
     }
 
     new name[32], txt[128];
+    g_iRoundMvp = mvp;   // v3.0: kafa ustu MVP ikonu (sonraki round boyunca)
     if (mvp)
     {
         get_user_name(mvp, name, charsmax(name));
@@ -3449,8 +4459,8 @@ RoundSummary()
             if (!is_user_connected(p) || is_user_bot(p))
                 continue;
             formatex(txt, charsmax(txt), "%L", p, "MVP_HUD", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp]);
-            HudText(p, SL_ALERT, 255, 200, 40, 4.0, txt);
-            client_print_color(p, mvp, "%s %L", CHAT_PREFIX, p, "MVP_CHAT2", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp], ap, vc);
+            HudText(p, SL_ALERT, CLR_REWARD, 4.0, txt);
+            client_print_color(p, mvp, "%s %L", ChatTag("MVP_CHAT2"), p, "MVP_CHAT2", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp], ap, vc);
             if (!(g_iSet[p] & SET_NO_AMB))
                 PlayKey(p, "MVP");
         }
@@ -3488,7 +4498,7 @@ public task_MapEndAwards()
         if (g_iMapBossDmg[id] > vB)  { vB = g_iMapBossDmg[id];  topB = id; }
     }
 
-    HudAll(SL_ANN, 255, 200, 40, 5.0, "MAPEND_HUD");
+    HudAll(SL_ANN, CLR_REWARD, 5.0, "MAPEND_HUD");
     PlayKey(0, "MAP_END");
     PlayVoxAll("VOX_MAPEND");
     ChatAll("MAPEND_TITLE");
@@ -3524,7 +4534,7 @@ MapAwardLine(const key[], who, const name[], val)
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p) && !is_user_bot(p))
-            client_print_color(p, who, "%s %L", CHAT_PREFIX, p, key, name, val);
+            client_print_color(p, who, "%s %L", ChatTag(key), p, key, name, val);
     }
 }
 
@@ -3677,7 +4687,7 @@ public task_Tick()
                 if (!is_user_connected(p) || is_user_bot(p))
                     continue;
                 if (g_iCountdown <= 5)
-                    set_dhudmessage(255, 60, 60, -1.0, Y_COUNT, 0, 0.0, 1.0, 0.0, 0.0);
+                    set_dhudmessage(CLR_DANGER, -1.0, Y_COUNT, 0, 0.0, 1.0, 0.0, 0.0);
                 else
                     set_dhudmessage(THEME_A[g_iTheme[p]][0], THEME_A[g_iTheme[p]][1], THEME_A[g_iTheme[p]][2], -1.0, Y_COUNT, 0, 0.0, 1.0, 0.0, 0.0);
                 show_dhudmessage(p, "%L", p, "COUNTDOWN", g_iCountdown);
@@ -3770,7 +4780,7 @@ public task_Tick()
     if (tl == 30)
         LiveAll(0, "LIVE_30S", 3);
     else if (tl == 10)
-        HudAll(SL_ALERT, 255, 200, 40, 2.0, "HUD_10S");
+        HudAll(SL_ALERT, CLR_WARN, 2.0, "HUD_10S");
 
     TickPlayers();
     TickBoss();
@@ -3788,7 +4798,7 @@ ShowWaiting()
     {
         if (!is_user_connected(p) || is_user_bot(p))
             continue;
-        set_dhudmessage(255, 170, 40, -1.0, Y_COUNT, 0, 0.0, 3.0, 0.0, 0.0);
+        set_dhudmessage(CLR_WARN, -1.0, Y_COUNT, 0, 0.0, 3.0, 0.0, 0.0);
         show_dhudmessage(p, "%L", p, "WAITING_PLAYERS", CountPlaying());
     }
 }
@@ -3848,7 +4858,7 @@ TickRespawns()
         }
         else if (!is_user_bot(id))
         {
-            set_hudmessage(255, 90, 90, -1.0, Y_COUNT + 0.05, 0, 0.0, 1.1, 0.0, 0.0, 4);
+            set_hudmessage(CLR_WARN, -1.0, Y_COUNT + 0.05, 0, 0.0, 1.1, 0.0, 0.0, 4);
             show_hudmessage(id, "%L", id, "RESPAWN_IN", floatround(g_fRespawnAt[id] - now, floatround_ceil));
         }
     }
@@ -3938,8 +4948,8 @@ TickPlayers()
                 if (now > g_fMadness[id]) g_fMadness[id] = 0.0;
                 ApplyRender(id);
             }
-            // Ara sira hirlama sesi
-            if (!g_bBoss[id] && random_num(1, 15) == 1)
+            // Ara sira hirlama sesi (kiliktaki Taklitci / yeraltindaki Kostebek sessiz)
+            if (!g_bBoss[id] && g_fDisguise[id] <= now && g_fBurrow[id] <= now && random_num(1, 15) == 1)
                 EmitZombieSound(id, "IDLE", "ZOMBIE_IDLE");
 
             if (g_bZRegen[id])
@@ -3951,7 +4961,7 @@ TickPlayers()
                 FxLight(o, 255, 20, 20, 30, 11, 5);
             else if (g_bAssassin[id])
                 FxLight(o, 90, 0, 140, 18, 11, 5);
-            else if (g_fCloak[id] <= 0.0)
+            else if (g_fCloak[id] <= 0.0 && g_fDisguise[id] <= now && g_fBurrow[id] <= now)
             {
                 new c = g_bMinion[id] ? 0 : g_iClass[id];
                 FxLight(o, CLASS_RGB[c][0], CLASS_RGB[c][1], CLASS_RGB[c][2], 14, 11, 5);
@@ -4011,7 +5021,7 @@ TickPlayers()
         g_bLastAnn = true;
         new name[32];
         get_user_name(last, name, charsmax(name));
-        HudAll(SL_ALERT, 255, 200, 40, 3.0, "LAST_HUMAN");
+        HudAll(SL_ALERT, CLR_WARN, 3.0, "LAST_HUMAN");
         ChatAllS("LAST_HUMAN_CHAT", name);
         PlayKey(0, "LAST_HUMAN");
         PlayVoxAll("VOX_LAST");
@@ -4263,7 +5273,10 @@ DrawHud()
         else
             formatex(l1, charsmax(l1), "%L", id, "HUD_P_DEAD");
 
-        formatex(l2, charsmax(l2), "%L", id, "HUD_P2", g_iXP[id], need, xpPct);
+        // XP cubugu (ASCII, 12 parca)
+        new xbar[16];
+        AsciiBar(xbar, 12, xpPct);
+        formatex(l2, charsmax(l2), "%L", id, "HUD_P2", xbar, g_iXP[id], need);
         formatex(l3, charsmax(l3), "%L", id, "HUD_P3", g_iAP[id], g_iVC[id], g_iStreak[id]);
 
         l4[0] = 0;
@@ -4276,7 +5289,10 @@ DrawHud()
                 if (g_bAlpha[id])
                     add(cn, charsmax(cn), " [ALFA]");
                 new Float:cd = g_fCool[id] - get_gametime();
-                if (cd > 0.0)
+                new Float:act = ZcActiveLeft(id);
+                if (act > 0.0)
+                    formatex(l4, charsmax(l4), "%L", id, "HUD_CLASS_ACT", cn, floatround(act, floatround_ceil));
+                else if (cd > 0.0)
                     formatex(l4, charsmax(l4), "%L", id, "HUD_CLASS_CD", cn, floatround(cd, floatround_ceil));
                 else
                     formatex(l4, charsmax(l4), "%L", id, "HUD_CLASS_READY", cn);
@@ -4288,13 +5304,13 @@ DrawHud()
                 formatex(sk, charsmax(sk), "BSK_%d_%d", g_iBossType, clamp(g_iBossPhase, 1, 3));
                 formatex(skn, charsmax(skn), "%L", id, sk);
                 CdText(id, g_iBossChannel != CH_NONE ? -1.0 : g_fBossRCool - get_gametime(), rs, charsmax(rs));
-                CdText(id, g_fCool[id] - get_gametime(), fs, charsmax(fs));
+                CdText(id, g_fLeapCool[id] - get_gametime(), fs, charsmax(fs));
                 formatex(l4, charsmax(l4), "%L", id, "HUD_BOSS_R", skn, rs, fs);
             }
             else if (g_bNemesis[id] || g_bAssassin[id])
             {
                 new rs[24], fs[24];
-                CdText(id, g_fCool[id] - get_gametime(), rs, charsmax(rs));
+                CdText(id, g_fLeapCool[id] - get_gametime(), rs, charsmax(rs));
                 CdText(id, g_fFCool[id] - get_gametime(), fs, charsmax(fs));
                 formatex(l4, charsmax(l4), "%L", id, g_bNemesis[id] ? "HUD_NEM_RF" : "HUD_ASN_RF", rs, fs);
             }
@@ -4323,18 +5339,33 @@ DrawHud()
         }
 
         new pos = g_iHudPos[id];
-        new bool:zm = (is_user_alive(id) && g_bZombie[id]) ? true : false;
 
-        if (zm)
-            set_hudmessage(255, 70, 70, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 1);
-        else
-            set_hudmessage(THEME_A[t][0], THEME_A[t][1], THEME_A[t][2], HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 1);
+        // v3.0 renkler: insan = tema, zombi = zombi yesili, boss = boss rengi, nemesis/assassin = tehlike
+        new hr = THEME_A[t][0], hg = THEME_A[t][1], hb = THEME_A[t][2];
+        new br = THEME_C[t][0], bg = THEME_C[t][1], bb = THEME_C[t][2];
+        if (is_user_alive(id) && g_bZombie[id])
+        {
+            if (g_bBoss[id])
+            {
+                hr = BOSS_RGB[g_iBossType][0]; hg = BOSS_RGB[g_iBossType][1]; hb = BOSS_RGB[g_iBossType][2];
+                br = 255; bg = 200; bb = 170;
+            }
+            else if (g_bNemesis[id] || g_bAssassin[id])
+            {
+                hr = 255; hg = 40; hb = 40;
+                br = 255; bg = 170; bb = 150;
+            }
+            else
+            {
+                hr = 120; hg = 255; hb = 40;
+                br = 195; bg = 255; bb = 160;
+            }
+        }
+
+        set_hudmessage(hr, hg, hb, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 1);
         show_hudmessage(id, "%s", head);
 
-        if (zm)
-            set_hudmessage(255, 150, 130, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 2);
-        else
-            set_hudmessage(THEME_C[t][0], THEME_C[t][1], THEME_C[t][2], HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 2);
+        set_hudmessage(br, bg, bb, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 2);
         show_hudmessage(id, "^n%s^n%s^n%s^n%s^n%s", l1, l2, l3, l4, l5);
     }
 }
@@ -4350,10 +5381,22 @@ DrawAimInfo(id)
 
     if (!(1 <= target <= g_iMax) || !is_user_alive(target))
         return;
+    // v3.0: yeraltindaki Kostebek gorunmez
+    if (g_bZombie[target] && g_fBurrow[target] > get_gametime())
+        return;
 
     new name[32], role[32], key[16];
     get_user_name(target, name, charsmax(name));
     new hp = floatround(Float:get_entvar(target, var_health));
+
+    // v3.0: kiliktaki Taklitci insan gibi gorunur
+    if (g_bZombie[target] && g_fDisguise[target] > get_gametime() && !g_bZombie[id])
+    {
+        formatex(role, charsmax(role), "%L", id, "JOB_0");
+        set_hudmessage(CLR_HUMAN, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
+        show_hudmessage(id, "%L", id, "HUD_AIM", name, role, 100, 0, g_iLevel[target]);
+        return;
+    }
 
     if (g_bBoss[target])           copy(role, charsmax(role), "BOSS");
     else if (g_bNemesis[target])   copy(role, charsmax(role), "NEMESIS");
@@ -4373,10 +5416,12 @@ DrawAimInfo(id)
 
     if (g_bBoss[target])
         set_hudmessage(BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
+    else if (g_bNemesis[target] || g_bAssassin[target])
+        set_hudmessage(CLR_DANGER, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
     else if (g_bZombie[target])
-        set_hudmessage(255, 70, 70, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
+        set_hudmessage(CLR_ZOMBIE, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
     else
-        set_hudmessage(80, 210, 255, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
+        set_hudmessage(CLR_HUMAN, -1.0, Y_AIM, 0, 0.0, 0.9, 0.0, 0.1, 3);
 
     show_hudmessage(id, "%L", id, "HUD_AIM", name, role, hp, rg_get_user_armor(target), g_iLevel[target]);
 }
@@ -4492,12 +5537,12 @@ StartInfection(players[32], n)
         g_bFirst[id] = 1;
         MakeZombie(id);
         Chat(id, "YOU_FIRST_ZOMBIE");
-        HudTo(id, SL_PERS, 255, 60, 60, 3.5, "YOU_FIRST_ZOMBIE_HUD");
+        HudTo(id, SL_PERS, CLR_ZOMBIE, 3.5, "YOU_FIRST_ZOMBIE_HUD");
     }
 
     new key[20];
     formatex(key, charsmax(key), "MODE_START_%d", g_iMode);
-    HudAll(SL_ALERT, 255, 70, 70, 3.0, key);
+    HudAll(SL_ALERT, CLR_DANGER, 3.0, key);
     PlayKey(0, "ROUND_START");
     PlayVoxAll("VOX_INFECT");
     FadeAll(0, 120, 0, 50, 1.0);
@@ -4517,8 +5562,8 @@ StartNemesis(players[32], n, bool:assassin)
 
     new key[20];
     formatex(key, charsmax(key), "MODE_START_%d", g_iMode);
-    HudAll(SL_ALERT, 255, 40, 40, 3.5, key);
-    PlayKey(0, "BOSS_SPAWN");
+    HudAll(SL_ALERT, CLR_DANGER, 3.5, key);
+    PlaySpecialIntro(assassin);
     FadeAll(255, 0, 0, 80, 1.5);
     ShakeAll(8, 1.5, 4);
 }
@@ -4537,7 +5582,7 @@ StartSurvivor(players[32], n, bool:sniper)
 
     new key[20];
     formatex(key, charsmax(key), "MODE_START_%d", g_iMode);
-    HudAll(SL_ALERT, 0, 170, 255, 3.5, key);
+    HudAll(SL_ALERT, CLR_HUMAN, 3.5, key);
     PlayKey(0, "MODE_START");
     FadeAll(0, 100, 255, 60, 1.5);
 }
@@ -4551,7 +5596,7 @@ StartSwarm(players[32], n)
         MakeZombie(id);
     }
 
-    HudAll(SL_ALERT, 255, 110, 30, 3.0, "MODE_START_6");
+    HudAll(SL_ALERT, CLR_WARN, 3.0, "MODE_START_6");
     PlayKey(0, "MODE_START");
 }
 
@@ -4573,7 +5618,7 @@ StartPlague(players[32], n)
         MakeZombie(id);
     }
 
-    HudAll(SL_ALERT, 200, 80, 255, 3.5, "MODE_START_7");
+    HudAll(SL_ALERT, CLR_DANGER, 3.5, "MODE_START_7");
     PlayKey(0, "MODE_START");
     FadeAll(150, 0, 255, 60, 1.5);
 }
@@ -4590,8 +5635,8 @@ StartArmageddon(players[32], n)
     for (new i = 0; i < n; i++)
         MakeSurvivor(players[i], false);
 
-    HudAll(SL_ALERT, 255, 40, 40, 4.0, "MODE_START_8");
-    PlayKey(0, "BOSS_SPAWN");
+    HudAll(SL_ALERT, CLR_DANGER, 4.0, "MODE_START_8");
+    PlaySpecialIntro(false);
     FadeAll(255, 60, 0, 90, 2.0);
 }
 
@@ -4604,7 +5649,10 @@ AnnounceRole(id, const key[])
     // Kisiye ozel ipucu
     formatex(pkey, charsmax(pkey), "%s_YOU", key);
     Chat(id, pkey);
-    HudTo(id, SL_PERS, 255, 200, 40, 3.5, pkey);
+    // v3.0: [F] calismazsa yedek tuslar (G / komut)
+    if (g_bNemesis[id] || g_bAssassin[id])
+        Chat(id, "SKILL_KEYS_HINT");
+    HudTo(id, SL_PERS, CLR_WARN, 3.5, pkey);
 }
 
 /* ================================================================== */
@@ -4625,11 +5673,15 @@ MakeZombie(id)
     }
     g_bClassSwitched[id] = false;
 
+    // v3.0: kanca / ninni / karartma gibi insan durumlari ve onceki yetenekler temizlenir
+    ZcCleanup(id);
+
     g_bZombie[id] = 1;
     g_bAlpha[id] = false;
     g_iMines[id] = 0;
     g_fInfectTime[id] = get_gametime();
     g_fCool[id] = 0.0;
+    g_fLeapCool[id] = 0.0;
     g_fRespawnAt[id] = 0.0;
     g_iExtraJumps[id] = 0; g_bBoots[id] = 0; g_bSerum[id] = 0; g_bUnlClip[id] = 0; g_bDmgAmp[id] = 0;
     g_iFireNades[id] = 0; g_iFrostNades[id] = 0; g_iFlares[id] = 0; g_iSpecW[id] = 0;
@@ -4748,6 +5800,7 @@ ClearZombieRoles(id)
 
 MakeSurvivor(id, bool:sniper)
 {
+    ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
     if (sniper)
@@ -4792,6 +5845,7 @@ MakeSurvivor(id, bool:sniper)
 // Zombi -> insan (Antidote)
 MakeHuman(id)
 {
+    ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
     g_bFirst[id] = 0;
@@ -4841,10 +5895,10 @@ ApplyHumanModel(id)
 
     if ((flags & ADMIN_BAN) && g_szAdminModel[0])
         rg_set_user_model(id, g_szAdminModel);
-    else if ((flags & ADMIN_LEVEL_H) && g_szVipModel[0])
+    else if (((flags & ADMIN_LEVEL_H) || IsVip(id)) && g_szVipModel[0])
         rg_set_user_model(id, g_szVipModel);
-    else if (g_szHumanModel[0])
-        rg_set_user_model(id, g_szHumanModel);
+    else if (g_iHumanModelN > 0)
+        rg_set_user_model(id, g_szHumanModels[clamp(g_iHumanSkin[id], 0, g_iHumanModelN - 1)]);
     else
         rg_reset_user_model(id);
 }
@@ -4887,14 +5941,25 @@ ApplyRender(id)
     if (!is_user_alive(id))
         return;
 
-    if (g_fFrozen[id] > get_gametime())
+    // v3.0: Kostebek yeraltinda tamamen gorunmez, Taklitci kiliktayken parlamasiz insan gibi
+    if (g_bZombie[id] && g_fBurrow[id] > get_gametime())
+        set_user_rendering(id, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0);
+    else if (g_fFrozen[id] > get_gametime())
         set_user_rendering(id, kRenderFxGlowShell, 0, 120, 255, kRenderNormal, 25);
     else if (g_fMadness[id] > get_gametime())
         set_user_rendering(id, kRenderFxGlowShell, 255, 0, 0, kRenderNormal, 40);
     else if (g_fCloak[id] > get_gametime())
         set_user_rendering(id, kRenderFxNone, 255, 255, 255, kRenderTransAlpha, 20);
+    else if (g_bZombie[id] && g_fDisguise[id] > get_gametime())
+        set_user_rendering(id);
     else if (g_fShield[id] > get_gametime())
         set_user_rendering(id, kRenderFxGlowShell, 40, 120, 255, kRenderNormal, 28);
+    else if (g_bZombie[id] && g_fFortify[id] > get_gametime())
+        set_user_rendering(id, kRenderFxGlowShell, 130, 150, 130, kRenderNormal, 45);
+    else if (g_bZombie[id] && g_fCharge[id] > get_gametime())
+        set_user_rendering(id, kRenderFxGlowShell, 230, 130, 50, kRenderNormal, 35);
+    else if (g_bZombie[id] && g_fTerror[id] > get_gametime())
+        set_user_rendering(id, kRenderFxGlowShell, 90, 0, 0, kRenderNormal, 40);
     else if (g_bBoss[id] && g_fEclipseEnd > get_gametime())
         set_user_rendering(id, kRenderFxGlowShell, 40, 0, 30, kRenderTransAlpha, 70);
     else if (g_bBoss[id] && g_fBossBuffEnd > get_gametime())
@@ -4983,7 +6048,7 @@ Infect(victim, attacker)
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p))
-            client_print_color(p, victim, "%s %L", CHAT_PREFIX, p, "INFECTED_BY", vname, aname);
+            client_print_color(p, victim, "%s %L", ChatTag("INFECTED_BY"), p, "INFECTED_BY", vname, aname);
     }
 
     CheckWin();
@@ -5016,51 +6081,185 @@ UpdateScore(id)
 
 public fw_CmdStart(id, uc_handle, seed)
 {
-    if (!g_bRoundActive || !is_user_alive(id) || !g_bZombie[id] || g_bMinion[id])
+    if (!is_user_alive(id))
         return FMRES_IGNORED;
 
-    // [F] (fener tusu): Boss = atilma, Nemesis = OFKE, Assassin = GOLGE PERDESI
-    if (get_uc(uc_handle, UC_Impulse) == 100 && (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]))
+    new imp = get_uc(uc_handle, UC_Impulse);
+
+    // Insan: Volt EMP / Kabus dehseti sirasinda fener acilamaz
+    if (!g_bZombie[id])
     {
-        set_uc(uc_handle, UC_Impulse, 0);
-        if (g_fFrozen[id] <= get_gametime())
+        if (imp == 100 && g_fNoLight[id] > get_gametime())
         {
-            if (g_bBoss[id])
-                SpecialLeap(id);
-            else
-                SpecialFSkill(id);
+            set_uc(uc_handle, UC_Impulse, 0);
+            LightsBlockedMsg(id);
         }
+        return FMRES_IGNORED;
     }
 
-    if (!(get_uc(uc_handle, UC_Buttons) & IN_RELOAD))
-        return FMRES_IGNORED;
-    if (get_entvar(id, var_oldbuttons) & IN_RELOAD)
-        return FMRES_IGNORED;
-    if (g_fFrozen[id] > get_gametime())
-        return FMRES_IGNORED;
+    // [F] (fener tusu, impulse 100): Boss = atilma, Nemesis = OFKE, Assassin = GOLGE PERDESI
+    // (sinif zombilerinin feneri eskisi gibi calisir)
+    if (imp == 100 && (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]))
+    {
+        set_uc(uc_handle, UC_Impulse, 0);
+        SkillTrigger(id, 2);
+    }
 
-    // [R]: Boss = faza gore yetenek, Nemesis / Assassin = atilma, zombi = sinif yetenegi
-    if (g_bBoss[id])
-        BossUseR(id);
-    else if (g_bNemesis[id] || g_bAssassin[id])
-        SpecialLeap(id);
-    else
-        UseAbility(id);
+    // [R] (IN_RELOAD, basildigi an): Boss = faza gore yetenek, Nemesis / Assassin = atilma, zombi = sinif yetenegi
+    if ((get_uc(uc_handle, UC_Buttons) & IN_RELOAD) && !(get_entvar(id, var_oldbuttons) & IN_RELOAD))
+        SkillTrigger(id, 1);
 
     return FMRES_IGNORED;
+}
+
+// ReAPI yedegi: impulse 100 CmdStart'ta yakalanamadiysa (baska plugin / istemci farki) burada islenir
+public rg_ImpulseCommands(id)
+{
+    if (!is_user_alive(id) || get_entvar(id, var_impulse) != 100)
+        return HC_CONTINUE;
+
+    if (!g_bZombie[id])
+    {
+        if (g_fNoLight[id] > get_gametime())
+        {
+            set_entvar(id, var_impulse, 0);
+            LightsBlockedMsg(id);
+            return HC_SUPERCEDE;
+        }
+        return HC_CONTINUE;
+    }
+
+    if (!g_bBoss[id] && !g_bNemesis[id] && !g_bAssassin[id])
+        return HC_CONTINUE;
+
+    set_entvar(id, var_impulse, 0);
+    SkillTrigger(id, 2);
+    return HC_SUPERCEDE;
+}
+
+// G (drop): zombi bicagini zaten atamaz -> ozel karakterde [F] gucu, sinif zombisinde [R] yetenegi.
+// Insanin silah atmasi aynen calisir.
+public cmd_drop(id)
+{
+    if (!is_user_alive(id) || !g_bZombie[id] || !get_pcvar_num(g_pZc[ZCV_ALTKEYS]))
+        return PLUGIN_CONTINUE;
+    SkillTrigger(id, (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]) ? 2 : 1);
+    return PLUGIN_HANDLED;
+}
+
+// Konsol: vex_skill (R) / vex_skill2 (F), chat: /skill /skill2 (/beceri /beceri2)
+public cmd_skill(id)
+{
+    if (is_user_alive(id) && g_bZombie[id])
+        SkillTrigger(id, 1);
+    else if (is_user_connected(id))
+        SkillDeny(id, "SKILL_ONLY_ZOMBIE");
+    return PLUGIN_HANDLED;
+}
+
+public cmd_skill2(id)
+{
+    if (is_user_alive(id) && g_bZombie[id])
+        SkillTrigger(id, (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]) ? 2 : 1);
+    else if (is_user_connected(id))
+        SkillDeny(id, "SKILL_ONLY_ZOMBIE");
+    return PLUGIN_HANDLED;
+}
+
+public cmd_skill_release(id)
+{
+    return PLUGIN_HANDLED;
+}
+
+// Tek giris noktasi: slot 1 = [R], slot 2 = [F]. Ayni tetik 0.2 sn icinde (tus + komut ayni anda) tek sayilir.
+// Her red durumunda oyuncuya neden calismadigi yazilir.
+SkillTrigger(id, slot)
+{
+    if (!is_user_alive(id) || !g_bZombie[id])
+        return;
+
+    new Float:now = get_gametime();
+    slot = clamp(slot, 1, 2);
+    if (now - g_fSkillTrig[id][slot] < 0.2)
+        return;
+    g_fSkillTrig[id][slot] = now;
+
+    if (!g_bRoundActive)
+    {
+        SkillDeny(id, "SKILL_ROUND_OVER");
+        return;
+    }
+    if (g_bMinion[id])
+    {
+        SkillDeny(id, "SKILL_MINION");
+        return;
+    }
+    if (g_fFrozen[id] > now)
+    {
+        SkillDeny(id, "SKILL_STUNNED", floatround(g_fFrozen[id] - now, floatround_ceil));
+        return;
+    }
+
+    if (slot == 1)
+    {
+        if (g_bBoss[id])
+            BossUseR(id);
+        else if (g_bNemesis[id] || g_bAssassin[id])
+            SpecialLeap(id);
+        else
+            UseAbility(id);
+        return;
+    }
+
+    if (g_bBoss[id])
+        SpecialLeap(id);
+    else if (g_bNemesis[id] || g_bAssassin[id])
+        SpecialFSkill(id);
+    else
+        UseAbility(id);
+}
+
+// Red / bekleme bildirimi (ekranin ortasi, kisa). Bekleme gri, diger nedenler turuncu.
+SkillDeny(id, const key[], val = 0)
+{
+    if (!is_user_connected(id) || is_user_bot(id))
+        return;
+    if (equal(key, "ABILITY_COOL"))
+        set_hudmessage(CLR_COOL, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.1, 4);
+    else
+        set_hudmessage(CLR_WARN, -1.0, 0.56, 0, 0.0, 1.4, 0.0, 0.1, 4);
+    show_hudmessage(id, "%L", id, key, val);
+}
+
+LightsBlockedMsg(id)
+{
+    if (is_user_bot(id))
+        return;
+    SkillDeny(id, "LIGHTS_BLOCKED", floatround(g_fNoLight[id] - get_gametime(), floatround_ceil));
 }
 
 SpecialLeap(id)
 {
     new Float:now = get_gametime();
-    if (now < g_fCool[id] || !(get_entvar(id, var_flags) & FL_ONGROUND))
-        return;
     if (g_bBoss[id] && g_fBossIntro > now)
+    {
+        SkillDeny(id, "SKILL_BOSS_INTRO", floatround(g_fBossIntro - now, floatround_ceil));
         return;
+    }
+    if (now < g_fLeapCool[id])
+    {
+        SkillDeny(id, "ABILITY_COOL", floatround(g_fLeapCool[id] - now, floatround_ceil));
+        return;
+    }
+    if (!(get_entvar(id, var_flags) & FL_ONGROUND))
+    {
+        SkillDeny(id, "SKILL_NEED_GROUND");
+        return;
+    }
 
     new Float:cd = floatmax(1.0, get_pcvar_float(g_pSpecialLeapCd));
     LeapForward(id, g_bAssassin[id] ? 850.0 : (g_bBoss[id] ? 720.0 : 650.0), 320.0);
-    g_fCool[id] = now + (g_bAssassin[id] ? cd * 0.66 : cd);
+    g_fLeapCool[id] = now + (g_bAssassin[id] ? cd * 0.66 : cd);
 
     new Float:o[3];
     get_entvar(id, var_origin, o);
@@ -5077,8 +6276,7 @@ SpecialFSkill(id)
     new Float:now = get_gametime();
     if (now < g_fFCool[id])
     {
-        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
-        show_hudmessage(id, "%L", id, "ABILITY_COOL", floatround(g_fFCool[id] - now, floatround_ceil));
+        SkillDeny(id, "ABILITY_COOL", floatround(g_fFCool[id] - now, floatround_ceil));
         return;
     }
 
@@ -5094,7 +6292,7 @@ SpecialFSkill(id)
         FxLight(o, 255, 30, 0, 40, 10, 10);
         ShakeAll(6, 1.0, 4);
         EmitKey(id, "NEM_RAGE", CHAN_STATIC, ATTN_NONE);
-        HudTo(id, SL_PERS, 255, 60, 0, 2.5, "NEM_RAGE_YOU");
+        HudTo(id, SL_PERS, CLR_ZOMBIE, 2.5, "NEM_RAGE_YOU");
         new name[32];
         get_user_name(id, name, charsmax(name));
         ChatAllS("NEM_RAGE_ALL", name);
@@ -5108,7 +6306,7 @@ SpecialFSkill(id)
         FxSprite(o, g_sprSmoke, 25, 160);
         FxImplosion(o, 120, 30, 5);
         EmitKey(id, "ASN_VEIL");
-        HudTo(id, SL_PERS, 160, 60, 255, 2.5, "ASN_VEIL_YOU");
+        HudTo(id, SL_PERS, CLR_ZOMBIE, 2.5, "ASN_VEIL_YOU");
     }
     ApplyRender(id);
     rg_reset_maxspeed(id);
@@ -5133,12 +6331,16 @@ UseAbility(id)
 
     if (now < g_fCool[id])
     {
-        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
-        show_hudmessage(id, "%L", id, "ABILITY_COOL", floatround(g_fCool[id] - now, floatround_ceil));
+        SkillDeny(id, "ABILITY_COOL", floatround(g_fCool[id] - now, floatround_ceil));
+        return;
+    }
+    if (g_fBurrow[id] > now)
+    {
+        SkillDeny(id, "SKILL_BURROWED");
         return;
     }
 
-    new cls = g_iClass[id];
+    new cls = clamp(g_iClass[id], 0, NUM_CLASSES - 1);
     new Float:o[3], Float:po[3];
     get_entvar(id, var_origin, o);
 
@@ -5149,27 +6351,30 @@ UseAbility(id)
             g_fBurst[id] = now + 4.0;
             rg_reset_maxspeed(id);
             FxRing(o, 255, 160, 0, 220);
-            EmitKey(id, "ABILITY_BURST");
+            EmitZombieSound(id, "ABILITY", "ABILITY_BURST");
         }
         case 1: // Runner: uzun ziplama
         {
             if (!(get_entvar(id, var_flags) & FL_ONGROUND))
+            {
+                SkillDeny(id, "SKILL_NEED_GROUND");
                 return;
+            }
             LeapForward(id, 700.0, 320.0);
             FxRing(o, 255, 140, 0, 200);
-            EmitKey(id, "ABILITY_LEAP");
+            EmitZombieSound(id, "ABILITY", "ABILITY_LEAP");
         }
         case 2: // Tank: hasar kalkani
         {
             g_fShield[id] = now + 4.0;
             ApplyRender(id);
             FxRing(o, 40, 120, 255, 260);
-            EmitKey(id, "ABILITY_SHIELD");
+            EmitZombieSound(id, "ABILITY", "ABILITY_SHIELD");
         }
         case 3: // Banshee: kor eden ciglik
         {
             FxRing(o, 220, 220, 255, 450);
-            EmitKey(id, "ABILITY_SCREAM");
+            EmitZombieSound(id, "ABILITY", "ABILITY_SCREAM");
             for (new t = 1; t <= g_iMax; t++)
             {
                 if (!is_user_alive(t) || g_bZombie[t])
@@ -5186,20 +6391,20 @@ UseAbility(id)
             HealTo(id, g_iMaxHP[id] / 4, g_iMaxHP[id]);
             FxRing(o, 200, 0, 0, 220);
             FxLight(o, 200, 0, 0, 30, 12, 20);
-            EmitKey(id, "ABILITY_DRAIN");
+            EmitZombieSound(id, "ABILITY", "ABILITY_DRAIN");
         }
         case 5: // Stalker: gorunmezlik
         {
             g_fCloak[id] = now + 6.0;
             ApplyRender(id);
             FxRing(o, 0, 120, 120, 200);
-            EmitKey(id, "ABILITY_CLOAK");
+            EmitZombieSound(id, "ABILITY", "ABILITY_CLOAK");
         }
         case 6: // Bomber: zehir patlamasi
         {
             FxRing(o, 120, 255, 0, 280);
             FxSprite(o, g_sprSmoke, 25, 200);
-            EmitKey(id, "ABILITY_TOXIC");
+            EmitZombieSound(id, "ABILITY", "ABILITY_TOXIC");
             for (new t = 1; t <= g_iMax; t++)
             {
                 if (!is_user_alive(t) || g_bZombie[t])
@@ -5215,7 +6420,7 @@ UseAbility(id)
         {
             FxRing(o, 0, 200, 255, 320);
             FxLight(o, 0, 200, 255, 30, 12, 20);
-            EmitKey(id, "ABILITY_FROST");
+            EmitZombieSound(id, "ABILITY", "ABILITY_FROST");
             for (new t = 1; t <= g_iMax; t++)
             {
                 if (!is_user_alive(t) || g_bZombie[t])
@@ -5339,13 +6544,22 @@ UseAbility(id)
                 }
             }
             if (!found)
+            {
+                SkillDeny(id, "SKILL_NO_SPACE");
                 return;
+            }
 
             FxTeleport(o);
             engfunc(EngFunc_SetOrigin, id, best);
             FxTeleport(best);
             FxRing(best, 120, 120, 255, 200);
             EmitZombieSound(id, "ABILITY", "ZOMBIE_BLINK");
+        }
+        default:
+        {
+            // v3.0 siniflari (12-23): basarisizsa bekleme baslamaz
+            if (!UseAbilityV3(id, cls))
+                return;
         }
     }
 
@@ -5493,10 +6707,26 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
     new Float:now = get_gametime();
     new Float:dmg = damage;
     new bool:isPlayer = (1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker)) ? true : false;
+    g_iReflVictim = 0;
 
     // Madness / respawn korumasi
     if (g_bZombie[victim] && g_fMadness[victim] > now)
     {
+        SetHookChainReturn(ATYPE_INTEGER, 0);
+        return HC_SUPERCEDE;
+    }
+
+    // v3.0: Kostebek yeraltindayken hasar almaz ve veremez
+    if ((g_bZombie[victim] && g_fBurrow[victim] > now) || (isPlayer && g_bZombie[attacker] && g_fBurrow[attacker] > now))
+    {
+        SetHookChainReturn(ATYPE_INTEGER, 0);
+        return HC_SUPERCEDE;
+    }
+    // v3.0: Magma zombisine ates / yanma islemez
+    if ((bits & DMG_BURN) && IsClassZombie(victim, ZC_MAGMA) && get_pcvar_num(g_pZc[ZCV_MAG_IMMUNE]))
+    {
+        if (isPlayer && !is_user_bot(attacker) && random_num(1, 4) == 1)
+            SkillDeny(attacker, "MAGMA_IMMUNE");
         SetHookChainReturn(ATYPE_INTEGER, 0);
         return HC_SUPERCEDE;
     }
@@ -5508,6 +6738,14 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
         {
             if (inflictor != attacker)
                 return HC_CONTINUE;
+
+            // v3.0 Taklitci: kiliktayken ilk vurus x2 hasar ve kilik acilir
+            new Float:mimicMult = 1.0;
+            if (g_fDisguise[attacker] > now)
+            {
+                mimicMult = floatclamp(get_pcvar_float(g_pZc[ZCV_MIM_MULT]), 1.0, 10.0);
+                MimicReveal(attacker, victim);
+            }
 
             if (g_bBoss[attacker])
             {
@@ -5545,9 +6783,10 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
             else if (g_bMinion[attacker])
                 dmg = get_pcvar_float(g_pMinionDmg);
             else if (g_bSurvivor[victim] || g_bSniper[victim])
-                dmg = 30.0;
+                dmg = 30.0 * mimicMult;
             else if (AllowsInfection())
             {
+                dmg *= mimicMult;
                 // Enerji kalkani bir darbeyi tamamen engeller
                 if (g_iEShield[victim] > 0)
                 {
@@ -5589,7 +6828,7 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
                 dmg = 9999.0; // son insan: oldurulur
             }
             else
-                dmg = get_pcvar_float(g_pZombieDmg);
+                dmg = get_pcvar_float(g_pZombieDmg) * mimicMult;
 
             if (g_bRage[attacker] && dmg < 9000.0)
                 dmg *= 1.0 + float(max(0, ITEM_VAL[IT_RAGE])) / 100.0;
@@ -5653,6 +6892,17 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
             dmg *= 0.7;
         if (g_bNemesis[victim] && g_fRage[victim] > now)
             dmg *= 0.7;
+        // v3.0 Kale: tahkim (hasar azaltma + yansitma; yansima post hook'ta uygulanir)
+        if (g_fFortify[victim] > now)
+        {
+            dmg *= (100.0 - floatclamp(get_pcvar_float(g_pZc[ZCV_BUL_REDUCE]), 0.0, 95.0)) / 100.0;
+            if (isPlayer && !g_bZombie[attacker] && !g_bReflecting && dmg > 0.0)
+            {
+                g_iReflVictim = victim;
+                g_iReflAttacker = attacker;
+                g_fReflAmount = floatmin(dmg * floatclamp(get_pcvar_float(g_pZc[ZCV_BUL_REFLECT]), 0.0, 100.0) / 100.0, 60.0);
+            }
+        }
     }
     else if (dmg < 9000.0)
     {
@@ -5690,6 +6940,33 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
 
 public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 {
+    // v3.0 Kale yansitmasi (oldurmez: insan en az 1 canda kalir)
+    if (g_iReflVictim && g_iReflVictim == victim && g_iReflAttacker == attacker)
+    {
+        new Float:refl = g_fReflAmount;
+        g_iReflVictim = 0;
+        g_iReflAttacker = 0;
+        g_fReflAmount = 0.0;
+        if (is_user_alive(attacker) && !g_bZombie[attacker] && !g_bReflecting)
+        {
+            refl = floatmin(refl, Float:get_entvar(attacker, var_health) - 1.0);
+            if (refl >= 1.0)
+            {
+                g_bReflecting = true;
+                ExecuteHamB(Ham_TakeDamage, attacker, 0, is_user_connected(victim) ? victim : 0, refl, DMG_GENERIC);
+                g_bReflecting = false;
+                if (random_num(1, 3) == 1)
+                {
+                    new Float:ao[3];
+                    get_entvar(attacker, var_origin, ao);
+                    FxSparks(ao);
+                }
+                if (!is_user_bot(attacker))
+                    FadeOne(attacker, 130, 150, 130, 50, 0.2);
+            }
+        }
+    }
+
     if (!(1 <= attacker <= g_iMax) || attacker == victim || !is_user_connected(attacker))
         return;
     if (g_bZombie[attacker] || !g_bZombie[victim] || damage <= 0.0)
@@ -5802,6 +7079,9 @@ ApplyKnockback(victim, attacker, WeaponIdType:wid, Float:damage)
 {
     if (g_bBoss[victim] || g_bNoKB[victim] || g_fFrozen[victim] > get_gametime())
         return;
+    // v3.0: Boga hucumda / Kale tahkimde / Kostebek yeraltinda geri tepmez
+    if (g_fCharge[victim] > get_gametime() || g_fFortify[victim] > get_gametime() || g_fBurrow[victim] > get_gametime())
+        return;
 
     new w = _:wid;
     if (w < 0 || w > 30 || KB_POWER[w] <= 0.0)
@@ -5845,6 +7125,8 @@ ApplyKnockback(victim, attacker, WeaponIdType:wid, Float:damage)
 Ignite(victim, attacker, ticks)
 {
     if (!g_bZombie[victim] || g_bBoss[victim])
+        return;
+    if (IsClassZombie(victim, ZC_MAGMA) && get_pcvar_num(g_pZc[ZCV_MAG_IMMUNE]))
         return;
     if (g_iBurn[victim] <= 0)
         EmitKey(victim, "BURN");
@@ -5903,6 +7185,12 @@ ChainLightning(victim, attacker)
 public rg_PlayerKilled(victim, attacker, gib)
 {
     new bool:valid = (1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker)) ? true : false;
+    // v3.0: olenin yetenekleri / ustundeki etkiler (kanca, ninni, keseler...) temizlenir
+    ZcCleanup(victim);
+    OvhRemove(victim);
+    // v3.0 (B): boss bir insani oldurdu -> alay sesi
+    if (valid && g_bBoss[attacker] && !g_bZombie[victim])
+        BossKillTaunt(attacker);
     new Float:o[3];
     get_entvar(victim, var_origin, o);
 
@@ -5923,7 +7211,9 @@ public rg_PlayerKilled(victim, attacker, gib)
         else
         {
             ChatAllS(g_bNemesis[victim] ? "NEMESIS_DOWN" : "ASSASSIN_DOWN", name);
-            PlayKey(0, "BOSS_DEATH");
+            // Ozel olum sesi (herkes duyar); yoksa genel boss olum sesi
+            if (!EmitSpecialSound(victim, "DEATH", CHAN_VOICE, ATTN_NONE))
+                PlayKey(0, "BOSS_DEATH");
         }
 
         if (valid && !g_bZombie[attacker])
@@ -6075,7 +7365,7 @@ KillStreak(attacker, victim)
     }
 
     if (ktxt[0])
-        HudText(attacker, SL_KILL, 255, 170, 30, 1.2, ktxt);
+        HudText(attacker, SL_KILL, CLR_WARN, 1.2, ktxt);
 
     new s = g_iStreak[attacker];
     if (s == 5 || s == 10 || s == 15 || (s > 15 && s % 5 == 0))
@@ -6088,7 +7378,7 @@ KillStreak(attacker, victim)
         {
             if (!is_user_connected(p))
                 continue;
-            client_print_color(p, attacker, "%s %L", CHAT_PREFIX, p, key, name, s);
+            client_print_color(p, attacker, "%s %L", ChatTag(key), p, key, name, s);
             if (!(g_iSet[p] & SET_NO_STREAK))
                 PlayKey(p, s >= 15 ? "STREAK_15" : (s >= 10 ? "STREAK_10" : "STREAK_5"));
         }
@@ -6169,6 +7459,13 @@ public rg_ResetMaxSpeed(id)
             spd *= 1.3;
         if (g_bRage[id])
             spd *= 1.15;
+        // v3.0 sinif yetenekleri
+        if (g_fBurrow[id] > now)
+            spd *= floatclamp(get_pcvar_float(g_pZc[ZCV_BUR_SPEED]), 0.5, 3.0);
+        if (g_fTerror[id] > now)
+            spd *= floatclamp(get_pcvar_float(g_pZc[ZCV_NM_SPEED]), 0.5, 3.0);
+        if (g_fCharge[id] > now)
+            spd = floatmax(spd, get_pcvar_float(g_pZc[ZCV_CHG_SPEED]));
     }
     else
     {
@@ -6346,10 +7643,17 @@ public fw_EmitSound(ent, channel, const sample[], Float:volume, Float:attn, flag
     else
         return FMRES_IGNORED;
 
-    // Bossun kendi sesleri
+    // v3.0 (B): boss / nemesis / assassin: aci (sirayla, bekleme sureli), olum, saldiri kukremesi
     new key[24], path[128];
-    if (g_bBoss[ent] && equal(ev, "PAIN"))
-        return FMRES_IGNORED;
+    if (g_bBoss[ent] || g_bNemesis[ent] || g_bAssassin[ent])
+    {
+        new r = SpecialVoice(ent, ev);
+        if (r != -1)
+            return r;
+        // Aci: darbe sesi (bhit_flesh) normal calar, insan aci sesi bastirilir
+        if (equal(ev, "PAIN"))
+            return equal(sample, "player/pl_pain", 14) ? FMRES_SUPERCEDE : FMRES_IGNORED;
+    }
 
     formatex(key, charsmax(key), "Z%d_%s", g_iClass[ent], ev);
     if ((!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
@@ -6394,6 +7698,11 @@ public task_ZombieVision()
 
 public fw_PreThink(id)
 {
+    if (!is_user_alive(id))
+        return FMRES_IGNORED;
+
+    // v3.0: kanca cekmesi, Boga hucumu, Avci inisi (her kare)
+    ZcPreThink(id);
     if (!is_user_alive(id))
         return FMRES_IGNORED;
 
@@ -6668,6 +7977,7 @@ ShowMainMenu(id)
 
     formatex(title, charsmax(title), "\r[\wV E X M I R A\r] \d|| \y%L^n\d%L^n", id, "MENU_MAIN_SUB", id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
     new menu = menu_create(title, "menu_main_handler");
+    PlayKey(id, "UI_OPEN");
 
     new bool:adm = (get_user_flags(id) & ADMIN_BAN) ? true : false;
     for (new k = 0; k < sizeof MAIN_ORDER; k++)
@@ -6708,6 +8018,7 @@ public menu_main_handler(id, menu, item)
 
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
+    PlayKey(id, "UI_MENU_SELECT");
 
     switch (sel)
     {
@@ -7244,6 +8555,7 @@ public menu_class_handler(id, menu, item)
 
     g_iClassPicked[id] = 1;
     ChatKeyName(id, "CLASS_CHOSEN", "CLASS_", cls);
+    PlayKey(id, "UI_CLASS_SELECT");
 
     // Yeni enfekte olduysa (10 sn icinde, bir kez) sinifi hemen uygula;
     // aksi halde bir sonraki enfeksiyonda gecerli olur (hiz/can karisikligi olmasin)
@@ -8672,7 +9984,8 @@ stock ChatColorFor(const key[])
 {
     if (equal(key, "BOSS", 4) || equal(key, "BSK", 3) || equal(key, "NEM", 3) || equal(key, "ROLE", 4)
         || equal(key, "ZOMBIE", 6) || equal(key, "YOU_INFECTED", 12) || equal(key, "LIVE_Z", 6)
-        || equal(key, "FINAL", 5) || equal(key, "ASSASSIN", 8) || equal(key, "NEMESIS", 7) || equal(key, "LAST_HUMAN", 10))
+        || equal(key, "FINAL", 5) || equal(key, "ASSASSIN", 8) || equal(key, "NEMESIS", 7) || equal(key, "LAST_HUMAN", 10)
+        || equal(key, "ADM", 3))
         return print_team_red;
     if (equal(key, "LM_", 3) || equal(key, "AIRDROP", 7) || equal(key, "LOOT", 4) || equal(key, "ANTIDOTE", 8)
         || equal(key, "QUEST", 5) || equal(key, "LIVE_H", 6) || equal(key, "SPEED", 5) || equal(key, "VIP", 3))
@@ -8691,7 +10004,7 @@ stock Chat(id, const key[], any:...)
     new fmt[191], msg[191];
     Translate(fmt, charsmax(fmt), key, id);
     vformat(msg, charsmax(msg), fmt, 3);
-    client_print_color(id, ChatColorFor(key), "%s %s", CHAT_PREFIX, msg);
+    client_print_color(id, ChatColorFor(key), "%s %s", ChatTag(key), msg);
 }
 
 stock ChatAll(const key[], iVal = 0)
@@ -8700,7 +10013,7 @@ stock ChatAll(const key[], iVal = 0)
     for (new id = 1; id <= g_iMax; id++)
     {
         if (is_user_connected(id) && !is_user_bot(id))
-            client_print_color(id, c, "%s %L", CHAT_PREFIX, id, key, iVal);
+            client_print_color(id, c, "%s %L", ChatTag(key), id, key, iVal);
     }
 }
 
@@ -8710,7 +10023,7 @@ stock ChatAllS(const key[], const sVal[])
     for (new id = 1; id <= g_iMax; id++)
     {
         if (is_user_connected(id) && !is_user_bot(id))
-            client_print_color(id, c, "%s %L", CHAT_PREFIX, id, key, sVal);
+            client_print_color(id, c, "%s %L", ChatTag(key), id, key, sVal);
     }
 }
 
@@ -8747,6 +10060,16 @@ stock EmitSafe(ent, chan, const path[], Float:vol = VOL_NORM, Float:attn = ATTN_
 {
     if (!path[0] || (ent > 0 && is_nullent(ent)))
         return;
+
+    // v3.0: sadece indirilen (2D) ses varliktan calinamaz -> yakindakilere "spk"
+    if (SndIs2DOnly(path))
+    {
+        new Float:o[3];
+        if (ent > 0)
+            get_entvar(ent, var_origin, o);
+        SpkAround(o, path, attn, (ent <= 0 || attn <= 0.0) ? true : false);
+        return;
+    }
 
     new bool:was = g_bEmitting;
     g_bEmitting = true;
@@ -9156,11 +10479,11 @@ VipWelcome(id)
 
         new tn[16];
         formatex(tn, charsmax(tn), "%L", p, tier);
-        client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "VIP_JOIN", tn, name);
+        client_print_color(p, id, "%s %L", ChatTag("VIP_JOIN"), p, "VIP_JOIN", tn, name);
 
         new txt[128];
         formatex(txt, charsmax(txt), "%L", p, "VIP_JOIN_HUD", tn, name);
-        HudText(p, SL_ALERT, 255, 200, 40, 3.0, txt);
+        HudText(p, SL_ALERT, CLR_REWARD, 3.0, txt);
     }
     PlayKey(0, "VIP_JOIN");
 
@@ -9168,7 +10491,7 @@ VipWelcome(id)
     new tn2[16];
     formatex(tn2, charsmax(tn2), "%L", id, tier);
     Chat(id, "VIP_WELCOME_SELF", tn2, name);
-    HudToS(id, SL_PERS, 255, 200, 40, 4.0, "VIP_WELCOME_HUD", tn2);
+    HudToS(id, SL_PERS, CLR_REWARD, 4.0, "VIP_WELCOME_HUD", tn2);
 
     if (g_iVipExpire[id] > 0)
     {
@@ -9531,8 +10854,8 @@ FunBall(id, const question[])
     {
         if (!is_user_connected(p) || is_user_bot(p))
             continue;
-        client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "FUN_BALL_Q", name, question);
-        client_print_color(p, id, "%s %L", CHAT_PREFIX, p, key);
+        client_print_color(p, id, "%s %L", ChatTag("FUN_BALL_Q"), p, "FUN_BALL_Q", name, question);
+        client_print_color(p, id, "%s %L", ChatTag(key), p, key);
     }
 }
 
@@ -9544,7 +10867,7 @@ public cmd_joke(id)
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p) && !is_user_bot(p))
-            client_print_color(p, print_team_default, "%s %L", CHAT_PREFIX, p, key);
+            client_print_color(p, print_team_default, "%s %L", ChatTag(key), p, key);
     }
     return PLUGIN_HANDLED;
 }
@@ -10435,8 +11758,11 @@ ShowAdminBossMenu(id, bool:now)
 
     formatex(item, charsmax(item), "\y%L", id, "ADM_BOSS_RANDOM");
     MenuAdd(menu, item, 99);
+    // v3.0: sadece bu haritada yuklenen bosslar (digerlerinin modeli / sesi yok)
     for (new b = 0; b < NUM_BOSSES; b++)
     {
+        if (!BossIsLoaded(b))
+            continue;
         formatex(key, charsmax(key), "BOSS_NAME_%d", b);
         formatex(item, charsmax(item), "\y%L", id, key);
         MenuAdd(menu, item, b);
@@ -10478,6 +11804,17 @@ public cmd_adm_boss(id, level, cid)
     if (b < -1 || b >= NUM_BOSSES)
     {
         console_print(id, "[Vexmira] -1 .. %d", NUM_BOSSES - 1);
+        return PLUGIN_HANDLED;
+    }
+    if (b >= 0 && !BossIsLoaded(b))
+    {
+        new list[64], nm[8];
+        for (new i = 0; i < g_iBossLoadN; i++)
+        {
+            formatex(nm, charsmax(nm), "%s%d", i ? " " : "", g_iBossLoadList[i]);
+            add(list, charsmax(list), nm);
+        }
+        console_print(id, "[Vexmira] Boss %d bu haritada yuklu degil (precache butcesi). Yuklu: %s  (vex_res BOSS_PRELOAD_LIST)", b, list);
         return PLUGIN_HANDLED;
     }
     g_iForceBoss = b;
@@ -10659,7 +11996,7 @@ public menu_admactions(id, menu, item)
         {
             new act[48];
             formatex(act, charsmax(act), "%L", p, key);
-            client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "ADM_ACTION", aname, tname, act);
+            client_print_color(p, id, "%s %L", ChatTag("ADM_ACTION"), p, "ADM_ACTION", aname, tname, act);
         }
     }
     log_to_file("vexmira_admin.log", "%s -> %s : %s", aname, tname, key);
@@ -10758,7 +12095,7 @@ StartVote(starter, type)
         copy(name, charsmax(name), "Vexmira");
 
     FunAll(starter, type == 1 ? "VOTE_START_MODE" : "VOTE_START_EVENT", name, VOTE_TIME);
-    PlayKey(0, "EVENT_START");
+    PlayKey(0, "UI_VOTE_START");
 
     remove_task(TASK_VOTE);
     set_task(1.0, "task_VoteTick", TASK_VOTE, _, _, "a", VOTE_TIME + 1);
@@ -10858,7 +12195,7 @@ public menu_vote_handler(id, menu, item)
             continue;
         new nm[40];
         formatex(nm, charsmax(nm), "%L", p, key);
-        client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "VOTE_CAST", name, nm);
+        client_print_color(p, id, "%s %L", ChatTag("VOTE_CAST"), p, "VOTE_CAST", name, nm);
     }
 
     ShowVoteMenu(id);
@@ -10895,13 +12232,13 @@ FinishVote()
             continue;
         new nm[40];
         formatex(nm, charsmax(nm), "%L", p, key);
-        client_print_color(p, print_team_default, "%s %L", CHAT_PREFIX, p, "VOTE_RESULT", nm, bestc);
+        client_print_color(p, print_team_default, "%s %L", ChatTag("VOTE_RESULT"), p, "VOTE_RESULT", nm, bestc);
 
-        HudToS(p, SL_ALERT, 255, 200, 40, 3.5, "VOTE_RESULT_HUD", nm);
+        HudToS(p, SL_ALERT, CLR_EVENT, 3.5, "VOTE_RESULT_HUD", nm);
         if (VoteMenuOpen(p))
             show_menu(p, 0, "^n", 1);
     }
-    PlayKey(0, "MVP");
+    PlayKey(0, "UI_VOTE_END");
 
     g_iVoteType = 0;
     remove_task(TASK_VOTE);
@@ -10971,7 +12308,9 @@ StartBoss(players[32], n)
     rg_set_user_armor(boss, 0, ARMOR_NONE);
     if (g_szBModel[g_iBossType][0])
         rg_set_user_model(boss, g_szBModel[g_iBossType]);
-    rg_set_user_footsteps(boss, false);
+    // v3.0: bossa ozel adim sesi varsa oyunun ayak sesi susturulur (adimlar VoiceTick'te)
+    new stepKey[24];
+    rg_set_user_footsteps(boss, BossSndKey("STEP", stepKey, charsmax(stepKey)) ? true : false);
     ApplyRender(boss);
 
     // Giris: boss 2.5 sn yerinde kukrer
@@ -11004,6 +12343,7 @@ StartBoss(players[32], n)
     ChatAll(key);
     Chat(boss, "ROLE_BOSS_YOU");
     Chat(boss, "ROLE_BOSS_KEYS");
+    Chat(boss, "SKILL_KEYS_HINT");
     if (!is_user_bot(boss))
     {
         new sk[16], skn[48];
@@ -11030,9 +12370,11 @@ StartBoss(players[32], n)
     }
 
     formatex(key, charsmax(key), "BOSS_START_%d", g_iBossType);
-    HudAll(SL_ALERT, 255, 60, 60, 3.0, key);
-    PlayBossSound("SPAWN");
-    PlayKey(0, "BOSS_INTRO");
+    HudAll(SL_ALERT, CLR_DANGER, 3.0, key);
+    // v3.0: bossa ozel giris sesi (herkese); yoksa genel giris sesi
+    if (!PlayBossSound("INTRO"))
+        PlayKey(0, "BOSS_INTRO");
+    VoiceReset(boss);
 
     set_task(0.9, "task_BossFlash", TASK_INTRO);
     set_task(2.5, "task_BossIntroEnd", TASK_INTRO + 1);
@@ -11057,42 +12399,10 @@ public task_BossIntroEnd()
     get_entvar(g_iBoss, var_origin, o);
     FxRingEx(o, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], 900, 60, 7);
     FxLava(o);
-    EmitBossSound("ROAR");
+    EmitBossSound("PHASE");
     ShakeAll(10, 1.5, 5);
-}
-
-// Boss'a ozel ses: B<tip>_<olay> anahtari, yoksa genel BOSS_<olay> (herkese)
-PlayBossSound(const ev[])
-{
-    new key[24], path[128];
-    formatex(key, charsmax(key), "B%d_%s", g_iBossType, ev);
-    if (TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
-    {
-        PlayKey(0, key);
-        return;
-    }
-    formatex(key, charsmax(key), "BOSS_%s", ev);
-    PlayKey(0, key);
-}
-
-// Bossun uzerinden (konumlu) ses
-EmitBossSound(const ev[])
-{
-    if (!g_iBoss || !is_user_connected(g_iBoss))
-        return;
-
-    new key[24], path[128];
-    formatex(key, charsmax(key), "B%d_%s", g_iBossType, ev);
-    if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
-    {
-        formatex(key, charsmax(key), "BOSS_%s", ev);
-        if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
-            return;
-    }
-    if (containi(path, ".mp3") != -1)
-        return;
-
-    EmitSafe(g_iBoss, CHAN_STATIC, path, VOL_NORM, ATTN_NONE, 0, PITCH_NORM);
+    // v3.0: can bari belirdi
+    PlayKey(0, "UI_BOSS_BAR");
 }
 
 // Boss hasari: yetenek carpani + delilik + final
@@ -11153,12 +12463,8 @@ TickBoss()
         feet = o;
         feet[2] -= 30.0;
         FxRingEx(feet, r, g, b, 160, 10, 4, 160);
-        EmitKey(boss, "BOSS_STEP");
+        // v3.0: adim sesleri hiza gore VoiceTick'te, ara sira hirlama da orada
     }
-
-    // Ara sira kukreme
-    if (g_iFrame % 13 == 0)
-        EmitBossSound("ROAR");
 
     // Aura: her 3 sn yakindakileri sarsan, can yakan dalga
     if (g_iFrame % 3 == 0)
@@ -11222,7 +12528,7 @@ BossPassive(boss, const Float:o[3])
         {
             if (g_iFrame % 6 == 0)
             {
-                EmitBossSound("SCREAM");
+                EmitBossSound("IDLE", ATTN_NORM, 0.7);
                 for (new p = 1; p <= g_iMax; p++)
                 {
                     if (!is_user_alive(p) || g_bZombie[p])
@@ -11339,11 +12645,11 @@ BossPhaseChange()
     {
         g_bEnraged = true;
         rg_reset_maxspeed(g_iBoss);
-        HudAll(SL_ALERT, 255, 40, 40, 3.0, "BOSS_ENRAGE");
+        HudAll(SL_ALERT, CLR_DANGER, 3.0, "BOSS_ENRAGE");
         FadeAll(255, 0, 0, 120, 1.5);
         ShakeAll(15, 2.5, 7);
         PlayKey(0, "BOSS_ENRAGE");
-        EmitBossSound("SCREAM");
+        EmitBossSound("PHASE");
         ApplyRender(g_iBoss);
 
         for (new p = 1; p <= g_iMax; p++)
@@ -11357,27 +12663,33 @@ BossPhaseChange()
         formatex(key, charsmax(key), "BOSS_PHASE_%d", g_iBossPhase);
         HudAll(SL_ALERT, r, g, b, 3.0, key);
         PlayKey(0, "BOSS_PHASE");
-        EmitBossSound("ROAR");
+        EmitBossSound("PHASE");
         FadeAll(r / 2, g / 2, b / 2, 70, 1.0);
         ShakeAll(10, 1.5, 5);
     }
 }
 
-// Ust kisimda buyuk, renkli boss can gostergesi.
-// v2.0: isim + faz + can + cubuk TEK buyuk yazida (istemci en fazla 8 buyuk yazi
-// tutabildigi icin eskiden insanlarda uyari yazilari dusuyordu).
+// Ust kisimda buyuk, renkli boss can gostergesi (v3.0 tasarim, TEK buyuk yazi):
+//   B R U T E   ::   PHASE  [ I ]  II  III
+//   [||||||||||||||||||||||||||||..........]   64%
+//   HP  12840 / 20000
+// Renk: can azaldikca turuncudan kirmiziya; ofke modunda kirmizi / beyaz yanip soner.
+// Istemci en fazla 8 buyuk yazi tutabildigi icin isim + faz + bar + can tek mesajdadir.
 BossHud(hp, pct)
 {
-    new key[16], nm[32], spaced[64], ph[32], bar[24];
-    new hr, hg, hb;
-    HpColor(pct, hr, hg, hb);
+    new key[16], nm[32], spaced[64], ph[48], bar[48], hl[48], tag[32];
+    pct = clamp(pct, 0, 100);
+    new hr = 255, hg = 40 + 130 * pct / 100, hb = 0;
+    if (g_bEnraged && g_iFrame % 2)
+    {
+        hr = 255; hg = 210; hb = 210;
+    }
+    else if (g_bEnraged)
+    {
+        hr = 255; hg = 40; hb = 40;
+    }
     formatex(key, charsmax(key), "BOSS_NAME_%d", g_iBossType);
-
-    // Can cubugu: 20 parca
-    new full = clamp(pct / 5, 0, 20);
-    for (new i = 0; i < 20; i++)
-        bar[i] = (i < full) ? '|' : '.';
-    bar[20] = 0;
+    AsciiBar(bar, 40, pct);
 
     for (new id = 1; id <= g_iMax; id++)
     {
@@ -11386,18 +12698,27 @@ BossHud(hp, pct)
 
         formatex(nm, charsmax(nm), "%L", id, key);
         SpaceOut(nm, spaced, charsmax(spaced));
-        formatex(ph, charsmax(ph), "%L", id, g_bEnraged ? "BOSS_PH_RAGE" : (g_iBossPhase == 2 ? "BOSS_PH_2" : "BOSS_PH_1"));
-
-        if (g_bEnraged && g_iFrame % 2)
-            set_dhudmessage(255, 40, 40, -1.0, Y_BOSS, 0, 0.0, 1.05, 0.0, 0.0);
-        else
-            set_dhudmessage(hr, hg, hb, -1.0, Y_BOSS, 0, 0.0, 1.05, 0.0, 0.0);
-
+        formatex(ph, charsmax(ph), "%L", id, g_bEnraged ? "BOSS_PH_RAGE" : (g_iBossPhase >= 3 ? "BOSS_PH_3" : (g_iBossPhase == 2 ? "BOSS_PH_2" : "BOSS_PH_1")));
+        formatex(hl, charsmax(hl), "%L", id, "BOSS_HPLINE", hp, g_iBossMaxHP);
+        tag[0] = 0;
         if (g_bFinalBoss)
-            show_dhudmessage(id, "%L  <<  %s  >>  %s^n[%s]  %L", id, "FINAL_BOSS_TAG", spaced, ph, bar, id, "BOSS_HPLINE", hp, g_iBossMaxHP, pct);
-        else
-            show_dhudmessage(id, "<<  %s  >>   %s^n[%s]  %L", spaced, ph, bar, id, "BOSS_HPLINE", hp, g_iBossMaxHP, pct);
+            formatex(tag, charsmax(tag), "%L  ::  ", id, "FINAL_BOSS_TAG");
+
+        set_dhudmessage(hr, hg, hb, -1.0, Y_BOSS, 0, 0.0, 1.05, 0.0, 0.0);
+        show_dhudmessage(id, "%s%s   ::   %s^n[%s]   %d%%^n%s", tag, spaced, ph, bar, pct, hl);
     }
+}
+
+// ASCII ilerleme cubugu: dolu '|' / bos '.' (HUD'da UTF-8 yok)
+stock AsciiBar(out[], segs, pct)
+{
+    segs = clamp(segs, 1, 46);
+    new full = clamp((pct * segs + 50) / 100, 0, segs);
+    if (pct > 0 && full == 0)
+        full = 1;
+    for (new i = 0; i < segs; i++)
+        out[i] = (i < full) ? '|' : '.';
+    out[segs] = 0;
 }
 
 // Bekleme suresi yazisi: "HAZIR" / "5 sn" / "AKTIF"
@@ -11430,7 +12751,7 @@ BossTelegraph(ability)
     new r = BOSS_RGB[g_iBossType][0], g = BOSS_RGB[g_iBossType][1], b = BOSS_RGB[g_iBossType][2];
 
     formatex(key, charsmax(key), ability ? "BOSS_WARN2_%d" : "BOSS_WARN_%d", g_iBossType);
-    HudAll(SL_ALERT, 255, 90, 30, 1.5, key);
+    HudAll(SL_ALERT, CLR_WARN, 1.5, key);
 
     new radius = BossAbilityRadius(ability);
     if (radius > 0)
@@ -11447,7 +12768,7 @@ BossTelegraph(ability)
     FxRing(o, 255, 0, 0, 150);
     FxImplosion(o, 200, 40, 10);
     PlayKey(0, "BOSS_WARN");
-    EmitBossSound("ROAR");
+    EmitBossSound("ATTACK");
 
     new params[1];
     params[0] = ability;
@@ -11876,14 +13197,17 @@ TickPools()
             continue;
 
         new Float:rad = (g_fPoolRad[s] > 0.0) ? g_fPoolRad[s] : 150.0;
-        new bool:fire = (g_iPoolType[s] == 1) ? true : false;
+        new bool:fire = (g_iPoolType[s] == 1 || g_iPoolType[s] == 2) ? true : false;
         if (g_iFrame % 2 == 0)
         {
             if (fire)
-                FxSprite(g_fPoolPos[s], g_sprFire ? g_sprFire : g_sprExplode, 6, 180);
+                FxSprite(g_fPoolPos[s], g_sprFire ? g_sprFire : g_sprExplode, (g_iPoolType[s] == 2) ? 4 : 6, 180);
             else
                 FxSprite(g_fPoolPos[s], g_sprSmoke, 12, 140);
         }
+        // Magma lav havuzu: hasar LavaDamage'da (0.5 sn, sahibi magma zombisi)
+        if (g_iPoolType[s] == 2)
+            continue;
 
         for (new id = 1; id <= g_iMax; id++)
         {
@@ -12037,7 +13361,7 @@ BossCharge()
 {
     LeapForward(g_iBoss, 1100.0, 180.0);
     FxFollow(g_iBoss, 255, 160, 0, 10, 20);
-    EmitBossSound("ROAR");
+    EmitBossSound("ATTACK");
     set_task(0.5, "task_BruteImpact", TASK_BOSSHIT);
 }
 
@@ -12060,7 +13384,6 @@ BossWail()
 {
     new Float:now = get_gametime();
     EmitBossSound("SCREAM");
-    PlayBossSound("SCREAM");
 
     for (new id = 1; id <= g_iMax; id++)
     {
@@ -12170,7 +13493,7 @@ BossDeath(victim, const Float:o[3], const killer[])
         EndBlizzard();
 
     ChatAllS("BOSS_DOWN", killer);
-    HudAll(SL_ANN, 80, 255, 140, 4.0, "BOSS_DOWN_HUD");
+    HudAll(SL_ANN, CLR_GOOD, 4.0, "BOSS_DOWN_HUD");
     PlayBossSound("DEATH");
     PlayVoxAll("VOX_BOSSDOWN");
 
@@ -12272,7 +13595,7 @@ BossDamageBoard()
         for (new p = 1; p <= g_iMax; p++)
         {
             if (is_user_connected(p) && !is_user_bot(p))
-                client_print_color(p, ids[r], "%s %L", CHAT_PREFIX, p, "BOSS_BOARD_LINE", r + 1, name, dmg[r], PRIZE[r]);
+                client_print_color(p, ids[r], "%s %L", ChatTag("BOSS_BOARD_LINE"), p, "BOSS_BOARD_LINE", r + 1, name, dmg[r], PRIZE[r]);
         }
     }
 
@@ -12285,7 +13608,7 @@ BossDamageBoard()
         formatex(txt, charsmax(txt), "%L", p, "BOSS_BOARD_HUD");
         for (new r = 0; r < 3 && ids[r]; r++)
             format(txt, charsmax(txt), "%s^n#%d  %s  -  %d", txt, r + 1, names[r], dmg[r]);
-        HudText(p, SL_ALERT, 255, 200, 40, 4.5, txt);
+        HudText(p, SL_ALERT, CLR_REWARD, 4.5, txt);
     }
 }
 
@@ -12294,8 +13617,11 @@ public cmd_bossinfo(id)
 {
     new key[20];
     Chat(id, "BOSSINFO_TITLE");
+    // v3.0: sadece bu haritada gelebilecek (yuklenen) bosslar
     for (new b = 0; b < NUM_BOSSES; b++)
     {
+        if (g_iBossLoadN > 0 && !BossIsLoaded(b))
+            continue;
         formatex(key, charsmax(key), "BOSS_INFO_%d", b);
         Chat(id, key);
     }
@@ -12311,9 +13637,20 @@ public cmd_roundplan(id)
     new list[128];
     get_pcvar_string(g_pBossRounds, list, charsmax(list));
     Chat(id, "PLAN_1", g_iRound, RoundsTotal());
-    client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, "PLAN_2", list);
+    client_print_color(id, print_team_default, "%s %L", ChatTag("PLAN_2"), id, "PLAN_2", list);
     get_pcvar_string(g_pSpecialRounds, list, charsmax(list));
-    client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, "PLAN_3", list);
+    client_print_color(id, print_team_default, "%s %L", ChatTag("PLAN_3"), id, "PLAN_3", list);
+    // v3.0: bu haritada yuklenen bosslar (precache butcesi)
+    list[0] = 0;
+    new nm[40], key[16];
+    for (new i = 0; i < g_iBossLoadN; i++)
+    {
+        formatex(key, charsmax(key), "BOSS_NAME_%d", g_iBossLoadList[i]);
+        formatex(nm, charsmax(nm), "%s%L", i ? ", " : "", id, key);
+        add(list, charsmax(list), nm);
+    }
+    if (list[0])
+        Chat(id, "PLAN_5", list);
     Chat(id, "PLAN_4");
     return PLUGIN_HANDLED;
 }
@@ -12711,6 +14048,11 @@ CreateMine(id, const Float:pos[3], const Float:normal[3])
     set_entvar(ent, var_sequence, g_iMineSeq);
     set_entvar(ent, var_skin, g_iMineSkin);
     set_entvar(ent, var_framerate, 0.0);
+    // v3.0: Vexmira lazer modeli: kurulum animasyonu ("deploy"), aktif olunca "idle" (lens nabzi)
+    if (g_szMineDeploySeq[0])
+        AnimByName(ent, g_szMineDeploySeq, g_iMineSeq, 1.0);
+    else if (g_szMineSeqName[0])
+        AnimByName(ent, g_szMineSeqName, g_iMineSeq, 1.0);
     set_entvar(ent, var_movetype, MOVETYPE_FLY);
     // Kurarken kati degil (oyuncu icinde kalmasin); aktif olunca kati olur ki pence ile kirilabilsin
     set_entvar(ent, var_solid, SOLID_NOT);
@@ -12899,9 +14241,18 @@ public fw_MineThink(ent)
             set_entvar(ent, var_iuser2, 1);
 
             EmitKey(ent, "LM_ACTIVATE");
+            if (g_szMineSeqName[0])
+                AnimByName(ent, g_szMineSeqName, g_iMineSeq, 1.0);
             FxLight(o, r, g, b, 14, 8, 20);
             FxRingSmall(o, r, g, b);
         }
+        set_entvar(ent, var_nextthink, now + 0.1);
+        return;
+    }
+
+    // v3.0 Volt EMP: mayin gecici olarak kapali (isin gizli, vurmaz)
+    if (MineEmpCheck(ent, o, now))
+    {
         set_entvar(ent, var_nextthink, now + 0.1);
         return;
     }
@@ -12926,7 +14277,7 @@ public fw_MineThink(ent)
     new Float:po[3], Float:hitp[3];
     for (new z = 1; z <= g_iMax; z++)
     {
-        if (!is_user_alive(z) || !g_bZombie[z])
+        if (!is_user_alive(z) || !g_bZombie[z] || g_fBurrow[z] > now)
             continue;
         if (!BeamHitsPlayer(start, end, z))
             continue;
@@ -13076,6 +14427,8 @@ public fw_EntTakeDamage(ent, inflictor, attacker, Float:damage, bits)
         return HAM_SUPERCEDE;
     if (equal(cls, "vex_egg"))
         return EggTakeDamage(ent, attacker, damage);
+    if (equal(cls, SPORE_CLASS))
+        return SporeTakeDamage(ent, attacker, damage);
     if (!equal(cls, LM_CLASS))
         return HAM_IGNORED;
 
@@ -13217,7 +14570,7 @@ TickMineHints()
             continue;
         g_bMineHint[id] = true;
         Chat(id, "LM_HINT", g_iMines[id]);
-        set_hudmessage(0, 200, 255, -1.0, Y_AIM + 0.08, 0, 0.0, 5.0, 0.2, 0.5, 3);
+        set_hudmessage(CLR_HUMAN, -1.0, Y_AIM + 0.08, 0, 0.0, 5.0, 0.2, 0.5, 3);
         show_hudmessage(id, "%L", id, "LM_HINT_HUD");
     }
 }
@@ -13328,7 +14681,7 @@ ShowNadeMode(id, slot)
     formatex(key, charsmax(key), "NMODE_%d", g_iNadeMode[id][slot]);
     formatex(nm, charsmax(nm), "%L", id, key);
 
-    set_hudmessage(255, 170, 40, -1.0, 0.62, 0, 0.0, 2.0, 0.0, 0.3, 4);
+    set_hudmessage(CLR_WARN, -1.0, 0.62, 0, 0.0, 2.0, 0.0, 0.3, 4);
     show_hudmessage(id, "%L", id, "NMODE_HUD", nm);
 }
 
@@ -13903,6 +15256,11 @@ stock EmitKeyPos(const Float:o[3], const key[])
     // Konumdan calinan dongulu ses durdurulamaz: hic calma
     if (get_pcvar_num(g_pLoopGuard) && SndLooped(path))
         return;
+    if (SndIs2DOnly(path))
+    {
+        SpkAround(o, path, ATTN_NORM, false);
+        return;
+    }
     engfunc(EngFunc_EmitAmbientSound, 0, o, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 }
 
@@ -14049,6 +15407,12 @@ SpawnAirdrop()
 
     set_entvar(ent, var_classname, DROP_CLASS);
     engfunc(EngFunc_SetModel, ent, g_szDropModel);
+    // v3.0: Vexmira ikmal kutusu: dususte parasut govdesi + sallanma animasyonu
+    if (g_szDropSeqFall[0])
+    {
+        set_entvar(ent, var_body, g_iDropBodyChute);
+        AnimByName(ent, g_szDropSeqFall, 0, 1.0);
+    }
     engfunc(EngFunc_SetSize, ent, Float:{-14.0, -14.0, 0.0}, Float:{14.0, 14.0, 20.0});
     set_entvar(ent, var_movetype, MOVETYPE_TOSS);
     set_entvar(ent, var_solid, SOLID_TRIGGER);
@@ -14108,7 +15472,7 @@ SpawnAirdrop()
     }
 
     FxTrail(ent, 255, 200, 40);
-    HudAll(SL_ALERT, 255, 200, 40, 2.5, "AIRDROP_HUD");
+    HudAll(SL_ALERT, CLR_REWARD, 2.5, "AIRDROP_HUD");
     ChatAll("AIRDROP_CHAT");
     PlayKey(0, "AIRDROP_INCOMING");
     PlayVoxAll("VOX_AIRDROP");
@@ -14135,6 +15499,11 @@ public fw_DropThink(ent)
     {
         landed = true;
         set_entvar(ent, var_iuser1, 1);
+        if (g_szDropSeqFall[0])
+        {
+            set_entvar(ent, var_body, g_iDropBodyLanded);
+            AnimByName(ent, g_szDropSeqIdle, 0, 1.0);
+        }
         FxRingEx(o, 255, 200, 40, 260, 16, 6);
         FxSprite(o, g_sprSmoke, 15, 150);
         EmitKey(ent, "AIRDROP_LAND");
@@ -14297,11 +15666,11 @@ AirdropLoot(id, const name[])
         else
             formatex(loot, charsmax(loot), "%L", p, key, amount);
 
-        client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "AIRDROP_GOT", name, loot);
+        client_print_color(p, id, "%s %L", ChatTag("AIRDROP_GOT"), p, "AIRDROP_GOT", name, loot);
         if (p == id)
         {
             formatex(txt, charsmax(txt), "%L^n%s", p, "AIRDROP_YOU", loot);
-            HudText(p, SL_PERS, 255, 200, 40, 3.0, txt);
+            HudText(p, SL_PERS, CLR_REWARD, 3.0, txt);
         }
     }
     SaveData(id);
@@ -14402,7 +15771,7 @@ AssignQuests()
         new desc[64], key[12];
         formatex(key, charsmax(key), "QUEST_%d", q);
         formatex(desc, charsmax(desc), "%L", id, key, QUEST_NEED[q]);
-        client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, "QUEST_NEW", desc, QUEST_XP[q], QUEST_AP[q]);
+        client_print_color(id, print_team_default, "%s %L", ChatTag("QUEST_NEW"), id, "QUEST_NEW", desc, QUEST_XP[q], QUEST_AP[q]);
     }
 }
 
@@ -14423,14 +15792,14 @@ QuestEvent(id, type, amount)
 
     Reward(id, QUEST_XP[q], QUEST_AP[q]);
     PlayKey(id, "QUEST_DONE");
-    HudTo(id, SL_PERS, 80, 255, 160, 3.0, "QUEST_DONE_HUD");
+    HudTo(id, SL_PERS, CLR_REWARD, 3.0, "QUEST_DONE_HUD");
 
     new name[32];
     get_user_name(id, name, charsmax(name));
     for (new p = 1; p <= g_iMax; p++)
     {
         if (is_user_connected(p) && !is_user_bot(p))
-            client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "QUEST_DONE_ALL", name);
+            client_print_color(p, id, "%s %L", ChatTag("QUEST_DONE_ALL"), p, "QUEST_DONE_ALL", name);
     }
 }
 
@@ -14466,9 +15835,9 @@ public cmd_quest(id)
     formatex(key, charsmax(key), "QUEST_%d", q);
     formatex(desc, charsmax(desc), "%L", id, key, QUEST_NEED[q]);
     if (g_bQuestDone[id])
-        client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, "QUEST_INFO_DONE", desc);
+        client_print_color(id, print_team_default, "%s %L", ChatTag("QUEST_INFO_DONE"), id, "QUEST_INFO_DONE", desc);
     else
-        client_print_color(id, print_team_default, "%s %L", CHAT_PREFIX, id, "QUEST_INFO", desc, min(g_iQuestProg[id], QUEST_NEED[q]), QUEST_NEED[q], QUEST_XP[q], QUEST_AP[q]);
+        client_print_color(id, print_team_default, "%s %L", ChatTag("QUEST_INFO"), id, "QUEST_INFO", desc, min(g_iQuestProg[id], QUEST_NEED[q]), QUEST_NEED[q], QUEST_XP[q], QUEST_AP[q]);
     return PLUGIN_HANDLED;
 }
 
@@ -14502,7 +15871,7 @@ CheckEvolve(id)
     new name[32];
     get_user_name(id, name, charsmax(name));
     ChatAllS("EVOLVE_CHAT", name);
-    HudTo(id, SL_PERS, 120, 255, 0, 3.0, "EVOLVE_HUD");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 3.0, "EVOLVE_HUD");
 }
 
 /* ---------------- Event efektleri ---------------- */
@@ -14909,7 +16278,7 @@ public menu_coslist_handler(id, menu, item)
                     continue;
                 new pn[48];
                 CosName(p, cat, i, pn, charsmax(pn));
-                client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "COS_BOUGHT_ALL", name, pn);
+                client_print_color(p, id, "%s %L", ChatTag("COS_BOUGHT_ALL"), p, "COS_BOUGHT_ALL", name, pn);
             }
             changed = true;
         }
@@ -15432,9 +16801,9 @@ DrawSpecInfo(id)
     }
 
     if (g_bZombie[target])
-        set_hudmessage(255, 90, 90, -1.0, 0.70, 0, 0.0, 1.1, 0.0, 0.0, 3);
+        set_hudmessage(CLR_ZOMBIE, -1.0, 0.70, 0, 0.0, 1.1, 0.0, 0.0, 3);
     else
-        set_hudmessage(90, 210, 255, -1.0, 0.70, 0, 0.0, 1.1, 0.0, 0.0, 3);
+        set_hudmessage(CLR_HUMAN, -1.0, 0.70, 0, 0.0, 1.1, 0.0, 0.0, 3);
     show_hudmessage(id, "%L", id, "SPEC_INFO", name, g_iLevel[target], role, floatround(Float:get_entvar(target, var_health)), rg_get_user_armor(target), g_iAP[target]);
 }
 
@@ -15450,7 +16819,7 @@ TopJoinAnnounce(id)
     for (new p = 1; p <= g_iMax; p++)
     {
         if (p != id && is_user_connected(p) && !is_user_bot(p))
-            client_print_color(p, id, "%s %L", CHAT_PREFIX, p, "TOP_JOIN", r, name);
+            client_print_color(p, id, "%s %L", ChatTag("TOP_JOIN"), p, "TOP_JOIN", r, name);
     }
 }
 
@@ -15529,7 +16898,26 @@ LoadMainConfig(bool:precache)
             continue;
         }
         if (precache)
+        {
+            // Boss yukleme plani icin: harita planindaki boss round sayisi (cvar'lar henuz yok)
+            if (argc >= 2)
+            {
+                if (equali(args[0], "vex_boss_rounds"))
+                {
+                    g_szPreBossRounds[0] = 0;
+                    for (new i = 1; i < argc; i++)
+                    {
+                        add(g_szPreBossRounds, charsmax(g_szPreBossRounds), args[i]);
+                        add(g_szPreBossRounds, charsmax(g_szPreBossRounds), " ");
+                    }
+                }
+                else if (equali(args[0], "vex_boss_every"))
+                    g_iPreBossEvery = str_to_num(args[1]);
+                else if (equali(args[0], "vex_rounds_total"))
+                    g_iPreRoundsTotal = str_to_num(args[1]);
+            }
             continue;
+        }
 
         if (ApplyTableCmd(args, argc))
         {
@@ -15570,6 +16958,15 @@ ApplyConfigNow()
     get_pcvar_string(g_pPrefix, raw, charsmax(raw));
     if (raw[0])
         ColorEscape(raw, g_szPrefix, charsmax(g_szPrefix));
+    // v3.0: mesaj turune gore sohbet etiketleri ([BOSS] [EVENT] [VIP] [ADMIN])
+    get_pcvar_string(g_pPrefixBoss, raw, charsmax(raw));
+    ColorEscape(raw, g_szPrefixBoss, charsmax(g_szPrefixBoss));
+    get_pcvar_string(g_pPrefixEvent, raw, charsmax(raw));
+    ColorEscape(raw, g_szPrefixEvent, charsmax(g_szPrefixEvent));
+    get_pcvar_string(g_pPrefixVip, raw, charsmax(raw));
+    ColorEscape(raw, g_szPrefixVip, charsmax(g_szPrefixVip));
+    get_pcvar_string(g_pPrefixAdmin, raw, charsmax(raw));
+    ColorEscape(raw, g_szPrefixAdmin, charsmax(g_szPrefixAdmin));
     ApplyHostname();
 }
 
@@ -16284,17 +17681,18 @@ public BossUseR(id)
 
     new Float:now = get_gametime();
     if (g_fBossIntro > now)
+    {
+        SkillDeny(id, "SKILL_BOSS_INTRO", floatround(g_fBossIntro - now, floatround_ceil));
         return;
+    }
     if (now < g_fBossRCool)
     {
-        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
-        show_hudmessage(id, "%L", id, "ABILITY_COOL", floatround(g_fBossRCool - now, floatround_ceil));
+        SkillDeny(id, "ABILITY_COOL", floatround(g_fBossRCool - now, floatround_ceil));
         return;
     }
     if (g_iBossChannel != CH_NONE)
     {
-        set_hudmessage(255, 90, 90, -1.0, 0.56, 0, 0.0, 1.0, 0.0, 0.0, 4);
-        show_hudmessage(id, "%L", id, "BSK_BUSY");
+        SkillDeny(id, "BSK_BUSY");
         return;
     }
     BossCastR(clamp(g_iBossPhase, 1, 3));
@@ -16338,7 +17736,7 @@ bool:BossCastR(ph, bool:setCool = true)
     {
         if (is_user_connected(g_iBoss) && !is_user_bot(g_iBoss))
         {
-            set_hudmessage(255, 160, 60, -1.0, 0.56, 0, 0.0, 1.2, 0.0, 0.0, 4);
+            set_hudmessage(CLR_WARN, -1.0, 0.56, 0, 0.0, 1.2, 0.0, 0.0, 4);
             show_hudmessage(g_iBoss, "%L", g_iBoss, "BSK_NO_TARGET");
         }
         return false;
@@ -17557,7 +18955,17 @@ EggSpawn(const Float:o[3])
     pos[2] += 14.0;
 
     set_entvar(ent, var_classname, EGG_CLASS);
-    if (g_szSprOrb[0])
+    if (g_szEggModel[0])
+    {
+        // v3.0: kovan yumurtasi modeli (nabiz animasyonu) + yesil parilti
+        engfunc(EngFunc_SetModel, ent, g_szEggModel);
+        if (AnimByName(ent, "pulse", -1, 1.0) < 0)
+            AnimByName(ent, "idle", 0, 1.0);
+        set_entvar(ent, var_renderfx, kRenderFxGlowShell);
+        set_entvar(ent, var_rendercolor, Float:{110.0, 255.0, 0.0});
+        set_entvar(ent, var_renderamt, 12.0);
+    }
+    else if (g_szSprOrb[0])
     {
         engfunc(EngFunc_SetModel, ent, g_szSprOrb);
         set_entvar(ent, var_rendermode, kRenderTransAdd);
@@ -17941,7 +19349,8 @@ stock BeamEnts(a, b, spr, r, g, bl, width, noise, life)
 /* ---------------- Havuzlar (asit / yanan zemin) ---------------- */
 
 // tur: 0 = asit (insan erir, zombi iyilesir), 1 = yanan zemin
-AddPool(const Float:o[3], type, Float:life, Float:radius)
+// tur 2 = magma lav havuzu (sahibi: owner, hasari LavaDamage verir)
+AddPool(const Float:o[3], type, Float:life, Float:radius, owner = 0)
 {
     new Float:now = get_gametime(), slot = -1, Float:oldest = 999999.0, oldi;
     for (new s = 0; s < sizeof g_fPoolEnd; s++)
@@ -17966,8 +19375,11 @@ AddPool(const Float:o[3], type, Float:life, Float:radius)
     g_fPoolEnd[slot] = now + life;
     g_iPoolType[slot] = type;
     g_fPoolRad[slot] = radius;
+    g_iPoolOwner[slot] = owner;
 
-    if (type == 1)
+    if (type == 2)
+        ZoneSpawn(pos, radius, 255, 90, 0, life, 0, false);
+    else if (type == 1)
         ZoneSpawn(pos, radius, 255, 80, 0, life, 0, false);
     else
         ZoneSpawn(pos, radius, 110, 255, 0, life, 0, false);
@@ -18016,14 +19428,1864 @@ BossSkillUnlock()
         if (!is_user_connected(p) || is_user_bot(p))
             continue;
         formatex(nm, charsmax(nm), "%L", p, key);
-        client_print_color(p, print_team_red, "%s %L", CHAT_PREFIX, p, "BSK_UNLOCK_ALL", name, nm, g_iBossPhase);
+        client_print_color(p, print_team_red, "%s %L", ChatTag("BSK_UNLOCK_ALL"), p, "BSK_UNLOCK_ALL", name, nm, g_iBossPhase);
     }
 
     if (!is_user_bot(g_iBoss))
     {
         formatex(nm, charsmax(nm), "%L", g_iBoss, key);
-        HudToS(g_iBoss, SL_PERS, 255, 200, 40, 3.5, "BSK_UNLOCK_YOU", nm);
+        HudToS(g_iBoss, SL_PERS, CLR_WARN, 3.5, "BSK_UNLOCK_YOU", nm);
         PlayKey(g_iBoss, "SKILL_UNLOCK");
+    }
+}
+
+/* ================================================================== */
+/*  v3.0  YENI ZOMBI SINIFLARI (12-23) - [R] YETENEKLERI                */
+/*                                                                      */
+/*  12 Kasap: et kancasi (zincirli mermi, insani ceker)                 */
+/*  13 Avci: atilma + inis sersemletmesi   14 Boga: dumduz hucum        */
+/*  15 Orumcek: ag mermisi (kok + yavaslama) 16 Magma: lav izi          */
+/*  17 Volt: EMP (lazer / fener / gece gorusu kapanir)                  */
+/*  18 Taklitci: insan kiligi 19 Kostebek: yeraltina dalis              */
+/*  20 Siren: ninni (cekim) 21 Kale: tahkim 22 Spor Ana: spor kesesi    */
+/*  23 Kabus: dehset (ekran kararir)                                    */
+/*  Ayarlar: vexmira.cfg  vex_<sinif>_<ayar>                            */
+/*  Temizlik: olum / enfeksiyon / cikis / round sonu -> ZcCleanup       */
+/* ================================================================== */
+
+Float:ZcF(c)
+{
+    return get_pcvar_float(g_pZc[c]);
+}
+
+ZcN(c)
+{
+    return get_pcvar_num(g_pZc[c]);
+}
+
+// Sadece normal sinif zombisi (boss / nemesis / assassin / yardimci degil)
+bool:IsClassZombie(id, cls)
+{
+    if (!(1 <= id <= g_iMax) || !g_bZombie[id] || g_bMinion[id] || g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id])
+        return false;
+    return (g_iClass[id] == cls) ? true : false;
+}
+
+stock ZcEye(id, Float:eye[3])
+{
+    new Float:ofs[3];
+    get_entvar(id, var_origin, eye);
+    get_entvar(id, var_view_ofs, ofs);
+    eye[0] += ofs[0];
+    eye[1] += ofs[1];
+    eye[2] += ofs[2];
+}
+
+stock ZcAimDir(id, Float:dir[3])
+{
+    new Float:ang[3];
+    get_entvar(id, var_v_angle, ang);
+    engfunc(EngFunc_MakeVectors, ang);
+    global_get(glb_v_forward, dir);
+}
+
+// Kancanin cikis noktasi (el hizasi)
+stock ZcHand(id, Float:out[3])
+{
+    new Float:dir[3];
+    ZcEye(id, out);
+    ZcAimDir(id, dir);
+    out[0] += dir[0] * 12.0;
+    out[1] += dir[1] * 12.0;
+    out[2] += dir[2] * 12.0 - 10.0;
+}
+
+// a'nin gozunden b'nin gozune duvar var mi? (oyuncular engel sayilmaz)
+stock bool:ZcVisible(a, b)
+{
+    new Float:ea[3], Float:eb[3], Float:frac;
+    ZcEye(a, ea);
+    ZcEye(b, eb);
+    engfunc(EngFunc_TraceLine, ea, eb, IGNORE_MONSTERS, a, 0);
+    get_tr2(0, TR_flFraction, frac);
+    return (frac >= 1.0) ? true : false;
+}
+
+stock ZcNameOf(id, out[], len)
+{
+    if (is_user_connected(id))
+        get_user_name(id, out, len);
+    else
+        copy(out, len, "?");
+}
+
+// Ekran rengi: renk 'hold' sn tam kalir, sonra 'fade' sn'de acilir
+stock FadeEx(id, r, g, b, a, Float:fade, Float:hold)
+{
+    if (!is_user_connected(id) || is_user_bot(id))
+        return;
+    message_begin(MSG_ONE_UNRELIABLE, g_msgFade, _, id);
+    write_short(clamp(floatround(4096.0 * fade), 0, 0xFFFF));
+    write_short(clamp(floatround(4096.0 * hold), 0, 0xFFFF));
+    write_short(0x0000);
+    write_byte(r);
+    write_byte(g);
+    write_byte(b);
+    write_byte(a);
+    message_end();
+}
+
+// Aktif ekran rengini hemen kaldir
+stock FadeClear(id)
+{
+    if (!is_user_connected(id) || is_user_bot(id))
+        return;
+    message_begin(MSG_ONE_UNRELIABLE, g_msgFade, _, id);
+    write_short(1);
+    write_short(0);
+    write_short(0x0000);
+    write_byte(0);
+    write_byte(0);
+    write_byte(0);
+    write_byte(0);
+    message_end();
+}
+
+// Fener + gece gorusu kapanir ve 'dur' sn acilamaz (Volt EMP / Kabus)
+LightsOut(p, Float:dur)
+{
+    new Float:until = get_gametime() + dur;
+    if (g_fNoLight[p] < until)
+        g_fNoLight[p] = until;
+
+    new eff = get_entvar(p, var_effects);
+    if (eff & EF_DIMLIGHT)
+    {
+        set_entvar(p, var_effects, eff & ~EF_DIMLIGHT);
+        if (g_msgFlashlight && !is_user_bot(p))
+        {
+            message_begin(MSG_ONE, g_msgFlashlight, _, p);
+            write_byte(0);
+            write_byte(clamp(get_member(p, m_iFlashBattery), 0, 100));
+            message_end();
+        }
+    }
+    if (get_member(p, m_bNightVisionOn))
+    {
+        set_member(p, m_bNightVisionOn, false);
+        if (g_msgNVGToggle && !is_user_bot(p))
+        {
+            message_begin(MSG_ONE, g_msgNVGToggle, _, p);
+            write_byte(0);
+            message_end();
+        }
+    }
+}
+
+/* ---------------- [R] dagitici (12-23) ---------------- */
+
+bool:UseAbilityV3(id, cls)
+{
+    switch (cls)
+    {
+        case ZC_BUTCHER:     return ButcherHook(id);
+        case ZC_HUNTER:      return HunterPounce(id);
+        case ZC_CHARGER:     return ChargerCharge(id);
+        case ZC_ARACHNE:     return ArachneWeb(id);
+        case ZC_MAGMA:       return MagmaTrail(id);
+        case ZC_VOLT:        return VoltEmp(id);
+        case ZC_MIMIC:       return MimicDisguise(id);
+        case ZC_BURROWER:    return BurrowerDive(id);
+        case ZC_SIREN:       return SirenLure(id);
+        case ZC_BULWARK:     return BulwarkFortify(id);
+        case ZC_SPOREMOTHER: return SporePlant(id);
+        case ZC_NIGHTMARE:   return NightmareTerror(id);
+    }
+    return false;
+}
+
+/* ---------------- Mermiler: kanca + ag (ortak) ---------------- */
+// var_iuser1 = sahip, iuser2 = tur (ZP_HOOK / ZP_WEB), iuser3 = zincir isini, iuser4 = takilan insan
+// fuser1 = gidilen yol, fuser2 = menzil, fuser3 = cekme bitisi, vuser1 = onceki konum
+
+bool:ZProjValid(ent)
+{
+    if (ent <= g_iMax || is_nullent(ent))
+        return false;
+    new cls[16];
+    get_entvar(ent, var_classname, cls, charsmax(cls));
+    return equal(cls, ZPROJ_CLASS) ? true : false;
+}
+
+ZProjSpawn(owner, type, Float:speed, Float:range)
+{
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return 0;
+
+    new Float:eye[3], Float:dir[3], Float:start[3], Float:vel[3], Float:ang[3], Float:frac;
+    ZcEye(owner, eye);
+    ZcAimDir(owner, dir);
+    for (new i = 0; i < 3; i++)
+    {
+        start[i] = eye[i] + dir[i] * 18.0;
+        vel[i] = dir[i] * floatclamp(speed, 200.0, 4000.0);
+    }
+    start[2] -= 6.0;
+    // Duvara cok yakinsa mermi duvarin icinde dogmasin
+    engfunc(EngFunc_TraceLine, eye, start, IGNORE_MONSTERS, owner, 0);
+    get_tr2(0, TR_flFraction, frac);
+    if (frac < 1.0)
+        get_tr2(0, TR_vecEndPos, start);
+
+    set_entvar(ent, var_classname, ZPROJ_CLASS);
+    if (type == ZP_HOOK && g_szHookModel[0])
+    {
+        engfunc(EngFunc_SetModel, ent, g_szHookModel);
+        set_entvar(ent, var_renderfx, kRenderFxGlowShell);
+        set_entvar(ent, var_rendercolor, Float:{180.0, 30.0, 30.0});
+        set_entvar(ent, var_renderamt, 6.0);
+    }
+    else
+    {
+        new spr[64];
+        if (type == ZP_WEB && g_szSprWeb[0])
+            copy(spr, charsmax(spr), g_szSprWeb);
+        else
+            copy(spr, charsmax(spr), g_szSprOrb);
+        if (spr[0])
+        {
+            engfunc(EngFunc_SetModel, ent, spr);
+            set_entvar(ent, var_rendermode, kRenderTransAdd);
+            set_entvar(ent, var_renderamt, 230.0);
+            if (type == ZP_WEB)
+                set_entvar(ent, var_rendercolor, Float:{220.0, 190.0, 255.0});
+            else
+                set_entvar(ent, var_rendercolor, Float:{200.0, 40.0, 40.0});
+            set_entvar(ent, var_scale, (type == ZP_WEB) ? 0.35 : 0.25);
+        }
+    }
+
+    set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    engfunc(EngFunc_SetSize, ent, Float:{-2.0, -2.0, -2.0}, Float:{2.0, 2.0, 2.0});
+    engfunc(EngFunc_SetOrigin, ent, start);
+    set_entvar(ent, var_velocity, vel);
+    engfunc(EngFunc_VecToAngles, vel, ang);
+    set_entvar(ent, var_angles, ang);
+
+    set_entvar(ent, var_iuser1, owner);
+    set_entvar(ent, var_iuser2, type);
+    set_entvar(ent, var_iuser3, 0);
+    set_entvar(ent, var_iuser4, 0);
+    set_entvar(ent, var_fuser1, 0.0);
+    set_entvar(ent, var_fuser2, floatclamp(range, 100.0, 4000.0));
+    set_entvar(ent, var_fuser3, 0.0);
+    set_entvar(ent, var_vuser1, start);
+
+    if (type == ZP_HOOK)
+    {
+        new Float:hand[3];
+        ZcHand(owner, hand);
+        set_entvar(ent, var_iuser3, ChainBeamCreate(hand, start));
+    }
+    // fuser4 = 0: iz (TE_BEAMFOLLOW) ilk dusunmede gonderilir (varlik istemciye ulassin)
+    set_entvar(ent, var_fuser4, 0.0);
+
+    SetThink(ent, "fw_ZProjThink");
+    set_entvar(ent, var_nextthink, get_gametime() + 0.02);
+    return ent;
+}
+
+// Kanca zinciri: kalici isin varligi (titremesiz). chain.spr yoksa koyu kirmizi lazer.
+ChainBeamCreate(const Float:a[3], const Float:b[3])
+{
+    new beam = rg_create_entity("beam");
+    if (is_nullent(beam))
+        return 0;
+
+    set_entvar(beam, var_flags, get_entvar(beam, var_flags) | FL_CUSTOMENTITY);
+    if (g_sprChain)
+    {
+        set_entvar(beam, var_model, g_szSprChain);
+        set_entvar(beam, var_modelindex, g_sprChain);
+        set_entvar(beam, var_scale, 12.0);
+        BeamColor(beam, 255, 255, 255, 255);
+    }
+    else
+    {
+        set_entvar(beam, var_model, "sprites/laserbeam.spr");
+        set_entvar(beam, var_modelindex, g_sprBeam);
+        set_entvar(beam, var_scale, 5.0);
+        BeamColor(beam, 150, 20, 20, 230);
+    }
+    set_entvar(beam, var_body, 0);
+    set_entvar(beam, var_frame, 0.0);
+    set_entvar(beam, var_animtime, 0.0);
+    set_entvar(beam, var_skin, 0);
+    set_entvar(beam, var_sequence, 0);
+    set_entvar(beam, var_rendermode, 0);
+    set_entvar(beam, var_iuser1, BEAM_MARK_HOOK);
+    BeamPoints(beam, a, b);
+    return beam;
+}
+
+bool:ZProjOwnerOk(owner, type)
+{
+    if (!g_bRoundActive || !is_user_alive(owner))
+        return false;
+    return IsClassZombie(owner, (type == ZP_HOOK) ? ZC_BUTCHER : ZC_ARACHNE);
+}
+
+public fw_ZProjThink(ent)
+{
+    if (is_nullent(ent))
+        return;
+
+    new owner = get_entvar(ent, var_iuser1), type = get_entvar(ent, var_iuser2);
+    if (!ZProjOwnerOk(owner, type))
+    {
+        ZProjRemove(ent);
+        return;
+    }
+
+    new Float:now = get_gametime();
+    new victim = get_entvar(ent, var_iuser4);
+    if (victim)
+    {
+        HookPullThink(ent, owner, victim, now);
+        return;
+    }
+
+    new Float:last[3], Float:cur[3], Float:wall[3], Float:seg[3], Float:frac;
+    get_entvar(ent, var_vuser1, last);
+    get_entvar(ent, var_origin, cur);
+
+    // Duvar / zemin
+    engfunc(EngFunc_TraceLine, last, cur, IGNORE_MONSTERS, ent, 0);
+    get_tr2(0, TR_flFraction, frac);
+    get_tr2(0, TR_vecEndPos, wall);
+    if (frac < 1.0)
+        seg = wall;
+    else
+        seg = cur;
+
+    // Insan isabeti: segmente en yakin olan (govde kutusu biraz genisletilir)
+    new best, Float:bestD = 999999.0, Float:mins[3], Float:maxs[3], Float:po[3];
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_absmin, mins);
+        get_entvar(p, var_absmax, maxs);
+        for (new i = 0; i < 3; i++)
+        {
+            mins[i] -= 10.0;
+            maxs[i] += 10.0;
+        }
+        if (!SegmentHitsBox(last, seg, mins, maxs))
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(last, po);
+        if (d < bestD)
+        {
+            bestD = d;
+            best = p;
+        }
+    }
+    if (best)
+    {
+        ZProjHit(ent, owner, type, best);
+        return;
+    }
+    if (frac < 1.0)
+    {
+        ZProjMiss(ent, owner, type, wall);
+        return;
+    }
+
+    new Float:trav = Float:get_entvar(ent, var_fuser1) + get_distance_f(last, cur);
+    set_entvar(ent, var_fuser1, trav);
+    set_entvar(ent, var_vuser1, cur);
+    if (trav >= Float:get_entvar(ent, var_fuser2))
+    {
+        ZProjMiss(ent, owner, type, cur);
+        return;
+    }
+
+    if (type == ZP_HOOK)
+    {
+        new beam = get_entvar(ent, var_iuser3), Float:hand[3];
+        if (beam > 0 && !is_nullent(beam))
+        {
+            ZcHand(owner, hand);
+            BeamPoints(beam, hand, cur);
+        }
+    }
+    else if (Float:get_entvar(ent, var_fuser4) == 0.0 && trav > 20.0)
+    {
+        set_entvar(ent, var_fuser4, 1.0);
+        FxTrail(ent, 190, 120, 255);
+    }
+    set_entvar(ent, var_nextthink, now + 0.02);
+}
+
+ZProjHit(ent, owner, type, p)
+{
+    new Float:po[3], name[32], vname[32];
+    get_entvar(p, var_origin, po);
+    ZcNameOf(owner, name, charsmax(name));
+    ZcNameOf(p, vname, charsmax(vname));
+
+    if (type == ZP_WEB)
+    {
+        WebHit(owner, p);
+        ZProjRemove(ent);
+        return;
+    }
+
+    // Kanca: Survivor / Sniper cekilemez, ayni anda iki kasap ayni insani cekemez
+    if (g_bSurvivor[p] || g_bSniper[p] || g_iHookedBy[p])
+    {
+        FxSparks(po);
+        EmitKeyPos(po, "HOOK_HIT");
+        SkillDeny(owner, "HOOK_IMMUNE");
+        ZProjRemove(ent);
+        return;
+    }
+
+    new Float:now = get_gametime();
+    g_iHookedBy[p] = owner;
+    set_entvar(ent, var_iuser4, p);
+    set_entvar(ent, var_fuser3, now + floatclamp(ZcF(ZCV_HOOK_TIME), 0.2, 5.0));
+    set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
+    po[2] += 10.0;
+    engfunc(EngFunc_SetOrigin, ent, po);
+
+    FxBlood(po, 8);
+    FxSparks(po);
+    EmitKey(p, "HOOK_HIT", CHAN_ITEM);
+    EmitKey(owner, "HOOK_CHAIN", CHAN_ITEM);
+    EmitKey(p, "HOOK_PULL", CHAN_BODY);
+    ShakeOne(p);
+    FadeOne(p, 150, 0, 0, 100, 0.6);
+    HudToS(p, SL_ALERT, CLR_DANGER, 2.0, "HOOK_PULLED", name);
+    HudToS(owner, SL_PERS, CLR_ZOMBIE, 1.6, "HOOK_GOT_YOU", vname);
+
+    new Float:dmg = ZcF(ZCV_HOOK_DMG);
+    if (dmg > 0.0)
+        ExecuteHamB(Ham_TakeDamage, p, 0, owner, dmg, DMG_SLASH);
+
+    if (!is_nullent(ent))
+        set_entvar(ent, var_nextthink, now + 0.02);
+}
+
+ZProjMiss(ent, owner, type, const Float:pos[3])
+{
+    if (type == ZP_WEB)
+    {
+        // Duvara yapisan ag
+        FxSprite(pos, g_sprWeb ? g_sprWeb : g_sprSmoke, g_sprWeb ? 4 : 6, 200);
+        EmitKeyPos(pos, "ARACHNE_WEBHIT");
+    }
+    else
+    {
+        FxSparks(pos);
+        EmitKeyPos(pos, "HOOK_MISS");
+        SkillDeny(owner, "HOOK_MISS_YOU");
+    }
+    ZProjRemove(ent);
+}
+
+// Kanca takiliyken: insanin cekilmesi fw_PreThink'te (her karede) yapilir, burada kopma kosullari
+HookPullThink(ent, owner, victim, Float:now)
+{
+    new bool:stop;
+    if (!is_user_alive(victim) || g_bZombie[victim] || g_iHookedBy[victim] != owner)
+        stop = true;
+    else if (now >= Float:get_entvar(ent, var_fuser3))
+        stop = true;
+    else
+    {
+        new Float:oo[3], Float:vv[3];
+        get_entvar(owner, var_origin, oo);
+        get_entvar(victim, var_origin, vv);
+        if (get_distance_f(oo, vv) <= 60.0 || !ZcVisible(owner, victim))
+            stop = true;
+    }
+    if (stop)
+    {
+        ZProjRemove(ent);
+        return;
+    }
+
+    new Float:vo[3], Float:hand[3];
+    get_entvar(victim, var_origin, vo);
+    vo[2] += 10.0;
+    engfunc(EngFunc_SetOrigin, ent, vo);
+    new beam = get_entvar(ent, var_iuser3);
+    if (beam > 0 && !is_nullent(beam))
+    {
+        ZcHand(owner, hand);
+        BeamPoints(beam, hand, vo);
+    }
+    set_entvar(ent, var_nextthink, now + 0.02);
+}
+
+// Cekilen insan (her karede): kasaba dogru sabit hiz
+HookPullVictim(id)
+{
+    new b = g_iHookedBy[id];
+    if (!(1 <= b <= g_iMax) || !is_user_alive(b) || g_bZombie[id])
+    {
+        g_iHookedBy[id] = 0;
+        return;
+    }
+    new Float:bo[3], Float:po[3], Float:dir[3], Float:vel[3];
+    get_entvar(b, var_origin, bo);
+    get_entvar(id, var_origin, po);
+    new Float:d = get_distance_f(bo, po);
+    if (d < 1.0)
+        return;
+    new Float:spd = floatclamp(ZcF(ZCV_HOOK_PULL), 100.0, 1500.0);
+    for (new i = 0; i < 3; i++)
+    {
+        dir[i] = (bo[i] - po[i]) / d;
+        vel[i] = dir[i] * spd;
+    }
+    if ((get_entvar(id, var_flags) & FL_ONGROUND) && vel[2] < 90.0)
+        vel[2] = 90.0;
+    set_entvar(id, var_velocity, vel);
+}
+
+ZProjRemove(ent)
+{
+    if (is_nullent(ent))
+        return;
+
+    new owner = get_entvar(ent, var_iuser1), type = get_entvar(ent, var_iuser2), victim = get_entvar(ent, var_iuser4);
+    new beam = get_entvar(ent, var_iuser3);
+    if (beam > 0 && !is_nullent(beam))
+        set_entvar(beam, var_flags, FL_KILLME);
+
+    if (type == ZP_HOOK && (1 <= owner <= g_iMax) && g_iHookEnt[owner] == ent)
+        g_iHookEnt[owner] = 0;
+
+    // Takili insan serbest: firlamasin diye hiz kirpilir, kisa yavaslama (kasap vurabilsin)
+    if ((1 <= victim <= g_iMax) && g_iHookedBy[victim] == owner)
+    {
+        g_iHookedBy[victim] = 0;
+        if (is_user_alive(victim) && !g_bZombie[victim])
+        {
+            new Float:vel[3];
+            get_entvar(victim, var_velocity, vel);
+            vel[0] *= 0.25;
+            vel[1] *= 0.25;
+            if (vel[2] > 0.0)
+                vel[2] *= 0.25;
+            set_entvar(victim, var_velocity, vel);
+            SlowHuman(victim, 0.6);
+        }
+    }
+
+    SetThink(ent, "");
+    set_entvar(ent, var_iuser1, 0);
+    set_entvar(ent, var_iuser3, 0);
+    set_entvar(ent, var_iuser4, 0);
+    set_entvar(ent, var_velocity, Float:{0.0, 0.0, 0.0});
+    set_entvar(ent, var_classname, "vex_removed");
+    set_entvar(ent, var_flags, FL_KILLME);
+}
+
+RemoveOwnedProj(id)
+{
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", ZPROJ_CLASS)) > 0)
+    {
+        if (get_entvar(ent, var_iuser1) == id || get_entvar(ent, var_iuser4) == id)
+            ZProjRemove(ent);
+    }
+}
+
+/* ---------------- 12 KASAP: et kancasi ---------------- */
+
+bool:ButcherHook(id)
+{
+    if (g_iHookEnt[id] && ZProjValid(g_iHookEnt[id]))
+    {
+        SkillDeny(id, "SKILL_HOOK_BUSY");
+        return false;
+    }
+    g_iHookEnt[id] = 0;
+
+    new ent = ZProjSpawn(id, ZP_HOOK, ZcF(ZCV_HOOK_SPEED), ZcF(ZCV_HOOK_RANGE));
+    if (!ent)
+        return false;
+    g_iHookEnt[id] = ent;
+
+    EmitKey(id, "HOOK_THROW", CHAN_WEAPON);
+    EmitZombieSound(id, "ABILITY", "");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 1.2, "HOOK_THROW_YOU");
+    return true;
+}
+
+/* ---------------- 13 AVCI: atilma + sersemletme ---------------- */
+
+bool:HunterPounce(id)
+{
+    if (!(get_entvar(id, var_flags) & FL_ONGROUND))
+    {
+        SkillDeny(id, "SKILL_NEED_GROUND");
+        return false;
+    }
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    LeapForward(id, floatclamp(ZcF(ZCV_HUNT_POWER), 200.0, 2000.0), floatclamp(ZcF(ZCV_HUNT_UP), 50.0, 1000.0));
+    g_fPounce[id] = get_gametime();
+
+    FxRingEx(o, 120, 120, 150, 180, 10, 4);
+    FxSprite(o, g_sprSmoke, 8, 110);
+    EmitZombieSound(id, "ABILITY", "ABILITY_LEAP");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 1.2, "HUNTER_POUNCE_YOU");
+    return true;
+}
+
+PounceThink(id)
+{
+    new Float:t = get_gametime() - g_fPounce[id];
+    if (t > 2.5)
+    {
+        g_fPounce[id] = 0.0;
+        return;
+    }
+    if (t < 0.15)
+        return;
+
+    if (get_entvar(id, var_flags) & FL_ONGROUND)
+    {
+        HunterImpact(id);
+        return;
+    }
+    // Havada insana carparsa aninda iner
+    new Float:o[3], Float:po[3];
+    get_entvar(id, var_origin, o);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) <= 52.0)
+        {
+            HunterImpact(id);
+            return;
+        }
+    }
+}
+
+HunterImpact(id)
+{
+    g_fPounce[id] = 0.0;
+
+    new Float:o[3], Float:po[3], vname[32], name[32], hits;
+    get_entvar(id, var_origin, o);
+    ZcNameOf(id, name, charsmax(name));
+    new Float:rad = floatclamp(ZcF(ZCV_HUNT_RAD), 20.0, 400.0) + 16.0;
+    new Float:stun = floatclamp(ZcF(ZCV_HUNT_STUN), 0.1, 5.0), Float:dmg = ZcF(ZCV_HUNT_DMG);
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+
+        if (g_bSurvivor[p] || g_bSniper[p])
+            SlowHuman(p, stun + 0.5);
+        else
+            RootHuman(p, stun);
+        ShakeOne(p);
+        FadeOne(p, 70, 70, 100, 150, stun);
+        HudToS(p, SL_ALERT, CLR_DANGER, 1.8, "HUNTER_STUNNED", name);
+        if (dmg > 0.0)
+            ExecuteHamB(Ham_TakeDamage, p, 0, id, dmg, DMG_CLUB);
+        hits++;
+        if (is_user_alive(p))
+        {
+            ZcNameOf(p, vname, charsmax(vname));
+            HudToS(id, SL_PERS, CLR_ZOMBIE, 1.4, "HUNTER_HIT_YOU", vname);
+        }
+    }
+
+    FxRingEx(o, 130, 130, 170, floatround(rad * 2.5), 14, 4);
+    FxSprite(o, g_sprSmoke, 10, 120);
+    if (hits)
+    {
+        // Avinin ustune konar
+        set_entvar(id, var_velocity, Float:{0.0, 0.0, 0.0});
+        FxLight(o, 140, 140, 200, 18, 6, 20);
+    }
+    EmitKey(id, "HUNTER_IMPACT", CHAN_BODY);
+}
+
+/* ---------------- 14 BOGA: hucum ---------------- */
+
+bool:ChargerCharge(id)
+{
+    if (!(get_entvar(id, var_flags) & FL_ONGROUND))
+    {
+        SkillDeny(id, "SKILL_NEED_GROUND");
+        return false;
+    }
+    new Float:dir[3];
+    ZcAimDir(id, dir);
+    dir[2] = 0.0;
+    new Float:len = floatsqroot(dir[0] * dir[0] + dir[1] * dir[1]);
+    if (len < 0.1)
+    {
+        SkillDeny(id, "SKILL_NO_SPACE");
+        return false;
+    }
+    dir[0] /= len;
+    dir[1] /= len;
+
+    new Float:now = get_gametime();
+    g_fChargeDir[id] = dir;
+    g_fChargeT0[id] = now;
+    g_fCharge[id] = now + floatclamp(ZcF(ZCV_CHG_TIME), 0.3, 5.0);
+    g_iChargeHit[id] = 0;
+    rg_reset_maxspeed(id);
+    ApplyRender(id);
+
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    FxRingEx(o, 200, 120, 60, 260, 16, 4);
+    FxSprite(o, g_sprSmoke, 12, 140);
+    EmitZombieSound(id, "ABILITY", "ABILITY_BURST");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 1.2, "CHARGER_YOU");
+    return true;
+}
+
+ChargeThink(id)
+{
+    new Float:now = get_gametime();
+    if (now >= g_fCharge[id] || !is_user_alive(id) || g_fFrozen[id] > now)
+    {
+        ChargeEnd(id, false);
+        return;
+    }
+
+    new Float:o[3], Float:vel[3], Float:ahead[3], Float:frac, Float:normal[3];
+    new Float:spd = floatclamp(ZcF(ZCV_CHG_SPEED), 200.0, 1500.0);
+    get_entvar(id, var_origin, o);
+    get_entvar(id, var_velocity, vel);
+    vel[0] = g_fChargeDir[id][0] * spd;
+    vel[1] = g_fChargeDir[id][1] * spd;
+    set_entvar(id, var_velocity, vel);
+
+    // Duvara carpma (zemin / rampa sayilmaz)
+    ahead[0] = o[0] + g_fChargeDir[id][0] * 40.0;
+    ahead[1] = o[1] + g_fChargeDir[id][1] * 40.0;
+    ahead[2] = o[2];
+    engfunc(EngFunc_TraceLine, o, ahead, IGNORE_MONSTERS, id, 0);
+    get_tr2(0, TR_flFraction, frac);
+    get_tr2(0, TR_vecPlaneNormal, normal);
+    if (frac < 1.0 && normal[2] < 0.7 && now - g_fChargeT0[id] > 0.12)
+    {
+        ChargeEnd(id, true);
+        return;
+    }
+
+    // Yoldaki insanlar yana savrulur (her insan bir kez)
+    new Float:po[3];
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p] || (g_iChargeHit[id] & (1 << (p - 1))))
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:dx = po[0] - o[0], Float:dy = po[1] - o[1];
+        if (dx * dx + dy * dy > 56.0 * 56.0 || floatabs(po[2] - o[2]) > 64.0)
+            continue;
+        g_iChargeHit[id] |= (1 << (p - 1));
+        ChargeHitHuman(id, p, dx, dy);
+        if (!is_user_alive(id))
+            return;
+    }
+}
+
+ChargeHitHuman(id, p, Float:dx, Float:dy)
+{
+    new Float:dir[3], Float:perp[2], Float:vel[3], name[32];
+    dir = g_fChargeDir[id];
+    perp[0] = -dir[1];
+    perp[1] = dir[0];
+    new Float:side = (dx * perp[0] + dy * perp[1] >= 0.0) ? 1.0 : -1.0;
+    new Float:push = floatclamp(ZcF(ZCV_CHG_PUSH), 0.0, 2000.0);
+
+    vel[0] = perp[0] * side * push + dir[0] * push * 0.6;
+    vel[1] = perp[1] * side * push + dir[1] * push * 0.6;
+    vel[2] = 260.0;
+    set_entvar(p, var_velocity, vel);
+
+    new Float:po[3];
+    get_entvar(p, var_origin, po);
+    FxBlood(po, 8);
+    FxSprite(po, g_sprSmoke, 6, 120);
+    ShakeOne(p);
+    FadeOne(p, 200, 120, 60, 120, 0.6);
+    EmitKey(p, "CHARGER_IMPACT", CHAN_BODY);
+    ZcNameOf(id, name, charsmax(name));
+    HudToS(p, SL_ALERT, CLR_DANGER, 1.6, "CHARGER_HIT", name);
+
+    new Float:dmg = ZcF(ZCV_CHG_DMG);
+    if (dmg > 0.0)
+        ExecuteHamB(Ham_TakeDamage, p, 0, id, dmg, DMG_CLUB);
+}
+
+ChargeEnd(id, bool:crash)
+{
+    if (g_fCharge[id] <= 0.0)
+        return;
+    g_fCharge[id] = 0.0;
+    g_iChargeHit[id] = 0;
+    if (!is_user_alive(id))
+        return;
+
+    if (crash)
+    {
+        new Float:o[3], Float:front[3];
+        get_entvar(id, var_origin, o);
+        front[0] = o[0] + g_fChargeDir[id][0] * 24.0;
+        front[1] = o[1] + g_fChargeDir[id][1] * 24.0;
+        front[2] = o[2];
+        g_fFrozen[id] = get_gametime() + floatclamp(ZcF(ZCV_CHG_STUN), 0.0, 3.0);
+        set_entvar(id, var_velocity, Float:{0.0, 0.0, 0.0});
+        FxSparks(front);
+        FxSprite(front, g_sprSmoke, 10, 160);
+        ShakeOne(id);
+        EmitKey(id, "CHARGER_IMPACT", CHAN_BODY);
+        HudTo(id, SL_PERS, CLR_COOL, 1.2, "CHARGER_CRASH");
+    }
+    else
+    {
+        // Hucum bitince hiz yumusakca kesilir
+        new Float:vel[3];
+        get_entvar(id, var_velocity, vel);
+        vel[0] *= 0.4;
+        vel[1] *= 0.4;
+        set_entvar(id, var_velocity, vel);
+    }
+    rg_reset_maxspeed(id);
+    ApplyRender(id);
+}
+
+/* ---------------- 15 ORUMCEK: ag atisi ---------------- */
+
+bool:ArachneWeb(id)
+{
+    new ent = ZProjSpawn(id, ZP_WEB, ZcF(ZCV_WEB_SPEED), ZcF(ZCV_WEB_RANGE));
+    if (!ent)
+        return false;
+    EmitZombieSound(id, "ABILITY", "ZOMBIE_ACID");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 1.0, "ARACHNE_YOU");
+    return true;
+}
+
+WebHit(owner, p)
+{
+    new Float:now = get_gametime(), Float:po[3], name[32], vname[32];
+    get_entvar(p, var_origin, po);
+    new Float:root = floatclamp(ZcF(ZCV_WEB_ROOT), 0.0, 5.0), Float:slow = floatclamp(ZcF(ZCV_WEB_SLOW), 0.0, 10.0);
+
+    if (g_bSurvivor[p] || g_bSniper[p])
+        SlowHuman(p, root + slow);
+    else
+    {
+        if (root > 0.0)
+            RootHuman(p, root);
+        if (g_fSlow[p] < now + root + slow)
+            g_fSlow[p] = now + root + slow;
+        rg_reset_maxspeed(p);
+        g_fWebbed[p] = now + root;
+    }
+
+    FxSprite(po, g_sprWeb ? g_sprWeb : g_sprSmoke, g_sprWeb ? 5 : 8, 220);
+    FxLight(po, 170, 90, 255, 14, 6, 20);
+    FadeOne(p, 200, 170, 255, 110, floatmax(0.5, root));
+    EmitKey(p, "ARACHNE_WEBHIT", CHAN_ITEM);
+    ZcNameOf(owner, name, charsmax(name));
+    ZcNameOf(p, vname, charsmax(vname));
+    HudToS(p, SL_ALERT, CLR_DANGER, 2.0, "ARACHNE_WEBBED", name);
+    HudToS(owner, SL_PERS, CLR_ZOMBIE, 1.4, "ARACHNE_HIT_YOU", vname);
+
+    new Float:dmg = ZcF(ZCV_WEB_DMG);
+    if (dmg > 0.0)
+        ExecuteHamB(Ham_TakeDamage, p, 0, owner, dmg, DMG_GENERIC);
+}
+
+/* ---------------- 16 MAGMA: lav izi ---------------- */
+
+bool:MagmaTrail(id)
+{
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    g_fLava[id] = get_gametime() + floatclamp(ZcF(ZCV_MAG_TIME), 0.5, 20.0);
+    g_fLavaPos[id] = o;
+    MagmaPool(id, o);
+
+    FxLava(o);
+    FxRingEx(o, 255, 90, 0, 240, 16, 5);
+    FxLight(o, 255, 90, 0, 30, 10, 15);
+    EmitZombieSound(id, "ABILITY", "BURN");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 1.5, "MAGMA_YOU");
+    return true;
+}
+
+MagmaPool(id, const Float:o[3])
+{
+    AddPool(o, 2, floatclamp(ZcF(ZCV_MAG_LIFE), 0.5, 30.0), floatclamp(ZcF(ZCV_MAG_RAD), 20.0, 300.0), id);
+    FxSprite(o, g_sprFire ? g_sprFire : g_sprExplode, 4, 200);
+}
+
+// Lav havuzlari: 0.5 sn'de bir hasar + yanma (sahibi magma zombisi)
+LavaDamage()
+{
+    new Float:now = get_gametime(), Float:po[3];
+    new Float:dmg = floatmax(0.0, ZcF(ZCV_MAG_DMG)) * 0.5;
+    for (new s = 0; s < MAX_POOLS; s++)
+    {
+        if (g_iPoolType[s] != 2 || g_fPoolEnd[s] < now)
+            continue;
+        new owner = g_iPoolOwner[s];
+        if (!(1 <= owner <= g_iMax) || !is_user_connected(owner) || !g_bZombie[owner])
+            owner = 0;
+        new Float:rad = g_fPoolRad[s] + 16.0;
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (!is_user_alive(p) || g_bZombie[p])
+                continue;
+            get_entvar(p, var_origin, po);
+            if (get_distance_f(g_fPoolPos[s], po) > rad || floatabs(po[2] - g_fPoolPos[s][2]) > 60.0)
+                continue;
+            g_iBurn[p] = max(g_iBurn[p], 1);
+            g_iBurnBy[p] = owner;
+            FadeOne(p, 255, 90, 0, 70, 0.4);
+            if (dmg > 0.0)
+                ExecuteHamB(Ham_TakeDamage, p, 0, owner, dmg, DMG_BURN);
+        }
+    }
+}
+
+/* ---------------- 17 VOLT: EMP ---------------- */
+
+bool:VoltEmp(id)
+{
+    new Float:o[3], Float:po[3], Float:mo[3], Float:eye[3];
+    get_entvar(id, var_origin, o);
+    ZcEye(id, eye);
+    new Float:now = get_gametime();
+    new Float:rad = floatclamp(ZcF(ZCV_VOLT_RAD), 50.0, 2000.0);
+    new Float:mineOff = floatclamp(ZcF(ZCV_VOLT_MINE), 0.0, 60.0);
+    new Float:lightOff = floatclamp(ZcF(ZCV_VOLT_LIGHT), 0.0, 60.0);
+    new Float:dmg = ZcF(ZCV_VOLT_DMG), Float:slow = floatclamp(ZcF(ZCV_VOLT_SLOW), 0.0, 10.0);
+    new mines;
+
+    // Lazer mayinlari gecici olarak kapanir (isin kaybolur, vurmaz)
+    if (mineOff > 0.0)
+    {
+        new ent;
+        while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", LM_CLASS)) > 0)
+        {
+            get_entvar(ent, var_origin, mo);
+            if (get_distance_f(o, mo) > rad)
+                continue;
+            set_entvar(ent, var_fuser3, now + mineOff);
+            FxBeam(eye, mo, g_sprLightning, 80, 180, 255, 18);
+            FxSparks(mo);
+            mines++;
+        }
+    }
+
+    new name[32];
+    ZcNameOf(id, name, charsmax(name));
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+        if (lightOff > 0.0)
+            LightsOut(p, lightOff);
+        if (slow > 0.0)
+            SlowHuman(p, slow);
+        FxBeam(eye, po, g_sprLightning, 120, 200, 255, 24);
+        FadeOne(p, 80, 180, 255, 90, 0.5);
+        EmitKey(p, "VOLT_ZAP", CHAN_ITEM);
+        HudToS(p, SL_ALERT, CLR_DANGER, 2.0, "VOLT_EMP_HIT", name);
+        if (dmg > 0.0)
+            ExecuteHamB(Ham_TakeDamage, p, 0, id, dmg, DMG_SHOCK);
+    }
+
+    FxRingEx(o, 80, 180, 255, floatround(rad), 20, 6);
+    FxRingEx(o, 200, 240, 255, floatround(rad * 0.6), 10, 4);
+    if (g_sprEmp)
+        FxSprite(o, g_sprEmp, 18, 230);
+    FxLight(o, 80, 180, 255, 45, 10, 20);
+    FxSparks(o);
+    EmitZombieSound(id, "ABILITY", "ZAP");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 2.0, "VOLT_YOU", mines);
+    return true;
+}
+
+// fw_MineThink'ten: EMP'li mayin kapali mi? (true = bu karede hicbir sey yapma)
+bool:MineEmpCheck(ent, const Float:o[3], Float:now)
+{
+    new Float:emp = Float:get_entvar(ent, var_fuser3);
+    if (emp <= 0.0)
+        return false;
+
+    new beam = get_entvar(ent, var_iuser3);
+    if (emp > now)
+    {
+        if (beam > 0 && !is_nullent(beam))
+            set_entvar(beam, var_effects, get_entvar(beam, var_effects) | EF_NODRAW);
+        if (random_num(1, 8) == 1)
+            FxSparks(o);
+        return true;
+    }
+
+    set_entvar(ent, var_fuser3, 0.0);
+    if (beam > 0 && !is_nullent(beam))
+        set_entvar(beam, var_effects, get_entvar(beam, var_effects) & ~EF_NODRAW);
+    EmitKey(ent, "LM_ACTIVATE");
+    new r, g, b;
+    MineColor(ent, r, g, b);
+    FxRingSmall(o, r, g, b);
+    return false;
+}
+
+/* ---------------- 18 TAKLITCI: insan kiligi ---------------- */
+
+bool:MimicDisguise(id)
+{
+    new Float:o[3], model[32];
+    get_entvar(id, var_origin, o);
+    g_fDisguise[id] = get_gametime() + floatclamp(ZcF(ZCV_MIM_TIME), 1.0, 60.0);
+
+    if (g_szHumanModel[0])
+        copy(model, charsmax(model), g_szHumanModel);
+    else
+        copy(model, charsmax(model), "gign");
+    rg_set_user_model(id, model);
+    rg_set_user_footsteps(id, true);
+    ApplyRender(id);
+
+    FxSprite(o, g_sprSmoke, 14, 140);
+    FxImplosion(o, 80, 20, 4);
+    EmitZombieSound(id, "ABILITY", "ABILITY_CLOAK");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 2.5, "MIMIC_YOU");
+    return true;
+}
+
+// Kilik acilir. victim > 0: saldirarak acildi (x2 hasar bildirimi)
+MimicReveal(id, victim = 0)
+{
+    if (g_fDisguise[id] <= 0.0)
+        return;
+    g_fDisguise[id] = 0.0;
+    if (!is_user_alive(id) || !g_bZombie[id])
+        return;
+
+    new cls = clamp(g_iClass[id], 0, NUM_CLASSES - 1);
+    if (g_szZModel[cls][0])
+        rg_set_user_model(id, g_szZModel[cls]);
+    else
+        rg_reset_user_model(id);
+    rg_set_user_footsteps(id, false);
+    ApplyRender(id);
+
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    FxImplosion(o, 90, 25, 4);
+    FxBlood(o, 10);
+    if (victim)
+    {
+        new name[32];
+        ZcNameOf(id, name, charsmax(name));
+        EmitKey(id, "MIMIC_REVEAL");
+        if (is_user_connected(victim))
+            HudToS(victim, SL_ALERT, CLR_DANGER, 2.0, "MIMIC_REVEALED", name);
+        HudTo(id, SL_PERS, CLR_ZOMBIE, 1.5, "MIMIC_STRIKE_YOU");
+    }
+    else
+        HudTo(id, SL_PERS, CLR_COOL, 1.5, "MIMIC_END_YOU");
+}
+
+/* ---------------- 19 KOSTEBEK: yeraltina dalis ---------------- */
+
+bool:BurrowerDive(id)
+{
+    if (!(get_entvar(id, var_flags) & FL_ONGROUND))
+    {
+        SkillDeny(id, "SKILL_NEED_GROUND");
+        return false;
+    }
+    new Float:o[3], Float:fl[3];
+    get_entvar(id, var_origin, o);
+    FloorAt(o, fl);
+    g_fBurrow[id] = get_gametime() + floatclamp(ZcF(ZCV_BUR_TIME), 0.5, 10.0);
+    // Mermi / bicak hic islemez (kan efekti de cikmaz -> yeri belli olmaz)
+    set_entvar(id, var_takedamage, DAMAGE_NO);
+    rg_set_user_footsteps(id, true);
+    ApplyRender(id);
+    rg_reset_maxspeed(id);
+
+    FxSprite(fl, g_sprSmoke, 22, 170);
+    FxParticles(fl, 60, 22, 6);
+    FxRingEx(fl, 140, 100, 50, 160, 12, 4);
+    EmitZombieSound(id, "ABILITY", "ZOMBIE_SHOCK");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 2.0, "BURROW_YOU");
+    return true;
+}
+
+// Sure dolunca cikis: cevredeki insanlar havaya firlar
+BurrowErupt(id)
+{
+    g_fBurrow[id] = 0.0;
+    if (!is_user_alive(id))
+        return;
+    set_entvar(id, var_takedamage, DAMAGE_AIM);
+    rg_set_user_footsteps(id, false);
+    ApplyRender(id);
+    rg_reset_maxspeed(id);
+
+    new Float:o[3], Float:po[3], name[32];
+    get_entvar(id, var_origin, o);
+    ZcNameOf(id, name, charsmax(name));
+    new Float:rad = floatclamp(ZcF(ZCV_BUR_RAD), 50.0, 1000.0), Float:up = floatclamp(ZcF(ZCV_BUR_UP), 0.0, 1500.0);
+    new Float:dmg = ZcF(ZCV_BUR_DMG);
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+        PushFrom(p, o, 220.0, up);
+        ShakeOne(p);
+        FadeOne(p, 140, 100, 50, 130, 0.8);
+        HudToS(p, SL_ALERT, CLR_DANGER, 1.8, "BURROW_HIT", name);
+        if (dmg > 0.0)
+            ExecuteHamB(Ham_TakeDamage, p, 0, id, dmg, DMG_CRUSH);
+    }
+
+    FxRingEx(o, 140, 100, 50, floatround(rad), 26, 5);
+    FxRingEx(o, 200, 160, 90, floatround(rad * 0.5), 14, 3);
+    FxSprite(o, g_sprSmoke, 35, 200);
+    FxParticles(o, 140, 22, 10);
+    FxLight(o, 160, 110, 50, 30, 8, 20);
+    EmitKey(id, "BURROWER_ERUPT", CHAN_BODY);
+}
+
+// Olum / temizlik: firlatma olmadan gorunur hale getir
+BurrowCancel(id)
+{
+    g_fBurrow[id] = 0.0;
+    if (!is_user_alive(id))
+        return;
+    set_entvar(id, var_takedamage, DAMAGE_AIM);
+    rg_set_user_footsteps(id, false);
+    ApplyRender(id);
+    rg_reset_maxspeed(id);
+}
+
+/* ---------------- 20 SIREN: ninni ---------------- */
+
+bool:SirenLure(id)
+{
+    new Float:o[3], Float:po[3], name[32], hits;
+    get_entvar(id, var_origin, o);
+    ZcNameOf(id, name, charsmax(name));
+    new Float:now = get_gametime();
+    new Float:rad = floatclamp(ZcF(ZCV_SIR_RAD), 50.0, 2000.0), Float:dur = floatclamp(ZcF(ZCV_SIR_TIME), 0.5, 10.0);
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad || !ZcVisible(id, p))
+            continue;
+        g_fLure[p] = now + dur;
+        g_iLureBy[p] = id;
+        SlowHuman(p, dur);
+        FadeEx(p, 255, 80, 200, 110, 0.6, dur - 0.6);
+        HudToS(p, SL_ALERT, CLR_DANGER, 2.0, "SIREN_LURED", name);
+        hits++;
+    }
+    if (!hits)
+    {
+        SkillDeny(id, "SKILL_NO_TARGET");
+        return false;
+    }
+
+    FxRingEx(o, 255, 90, 200, floatround(rad), 16, 6);
+    FxRingEx(o, 255, 170, 230, floatround(rad * 0.5), 8, 4);
+    FxLight(o, 255, 90, 200, 30, 12, 15);
+    EmitZombieSound(id, "ABILITY", "ABILITY_SCREAM");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 2.0, "SIREN_YOU", hits);
+    return true;
+}
+
+LureEnd(p, bool:clearFade)
+{
+    new bool:was = (g_fLure[p] > get_gametime()) ? true : false;
+    g_fLure[p] = 0.0;
+    g_iLureBy[p] = 0;
+    if (clearFade && was)
+        FadeClear(p);
+}
+
+LureTick(p, Float:now)
+{
+    new s = g_iLureBy[p];
+    if (now >= g_fLure[p])
+    {
+        LureEnd(p, false);
+        return;
+    }
+    if (!(1 <= s <= g_iMax) || !is_user_alive(s) || !IsClassZombie(s, ZC_SIREN))
+    {
+        LureEnd(p, true);
+        return;
+    }
+
+    new Float:so[3], Float:po[3], Float:vel[3];
+    get_entvar(s, var_origin, so);
+    get_entvar(p, var_origin, po);
+    new Float:dx = so[0] - po[0], Float:dy = so[1] - po[1];
+    new Float:d = floatsqroot(dx * dx + dy * dy);
+    if (d > 48.0)
+    {
+        new Float:pull = floatclamp(ZcF(ZCV_SIR_PULL), 0.0, 800.0);
+        get_entvar(p, var_velocity, vel);
+        vel[0] = vel[0] * 0.5 + dx / d * pull;
+        vel[1] = vel[1] * 0.5 + dy / d * pull;
+        set_entvar(p, var_velocity, vel);
+    }
+    if (g_iZcTick % 3 == 0)
+    {
+        so[2] += 20.0;
+        po[2] += 10.0;
+        FxBeam(so, po, g_sprBeam, 255, 90, 200, 6);
+    }
+}
+
+/* ---------------- 21 KALE: tahkim ---------------- */
+
+bool:BulwarkFortify(id)
+{
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    g_fFortify[id] = get_gametime() + floatclamp(ZcF(ZCV_BUL_TIME), 0.5, 30.0);
+    ApplyRender(id);
+    FxRingEx(o, 130, 150, 130, 220, 24, 5);
+    FxSparks(o);
+    FxLight(o, 140, 160, 140, 25, 10, 15);
+    EmitZombieSound(id, "ABILITY", "ABILITY_SHIELD");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 2.0, "BULWARK_YOU");
+    return true;
+}
+
+/* ---------------- 22 SPOR ANA: spor kesesi ---------------- */
+
+bool:SporePlant(id)
+{
+    new Float:now = get_gametime();
+    new maxp = clamp(ZcN(ZCV_SPO_MAX), 1, 6);
+
+    // Sinira ulasildiysa en eski kese patlamadan soner
+    new ent, n, oldest, Float:oldT = 999999.0;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", SPORE_CLASS)) > 0)
+    {
+        if (get_entvar(ent, var_iuser1) != id)
+            continue;
+        n++;
+        if (Float:get_entvar(ent, var_fuser4) < oldT)
+        {
+            oldT = Float:get_entvar(ent, var_fuser4);
+            oldest = ent;
+        }
+    }
+    if (n >= maxp && oldest)
+    {
+        SporeRemove(oldest, true);
+        n--;
+    }
+
+    new Float:o[3], Float:pos[3];
+    get_entvar(id, var_origin, o);
+    FloorAt(o, pos);
+
+    ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return false;
+
+    set_entvar(ent, var_classname, SPORE_CLASS);
+    if (g_szSporeModel[0])
+    {
+        engfunc(EngFunc_SetModel, ent, g_szSporeModel);
+        set_entvar(ent, var_sequence, 0);
+        set_entvar(ent, var_framerate, 1.0);
+        set_entvar(ent, var_animtime, now);
+        set_entvar(ent, var_renderfx, kRenderFxGlowShell);
+        set_entvar(ent, var_rendercolor, Float:{110.0, 200.0, 60.0});
+        set_entvar(ent, var_renderamt, 6.0);
+    }
+    else
+    {
+        new spr[64];
+        copy(spr, charsmax(spr), g_szSprSpore[0] ? g_szSprSpore : g_szSprOrb);
+        if (spr[0])
+        {
+            engfunc(EngFunc_SetModel, ent, spr);
+            set_entvar(ent, var_rendermode, kRenderTransAdd);
+            set_entvar(ent, var_renderamt, 220.0);
+            set_entvar(ent, var_rendercolor, Float:{110.0, 220.0, 60.0});
+            set_entvar(ent, var_scale, 0.45);
+        }
+        pos[2] += 14.0;
+    }
+
+    new Float:hp = float(clamp(ZcN(ZCV_SPO_HP), 1, 5000));
+    set_entvar(ent, var_movetype, MOVETYPE_NONE);
+    set_entvar(ent, var_solid, SOLID_BBOX);
+    engfunc(EngFunc_SetSize, ent, Float:{-10.0, -10.0, 0.0}, Float:{10.0, 10.0, 22.0});
+    engfunc(EngFunc_SetOrigin, ent, pos);
+    set_entvar(ent, var_takedamage, DAMAGE_YES);
+    set_entvar(ent, var_health, hp);
+    set_entvar(ent, var_max_health, hp);
+    set_entvar(ent, var_iuser1, id);
+    set_entvar(ent, var_fuser1, now + 1.0);                                          // kurulma
+    set_entvar(ent, var_fuser2, now + floatclamp(ZcF(ZCV_SPO_LIFE), 5.0, 600.0));    // omur
+    set_entvar(ent, var_fuser4, now);
+    SetThink(ent, "fw_SporeThink");
+    set_entvar(ent, var_nextthink, now + 0.2);
+
+    FxRingSmall(pos, 110, 200, 60);
+    FxParticles(pos, 30, 60, 4);
+    EmitZombieSound(id, "ABILITY", "ABILITY_TOXIC");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 1.5, "SPORE_YOU", n + 1);
+    return true;
+}
+
+public fw_SporeThink(ent)
+{
+    if (is_nullent(ent))
+        return;
+
+    new owner = get_entvar(ent, var_iuser1);
+    new Float:now = get_gametime();
+    if (!g_bRoundActive || !is_user_alive(owner) || !IsClassZombie(owner, ZC_SPOREMOTHER) || now >= Float:get_entvar(ent, var_fuser2))
+    {
+        SporeRemove(ent, true);
+        return;
+    }
+
+    new Float:o[3], Float:po[3];
+    get_entvar(ent, var_origin, o);
+    if (now >= Float:get_entvar(ent, var_fuser1))
+    {
+        new Float:rad = floatclamp(ZcF(ZCV_SPO_RAD), 20.0, 600.0);
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (!is_user_alive(p) || g_bZombie[p])
+                continue;
+            get_entvar(p, var_origin, po);
+            if (get_distance_f(o, po) <= rad)
+            {
+                SporeBurst(ent, owner);
+                return;
+            }
+        }
+    }
+    if (random_num(1, 6) == 1)
+        FxLight(o, 110, 220, 60, 8, 5, 10);
+
+    set_entvar(ent, var_nextthink, now + 0.2);
+}
+
+SporeBurst(ent, owner)
+{
+    new Float:o[3], Float:po[3], name[32];
+    get_entvar(ent, var_origin, o);
+    ZcNameOf(owner, name, charsmax(name));
+    new Float:rad = floatclamp(ZcF(ZCV_SPO_RAD), 20.0, 600.0) * 1.4;
+    new ticks = clamp(ZcN(ZCV_SPO_POISON), 0, 30), Float:slow = floatclamp(ZcF(ZCV_SPO_SLOW), 0.0, 10.0);
+    new hits;
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad)
+            continue;
+        if (ticks > 0)
+        {
+            g_iPoison[p] = max(g_iPoison[p], ticks);
+            g_iPoisonBy[p] = owner;
+        }
+        if (slow > 0.0)
+            SlowHuman(p, slow);
+        FadeOne(p, 110, 200, 60, 130, 1.2);
+        HudToS(p, SL_ALERT, CLR_DANGER, 1.8, "SPORE_HIT", name);
+        hits++;
+    }
+
+    FxSprite(o, g_sprSpore ? g_sprSpore : g_sprSmoke, g_sprSpore ? 12 : 25, 220);
+    FxParticles(o, 120, 60, 8);
+    FxRingEx(o, 110, 200, 60, floatround(rad), 14, 4);
+    FxLight(o, 110, 220, 60, 30, 8, 20);
+    EmitKeyPos(o, "SPOREMOTHER_BURST");
+    if (hits && is_user_connected(owner))
+        HudTo(owner, SL_PERS, CLR_ZOMBIE, 1.5, "SPORE_BURST_YOU", hits);
+    SporeRemove(ent, false);
+}
+
+// Kese hasari: sadece insanlar kirabilir (fw_EntTakeDamage)
+SporeTakeDamage(ent, attacker, Float:damage)
+{
+    if (!(1 <= attacker <= g_iMax) || !is_user_connected(attacker) || g_bZombie[attacker])
+        return HAM_SUPERCEDE;
+
+    new Float:hp = Float:get_entvar(ent, var_health) - damage;
+    if (hp > 0.0)
+    {
+        set_entvar(ent, var_health, hp);
+        new Float:o[3];
+        get_entvar(ent, var_origin, o);
+        if (random_num(1, 3) == 1)
+            FxParticles(o, 20, 60, 2);
+        return HAM_SUPERCEDE;
+    }
+
+    new owner = get_entvar(ent, var_iuser1);
+    if (is_user_connected(owner))
+    {
+        new name[32];
+        ZcNameOf(attacker, name, charsmax(name));
+        Chat(owner, "SPORE_DESTROYED", name);
+    }
+    AddAP(attacker, 1, true, true);
+    SporeRemove(ent, true);
+    return HAM_SUPERCEDE;
+}
+
+SporeRemove(ent, bool:puff)
+{
+    if (is_nullent(ent))
+        return;
+    if (puff)
+    {
+        new Float:o[3];
+        get_entvar(ent, var_origin, o);
+        FxSprite(o, g_sprSmoke, 6, 100);
+        FxParticles(o, 30, 60, 3);
+    }
+    SetThink(ent, "");
+    set_entvar(ent, var_takedamage, DAMAGE_NO);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    set_entvar(ent, var_iuser1, 0);
+    set_entvar(ent, var_classname, "vex_removed");
+    set_entvar(ent, var_flags, FL_KILLME);
+}
+
+RemovePlayerSpores(id)
+{
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", SPORE_CLASS)) > 0)
+    {
+        if (get_entvar(ent, var_iuser1) == id)
+            SporeRemove(ent, true);
+    }
+}
+
+/* ---------------- 23 KABUS: dehset ---------------- */
+
+bool:NightmareTerror(id)
+{
+    new Float:o[3], Float:po[3], name[32], hits;
+    get_entvar(id, var_origin, o);
+    ZcNameOf(id, name, charsmax(name));
+    new Float:now = get_gametime();
+    new Float:rad = floatclamp(ZcF(ZCV_NM_RAD), 50.0, 2000.0), Float:blind = floatclamp(ZcF(ZCV_NM_BLIND), 0.5, 10.0);
+
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        if (get_distance_f(o, po) > rad || !ZcVisible(id, p))
+            continue;
+        g_fBlind[p] = now + blind;
+        FadeEx(p, 0, 0, 0, 252, 0.7, floatmax(0.1, blind - 0.7));
+        LightsOut(p, blind);
+        ShakeOne(p);
+        PlayKey(p, "HEARTBEAT");
+        HudToS(p, SL_ALERT, CLR_DANGER, 2.0, "NIGHTMARE_HIT", name);
+        hits++;
+    }
+
+    g_fTerror[id] = now + floatclamp(ZcF(ZCV_NM_BOOST), 0.5, 15.0);
+    rg_reset_maxspeed(id);
+    ApplyRender(id);
+
+    FxRingEx(o, 120, 0, 0, floatround(rad), 30, 8);
+    FxImplosion(o, 200, 40, 6);
+    FxSprite(o, g_sprSmoke, 30, 50);
+    FxLight(o, 160, 0, 0, 35, 10, 10);
+    EmitZombieSound(id, "ABILITY", "ABILITY_SCREAM");
+    HudTo(id, SL_PERS, CLR_ZOMBIE, 2.0, "NIGHTMARE_YOU", hits);
+    return true;
+}
+
+// Sureli sinif yeteneginin kalan suresi (HUD: "[R] AKTIF")
+Float:ZcActiveLeft(id)
+{
+    new Float:now = get_gametime(), Float:m = 0.0;
+    new Float:t[6];
+    t[0] = g_fCharge[id]; t[1] = g_fBurrow[id]; t[2] = g_fDisguise[id];
+    t[3] = g_fFortify[id]; t[4] = g_fTerror[id]; t[5] = g_fLava[id];
+    for (new i = 0; i < sizeof t; i++)
+    {
+        if (t[i] - now > m)
+            m = t[i] - now;
+    }
+    if (g_iHookEnt[id] && ZProjValid(g_iHookEnt[id]))
+        m = floatmax(m, 0.1);
+    return m;
+}
+
+/* ---------------- Her kare (fw_PreThink) ---------------- */
+
+ZcPreThink(id)
+{
+    if (g_iHookedBy[id])
+        HookPullVictim(id);
+    if (!g_bZombie[id])
+        return;
+    if (g_fCharge[id] > 0.0)
+        ChargeThink(id);
+    if (g_fPounce[id] > 0.0 && is_user_alive(id))
+        PounceThink(id);
+}
+
+/* ---------------- 0.1 sn zamanlayici ---------------- */
+
+public task_ZcTick()
+{
+    g_iZcTick++;
+    if (!g_bRoundActive)
+        return;
+
+    new Float:now = get_gametime();
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_alive(id))
+            continue;
+
+        // Sersemletme / kok / yavaslama suresi hassas biter (saniyelik kontrolu beklemez)
+        if (g_fFrozen[id] > 0.0 && now > g_fFrozen[id])
+        {
+            g_fFrozen[id] = 0.0;
+            ApplyRender(id);
+            rg_reset_maxspeed(id);
+        }
+        if (g_fSlow[id] > 0.0 && now > g_fSlow[id])
+        {
+            g_fSlow[id] = 0.0;
+            rg_reset_maxspeed(id);
+        }
+
+        if (g_bZombie[id])
+            ZcTickZombie(id, now);
+        else
+            ZcTickHuman(id, now);
+    }
+
+    if (g_iZcTick % 5 == 0)
+    {
+        LavaDamage();
+        if (ZcN(ZCV_BOT))
+            BotAbilities();
+    }
+}
+
+ZcTickZombie(id, Float:now)
+{
+    if (g_fFortify[id] > 0.0 && now > g_fFortify[id])
+    {
+        g_fFortify[id] = 0.0;
+        ApplyRender(id);
+    }
+    if (g_fTerror[id] > 0.0)
+    {
+        if (now > g_fTerror[id])
+        {
+            g_fTerror[id] = 0.0;
+            rg_reset_maxspeed(id);
+            ApplyRender(id);
+        }
+        else if (g_iZcTick % 3 == 0)
+        {
+            new Float:o[3];
+            get_entvar(id, var_origin, o);
+            FxLight(o, 140, 0, 0, 12, 4, 10);
+        }
+    }
+    if (g_fDisguise[id] > 0.0 && now > g_fDisguise[id])
+        MimicReveal(id);
+
+    if (g_fBurrow[id] > 0.0)
+    {
+        if (now >= g_fBurrow[id])
+            BurrowErupt(id);
+        else
+        {
+            new Float:o[3], Float:fl[3];
+            get_entvar(id, var_origin, o);
+            FloorAt(o, fl);
+            FxParticles(fl, 24, 22, 2);
+            if (g_iZcTick % 3 == 0)
+                FxSprite(fl, g_sprSmoke, 5, 90);
+        }
+    }
+
+    if (g_fLava[id] > 0.0)
+    {
+        if (now > g_fLava[id])
+            g_fLava[id] = 0.0;
+        else
+        {
+            new Float:o[3];
+            get_entvar(id, var_origin, o);
+            if ((get_entvar(id, var_flags) & FL_ONGROUND) && get_distance_f(o, g_fLavaPos[id]) >= 64.0)
+            {
+                g_fLavaPos[id] = o;
+                MagmaPool(id, o);
+            }
+            if (g_iZcTick % 2 == 0)
+                FxLight(o, 255, 90, 0, 14, 3, 10);
+        }
+    }
+}
+
+ZcTickHuman(id, Float:now)
+{
+    if (g_fLure[id] > 0.0)
+        LureTick(id, now);
+
+    if (g_fWebbed[id] > 0.0)
+    {
+        if (now > g_fWebbed[id])
+            g_fWebbed[id] = 0.0;
+        else if (g_iZcTick % 5 == 0)
+        {
+            new Float:o[3];
+            get_entvar(id, var_origin, o);
+            FxSprite(o, g_sprWeb ? g_sprWeb : g_sprSmoke, g_sprWeb ? 3 : 4, 160);
+        }
+    }
+    if (g_fNoLight[id] > 0.0 && now > g_fNoLight[id])
+        g_fNoLight[id] = 0.0;
+    if (g_fBlind[id] > 0.0 && now > g_fBlind[id])
+        g_fBlind[id] = 0.0;
+}
+
+/* ---------------- Temizlik ---------------- */
+
+// Oyuncunun tum sinif yetenegi durumlari + varliklari (hem zombi hem kurban tarafi)
+ZcCleanup(id)
+{
+    if (!(1 <= id <= 32))
+        return;
+
+    // Zombi tarafi: kanca / ag / keseler
+    if (g_iHookEnt[id] && ZProjValid(g_iHookEnt[id]))
+        ZProjRemove(g_iHookEnt[id]);
+    g_iHookEnt[id] = 0;
+    RemoveOwnedProj(id);
+    RemovePlayerSpores(id);
+
+    if (g_fBurrow[id] > 0.0)
+        BurrowCancel(id);
+    if (g_fDisguise[id] > 0.0)
+    {
+        g_fDisguise[id] = 0.0;
+        if (is_user_alive(id) && g_bZombie[id])
+        {
+            new cls = clamp(g_iClass[id], 0, NUM_CLASSES - 1);
+            if (g_szZModel[cls][0])
+                rg_set_user_model(id, g_szZModel[cls]);
+            else
+                rg_reset_user_model(id);
+            rg_set_user_footsteps(id, false);
+        }
+    }
+    new bool:render = (g_fCharge[id] > 0.0 || g_fFortify[id] > 0.0 || g_fTerror[id] > 0.0) ? true : false;
+    g_fPounce[id] = 0.0;
+    g_fCharge[id] = 0.0;
+    g_iChargeHit[id] = 0;
+    g_fLava[id] = 0.0;
+    g_fFortify[id] = 0.0;
+    g_fTerror[id] = 0.0;
+    if (render && is_user_alive(id))
+    {
+        ApplyRender(id);
+        rg_reset_maxspeed(id);
+    }
+
+    // Bu sirenin ninnisindeki insanlar serbest
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (g_iLureBy[p] == id)
+            LureEnd(p, true);
+    }
+
+    // Kurban tarafi
+    if (g_iHookedBy[id])
+    {
+        new b = g_iHookedBy[id];
+        if ((1 <= b <= g_iMax) && g_iHookEnt[b] && ZProjValid(g_iHookEnt[b]))
+            ZProjRemove(g_iHookEnt[b]);
+        g_iHookedBy[id] = 0;
+    }
+    if (g_fLure[id] > 0.0)
+        LureEnd(id, true);
+    if (g_fBlind[id] > get_gametime())
+        FadeClear(id);
+    g_fBlind[id] = 0.0;
+    g_fNoLight[id] = 0.0;
+    g_fWebbed[id] = 0.0;
+}
+
+// Round sonu / yeni round: herkes + sahipsiz kalmis tum varliklar
+ZcCleanupAll()
+{
+    for (new id = 1; id <= g_iMax; id++)
+        ZcCleanup(id);
+
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", ZPROJ_CLASS)) > 0)
+        ZProjRemove(ent);
+    ent = 0;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", SPORE_CLASS)) > 0)
+        SporeRemove(ent, false);
+    ent = 0;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "beam")) > 0)
+    {
+        if (get_entvar(ent, var_iuser1) == BEAM_MARK_HOOK)
+            set_entvar(ent, var_flags, FL_KILLME);
+    }
+    for (new s = 0; s < MAX_POOLS; s++)
+    {
+        if (g_iPoolType[s] == 2)
+            g_fPoolEnd[s] = 0.0;
+    }
+}
+
+/* ---------------- Botlar: zombi yetenekleri ---------------- */
+
+// Sinif yeteneginin kullanildigi en uzak mesafe (insan gorunur olmali)
+new const Float:BOT_SKILL_RANGE[NUM_CLASSES] =
+{
+    500.0, 650.0, 350.0, 420.0, 9999.0, 700.0, 260.0, 300.0, 400.0, 280.0, 420.0, 600.0,
+    800.0, 420.0, 520.0, 850.0, 350.0, 330.0, 900.0, 600.0, 380.0, 400.0, 600.0, 430.0
+};
+
+stock ZcNearestHuman(id, Float:range)
+{
+    new Float:o[3], Float:po[3], best, Float:bestD = range;
+    get_entvar(id, var_origin, o);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p) || g_bZombie[p])
+            continue;
+        get_entvar(p, var_origin, po);
+        new Float:d = get_distance_f(o, po);
+        if (d > bestD || !ZcVisible(id, p))
+            continue;
+        bestD = d;
+        best = p;
+    }
+    return best;
+}
+
+// Botun bakisini hedefe cevir (yonlu yetenekler icin)
+stock ZcFace(id, t)
+{
+    new Float:eye[3], Float:po[3], Float:dir[3], Float:ang[3];
+    ZcEye(id, eye);
+    get_entvar(t, var_origin, po);
+    po[2] += 8.0;
+    for (new i = 0; i < 3; i++)
+        dir[i] = po[i] - eye[i];
+    engfunc(EngFunc_VecToAngles, dir, ang);
+    ang[0] = -ang[0];
+    set_entvar(id, var_v_angle, ang);
+    ang[0] = 0.0;
+    set_entvar(id, var_angles, ang);
+}
+
+BotAbilities()
+{
+    new Float:now = get_gametime();
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_alive(id) || !is_user_bot(id) || !g_bZombie[id] || g_bMinion[id] || g_fFrozen[id] > now)
+            continue;
+
+        if (g_bBoss[id])
+        {
+            // Bossun R yetenegi BossAutoR'da; burada [F] atilma
+            if (g_fBossIntro > now || now < g_fLeapCool[id] || random_num(1, 100) > 30)
+                continue;
+            new t = ZcNearestHuman(id, 800.0);
+            if (t)
+            {
+                ZcFace(id, t);
+                SkillTrigger(id, 2);
+            }
+            continue;
+        }
+        if (g_bNemesis[id] || g_bAssassin[id])
+        {
+            new t = ZcNearestHuman(id, 750.0);
+            if (!t)
+                continue;
+            if (now >= g_fFCool[id] && random_num(1, 100) <= 35)
+                SkillTrigger(id, 2);
+            else if (now >= g_fLeapCool[id] && random_num(1, 100) <= 30)
+            {
+                ZcFace(id, t);
+                SkillTrigger(id, 1);
+            }
+            continue;
+        }
+
+        if (now < g_fCool[id] || random_num(1, 100) > 45)
+            continue;
+        new cls = clamp(g_iClass[id], 0, NUM_CLASSES - 1);
+        if (cls == ZC_LEECH && Float:get_entvar(id, var_health) > float(g_iMaxHP[id]) * 0.6)
+            continue;
+        new t = ZcNearestHuman(id, (cls == ZC_LEECH) ? 900.0 : BOT_SKILL_RANGE[cls]);
+        if (!t)
+            continue;
+        ZcFace(id, t);
+        SkillTrigger(id, 1);
     }
 }
 
@@ -18089,4 +21351,650 @@ TickAfk()
             }
         }
     }
+}
+
+/* ================================================================== */
+/*  v3.0 (B)  KAFA USTU GOSTERGELER                                    */
+/*  - Boss: oyunlardaki gibi buyuk can bari (bossbar.spr, 51 kare) +   */
+/*    ustunde boss amblemi (bossicon.spr, kare = boss no). Herkes      */
+/*    gorur; bossun kendisi gormez (vex_overhead_self 0).              */
+/*  - Nemesis / Assassin / Alfa zombi: kucuk can bari (hpbar_small).   */
+/*  - Ikonlar: VIP / admin / round MVP'si / son insan / alfa zombi     */
+/*    (vex_head_icons bit maskesi: 1 VIP 2 admin 4 MVP 8 son insan     */
+/*    16 alfa).                                                        */
+/*  Konum: MOVETYPE_FOLLOW (motor her karede oyuncuyu izler, ofset =   */
+/*  v_angle). Kare / gorunurluk 0.05 sn'de bir guncellenir. Olum,      */
+/*  rol degisimi, round sonu, cikis ve harita degisiminde silinir.     */
+/*  Sprite dosyasi yoksa o gosterge sessizce kapali kalir.             */
+/* ================================================================== */
+
+#define OVH_ICONBIT_VIP   1
+#define OVH_ICONBIT_ADMIN 2
+#define OVH_ICONBIT_MVP   4
+#define OVH_ICONBIT_LAST  8
+#define OVH_ICONBIT_ALPHA 16
+
+#define OVH_MAGIC 0x56584F48   // var_iuser2 isareti: varlik gercekten bizim gostergemiz mi?
+
+
+// Kayitli gosterge hala bizim mi? (silinip indeksi baska varliga gecmis olabilir)
+bool:OvhValid(ent, id)
+{
+    return (ent > g_iMax && !is_nullent(ent) && get_entvar(ent, var_iuser2) == OVH_MAGIC && get_entvar(ent, var_iuser1) == id) ? true : false;
+}
+
+OvhInit()
+{
+    for (new id = 0; id <= 32; id++)
+    {
+        g_iOvhBar[id] = 0; g_iOvhEmb[id] = 0; g_iOvhIcon[id] = 0;
+        g_iOvhBarType[id] = -1; g_iOvhIconType[id] = -1;
+    }
+    g_iOvhCount = 0;
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+    {
+        g_iOvhCtl = 0;
+        return;
+    }
+    set_entvar(ent, var_classname, OVH_CTL_CLASS);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    set_entvar(ent, var_movetype, MOVETYPE_NONE);
+    set_entvar(ent, var_effects, EF_NODRAW);
+    SetThink(ent, "fw_OvhThink");
+    set_entvar(ent, var_nextthink, get_gametime() + 1.0);
+    g_iOvhCtl = ent;
+}
+
+public fw_OvhThink(ent)
+{
+    if (ent != g_iOvhCtl || is_nullent(ent))
+        return;
+
+    new Float:now = get_gametime();
+    set_entvar(ent, var_nextthink, now + 0.05);
+    g_iOvhTick++;
+
+    new bool:on = get_pcvar_num(g_pOvhEnable) ? true : false;
+    if (g_iOvhTick % 5 == 0)
+        g_iOvhHumans = (g_bRoundActive && !g_bRoundEnded) ? CountHumans(true) : 0;
+
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_connected(id))
+        {
+            if (g_iOvhBar[id] || g_iOvhEmb[id] || g_iOvhIcon[id])
+                OvhRemove(id);
+            continue;
+        }
+        // Rol / ikon secimi 0.25 sn'de bir (oyuncular arasi dagitilmis)
+        if ((g_iOvhTick + id) % 5 == 0)
+            OvhRefresh(id, on);
+        // Kare / yukseklik: oyuncu basina 0.1 sn (konumu motor her karede izler)
+        if ((g_iOvhTick + id) % 2 == 0 && (g_iOvhBar[id] || g_iOvhEmb[id] || g_iOvhIcon[id]))
+            OvhUpdate(id);
+        if (g_bZombie[id] && (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]))
+            VoiceTick(id, now);
+        else
+            g_fStepDist[id] = 0.0;
+    }
+}
+
+// Gerekli gostergeleri olustur / gereksizleri sil
+OvhRefresh(id, bool:on)
+{
+    new barType = -1, icon = -1;
+    new bool:alive = is_user_alive(id) ? true : false;
+    if (on && alive && !OvhHidden(id))
+    {
+        if (!g_bRoundEnded)
+        {
+            if (g_bBoss[id] && g_iBoss == id && g_szOvhSpr[OVS_BOSSBAR][0])
+                barType = OVS_BOSSBAR;
+            else if ((g_bNemesis[id] || g_bAssassin[id] || (g_bZombie[id] && g_bAlpha[id])) && g_szOvhSpr[OVS_SMALLBAR][0])
+                barType = OVS_SMALLBAR;
+        }
+        if (!g_bBoss[id])
+            icon = OvhIconFor(id);
+    }
+
+    // Can bari
+    if (barType != g_iOvhBarType[id] || (g_iOvhBar[id] && !OvhValid(g_iOvhBar[id], id)))
+    {
+        OvhKill(g_iOvhBar[id]);
+        g_iOvhSent[id] = -1;
+        g_iOvhBar[id] = 0;
+        g_iOvhBarType[id] = -1;
+        if (barType >= 0)
+        {
+            new Float:w = get_pcvar_float(barType == OVS_BOSSBAR ? g_pBossBarW : g_pSmallBarW);
+            g_iOvhBar[id] = OvhSpawn(id, barType, floatclamp(w, 8.0, 400.0) / float(g_iOvhWidth[barType]));
+            if (g_iOvhBar[id])
+                g_iOvhBarType[id] = barType;
+        }
+    }
+
+    // Boss amblemi (barin ustunde)
+    new bool:wantEmb = (barType == OVS_BOSSBAR && g_szOvhSpr[OVS_BOSSICON][0]) ? true : false;
+    if (g_iOvhEmb[id] && (!wantEmb || !OvhValid(g_iOvhEmb[id], id)))
+    {
+        OvhKill(g_iOvhEmb[id]);
+        g_iOvhSent[id] = -1;
+        g_iOvhEmb[id] = 0;
+    }
+    if (wantEmb && !g_iOvhEmb[id])
+    {
+        new sz = max(g_iOvhWidth[OVS_BOSSICON], g_iOvhHeight[OVS_BOSSICON]);
+        g_iOvhEmb[id] = OvhSpawn(id, OVS_BOSSICON, 28.0 / float(max(1, sz)));
+        if (g_iOvhEmb[id])
+            set_entvar(g_iOvhEmb[id], var_frame, float(clamp(g_iBossType, 0, g_iOvhFrames[OVS_BOSSICON] - 1)));
+    }
+
+    // Ikon
+    if (icon != g_iOvhIconType[id] || (g_iOvhIcon[id] && !OvhValid(g_iOvhIcon[id], id)))
+    {
+        OvhKill(g_iOvhIcon[id]);
+        g_iOvhSent[id] = -1;
+        g_iOvhIcon[id] = 0;
+        g_iOvhIconType[id] = -1;
+        if (icon >= 0)
+        {
+            new sz = max(g_iOvhWidth[icon], g_iOvhHeight[icon]);
+            g_iOvhIcon[id] = OvhSpawn(id, icon, floatclamp(get_pcvar_float(g_pIconSize), 6.0, 64.0) / float(max(1, sz)));
+            if (g_iOvhIcon[id])
+                g_iOvhIconType[id] = icon;
+        }
+    }
+}
+
+// Oncelik: son insan > MVP > alfa > admin > VIP
+OvhIconFor(id)
+{
+    new bits = get_pcvar_num(g_pIcons);
+    if (!bits)
+        return -1;
+    if ((bits & OVH_ICONBIT_LAST) && g_szOvhSpr[OVS_LAST][0] && !g_bZombie[id] && g_iOvhHumans == 1)
+        return OVS_LAST;
+    if ((bits & OVH_ICONBIT_MVP) && g_szOvhSpr[OVS_MVP][0] && g_iRoundMvp == id)
+        return OVS_MVP;
+    if ((bits & OVH_ICONBIT_ALPHA) && g_szOvhSpr[OVS_ALPHA][0] && g_bZombie[id] && g_bAlpha[id])
+        return OVS_ALPHA;
+    if (g_bNemesis[id] || g_bAssassin[id] || g_bMinion[id])
+        return -1;
+    new flags = get_user_flags(id);
+    if ((bits & OVH_ICONBIT_ADMIN) && g_szOvhSpr[OVS_ADMIN][0] && (flags & ADMIN_BAN))
+        return OVS_ADMIN;
+    if ((bits & OVH_ICONBIT_VIP) && g_szOvhSpr[OVS_VIP][0] && IsVip(id))
+        return OVS_VIP;
+    return -1;
+}
+
+// Gorunmez / gizli oyuncunun ustunde gosterge olmaz (kilik, yeralti, gorunmezlik)
+bool:OvhHidden(id)
+{
+    new Float:now = get_gametime();
+    if (g_bZombie[id] && (g_fBurrow[id] > now || g_fDisguise[id] > now))
+        return true;
+    if (get_entvar(id, var_effects) & EF_NODRAW)
+        return true;
+    new mode = get_entvar(id, var_rendermode);
+    if (mode != kRenderNormal && Float:get_entvar(id, var_renderamt) < 100.0)
+        return true;
+    return false;
+}
+
+OvhSpawn(id, slot, Float:scale)
+{
+    if (!g_szOvhSpr[slot][0])
+        return 0;
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return 0;
+    set_entvar(ent, var_classname, OVH_CLASS);
+    engfunc(EngFunc_SetModel, ent, g_szOvhSpr[slot]);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
+    set_entvar(ent, var_aiment, id);
+    set_entvar(ent, var_iuser1, id);
+    set_entvar(ent, var_iuser2, OVH_MAGIC);
+    set_entvar(ent, var_v_angle, Float:{0.0, 0.0, 56.0});
+    g_iOvhSent[id] = -1;   // yeni varlik: bir sonraki guncellemede konum / kare yazilir
+    set_entvar(ent, var_rendermode, g_iOvhMode[slot]);
+    set_entvar(ent, var_renderamt, 255.0);
+    set_entvar(ent, var_rendercolor, Float:{255.0, 255.0, 255.0});
+    set_entvar(ent, var_scale, floatclamp(scale, 0.02, 4.0));
+    set_entvar(ent, var_frame, 0.0);
+    set_entvar(ent, var_framerate, 0.0);
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    o[2] += 60.0;
+    engfunc(EngFunc_SetOrigin, ent, o);
+    g_iOvhCount++;
+    return ent;
+}
+
+OvhKill(ent)
+{
+    if (ent > g_iMax && !is_nullent(ent))
+    {
+        if (get_entvar(ent, var_iuser2) == OVH_MAGIC)
+        {
+            set_entvar(ent, var_iuser2, 0);
+            set_entvar(ent, var_movetype, MOVETYPE_NONE);
+            set_entvar(ent, var_aiment, 0);
+            set_entvar(ent, var_effects, EF_NODRAW);
+            set_entvar(ent, var_flags, FL_KILLME);
+            g_iOvhCount = max(0, g_iOvhCount - 1);
+        }
+    }
+}
+
+OvhRemove(id)
+{
+    if (!(0 < id <= 32))
+        return;
+    OvhKill(g_iOvhBar[id]);
+    OvhKill(g_iOvhEmb[id]);
+    OvhKill(g_iOvhIcon[id]);
+    g_iOvhSent[id] = -1;
+    g_iOvhBar[id] = 0; g_iOvhEmb[id] = 0; g_iOvhIcon[id] = 0;
+    g_iOvhBarType[id] = -1; g_iOvhIconType[id] = -1;
+}
+
+OvhRemoveAll()
+{
+    for (new id = 1; id <= 32; id++)
+        OvhRemove(id);
+    // Kayip kalan (or. sahibi gecersiz) gostergeler
+    new ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", OVH_CLASS)) > 0)
+    {
+        set_entvar(ent, var_iuser2, 0);
+        set_entvar(ent, var_movetype, MOVETYPE_NONE);
+        set_entvar(ent, var_aiment, 0);
+        set_entvar(ent, var_classname, "vex_removed");
+        set_entvar(ent, var_flags, FL_KILLME);
+    }
+    g_iOvhCount = 0;
+}
+
+// Kare (can) + yukseklik + gizlilik
+OvhUpdate(id)
+{
+    if (!is_user_alive(id))
+    {
+        OvhRemove(id);
+        return;
+    }
+    new bool:hidden = OvhHidden(id);
+    new Float:duck = (get_entvar(id, var_flags) & FL_DUCKING) ? -18.0 : 0.0;
+    new Float:top = 48.0 + duck, Float:ofs[3];
+
+    // Degisiklik yoksa hicbir sey yazma (kare + gizlilik + comelme ayni)
+    new frameNow = -1;
+    if (g_iOvhBar[id] && g_iOvhBarType[id] >= 0)
+    {
+        new slot0 = g_iOvhBarType[id];
+        new Float:hp0 = Float:get_entvar(id, var_health), Float:mx0;
+        if (slot0 == OVS_BOSSBAR)
+            mx0 = float(max(1, g_iBossMaxHP));
+        else
+            mx0 = floatmax(floatmax(Float:get_entvar(id, var_max_health), float(g_iMaxHP[id])), hp0);
+        new last0 = max(0, g_iOvhFrames[slot0] - 1);
+        frameNow = clamp(floatround(hp0 / floatmax(1.0, mx0) * float(last0)), 0, last0);
+        if (hp0 > 0.0 && frameNow < 1 && last0 > 0)
+            frameNow = 1;
+    }
+    new sig = (frameNow + 1) | (hidden ? 0x1000 : 0) | (g_iOvhBar[id] << 13);
+    if (sig == g_iOvhSent[id] && g_fOvhSentTop[id] == duck)
+        return;
+    g_iOvhSent[id] = sig;
+    g_fOvhSentTop[id] = duck;
+
+    new bar = g_iOvhBar[id];
+    if (bar && !OvhValid(bar, id))
+    {
+        g_iOvhBar[id] = 0;
+        bar = 0;
+    }
+    if (bar)
+    {
+        new slot = g_iOvhBarType[id];
+        if (slot == OVS_BOSSBAR)
+            top = get_pcvar_float(g_pBossBarH) + duck;
+        set_entvar(bar, var_frame, float(max(0, frameNow)));
+        ofs[2] = top;
+        set_entvar(bar, var_v_angle, ofs);
+        set_entvar(bar, var_effects, hidden ? EF_NODRAW : 0);
+        top += float(g_iOvhHeight[slot]) * Float:get_entvar(bar, var_scale) * 0.5;
+    }
+
+    new emb = g_iOvhEmb[id];
+    if (emb && !OvhValid(emb, id))
+    {
+        g_iOvhEmb[id] = 0;
+        emb = 0;
+    }
+    if (emb)
+    {
+        new Float:esz = float(max(g_iOvhWidth[OVS_BOSSICON], g_iOvhHeight[OVS_BOSSICON])) * Float:get_entvar(emb, var_scale);
+        ofs[2] = top + esz * 0.5 + 3.0;
+        set_entvar(emb, var_v_angle, ofs);
+        set_entvar(emb, var_effects, hidden ? EF_NODRAW : 0);
+        top = ofs[2] + esz * 0.5;
+    }
+
+    new icon = g_iOvhIcon[id];
+    if (icon && !OvhValid(icon, id))
+    {
+        g_iOvhIcon[id] = 0;
+        icon = 0;
+    }
+    if (icon)
+    {
+        new slot = g_iOvhIconType[id];
+        new Float:isz = 16.0;
+        if (slot >= 0)
+            isz = float(max(g_iOvhWidth[slot], g_iOvhHeight[slot])) * Float:get_entvar(icon, var_scale);
+        ofs[2] = (bar ? top + 3.0 : top) + isz * 0.5;
+        set_entvar(icon, var_v_angle, ofs);
+        set_entvar(icon, var_effects, hidden ? EF_NODRAW : 0);
+    }
+}
+
+// Kendi gostergeni gormezsin (ekranin ustunu kapatmasin)
+public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
+{
+    if (player || !g_iOvhCount || ent <= g_iMax || !(1 <= host <= g_iMax))
+        return FMRES_IGNORED;
+    if (ent != g_iOvhBar[host] && ent != g_iOvhEmb[host] && ent != g_iOvhIcon[host])
+        return FMRES_IGNORED;
+    if (get_pcvar_num(g_pOvhSelf))
+        return FMRES_IGNORED;
+    set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+    return FMRES_IGNORED;
+}
+
+/* ================================================================== */
+/*  v3.0 (B)  BOSS / NEMESIS / ASSASSIN SESLERI                         */
+/*  INTRO (giris, herkese) - IDLE (ara sira hirlama, bekleme suresi    */
+/*  vex_boss_idle_min..max) - PAIN / PAIN2 (sirayla, vex_boss_pain_cd) */
+/*  STEP (hiza gore adim, vex_boss_step_dist) - ATTACK (pence savurma, */
+/*  vex_boss_attack_cd) - PHASE (faz degisimi) - KILL (oldurme alayi)  */
+/*  - DEATH. Eski anahtar adlari (SPAWN/ROAR/SCREAM/ABILITY) yeni      */
+/*  olaylara baglidir.                                                 */
+/* ================================================================== */
+
+// Eski olay adi -> yeni olay adi
+stock BossEvMap(const ev[], out[], len)
+{
+    if (equal(ev, "SPAWN"))        copy(out, len, "INTRO");
+    else if (equal(ev, "ROAR"))    copy(out, len, "IDLE");
+    else if (equal(ev, "SCREAM"))  copy(out, len, "ATTACK");
+    else if (equal(ev, "ABILITY")) copy(out, len, "ATTACK");
+    else                           copy(out, len, ev);
+}
+
+// B<tip>_<olay> -> B<tip>_<eski olay> -> BOSS_<olay>. Bulunan anahtar 'key'e yazilir.
+bool:BossSndKey(const ev[], key[], len)
+{
+    new path[128], nev[16];
+    BossEvMap(ev, nev, charsmax(nev));
+    formatex(key, len, "B%d_%s", g_iBossType, nev);
+    if (TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
+        return true;
+    formatex(key, len, "B%d_%s", g_iBossType, ev);
+    if (TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
+        return true;
+    formatex(key, len, "BOSS_%s", ev);
+    if (TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
+        return true;
+    formatex(key, len, "BOSS_%s", nev);
+    if (TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
+        return true;
+    key[0] = 0;
+    return false;
+}
+
+// Bossun olay sesi: herkese (2D). Bossa ozel ses calindiysa true.
+bool:PlayBossSound(const ev[])
+{
+    new key[24];
+    if (!BossSndKey(ev, key, charsmax(key)))
+        return false;
+    PlayKey(0, key);
+    return (key[0] == 'B' && key[1] != 'O') ? true : false;
+}
+
+// Bossun uzerinden (konumlu, varsayilan: herkes duyar)
+EmitBossSound(const ev[], Float:attn = ATTN_NONE, Float:vol = VOL_NORM)
+{
+    if (!g_iBoss || !is_user_connected(g_iBoss))
+        return;
+    new key[24], path[128];
+    if (!BossSndKey(ev, key, charsmax(key)) || !TrieGetString(g_tRes, key, path, charsmax(path)) || containi(path, ".mp3") != -1)
+        return;
+    EmitSafe(g_iBoss, CHAN_STATIC, path, vol, attn, 0, PITCH_NORM);
+}
+
+// Nemesis / Assassin sesi (NEMESIS_<olay> / ASSASSIN_<olay>)
+bool:EmitSpecialSound(id, const ev[], chan = CHAN_VOICE, Float:attn = ATTN_NORM, Float:vol = VOL_NORM)
+{
+    if (!(g_bNemesis[id] || g_bAssassin[id]))
+        return false;
+    new key[24], path[128];
+    formatex(key, charsmax(key), "%s_%s", g_bNemesis[id] ? "NEMESIS" : "ASSASSIN", ev);
+    if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0] || containi(path, ".mp3") != -1)
+        return false;
+    EmitSafe(id, chan, path, vol, attn, 0, PITCH_NORM);
+    return true;
+}
+
+// Ozel giris sesi (2D, herkese); yoksa genel BOSS_SPAWN
+PlaySpecialIntro(bool:assassin)
+{
+    new path[128];
+    new const key[] = "NEMESIS_INTRO";
+    new const key2[] = "ASSASSIN_INTRO";
+    if (TrieGetString(g_tRes, assassin ? key2 : key, path, charsmax(path)) && path[0])
+        PlayKey(0, assassin ? key2 : key);
+    else
+        PlayKey(0, "BOSS_SPAWN");
+}
+
+// Her 0.05 sn: boss adimlari (hiza gore) + boss / nemesis / assassin ara sira hirlama
+VoiceTick(id, Float:now)
+{
+    if (!is_user_alive(id) || !g_bZombie[id] || !(g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]))
+    {
+        g_fStepDist[id] = 0.0;
+        return;
+    }
+
+    // Hirlama (bekleme suresi rastgele)
+    if (g_fSndIdle[id] <= 0.0)
+        g_fSndIdle[id] = now + random_float(3.0, 6.0);
+    else if (now >= g_fSndIdle[id] && g_fBossIntro <= now)
+    {
+        new Float:lo = floatmax(2.0, get_pcvar_float(g_pBossIdleMin));
+        new Float:hi = floatmax(lo, get_pcvar_float(g_pBossIdleMax));
+        g_fSndIdle[id] = now + random_float(lo, hi);
+        if (g_bBoss[id] && id == g_iBoss)
+            EmitBossSound("IDLE", ATTN_NORM, 0.9);
+        else
+            EmitSpecialSound(id, "IDLE", CHAN_VOICE, ATTN_NORM, 0.9);
+    }
+
+    // Adimlar: sadece boss (oyunun kendi ayak sesi kapali)
+    if (!g_bBoss[id] || id != g_iBoss)
+        return;
+    if (!(get_entvar(id, var_flags) & FL_ONGROUND))
+        return;
+    new Float:v[3];
+    get_entvar(id, var_velocity, v);
+    new Float:sp = floatsqroot(v[0] * v[0] + v[1] * v[1]);
+    if (sp < 50.0)
+        return;
+    g_fStepDist[id] += sp * 0.05;
+    if (g_fStepDist[id] < floatclamp(get_pcvar_float(g_pBossStepDist), 40.0, 400.0))
+        return;
+    g_fStepDist[id] = 0.0;
+    new key[24], path[128];
+    if (!BossSndKey("STEP", key, charsmax(key)) || !TrieGetString(g_tRes, key, path, charsmax(path)))
+        return;
+    new Float:vol = floatclamp(0.55 + sp / 600.0, 0.55, 1.0);
+    EmitSafe(id, CHAN_BODY, path, vol, ATTN_NORM, 0, PITCH_NORM - 4 + random(9));
+}
+
+// fw_EmitSound: boss / nemesis / assassin icin aci, olum ve saldiri sesleri.
+// Donus: -1 = normal isleme devam, digerleri FMRES_*
+SpecialVoice(ent, const ev[])
+{
+    new Float:now = get_gametime();
+    new bool:boss = (g_bBoss[ent] && ent == g_iBoss) ? true : false;
+
+    if (equal(ev, "PAIN"))
+    {
+        if (now >= g_fSndPain[ent])
+        {
+            g_fSndPain[ent] = now + floatmax(0.2, get_pcvar_float(g_pBossPainCd));
+            if (boss)
+            {
+                g_iPainAlt[ent] = !g_iPainAlt[ent];
+                new key[24], path[128];
+                if (BossSndKey(g_iPainAlt[ent] ? "PAIN2" : "PAIN", key, charsmax(key)) && TrieGetString(g_tRes, key, path, charsmax(path)))
+                    EmitSafe(ent, CHAN_VOICE, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+                else if (BossSndKey("PAIN", key, charsmax(key)) && TrieGetString(g_tRes, key, path, charsmax(path)))
+                    EmitSafe(ent, CHAN_VOICE, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+            }
+            else
+                EmitSpecialSound(ent, "PAIN");
+        }
+        return -1;
+    }
+    if (equal(ev, "DIE"))
+    {
+        // Boss olumu BossDeath'te (herkese) calinir; ozel karakterin olum sesi rg_PlayerKilled'da
+        return FMRES_SUPERCEDE;
+    }
+    // Pence savurma: saldiri kukremesi (bekleme sureli), pence sesi normal calar
+    if (now >= g_fSndAtk[ent])
+    {
+        g_fSndAtk[ent] = now + floatmax(0.3, get_pcvar_float(g_pBossAtkCd));
+        if (boss)
+        {
+            new key[24], path[128];
+            if (BossSndKey("ATTACK", key, charsmax(key)) && TrieGetString(g_tRes, key, path, charsmax(path)))
+                EmitSafe(ent, CHAN_VOICE, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+        }
+        else
+            EmitSpecialSound(ent, "ATTACK");
+    }
+    return -1;
+}
+
+// Boss bir insani oldurdu: alay (herkes duyar, 4 sn bekleme)
+BossKillTaunt(attacker)
+{
+    if (!g_bBoss[attacker] || attacker != g_iBoss)
+        return;
+    new Float:now = get_gametime();
+    if (now < g_fSndKill)
+        return;
+    g_fSndKill = now + 4.0;
+    EmitBossSound("KILL");
+}
+
+VoiceReset(id)
+{
+    g_fSndIdle[id] = 0.0;
+    g_fSndPain[id] = 0.0;
+    g_fSndAtk[id] = 0.0;
+    g_fStepDist[id] = 0.0;
+    g_iPainAlt[id] = 0;
+}
+
+/* ---------------- 2D (sadece indirilen) ses: konumdan calinmak istenirse ---------------- */
+
+// Yol sadece precache_generic ile indirildiyse (ses tablosunda yok) true
+stock bool:SndIs2DOnly(const path[])
+{
+    return (TrieKeyExists(g_tSnd2D, path) && !TrieKeyExists(g_tSnd3D, path)) ? true : false;
+}
+
+// Varliktan calinamayan 2D sesi yakindaki (ATTN_NONE ise tum) oyunculara "spk" ile cal
+stock SpkAround(const Float:o[3], const path[], Float:attn, bool:everyone)
+{
+    if (get_pcvar_num(g_pLoopGuard) && SndLooped(path))
+        return;
+    new Float:range = 99999.0;
+    if (attn > 0.0 && !everyone)
+        range = 1200.0 / floatmax(0.5, attn);
+    new Float:po[3];
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_connected(p) || is_user_bot(p))
+            continue;
+        if (range < 99999.0)
+        {
+            get_entvar(p, var_origin, po);
+            if (get_distance_f(o, po) > range)
+                continue;
+        }
+        client_cmd(p, "spk ^"%s^"", path);
+    }
+}
+
+/* ---------------- Firlatilan bombalarin dunya modeli (SetModel) ---------------- */
+
+// POST: oyunun kendi SetModel'i (boyut / fizik) aynen uygulanir, sonra sadece gorunen model degisir
+public fw_SetModelPost(ent, const model[])
+{
+    if (ent <= g_iMax || model[0] != 'm' || is_nullent(ent))
+        return FMRES_IGNORED;
+    // Sadece "models/w_hegrenade.mdl" / w_smokegrenade / w_flashbang
+    if (!equal(model, "models/w_", 9))
+        return FMRES_IGNORED;
+    new slot = -1;
+    if (equal(model[9], "hegrenade.mdl"))           slot = 0;
+    else if (equal(model[9], "smokegrenade.mdl"))   slot = 1;
+    else if (equal(model[9], "flashbang.mdl"))      slot = 2;
+    if (slot < 0 || !g_szWNade[slot][0])
+        return FMRES_IGNORED;
+
+    // Yerdeki silah kutusu (weaponbox) degil, firlatilan bomba
+    new cls[12];
+    get_entvar(ent, var_classname, cls, charsmax(cls));
+    if (!equal(cls, "grenade"))
+        return FMRES_IGNORED;
+    // Zombinin enfeksiyon bombasi orijinal (yesil iz) kalir
+    new owner = get_entvar(ent, var_owner);
+    if (1 <= owner <= g_iMax && g_bZombie[owner])
+        return FMRES_IGNORED;
+
+    new Float:mins[3], Float:maxs[3];
+    get_entvar(ent, var_mins, mins);
+    get_entvar(ent, var_maxs, maxs);
+    engfunc(EngFunc_SetModel, ent, g_szWNade[slot]);
+    engfunc(EngFunc_SetSize, ent, mins, maxs);
+    return FMRES_IGNORED;
+}
+
+// Modeldeki animasyonu ADI ile baslat (yoksa 'fallback' numarasi; fallback < 0 ise dokunmaz)
+stock AnimByName(ent, const name[], fallback, Float:rate = 1.0)
+{
+    new seq = fallback;
+    if (name[0])
+    {
+        new found = lookup_sequence(ent, name);
+        if (found >= 0)
+            seq = found;
+    }
+    if (seq < 0)
+        return -1;
+    set_entvar(ent, var_sequence, seq);
+    set_entvar(ent, var_frame, 0.0);
+    set_entvar(ent, var_animtime, get_gametime());
+    set_entvar(ent, var_framerate, rate);
+    return seq;
 }

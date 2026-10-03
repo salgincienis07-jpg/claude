@@ -1,2 +1,4 @@
 # Dagitim paketleri (zip) depoya eklenmez
 *.zip
+__pycache__/
+*.pyc

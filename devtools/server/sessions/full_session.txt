@@ -1,0 +1,49 @@
+# Vexmira full test session (~7.5 min) for run_test.py --commands
+# "<seconds after map start> <server console command>"; forced modes / bosses apply to the NEXT
+# round, so each block is followed by "sv_restart 1" to start that round right away.
+# Modes: 0 infection 1 multi 2 nemesis 3 assassin 4 survivor 5 sniper 6 swarm 7 plague 8 armageddon 9 boss
+# Events: 1 bloodmoon 6 night 11 meteor 12 horde 17 storm ... (0-18)
+# {bossK} = K-th boss of this map's boss plan (the plugin loads 4 per map; run_test.py reads them
+# from "vex_precache_stats" at map start). vex_precache_stats also lists live boss-bar entities.
+# round 1: plain infection (bots join, first zombie is picked by the plugin)
+40  vex_mode 1
+41  vex_event 1
+42  sv_restart 1
+# boss 1
+80  vex_boss {boss0}
+81  sv_restart 1
+100 vex_precache_stats
+115 vex_precache_stats
+# nemesis + meteor
+140 vex_mode 2
+141 vex_event 11
+142 sv_restart 1
+# boss 2
+180 vex_boss {boss1}
+181 sv_restart 1
+200 vex_precache_stats
+# survivor + night
+230 vex_mode 4
+231 vex_event 6
+232 sv_restart 1
+# boss 3
+265 vex_boss {boss2}
+266 sv_restart 1
+285 vex_precache_stats
+# assassin
+310 vex_mode 3
+311 sv_restart 1
+# boss 4 + storm
+345 vex_boss {boss3}
+346 vex_event 17
+347 sv_restart 1
+365 vex_precache_stats
+# swarm + horde, then sniper, armageddon
+390 vex_mode 6
+391 vex_event 12
+392 sv_restart 1
+420 vex_mode 5
+421 sv_restart 1
+445 vex_mode 8
+446 sv_restart 1
+470 vexprobe_status
