@@ -205,3 +205,17 @@ Chat önekleri: `[VEX]` sistem (yeşil), `[BOSS]` kırmızı (takım rengi), `[E
 | 22 | Sporemother / Spor Ana | 1.00 | 265 | 0.80 | 1.00 | 15 | 26 | SPOR KESESİ: ayağına tuzak kese diker (en fazla 2); 120 birime giren insan → patlar: zehir hasarı (zamanla) + yavaşlama. Kese vurularak yok edilebilir. |
 | 23 | Nightmare / Kâbus | 0.90 | 290 | 0.80 | 1.00 | 20 | 28 | DEHŞET: 450 birimde görüş hattındaki insanların ekranı 2.5 sn kararır, fenerleri söner; Kâbus 3 sn hızlanır. |
 Botlar (CS bot) zombi iken yeteneklerini insan yakınındayken otomatik kullanır.
+
+## 13. Sahibin oyun içi geri bildirimi (2026-10-03) — ZORUNLU kalite / hizalama kuralları
+- Her şey (modeller, efektler, animasyonlar, silahlar, haritalar, sesler) "çok detaylı ve profesyonel" olmalı;
+  basit primitif görünümü kabul edilmez. Oyuncu modelleri MakeHuman (CC0) anatomisi + detaylı doku pişirme ile.
+- Kafa üstü göstergeler (can barı, boss amblemi, VIP/admin/MVP ikonları) oyuncunun İÇİNDE çıkıyordu → eklenti artık
+  modelin gerçek boyuna göre otomatik hizalar. Bunun için HER oyuncu modelinde `$bbox` modelin GERÇEK görsel
+  sınırları olmalı (bbmax.z = başın tepesi; eklenti .mdl başlığından okur). `$cbox` hull olarak kalır.
+- Lazer mayını modeli ters görünüyordu → `models/vexmira/world/lasermine.mdl`: yayıcı (lens) model +X yönünde,
+  montaj yüzü -X'te (duvara yapışan taraf), model orijini montaj yüzünün ortası; attachment 0 = lens ucu (ışın
+  buradan başlar). Eklenti yüzey normaline göre otomatik hizalar.
+- Nesnelere bağlı efektler (ikmal ışığı, auralar, kanca zinciri başlangıcı, yumurta/spor sprite'ları) görsel olarak
+  doğru noktada olmalı; v_ modellerde kol/silah görüş açısına göre hizalı, p_ modellerde silah elde düzgün.
+- Animasyonlar profesyonel olmalı: doğal yürüyüş/koşu döngüsü (ağırlık aktarımı, kalça/omuz dönüşü), ikincil hareket,
+  yumuşak geçişler, ölümlerde zemine düzgün düşüş, saldırılarda ön hazırlık + takip (anticipation / follow-through).
