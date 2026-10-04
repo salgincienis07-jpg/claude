@@ -1,0 +1,37 @@
+=====================================================================
+  VEXMIRA ZOMBIE v3.2 - ARA PAKET (3.2-dev)
+=====================================================================
+Senin v3.1 FINAL paketinin uzerine kuruldu. Gercek ReHLDS sunucusunda
+botlarla test edildi: 0 calisma hatasi. Derleme 0 hata / 0 uyari.
+KURULUM: "cstrike" klasorunu sunucuyla birlestir; vexmira.cfg ve dil
+dosyasini YENISIYLE DEGISTIR. Hazir eklenti: plugins/vexmira_zombie.amxx
+
+DUZELTMELER / YENILER
+- OZEL SILAH HATASI: alinca 1 mermiden sonra ates etmiyordu (16 silahin
+  hepsinde). Sebep: atis hizi kodu silahi dakikalarca kilitliyordu.
+  Duzeltildi; 16 silah sunucuda tek tek verilip ateslendi, hepsi saglam.
+- LAZER SOKME: aninda degil; ilerleme cubugu + sure (vex_lm_take_time 2.0).
+  Uzaklasinca / nisani cekince / hasar alinca / olunce iptal.
+- LAZER MAYINI ana menuden kalkti (market + bind + say komutlari calisir).
+- METEOR: 9 sn'de bir (vex_meteor_interval / vex_meteor_count); oyuncunun
+  ONUNE / YANINA duser, kimsenin 80 birim yakinina dusmez; once uyari.
+- ANA MENU: 22 madde yerine tek sayfa 8 madde (Market, Silahlar, Sinif &
+  Meslek, Karakter, Oduller & Eglence, Kozmetik, Ayarlar, VIP/Admin).
+- VIP: tum degerler cfg'de; yeni: her round sonu VC, otomatik VIP paketi,
+  +1 lazer mayini; VIP bilgi sayfasi menude.
+- MESAJLAR: gereksiz karsilama/ipucu yazilari kalkti; yerine 90 sn'de bir
+  EN/TR chat ipuclari (vex_chat_tip_interval, 0 = kapali).
+- DENGE: ozel silahlar zayifladi (x1.2-1.9), fiyatlar arttı; zombi canlari
+  arttı (+oyuncu basina); nemesis / assassin / bosslar cok daha guclu;
+  AP / VC kazanci yavasladi. Tam tablo: devtools/plugin/BALANCE_v32.md
+- EKSIK DOSYALAR: cfg'de olmayan dosyaya isaret eden ayar kalmadi; logda
+  "bulunamadi" uyarisi yok. Zombi / boss / el modelleri pakette.
+- GRAFIK HUD (vex_hud_style 1): artik hicbir parca kaybolmuyor.
+
+SIRADAKI (4. asama, gelecek pakette)
+- Menulerde kirmizi-sari renk tasarimi (beyaz / gri yok)
+- CSO tarzi ekran ortasi sprite bildirimler (seri olum, headshot, MVP,
+  round, kazanan, boss, enfeksiyon, level) + sesler
+- Ust round tablosu ve sag HUD'un CSO tarzi tasarimi
+- Survivor / sniper / nemesis / assassin silahlarinin cfg'den ayari
+- Hersey tek tek kontrol
