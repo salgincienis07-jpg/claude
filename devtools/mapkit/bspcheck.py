@@ -1,6 +1,6 @@
 """BSP v30 (GoldSrc) parser + validator.
 
-    python3 -m mapkit.bspcheck cstrike/maps/zm_vex_pilot.bsp [--json]
+    python3 -m mapkit.bspcheck cstrike/maps/zm_vex_pilot.bsp [--json] [--perf-only] [--at "x y z"]
 
 Checks (errors fail, warnings inform):
   * header version 30, lump bounds
@@ -14,6 +14,15 @@ Checks (errors fail, warnings inform):
   * spawn points: >= 32 CT + 32 T, exact stuck test against the compiled
     player clip hull (hull 1, standing) incl. solid brush entities, spacing,
     distance to the floor below.
+  * precache budget (entity_budget): brush entities (model slots), sounds and
+    models the game DLL precaches for the map's entities, new vs. already
+    precached on every map; errors over max_brush_ents / max_map_sounds.
+  * rendering cost (perf_analysis): GL renderer r_speeds "wpoly" estimate -
+    per-leaf PVS sums and an exact replay of the world/brush-entity drawing
+    from player eye positions; worst leaves / views with coordinates, heavy
+    brush entities, animated light styles, sprites, texture / lightmap / bsp
+    bytes; thresholds from PERF_DEFAULTS (warn p95 > 900, error max > 1300).
+    perf_at(bsp, [(x, y, z)]) gives the numbers at chosen spots.
 """
 from __future__ import annotations
 
@@ -221,7 +230,10 @@ def parse_entities(s: str) -> List[Dict[str, str]]:
 
 
 # ======================================================================
-def check(path: str, min_spawns: int = 32, spacing: float = 48.0) -> dict:
+def check(path: str, min_spawns: int = 32, spacing: float = 48.0, perf: bool = True,
+          perf_opts: Optional[dict] = None) -> dict:
+    """Validate a compiled BSP. perf: also run perf_analysis() + entity_budget() (rep['perf'],
+    rep['budget']); perf_opts: PERF_DEFAULTS overrides (thresholds, strict, ...)."""
     errs: List[str] = []
     warns: List[str] = []
     info: Dict[str, object] = {}
@@ -325,8 +337,6 @@ def check(path: str, min_spawns: int = 32, spacing: float = 48.0) -> dict:
                 errs.append(f'entity value too long for {k}')
     bm = len(b.models) - 1
     info['brush_models'] = bm
-    if bm > 64:
-        warns.append(f'{bm} brush entities use model precache slots (512 total, plugin needs many)')
 
     # ---------------- spawns
     sp = check_spawns(b, spacing)
@@ -337,7 +347,26 @@ def check(path: str, min_spawns: int = 32, spacing: float = 48.0) -> dict:
         errs.append(f'only {sp["summary"]["ct"]} CT spawns (info_player_start), need >= {min_spawns}')
     if sp['summary']['t'] < min_spawns:
         errs.append(f'only {sp["summary"]["t"]} T spawns (info_player_deathmatch), need >= {min_spawns}')
-    return {'path': path, 'errors': errs, 'warnings': warns, 'info': info}
+
+    # ---------------- precache budget + rendering cost
+    rep = {'path': path, 'errors': errs, 'warnings': warns, 'info': info}
+    o = dict(PERF_DEFAULTS, **(perf_opts or {}))
+    bud = entity_budget(b, o)
+    rep['budget'] = bud
+    e2, w2 = budget_problems(bud, bool(o['strict']))
+    errs += e2
+    warns += w2
+    if perf:
+        try:
+            pr = perf_analysis(b, o)
+        except Exception as ex:                      # never let the analysis break a compile
+            import traceback
+            warns.append(f'perf analysis failed: {ex!r} ({traceback.format_exc(limit=-1).strip().splitlines()[-2].strip()})')
+        else:
+            rep['perf'] = pr
+            errs += pr['errors']
+            warns += pr['warnings']
+    return rep
 
 
 def _vec(s):
@@ -420,10 +449,15 @@ def check_spawns(b: BSP, spacing: float = 48.0) -> dict:
 #          referenced by the marksurfaces of all PVS-visible leaves (deduped)
 #          + all faces of the PVS-visible brush entities.  Upper bound; shows
 #          how well VIS blocks.
-#   view - exact replay of steps 1-4 from player eye positions (sampled on
-#          every walkable floor, eye = floor + 53) for 8 yaw directions; the
-#          worst direction counts.  This is what r_speeds shows in game
-#          (world part of wpoly); thresholds apply to it by default.
+#   view - replay of steps 1-4 from player eye positions (sampled on every
+#          walkable floor of the world and of solid brush entities, standing
+#          hull must fit, eye = origin + 17 = floor + 54, plus every spawn) for
+#          8 yaw directions at pitch 0, fov 90 (4:3 definition, Hor+ widened to
+#          the aspect, default 16:9); the worst direction counts.  This is what
+#          r_speeds "wpoly" shows in game; thresholds apply to it by default.
+#          Checked against a scalar port of the engine traversal (same node
+#          order): identical except for eyes under water, where a few warped
+#          faces marked late in the traversal are counted extra.
 
 SUBDIVIDE_SIZE = 64.0      # Xash3D/GoldSrc GL_SubdivideSurface step for warped surfaces
 EYE_HEIGHT = 53.0          # CS: origin = floor + 36, view_ofs 17
@@ -923,50 +957,67 @@ class _Viewer:
         bmaxs = np.concatenate([w.node_maxs, w.leaf_maxs, w.ent_maxs])
         bc, bh = (bmins + bmaxs) / 2, (bmaxs - bmins) / 2
         self.A = np.einsum('dpk,nk->dpn', self.Nn, bc) + np.einsum('dpk,nk->dpn', np.abs(self.Nn), bh)
-        nwf, E = w.nwf, w.E
+        nwf = w.nwf
         self.pw = w.poly[:nwf]
         self.fnw, self.fdw, self.fbw, self.ncw = w.fn[:nwf], w.fd[:nwf], w.fback[:nwf], w.nocull[:nwf]
         self.fnode_ok = w.face_node >= 0
-        self.fnode_c = np.where(self.fnode_ok, w.face_node, 0)
         self.static = self.fnode_ok & (self.pw > 0)
         self.efn, self.efd, self.efb = w.fn[w.ef], w.fd[w.ef], w.fback[w.ef]
         self.efnc, self.efp = w.nocull[w.ef], w.poly[w.ef]
         self.cache: Dict[int, tuple] = {}
 
     def leaf_data(self, lf: int):
+        """Everything that depends only on the view leaf, restricted to its PVS: visible leaves,
+        their marksurfaces, the candidate faces, the marked nodes and their frustum box terms."""
         c = self.cache.get(lf)
-        if c is None:
-            w = self.w
-            row = w.pvs(lf)
-            c = (row, w.marked_nodes(row), (w.ent_pvs(row) & w.ent_drawn) if w.E else np.zeros(0, bool))
-            self.cache[lf] = c
+        if c is not None:
+            return c
+        w = self.w
+        row = w.pvs(lf)
+        vl = np.nonzero(row)[0]                                          # visible leaves
+        mn = np.nonzero(w.marked_nodes(row))[0]                          # their ancestors (R_MarkLeaves)
+        sel = row[w.mark_leaf]
+        mleaf = np.searchsorted(vl, w.mark_leaf[sel])                    # local leaf index
+        cf, mface = np.unique(w.mark_face[sel], return_inverse=True)    # candidate faces, local face index
+        node_local = np.full(w.nn, -1, np.int64)
+        node_local[mn] = np.arange(len(mn))
+        fnl = node_local[np.where(self.fnode_ok[cf], w.face_node[cf], 0)]
+        fok = self.static[cf] & (fnl >= 0)                             # drawable face on a marked node
+        ev = np.nonzero(w.ent_pvs(row) & w.ent_drawn)[0] if w.E else np.zeros(0, np.int64)
+        boxes = np.concatenate([mn, w.nn + vl, w.nn + w.L + ev])
+        c = {'row': row, 'A': self.A[:, :, boxes], 'nN': len(mn), 'nL': len(vl), 'mleaf': mleaf, 'mface': mface,
+             'cf': cf, 'fnl': np.where(fnl >= 0, fnl, 0), 'fok': fok, 'fn': self.fnw[cf], 'fd': self.fdw[cf],
+             'fb': self.fbw[cf], 'nc': self.ncw[cf], 'pw': self.pw[cf], 'ev': ev}
+        self.cache[lf] = c
         return c
 
     def eval(self, eye):
         w = self.w
         eye = np.asarray(eye, np.float64)
-        nn, L, nwf, E = w.nn, w.L, w.nwf, w.E
         D = len(self.dirs)
         lf = w.point_leaf(eye)
-        row, mnodes, evis = self.leaf_data(lf)
+        c = self.leaf_data(lf)
+        nN, nL, F = c['nN'], c['nL'], len(c['cf'])
         dd = self.Nn @ eye                                              # (D,4)
-        passb = (self.A >= dd[:, :, None] - 1e-6).all(1)                # (D,Nbox)
-        passN, passL, passE = passb[:, :nn], passb[:, nn:nn + L], passb[:, nn + L:]
-        trav_leaf = passL & row[None, :]                                # leaves reached (PVS + frustum)
-        trav_node = passN & mnodes[None, :]                             # nodes reached
-        wts = trav_leaf[:, w.mark_leaf]
-        idx = w.mark_face[None, :] + nwf * np.arange(D)[:, None]
-        marked = np.bincount(idx.ravel(), weights=wts.ravel().astype(np.float64),
-                             minlength=D * nwf).reshape(D, nwf) > 0
-        dots = self.fnw @ eye - self.fdw
-        facing = ((dots < 0) == self.fbw) | self.ncw
-        drawn = marked & trav_node[:, self.fnode_c] & (self.static & facing)[None, :]
-        vw = drawn.astype(np.float64) @ self.pw
-        if E:
-            edots = np.einsum('mk,mk->m', self.efn, eye[None, :] - w.eoff[w.eowner]) - self.efd
-            efacing = ((edots < 0) == self.efb) | self.efnc
-            per_ent = np.bincount(w.eowner, weights=self.efp * efacing, minlength=E)
-            ve = (passE & evis[None, :]).astype(np.float64) @ per_ent
+        passb = (c['A'] >= dd[:, :, None] - 1e-6).all(1)                # (D, boxes): R_CullBox
+        passN, passL, passE = passb[:, :nN], passb[:, nN:nN + nL], passb[:, nN + nL:]
+        if F:
+            wts = passL[:, c['mleaf']]                                  # leaf reached -> marks its faces
+            idx = c['mface'][None, :] + F * np.arange(D)[:, None]
+            marked = np.bincount(idx.ravel(), weights=wts.ravel().astype(np.float64),
+                                 minlength=D * F).reshape(D, F) > 0
+            facing = ((c['fn'] @ eye - c['fd'] < 0) == c['fb']) | c['nc']
+            drawn = marked & passN[:, c['fnl']] & (c['fok'] & facing)[None, :]
+            vw = drawn.astype(np.float64) @ c['pw']
+        else:
+            vw = np.zeros(D)
+        if len(c['ev']):
+            sel = np.isin(w.eowner, c['ev'])
+            own = w.eowner[sel]
+            edots = np.einsum('mk,mk->m', self.efn[sel], eye[None, :] - w.eoff[own]) - self.efd[sel]
+            efacing = ((edots < 0) == self.efb[sel]) | self.efnc[sel]
+            per_ent = np.bincount(own, weights=self.efp[sel] * efacing, minlength=w.E)[c['ev']]
+            ve = passE.astype(np.float64) @ per_ent
         else:
             ve = np.zeros(D)
         return lf, vw + ve, vw, ve
@@ -1290,7 +1341,7 @@ def format_perf(p: dict, bud: Optional[dict] = None) -> str:
     if s.get('best'):
         L.append('    lightest leaves: ' + ', '.join(f"leaf {x['leaf']} ({_xyz(x['centre'])}) {x['total']}" for x in s['best']))
     if v.get('worst'):
-        L.append('    worst views (setpos/eye, yaw):')
+        L.append('    worst views (eye position, yaw):')
         for x in v['worst']:
             L.append(f"      eye ({_xyz(x['eye'])}) yaw {x['yaw']:.0f}: {x['total']} = world {x['world']} + ents {x['ents']} (leaf {x['leaf']})")
     hv = [h for h in p.get('brush_entities', []) if h['faces'] >= 20]
@@ -1327,29 +1378,90 @@ def format_report(rep: dict) -> str:
         lines.append(f"  spawns CT {s['ct']} (z {s['ct_floor_z']}), T {s['t']} (z {s['t_floor_z']})")
     if 'textures' in info:
         lines.append(f"  {len(info['textures'])} embedded textures")
+    if rep.get('perf'):
+        lines.append(format_perf(rep['perf'], rep.get('budget')))
+    elif rep.get('budget'):
+        b = rep['budget']
+        lines.append(f"  precache budget: brush entities {b['brush_entities']}/{b['max_brush_ents']}, new models "
+                     f"{b['models_new'] or '-'}, new sounds {b['sound_slots_new']}/{b['max_map_sounds']} {b['sounds_new'] or ''}")
     for e in rep['errors']:
         lines.append(f'  ERROR {e}')
     for w in rep['warnings'][:20]:
         lines.append(f'  warn  {w}')
+    if len(rep['warnings']) > 20:
+        lines.append(f"  ... {len(rep['warnings']) - 20} more warnings")
     return '\n'.join(lines)
 
 
 def main(argv=None):
     import argparse
-    ap = argparse.ArgumentParser()
+    D = PERF_DEFAULTS
+    ap = argparse.ArgumentParser(description='Validate GoldSrc BSPs: engine limits, textures, spawns, precache '
+                                             'budget and rendering cost (r_speeds wpoly estimate).')
     ap.add_argument('bsp', nargs='+')
-    ap.add_argument('--json', action='store_true')
+    ap.add_argument('--json', action='store_true', help='print the full report (incl. perf + budget) as JSON')
     ap.add_argument('--min-spawns', type=int, default=32)
+    g = ap.add_argument_group('performance / budget')
+    g.add_argument('--no-perf', action='store_true', help='skip the rendering-cost analysis')
+    g.add_argument('--perf-only', action='store_true', help='print only the perf + budget part')
+    g.add_argument('--perf-warn', type=int, default=D['warn_p95'], help='warn when p95 wpoly > N (%(default)s)')
+    g.add_argument('--perf-error', type=int, default=D['error_max'], help='error when max wpoly > N (%(default)s)')
+    g.add_argument('--perf-metric', choices=('view', 'pvs'), default=D['metric'],
+                   help='metric the thresholds apply to: view = r_speeds estimate at player eye positions '
+                        '(default), pvs = per-leaf PVS sum (360 deg, no culling)')
+    g.add_argument('--perf-lenient', action='store_true', help='report threshold/budget errors as warnings')
+    g.add_argument('--fov', type=float, default=D['fov'])
+    g.add_argument('--aspect', type=float, default=D['aspect'], help='screen aspect (default 16:9)')
+    g.add_argument('--yaws', type=int, default=D['yaws'], help='view directions per eye point')
+    g.add_argument('--spacing', type=float, default=D['spacing'], help='eye sample grid (units)')
+    g.add_argument('--max-brush-ents', type=int, default=D['max_brush_ents'])
+    g.add_argument('--max-map-sounds', type=int, default=D['max_map_sounds'])
+    g.add_argument('--max-bsp-mb', type=float, default=D['max_bsp_mb'])
+    g.add_argument('--at', action='append', metavar='"X Y Z"',
+                   help='also print PVS + view numbers at this eye position (repeatable)')
     a = ap.parse_args(argv)
+    opts = {'warn_p95': a.perf_warn, 'error_max': a.perf_error, 'metric': a.perf_metric, 'strict': not a.perf_lenient,
+            'fov': a.fov, 'aspect': a.aspect, 'yaws': a.yaws, 'spacing': a.spacing, 'max_brush_ents': a.max_brush_ents,
+            'max_map_sounds': a.max_map_sounds, 'max_bsp_mb': a.max_bsp_mb}
     rc = 0
+    out = []
     for p in a.bsp:
-        r = check(p, a.min_spawns)
+        r = check(p, a.min_spawns, perf=not a.no_perf, perf_opts=opts)
+        if a.at:
+            pts = [[float(x) for x in s.replace(',', ' ').split()] for s in a.at]
+            r['at'] = perf_at(p, pts, opts)
         if a.json:
-            print(json.dumps(r, indent=1, default=str))
+            out.append(r)
+        elif a.perf_only:
+            print(f"bspcheck {p}:")
+            if r.get('perf'):
+                print(format_perf(r['perf'], r.get('budget')))
+            for e in r['errors']:
+                if e.startswith(('perf', 'budget')):
+                    print(f'  ERROR {e}')
+            for w in r['warnings']:
+                if w.startswith(('perf', 'budget')):
+                    print(f'  warn  {w}')
         else:
             print(format_report(r))
+        if a.at and not a.json:
+            print(format_at(r['at']))
         rc |= 1 if r['errors'] else 0
+    if a.json:
+        print(json.dumps(out[0] if len(out) == 1 else out, indent=1, default=_json_default))
     return rc
+
+
+def _json_default(x):
+    if isinstance(x, np.ndarray):
+        return x.tolist()
+    if isinstance(x, (np.integer,)):
+        return int(x)
+    if isinstance(x, (np.floating,)):
+        return float(x)
+    if isinstance(x, (set, frozenset)):
+        return sorted(x)
+    return str(x)
 
 
 if __name__ == '__main__':

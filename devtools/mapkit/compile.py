@@ -16,6 +16,11 @@ Steps
   4. sdHLCSG -> sdHLBSP -> sdHLVIS -> sdHLRAD (threads = CPU count)
   5. parse logs: errors, warnings, LEAK (-> pointfile first point), limits
   6. copy the .bsp to out_dir (and validate with bspcheck)
+  7. bspcheck also runs the rendering-cost analysis (r_speeds wpoly estimate) and the precache
+     budget; the report is printed and saved as <work>/<map>.check.json.  Threshold / budget
+     violations are errors (CompileResult.ok = False) for normal/final builds and warnings for
+     draft builds (vis -fast makes the PVS numbers pessimistic).  perf={...} overrides
+     bspcheck.PERF_DEFAULTS (e.g. perf={'error_max': 1500}).
 
 Environment:
   SDHLT_TOOLS   directory with sdHL* binaries + sdhlt.wad
@@ -194,8 +199,11 @@ def _run(tool: str, args: List[str], cwd: str, log: str, timeout: int) -> StageR
 
 def compile_map(src: Union[str, 'object'], quality: str = 'normal', out_dir: Optional[str] = None,
                 work_root: Optional[str] = None, threads: Optional[int] = None, timeout: int = 3600,
-                extra: Optional[Dict[str, List[str]]] = None, check: bool = True, verbose: bool = True) -> CompileResult:
-    """Compile a mapwriter.Map or a .map path. Returns CompileResult."""
+                extra: Optional[Dict[str, List[str]]] = None, check: bool = True, verbose: bool = True,
+                perf: Optional[dict] = None) -> CompileResult:
+    """Compile a mapwriter.Map or a .map path. Returns CompileResult.
+    check: run bspcheck (limits, textures, spawns, precache budget, rendering cost);
+    perf: bspcheck.PERF_DEFAULTS overrides ({'enabled': False} skips the rendering-cost part)."""
     from . import textures as texlib
     from .wad import write_wad
 
@@ -302,8 +310,18 @@ def compile_map(src: Union[str, 'object'], quality: str = 'normal', out_dir: Opt
             res.bsp = bsp
         if check:
             from . import bspcheck
-            rep = bspcheck.check(res.bsp)
+            po = dict(perf or {})
+            run_perf = po.pop('enabled', True)
+            po.setdefault('strict', '-fast' not in q['vis'])     # vis -fast: PVS too coarse to enforce
+            rep = bspcheck.check(res.bsp, perf=run_perf, perf_opts=po)
+            rep['quality'] = quality
             res.check = rep
+            try:
+                import json
+                with open(os.path.join(work, name + '.check.json'), 'w') as fh:
+                    json.dump(rep, fh, indent=1, default=bspcheck._json_default)
+            except OSError:
+                pass
             if rep['errors']:
                 res.ok = False
     if verbose:
@@ -311,6 +329,8 @@ def compile_map(src: Union[str, 'object'], quality: str = 'normal', out_dir: Opt
         if res.check:
             from . import bspcheck
             print(bspcheck.format_report(res.check))
+            if res.check.get('perf') and not res.check['perf']['settings'].get('strict', True):
+                print('  (perf: vis -fast build - PVS numbers are pessimistic; thresholds reported as warnings)')
     return res
 
 
@@ -320,8 +340,16 @@ def main(argv=None):
     ap.add_argument('--quality', default='normal', choices=sorted(QUALITY))
     ap.add_argument('--out', default=None, help='copy the .bsp here (e.g. cstrike/maps)')
     ap.add_argument('--threads', type=int, default=None)
+    ap.add_argument('--no-perf', action='store_true', help='skip the rendering-cost analysis in the check')
+    ap.add_argument('--perf-warn', type=int, default=None, help='p95 wpoly warning threshold (bspcheck default 900)')
+    ap.add_argument('--perf-error', type=int, default=None, help='max wpoly error threshold (bspcheck default 1300)')
     a = ap.parse_args(argv)
-    r = compile_map(a.map, a.quality, a.out, threads=a.threads)
+    perf = {'enabled': not a.no_perf}
+    if a.perf_warn is not None:
+        perf['warn_p95'] = a.perf_warn
+    if a.perf_error is not None:
+        perf['error_max'] = a.perf_error
+    r = compile_map(a.map, a.quality, a.out, threads=a.threads, perf=perf)
     return 0 if r.ok else 1
 
 
