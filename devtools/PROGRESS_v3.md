@@ -107,6 +107,11 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   betik $SP/wf/v32lean.js): 1) ozel silah 8-15 hatasi + lazer sokme bari + meteor + lazer menuden cikar, 2) menu/VIP/mesajlar,
   3) denge + eksik dosya varsayilanlari + HUD grafik modu yedek yazi. Her ajan commit eder; sonra paket ($SP/pack31.sh, ad v3.2).
 
+- 2026-10-04 17:19: kullanim %96 -> yalin akis da DURDURULDU (ilk ajan yeni basliyordu, kod degismedi).
+  SIFIRLANINCA ILK IS: Workflow({scriptPath: "$SP/wf/v32lean.js"}) (3 ajan: silah/lazer/meteor -> menu/VIP/mesaj ->
+  denge/dosya/HUD), sonra paket v3.2 + gonder. Ardindan harita: Workflow({scriptPath: "$SP/wf/flagship.js"}).
+  $SP yoksa (yeni oturum): istekler devtools/HANDOFF_v3.1.md + bu dosyadaki listeye gore.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
