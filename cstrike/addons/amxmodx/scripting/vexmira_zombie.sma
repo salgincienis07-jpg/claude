@@ -51,7 +51,7 @@
 #pragma dynamic 32768
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "3.2-dev"
+#define VERSION  "3.2"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -144,7 +144,6 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 
 // Chat oneki vexmira.cfg'deki vex_chat_prefix'ten gelir (^1 ^3 ^4 renk kodlari desteklenir)
 #define CHAT_PREFIX   g_szPrefix
-#define MENU_TAG      "\rVEXMIRA \y|"
 
 // Kisisel ayar bitleri (bit = KAPALI)
 #define SET_NO_HUD     (1<<0)
@@ -579,6 +578,8 @@ new MW_FX[MW_MODES][MW_SLOTS];                                          // SWE_*
 new const MW_KEY[MW_MODES][] = { "SURVIVOR", "SNIPER" };
 new g_szZClaw[NUM_CLASSES][96], g_szBClaw[NUM_BOSSES][96], g_szNemClaw[96], g_szAsnClaw[96];
 new g_szWepV[31][96], g_szWepP[31][96], bool:g_bEmitting;
+new g_szVipKnifeV[96], g_szVipKnifeP[96], bool:g_bVipRegun[33];
+new g_pVipPriority, g_pVipAnnounce, g_pVipVoteW, g_pVipSpawnProt, g_pVipDaily, g_pEliteDaily, g_pVipKillIcon, g_pVipScore, g_pVipRegun;
 new bool:g_bVoxCountdown = true;
 
 // v1.4: HUD sirasi, karsilama, gorev, evrim, lazer, bomba modlari, ikmal
@@ -864,6 +865,19 @@ new g_iCsoIcon[33], g_iCsoShown, g_iCsoRestored;
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];       // varlik -> sahibi / kafa ustunden yukseklik
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
+// v3.2 kozmetik modeller (kanat / pet / sapka): tablo vex_wing / vex_pet / vex_hat (vexmira.cfg)
+#define CM_CATS 3
+#define CM_MAX 8
+#define CM_MAGIC 0x56584353   // var_iuser2 isareti
+enum { CMA_BONE = 0, CMA_HEAD, CMA_BACK, CMA_FOLLOW };
+new const CM_TABLE[CM_CATS][] = { "vex_wing", "vex_pet", "vex_hat" };
+new const CM_CATKEY[CM_CATS][] = { "COS_CAT_WING", "COS_CAT_PET", "COS_CAT_HAT" };
+new g_szCmEn[CM_CATS][CM_MAX][32], g_szCmTr[CM_CATS][CM_MAX][32], g_szCmMdl[CM_CATS][CM_MAX][96];
+new g_iCmPrice[CM_CATS][CM_MAX], g_iCmVip[CM_CATS][CM_MAX], g_iCmAtt[CM_CATS][CM_MAX], g_iCmSeq[CM_CATS][CM_MAX];
+new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Float:g_fCmScale[CM_CATS][CM_MAX], Float:g_fCmFps[CM_CATS][CM_MAX];
+new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
+new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];   // sahiplik: bit (kat*8 + no); secim: 4 bit / kat
+new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no)
 // Boss / ozel karakter sesleri: bekleme sureleri
 new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
 new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
@@ -913,11 +927,23 @@ stock VexMenuColor(const src[], dst[], len, const lead[] = "\y")
     replace_string(dst, len, "\d", "\r");
 }
 
+new g_szMenuLast[512];   // son menu basligi (test araci vexprobe callfunc ile okur)
+
 stock VexMenuCreate(const title[], const handler[])
 {
     new t[512];
     VexMenuColor(title, t, charsmax(t), "\r");
+    copy(g_szMenuLast, charsmax(g_szMenuLast), t);
     return menu_create(t, handler);
+}
+
+// Gelistirici testi: son olusturulan menunun basligini loglar (devtools/server/vexprobe)
+public VexDbgMenuTitle()
+{
+    new t[600];
+    copy(t, charsmax(t), g_szMenuLast);
+    replace_string(t, charsmax(t), "^n", " | ");
+    log_amx("[menu-title] len=%d %s", strlen(g_szMenuLast), t);
 }
 
 stock VexAddText(menu, const text[], slot = 1)
@@ -933,6 +959,46 @@ stock MenuAdd(menu, const text[], value)
     num_to_str(value, info, charsmax(info));
     VexMenuColor(text, t, charsmax(t));
     menu_additem(menu, t, info);
+}
+
+// v3.2 menu tasarimi v2: her menude ayni baslik.
+//   1. satir: "\rVEXMIRA \y<BASLIK BUYUK HARF>"
+//   2. satir: oyuncunun canli degerleri [AP] [VC] [Lv] [VIP] [MOD] (koseli parantez kirmizi, deger sari)
+//   3. satir (istege bagli): kirmizi kisa aciklama; ardindan bos satir.
+stock VexHead(id, out[], len, const key[], const sub[] = "")
+{
+    new t[64], mn[32], k2[16], vip[24];
+    formatex(t, charsmax(t), "%L", id, key);
+    replace_string(t, charsmax(t), "\y", "");
+    replace_string(t, charsmax(t), "\r", "");
+    strtoupper(t);
+    formatex(k2, charsmax(k2), "MODE_NAME_%d", clamp(g_iMode, 0, MODE_TOTAL - 1));
+    formatex(mn, charsmax(mn), "%L", id, k2);
+    strtoupper(mn);
+    if (IsVip(id))
+        formatex(vip, charsmax(vip), " \r[\y%s\r]", IsElite(id) ? "ELITE" : "VIP");
+    formatex(out, len, "\rVEXMIRA \y%s^n\r[\yAP %d\r] [\yVC %d\r] [\yLv %d\r]%s [\y%s\r]^n", t, g_iAP[id], g_iVC[id], g_iLevel[id], vip, mn);
+    if (sub[0])
+    {
+        add(out, len, "\r");
+        add(out, len, sub);
+        add(out, len, "^n");
+    }
+}
+
+// Ac/kapa durumu: [ACIK] sari / [KAPALI] kirmizi (EN [ON] / [OFF])
+stock VexOnOff(id, bool:on, out[], len)
+{
+    formatex(out, len, "\r[%s%L\r]", on ? "\y" : "\r", id, on ? "ON" : "OFF");
+}
+
+// v3.2: menude yer kaplamasin diye aciklama secilince sohbette gosterilir
+stock DescChat(id, const fmtName[], const fmtDesc[], idx)
+{
+    new k1[24], k2[24];
+    formatex(k1, charsmax(k1), fmtName, idx);
+    formatex(k2, charsmax(k2), fmtDesc, idx);
+    client_print_color(id, print_team_default, "^4%L^1: %L", id, k1, id, k2);
 }
 
 stock MenuProps(id, menu)
@@ -3181,6 +3247,15 @@ CsoSub(id, note, arg)
             set_dhudmessage(0, 220, 255, -1.0, 0.63, 0, 0.0, 2.2, 0.1, 0.4);
             show_dhudmessage(id, "%L", id, "CSO_LEVEL_SUB", arg);
         }
+        case CN_KM1, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE:
+        {
+            // v3.2: VIP oldurme rozeti (killmark altinda; vex_vip_killicon)
+            if (IsVip(id) && get_pcvar_num(g_pVipKillIcon))
+            {
+                set_dhudmessage(255, 190, 40, -1.0, 0.585, 0, 0.0, 0.9, 0.05, 0.3);
+                show_dhudmessage(id, IsElite(id) ? "- ELITE -" : "- VIP -");
+            }
+        }
     }
 }
 
@@ -3305,7 +3380,7 @@ stock HudDecorate(slot, const text[], out[], len)
         formatex(out, len, "-=[  %s  ]=-", text);
         return;
     }
-    new title[96];
+    new title[320];
     copy(title, min(nl, charsmax(title)), text);
     formatex(out, len, "-=[  %s  ]=-^n%s", title, text[nl + 1]);
 }
@@ -3577,6 +3652,8 @@ public fw_OvhThink(ent)
     new Float:now = get_gametime();
     set_entvar(ent, var_nextthink, now + 0.05);
     g_iOvhTick++;
+    if (g_iOvhTick % 2 == 0)
+        CmTick(now);   // kozmetik modeller: 0.1 sn
 
     new bool:on = (get_pcvar_num(g_pOvhEnable) && HudPartMode(g_pHudOvh) != 0) ? true : false;
     g_bOvhSelf = get_pcvar_num(g_pOvhSelf) ? true : false;
@@ -3994,6 +4071,8 @@ OvhUpdate(id)
 // Kendi gostergeni gormezsin (vex_overhead_self 0); gozunden izleyen seyirci de gormez.
 public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
 {
+    if (!player && ent > g_iMax && ent < OVH_MAXENT && g_iCmOwn[ent])
+        return CmPack(es, ent, host);
     if (player || !g_iOvhCount || ent >= OVH_MAXENT || ent <= g_iMax)
         return FMRES_IGNORED;
     new id = g_iOvhOwn[ent];
@@ -5370,7 +5449,7 @@ StripCfgComment(line[])
     trim(line);
 }
 
-#define CFG_MAXARGS 12
+#define CFG_MAXARGS 20
 
 // precache = true: sadece vex_res satirlari (harita yuklenirken)
 LoadMainConfig(bool:precache)
@@ -5430,6 +5509,8 @@ LoadMainConfig(bool:precache)
                     g_iPreRoundsTotal = str_to_num(args[1]);
                 else if (equali(args[0], "vex_cso_style"))
                     g_iPreCso = str_to_num(args[1]);
+                else if (equali(args[0], "vex_wing") || equali(args[0], "vex_pet") || equali(args[0], "vex_hat"))
+                    CmParse(args, argc);
             }
             continue;
         }
@@ -5533,6 +5614,9 @@ EnvLightArg(const a[])
 bool:ApplyTableCmd(const args[][], argc)
 {
     new i;
+    // Kozmetik model tablolari yalniz harita basinda (precache) okunur
+    if (equali(args[0], "vex_wing") || equali(args[0], "vex_pet") || equali(args[0], "vex_hat"))
+        return true;
     if (equali(args[0], "vex_item"))
     {
         // vex_item <no> <fiyat AP> <round limiti> <level> [deger]
@@ -5929,7 +6013,7 @@ LoadData(id)
     if (g_hVault == INVALID_HANDLE)
         return;
 
-    new key[48], val[400];
+    new key[48], val[512];
     GetKey(id, key, charsmax(key));
 
     if (!nvault_get(g_hVault, key, val, charsmax(val)))
@@ -5970,6 +6054,8 @@ LoadData(id)
     g_iTrailSel[id]    = (n > 30) ? clamp(f[30], 0, NUM_TRAILS) : 0;
     g_iKfxSel[id]      = (n > 31) ? clamp(f[31], 0, NUM_KFX) : 0;
     g_iIfxSel[id]      = (n > 32) ? clamp(f[32], 0, NUM_IFX) : 0;
+    g_iCmOwned[id]     = (n > 33) ? f[33] : 0;
+    g_iCmSelPk[id]     = (n > 34) ? f[34] : 0;
 
     g_iLevel[id] = CalcLevel(g_iXP[id]);
 
@@ -5990,16 +6076,16 @@ SaveData(id)
     if (g_hVault == INVALID_HANDLE || !is_user_connected(id) || is_user_bot(id) || !g_bLoaded[id])
         return;
 
-    new key[48], val[400];
+    new key[48], val[512];
     GetKey(id, key, charsmax(key));
 
-    formatex(val, charsmax(val), "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+    formatex(val, charsmax(val), "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
         g_iXP[id], g_iAP[id], g_iVC[id], g_iKills[id], g_iInfects[id], g_iWins[id], g_iBossK[id], g_iHS[id],
         g_iAch[id], g_iTitle[id], g_iJobNext[id] >= 0 ? g_iJobNext[id] : g_iJob[id], g_iStyle[id], g_iSet[id], g_iTheme[id], g_iLang[id],
         g_iDailyDay[id], g_iDailyStreak[id], g_iPrim[id], g_iSec[id], g_iPlaySec[id] / 60,
         g_iPerk[id][0], g_iPerk[id][1], g_iPerk[id][2], g_iPerk[id][3], g_iPerk[id][4], g_iPerk[id][5],
         g_iClassNext[id] >= 0 ? g_iClassNext[id] : g_iClass[id], get_systime(), g_iHudPos[id],
-        g_iCosOwned[id], g_iTrailSel[id], g_iKfxSel[id], g_iIfxSel[id]);
+        g_iCosOwned[id], g_iTrailSel[id], g_iKfxSel[id], g_iIfxSel[id], g_iCmOwned[id], g_iCmSelPk[id]);
 
     nvault_set(g_hVault, key, val);
     UpdateTop(id, key);
@@ -6201,15 +6287,12 @@ ClaimDaily(id)
     new vc = 1 + s / 2;
     new xp = 50 + 25 * s;
 
-    if (IsElite(id))
+    // v3.2: VIP gunluk odul bonusu cfg'den (yuzde; VC en az +1)
+    new dp = VipDailyPct(id);
+    if (dp > 0)
     {
-        ap += 40;
-        vc += 2;
-    }
-    else if (IsVip(id))
-    {
-        ap += 20;
-        vc += 1;
+        ap += ap * dp / 100;
+        vc += max(1, vc * dp / 100);
     }
 
     g_iVC[id] += vc;
@@ -6238,9 +6321,9 @@ ClaimDaily(id)
 
 ShowTitleMenu(id)
 {
-    new title[64], item[128], key[12], tn[40];
+    new title[320], item[128], key[12], tn[40];
 
-    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_TITLE");
+    VexHead(id, title, charsmax(title), "MENU_TITLE");
     new menu = VexMenuCreate(title, "menu_title_handler");
 
     for (new i = 0; i < NUM_TITLES; i++)
@@ -6301,7 +6384,7 @@ public menu_title_handler(id, menu, item)
 
 ShowAchMenu(id)
 {
-    new title[96], item[160], k1[16], k2[16], n1[40], n2[64], count;
+    new title[320], item[160], k1[16], k2[16], n1[40], n2[64], count;
 
     for (new i = 0; i < NUM_ACH; i++)
     {
@@ -6309,7 +6392,9 @@ ShowAchMenu(id)
             count++;
     }
 
-    formatex(title, charsmax(title), "%s \y%L \r[%d/%d\r]^n", MENU_TAG, id, "MENU_ACH", count, NUM_ACH);
+    new hsub[32];
+    formatex(hsub, charsmax(hsub), "[\y%d / %d\r]", count, NUM_ACH);
+    VexHead(id, title, charsmax(title), "MENU_ACH", hsub);
     new menu = VexMenuCreate(title, "menu_ach_handler");
 
     for (new i = 0; i < NUM_ACH; i++)
@@ -6318,12 +6403,8 @@ ShowAchMenu(id)
         formatex(k2, charsmax(k2), "ACH_DESC_%d", i);
         formatex(n1, charsmax(n1), "%L", id, k1);
         formatex(n2, charsmax(n2), "%L", id, k2);
-        new lang = (g_iLang[id] == 2) ? 1 : 0;
-        if (g_szSWName[lang][i][0]) copy(n1, charsmax(n1), g_szSWName[lang][i]);
-        if (g_szSWDesc[lang][i][0]) copy(n2, charsmax(n2), g_szSWDesc[lang][i]);
-
         if (g_iAch[id] & (1 << i))
-            formatex(item, charsmax(item), "\r[X\r] \y%s \r%s", n1, n2);
+            formatex(item, charsmax(item), "\r[\yX\r] \y%s \r- %s", n1, n2);
         else
             formatex(item, charsmax(item), "\r[ ] \y%s \r- %s", n1, n2);
 
@@ -6879,10 +6960,10 @@ Reward(id, xp, ap)
 
 ShowShopMenu(id)
 {
-    new title[128], item[160], k1[12], k2[16], n1[40], n2[64];
+    new title[320], item[160], k1[12], k2[16], n1[40], n2[64];
     new isZ = g_bZombie[id] ? 1 : 0;
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, isZ ? "MENU_SHOP_Z" : "MENU_SHOP_H", id, "MENU_WALLET_AP", g_iAP[id]);
+    if (isZ) VexHead(id, title, charsmax(title), "MENU_SHOP_Z"); else VexHead(id, title, charsmax(title), "MENU_SHOP_H");
     new menu = VexMenuCreate(title, "menu_shop_handler");
 
     for (new i = 0; i < NUM_ITEMS; i++)
@@ -6902,7 +6983,7 @@ ShowShopMenu(id)
         else if (ITEM_LIMIT[i] && g_iBought[id][i] >= ITEM_LIMIT[i])
             formatex(item, charsmax(item), "\y%s \r[%L] \r[%L]", n1, id, "SHOP_SOLDOUT", id, "MENU_LOCKED");
         else if (g_iAP[id] >= cost)
-            formatex(item, charsmax(item), "\y%s \r[%d AP\r] \r%s", n1, cost, n2);
+            formatex(item, charsmax(item), "\y%s \r[\y%d AP\r]", n1, cost);
         else
             formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, cost, id, "MENU_LOCKED");
 
@@ -6943,7 +7024,10 @@ public menu_shop_handler(id, menu, item)
     if (sel == 100)
         Exchange(id);
     else
+    {
+        DescChat(id, "ITEM_%d", "ITEM_DESC_%d", sel);
         BuyItem(id, sel);
+    }
 
     ShowShopMenu(id);
     return PLUGIN_HANDLED;
@@ -7190,9 +7274,9 @@ AnnounceBuy(id, const itemKey[])
 
 ShowSpecialMenu(id)
 {
-    new title[128], item[160], k1[12], k2[16], n1[40], n2[64];
+    new title[320], item[160], k1[12], k2[16], n1[40], n2[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_SPECIAL", id, "MENU_WALLET_AP", g_iAP[id]);
+    VexHead(id, title, charsmax(title), "MENU_SPECIAL");
     new menu = VexMenuCreate(title, "menu_special_handler");
 
     for (new i = 0; i < NUM_SPECIAL; i++)
@@ -7207,7 +7291,7 @@ ShowSpecialMenu(id)
         else if (g_iSpecW[id] & (1 << i))
             formatex(item, charsmax(item), "\y%s \r[%L\r]", n1, id, "OWNED");
         else if (g_iAP[id] >= SwPrice(id, i))
-            formatex(item, charsmax(item), "\y%s \r[%d AP] %s", n1, SwPrice(id, i), n2);
+            formatex(item, charsmax(item), "\y%s \r[\y%d AP\r]", n1, SwPrice(id, i));
         else
             formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, SwPrice(id, i), id, "MENU_LOCKED");
 
@@ -7234,6 +7318,7 @@ public menu_special_handler(id, menu, item)
 
     new i = MenuInfo(menu, item);
     menu_destroy(menu);
+    DescChat(id, "SW_%d", "SW_DESC_%d", i);
 
     if (!is_user_alive(id) || g_bZombie[id] || g_bSurvivor[id] || g_bSniper[id])
     {
@@ -7290,9 +7375,9 @@ public menu_special_handler(id, menu, item)
 
 ShowPerkMenu(id)
 {
-    new title[128], item[160], k1[12], k2[16], n1[32], n2[64];
+    new title[320], item[160], k1[12], k2[16], n1[32], n2[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_PERKS", id, "MENU_WALLET_VC", g_iVC[id]);
+    VexHead(id, title, charsmax(title), "MENU_PERKS");
     new menu = VexMenuCreate(title, "menu_perk_handler");
 
     for (new i = 0; i < NUM_PERKS; i++)
@@ -7308,10 +7393,11 @@ ShowPerkMenu(id)
             stars[s] = (s < lv) ? '*' : '-';
         stars[PERK_MAX] = 0;
 
+        // Kisa satir: ad + seviye + fiyat (aciklama secince sohbette; menu metni en fazla 512 karakter)
         if (lv >= PERK_MAX)
-            formatex(item, charsmax(item), "\y%s \r[%s\r] \r%s \r[MAX\r]", n1, stars, n2);
+            formatex(item, charsmax(item), "\y%s \r[\y%s\r] [\yMAX\r]", n1, stars);
         else
-            formatex(item, charsmax(item), "\y%s \r[%s\r] \r%s %s%d VC", n1, stars, n2,
+            formatex(item, charsmax(item), "\y%s \r[\y%s\r] [%s%d VC\r]", n1, stars,
                 g_iVC[id] >= (lv + 1) * PERK_COST_STEP ? "\y" : "\r", (lv + 1) * PERK_COST_STEP);
 
         MenuAdd(menu, item, i);
@@ -7330,6 +7416,7 @@ public menu_perk_handler(id, menu, item)
 
     new p = MenuInfo(menu, item);
     menu_destroy(menu);
+    DescChat(id, "PERK_%d", "PERK_DESC_%d", p);
 
     new lv = g_iPerk[id][p];
     if (lv >= PERK_MAX)
@@ -7452,6 +7539,30 @@ VipRoundVC(id)
     return IsElite(id) ? v * 2 : v;
 }
 
+// v3.2: oy agirligi (mod / event / harita oylamasi; vex_vip_vote_weight)
+VipVoteW(id)
+{
+    if (!(1 <= id <= g_iMax) || !IsVip(id))
+        return 1;
+    return clamp(get_pcvar_num(g_pVipVoteW), 1, 3);
+}
+
+// v3.2: dogus korumasina eklenen sure (vex_vip_spawnprot)
+Float:VipSpawnProt(id)
+{
+    if (!IsVip(id))
+        return 0.0;
+    return floatclamp(get_pcvar_float(g_pVipSpawnProt), 0.0, 5.0);
+}
+
+// v3.2: gunluk odul VIP carpani (vex_vip_daily_pct / vex_elite_daily_pct)
+VipDailyPct(id)
+{
+    if (IsElite(id)) return clamp(get_pcvar_num(g_pEliteDaily), 0, 300);
+    if (IsVip(id))   return clamp(get_pcvar_num(g_pVipDaily), 0, 300);
+    return 0;
+}
+
 VipTierKey(id, out[], len)
 {
     copy(out, len, IsElite(id) ? "VIP_TIER_2" : "VIP_TIER_1");
@@ -7469,6 +7580,15 @@ MaxAirJumps(id)
     return n;
 }
 
+// v3.2: skor tablosunda VIP etiketi (oyunun kendi "VIP" sutunu; vex_vip_scoreboard)
+public msg_ScoreAttrib(msgid, dest, rcv)
+{
+    new p = get_msg_arg_int(1);
+    if (1 <= p <= g_iMax && IsVip(p) && get_pcvar_num(g_pVipScore))
+        set_msg_arg_int(2, ARG_BYTE, get_msg_arg_int(2) | (1 << 2));
+    return PLUGIN_CONTINUE;
+}
+
 // Baglaninca VIP karsilama
 VipWelcome(id)
 {
@@ -7479,7 +7599,17 @@ VipWelcome(id)
     get_user_name(id, name, charsmax(name));
     VipTierKey(id, tier, charsmax(tier));
 
-    for (new p = 1; p <= g_iMax; p++)
+    // v3.2: oncelikli giris mesaji (sunucu dolmak uzereyken; vex_vip_priority_msg)
+    new pri = get_pcvar_num(g_pVipPriority);
+    if (pri > 0 && get_playersnum(1) >= g_iMax - pri)
+    {
+        for (new p = 1; p <= g_iMax; p++)
+            if (is_user_connected(p) && !is_user_bot(p))
+                client_print_color(p, id, "%s %L", ChatTag("VIP_JOIN"), p, "VIP_PRIORITY", name);
+    }
+    // vex_vip_join_announce: 0 kapali, 1 sohbet + HUD, 2 + ses
+    new ann = get_pcvar_num(g_pVipAnnounce);
+    for (new p = 1; p <= g_iMax && ann > 0; p++)
     {
         if (!is_user_connected(p) || is_user_bot(p) || p == id)
             continue;
@@ -7492,7 +7622,8 @@ VipWelcome(id)
         formatex(txt, charsmax(txt), "%L", p, "VIP_JOIN_HUD", tn, name);
         HudText(p, SL_ALERT, CLR_REWARD, 3.0, txt);
     }
-    PlayKey(0, "VIP_JOIN");
+    if (ann >= 2)
+        PlayKey(0, "VIP_JOIN");
 
     // VIP'in kendisine ozel karsilama
     new tn2[16];
@@ -7529,28 +7660,45 @@ public cmd_vipinfo(id)
     return PLUGIN_HANDLED;
 }
 
-// v3.2: VIP ayricaliklari tek sayfa menu (degerler cfg'den canli okunur)
-ShowVipInfo(id)
+// v3.2: VIP ayricaliklari 2 sayfa (istemci menu metni en fazla 512 karakter); degerler cfg'den canli
+ShowVipInfo(id, page = 0)
 {
-    new contact[64], title[1024], ln[128];
+    new contact[64], title[640], ln[128], hsub[96];
     get_pcvar_string(g_pVipContact, contact, charsmax(contact));
+    if (IsVip(id))
+        formatex(hsub, charsmax(hsub), "[\y%L\r] [\y%d / 2\r]", id, IsElite(id) ? "VIP_TIER_2" : "VIP_TIER_1", page + 1);
+    else
+        formatex(hsub, charsmax(hsub), "%L \r[\y%d / 2\r]", id, "VIPI_BUY", contact, page + 1);
+    VexHead(id, title, charsmax(title), "VIPI_TITLE", hsub);
+    add(title, charsmax(title), "^n");
 
-    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "VIPI_TITLE");
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, get_pcvar_num(g_pVipAutoPack) ? "VIPI_4A" : "VIPI_4"); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_7"); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
-    if (!IsVip(id))
+    if (page == 0)
     {
-        formatex(ln, charsmax(ln), "^n\r%L^n", id, "VIPI_BUY", contact); add(title, charsmax(title), ln);
+        // Ekonomi / oyun ici
+        formatex(ln, charsmax(ln), "\r1. \y%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r2. \y%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r3. \y%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r4. \y%L^n", id, "VIPI_7", get_pcvar_num(g_pVipDaily), get_pcvar_num(g_pEliteDaily)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r5. \y%L^n", id, get_pcvar_num(g_pVipAutoPack) ? "VIPI_4A" : "VIPI_4"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r6. \y%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r7. \y%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
+    }
+    else
+    {
+        // Konfor / gorunum (pay-to-win degil)
+        formatex(ln, charsmax(ln), "\r8. \y%L^n", id, "VIPI_9", get_pcvar_float(g_pVipSpawnProt)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r9. \y%L^n", id, "VIPI_10", clamp(get_pcvar_num(g_pVipVoteW), 1, 3)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r10. \y%L^n", id, "VIPI_11"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r11. \y%L^n", id, "VIPI_12"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r12. \y%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r13. \y%L^n", id, "VIPI_13"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r14. \y%L^n", id, "VIPI_14"); add(title, charsmax(title), ln);
     }
 
     new menu = VexMenuCreate(title, "menu_vipinfo_handler");
     new item[64];
+    formatex(item, charsmax(item), "\y%L", id, page == 0 ? "MENU_NEXT" : "MENU_BACK");
+    MenuAdd(menu, item, page == 0 ? 11 : 10);
     formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, 1);
     menu_setprop(menu, MPROP_PERPAGE, 0);
@@ -7560,10 +7708,16 @@ ShowVipInfo(id)
 
 public menu_vipinfo_handler(id, menu, item)
 {
-    menu_destroy(menu);
     if (item < 0)
+    {
+        menu_destroy(menu);
         return PLUGIN_HANDLED;
-    if (IsVip(id))
+    }
+    new sel = MenuInfo(menu, item);
+    menu_destroy(menu);
+    if (sel >= 10)
+        ShowVipInfo(id, sel - 10);
+    else if (IsVip(id))
         ShowVipMenu(id);
     else
         ShowMainMenu(id);
@@ -7572,7 +7726,7 @@ public menu_vipinfo_handler(id, menu, item)
 
 ShowVipMenu(id)
 {
-    new title[160], item[128], tier[16], tn[16], left[32];
+    new title[320], item[128], tier[16], tn[16], left[32];
     VipTierKey(id, tier, charsmax(tier));
     formatex(tn, charsmax(tn), "%L", id, tier);
 
@@ -7581,7 +7735,9 @@ ShowVipMenu(id)
     else
         formatex(left, charsmax(left), "%L", id, "VIP_PERMANENT");
 
-    formatex(title, charsmax(title), "%s \y%L^n\y%s \r|| %s^n", MENU_TAG, id, "MENU_VIP", tn, left);
+    new hsub[64];
+    formatex(hsub, charsmax(hsub), "[\y%s\r] [\y%s\r]", tn, left);
+    VexHead(id, title, charsmax(title), "MENU_VIP", hsub);
     new menu = VexMenuCreate(title, "menu_vip_handler");
 
     formatex(item, charsmax(item), "\y%L%s", id, g_bZombie[id] ? "VIPM_FREE_Z" : "VIPM_FREE_H", g_bVipFreeUsed[id] ? " \r[X]" : "");
@@ -7592,7 +7748,9 @@ ShowVipMenu(id)
     formatex(item, charsmax(item), "\y%L \r[%L\r]", id, "VIPM_AURA", id, ak);
     MenuAdd(menu, item, 2);
 
-    formatex(item, charsmax(item), "\y%L \r[%s%L\r]", id, "VIPM_TRAIL", g_bVipTrail[id] ? "\y" : "\r", id, g_bVipTrail[id] ? "ON" : "OFF");
+    new st[32];
+    VexOnOff(id, g_bVipTrail[id] ? true : false, st, charsmax(st));
+    formatex(item, charsmax(item), "\y%L %s", id, "VIPM_TRAIL", st);
     MenuAdd(menu, item, 3);
 
     formatex(item, charsmax(item), "\y%L", id, "VIPM_JUMPS");
@@ -7792,8 +7950,8 @@ public cmd_cosmetic(id)
 
 ShowCosmeticMenu(id)
 {
-    new title[192], item[128], cur[48];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "COS_MENU", id, "COS_SUB", g_iVC[id]);
+    new title[320], item[128], cur[48];
+    VexHead(id, title, charsmax(title), "COS_MENU");
     new menu = VexMenuCreate(title, "menu_cos_handler");
 
     static const CATKEY[3][] = { "COS_CAT_TRAIL", "COS_CAT_KFX", "COS_CAT_IFX" };
@@ -7807,6 +7965,25 @@ ShowCosmeticMenu(id)
         formatex(item, charsmax(item), "\y%L \r[%s\r]", id, CATKEY[c], cur);
         MenuAdd(menu, item, c);
     }
+    // v3.2: kanat / pet / sapka (yalniz dosyasi olan satir varsa gorunur)
+    new bool:gap = false;
+    for (new c = 0; c < CM_CATS; c++)
+    {
+        if (!g_iCmN[c])
+            continue;
+        if (!gap)
+        {
+            menu_addblank(menu, 0);
+            gap = true;
+        }
+        new v = CmSel(id, c);
+        if (v > 0 && g_bCmOk[c][v - 1])
+            CmName(id, c, v - 1, cur, charsmax(cur));
+        else
+            formatex(cur, charsmax(cur), "%L", id, "COS_NONE");
+        formatex(item, charsmax(item), "\y%L \r[%s\r]", id, CM_CATKEY[c], cur);
+        MenuAdd(menu, item, 3 + c);
+    }
     MenuFinish(id, menu);
 }
 
@@ -7819,15 +7996,18 @@ public menu_cos_handler(id, menu, item)
     }
     new cat = MenuInfo(menu, item);
     menu_destroy(menu);
-    ShowCosList(id, cat);
+    if (cat >= 3)
+        ShowCmList(id, cat - 3);
+    else
+        ShowCosList(id, cat);
     return PLUGIN_HANDLED;
 }
 
 ShowCosList(id, cat)
 {
-    new title[192], item[128], nm[48];
+    new title[320], item[128], nm[48];
     static const CATKEY[3][] = { "COS_CAT_TRAIL", "COS_CAT_KFX", "COS_CAT_IFX" };
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, CATKEY[cat], id, "COS_SUB", g_iVC[id]);
+    VexHead(id, title, charsmax(title), CATKEY[cat]);
     new menu = VexMenuCreate(title, "menu_coslist_handler");
 
     new sel = CosSelected(id, cat);
@@ -7923,6 +8103,438 @@ public menu_coslist_handler(id, menu, item)
     if (changed)
         SaveData(id);
     ShowCosList(id, cat);
+    return PLUGIN_HANDLED;
+}
+
+/* ================================================================== */
+/*  v3.2 KOZMETIK MODELLER: KANAT / PET / SAPKA                        */
+/*  Tablolar vexmira.cfg'de (vex_wing / vex_pet / vex_hat), harita     */
+/*  basinda okunur; model dosyasi yoksa satir gizlenir, indirilmez.    */
+/*  Bag tipi:                                                          */
+/*   bone   = MOVETYPE_FOLLOW + aiment: CS iskeleti (Bip01 ...) ile    */
+/*            yapilmis model kemiklere oturur, animasyonla oynar.      */
+/*   head   = kafanin ustu: AddToFullPack her pakette oyuncu konumu +  */
+/*            model kafa yuksekligi (gostergelerle ayni okuma) +       */
+/*            yona gore donen ofset / aci yazar (titreme yok).         */
+/*   back   = sirt (kafa yuksekliginin 18 birim alti) ayni yontem.     */
+/*   follow = pet: ayri varlik, 0.1 sn'de bir hedefe yumusak hizla     */
+/*            suzulur (NOCLIP + hiz; istemci enterpole eder), hafif    */
+/*            yukari-asagi salinir; uzaklasirsa isinlanir.             */
+/*  Olu / zombi / izleyici iken yok; cikista silinir. Sapka ve kanat   */
+/*  sahibine birinci sahis gorunumde gizlidir (kamerayi kapatmasin).   */
+/* ================================================================== */
+
+
+// vex_wing <no 1-8> "<ad EN>" "<ad TR>" "<model>" <fiyat VC> <vip 0/1> <bone|head|back|follow>
+//          <ofs x> <ofs y> <ofs z> <aci p> <aci y> <aci r> <olcek> <sequence> <framerate>
+CmParse(const args[][], argc)
+{
+    new c = -1;
+    for (new k = 0; k < CM_CATS; k++)
+        if (equali(args[0], CM_TABLE[k])) c = k;
+    if (c < 0 || argc < 5)
+        return;
+    new i = str_to_num(args[1]) - 1;
+    if (i < 0 || i >= CM_MAX)
+    {
+        log_amx("[Vexmira] %s: gecersiz no %s (1-%d)", args[0], args[1], CM_MAX);
+        return;
+    }
+    copy(g_szCmEn[c][i], charsmax(g_szCmEn[][]), args[2]);
+    copy(g_szCmTr[c][i], charsmax(g_szCmTr[][]), args[3]);
+    copy(g_szCmMdl[c][i], charsmax(g_szCmMdl[][]), args[4]);
+    g_iCmPrice[c][i] = (argc > 5) ? max(0, str_to_num(args[5])) : 100;
+    g_iCmVip[c][i]   = (argc > 6) ? str_to_num(args[6]) : 0;
+    new a = (c == 1) ? CMA_FOLLOW : ((c == 2) ? CMA_HEAD : CMA_BACK);
+    if (argc > 7)
+    {
+        if (equali(args[7], "bone")) a = CMA_BONE;
+        else if (equali(args[7], "head")) a = CMA_HEAD;
+        else if (equali(args[7], "back")) a = CMA_BACK;
+        else if (equali(args[7], "follow")) a = CMA_FOLLOW;
+    }
+    g_iCmAtt[c][i] = a;
+    for (new k = 0; k < 3; k++)
+    {
+        g_fCmOfs[c][i][k] = (argc > 8 + k) ? floatclamp(str_to_float(args[8 + k]), -128.0, 128.0) : 0.0;
+        g_fCmAng[c][i][k] = (argc > 11 + k) ? str_to_float(args[11 + k]) : 0.0;
+    }
+    g_fCmScale[c][i] = (argc > 14) ? floatclamp(str_to_float(args[14]), 0.05, 5.0) : 1.0;
+    if (g_fCmScale[c][i] <= 0.0) g_fCmScale[c][i] = 1.0;
+    g_iCmSeq[c][i]   = (argc > 15) ? max(0, str_to_num(args[15])) : 0;
+    g_fCmFps[c][i]   = (argc > 16) ? floatclamp(str_to_float(args[16]), 0.0, 10.0) : 1.0;
+
+    // Dosya kontrolu + precache CmPrecache'te (model butcesi ayarlandiktan sonra)
+    g_bCmOk[c][i] = false;
+    if (!g_szCmMdl[c][i][0] || !file_exists(g_szCmMdl[c][i], true))
+    {
+        log_amx("[Vexmira] %s %d: model yok (%s) - menude gizli", args[0], i + 1, g_szCmMdl[c][i]);
+        g_szCmMdl[c][i][0] = 0;
+    }
+}
+
+// plugin_precache: dosyasi olan kozmetik modeller (butce dolarsa satir gizlenir)
+CmPrecache()
+{
+    for (new c = 0; c < CM_CATS; c++)
+    {
+        g_iCmN[c] = 0;
+        for (new i = 0; i < CM_MAX; i++)
+        {
+            g_bCmOk[c][i] = (g_szCmMdl[c][i][0] && PcModel(g_szCmMdl[c][i])) ? true : false;
+            if (g_bCmOk[c][i])
+                g_iCmN[c]++;
+        }
+    }
+}
+
+CmSel(id, c)
+{
+    return (g_iCmSelPk[id] >> (c * 4)) & 15;
+}
+
+CmSetSel(id, c, v)
+{
+    g_iCmSelPk[id] = (g_iCmSelPk[id] & ~(15 << (c * 4))) | ((v & 15) << (c * 4));
+}
+
+CmName(id, c, i, out[], len)
+{
+    new lg[4];
+    get_user_info(id, "lang", lg, charsmax(lg));
+    copy(out, len, (equali(lg, "tr") && g_szCmTr[c][i][0]) ? g_szCmTr[c][i] : g_szCmEn[c][i]);
+}
+
+CmPrice(id, c, i)
+{
+    return max(0, g_iCmPrice[c][i] * (100 - VipDiscPct(id)) / 100);
+}
+
+bool:CmValid(ent, id)
+{
+    return (ent > g_iMax && ent < OVH_MAXENT && !is_nullent(ent) && get_entvar(ent, var_iuser2) == CM_MAGIC && get_entvar(ent, var_iuser1) == id) ? true : false;
+}
+
+CmRemove(id, c)
+{
+    new ent = g_iCmEnt[id][c];
+    g_iCmEnt[id][c] = 0;
+    if (ent > 0 && ent < OVH_MAXENT)
+    {
+        if (g_iCmOwn[ent] == id)
+            g_iCmOwn[ent] = 0;
+        if (CmValid(ent, id))
+            set_entvar(ent, var_flags, FL_KILLME);
+    }
+}
+
+// Gorunmeli mi? (canli insan, secili + dosyasi var + VIP sarti)
+CmWanted(id, c)
+{
+    if (!is_user_alive(id) || g_bZombie[id] || g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id] || g_bMinion[id])
+        return 0;
+    new v = CmSel(id, c);
+    if (v < 1 || v > CM_MAX)
+        return 0;
+    new i = v - 1;
+    if (!g_bCmOk[c][i] || (g_iCmVip[c][i] && !IsVip(id)))
+        return 0;
+    return v;
+}
+
+// Oyuncu yonune gore ofset: x ileri, y sag, z yukari (+ kafa / sirt yuksekligi)
+CmTarget(id, c, i, Float:o[3])
+{
+    new Float:ang[3];
+    get_entvar(id, var_origin, o);
+    get_entvar(id, var_angles, ang);
+    new Float:yaw = ang[1] * 3.14159265 / 180.0;
+    new Float:cy = floatcos(yaw), Float:sy = floatsin(yaw);
+    new Float:fx = g_fCmOfs[c][i][0], Float:ry = g_fCmOfs[c][i][1];
+    o[0] += cy * fx + sy * ry;
+    o[1] += sy * fx - cy * ry;
+    new Float:top = (get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id];
+    switch (g_iCmAtt[c][i])
+    {
+        case CMA_HEAD:   o[2] += top + g_fCmOfs[c][i][2];
+        case CMA_BACK:   o[2] += top - 18.0 + g_fCmOfs[c][i][2];
+        case CMA_FOLLOW: o[2] += top * 0.6 + g_fCmOfs[c][i][2];
+        default:         o[2] += g_fCmOfs[c][i][2];
+    }
+}
+
+CmSpawn(id, c, i)
+{
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return 0;
+    if (ent >= OVH_MAXENT)
+    {
+        set_entvar(ent, var_flags, FL_KILLME);
+        return 0;
+    }
+    set_entvar(ent, var_classname, "vex_cosmodel");
+    engfunc(EngFunc_SetModel, ent, g_szCmMdl[c][i]);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    set_entvar(ent, var_iuser1, id);
+    set_entvar(ent, var_iuser2, CM_MAGIC);
+    set_entvar(ent, var_scale, g_fCmScale[c][i]);
+    set_entvar(ent, var_sequence, g_iCmSeq[c][i]);
+    set_entvar(ent, var_framerate, g_fCmFps[c][i]);
+    set_entvar(ent, var_animtime, get_gametime());
+    set_entvar(ent, var_frame, 0.0);
+    new Float:o[3];
+    OvhModelTops(id);
+    if (g_iCmAtt[c][i] == CMA_BONE)
+    {
+        // Kemige bagli: istemci oyuncunun iskeletini kopyalar (ayni kemik adlari)
+        get_entvar(id, var_origin, o);
+        engfunc(EngFunc_SetOrigin, ent, o);
+        set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
+        set_entvar(ent, var_aiment, id);
+    }
+    else
+    {
+        CmTarget(id, c, i, o);
+        engfunc(EngFunc_SetOrigin, ent, o);
+        set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+    }
+    g_iCmOwn[ent] = id;
+    g_iCmInfo[ent] = c * 16 + i;
+    g_iCmEnt[id][c] = ent;
+    return ent;
+}
+
+// 0.1 sn (gosterge denetcisinden): olustur / sil / pet hareketi
+CmTick(Float:now)
+{
+    if (!g_iCmN[0] && !g_iCmN[1] && !g_iCmN[2])
+        return;
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        new bool:conn = is_user_connected(id) ? true : false;
+        for (new c = 0; c < CM_CATS; c++)
+        {
+            new ent = g_iCmEnt[id][c];
+            new want = conn ? CmWanted(id, c) : 0;
+            if (ent && (!CmValid(ent, id) || !want || g_iCmInfo[ent] != c * 16 + want - 1))
+            {
+                CmRemove(id, c);
+                ent = 0;
+            }
+            if (!want)
+                continue;
+            new i = want - 1;
+            if (!ent)
+            {
+                ent = CmSpawn(id, c, i);
+                if (!ent)
+                    continue;
+            }
+            OvhModelTops(id);
+            if (g_iCmAtt[c][i] == CMA_BONE)
+                continue;
+
+            new Float:t[3], Float:o[3], Float:v[3], Float:pa[3], Float:a[3];
+            CmTarget(id, c, i, t);
+            get_entvar(id, var_angles, pa);
+            a[0] = g_fCmAng[c][i][0];
+            a[1] = pa[1] + g_fCmAng[c][i][1];
+            a[2] = g_fCmAng[c][i][2];
+            if (g_iCmAtt[c][i] != CMA_FOLLOW)
+            {
+                // Sunucu konumu PVS / ses icin; cizim konumu AddToFullPack'te
+                engfunc(EngFunc_SetOrigin, ent, t);
+                set_entvar(ent, var_angles, a);
+                continue;
+            }
+            // Pet: hafif salinim + yumusak takip
+            t[2] += 3.0 * floatsin(now * 2.5 + float(id));
+            get_entvar(ent, var_origin, o);
+            new Float:dist = get_distance_f(o, t);
+            if (dist > 400.0)
+            {
+                engfunc(EngFunc_SetOrigin, ent, t);
+                v[0] = 0.0; v[1] = 0.0; v[2] = 0.0;
+            }
+            else
+            {
+                for (new k = 0; k < 3; k++)
+                    v[k] = (t[k] - o[k]) * 6.0;
+                new Float:sp = vector_length(v);
+                if (sp > 700.0)
+                    for (new k = 0; k < 3; k++) v[k] *= 700.0 / sp;
+            }
+            set_entvar(ent, var_velocity, v);
+            set_entvar(ent, var_angles, a);
+        }
+    }
+}
+
+// Her pakette: sapka / kanat sahibinin gozunden gizli; head / back konumu oyuncunun o anki konumu
+CmPack(es, ent, host)
+{
+    if (!get_orig_retval())
+        return FMRES_IGNORED;
+    new id = g_iCmOwn[ent];
+    if (!(1 <= id <= g_iMax))
+        return FMRES_IGNORED;
+    new c = g_iCmInfo[ent] / 16, i = g_iCmInfo[ent] % 16;
+    if (c >= CM_CATS || i >= CM_MAX)
+        return FMRES_IGNORED;
+    new att = g_iCmAtt[c][i];
+    if (att != CMA_FOLLOW && (host == id || (get_entvar(host, var_iuser1) == 4 && get_entvar(host, var_iuser2) == id)))
+    {
+        set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+        return FMRES_IGNORED;
+    }
+    if (att == CMA_HEAD || att == CMA_BACK)
+    {
+        new Float:o[3], Float:pa[3], Float:a[3];
+        CmTarget(id, c, i, o);
+        get_entvar(id, var_angles, pa);
+        a[0] = g_fCmAng[c][i][0];
+        a[1] = pa[1] + g_fCmAng[c][i][1];
+        a[2] = g_fCmAng[c][i][2];
+        set_es(es, ES_Origin, o);
+        set_es(es, ES_Angles, a);
+    }
+    return FMRES_IGNORED;
+}
+
+/* ---------------- Kanat / pet / sapka menusu ---------------- */
+
+ShowCmList(id, c)
+{
+    new title[320], item[128], nm[32], hsub[64];
+    formatex(hsub, charsmax(hsub), "%L", id, "COS_SUB");
+    VexHead(id, title, charsmax(title), CM_CATKEY[c], hsub);
+    new menu = VexMenuCreate(title, "menu_cmlist_handler");
+
+    new sel = CmSel(id, c);
+    formatex(item, charsmax(item), sel == 0 ? "\y%L \r[\y*\r]" : "\y%L", id, "COS_NONE");
+    MenuAdd(menu, item, c * 100);
+
+    for (new i = 0; i < CM_MAX; i++)
+    {
+        if (!g_bCmOk[c][i])
+            continue;   // dosyasi olmayan satir gizli
+        CmName(id, c, i, nm, charsmax(nm));
+        new vt[16];
+        if (g_iCmVip[c][i])
+            copy(vt, charsmax(vt), " \r[\yVIP\r]");
+        if (sel == i + 1)
+            formatex(item, charsmax(item), "\y%s%s \r[\y%L\r]", nm, vt, id, "COS_EQUIPPED");
+        else if (g_iCmOwned[id] & (1 << (c * 8 + i)))
+            formatex(item, charsmax(item), "\y%s%s \r[%L]", nm, vt, id, "COS_OWNED");
+        else
+            formatex(item, charsmax(item), "\y%s%s \r[%d VC]", nm, vt, CmPrice(id, c, i));
+        MenuAdd(menu, item, c * 100 + i + 1);
+    }
+    MenuFinish(id, menu);
+}
+
+public menu_cmlist_handler(id, menu, item)
+{
+    if (item < 0)
+    {
+        menu_destroy(menu);
+        return PLUGIN_HANDLED;
+    }
+    new v = MenuInfo(menu, item);
+    menu_destroy(menu);
+    if (!is_user_connected(id))
+        return PLUGIN_HANDLED;
+
+    new c = v / 100, idx = v % 100;
+    if (c < 0 || c >= CM_CATS)
+        return PLUGIN_HANDLED;
+    if (idx == 0)
+    {
+        CmSetSel(id, c, 0);
+        Chat(id, "COS_OFF");
+        SaveData(id);
+        ShowCmList(id, c);
+        return PLUGIN_HANDLED;
+    }
+    new i = idx - 1, nm[32];
+    if (i >= CM_MAX || !g_bCmOk[c][i])
+        return PLUGIN_HANDLED;
+    CmName(id, c, i, nm, charsmax(nm));
+    if (g_iCmVip[c][i] && !IsVip(id))
+    {
+        Chat(id, "VIP_ONLY");
+        ShowCmList(id, c);
+        return PLUGIN_HANDLED;
+    }
+    new bit = 1 << (c * 8 + i);
+    if (!(g_iCmOwned[id] & bit))
+    {
+        new price = CmPrice(id, c, i);
+        if (g_iVC[id] < price)
+        {
+            Chat(id, "COS_NOVC", price);
+            ShowCmList(id, c);
+            return PLUGIN_HANDLED;
+        }
+        g_iVC[id] -= price;
+        g_iCmOwned[id] |= bit;
+        PlayKey(id, "SHOP_BUY");
+        Chat(id, "COS_BOUGHT", nm, price);
+    }
+    CmSetSel(id, c, i + 1);
+    Chat(id, "COS_EQUIP", nm);
+    SaveData(id);
+    ShowCmList(id, c);
+    return PLUGIN_HANDLED;
+}
+
+// Test / yonetici: vex_cos_give <#id|bot> <wing|pet|hat> <no> -> sahip yap + tak (VC harcamaz)
+public srv_CosGive()
+{
+    new who[16], cat[8], no[8];
+    read_argv(1, who, charsmax(who));
+    read_argv(2, cat, charsmax(cat));
+    read_argv(3, no, charsmax(no));
+    new id = (who[0] == '#') ? str_to_num(who[1]) : 0;
+    if (!id)
+        for (new p = 1; p <= g_iMax; p++)
+            if (is_user_connected(p) && is_user_alive(p) && !g_bZombie[p]) { id = p; break; }
+    new c = equali(cat, "wing") ? 0 : (equali(cat, "pet") ? 1 : (equali(cat, "hat") ? 2 : -1));
+    new i = str_to_num(no) - 1;
+    if (!(1 <= id <= g_iMax) || !is_user_connected(id) || c < 0 || i < 0 || i >= CM_MAX || !g_bCmOk[c][i])
+    {
+        server_print("[Vexmira] vex_cos_give: gecersiz (oyuncu / kategori / no / dosya)");
+        return PLUGIN_HANDLED;
+    }
+    g_iCmOwned[id] |= 1 << (c * 8 + i);
+    CmSetSel(id, c, i + 1);
+    server_print("[Vexmira] vex_cos_give #%d %s %d", id, CM_TABLE[c], i + 1);
+    return PLUGIN_HANDLED;
+}
+
+// Test: vex_cos_dump -> kozmetik varliklarinin konumu (hizalama kontrolu)
+public srv_CosDump()
+{
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        for (new c = 0; c < CM_CATS; c++)
+        {
+            new ent = g_iCmEnt[id][c];
+            if (!ent || !CmValid(ent, id))
+                continue;
+            new Float:o[3], Float:po[3];
+            get_entvar(ent, var_origin, o);
+            get_entvar(id, var_origin, po);
+            server_print("[Vexmira] cos #%d %s ent=%d mt=%d aim=%d d=(%.0f %.0f %.0f) alive=%d z=%d", id, CM_TABLE[c], ent,
+                get_entvar(ent, var_movetype), get_entvar(ent, var_aiment), o[0] - po[0], o[1] - po[1], o[2] - po[2],
+                is_user_alive(id), g_bZombie[id]);
+        }
+    }
+    new n, e = -1;
+    while ((e = engfunc(EngFunc_FindEntityByString, e, "classname", "vex_cosmodel")) > 0)
+        n++;
+    server_print("[Vexmira] cos ents total=%d", n);
     return PLUGIN_HANDLED;
 }
 
@@ -8417,6 +9029,14 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
     }
 
     new w = _:wid;
+    // v3.2: VIP'e ozel bicak kaplamasi (vex_res VIP_V_KNIFE / VIP_P_KNIFE; dosya yoksa kapali)
+    if (w == CSW_KNIFE && IsVip(id) && g_szVipKnifeV[0])
+    {
+        SetHookChainArg(2, ATYPE_STRING, g_szVipKnifeV);
+        if (g_szVipKnifeP[0])
+            SetHookChainArg(3, ATYPE_STRING, g_szVipKnifeP);
+        return HC_CONTINUE;
+    }
     if (0 < w < 31)
     {
         if (g_szWepV[w][0])
@@ -8705,10 +9325,19 @@ GiveNadeStack(id, const ent[], WeaponIdType:wid)
 
 ShowPrimaryMenu(id)
 {
-    new title[96], item[64];
+    new title[320], item[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_PRIMARY", id, "MENU_GUNS_SUB");
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_GUNS_SUB");
+    VexHead(id, title, charsmax(title), "MENU_PRIMARY", hsub);
     new menu = VexMenuCreate(title, "menu_primary_handler");
+
+    // v3.2: otomatik silah ac/kapa + durumu [ACIK]/[KAPALI]
+    new st[32];
+    VexOnOff(id, (g_iSet[id] & SET_NO_AUTOGUN) ? false : true, st, charsmax(st));
+    formatex(item, charsmax(item), "\y%L %s", id, "SET_6", st);
+    MenuAdd(menu, item, 900);
+    menu_addblank(menu, 0);
 
     for (new i = 0; i < sizeof PRIM_NAME; i++)
     {
@@ -8733,6 +9362,13 @@ public menu_primary_handler(id, menu, item)
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
 
+    if (sel == 900)
+    {
+        g_iSet[id] ^= SET_NO_AUTOGUN;
+        SaveData(id);
+        ShowPrimaryMenu(id);
+        return PLUGIN_HANDLED;
+    }
     if (g_iLevel[id] < PRIM_LVL[sel])
     {
         Chat(id, "NEED_LEVEL", PRIM_LVL[sel]);
@@ -8747,9 +9383,9 @@ public menu_primary_handler(id, menu, item)
 
 ShowSecondaryMenu(id)
 {
-    new title[64], item[64];
+    new title[320], item[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_SECONDARY");
+    VexHead(id, title, charsmax(title), "MENU_SECONDARY");
     new menu = VexMenuCreate(title, "menu_secondary_handler");
 
     for (new i = 0; i < sizeof SEC_NAME; i++)
@@ -8799,14 +9435,25 @@ GiveLoadout(id)
         return;
 
     // Round basladiktan sonra her hayatta bir kez (birak-yeniden al suistimali olmasin)
+    // v3.2: VIP her hayatta 1 kez ucretsiz silah degistirebilir (vex_vip_regun)
+    new bool:regun = false;
     if (g_bRoundActive && g_bGunsGiven[id])
     {
-        Chat(id, "GUNS_ONCE");
-        return;
+        if (IsVip(id) && get_pcvar_num(g_pVipRegun) && !g_bVipRegun[id])
+        {
+            g_bVipRegun[id] = true;
+            regun = true;
+            Chat(id, "VIP_REGUN");
+        }
+        else
+        {
+            Chat(id, "GUNS_ONCE");
+            return;
+        }
     }
 
     // Round icinde bedava mermi suistimalini engelle: ana silahi varsa verme
-    if (g_bRoundActive)
+    if (g_bRoundActive && !regun)
     {
         for (new w = 0; w < sizeof PRIM_ENT; w++)
         {
@@ -10178,8 +10825,10 @@ TickMineHints()
 
 ShowMineMenu(id)
 {
-    new title[192], item[96];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "LM_MENU", id, "LM_MENU_SUB", g_iMines[id], CountMines(id), MaxMines(id));
+    new title[320], item[96];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "LM_MENU_SUB", g_iMines[id], CountMines(id), MaxMines(id));
+    VexHead(id, title, charsmax(title), "LM_MENU", hsub);
     new menu = VexMenuCreate(title, "menu_mine_handler");
 
     new bool:ok = LasersAllowed();
@@ -10859,8 +11508,10 @@ public cmd_nade_menu(id)
 
 ShowNadeMenu(id)
 {
-    new title[192], item[128], key[16], nm[32];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "NMENU_TITLE", id, "NMENU_SUB");
+    new title[320], item[128], key[16], nm[32];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "NMENU_SUB");
+    VexHead(id, title, charsmax(title), "NMENU_TITLE", hsub);
     new menu = VexMenuCreate(title, "menu_nade_handler");
 
     static const SLOTKEY[3][] = { "NMENU_HE", "NMENU_FROST", "NMENU_FLARE" };
@@ -12422,9 +13073,11 @@ public task_ZombieVision()
 
 ShowClassMenu(id)
 {
-    new title[96], item[160], k1[16], k2[20], n1[32], n2[72];
+    new title[320], item[160], k1[16], k2[20], n1[32], n2[72];
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_CLASS", id, "MENU_CLASS_SUB");
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_CLASS_SUB");
+    VexHead(id, title, charsmax(title), "MENU_CLASS", hsub);
     new menu = VexMenuCreate(title, "menu_class_handler");
 
     for (new i = 0; i < NUM_CLASSES; i++)
@@ -19390,7 +20043,7 @@ new g_iVoteMenu[33] = { -1, ... };
 VoteDisconnect(id)
 {
     if (g_iVoteType && 0 <= g_iVoted[id] < VOTE_OPTS)
-        g_iVoteCount[g_iVoted[id]] = max(0, g_iVoteCount[g_iVoted[id]] - 1);
+        g_iVoteCount[g_iVoted[id]] = max(0, g_iVoteCount[g_iVoted[id]] - VipVoteW(id));
     g_iVoted[id] = -1;
 }
 
@@ -19411,8 +20064,10 @@ bool:AnyMenuOpen(id)
 
 ShowVoteMenu(id)
 {
-    new title[192], item[96], key[16], nm[40];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, g_iVoteType == 1 ? "VOTE_TITLE_MODE" : "VOTE_TITLE_EVENT", id, "VOTE_LEFT", g_iVoteLeft);
+    new title[320], item[96], key[16], nm[40];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "VOTE_LEFT", g_iVoteLeft);
+    if (g_iVoteType == 1) VexHead(id, title, charsmax(title), "VOTE_TITLE_MODE", hsub); else VexHead(id, title, charsmax(title), "VOTE_TITLE_EVENT", hsub);
     new menu = VexMenuCreate(title, "menu_vote_handler");
 
     for (new i = 0; i < VOTE_OPTS; i++)
@@ -19451,7 +20106,7 @@ public menu_vote_handler(id, menu, item)
         return PLUGIN_HANDLED;
 
     g_iVoted[id] = opt;
-    g_iVoteCount[opt]++;
+    g_iVoteCount[opt] += VipVoteW(id);
 
     new name[32], key[16];
     get_user_name(id, name, charsmax(name));
@@ -20035,6 +20690,8 @@ public task_JoinAnnounce(tid)
 
 public client_disconnected(id, bool:drop, message[], maxlen)
 {
+    for (new c = 0; c < CM_CATS; c++)
+        CmRemove(id, c);
     g_iCsoCur[id] = -1;
     g_iCsoQn[id] = 0;
     g_iCsoWpn[id] = 0;
@@ -20126,6 +20783,7 @@ ResetPlayer(id)
     g_iNadeMode[id][0] = 0; g_iNadeMode[id][1] = 0; g_iNadeMode[id][2] = 0;
     g_iQuest[id] = -1; g_bAlpha[id] = false; g_iMines[id] = 0;
     g_iCosOwned[id] = 0; g_iTrailSel[id] = 0; g_iKfxSel[id] = 0; g_iIfxSel[id] = 0;
+    g_iCmOwned[id] = 0; g_iCmSelPk[id] = 0;
     g_szKey[id][0] = 0; g_bLoaded[id] = false; g_iClassNext[id] = -1; g_iJobNext[id] = -1;
     g_bTrailOn[id] = false;
     g_bLmGiven[id] = false;
@@ -20868,7 +21526,7 @@ public rg_PlayerSpawn(id)
         else
         {
             // Respawn korumasi: 2 sn
-            g_fMadness[id] = get_gametime() + 2.0;
+            g_fMadness[id] = get_gametime() + 2.0 + VipSpawnProt(id);
             ApplyRender(id);
         }
         return;
@@ -20878,6 +21536,7 @@ public rg_PlayerSpawn(id)
     g_bBoss[id] = 0; g_bMinion[id] = 0; g_bFirst[id] = 0;
     g_bGunsGiven[id] = false;
     g_bNadesGiven[id] = false;
+    g_bVipRegun[id] = false;
 
     // Bekleyen meslek secimi yeni doguste uygulanir
     if (g_iJobNext[id] >= 0)
@@ -21915,17 +22574,19 @@ public rg_PlayerJump(id)
 #define HUB_VIPADM   205
 #define HUB_BACK     99
 
-new const HUB_MARKET_ITEMS[] = { 1, 2, 19, 7 };
+new const HUB_MARKET_ITEMS[] = { 1, 2, 18, 19 };   // market = esya + ozel silah (yetenek YOK)
 new const HUB_CLASS_ITEMS[]  = { 4, 5 };
-new const HUB_CHAR_ITEMS[]   = { 31, 20, 32, 33, 34, 16, 22 };
+new const HUB_CHAR_ITEMS[]   = { 31, 7, 20, 32, 33, 34, 16, 22 };   // yetenekler karakter tarafinda
 new const HUB_FUN_ITEMS[]    = { 6, 9, 14, 15, 13 };
 new const HUB_VIPADM_ITEMS[] = { 8, 17 };
 
 ShowMainMenu(id)
 {
-    new title[192], item[96];
+    new title[320], item[96];
 
-    formatex(title, charsmax(title), "\rVEXMIRA \y| %L^n\r%L^n", id, "MENU_MAIN_SUB", id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
+    new hsub[96];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_MAIN_SUB");
+    VexHead(id, title, charsmax(title), "MENU_MAIN", hsub);
     new menu = VexMenuCreate(title, "menu_main_handler");
     PlayKey(id, "UI_OPEN");
 
@@ -21934,6 +22595,7 @@ ShowMainMenu(id)
     formatex(item, charsmax(item), "\y%L", id, "MAINH_1"); MenuAdd(menu, item, HUB_MARKET);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_2"); MenuAdd(menu, item, 3);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_3"); MenuAdd(menu, item, HUB_CLASS);
+    menu_addblank(menu, 0);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_4");
     if (g_iQuest[id] >= 0 && g_bQuestDone[id])
         add(item, charsmax(item), " \r[OK\r]");
@@ -21943,6 +22605,7 @@ ShowMainMenu(id)
         add(item, charsmax(item), " \r(!)");
     MenuAdd(menu, item, HUB_FUN);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_6"); MenuAdd(menu, item, 21);
+    menu_addblank(menu, 0);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_7"); MenuAdd(menu, item, 11);
     formatex(item, charsmax(item), "\y%L%s", id, adm ? "MAINH_8A" : "MAINH_8", IsVip(id) ? " \y[*]" : "");
     MenuAdd(menu, item, adm ? HUB_VIPADM : 8);
@@ -21955,9 +22618,9 @@ ShowMainMenu(id)
 
 ShowHub(id, hub)
 {
-    new title[160], item[96], key[16];
+    new title[320], item[96], key[16];
     formatex(key, charsmax(key), "HUB_%d", hub - 200);
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, key, id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
+    VexHead(id, title, charsmax(title), key);
     new menu = VexMenuCreate(title, "menu_main_handler");
 
     new list[8], n;
@@ -21984,6 +22647,7 @@ ShowHub(id, hub)
             add(item, charsmax(item), " \r[OK\r]");
         MenuAdd(menu, item, c);
     }
+    menu_addblank(menu, 0);
     formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, HUB_BACK);
 
@@ -22046,8 +22710,8 @@ MainDispatch(id, sel)
 
 ShowProfileMenu(id)
 {
-    new title[96], item[64];
-    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_PROFILE");
+    new title[320], item[64];
+    VexHead(id, title, charsmax(title), "MENU_PROFILE");
     new menu = VexMenuCreate(title, "menu_profile_handler");
 
     formatex(item, charsmax(item), "\y%L", id, "PROF_1"); MenuAdd(menu, item, 1);
@@ -22082,9 +22746,11 @@ public menu_profile_handler(id, menu, item)
 
 ShowJobMenu(id)
 {
-    new title[96], item[160], k1[12], k2[16], n1[32], n2[72];
+    new title[320], item[160], k1[12], k2[16], n1[32], n2[72];
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_JOB", id, "MENU_JOB_SUB");
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_JOB_SUB");
+    VexHead(id, title, charsmax(title), "MENU_JOB", hsub);
     new menu = VexMenuCreate(title, "menu_job_handler");
 
     for (new i = 0; i < NUM_JOBS; i++)
@@ -22146,9 +22812,9 @@ public menu_job_handler(id, menu, item)
 
 ShowStyleMenu(id)
 {
-    new title[64], item[160], k1[12], k2[16], n1[32], n2[64];
+    new title[320], item[160], k1[12], k2[16], n1[32], n2[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_STYLE");
+    VexHead(id, title, charsmax(title), "MENU_STYLE");
     new menu = VexMenuCreate(title, "menu_style_handler");
 
     for (new i = 0; i < NUM_STYLES; i++)
@@ -22189,16 +22855,18 @@ public menu_style_handler(id, menu, item)
 
 ShowSettingsMenu(id)
 {
-    new title[96], item[96], key[12], onoff[16], tn[24];
+    new title[320], item[96], key[12], onoff[32], tn[24];
 
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_SETTINGS", id, "MENU_SETTINGS_SUB");
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_SETTINGS_SUB");
+    VexHead(id, title, charsmax(title), "MENU_SETTINGS", hsub);
     new menu = VexMenuCreate(title, "menu_settings_handler");
 
     for (new i = 0; i < 10; i++)
     {
         formatex(key, charsmax(key), "SET_%d", i);
-        formatex(onoff, charsmax(onoff), "%L", id, (g_iSet[id] & (1 << i)) ? "OFF" : "ON");
-        formatex(item, charsmax(item), "\y%L \r[%s%s\r]", id, key, (g_iSet[id] & (1 << i)) ? "\r" : "\y", onoff);
+        VexOnOff(id, (g_iSet[id] & (1 << i)) ? false : true, onoff, charsmax(onoff));
+        formatex(item, charsmax(item), "\y%L %s", id, key, onoff);
         MenuAdd(menu, item, i);
     }
 
@@ -22259,8 +22927,8 @@ public menu_settings_handler(id, menu, item)
 
 ShowLangMenu(id)
 {
-    new title[64];
-    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_LANG");
+    new title[320];
+    VexHead(id, title, charsmax(title), "MENU_LANG");
     new menu = VexMenuCreate(title, "menu_lang_handler");
 
     MenuAdd(menu, g_iLang[id] == 1 ? "\yEnglish \r[*\r]" : "\yEnglish", 1);
@@ -22289,8 +22957,10 @@ public menu_lang_handler(id, menu, item)
 
 ShowFpsMenu(id)
 {
-    new title[192], item[96];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_FPS", id, "MENU_FPS_SUB");
+    new title[320], item[96];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_FPS_SUB");
+    VexHead(id, title, charsmax(title), "MENU_FPS", hsub);
     new menu = VexMenuCreate(title, "menu_fps_handler");
 
     formatex(item, charsmax(item), "\y%L", id, "FPS_1"); MenuAdd(menu, item, 1);
@@ -22902,8 +23572,10 @@ public cmd_fun(id)
 
 ShowFunMenu(id)
 {
-    new title[96], item[96], key[12];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_FUN", id, "MENU_FUN_SUB");
+    new title[320], item[96], key[12];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_FUN_SUB");
+    VexHead(id, title, charsmax(title), "MENU_FUN", hsub);
     new menu = VexMenuCreate(title, "menu_fun_handler");
 
     for (new i = 1; i <= 12; i++)
@@ -23462,8 +24134,10 @@ ShowAdminMenu(id)
     if (!(get_user_flags(id) & ADMIN_BAN))
         return;
 
-    new title[192], item[96];
-    formatex(title, charsmax(title), "%s \r%L^n\r%L^n", MENU_TAG, id, "MENU_ADMIN", id, "MENU_ADMIN_SUB");
+    new title[320], item[96];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MENU_ADMIN_SUB");
+    VexHead(id, title, charsmax(title), "MENU_ADMIN", hsub);
     new menu = VexMenuCreate(title, "menu_admin_handler");
 
     for (new i = 1; i <= 20; i++)
@@ -23586,8 +24260,8 @@ public menu_admin_handler(id, menu, item)
 
 ShowAdminEnvMenu(id)
 {
-    new title[128], item[96], key[16];
-    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADMM_8");
+    new title[320], item[96], key[16];
+    VexHead(id, title, charsmax(title), "ADMM_8");
     new menu = VexMenuCreate(title, "menu_admenv");
     for (new i = 0; i <= 9; i++)
     {
@@ -23656,8 +24330,10 @@ ShowAdminEnvDetail(id)
         g_bAdminEnvOverride = true;
     }
 
-    new title[192], item[112], menu;
-    formatex(title, charsmax(title), "%s %L^n\rL:%c F:%d RGB:%d/%d/%d W:%d^n", MENU_TAG, id, "ADME_DETAIL", g_iAdminEnvLight, g_iAdminEnvFog[3], g_iAdminEnvFog[0], g_iAdminEnvFog[1], g_iAdminEnvFog[2], g_iAdminEnvWeather);
+    new title[320], item[112], menu;
+    new hsub[96];
+    formatex(hsub, charsmax(hsub), "[\yL %c\r] [\yF %d\r] [\yRGB %d/%d/%d\r] [\yW %d\r]", g_iAdminEnvLight, g_iAdminEnvFog[3], g_iAdminEnvFog[0], g_iAdminEnvFog[1], g_iAdminEnvFog[2], g_iAdminEnvWeather);
+    VexHead(id, title, charsmax(title), "ADME_DETAIL", hsub);
     menu = VexMenuCreate(title, "menu_admenv_detail");
 
     formatex(item, charsmax(item), "\y%L \r[%c]", id, "ADME_LIGHT", g_iAdminEnvLight); MenuAdd(menu, item, 1);
@@ -23666,7 +24342,7 @@ ShowAdminEnvDetail(id)
     formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_GREEN", g_iAdminEnvFog[1]); MenuAdd(menu, item, 4);
     formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_BLUE", g_iAdminEnvFog[2]); MenuAdd(menu, item, 5);
     formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_WEATHER", g_iAdminEnvWeather); MenuAdd(menu, item, 6);
-    formatex(item, charsmax(item), "\y%L \r[%L]", id, "ADME_MAP_AMBIENCE", id, g_bAmbMuted ? "OFF" : "ON"); MenuAdd(menu, item, 7);
+    { new st[32]; VexOnOff(id, g_bAmbMuted ? false : true, st, charsmax(st)); formatex(item, charsmax(item), "\y%L %s", id, "ADME_MAP_AMBIENCE", st); MenuAdd(menu, item, 7); }
     formatex(item, charsmax(item), "\r%L", id, "ADME_ENV_RESET"); MenuAdd(menu, item, 8);
     formatex(item, charsmax(item), "\y%L", id, "MENU_BACK"); MenuAdd(menu, item, 9);
     MenuFinish(id, menu);
@@ -23732,8 +24408,8 @@ SetMapAmbienceMuted(bool:mute)
 // now = true -> modu hemen baslat (round yeniden baslar)
 ShowAdminModeMenu(id, bool:now)
 {
-    new title[192], item[96], key[16];
-    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, now ? "ADMM_2" : "ADMM_1");
+    new title[320], item[96], key[16];
+    if (now) VexHead(id, title, charsmax(title), "ADMM_2"); else VexHead(id, title, charsmax(title), "ADMM_1");
     new menu = VexMenuCreate(title, now ? "menu_admmode_now" : "menu_admmode_next");
 
     for (new m = 0; m < MODE_TOTAL; m++)
@@ -23774,8 +24450,8 @@ public menu_admmode_now(id, menu, item)
 // Hangi boss gelsin? (rastgele veya secili)
 ShowAdminBossMenu(id, bool:now)
 {
-    new title[128], item[96], key[16];
-    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADM_BOSS_PICK");
+    new title[320], item[96], key[16];
+    VexHead(id, title, charsmax(title), "ADM_BOSS_PICK");
     new menu = VexMenuCreate(title, now ? "menu_admboss_now" : "menu_admboss_next");
 
     formatex(item, charsmax(item), "\y%L", id, "ADM_BOSS_RANDOM");
@@ -23847,8 +24523,8 @@ public cmd_adm_boss(id, level, cid)
 
 ShowAdminEventMenu(id, bool:now)
 {
-    new title[192], item[96], key[16];
-    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, now ? "ADMM_4" : "ADMM_3");
+    new title[320], item[96], key[16];
+    if (now) VexHead(id, title, charsmax(title), "ADMM_4"); else VexHead(id, title, charsmax(title), "ADMM_3");
     new menu = VexMenuCreate(title, now ? "menu_admevent_now" : "menu_admevent");
 
     for (new e = 1; e < EV_TOTAL; e++)
@@ -23885,8 +24561,8 @@ public menu_admevent_now(id, menu, item)
 
 ShowAdminPlayers(id)
 {
-    new title[192], item[96], name[32];
-    formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADMM_4");
+    new title[320], item[96], name[32];
+    VexHead(id, title, charsmax(title), "ADMM_4");
     new menu = VexMenuCreate(title, "menu_admplayers");
 
     for (new p = 1; p <= g_iMax; p++)
@@ -23926,9 +24602,11 @@ ShowAdminActions(id)
         return;
     }
 
-    new title[192], item[96], name[32];
+    new title[320], item[96], name[32];
     get_user_name(target, name, charsmax(name));
-    formatex(title, charsmax(title), "%s \r%L^n\y%s \r|| Lv.%d \r|| %d AP \r|| %d VC^n", MENU_TAG, id, "ADMM_4", name, g_iLevel[target], g_iAP[target], g_iVC[target]);
+    new hsub[96];
+    formatex(hsub, charsmax(hsub), "[\y%s\r] [\yLv %d\r] [\y%d AP\r] [\y%d VC\r]", name, g_iLevel[target], g_iAP[target], g_iVC[target]);
+    VexHead(id, title, charsmax(title), "ADMM_4", hsub);
     new menu = VexMenuCreate(title, "menu_admactions");
 
     for (new i = 1; i <= 17; i++)
@@ -24409,8 +25087,10 @@ ShowMapVoteMenu(id)
     for (new i = 0; i < g_iMapOptN; i++)
         total += g_iMapVotes[i];
 
-    new title[192], item[128], nm[64], desc[48], key[48];
-    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MAPV_TITLE", id, "MAPV_LEFT", g_iMapVoteLeft, total);
+    new title[320], item[128], nm[64], desc[48], key[48];
+    new hsub[128];
+    formatex(hsub, charsmax(hsub), "%L", id, "MAPV_LEFT", g_iMapVoteLeft, total);
+    VexHead(id, title, charsmax(title), "MAPV_TITLE", hsub);
     new menu = VexMenuCreate(title, "menu_mapvote_handler");
 
     for (new i = 0; i < g_iMapOptN; i++)
@@ -24462,9 +25142,9 @@ public menu_mapvote_handler(id, menu, item)
         return PLUGIN_HANDLED;
     }
     if (0 <= old < g_iMapOptN)
-        g_iMapVotes[old] = max(0, g_iMapVotes[old] - 1);
+        g_iMapVotes[old] = max(0, g_iMapVotes[old] - VipVoteW(id));
     g_iMapVoted[id] = opt;
-    g_iMapVotes[opt]++;
+    g_iMapVotes[opt] += VipVoteW(id);
     PlayKey(id, "UI_MENU_SELECT");
 
     new name[32], nm[64];
@@ -24764,7 +25444,7 @@ RtvCheck(ignore = 0)
 MapVoteDisconnect(id)
 {
     if (g_bMapVoting && 0 <= g_iMapVoted[id] < g_iMapOptN)
-        g_iMapVotes[g_iMapVoted[id]] = max(0, g_iMapVotes[g_iMapVoted[id]] - 1);
+        g_iMapVotes[g_iMapVoted[id]] = max(0, g_iMapVotes[g_iMapVoted[id]] - VipVoteW(id));
     g_iMapVoted[id] = -1;
     g_iMapVoteMenu[id] = -1;
     if (g_bRtv[id])
@@ -25237,6 +25917,10 @@ public plugin_precache()
         GetFileModel(key, g_szZClaw[i], charsmax(g_szZClaw[]));
     }
 
+    // v3.2: VIP bicak kaplamasi (bos / dosya yok = kapali)
+    GetFileModel("VIP_V_KNIFE", g_szVipKnifeV, charsmax(g_szVipKnifeV));
+    GetFileModel("VIP_P_KNIFE", g_szVipKnifeP, charsmax(g_szVipKnifeP));
+
     // Insan el modelleri: V_AK47 / V_KNIFE ...
     for (new w = 1; w < 31; w++)
     {
@@ -25254,6 +25938,9 @@ public plugin_precache()
 
     // ---------------- DUNYA MODELLERI ----------------
     LoadWorldModels();
+
+    // v3.2: kanat / pet / sapka modelleri (vex_wing / vex_pet / vex_hat)
+    CmPrecache();
 
     // En dusuk oncelik: elde gorunen (p_) silah modelleri (butce dolarsa oyunun kendi modeli)
     for (new w = 1; w < 31; w++)
@@ -25354,6 +26041,18 @@ public plugin_init()
     g_pEliteArmor   = register_cvar("vex_elite_armor", "100");
     g_pVipRoundVC   = register_cvar("vex_vip_round_vc", "1");
     g_pVipAutoPack  = register_cvar("vex_vip_autopack", "1");
+    g_pVipPriority  = register_cvar("vex_vip_priority_msg", "2");
+    g_pVipAnnounce  = register_cvar("vex_vip_join_announce", "2");
+    g_pVipVoteW     = register_cvar("vex_vip_vote_weight", "2");
+    g_pVipSpawnProt = register_cvar("vex_vip_spawnprot", "1.0");
+    g_pVipDaily     = register_cvar("vex_vip_daily_pct", "50");
+    g_pEliteDaily   = register_cvar("vex_elite_daily_pct", "100");
+    g_pVipKillIcon  = register_cvar("vex_vip_killicon", "1");
+    g_pVipScore     = register_cvar("vex_vip_scoreboard", "1");
+    g_pVipRegun     = register_cvar("vex_vip_regun", "1");
+    register_message(get_user_msgid("ScoreAttrib"), "msg_ScoreAttrib");
+    register_srvcmd("vex_cos_give", "srv_CosGive");
+    register_srvcmd("vex_cos_dump", "srv_CosDump");
     g_pTipInterval  = register_cvar("vex_chat_tip_interval", "90");
     g_pLiveChatter  = register_cvar("vex_live_chatter", "0");
     g_pVoteEvery    = register_cvar("vex_vote_every", "4");

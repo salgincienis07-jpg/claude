@@ -1,5 +1,5 @@
 =====================================================================
-  VEXMIRA ZOMBIE v3.2 - ARA PAKET (3.2-dev)
+  VEXMIRA ZOMBIE v3.2
 =====================================================================
 Senin v3.1 FINAL paketinin uzerine kuruldu. Gercek ReHLDS sunucusunda
 botlarla test edildi: 0 calisma hatasi. Derleme 0 hata / 0 uyari.
@@ -28,10 +28,24 @@ DUZELTMELER / YENILER
   "bulunamadi" uyarisi yok. Zombi / boss / el modelleri pakette.
 - GRAFIK HUD (vex_hud_style 1): artik hicbir parca kaybolmuyor.
 
-SIRADAKI (4. asama, gelecek pakette)
-- Menulerde kirmizi-sari renk tasarimi (beyaz / gri yok)
-- CSO tarzi ekran ortasi sprite bildirimler (seri olum, headshot, MVP,
-  round, kazanan, boss, enfeksiyon, level) + sesler
-- Ust round tablosu ve sag HUD'un CSO tarzi tasarimi
-- Survivor / sniper / nemesis / assassin silahlarinin cfg'den ayari
-- Hersey tek tek kontrol
+4. ASAMA (bu pakette)
+- MENULER: tum menuler kirmizi-sari (beyaz / gri yok), kilitli maddeler
+  [KILITLI] etiketli; baslik + canli bilgi satiri (AP / VC / seviye / VIP),
+  degerler [koseli parantez] icinde; yetenekler marketten Karakter'e tasindi;
+  ac/kapa ayarlarinda [ACIK] / [KAPALI].
+- MOD SILAHLARI: survivor / sniper / nemesis / assassin silah ve penceleri
+  cfg'den (vex_modewpn).
+- CSO TARZI: ekran ortasinda sprite bildirimler (seri olum 1-5, headshot,
+  bicak, bomba, MVP, round, kazanan, boss, enfeksiyon, son insan, level)
+  + sesler (vex_cso_style 1); ust round tablosu ve sag HUD CSO tarzi.
+  Not: CS 1.6'da sunucu eklentisi ekran kosesine sabit resim koyamaz; ust
+  tablo ve sag panel renkli tasarim yazisi + oyunun ikonlariyla yapildi.
+- VIP: cok daha fazla ozellik (cfg'de), VIP bilgi sayfasi.
+- KOZMETIK: kanat / pet / sapka bolumleri; modelleri sen koyacaksin:
+  vexmira.cfg'de vex_wing / vex_pet / vex_hat satirlari (ad, model, fiyat,
+  VIP, hizalama: ofset x y z, aci, olcek, animasyon). Dosya yoksa menude
+  gorunmez, hata vermez.
+
+TEST: 150 sn / 12 bot oturumu: 0 calisma hatasi, cokme yok. Menuler ve
+kozmetikler gercek oyuncuyla denenmedi - gorunusle ilgili bir sey yanlissa
+ekran goruntusu at.

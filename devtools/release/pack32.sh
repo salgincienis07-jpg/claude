@@ -4,7 +4,7 @@ set -e
 SP=/tmp/claude-0/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/scratchpad
 REPO=/home/user/claude
 REV=$(cd $REPO && git rev-parse HEAD)
-NAME=Vexmira_Zombie_v3.2_ARA
+NAME=Vexmira_Zombie_v3.2
 D=$SP/interim/$NAME
 rm -rf "$D"; mkdir -p "$D"
 cd "$REPO"

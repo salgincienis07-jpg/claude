@@ -937,8 +937,9 @@ public msg_ShowMenu(msgid, dest, id)
     add(g_szMenuBuf, charsmax(g_szMenuBuf), part);
     if (get_msg_arg_int(3))   // more parts follow
         return PLUGIN_CONTINUE;
+    new len = strlen(g_szMenuBuf);   // client menu buffer is 512 bytes (MAX_MENU_STRING)
     replace_string(g_szMenuBuf, charsmax(g_szMenuBuf), "^n", " | ");
-    log_amx("[vexprobe] menu #%d: %s", id, g_szMenuBuf);
+    log_amx("[vexprobe] menu #%d len=%d%s: %s", id, len, len > 500 ? " OVERFLOW" : "", g_szMenuBuf);
     g_szMenuBuf[0] = 0;
     return PLUGIN_CONTINUE;
 }
@@ -992,4 +993,6 @@ DumpMenu(id)
         format(line, charsmax(line), "%s%s%s", line, i ? " || " : "", name);
     }
     log_amx("[vexprobe] menu #%d items=%d: %s", id, n, line);
+    if (callfunc_begin("VexDbgMenuTitle", "vexmira_zombie.amxx") == 1)
+        callfunc_end();
 }
