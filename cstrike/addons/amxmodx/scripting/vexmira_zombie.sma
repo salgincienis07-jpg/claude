@@ -270,7 +270,9 @@ new const SOUND_KEYS[][] =
     "SPEED_START", "SPEED_WIND", "STORM_STRIKE", "BLACKOUT", "FINAL_ROUND", "MAP_END",
     "FROST_NOVA", "THUNDER", "ACID_POOL", "GRAVITY_WELL", "ECLIPSE",
     // v2.0
-    "ZONE_WARN", "SKILL_UNLOCK", "NEM_RAGE", "ASN_VEIL", "LM_KILL", "NADE_TRIGGER", "UI_OPEN", "LM_DENY"
+    "ZONE_WARN", "SKILL_UNLOCK", "NEM_RAGE", "ASN_VEIL", "LM_KILL", "NADE_TRIGGER", "UI_OPEN", "LM_DENY",
+    // v3.2 (B): CSO ekran bildirimi sesleri
+    "CSO_KM", "CSO_KM_SP", "CSO_MVP", "CSO_BANNER", "CSO_WIN", "CSO_ALERT", "CSO_LEVEL"
 };
 
 // Zombi siniflari: 0 Walker 1 Runner 2 Tank 3 Banshee 4 Leech 5 Stalker 6 Bomber 7 Frost
@@ -842,6 +844,19 @@ new g_iOvhTick, g_iOvhCount, g_iOvhHumans;
 new g_iOvhSent[33];
 new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, g_pOvhMargin, g_pOvhGap;
 new g_pHudStyle, g_pHudTop, g_pHudRight, g_pHudMvp, g_pHudXp, g_pHudOvh, g_pHudObjective;
+// v3.2 (B): CSO tarzi ekran bildirimi (killmark yontemi) - BOLUM 3 "CSO EKRAN BILDIRIMI"
+enum { CN_KM1 = 0, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE, CN_MVP, CN_HWIN, CN_ZWIN, CN_BOSS,
+       CN_INFECT, CN_NEMESIS, CN_ASSASSIN, CN_SURVIVOR, CN_LAST, CN_LEVEL, CN_ROUND, CN_TOTAL };
+#define CSO_ROUNDS  30
+#define CSO_QMAX    4
+#define TASK_CSO    41500   // CSO ekran bildirimi zamanlayicisi (tek, tekrarli)
+new g_pCso, g_pCsoNotes, g_pCsoTime, g_pCsoKmTime, g_pCsoFov, g_pCsoSnd, g_pCsoBots, g_pCsoLog, g_pCsoIcons;
+new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
+new g_msgWL, g_msgCurW, g_msgFOV, g_msgSIcon;
+new g_szWL[31][24], g_iWL[31][8], bool:g_bWL[31];
+new g_iCsoCur[33] = { -1, ... }, g_iCsoArg[33], g_iCsoWpn[33], Float:g_fCsoEnd[33];
+new g_iCsoQ[33][CSO_QMAX], g_iCsoQA[33][CSO_QMAX], Float:g_fCsoQT[33][CSO_QMAX], g_iCsoQn[33];
+new g_iCsoIcon[33], g_iCsoShown, g_iCsoRestored;
 // v3.0 hizalama: gostergeler MOVETYPE_FOLLOW kullanmaz (istemci FOLLOW sprite'ini govde merkezine
 // cizer, v_angle ofsetini yok sayar). Konum her pakette AddToFullPack'te oyuncunun o anki
 // konumu + modelin kafa ustu yuksekligi + yigin ofseti olarak yazilir.
@@ -2451,7 +2466,19 @@ DrawHud()
             else
                 formatex(lineC, charsmax(lineC), "%L", id, "TOP_C", mn, ev);
 
-            if (g_iMode == MODE_BOSS && g_iBoss)
+            if (CsoOn())
+            {
+                // v3.2 (B) CSO tarzi ust tablo: mor cerceve + ROUND / sure, camgobegi INSAN vs ZOMBI
+                new left = max(0, RoundTimeLeft());
+                set_dhudmessage(160, 90, 255, -1.0, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
+                show_dhudmessage(id, "%L^n^n%s", id, "CSO_TOP_A", g_iRound, total, left / 60, left % 60, lineC);
+                set_dhudmessage(0, 220, 255, -1.0, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
+                if (g_iMode == MODE_BOSS && g_iBoss)
+                    show_dhudmessage(id, "^n%L", id, "CSO_TOP_BOSS", humans);
+                else
+                    show_dhudmessage(id, "^n%L", id, "CSO_TOP_B", humans, zombies);
+            }
+            else if (g_iMode == MODE_BOSS && g_iBoss)
             {
                 // Boss roundunda tek yazi (boss gostergesi de buyuk yazi kullaniyor)
                 set_dhudmessage(THEME_A[t][0], THEME_A[t][1], THEME_A[t][2], -1.0, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
@@ -2476,6 +2503,9 @@ DrawHud()
                 DrawSpecInfo(id);
         }
 
+        // v3.2 (B): rol ikonu (hud.txt StatusIcon), sadece degisince gonderilir
+        CsoRoleIcon(id);
+
         if ((g_iSet[id] & SET_NO_HUD) || HudPartMode(g_pHudRight) == 0)
             continue;
 
@@ -2490,6 +2520,8 @@ DrawHud()
             formatex(head, charsmax(head), "%L", id, "HUD_P1R", lvl, tname, g_iTopRank[id]);
         else
             formatex(head, charsmax(head), "%L", id, "HUD_P1", lvl, tname);
+        if (CsoOn())
+            format(head, charsmax(head), "=[ %s ]=", head);
 
         if (is_user_alive(id))
             formatex(l1, charsmax(l1), "%L", id, "HUD_P_HP", floatround(Float:get_entvar(id, var_health)), rg_get_user_armor(id));
@@ -2774,6 +2806,490 @@ stock HudAllS(slot, r, g, b, Float:hold, const key[], const sVal[])
         if (is_user_connected(id) && !is_user_bot(id))
             HudToS(id, slot, r, g, b, hold, key, sVal);
     }
+}
+
+/* ================================================================== */
+/*  CSO EKRAN BILDIRIMI (v3.2 B) - "killmark" yontemi                  */
+/*  Sunucu eklentisi ekrana serbest 2D resim cizemez. Istemcinin       */
+/*  kendi silah HUD betigi kullanilir: elindeki silah icin WeaponList  */
+/*  "vexmira/cso/<ad>" adiyla gonderilir -> istemci                    */
+/*  sprites/vexmira/cso/<ad>.txt dosyasini yukler ve "crosshair /      */
+/*  zoom" bolgesini ekranin ORTASINA (nisangah noktasina) cizer.       */
+/*  Sira: SetFOV(vex_cso_fov) + WeaponList(ozel ad) + CurWeapon.       */
+/*  Geri yukleme: WeaponList(orijinal) + SetFOV(gercek m_iFOV) +       */
+/*  CurWeapon. Silah degisimi / olum / durbun / round sonu / cikista   */
+/*  hemen geri yuklenir; oyuncu basina oncelikli kuyruk (4).           */
+/*  Gosterilemeyen oyuncuya (olu, izleyici, stil kapali) eski yazi.    */
+/* ================================================================== */
+
+new const CSO_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "knife", "nade", "mvp", "hwin", "zwin", "boss",
+    "infect", "nemesis", "assassin", "survivor", "last", "level", "rnd" };
+// 1 = _en / _tr ayri gorsel
+new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0 };
+// Oncelik (buyuk once). 1-2 = killmark: yeni killmark eskisinin yerini alir, bant varken sadece ses
+new const CSO_PRIO[CN_TOTAL] = { 1, 1, 1, 1, 1, 2, 2, 2, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9 };
+// vex_cso_notes biti: 1 killmark, 2 MVP, 4 round, 8 kazanan, 16 mod/boss/enfeksiyon, 32 son insan, 64 level
+new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16, 16, 32, 64, 4 };
+new const CSO_SND[CN_TOTAL][] = { "CSO_KM", "CSO_KM", "CSO_KM", "CSO_KM", "CSO_KM", "CSO_KM_SP", "CSO_KM_SP", "CSO_KM_SP",
+    "CSO_MVP", "CSO_WIN", "CSO_WIN", "CSO_ALERT", "CSO_ALERT", "CSO_BANNER", "CSO_BANNER", "CSO_BANNER", "CSO_ALERT",
+    "CSO_LEVEL", "CSO_BANNER" };
+// Sprite sayfalari (generic precache): killmark 2, alt bant 2, orta bant 3, round 4
+new const CSO_SHEETS[][] = { "km1", "km2", "low1", "low2", "mid1", "mid2", "mid3" };
+
+// plugin_precache: dosyasi olan bildirimler; vex_cso_style 0 ise hicbiri indirilmez
+CsoPrecache()
+{
+    g_iCsoRounds = 0;
+    if (g_iPreCso <= 0)
+        return;
+    new path[96];
+    for (new i = 0; i < sizeof CSO_SHEETS; i++)
+    {
+        formatex(path, charsmax(path), "sprites/vexmira/cso/%s.spr", CSO_SHEETS[i]);
+        if (file_exists(path, true))
+            precache_generic(path);
+    }
+    static const LNG[][] = { "en", "tr" };
+    for (new n = 0; n < CN_TOTAL; n++)
+    {
+        if (n == CN_ROUND)
+            continue;
+        new ok = 1;
+        for (new l = 0; l < (CSO_LANG[n] ? 2 : 1); l++)
+        {
+            if (CSO_LANG[n])
+                formatex(path, charsmax(path), "sprites/vexmira/cso/%s_%s.txt", CSO_FILE[n], LNG[l]);
+            else
+                formatex(path, charsmax(path), "sprites/vexmira/cso/%s.txt", CSO_FILE[n]);
+            if (file_exists(path, true))
+                precache_generic(path);
+            else
+                ok = 0;
+        }
+        g_bCsoFile[n] = ok ? true : false;
+    }
+    // Round bantlari: sadece plandaki round sayisi kadar (en fazla 30)
+    new total = clamp(g_iPreRoundsTotal > 0 ? g_iPreRoundsTotal : 30, 1, CSO_ROUNDS);
+    for (new r = 1; r <= total; r++)
+    {
+        formatex(path, charsmax(path), "sprites/vexmira/cso/rnd%d.txt", r);
+        if (!file_exists(path, true))
+            break;
+        precache_generic(path);
+        g_iCsoRounds = r;
+    }
+    for (new s = 0; s < (g_iCsoRounds + 7) / 8; s++)
+    {
+        formatex(path, charsmax(path), "sprites/vexmira/cso/rnd%d.spr", s + 1);
+        if (file_exists(path, true))
+            precache_generic(path);
+    }
+    g_bCsoFile[CN_ROUND] = g_iCsoRounds > 0 ? true : false;
+}
+
+// Orijinal CS WeaponList degerleri (yedek). Oyunun gonderdigi gercek degerler msg_WeaponList ile
+// yakalanip bunlarin ustune yazilir. { ammo1, max1, ammo2, max2, slot, pos, id, flags }
+CsoInitWL()
+{
+    static const D[31][8] =
+    {
+        { 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 9, 52, -1, -1, 1, 3, 1, 0 },     // p228
+        { 0, 0, 0, 0, 0, 0, 0, 0 },        // shield (silah degil)
+        { 2, 90, -1, -1, 0, 9, 3, 0 },     // scout
+        { 12, 1, -1, -1, 3, 1, 4, 24 },    // hegrenade
+        { 5, 32, -1, -1, 0, 12, 5, 0 },    // xm1014
+        { 14, 1, -1, -1, 4, 3, 6, 24 },    // c4
+        { 6, 100, -1, -1, 0, 13, 7, 0 },   // mac10
+        { 4, 90, -1, -1, 0, 14, 8, 0 },    // aug
+        { 13, 1, -1, -1, 3, 3, 9, 24 },    // smokegrenade
+        { 10, 120, -1, -1, 1, 5, 10, 0 },  // elite
+        { 7, 100, -1, -1, 1, 6, 11, 0 },   // fiveseven
+        { 6, 100, -1, -1, 0, 15, 12, 0 },  // ump45
+        { 4, 90, -1, -1, 0, 16, 13, 0 },   // sg550
+        { 4, 90, -1, -1, 0, 17, 14, 0 },   // galil
+        { 4, 90, -1, -1, 0, 18, 15, 0 },   // famas
+        { 6, 100, -1, -1, 1, 4, 16, 0 },   // usp
+        { 10, 120, -1, -1, 1, 2, 17, 0 },  // glock18
+        { 1, 30, -1, -1, 0, 2, 18, 0 },    // awp
+        { 10, 120, -1, -1, 0, 7, 19, 0 },  // mp5navy
+        { 3, 200, -1, -1, 0, 4, 20, 0 },   // m249
+        { 5, 32, -1, -1, 0, 5, 21, 0 },    // m3
+        { 4, 90, -1, -1, 0, 6, 22, 0 },    // m4a1
+        { 10, 120, -1, -1, 0, 11, 23, 0 }, // tmp
+        { 2, 90, -1, -1, 0, 3, 24, 0 },    // g3sg1
+        { 11, 2, -1, -1, 3, 2, 25, 24 },   // flashbang
+        { 8, 35, -1, -1, 1, 1, 26, 0 },    // deagle
+        { 4, 90, -1, -1, 0, 10, 27, 0 },   // sg552
+        { 2, 90, -1, -1, 0, 1, 28, 0 },    // ak47
+        { -1, -1, -1, -1, 2, 1, 29, 0 },   // knife
+        { 7, 100, -1, -1, 0, 8, 30, 0 }    // p90
+    };
+    for (new w = 1; w <= 30; w++)
+    {
+        if (w == 2)
+            continue;
+        get_weaponname(w, g_szWL[w], charsmax(g_szWL[]));
+        for (new k = 0; k < 8; k++)
+            g_iWL[w][k] = D[w][k];
+        g_bWL[w] = g_szWL[w][0] ? true : false;
+    }
+}
+
+// Oyunun gonderdigi gercek WeaponList (geri yukleme bu degerlerle yapilir)
+public msg_WeaponList(msgid, dest, id)
+{
+    new name[24];
+    get_msg_arg_string(1, name, charsmax(name));
+    if (!equal(name, "weapon_", 7))
+        return PLUGIN_CONTINUE;
+    new w = get_msg_arg_int(8);
+    if (w < 1 || w > 30)
+        return PLUGIN_CONTINUE;
+    copy(g_szWL[w], charsmax(g_szWL[]), name);
+    for (new k = 0; k < 8; k++)
+        g_iWL[w][k] = get_msg_arg_int(k + 2);
+    g_bWL[w] = true;
+    return PLUGIN_CONTINUE;
+}
+
+stock CsoSendWL(id, const name[], w)
+{
+    message_begin(MSG_ONE, g_msgWL, _, id);
+    write_string(name);
+    for (new k = 0; k < 8; k++)
+        write_byte(g_iWL[w][k]);
+    message_end();
+}
+
+stock CsoFov(id, fov)
+{
+    message_begin(MSG_ONE, g_msgFOV, _, id);
+    write_byte(fov);
+    message_end();
+}
+
+stock CsoCurW(id, w, clip)
+{
+    message_begin(MSG_ONE, g_msgCurW, _, id);
+    write_byte(1);
+    write_byte(w);
+    write_byte(clip);
+    message_end();
+}
+
+stock CsoName(id, note, arg, out[], len)
+{
+    if (note == CN_ROUND)
+        formatex(out, len, "vexmira/cso/rnd%d", arg);
+    else if (CSO_LANG[note])
+        formatex(out, len, "vexmira/cso/%s_%s", CSO_FILE[note], g_iLang[id] == 2 ? "tr" : "en");
+    else
+        formatex(out, len, "vexmira/cso/%s", CSO_FILE[note]);
+}
+
+stock bool:CsoOn()
+{
+    return get_pcvar_num(g_pCso) > 0 && g_iPreCso > 0;
+}
+
+// Durbun / zoom (m_iFOV != 90) varken gosterilmez: gercek durbun onceliklidir
+stock bool:CsoFovOk(id)
+{
+    new fov = get_member(id, m_iFOV);
+    return (fov == 90 || fov <= 0) ? true : false;
+}
+
+CsoSound(id, note)
+{
+    if (!get_pcvar_num(g_pCsoSnd) || is_user_bot(id))
+        return;
+    if (CSO_PRIO[note] <= 2 ? (g_iSet[id] & SET_NO_STREAK) : (g_iSet[id] & SET_NO_AMB))
+        return;
+    PlayKey(id, CSO_SND[note]);
+}
+
+// Bildirimi elindeki silahin HUD'una uygula
+bool:CsoApply(id, note, arg, Float:dur, bool:sound)
+{
+    new clip, ammo, w = get_user_weapon(id, clip, ammo);
+    if (w < 1 || w > 30 || !g_bWL[w])
+        return false;
+    if (g_iCsoCur[id] >= 0 && g_iCsoWpn[id] != w)
+        CsoRestore(id, false);
+
+    new nm[40];
+    CsoName(id, note, arg, nm, charsmax(nm));
+    CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 90));
+    CsoSendWL(id, nm, w);
+    CsoCurW(id, w, clip);
+
+    g_iCsoCur[id] = note;
+    g_iCsoArg[id] = arg;
+    g_iCsoWpn[id] = w;
+    g_fCsoEnd[id] = get_gametime() + dur;
+    g_iCsoShown++;
+    if (sound)
+    {
+        CsoSound(id, note);
+        CsoSub(id, note, arg);
+    }
+    if (get_pcvar_num(g_pCsoLog))
+        log_amx("[CSO] show %s -> #%d wpn=%s(%d) fov=%d %.1fs", nm, id, g_szWL[w], w, get_pcvar_num(g_pCsoFov), dur);
+    return true;
+}
+
+// Gercek silah HUD'unu geri yukle (orijinal WeaponList + gercek FOV + CurWeapon)
+CsoRestore(id, bool:refresh = true)
+{
+    new w = g_iCsoWpn[id];
+    g_iCsoCur[id] = -1;
+    g_iCsoWpn[id] = 0;
+    if (w < 1 || w > 30 || !is_user_connected(id))
+        return;
+
+    CsoSendWL(id, g_szWL[w], w);
+    new fov = is_user_alive(id) ? get_member(id, m_iFOV) : 90;
+    CsoFov(id, fov > 0 ? fov : 90);
+    if (refresh && is_user_alive(id))
+    {
+        new clip, ammo, cw = get_user_weapon(id, clip, ammo);
+        if (cw >= 1 && cw <= 30)
+            CsoCurW(id, cw, clip);
+    }
+    g_iCsoRestored++;
+    if (get_pcvar_num(g_pCsoLog))
+        log_amx("[CSO] restore WeaponList %s(%d) -> #%d fov=%d", g_szWL[w], w, id, fov > 0 ? fov : 90);
+}
+
+stock CsoClear(id)
+{
+    if (g_iCsoCur[id] >= 0)
+        CsoRestore(id, false);
+    g_iCsoCur[id] = -1;
+    g_iCsoQn[id] = 0;
+}
+
+// Round sonu / yeniden baslama: herkesin aktif gorseli kalkar, kuyruk bosalir
+CsoFlushAll()
+{
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (g_iCsoCur[id] >= 0 || g_iCsoQn[id])
+            CsoClear(id);
+    }
+}
+
+stock Float:CsoDur(note)
+{
+    return (CSO_PRIO[note] <= 2) ? floatclamp(get_pcvar_float(g_pCsoKmTime), 0.5, 5.0) : floatclamp(get_pcvar_float(g_pCsoTime), 1.0, 6.0);
+}
+
+CsoQueue(id, note, arg)
+{
+    new n = g_iCsoQn[id];
+    if (n >= CSO_QMAX)
+    {
+        if (CSO_PRIO[g_iCsoQ[id][n - 1]] >= CSO_PRIO[note])
+            return;
+        n--;
+    }
+    new pos = n;
+    while (pos > 0 && CSO_PRIO[g_iCsoQ[id][pos - 1]] < CSO_PRIO[note])
+    {
+        g_iCsoQ[id][pos] = g_iCsoQ[id][pos - 1];
+        g_iCsoQA[id][pos] = g_iCsoQA[id][pos - 1];
+        g_fCsoQT[id][pos] = g_fCsoQT[id][pos - 1];
+        pos--;
+    }
+    g_iCsoQ[id][pos] = note;
+    g_iCsoQA[id][pos] = arg;
+    g_fCsoQT[id][pos] = get_gametime();
+    g_iCsoQn[id] = n + 1;
+}
+
+// true: ekranda sprite olarak gosterilecek (hemen ya da kuyrukta) -> cagiran yazi gostermez.
+// false: bu oyuncuya sprite gidemez (stil kapali / bot / olu / izleyici / dosya yok) -> eski yazi.
+bool:CsoNotify(id, note, arg = 0)
+{
+    if (!CsoOn() || !g_bCsoFile[note] || !(get_pcvar_num(g_pCsoNotes) & CSO_BIT[note]))
+        return false;
+    if (note == CN_ROUND && (arg < 1 || arg > g_iCsoRounds))
+        return false;
+    if (!is_user_alive(id) || (is_user_bot(id) && !get_pcvar_num(g_pCsoBots)))
+        return false;
+    new clip, ammo, w = get_user_weapon(id, clip, ammo);
+    if (w < 1 || w > 30 || !g_bWL[w])
+        return false;
+
+    new cur = g_iCsoCur[id];
+    new bool:km = CSO_PRIO[note] <= 2;
+    if (cur >= 0 && CSO_PRIO[cur] > 2)
+    {
+        // Bant ekranda: killmark sadece ses, bant siraya girer
+        if (km)
+            CsoSound(id, note);
+        else
+            CsoQueue(id, note, arg);
+        return true;
+    }
+    if (!CsoFovOk(id))
+    {
+        if (km)
+        {
+            CsoSound(id, note);
+            return true;
+        }
+        CsoQueue(id, note, arg);
+        return true;
+    }
+    return CsoApply(id, note, arg, CsoDur(note), true);
+}
+
+// Herkese: sprite gidemeyen oyuncuya eski yazi (HudTo)
+stock CsoHudAll(note, arg, slot, r, g, b, Float:hold, const key[], iVal = 0)
+{
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_connected(id))
+            continue;
+        if (CsoNotify(id, note, arg) && !is_user_bot(id))
+            continue;
+        HudTo(id, slot, r, g, b, hold, key, iVal);
+    }
+}
+
+// Sprite'in altina kisa DHUD satiri (MVP adi / yeni level)
+CsoSub(id, note, arg)
+{
+    if (is_user_bot(id))
+        return;
+    switch (note)
+    {
+        case CN_MVP:
+        {
+            new mvp = g_iRoundMvp;
+            if (mvp < 1 || mvp > g_iMax || !is_user_connected(mvp))
+                return;
+            new name[32];
+            get_user_name(mvp, name, charsmax(name));
+            set_dhudmessage(255, 200, 60, -1.0, 0.585, 0, 0.0, 2.6, 0.1, 0.4);
+            show_dhudmessage(id, "%s^n%L", name, id, "CSO_MVP_SUB", g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp]);
+        }
+        case CN_LEVEL:
+        {
+            set_dhudmessage(0, 220, 255, -1.0, 0.63, 0, 0.0, 2.2, 0.1, 0.4);
+            show_dhudmessage(id, "%L", id, "CSO_LEVEL_SUB", arg);
+        }
+    }
+}
+
+// 0.1 sn: yalniz aktif / kuyrugu olan oyuncular islenir
+public task_CsoTick()
+{
+    new Float:now = get_gametime();
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (g_iCsoCur[id] < 0 && !g_iCsoQn[id])
+            continue;
+        if (!is_user_connected(id))
+        {
+            g_iCsoCur[id] = -1;
+            g_iCsoQn[id] = 0;
+            continue;
+        }
+        if (!is_user_alive(id))
+        {
+            CsoClear(id);
+            continue;
+        }
+        new clip, ammo, w = get_user_weapon(id, clip, ammo);
+        if (g_iCsoCur[id] >= 0)
+        {
+            if (!CsoFovOk(id))
+            {
+                // durbun acildi: gercek durbun HUD'u geri gelir, kalan sure atilir
+                CsoRestore(id);
+                continue;
+            }
+            if (w != g_iCsoWpn[id])
+            {
+                // silah degisti: eski silahin HUD'u geri, kalan sure yeni silahta
+                new note = g_iCsoCur[id], arg = g_iCsoArg[id];
+                new Float:left = g_fCsoEnd[id] - now;
+                CsoRestore(id);
+                if (left > 0.4)
+                    CsoApply(id, note, arg, left, false);
+                continue;
+            }
+            if (now < g_fCsoEnd[id])
+                continue;
+            CsoRestore(id, g_iCsoQn[id] == 0);
+        }
+        // Kuyruk
+        while (g_iCsoQn[id] > 0 && g_iCsoCur[id] < 0)
+        {
+            if (!CsoFovOk(id))
+                break;
+            new note = g_iCsoQ[id][0], arg = g_iCsoQA[id][0];
+            new Float:qt = g_fCsoQT[id][0];
+            g_iCsoQn[id]--;
+            for (new k = 0; k < g_iCsoQn[id]; k++)
+            {
+                g_iCsoQ[id][k] = g_iCsoQ[id][k + 1];
+                g_iCsoQA[id][k] = g_iCsoQA[id][k + 1];
+                g_fCsoQT[id][k] = g_fCsoQT[id][k + 1];
+            }
+            if (now - qt > 7.0)
+                continue;
+            if (!CsoApply(id, note, arg, CsoDur(note), true))
+            {
+                // gosterilemedi: kalan kuyruk da gecersiz
+                g_iCsoQn[id] = 0;
+                break;
+            }
+        }
+    }
+}
+
+// Rol ikonu (istemcinin hud.txt ikonlari, StatusIcon): sadece degisince gonderilir
+new const CSO_ICON[][] = { "", "suithelmet_full", "dmg_bio", "dmg_rad", "dmg_heat" };
+new const CSO_ICON_RGB[][3] = { { 0, 0, 0 }, { 0, 220, 255 }, { 120, 255, 40 }, { 255, 40, 40 }, { 255, 200, 60 } };
+
+CsoRoleIcon(id)
+{
+    new want = 0;
+    if (CsoOn() && get_pcvar_num(g_pCsoIcons) && HudPartMode(g_pHudRight) != 0 && is_user_alive(id))
+    {
+        if (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id])
+            want = 3;
+        else if (g_bZombie[id])
+            want = 2;
+        else if (g_bSurvivor[id] || g_bSniper[id] || (g_bLastAnn && !g_bZombie[id]))
+            want = 4;
+        else
+            want = 1;
+    }
+    if (want == g_iCsoIcon[id])
+        return;
+    if (g_iCsoIcon[id] > 0)
+    {
+        message_begin(MSG_ONE, g_msgSIcon, _, id);
+        write_byte(0);
+        write_string(CSO_ICON[g_iCsoIcon[id]]);
+        message_end();
+    }
+    if (want > 0)
+    {
+        message_begin(MSG_ONE, g_msgSIcon, _, id);
+        write_byte(1);
+        write_string(CSO_ICON[want]);
+        write_byte(CSO_ICON_RGB[want][0]);
+        write_byte(CSO_ICON_RGB[want][1]);
+        write_byte(CSO_ICON_RGB[want][2]);
+        message_end();
+    }
+    g_iCsoIcon[id] = want;
 }
 
 stock HudDecorate(slot, const text[], out[], len)
@@ -3571,6 +4087,14 @@ SetDefaultResources()
     }
     DefSound("ZAP",            "vexmira/zap.wav",             "weapons/electro4.wav");
     DefSound("MVP",            "vexmira/mvp.wav",             "events/task_complete.wav");
+    // v3.2 (B): CSO ekran bildirimi sesleri (devtools/sfx/make_cso_sounds.py)
+    DefSound("CSO_KM",         "vexmira/cso/km.wav",          "buttons/blip1.wav");
+    DefSound("CSO_KM_SP",      "vexmira/cso/km_sp.wav",       "buttons/blip2.wav");
+    DefSound("CSO_MVP",        "vexmira/cso/mvp.wav",         "events/task_complete.wav");
+    DefSound("CSO_BANNER",     "vexmira/cso/banner.wav",      "ambience/the_horror2.wav");
+    DefSound("CSO_WIN",        "vexmira/cso/win.wav",         "events/task_complete.wav");
+    DefSound("CSO_ALERT",      "vexmira/cso/alert.wav",       "buttons/blip2.wav");
+    DefSound("CSO_LEVEL",      "vexmira/cso/levelup.wav",     "plats/elevbell1.wav");
     DefSound("VIP_JOIN",       "vexmira/vip_join.wav",        "buttons/bell1.wav");
     DefSound("BOSS_WARN",      "vexmira/boss_warn.wav",       "buttons/blip2.wav");
     DefSound("BOSS_ROAR",      "garg/gar_alert1.wav",         "ambience/the_horror1.wav");
@@ -4018,7 +4542,8 @@ new const SOUND_2D_KEYS[][] =
     "PLAYER_JOIN", "PLAYER_LEAVE", "QUEST_DONE", "ROUND_START", "SHOP_BUY", "SKILL_UNLOCK", "SPEED_START", "SPEED_WIND",
     "STORM_STRIKE", "STREAK_5", "STREAK_10", "STREAK_15", "VIP_JOIN", "WELCOME", "ZOMBIE_WIN", "UI_OPEN",
     // v3.0 (C): sadece ATTN_NONE (herkes duyar) ile calinanlar
-    "NEM_RAGE"
+    "NEM_RAGE",
+    "CSO_KM", "CSO_KM_SP", "CSO_MVP", "CSO_BANNER", "CSO_WIN", "CSO_ALERT", "CSO_LEVEL"
 };
 
 // Sadece yedek olarak kullanilan ses anahtarlari (sinifin / bossun kendi sesi varsa gereksiz)
@@ -4903,6 +5428,8 @@ LoadMainConfig(bool:precache)
                     g_iPreBossEvery = str_to_num(args[1]);
                 else if (equali(args[0], "vex_rounds_total"))
                     g_iPreRoundsTotal = str_to_num(args[1]);
+                else if (equali(args[0], "vex_cso_style"))
+                    g_iPreCso = str_to_num(args[1]);
             }
             continue;
         }
@@ -5540,7 +6067,8 @@ LevelUp(id, old)
     FxSpr(o, g_sprFx[FXS_LEVELUP], 9, 230, 20.0);
     FadeOne(id, 0, 255, 140, 90, 0.6);
     PlayKey(id, "LEVEL_UP");
-    HudTo(id, SL_PERS, CLR_REWARD, 3.5, "LEVEL_UP_HUD", g_iLevel[id]);
+    if (!CsoNotify(id, CN_LEVEL, g_iLevel[id]))
+        HudTo(id, SL_PERS, CLR_REWARD, 3.5, "LEVEL_UP_HUD", g_iLevel[id]);
     Chat(id, "LEVELUP_VC", vc);
 
     for (new p = 1; p <= g_iMax; p++)
@@ -17459,6 +17987,8 @@ public rg_MakeBomber(id)
 
 public rg_RestartRound()
 {
+    // v3.2 (B): CSO ekran bildirimi: aktif gorseller kalkar, kuyruk bosalir
+    CsoFlushAll();
     // Onceki roundun sesleri (kalp atisi, muzik, yanma, ruzgar...) tamamen susar.
     // "stopsound" haritanin dongulu ortam seslerini de susturur: kisa sure sonra yeniden baslar.
     if (get_pcvar_num(g_pRoundStopSnd))
@@ -17708,6 +18238,11 @@ public task_Announce()
     new key[20];
     new total = RoundsTotal();
 
+    // v3.2 (B): CSO "ROUND N" bandi (ekran ortasi sprite)
+    new bool:got[33];
+    for (new p = 1; p <= g_iMax; p++)
+        got[p] = (is_user_connected(p) && CsoNotify(p, CN_ROUND, g_iRound)) ? true : false;
+
     // Moda ozel muzik (ini: MODE<n>_MUSIC)
     new mkey[16], mpath[128];
     formatex(mkey, charsmax(mkey), "MODE%d_MUSIC", g_iMode);
@@ -17742,6 +18277,11 @@ public task_Announce()
     {
         formatex(key, charsmax(key), "BOSS_ANN_%d", g_iBossType);
         HudAll(SL_ANN, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], 4.0, key);
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (is_user_connected(p))
+                CsoNotify(p, CN_BOSS);
+        }
         if (g_bFinalBoss)
             HudAll(SL_ALERT, CLR_DANGER, 3.0, "FINAL_BOSS_HUD");
         PlayKey(0, "BOSS_SPAWN");
@@ -17773,7 +18313,13 @@ public task_Announce()
         EventStartFx();
     }
     else
-        HudAll(SL_ANN, CLR_CYAN, 3.5, "ROUND_CALM", g_iRound);
+    {
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (is_user_connected(p) && !got[p])
+                HudTo(p, SL_ANN, CLR_CYAN, 3.5, "ROUND_CALM", g_iRound);
+        }
+    }
 
     BossTeaser();
 }
@@ -17867,6 +18413,8 @@ OnRoundEnd(WinStatus:status)
 
     new bool:wasActive = g_bRoundActive;
     g_bRoundActive = false;
+    // v3.2 (B): ekrandaki killmark / bantlar kalkar, gercek silah HUD'u geri gelir
+    CsoFlushAll();
 
     if (!wasActive)
         return;
@@ -17878,7 +18426,7 @@ OnRoundEnd(WinStatus:status)
         if (g_iHumanStreak >= 3)
             LiveAll(0, "LIVE_HSTREAK", 2, g_iHumanStreak);
 
-        HudAll(SL_ANN, CLR_GOOD, 4.0, "HUMANS_WIN");
+        CsoHudAll(CN_HWIN, 0, SL_ANN, CLR_GOOD, 4.0, "HUMANS_WIN");
         PlayKey(0, "HUMAN_WIN");
 
         new xp = get_pcvar_num(g_pWinHXP), ap = get_pcvar_num(g_pWinHAP);
@@ -17909,7 +18457,7 @@ OnRoundEnd(WinStatus:status)
         if (g_iZombieStreak >= 3)
             LiveAll(0, "LIVE_ZSTREAK", 2, g_iZombieStreak);
 
-        HudAll(SL_ANN, CLR_DANGER, 4.0, "ZOMBIES_WIN");
+        CsoHudAll(CN_ZWIN, 0, SL_ANN, CLR_DANGER, 4.0, "ZOMBIES_WIN");
         PlayKey(0, "ZOMBIE_WIN");
 
         for (new id = 1; id <= g_iMax; id++)
@@ -17974,7 +18522,7 @@ RoundSummary()
             if (!is_user_connected(p) || is_user_bot(p))
                 continue;
             formatex(txt, charsmax(txt), "%L", p, "MVP_HUD", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp]);
-            if (HudPartMode(g_pHudMvp) != 0)
+            if (HudPartMode(g_pHudMvp) != 0 && !CsoNotify(p, CN_MVP))
                 HudText(p, SL_ALERT, CLR_REWARD, 4.0, txt);
             client_print_color(p, mvp, "%s %L", ChatTag("MVP_CHAT2"), p, "MVP_CHAT2", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp], ap, vc);
             if (!(g_iSet[p] & SET_NO_AMB))
@@ -18632,7 +19180,7 @@ StartInfection(players[32], n)
 
     new key[20];
     formatex(key, charsmax(key), "MODE_START_%d", g_iMode);
-    HudAll(SL_ALERT, CLR_DANGER, 3.0, key);
+    CsoHudAll(CN_INFECT, 0, SL_ALERT, CLR_DANGER, 3.0, key);
     PlayKey(0, "ROUND_START");
     PlayVoxAll("VOX_INFECT");
     FadeAll(0, 120, 0, 50, 1.0);
@@ -18652,7 +19200,7 @@ StartNemesis(players[32], n, bool:assassin)
 
     new key[20];
     formatex(key, charsmax(key), "MODE_START_%d", g_iMode);
-    HudAll(SL_ALERT, CLR_DANGER, 3.5, key);
+    CsoHudAll(assassin ? CN_ASSASSIN : CN_NEMESIS, 0, SL_ALERT, CLR_DANGER, 3.5, key);
     PlaySpecialIntro(assassin);
     FadeAll(255, 0, 0, 80, 1.5);
     ShakeAll(8, 1.5, 4);
@@ -18672,7 +19220,7 @@ StartSurvivor(players[32], n, bool:sniper)
 
     new key[20];
     formatex(key, charsmax(key), "MODE_START_%d", g_iMode);
-    HudAll(SL_ALERT, CLR_HUMAN, 3.5, key);
+    CsoHudAll(CN_SURVIVOR, 0, SL_ALERT, CLR_HUMAN, 3.5, key);
     PlayKey(0, "MODE_START");
     FadeAll(0, 100, 255, 60, 1.5);
 }
@@ -19312,6 +19860,10 @@ public client_connect(id)
 
 public client_putinserver(id)
 {
+    g_iCsoCur[id] = -1;
+    g_iCsoQn[id] = 0;
+    g_iCsoWpn[id] = 0;
+    g_iCsoIcon[id] = 0;
     ResetPlayer(id);
     HudReset(id);
     if (get_pcvar_num(g_pAutoJoinHumans) && !is_user_bot(id))
@@ -19483,6 +20035,10 @@ public task_JoinAnnounce(tid)
 
 public client_disconnected(id, bool:drop, message[], maxlen)
 {
+    g_iCsoCur[id] = -1;
+    g_iCsoQn[id] = 0;
+    g_iCsoWpn[id] = 0;
+    g_iCsoIcon[id] = 0;
     remove_task(id + TASK_AUTOTEAM);
     remove_task(id + TASK_JOINCLASS);
     remove_task(id + TASK_LOADWAIT);
@@ -20188,7 +20744,7 @@ TickPlayers()
         g_bLastAnn = true;
         new name[32];
         get_user_name(last, name, charsmax(name));
-        HudAll(SL_ALERT, CLR_WARN, 3.0, "LAST_HUMAN");
+        CsoHudAll(CN_LAST, 0, SL_ALERT, CLR_WARN, 3.0, "LAST_HUMAN");
         ChatAllS("LAST_HUMAN_CHAT", name);
         PlayKey(0, "LAST_HUMAN");
         PlayVoxAll("VOX_LAST");
@@ -20289,6 +20845,8 @@ public rg_PlayerSpawn(id)
 
     g_fRespawnAt[id] = 0.0;
     ResetLifeData(id);
+    // istemci ResetHUD'da durum ikonlarini siler: rol ikonu yeniden gonderilsin
+    g_iCsoIcon[id] = 0;
 
     // Zombi olarak yeniden dogma (respawn / boss minion)
     if (g_bForceZombie[id])
@@ -21008,6 +21566,7 @@ KillStreak(attacker, victim)
 
     new Float:now = get_gametime();
     new bool:hs = (get_member(victim, m_LastHitGroup) == HIT_HEAD) ? true : false;
+    new bool:nade = get_member(victim, m_bKilledByGrenade) ? true : false;
 
     g_iStreak[attacker]++;
 
@@ -21055,7 +21614,19 @@ KillStreak(attacker, victim)
         AddAP(attacker, m - 1, true, false);
     }
 
-    if (ktxt[0])
+    // v3.2 (B): CSO killmark (seri 1-5, headshot / bicak / bomba); gosterilirse yazi yok
+    new km;
+    if (nade)
+        km = CN_NADE;
+    else if (get_user_weapon(attacker) == CSW_KNIFE)
+        km = CN_KNIFE;
+    else if (hs && g_iMulti[attacker] < 2)
+        km = CN_HS;
+    else
+        km = CN_KM1 + clamp(g_iMulti[attacker], 1, 5) - 1;
+    new bool:shown = CsoNotify(attacker, km);
+
+    if (ktxt[0] && !shown)
         HudText(attacker, SL_KILL, CLR_WARN, 1.2, ktxt);
 
     new s = g_iStreak[attacker];
@@ -24360,6 +24931,8 @@ public plugin_precache()
     // sonra TEK AYAR DOSYASI vexmira.cfg icindeki "vex_res" satirlari ustune yazar.
     LoadResourceIni();
     LoadMainConfig(true);
+    // v3.2 (B): CSO ekran bildirimi dosyalari (vex_cso_style 0 ise hic indirilmez)
+    CsoPrecache();
 
     // Toplam precache sayaci (oyun + harita + diger eklentiler): plugin_init'te loglanir
     g_iFwPcSnd = register_forward(FM_PrecacheSound, "fw_PcSoundPost", 1);
@@ -24988,6 +25561,23 @@ public plugin_init()
     g_pHudXp         = register_cvar("vex_hud_xp", "-1");
     g_pHudOvh        = register_cvar("vex_hud_overhead", "-1");
     g_pHudObjective  = register_cvar("vex_hud_objective", "-1");
+    // v3.2 (B): CSO tarzi ekran bildirimi
+    g_pCso           = register_cvar("vex_cso_style", "1");
+    g_pCsoNotes      = register_cvar("vex_cso_notes", "127");
+    g_pCsoTime       = register_cvar("vex_cso_time", "2.5");
+    g_pCsoKmTime     = register_cvar("vex_cso_km_time", "1.5");
+    g_pCsoFov        = register_cvar("vex_cso_fov", "89");
+    g_pCsoSnd        = register_cvar("vex_cso_sound", "1");
+    g_pCsoIcons      = register_cvar("vex_cso_icons", "1");
+    g_pCsoBots       = register_cvar("vex_cso_bots", "0");
+    g_pCsoLog        = register_cvar("vex_cso_log", "0");
+    g_msgWL    = get_user_msgid("WeaponList");
+    g_msgCurW  = get_user_msgid("CurWeapon");
+    g_msgFOV   = get_user_msgid("SetFOV");
+    g_msgSIcon = get_user_msgid("StatusIcon");
+    CsoInitWL();
+    register_message(g_msgWL, "msg_WeaponList");
+    set_task(0.1, "task_CsoTick", TASK_CSO, _, _, "b");
     g_pBossBarW      = register_cvar("vex_bossbar_width", "110");
     g_pSmallBarW     = register_cvar("vex_hpbar_width", "44");
     g_pIconSize      = register_cvar("vex_head_icon_size", "18");

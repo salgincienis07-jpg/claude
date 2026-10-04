@@ -826,6 +826,11 @@ TOP_A = V E X M I R A   //   ROUND  %d / %d
 TOP_B = ZOMBIES  %d    -    %d  HUMANS
 TOP_B_BOSS = BOSS FIGHT    -    %d  HUMANS ALIVE
 TOP_C = %s   ::   %s
+CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
+CSO_TOP_B = HUMAN  %d      VS      %d  ZOMBIE
+CSO_TOP_BOSS = BOSS FIGHT      VS      %d  HUMAN
+CSO_MVP_SUB = %d damage  |  %d kills  |  %d infections
+CSO_LEVEL_SUB = LEVEL  %d
 TOP_C_BOSSIN = %s   ::   %s   ::   BOSS IN %d
 TOP_C_FINAL = %s   ::   %s   ::   FINAL ROUND
 HUD_JOB_LM = JOB  %s   ::   LASERS  %d  (%d SET)
@@ -2181,6 +2186,11 @@ TOP_A = V E X M I R A   //   ROUND  %d / %d
 TOP_B = ZOMBI  %d    -    %d  INSAN
 TOP_B_BOSS = BOSS SAVASI    -    %d  INSAN HAYATTA
 TOP_C = %s   ::   %s
+CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
+CSO_TOP_B = INSAN  %d      VS      %d  ZOMBI
+CSO_TOP_BOSS = BOSS SAVASI      VS      %d  INSAN
+CSO_MVP_SUB = %d hasar  |  %d oldurme  |  %d enfeksiyon
+CSO_LEVEL_SUB = SEVIYE  %d
 TOP_C_BOSSIN = %s   ::   %s   ::   BOSS: %d ROUND SONRA
 TOP_C_FINAL = %s   ::   %s   ::   SON ROUND
 HUD_JOB_LM = MESLEK  %s   ::   LAZER  %d  (%d KURULU)
