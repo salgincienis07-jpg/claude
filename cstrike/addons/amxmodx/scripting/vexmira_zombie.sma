@@ -14497,9 +14497,7 @@ bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
             return false;
     }
 
-    pos[0] += normal[0] * 8.0;
-    pos[1] += normal[1] * 8.0;
-    pos[2] += normal[2] * 8.0;
+    // pos yuzeyde kalir; modele gore ofset CreateMine'da (MineOrient) uygulanir
     return true;
 }
 
@@ -14545,9 +14543,137 @@ AimedMine(id, Float:range)
     return best;
 }
 
+/* ---------------- Mayin yonu (v3.0 hizalama) ----------------
+   Half-Life tripmine.cpp gibi: aci = VecToAngles(yuzey normali), model normal boyunca
+   ofsetlenir. Istemci studio donusumu (StudioSetUpTransform: pitch ters, AngleMatrix):
+   varlik acisi (P, Y, R) icin model +X = MakeVectors(-P, Y, R).forward, +Z = .up.
+   Model eksenleri: E = isinin ciktigi yon, U = duvardayken yukari bakan yon.
+   - HL v_tripmine (govde 3, "world"): E = +X, U = +Z, normal boyunca 8 birim, isin merkezden.
+   - Vexmira lasermine.mdl: E = +X (lens 6.8), montaj yuzu -X (x = 0), 0.4 birim.
+   - w_c4 yedegi: alt yuzu duvarda (E = +Z).
+   Duvarda U dunya yukarisina; zemin / tavanda kuran oyuncunun bakis yonune (yamuk durmaz).
+   cfg: LASERMINE_ANGLES "pitch yaw roll" (model uzayinda ek donus), LASERMINE_OFFSET (birim),
+   LASERMINE_EMITTER "x y z" (model uzayinda isin cikis noktasi). Bos = modele gore otomatik. */
+MinePreset(bool:tripmine, bool:c4, bool:fellBack)
+{
+    g_fMineAxE = Float:{1.0, 0.0, 0.0};
+    g_fMineAxU = Float:{0.0, 0.0, 1.0};
+    g_fMineAngOfs = Float:{0.0, 0.0, 0.0};
+    if (tripmine)
+    {
+        g_fMineOff = 8.0;
+        g_fMineEmit = Float:{0.0, 0.0, 0.0};
+    }
+    else if (c4)
+    {
+        g_fMineAxE = Float:{0.0, 0.0, 1.0};
+        g_fMineAxU = Float:{1.0, 0.0, 0.0};
+        g_fMineOff = 0.5;
+        g_fMineEmit = Float:{0.0, 0.0, 5.0};
+    }
+    else
+    {
+        g_fMineOff = 0.4;
+        g_fMineEmit = Float:{6.8, 0.0, 0.0};
+    }
+    if (fellBack)
+        return;
+    new txt[48], a[16], b[16], c[16];
+    copy(txt, charsmax(txt), GetResString("LASERMINE_OFFSET", ""));
+    trim(txt);
+    if (txt[0])
+        g_fMineOff = floatclamp(str_to_float(txt), -16.0, 32.0);
+    copy(txt, charsmax(txt), GetResString("LASERMINE_EMITTER", ""));
+    if (parse(txt, a, charsmax(a), b, charsmax(b), c, charsmax(c)) == 3)
+    {
+        g_fMineEmit[0] = str_to_float(a);
+        g_fMineEmit[1] = str_to_float(b);
+        g_fMineEmit[2] = str_to_float(c);
+    }
+    copy(txt, charsmax(txt), GetResString("LASERMINE_ANGLES", ""));
+    if (parse(txt, a, charsmax(a), b, charsmax(b), c, charsmax(c)) == 3)
+    {
+        g_fMineAngOfs[0] = str_to_float(a);
+        g_fMineAngOfs[1] = str_to_float(b);
+        g_fMineAngOfs[2] = str_to_float(c);
+    }
+}
+
+// Model uzayindaki v -> dunya: (E.v) n + (U.v) u + (W.v) w   (W = E x U)
+stock MineMap(const Float:v[3], const Float:n[3], const Float:u[3], const Float:w[3], Float:out[3])
+{
+    new Float:W[3];
+    W[0] = g_fMineAxE[1] * g_fMineAxU[2] - g_fMineAxE[2] * g_fMineAxU[1];
+    W[1] = g_fMineAxE[2] * g_fMineAxU[0] - g_fMineAxE[0] * g_fMineAxU[2];
+    W[2] = g_fMineAxE[0] * g_fMineAxU[1] - g_fMineAxE[1] * g_fMineAxU[0];
+    new Float:de = g_fMineAxE[0] * v[0] + g_fMineAxE[1] * v[1] + g_fMineAxE[2] * v[2];
+    new Float:du = g_fMineAxU[0] * v[0] + g_fMineAxU[1] * v[1] + g_fMineAxU[2] * v[2];
+    new Float:dw = W[0] * v[0] + W[1] * v[1] + W[2] * v[2];
+    for (new i = 0; i < 3; i++)
+        out[i] = de * n[i] + du * u[i] + dw * w[i];
+}
+
+// Yuzey normali (+ kuran oyuncunun bakisi) -> varlik acisi + isin cikis noktasinin ofseti (dunya)
+MineOrient(id, const Float:n[3], Float:ang[3], Float:emit[3])
+{
+    new Float:u[3], Float:w[3], Float:d;
+    if (floatabs(n[2]) < 0.7 || !is_user_connected(id))
+    {
+        u[2] = 1.0;
+    }
+    else
+    {
+        new Float:va[3];
+        get_entvar(id, var_v_angle, va);
+        u[0] = floatcos(va[1], degrees);
+        u[1] = floatsin(va[1], degrees);
+    }
+    d = u[0] * n[0] + u[1] * n[1] + u[2] * n[2];
+    for (new i = 0; i < 3; i++)
+        u[i] -= d * n[i];
+    d = floatsqroot(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
+    if (d < 0.01)
+    {
+        // normal yukari / bakis normale paralel: herhangi bir dik eksen
+        u[0] = 1.0 - n[0] * n[0]; u[1] = -n[0] * n[1]; u[2] = -n[0] * n[2];
+        d = floatmax(0.001, floatsqroot(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
+    }
+    for (new i = 0; i < 3; i++)
+        u[i] /= d;
+    w[0] = n[1] * u[2] - n[2] * u[1];
+    w[1] = n[2] * u[0] - n[0] * u[2];
+    w[2] = n[0] * u[1] - n[1] * u[0];
+
+    // cfg aci ofseti: model uzayinda once bu donus (varlik acisi kurali ile)
+    new Float:oa[3], Float:fx[3], Float:ry[3], Float:uz[3], Float:tmp[3], Float:X[3], Float:Z[3];
+    oa[0] = -g_fMineAngOfs[0];
+    oa[1] = g_fMineAngOfs[1];
+    oa[2] = g_fMineAngOfs[2];
+    engfunc(EngFunc_MakeVectors, oa);
+    global_get(glb_v_forward, fx);
+    global_get(glb_v_right, ry);
+    global_get(glb_v_up, uz);
+    MineMap(fx, n, u, w, X);
+    MineMap(uz, n, u, w, Z);
+    for (new i = 0; i < 3; i++)
+        tmp[i] = g_fMineEmit[0] * fx[i] - g_fMineEmit[1] * ry[i] + g_fMineEmit[2] * uz[i];
+    MineMap(tmp, n, u, w, emit);
+
+    // Eksenler -> Euler (pitch +X'i yukari kaldirir; roll Z eksenini oturtur)
+    engfunc(EngFunc_VecToAngles, X, ang);
+    new Float:a0[3], Float:r0[3], Float:u0[3];
+    a0[0] = -ang[0];
+    a0[1] = ang[1];
+    engfunc(EngFunc_MakeVectors, a0);
+    global_get(glb_v_right, r0);
+    global_get(glb_v_up, u0);
+    ang[2] = floatatan2(Z[0] * r0[0] + Z[1] * r0[1] + Z[2] * r0[2], Z[0] * u0[0] + Z[1] * u0[1] + Z[2] * u0[2], degrees);
+}
+
 /* ---------------- Mayin varligi ---------------- */
 
-CreateMine(id, const Float:pos[3], const Float:normal[3])
+// surf = yuzeydeki nokta (FindPlantSpot), normal = yuzey normali
+CreateMine(id, const Float:surf[3], const Float:normal[3])
 {
     if (!g_szMineModel[0])
         return 0;
@@ -14570,12 +14696,23 @@ CreateMine(id, const Float:pos[3], const Float:normal[3])
     set_entvar(ent, var_movetype, MOVETYPE_FLY);
     // Kurarken kati degil (oyuncu icinde kalmasin); aktif olunca kati olur ki pence ile kirilabilsin
     set_entvar(ent, var_solid, SOLID_NOT);
-    engfunc(EngFunc_SetSize, ent, Float:{-4.0, -4.0, -4.0}, Float:{4.0, 4.0, 4.0});
-    engfunc(EngFunc_SetOrigin, ent, pos);
 
-    new Float:ang[3];
-    engfunc(EngFunc_VecToAngles, normal, ang);
+    // Yon: govde yuzeye oturur, isin cikisi normal boyunca disari bakar
+    new Float:ang[3], Float:emit[3], Float:pos[3], Float:beamStart[3], Float:mins[3], Float:maxs[3];
+    MineOrient(id, normal, ang, emit);
+    for (new i = 0; i < 3; i++)
+    {
+        pos[i] = surf[i] + normal[i] * g_fMineOff;
+        beamStart[i] = pos[i] + emit[i] + normal[i] * 0.5;
+        // Kutu: montaj yuzunden isin cikisina kadar govde (+-3)
+        new Float:back = -normal[i] * g_fMineOff;
+        mins[i] = floatmin(floatmin(0.0, back), emit[i]) - 3.0;
+        maxs[i] = floatmax(floatmax(0.0, back), emit[i]) + 3.0;
+    }
+    engfunc(EngFunc_SetSize, ent, mins, maxs);
+    engfunc(EngFunc_SetOrigin, ent, pos);
     set_entvar(ent, var_angles, ang);
+    set_entvar(ent, var_vuser3, beamStart);
 
     new Float:hp = float(max(50, get_pcvar_num(g_pLmHealth)));
     set_entvar(ent, var_takedamage, DAMAGE_YES);
@@ -14729,9 +14866,8 @@ public fw_MineThink(ent)
     get_entvar(ent, var_vuser1, normal);
 
     new Float:start[3], Float:end[3];
-    start[0] = o[0] + normal[0] * 2.0;
-    start[1] = o[1] + normal[1] * 2.0;
-    start[2] = o[2] + normal[2] * 2.0;
+    // Isin modelin cikis noktasindan baslar (CreateMine'da hesaplanir)
+    get_entvar(ent, var_vuser3, start);
 
     // Kurulum: kisa sarj, sonra isin acilir
     if (get_entvar(ent, var_iuser2) == 0)
