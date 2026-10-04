@@ -80,6 +80,7 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 #define NUM_THEMES    6
 #define NUM_RANKS     8
 #define NUM_ADS       26
+#define NUM_TIPS      18
 #define MAX_FLARES    8
 
 #define TASK_TICK     7001
@@ -595,6 +596,8 @@ new g_szTopKey[TOP_MAX][48], g_szTopName[TOP_MAX][32], g_iTopXP[TOP_MAX], g_iTop
 new g_pCountdown, g_pFirstHP, g_pZombieHP, g_pBossEvery, g_pBossHP, g_pEventChance;
 new g_pNemHP, g_pAsnHP, g_pSurvHP, g_pSnipHP, g_pRespawn, g_pDmgPerAP, g_pKnockback;
 new g_pStartAP, g_pArmorProtect, g_pVipContact;
+new g_pVipBonus, g_pEliteBonus, g_pVipDisc, g_pEliteDisc, g_pVipArmor, g_pEliteArmor, g_pVipRoundVC, g_pVipAutoPack;
+new g_pTipInterval, g_pLiveChatter, g_iTipIdx, g_iTipClock;
 new g_pBossRounds, g_pBossHPPer, g_pBossFinal, g_pBossDmg, g_pBossAbil, g_pSpecialRounds, g_pMultiChance, g_pRoundsTotal;
 new g_pSpeedHuman, g_pSpeedZombie, g_pSpeedFov, g_pNemDmg, g_pAsnDmg, g_pMinionDmg, g_pZombieDmg, g_pHumanHP;
 new g_pZSpeed, g_pHSpeed, g_pMvpAP, g_pMvpVC, g_pGiveNades, g_pLastHumanHP, g_pInfectAP, g_pKillAP;
@@ -6154,10 +6157,7 @@ Float:APMult(id)
     new Float:m = 1.0;
     if (g_iJob[id] == JOB_LOOTER)
         m += 0.5;
-    if (IsElite(id))
-        m += 0.50;
-    else if (IsVip(id))
-        m += 0.25;
+    m += float(VipBonusPct(id)) / 100.0;
     m += 0.10 * float(g_iPerk[id][PK_FORTUNE]);
     if (g_iEvent == EV_GOLDRUSH)
         m *= 2.0;
@@ -6207,10 +6207,7 @@ Reward(id, xp, ap)
     if (!is_user_connected(id) || is_user_bot(id))
         return;
 
-    if (IsElite(id))
-        xp = xp * 3 / 2;
-    else if (IsVip(id))
-        xp = xp * 5 / 4;
+    xp = xp * (100 + VipBonusPct(id)) / 100;
     if (g_iEvent == EV_GOLDRUSH)
         xp *= 2;
 
@@ -6300,10 +6297,7 @@ ItemPrice(id, i)
     new cost = ITEM_COST[i];
     if (g_iJob[id] == JOB_ENGINEER)
         cost = cost * 3 / 4;
-    if (IsElite(id))
-        cost = cost * 8 / 10;
-    else if (IsVip(id))
-        cost = cost * 9 / 10;
+    cost = cost * (100 - VipDiscPct(id)) / 100;
     if (i == IT_MEDKIT && g_iJob[id] == JOB_MEDIC)
         cost /= 2;
     return max(1, cost);
@@ -6598,10 +6592,7 @@ ShowSpecialMenu(id)
 SwPrice(id, i)
 {
     new c = SW_COST[i];
-    if (IsElite(id))
-        c = c * 8 / 10;
-    else if (IsVip(id))
-        c = c * 9 / 10;
+    c = c * (100 - VipDiscPct(id)) / 100;
     return c;
 }
 
@@ -6804,6 +6795,35 @@ bool:IsElite(id)
     return (g_iVip[id] >= 2) ? true : false;
 }
 
+// v3.2: VIP degerleri cfg'den (vex_vip_* / vex_elite_*)
+VipBonusPct(id)
+{
+    if (IsElite(id)) return clamp(get_pcvar_num(g_pEliteBonus), 0, 300);
+    if (IsVip(id))   return clamp(get_pcvar_num(g_pVipBonus), 0, 300);
+    return 0;
+}
+
+VipDiscPct(id)
+{
+    if (IsElite(id)) return clamp(get_pcvar_num(g_pEliteDisc), 0, 90);
+    if (IsVip(id))   return clamp(get_pcvar_num(g_pVipDisc), 0, 90);
+    return 0;
+}
+
+VipArmor(id)
+{
+    if (IsElite(id)) return max(0, get_pcvar_num(g_pEliteArmor));
+    if (IsVip(id))   return max(0, get_pcvar_num(g_pVipArmor));
+    return 0;
+}
+
+VipRoundVC(id)
+{
+    if (!IsVip(id)) return 0;
+    new v = max(0, get_pcvar_num(g_pVipRoundVC));
+    return IsElite(id) ? v * 2 : v;
+}
+
 VipTierKey(id, out[], len)
 {
     copy(out, len, IsElite(id) ? "VIP_TIER_2" : "VIP_TIER_1");
@@ -6881,18 +6901,45 @@ public cmd_vipinfo(id)
     return PLUGIN_HANDLED;
 }
 
+// v3.2: VIP ayricaliklari tek sayfa menu (degerler cfg'den canli okunur)
 ShowVipInfo(id)
 {
-    new contact[64];
+    new contact[64], title[1024], ln[128];
     get_pcvar_string(g_pVipContact, contact, charsmax(contact));
 
-    for (new i = 1; i <= 8; i++)
+    formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "VIPI_TITLE");
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, get_pcvar_num(g_pVipAutoPack) ? "VIPI_4A" : "VIPI_4"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_7"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
+    if (!IsVip(id))
     {
-        new key[16];
-        formatex(key, charsmax(key), "VIPINFO_%d", i);
-        Chat(id, key);
+        formatex(ln, charsmax(ln), "^n\r%L^n", id, "VIPI_BUY", contact); add(title, charsmax(title), ln);
     }
-    Chat(id, "VIPINFO_BUY", contact);
+
+    new menu = menu_create(title, "menu_vipinfo_handler");
+    new item[64];
+    formatex(item, charsmax(item), "\d%L", id, "HUB_BACK");
+    MenuAdd(menu, item, 1);
+    menu_setprop(menu, MPROP_PERPAGE, 0);
+    menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
+    MenuFinish(id, menu);
+}
+
+public menu_vipinfo_handler(id, menu, item)
+{
+    menu_destroy(menu);
+    if (item < 0)
+        return PLUGIN_HANDLED;
+    if (IsVip(id))
+        ShowVipMenu(id);
+    else
+        ShowMainMenu(id);
+    return PLUGIN_HANDLED;
 }
 
 ShowVipMenu(id)
@@ -6926,6 +6973,9 @@ ShowVipMenu(id)
     formatex(item, charsmax(item), "\y%L", id, "VIPM_INFO");
     MenuAdd(menu, item, 5);
 
+    formatex(item, charsmax(item), "\d%L", id, "HUB_BACK");
+    MenuAdd(menu, item, 6);
+
     MenuFinish(id, menu);
 }
 
@@ -6953,6 +7003,11 @@ public menu_vip_handler(id, menu, item)
         case 5:
         {
             ShowVipInfo(id);
+            return PLUGIN_HANDLED;
+        }
+        case 6:
+        {
+            ShowMainMenu(id);
             return PLUGIN_HANDLED;
         }
     }
@@ -7053,10 +7108,7 @@ CosPrice(id, cat, idx)
         case 1: p = KFX_PRICE[idx];
         default: p = IFX_PRICE[idx];
     }
-    if (IsElite(id))
-        p = p * 80 / 100;
-    else if (IsVip(id))
-        p = p * 90 / 100;
+    p = p * (100 - VipDiscPct(id)) / 100;
     return max(1, p);
 }
 
@@ -9449,8 +9501,6 @@ TickMineHints()
             continue;
         g_bMineHint[id] = true;
         Chat(id, "LM_HINT", g_iMines[id]);
-        set_hudmessage(CLR_HUMAN, -1.0, Y_AIM + 0.08, 0, 0.0, 5.0, 0.2, 0.5, 3);
-        show_hudmessage(id, "%L", id, "LM_HINT_HUD");
     }
 }
 
@@ -17730,7 +17780,15 @@ OnRoundEnd(WinStatus:status)
     }
 
     if (status == WINSTATUS_CTS || status == WINSTATUS_TERRORISTS)
+    {
+        // v3.2: VIP / ELITE round sonu Vex Coin (vex_vip_round_vc, ELITE 2 kat)
+        for (new id = 1; id <= g_iMax; id++)
+        {
+            if (is_user_connected(id) && !is_user_bot(id) && IsVip(id) && (g_bZombie[id] || is_user_alive(id)))
+                g_iVC[id] += VipRoundVC(id);
+        }
         RoundSummary();
+    }
 
     if (g_iRound >= RoundsTotal())
         set_task(1.5, "task_MapEndAwards");
@@ -18068,18 +18126,21 @@ public task_Tick()
     TickMineHints();
 
     // Canli sunucu yorumlari (~2 dakikada bir)
-    if (g_iFrame % 130 == 65)
+    if (g_iFrame % 130 == 65 && get_pcvar_num(g_pLiveChatter))
         LiveChatter();
     TickFlares();
 
-    // Bilgilendirme mesajlari
-    if (g_iFrame % 80 == 0)
+    // v3.2: periyodik chat ipuclari (vex_chat_tip_interval sn, 0 = kapali), sirayla doner
+    new tipInt = get_pcvar_num(g_pTipInterval);
+    if (tipInt > 0 && ++g_iTipClock >= max(20, tipInt))
     {
+        g_iTipClock = 0;
+        g_iTipIdx = (g_iTipIdx % NUM_TIPS) + 1;
         new k[10];
-        formatex(k, charsmax(k), "ADV_%d", random_num(1, NUM_ADS));
+        formatex(k, charsmax(k), "TIP_%d", g_iTipIdx);
         for (new p = 1; p <= g_iMax; p++)
         {
-            if (is_user_connected(p) && !(g_iSet[p] & SET_NO_ADS))
+            if (is_user_connected(p) && !is_user_bot(p) && !(g_iSet[p] & SET_NO_ADS))
                 Chat(p, k);
         }
     }
@@ -19433,16 +19494,12 @@ public task_Welcome(tid)
 
     new t = g_iTheme[id];
     HudToS(id, SL_ANN, THEME_A[t][0], THEME_A[t][1], THEME_A[t][2], 6.0, "WELCOME_HUD", name);
-    HudTo(id, SL_PERS, THEME_C[t][0], THEME_C[t][1], THEME_C[t][2], 6.0, "WELCOME_HUD2");
     PlayKey(id, "WELCOME");
     FadeOne(id, THEME_A[t][0], THEME_A[t][1], THEME_A[t][2], 60, 1.2);
 
+    // v3.2: kisa karsilama (gerisi periyodik ipuclarinda)
     Chat(id, "WELCOME", name);
     Chat(id, "WELCOME_2");
-    Chat(id, "WELCOME_3");
-    Chat(id, "WELCOME_4");
-    if (get_pcvar_num(g_pLmEnable))
-        Chat(id, "LM_BIND_HINT");
     SendFogForEvent(id);
 
     if (g_iDailyDay[id] < get_systime() / 86400)
@@ -20148,8 +20205,7 @@ public rg_PlayerSpawn(id)
     new armor = 15 * g_iPerk[id][PK_PLATING];
     if (g_iJob[id] == JOB_HEAVY) armor += 100;
     if (g_iJob[id] == JOB_ELITE) armor += 25;
-    if (IsElite(id)) armor += 100;
-    else if (IsVip(id)) armor += 50;
+    armor += VipArmor(id);
     if (armor > 0)
         rg_set_user_armor(id, min(armor, 250), ARMOR_VESTHELM);
 
@@ -20188,6 +20244,10 @@ public task_Loadout(tid)
 
     // Bombalar silah seciminden bagimsiz: herkes her round tum bombalari alir
     GiveStartNades(id);
+
+    // v3.2: VIP paketi dogusta otomatik (vex_vip_autopack 1)
+    if (IsVip(id) && get_pcvar_num(g_pVipAutoPack) && !g_bVipFreeUsed[id])
+        VipFreePack(id);
 }
 
 public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
@@ -21114,44 +21174,90 @@ public rg_PlayerJump(id)
 
 /* ---------------- Ana menu ---------------- */
 
-// Ana menu sirasi (anahtar MAIN_<no>): market, ozel silah, lazer, bomba modu, silah, sinif...
-// v3.2: lazer (18) oyuncu menusunden kaldirildi - market, say lazer/lm ve bind (+setlaser/+dellaser) calisir
-new const MAIN_ORDER[] = { 1, 2, 19, 3, 4, 5, 6, 20, 8, 21, 9, 7, 10, 22, 11, 12, 13, 14, 15, 16, 17 };
+// v3.2: ANA MENU TEK SAYFA, 8 GIRIS. Diger her sey alt menulerde (HUB_x).
+// Kodlar: 1-22 = eski MAIN_<no> hedefleri, 31-34 = profil (PROF_x),
+// 201-205 = alt menuler, 99 = geri (ana menu). Say komutlari aynen calisir.
+#define HUB_MARKET   201
+#define HUB_CLASS    202
+#define HUB_CHAR     203
+#define HUB_FUN      204
+#define HUB_VIPADM   205
+#define HUB_BACK     99
+
+new const HUB_MARKET_ITEMS[] = { 1, 2, 19, 7 };
+new const HUB_CLASS_ITEMS[]  = { 4, 5 };
+new const HUB_CHAR_ITEMS[]   = { 31, 20, 32, 33, 34, 16, 22 };
+new const HUB_FUN_ITEMS[]    = { 6, 9, 14, 15, 13 };
+new const HUB_VIPADM_ITEMS[] = { 8, 17 };
 
 ShowMainMenu(id)
 {
-    new title[192], item[96], key[12];
+    new title[192], item[96];
 
     formatex(title, charsmax(title), "\r[\wV E X M I R A\r] \d|| \y%L^n\d%L^n", id, "MENU_MAIN_SUB", id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
     new menu = menu_create(title, "menu_main_handler");
     PlayKey(id, "UI_OPEN");
 
     new bool:adm = (get_user_flags(id) & ADMIN_BAN) ? true : false;
-    for (new k = 0; k < sizeof MAIN_ORDER; k++)
+
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_1"); MenuAdd(menu, item, HUB_MARKET);
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_2"); MenuAdd(menu, item, 3);
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_3"); MenuAdd(menu, item, HUB_CLASS);
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_4");
+    if (g_iQuest[id] >= 0 && g_bQuestDone[id])
+        add(item, charsmax(item), " \r[\wOK\r]");
+    MenuAdd(menu, item, HUB_CHAR);
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_5");
+    if (g_iDailyDay[id] < get_systime() / 86400)
+        add(item, charsmax(item), " \r(!)");
+    MenuAdd(menu, item, HUB_FUN);
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_6"); MenuAdd(menu, item, 21);
+    formatex(item, charsmax(item), "\y%L", id, "MAINH_7"); MenuAdd(menu, item, 11);
+    formatex(item, charsmax(item), "\y%L%s", id, adm ? "MAINH_8A" : "MAINH_8", IsVip(id) ? " \y[*]" : "");
+    MenuAdd(menu, item, adm ? HUB_VIPADM : 8);
+
+    // 8 giris tek sayfada: sayfalama yok, 0 = cikis
+    menu_setprop(menu, MPROP_PERPAGE, 0);
+    menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
+    MenuFinish(id, menu);
+}
+
+ShowHub(id, hub)
+{
+    new title[160], item[96], key[16];
+    formatex(key, charsmax(key), "HUB_%d", hub - 200);
+    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, key, id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
+    new menu = menu_create(title, "menu_main_handler");
+
+    new list[8], n;
+    switch (hub)
     {
-        new i = MAIN_ORDER[k];
-        if (i == 17 && !adm)
-            continue;
-
-        formatex(key, charsmax(key), "MAIN_%d", i);
-        formatex(item, charsmax(item), "\y%L", id, key);
-
-        if (i == 6 && g_iDailyDay[id] < get_systime() / 86400)
-            add(item, charsmax(item), " \y(!)");
-        if (i == 8)
-            add(item, charsmax(item), IsVip(id) ? " \y[*]" : " \r[?]");
-        if (i == 18)
-        {
-            new extra[32];
-            formatex(extra, charsmax(extra), LasersAllowed() ? " \r[\w%d\r]" : " \d[-]", g_iMines[id]);
-            add(item, charsmax(item), extra);
-        }
-        if (i == 20 && g_iQuest[id] >= 0 && g_bQuestDone[id])
-            add(item, charsmax(item), " \r[\wOK\r]");
-
-        MenuAdd(menu, item, i);
+        case HUB_MARKET: { n = sizeof HUB_MARKET_ITEMS; for (new i = 0; i < n; i++) list[i] = HUB_MARKET_ITEMS[i]; }
+        case HUB_CLASS:  { n = sizeof HUB_CLASS_ITEMS;  for (new i = 0; i < n; i++) list[i] = HUB_CLASS_ITEMS[i]; }
+        case HUB_CHAR:   { n = sizeof HUB_CHAR_ITEMS;   for (new i = 0; i < n; i++) list[i] = HUB_CHAR_ITEMS[i]; }
+        case HUB_FUN:    { n = sizeof HUB_FUN_ITEMS;    for (new i = 0; i < n; i++) list[i] = HUB_FUN_ITEMS[i]; }
+        case HUB_VIPADM: { n = sizeof HUB_VIPADM_ITEMS; for (new i = 0; i < n; i++) list[i] = HUB_VIPADM_ITEMS[i]; }
     }
 
+    for (new k = 0; k < n; k++)
+    {
+        new c = list[k];
+        if (c > 30)
+            formatex(key, charsmax(key), "PROF_%d", c - 30);
+        else
+            formatex(key, charsmax(key), "MAIN_%d", c);
+        formatex(item, charsmax(item), "\y%L", id, key);
+        if (c == 6 && g_iDailyDay[id] < get_systime() / 86400)
+            add(item, charsmax(item), " \r(!)");
+        if (c == 20 && g_iQuest[id] >= 0 && g_bQuestDone[id])
+            add(item, charsmax(item), " \r[\wOK\r]");
+        MenuAdd(menu, item, c);
+    }
+    formatex(item, charsmax(item), "\d%L", id, "HUB_BACK");
+    MenuAdd(menu, item, HUB_BACK);
+
+    menu_setprop(menu, MPROP_PERPAGE, 0);
+    menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
     MenuFinish(id, menu);
 }
 
@@ -21166,7 +21272,12 @@ public menu_main_handler(id, menu, item)
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
     PlayKey(id, "UI_MENU_SELECT");
+    MainDispatch(id, sel);
+    return PLUGIN_HANDLED;
+}
 
+MainDispatch(id, sel)
+{
     switch (sel)
     {
         case 1:  ShowShopMenu(id);
@@ -21185,14 +21296,19 @@ public menu_main_handler(id, menu, item)
         case 14: ShowModesInfo(id);
         case 15: cmd_help(id);
         case 16: ShowTop(id);
-        case 17: ShowAdminMenu(id);
+        case 17: if (get_user_flags(id) & ADMIN_BAN) ShowAdminMenu(id);
         case 18: ShowMineMenu(id);
         case 19: ShowNadeMenu(id);
         case 20: cmd_quest(id);
         case 21: ShowCosmeticMenu(id);
         case 22: ShowTop10(id);
+        case 31: ShowCard(id, id);
+        case 32: ShowAchMenu(id);
+        case 33: ShowTitleMenu(id);
+        case 34: ShowStyleMenu(id);
+        case HUB_BACK: ShowMainMenu(id);
+        case HUB_MARKET, HUB_CLASS, HUB_CHAR, HUB_FUN, HUB_VIPADM: ShowHub(id, sel);
     }
-    return PLUGIN_HANDLED;
 }
 
 /* ---------------- Profil alt menusu ---------------- */
@@ -23589,6 +23705,7 @@ ShowMapVoteMenu(id)
     menu_addtext(menu, note, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_NEVER);
     menu_setprop(menu, MPROP_PERPAGE, 0);
+    menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
     menu_setprop(menu, MPROP_NUMBER_COLOR, "\r");
     g_iMapVoteMenu[id] = menu;
     menu_display(id, menu, 0, 1);
@@ -24482,6 +24599,16 @@ public plugin_init()
     g_pStartAP      = register_cvar("vex_start_ap", "20");
     g_pArmorProtect = register_cvar("vex_armor_protect", "1");
     g_pVipContact   = register_cvar("vex_vip_contact", "discord.gg/vexmira");
+    g_pVipBonus     = register_cvar("vex_vip_bonus", "25");
+    g_pEliteBonus   = register_cvar("vex_elite_bonus", "50");
+    g_pVipDisc      = register_cvar("vex_vip_discount", "10");
+    g_pEliteDisc    = register_cvar("vex_elite_discount", "20");
+    g_pVipArmor     = register_cvar("vex_vip_armor", "50");
+    g_pEliteArmor   = register_cvar("vex_elite_armor", "100");
+    g_pVipRoundVC   = register_cvar("vex_vip_round_vc", "1");
+    g_pVipAutoPack  = register_cvar("vex_vip_autopack", "1");
+    g_pTipInterval  = register_cvar("vex_chat_tip_interval", "90");
+    g_pLiveChatter  = register_cvar("vex_live_chatter", "0");
     g_pVoteEvery    = register_cvar("vex_vote_every", "4");
 
     // v1.4: 30 round plani, boss, hasar/can/hiz, lazer, bomba modlari, ikmal
@@ -24511,7 +24638,7 @@ public plugin_init()
     g_pGiveNades    = register_cvar("vex_give_nades", "abc");
     g_pLmEnable     = register_cvar("vex_lm_enable", "1");
     g_pLmMax        = register_cvar("vex_lm_max", "3");
-    g_pLmMaxVip     = register_cvar("vex_lm_max_vip", "3");
+    g_pLmMaxVip     = register_cvar("vex_lm_max_vip", "4");
     g_pLmTeamMax    = register_cvar("vex_lm_team_max", "40");
     g_pLmHealth     = register_cvar("vex_lm_health", "600");
     g_pLmDamage     = register_cvar("vex_lm_damage", "150");
@@ -24551,7 +24678,7 @@ public plugin_init()
     g_pAsnVeilCd     = register_cvar("vex_assassin_veil_cooldown", "25");
     g_pSpecialLeapCd = register_cvar("vex_special_leap_cooldown", "6");
     g_pLmPerRound    = register_cvar("vex_lm_per_round", "3");
-    g_pLmPerRoundVip = register_cvar("vex_lm_per_round_vip", "3");
+    g_pLmPerRoundVip = register_cvar("vex_lm_per_round_vip", "4");
     g_pLmOneShot     = register_cvar("vex_lm_oneshot", "1");
     g_pLmSpecialDmg  = register_cvar("vex_lm_special_damage", "600");
     g_pLmKillWear    = register_cvar("vex_lm_kill_wear", "100");

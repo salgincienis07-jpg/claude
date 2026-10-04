@@ -1307,6 +1307,51 @@ MAPDESC_zm_vex_ruins = (ruined city)
 MAPDESC_zm_vex_frostbase = (frost base)
 MAPDESC_zm_vex_temple = (boss temple)
 
+MAINH_1 = Market (Items, Special Guns, Perks)
+MAINH_2 = Weapons / Loadout
+MAINH_3 = Zombie Class / Human Job
+MAINH_4 = Character (Stats, Quests, Top)
+MAINH_5 = Rewards & Fun
+MAINH_6 = Cosmetics
+MAINH_7 = Settings (Language, HUD, FPS)
+MAINH_8 = VIP
+MAINH_8A = VIP / Admin
+HUB_1 = Market
+HUB_2 = Class & Job
+HUB_3 = Character
+HUB_4 = Rewards & Fun
+HUB_5 = VIP / Admin
+HUB_BACK = << Main menu
+VIPI_TITLE = VIP / ELITE perks
+VIPI_1 = Extra jump: VIP double, ELITE triple
+VIPI_2 = +%d / +%d percent AP and XP
+VIPI_3 = %d / %d percent off shop, special guns, cosmetics
+VIPI_4 = Free pack every round (/vip): armor + grenades
+VIPI_4A = Free pack on every spawn: armor + grenades
+VIPI_5 = +%d / +%d spawn armor, %d laser mines per round
+VIPI_6 = +%d / +%d Vex Coin every round end
+VIPI_7 = Faster zombie respawn, bigger daily reward
+VIPI_8 = Aura, light trail, VIP tag, chat color, model
+VIPI_BUY = Get VIP: %s
+TIP_1 = ^4[TIP] ^1Press ^4M^1 for the menu: market, weapons, class, settings.
+TIP_2 = ^4[TIP] ^1Every ^4500^1 damage = ^4+1 AP^1. Headshots pay extra.
+TIP_3 = ^4[TIP] ^1Laser mines: ^4V^1 = plant, hold ^4C^1 = pick up. You get new ones every round.
+TIP_4 = ^4[TIP] ^1Right click with a grenade: ^4impact, sensor, laser trap, homing, cluster^1.
+TIP_5 = ^4[TIP] ^1Your ^4daily reward^1 is waiting: ^4/daily^1. Streaks pay more.
+TIP_6 = ^4[TIP] ^1Spend ^4Vex Coin^1 on permanent perks: ^4/perks
+TIP_7 = ^4[TIP] ^1Jobs give humans a role. New jobs unlock with level: ^4/job
+TIP_8 = ^4[TIP] ^1Special weapons burn, freeze and shock zombies: ^4/special
+TIP_9 = ^4[TIP] ^1Zombies: infect ^43^1 humans in one round to become an ^3ALPHA^1.
+TIP_10 = ^4[TIP] ^3Nemesis^1 and ^3Assassin^1 kill in one hit. Keep distance, use lasers.
+TIP_11 = ^4[TIP] ^1Bosses learn a new skill every phase. Watch the colored circles!
+TIP_12 = ^4[TIP] ^1A ^4golden beam^1 in the sky = supply drop. Follow your HUD arrow.
+TIP_13 = ^4[TIP] ^1Stuck in a wall? Type ^4/unstuck
+TIP_14 = ^4[TIP] ^1Low FPS? ^4/fps^1 has performance presets.
+TIP_15 = ^4[TIP] ^1Turkce icin ^4/dil^1 yaz. Language: ^4/lang
+TIP_16 = ^4[TIP] ^1Each map is ^430 rounds^1 with boss fights and a ^3FINAL BOSS^1: ^4/round
+TIP_17 = ^4[TIP] ^1Every round has a quest with AP and XP: ^4/quest
+TIP_18 = ^4[VIP] ^1VIP: extra jump, more AP/XP/VC, free pack, discounts. ^4/vipinfo
+
 [tr]
 WELCOME = ^3VEXMIRA^4'ya hos geldin ^3%s^4! Silahini kap, gece uzun.
 WELCOME_2 = ^1Her sey ^4M^1 tusunda: market, meslek, ^4lazer mayini^1, ^4bomba modlari^1, VIP, ayarlar.
@@ -2615,3 +2660,48 @@ MAPDESC_zm_vex_harbor = (gece limani)
 MAPDESC_zm_vex_ruins = (yikik sehir)
 MAPDESC_zm_vex_frostbase = (karli us)
 MAPDESC_zm_vex_temple = (boss tapinagi)
+
+MAINH_1 = Market (Esya, Ozel Silah, Yetenek)
+MAINH_2 = Silahlar / Techizat
+MAINH_3 = Zombi Sinifi / Insan Meslegi
+MAINH_4 = Karakter (Istatistik, Gorev, Top)
+MAINH_5 = Oduller & Eglence
+MAINH_6 = Kozmetik
+MAINH_7 = Ayarlar (Dil, HUD, FPS)
+MAINH_8 = VIP
+MAINH_8A = VIP / Admin
+HUB_1 = Market
+HUB_2 = Sinif & Meslek
+HUB_3 = Karakter
+HUB_4 = Oduller & Eglence
+HUB_5 = VIP / Admin
+HUB_BACK = << Ana menu
+VIPI_TITLE = VIP / ELITE ayricaliklari
+VIPI_1 = Ekstra ziplama: VIP cift, ELITE uclu
+VIPI_2 = +yuzde %d / +yuzde %d AP ve XP
+VIPI_3 = Market, ozel silah, kozmetik yuzde %d / %d ucuz
+VIPI_4 = Her round bedava paket (/vip): zirh + bombalar
+VIPI_4A = Her dogusta bedava paket: zirh + bombalar
+VIPI_5 = +%d / +%d dogus zirhi, round basina %d lazer
+VIPI_6 = Her round sonu +%d / +%d Vex Coin
+VIPI_7 = Daha hizli zombi donusu, daha buyuk gunluk odul
+VIPI_8 = Aura, isik izi, VIP tag, chat rengi, model
+VIPI_BUY = VIP almak icin: %s
+TIP_1 = ^4[IPUCU] ^4M^1 = menu: market, silah, sinif, ayarlar.
+TIP_2 = ^4[IPUCU] ^1Her ^4500^1 hasar = ^4+1 AP^1. Headshot fazladan oder.
+TIP_3 = ^4[IPUCU] ^1Lazer: ^4V^1 = kur, ^4C^1 basili tut = sok. Her round yenisi verilir.
+TIP_4 = ^4[IPUCU] ^1Elinde bomba varken sag tik: ^4carpma, sensor, lazer tuzak, gudumlu, parca^1.
+TIP_5 = ^4[IPUCU] ^4Gunluk odulun^1 hazir: ^4/gunluk^1. Seri yaptikca artar.
+TIP_6 = ^4[IPUCU] ^4Vex Coin^1 ile kalici yetenek al: ^4/yetenek
+TIP_7 = ^4[IPUCU] ^1Meslekler insanlara rol verir, level atladikca acilir: ^4/meslek
+TIP_8 = ^4[IPUCU] ^1Ozel silahlar yakar, dondurur, carpar: ^4/ozel
+TIP_9 = ^4[IPUCU] ^1Zombiler: bir roundda ^43^1 insan enfekte et, ^3ALFA^1 ol.
+TIP_10 = ^4[IPUCU] ^3Nemesis^1 ve ^3Assassin^1 tek vurusta oldurur. Mesafe koru, lazer kullan.
+TIP_11 = ^4[IPUCU] ^1Bosslar her fazda yeni yetenek ogrenir. Yerdeki renkli halkalara dikkat!
+TIP_12 = ^4[IPUCU] ^1Gokte ^4altin isin^1 = ikmal. HUD okunu takip et.
+TIP_13 = ^4[IPUCU] ^1Duvara mi takildin? ^4/takildim
+TIP_14 = ^4[IPUCU] ^1FPS dusuk mu? ^4/fps^1 performans ayarlari.
+TIP_15 = ^4[IPUCU] ^1For English type ^4/lang^1. Dil: ^4/dil
+TIP_16 = ^4[IPUCU] ^1Her harita ^430 round^1: boss savaslari ve ^3FINAL BOSS^1: ^4/round
+TIP_17 = ^4[IPUCU] ^1Her roundun AP ve XP veren bir gorevi var: ^4/gorev
+TIP_18 = ^4[VIP] ^1VIP: ekstra ziplama, fazla AP/XP/VC, bedava paket, indirim. ^4/vipbilgi
