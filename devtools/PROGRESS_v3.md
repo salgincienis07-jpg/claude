@@ -97,6 +97,12 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   (serverB) || eklenti harita-hikaye destegi (serverC), entegrasyon (serverD), 3 acili denetim + duzeltme (serverE/F).
   DEVAM: Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_b52843c0-d85"}). Sonra paket + gonder.
 
+- 2026-10-04 17:10: sahip kendi "Vexmira_Zombie_v3.1_FINAL.zip" paketini (baska bir asistanin PATCH9'u, hic sunucuda
+  denenmemis) gonderdi ve ONCELIK verdi; harita isi (wf_b52843c0-d85) DURDURULDU, sonra devam edilecek.
+  Paket b3b629f ile ice alindi (VERSION 3.2-dev). Is akisi vex-v32-overhaul (run wf_9488d02c-ff8, betik $SP/wf/v32.js):
+  menu sadelestirme, VIP, ozel silah 8-15 hatasi, lazer sokme bari, denge/ekonomi, meteor, mesajlar -> chat ipuclari,
+  kod incelemesi, HUD grafik dosyalari. DEVAM: Workflow({scriptPath: "$SP/wf/v32.js", resumeFromRunId: "wf_9488d02c-ff8"}).
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
