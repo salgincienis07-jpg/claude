@@ -61,6 +61,18 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   cfg pençeleri zaten 4 modele eşlendi. Kalan: oyuncu modelleri (MakeHuman), 4 harita, laboratuvar havalandırma
   ağzında bot takılması (y -800..-736 ağız dar), tam sürüm belgeleri + zip.
 
+- 2026-10-04 05:00: YENI TUR (3.1). Kullanici: oyuncu modelleri IPTAL; haritalar hikayeli/etkilesimli/buyuk/FPS cok iyi;
+  eklenti optimizasyonu (gerekirse 9-10 dosyaya bol); markette jetpack (olunce duser, alinir, sag tik fuze) + RPG;
+  5 pet + 5 kanat (VC kozmetik); kanca efekti ters capraz + benzer hatalar; boss ustu siyah arka planli beyaz efekt;
+  lazer menzili sinirli; nemesis/assassin modunda lazer yok; parasut gravity bozuyor; cfg'de el/model yollari;
+  ozel silah eklerken ses/animasyon/efekt otomatik; yazili HUD yerine grafik gostergeler (MVP dahil).
+  Is akislari (script'ler $SP/wf/ altinda):
+   * haritalar: `$SP/wf/maps-v3.js` run `wf_99c64f43-b19` (tasarim MAPS_v3.md + perf araci + 5 harita build/verify/fix)
+   * eklenti+icerik: `$SP/wf/plugin-v31.js` run `wf_1ce2427a-43d` (split -> bugfix -> ozel silah -> harita hikaye
+     destegi -> jetpack/RPG -> HUD -> pet/kanat -> optimizasyon -> final review; paralel: istemci renderer + modeller)
+  Yarida kalirsa: TaskStop (calisiyorsa) + Workflow({scriptPath, resumeFromRunId}).
+  Sonra: tum haritalarla entegrasyon testi, paket 3.1 (v1 oyuncu modelleri haric), kullaniciya gonder.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
