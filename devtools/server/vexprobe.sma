@@ -15,6 +15,22 @@
  *      for STUCK_SECS while no enemy was within 160 units; "in_solid" = origin inside world solid
  *    - fall damage / fall deaths and deaths caused by the world or a non-player entity
  *
+ *  Map interactivity (MAPS_v3.md section 4; use from run_test.py --cmd "<sec> <command>"):
+ *    vexprobe_fire  <targetname> [usetype 0 off|1 on|3 toggle (default)] [activator #id]
+ *                   Use every entity with that targetname (like the plugin's vex_* events)
+ *    vexprobe_ents  <selector>   dump state: centre, solid, movetype, effects, health, render,
+ *                   velocity, toggle state / ambient active / light on / multi_manager index
+ *    vexprobe_break <targetname|#idx> [damage=100000]   damage breakables (as the first alive player)
+ *    vexprobe_touch <targetname|#idx> [ct|t|#id]        touch triggers / doors with a living player
+ *    vexprobe_tp    <ct|t|#id> <x> <y> <z>               teleport a living player (bot)
+ *    selector: "*" (all map entities with a targetname or brush model), "#123" (entity index),
+ *    "@name" / "@prefix*" (targetname), "classname" / "class_prefix*", "classname@x/y/z" (the entity
+ *    of that class nearest to the point, e.g. a touch-door without targetname; use "/" because the
+ *    console splits arguments at ","); fire/break/touch
+ *    treat a bare word as a targetname. Activator / player arguments: ct | t | #id.
+ *    Logged automatically: every Use of a scripted map entity ("use ..."), every map -> plugin
+ *    relay ("vexcmd ..." = trigger_relay named vexcmd_*), every broken func_breakable ("broken ...").
+ *
  *  All output goes through log_amx with the "[vexprobe]" prefix (parsed by run_test.py).
  */
 #include <amxmodx>
@@ -43,6 +59,16 @@ new g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths;
 // NaN / runaway velocity watch (engine prints "PM Got a NaN velocity" without saying who/why)
 new bool:g_bNanLogged[33], g_iNanEvents;
 new g_szLastEmit[4][64], Float:g_fLastEmit[4], g_iLastEmitEnt[4], g_iLastEmitPos;
+// map interactivity
+#define PROBE_EDICTS 2048
+new Float:g_fLastUse[PROBE_EDICTS], g_iMapUses, g_iVexcmd, g_iBroken;
+new const USE_CLASSES[][] = {
+    "trigger_relay", "multi_manager", "func_door", "func_door_rotating", "func_button", "func_rot_button",
+    "func_breakable", "func_train", "func_tracktrain", "func_wall_toggle", "ambient_generic", "env_sprite",
+    "light", "env_render", "game_text", "env_shake", "env_fade", "func_rotating", "multisource", "trigger_hurt",
+    "trigger_once", "trigger_multiple", "env_beam", "env_laser", "func_plat", "game_counter",
+    "trigger_changetarget", "func_pushable", "env_explosion", "func_conveyor", "game_team_master"
+};
 
 public plugin_precache()
 {
@@ -83,6 +109,17 @@ public plugin_init()
     register_forward(FM_StartFrame, "fw_StartFrame", 1);
     RegisterHookChain(RG_RoundEnd, "fw_RoundEnd", true);
     register_srvcmd("vexprobe_status", "srv_Status");
+    register_srvcmd("vexprobe_fire", "srv_Fire");
+    register_srvcmd("vexprobe_ents", "srv_Ents");
+    register_srvcmd("vexprobe_break", "srv_Break");
+    register_srvcmd("vexprobe_touch", "srv_Touch");
+    register_srvcmd("vexprobe_tp", "srv_Tp");
+    for (new i = 0; i < sizeof USE_CLASSES; i++)
+        RegisterHam(Ham_Use, USE_CLASSES[i], "fw_MapUse", 0);
+    RegisterHam(Ham_TakeDamage, "func_breakable", "fw_BreakPre", 0);
+    RegisterHam(Ham_Use, "func_breakable", "fw_BreakPre", 0);
+    RegisterHam(Ham_TakeDamage, "func_breakable", "fw_BreakDamaged", 1);
+    RegisterHam(Ham_Use, "func_breakable", "fw_BreakUsed", 1);
     g_tEmit = TrieCreate();
     g_aEmit = ArrayCreate(96);
     g_fStart = get_gametime();
@@ -482,8 +519,8 @@ public plugin_end()
     }
     log_amx("[vexprobe] spawn_usage ct=%d/%d t=%d/%d spawns=%d off_spawn=%d stacked=%d in_solid=%d",
         uct, nct, ut, nt, g_iSpawnsTotal, g_iOffSpawn, g_iStacked, g_iSpawnStuck);
-    log_amx("[vexprobe] mapcheck stuck=%d in_solid=%d fall_hurt=%d fall_deaths=%d world_deaths=%d nan_velocity=%d",
-        g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths, g_iNanEvents);
+    log_amx("[vexprobe] mapcheck stuck=%d in_solid=%d fall_hurt=%d fall_deaths=%d world_deaths=%d nan_velocity=%d | mapio uses=%d vexcmd=%d broken=%d",
+        g_iStuckEvents, g_iInSolid, g_iFallHurt, g_iFallDeaths, g_iWorldDeaths, g_iNanEvents, g_iMapUses, g_iVexcmd, g_iBroken);
     new s[96], n;
     for (new i = 0; i < ArraySize(g_aEmit); i++)
     {
@@ -491,4 +528,361 @@ public plugin_end()
         TrieGetCell(g_tEmit, s, n);
         log_amx("[vexprobe] emitted %5d %s", n, s);
     }
+}
+
+/* ------------------------------------------------------------------ map interactivity tools */
+Float:RoundTime() { return get_gametime() - g_fStart; }
+
+EntCenter(ent, Float:c[3])
+{
+    new mdl[4];
+    pev(ent, pev_model, mdl, charsmax(mdl));
+    if (mdl[0] == '*')
+    {
+        new Float:a[3], Float:b[3];
+        pev(ent, pev_absmin, a);
+        pev(ent, pev_absmax, b);
+        for (new i = 0; i < 3; i++)
+            c[i] = (a[i] + b[i]) * 0.5;
+    }
+    else
+        pev(ent, pev_origin, c);
+}
+
+EntLabel(ent, out[], len)
+{
+    if (ent <= 0 || !pev_valid(ent))
+    {
+        copy(out, len, ent == 0 ? "world" : "none");
+        return;
+    }
+    new cls[32], tn[48];
+    pev(ent, pev_classname, cls, charsmax(cls));
+    pev(ent, pev_targetname, tn, charsmax(tn));
+    if (tn[0])
+        formatex(out, len, "%s#%d'%s'", cls, ent, tn);
+    else
+        formatex(out, len, "%s#%d", cls, ent);
+}
+
+public fw_MapUse(ent, caller, activator, usetype, Float:value)
+{
+    if (ent <= MaxClients || !pev_valid(ent))
+        return HAM_IGNORED;
+    g_iMapUses++;
+    new cls[32], tn[64], who[96];
+    pev(ent, pev_classname, cls, charsmax(cls));
+    pev(ent, pev_targetname, tn, charsmax(tn));
+    EntLabel(caller, who, charsmax(who));
+    if (equal(cls, "trigger_relay") && equal(tn, "vexcmd_", 7))
+    {
+        g_iVexcmd++;
+        log_amx("[vexprobe] vexcmd t=%.1f %s from %s activator=#%d", RoundTime(), tn, who, activator);
+        return HAM_IGNORED;
+    }
+    new Float:now = get_gametime();
+    if (ent < PROBE_EDICTS && now - g_fLastUse[ent] < 0.5)
+        return HAM_IGNORED;
+    if (ent < PROBE_EDICTS)
+        g_fLastUse[ent] = now;
+    new Float:c[3];
+    EntCenter(ent, c);
+    log_amx("[vexprobe] use t=%.1f %s#%d '%s' type=%d from %s activator=#%d at %.0f %.0f %.0f", RoundTime(), cls, ent, tn,
+        usetype, who, activator, c[0], c[1], c[2]);
+    return HAM_IGNORED;
+}
+
+new bool:g_bBrokenLogged[PROBE_EDICTS];
+
+BreakCheck(ent, by, const how[])
+{
+    if (ent >= PROBE_EDICTS || !pev_valid(ent))
+        return;
+    new bool:gone = pev(ent, pev_solid) == SOLID_NOT || (pev(ent, pev_effects) & EF_NODRAW) != 0;
+    if (!gone)
+    {
+        g_bBrokenLogged[ent] = false;
+        return;
+    }
+    if (g_bBrokenLogged[ent])
+        return;
+    g_bBrokenLogged[ent] = true;
+    g_iBroken++;
+    new tn[64], Float:c[3];
+    pev(ent, pev_targetname, tn, charsmax(tn));
+    EntCenter(ent, c);
+    log_amx("[vexprobe] broken t=%.1f func_breakable#%d '%s' at %.0f %.0f %.0f by #%d (%s)", RoundTime(), ent, tn, c[0], c[1],
+        c[2], by, how);
+}
+public fw_BreakPre(ent)
+{
+    if (ent < PROBE_EDICTS && pev_valid(ent) && pev(ent, pev_solid) != SOLID_NOT && !(pev(ent, pev_effects) & EF_NODRAW))
+        g_bBrokenLogged[ent] = false;
+}
+public fw_BreakDamaged(ent, inflictor, attacker, Float:dmg, bits) { BreakCheck(ent, attacker, "damage"); }
+public fw_BreakUsed(ent, caller, activator, usetype, Float:value) { BreakCheck(ent, activator, "use"); }
+
+// first living player of a team (2 = CT, 1 = T, 0 = any), CT preferred for 0
+FindPlayer(team)
+{
+    for (new pass = 0; pass < 2; pass++)
+    {
+        for (new p = 1; p <= MaxClients; p++)
+        {
+            if (!is_user_alive(p))
+                continue;
+            new t = get_user_team(p);
+            if (team ? (t == team) : (pass == 0 ? t == 2 : true))
+                return p;
+        }
+        if (team)
+            break;
+    }
+    return 0;
+}
+
+ParseWho(const arg[])
+{
+    if (arg[0] == '#')
+    {
+        new id = str_to_num(arg[1]);
+        return (id >= 1 && id <= MaxClients && is_user_alive(id)) ? id : 0;
+    }
+    if (equali(arg, "ct"))
+        return FindPlayer(2);
+    if (equali(arg, "t"))
+        return FindPlayer(1);
+    return FindPlayer(0);
+}
+
+bool:WildMatch(const s[], const pat[])
+{
+    new n = strlen(pat);
+    if (n > 0 && pat[n - 1] == '*')
+        return n == 1 || equal(s, pat, n - 1);
+    return bool:equal(s, pat);
+}
+
+// collect entities: "#idx", "@targetname[*]", "*", "classname[*]"; byName=true: bare word = targetname
+CollectEnts(const sel[], list[], maxn, bool:byName)
+{
+    new n, ents = engfunc(EngFunc_NumberOfEntities), maxe = global_get(glb_maxEntities);
+    if (sel[0] == '#')
+    {
+        new e = str_to_num(sel[1]);
+        if (e > 0 && pev_valid(e))
+            list[n++] = e;
+        return n;
+    }
+    new at = contain(sel, "@");
+    if (at > 0)
+    {
+        // classname@x,y,z -> nearest entity of that class
+        new cname[32], pos[48], sx[16], sy[16], sz[16];
+        copy(cname, min(at, charsmax(cname)), sel);
+        copy(pos, charsmax(pos), sel[at + 1]);
+        replace_all(pos, charsmax(pos), ",", " ");
+        replace_all(pos, charsmax(pos), "/", " ");
+        parse(pos, sx, charsmax(sx), sy, charsmax(sy), sz, charsmax(sz));
+        new Float:p[3], Float:c[3], best = 0, Float:bd = 999999.0;
+        p[0] = str_to_float(sx); p[1] = str_to_float(sy); p[2] = str_to_float(sz);
+        new e = MaxClients;
+        while ((e = engfunc(EngFunc_FindEntityByString, e, "classname", cname)) > 0)
+        {
+            EntCenter(e, c);
+            new Float:d = get_distance_f(p, c);
+            if (d < bd) { bd = d; best = e; }
+        }
+        if (best)
+            list[n++] = best;
+        return n;
+    }
+    new mode = 0, pat[64];       // 0 classname, 1 targetname, 2 all
+    if (sel[0] == '@')
+    {
+        mode = 1;
+        copy(pat, charsmax(pat), sel[1]);
+    }
+    else if (equal(sel, "*"))
+        mode = 2;
+    else
+    {
+        mode = byName ? 1 : 0;
+        copy(pat, charsmax(pat), sel);
+    }
+    new cls[32], tn[64], mdl[4], seen;
+    for (new e = MaxClients + 1; e < maxe && seen < ents && n < maxn; e++)
+    {
+        if (!pev_valid(e))
+            continue;
+        seen++;
+        pev(e, pev_classname, cls, charsmax(cls));
+        pev(e, pev_targetname, tn, charsmax(tn));
+        if (mode == 1 && !(tn[0] && WildMatch(tn, pat)))
+            continue;
+        if (mode == 0 && !WildMatch(cls, pat))
+            continue;
+        if (mode == 2)
+        {
+            pev(e, pev_model, mdl, charsmax(mdl));
+            if (!tn[0] && mdl[0] != '*')
+                continue;
+            if (equal(cls, "weaponbox") || equal(cls, "weapon_", 7) || equal(cls, "player"))
+                continue;
+        }
+        list[n++] = e;
+    }
+    return n;
+}
+
+public srv_Fire()
+{
+    new name[64], a2[8], a3[8];
+    read_argv(1, name, charsmax(name));
+    if (!name[0])
+    {
+        server_print("usage: vexprobe_fire <targetname> [usetype 0|1|3] [activator #id]");
+        return PLUGIN_HANDLED;
+    }
+    read_argv(2, a2, charsmax(a2));
+    read_argv(3, a3, charsmax(a3));
+    new usetype = a2[0] ? str_to_num(a2) : 3;
+    new act = ParseWho(a3);
+    new list[128], n = CollectEnts(name, list, sizeof list, true);
+    new classes[200], cls[32];
+    for (new i = 0; i < n; i++)
+    {
+        pev(list[i], pev_classname, cls, charsmax(cls));
+        format(classes, charsmax(classes), "%s%s%s#%d", classes, i ? "," : "", cls, list[i]);
+    }
+    log_amx("[vexprobe] fire t=%.1f '%s' type=%d activator=#%d -> %d entities %s", RoundTime(), name, usetype, act, n, classes);
+    for (new i = 0; i < n; i++)
+        if (pev_valid(list[i]))
+            ExecuteHamB(Ham_Use, list[i], act, act, usetype, 0.0);
+    return PLUGIN_HANDLED;
+}
+
+public srv_Break()
+{
+    new name[64], a2[16];
+    read_argv(1, name, charsmax(name));
+    read_argv(2, a2, charsmax(a2));
+    new Float:dmg = a2[0] ? str_to_float(a2) : 100000.0;
+    new att = FindPlayer(0);
+    new list[64], n = CollectEnts(name, list, sizeof list, true);
+    log_amx("[vexprobe] break t=%.1f '%s' dmg=%.0f attacker=#%d -> %d entities", RoundTime(), name, dmg, att, n);
+    for (new i = 0; i < n; i++)
+        if (pev_valid(list[i]) && pev(list[i], pev_takedamage) != DAMAGE_NO)
+            ExecuteHamB(Ham_TakeDamage, list[i], att, att, dmg, DMG_BULLET);
+    return PLUGIN_HANDLED;
+}
+
+public srv_Touch()
+{
+    new name[64], a2[8];
+    read_argv(1, name, charsmax(name));
+    read_argv(2, a2, charsmax(a2));
+    new who = ParseWho(a2);
+    new list[64], n = CollectEnts(name, list, sizeof list, true);
+    log_amx("[vexprobe] touch t=%.1f '%s' by #%d team=%d -> %d entities", RoundTime(), name, who, who ? get_user_team(who) : 0, n);
+    if (!who)
+        return PLUGIN_HANDLED;
+    for (new i = 0; i < n; i++)
+        if (pev_valid(list[i]))
+            ExecuteHamB(Ham_Touch, list[i], who);
+    return PLUGIN_HANDLED;
+}
+
+public srv_Tp()
+{
+    new a1[8], sx[16], sy[16], sz[16];
+    read_argv(1, a1, charsmax(a1));
+    read_argv(2, sx, charsmax(sx));
+    read_argv(3, sy, charsmax(sy));
+    read_argv(4, sz, charsmax(sz));
+    new who = ParseWho(a1);
+    if (!who || !sz[0])
+    {
+        log_amx("[vexprobe] tp failed (who=%s -> #%d)", a1, who);
+        return PLUGIN_HANDLED;
+    }
+    new Float:o[3];
+    o[0] = str_to_float(sx); o[1] = str_to_float(sy); o[2] = str_to_float(sz);
+    engfunc(EngFunc_SetOrigin, who, o);
+    set_pev(who, pev_velocity, Float:{0.0, 0.0, 0.0});
+    ResetAnchor(who, o);
+    log_amx("[vexprobe] tp t=%.1f #%d team=%d -> %.0f %.0f %.0f", RoundTime(), who, get_user_team(who), o[0], o[1], o[2]);
+    return PLUGIN_HANDLED;
+}
+
+bool:IsToggleClass(const cls[])
+{
+    static const T[][] = { "func_door", "func_door_rotating", "func_button", "func_rot_button", "func_plat",
+        "func_platrot", "func_train", "trigger_once", "trigger_multiple", "trigger_hurt", "momentary_door" };
+    for (new i = 0; i < sizeof T; i++)
+        if (equal(cls, T[i]))
+            return true;
+    return false;
+}
+
+public srv_Ents()
+{
+    new sel[64];
+    read_argv(1, sel, charsmax(sel));
+    if (!sel[0])
+        copy(sel, charsmax(sel), "*");
+    new list[256], n = CollectEnts(sel, list, sizeof list, false);
+    log_amx("[vexprobe] ents t=%.1f '%s' -> %d", RoundTime(), sel, n);
+    new cls[32], tn[48], extra[96], Float:c[3], Float:v[3], Float:av[3], Float:amt, Float:hp, Float:nt, Float:base;
+    for (new i = 0; i < n; i++)
+    {
+        new e = list[i];
+        pev(e, pev_classname, cls, charsmax(cls));
+        pev(e, pev_targetname, tn, charsmax(tn));
+        EntCenter(e, c);
+        pev(e, pev_velocity, v);
+        pev(e, pev_avelocity, av);
+        pev(e, pev_renderamt, amt);
+        pev(e, pev_health, hp);
+        pev(e, pev_nextthink, nt);
+        new mt = pev(e, pev_movetype);
+        if (mt == MOVETYPE_PUSH)
+            pev(e, pev_ltime, base);
+        else
+            base = get_gametime();
+        extra[0] = 0;
+        if (IsToggleClass(cls))
+            formatex(extra, charsmax(extra), " toggle=%d", get_ent_data(e, "CBaseToggle", "m_toggle_state"));
+        if (equal(cls, "func_door_rotating") || equal(cls, "func_rotating") || equal(cls, "func_rot_button"))
+        {
+            new Float:ang[3];
+            pev(e, pev_angles, ang);
+            format(extra, charsmax(extra), "%s ang=%.0f,%.0f,%.0f", extra, ang[0], ang[1], ang[2]);
+        }
+        if (equal(cls, "func_train"))
+            format(extra, charsmax(extra), "%s active=%d", extra, get_ent_data(e, "CFuncTrain", "m_activated"));
+        else if (equal(cls, "ambient_generic"))
+            formatex(extra, charsmax(extra), " active=%d looping=%d", get_ent_data(e, "CAmbientGeneric", "m_fActive"),
+                get_ent_data(e, "CAmbientGeneric", "m_fLooping"));
+        else if (equal(cls, "multi_manager"))
+            formatex(extra, charsmax(extra), " index=%d", get_ent_data(e, "CMultiManager", "m_index"));
+        else if (equal(cls, "light") || equal(cls, "light_spot"))
+            formatex(extra, charsmax(extra), " on=%d style=%d", !(pev(e, pev_spawnflags) & 1), get_ent_data(e, "CLight", "m_iStyle"));
+        else if (equal(cls, "game_counter"))
+        {
+            new Float:fr;
+            pev(e, pev_frags, fr);
+            formatex(extra, charsmax(extra), " count=%.0f", fr);
+        }
+        else if (equal(cls, "trigger_relay") || equal(cls, "trigger_changetarget"))
+        {
+            new tg[48];
+            pev(e, pev_target, tg, charsmax(tg));
+            formatex(extra, charsmax(extra), " target='%s'", tg);
+        }
+        log_amx("[vexprobe] ent #%d %s '%s' at %.0f %.0f %.0f solid=%d move=%d fx=%d hp=%.0f dmg=%d rm=%d/%.0f vel=%.0f,%.0f,%.0f avel=%.0f nthink=%.1f sf=%d%s",
+            e, cls, tn, c[0], c[1], c[2], pev(e, pev_solid), mt, pev(e, pev_effects), hp, pev(e, pev_takedamage),
+            pev(e, pev_rendermode), amt, v[0], v[1], v[2], av[1], nt > 0.0 ? nt - base : -1.0, pev(e, pev_spawnflags), extra);
+    }
+    return PLUGIN_HANDLED;
 }

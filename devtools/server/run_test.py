@@ -38,7 +38,50 @@ SERVER = os.environ.get('VEX_SERVER', os.path.join(SP, 'server'))
 AMXXPC_DIR = os.path.join(SP, 'tools', 'bin')
 
 SNAPSHOT = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.sma.snapshot')
+# source of the installed build: the .sma + its modules (vex/*.inc), same relative layout as scripting/
+SNAPSHOT_DIR = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.src')
+SCRIPTING = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting')
 RE_TS = re.compile(r'^L \d\d/\d\d/\d{4} - \d\d:\d\d:\d\d: ')
+
+
+def plugin_sources():
+    """{relative path: bytes} of everything the plugin build reads from the repo:
+    scripting/vexmira_zombie.sma + scripting/vex/*.inc (the modules it #includes)."""
+    files = {'vexmira_zombie.sma': os.path.join(SCRIPTING, 'vexmira_zombie.sma')}
+    for f in sorted(glob.glob(os.path.join(SCRIPTING, 'vex', '*.inc'))):
+        files['vex/' + os.path.basename(f)] = f
+    out = {}
+    for rel, path in files.items():
+        with open(path, 'rb') as fh:
+            out[rel] = fh.read()
+    return out
+
+
+def read_snapshot():
+    """Sources of the installed build ({} when unknown). Old harness versions kept only the .sma."""
+    snap = {}
+    if os.path.isdir(SNAPSHOT_DIR):
+        for root, _, names in os.walk(SNAPSHOT_DIR):
+            for n in names:
+                p = os.path.join(root, n)
+                with open(p, 'rb') as fh:
+                    snap[os.path.relpath(p, SNAPSHOT_DIR).replace(os.sep, '/')] = fh.read()
+    elif os.path.exists(SNAPSHOT):
+        with open(SNAPSHOT, 'rb') as fh:
+            snap['vexmira_zombie.sma'] = fh.read()
+    return snap
+
+
+def write_snapshot(snap):
+    if os.path.isdir(SNAPSHOT_DIR):
+        shutil.rmtree(SNAPSHOT_DIR)
+    for rel, data in snap.items():
+        p = os.path.join(SNAPSHOT_DIR, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, 'wb') as fh:
+            fh.write(data)
+    with open(SNAPSHOT, 'wb') as fh:              # legacy single-file snapshot (.sma only)
+        fh.write(snap.get('vexmira_zombie.sma', b''))
 
 
 # ------------------------------------------------------------------------------------- install
@@ -128,9 +171,8 @@ def build_plugin(server=SERVER, retries=0, wait=60):
     editing the plugin: with retries > 0 a failed build is retried after `wait` seconds."""
     out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')
     tmp = out[:-len('.amxx')] + '.new.amxx'      # amxxpc wants the .amxx suffix
-    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting', 'vexmira_zombie.sma')
     for attempt in range(retries + 1):
-        snap = open(src, 'rb').read()
+        snap = plugin_sources()                   # .sma + vex/*.inc
         if os.path.exists(tmp):
             os.unlink(tmp)
         p = subprocess.run(['bash', os.path.join(REPO, 'devtools', 'plugin', 'build_plugin.sh'), tmp],
@@ -139,7 +181,7 @@ def build_plugin(server=SERVER, retries=0, wait=60):
         errs = [l for l in log.splitlines() if re.search(r'\berror\b', l, re.I)]
         warns = [l for l in log.splitlines() if re.search(r'\bwarning\b', l, re.I)]
         ok = os.path.exists(tmp) and os.path.getsize(tmp) > 0 and not errs
-        changed = open(src, 'rb').read() != snap        # edited while compiling -> snapshot unreliable
+        changed = plugin_sources() != snap          # edited while compiling -> snapshot unreliable
         print('[build] vexmira_zombie.amxx: %s (%d errors, %d warnings, %d bytes)%s' % (
             'OK' if ok else 'FAILED', len(errs), len(warns), os.path.getsize(tmp) if os.path.exists(tmp) else 0,
             ' (source changed during build)' if changed else ''))
@@ -147,8 +189,7 @@ def build_plugin(server=SERVER, retries=0, wait=60):
             print('   ' + l)
         if ok and not changed:
             os.replace(tmp, out)
-            with open(SNAPSHOT, 'wb') as f:
-                f.write(snap)
+            write_snapshot(snap)
             return True
         if not ok:
             print(log[-3000:])
@@ -162,11 +203,13 @@ def build_plugin(server=SERVER, retries=0, wait=60):
 
 
 def plugin_stale(server=SERVER):
+    """True when the installed build is missing or the .sma or any vex/*.inc module (added, removed
+    or edited) differs from the sources it was compiled from."""
     out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')
-    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting', 'vexmira_zombie.sma')
-    if not os.path.exists(out) or not os.path.exists(SNAPSHOT):
+    if not os.path.exists(out):
         return True
-    return open(src, 'rb').read() != open(SNAPSHOT, 'rb').read()
+    snap = read_snapshot()
+    return not snap or plugin_sources() != snap
 
 
 def build_probe(server=SERVER):
@@ -426,8 +469,11 @@ def run(args, quiet=False, collect_missing=False):
             f.write(texts[name])
     for f in glob.glob(os.path.join(cs, 'addons/amxmodx/logs/vexprobe_precache_*.txt')):
         shutil.copy(f, rundir)
-    if os.path.exists(SNAPSHOT):
-        shutil.copy(SNAPSHOT, os.path.join(rundir, 'vexmira_zombie.sma'))
+    for rel, data in read_snapshot().items():      # compiled sources: vexmira_zombie.sma + vex/*.inc
+        p = os.path.join(rundir, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, 'wb') as fh:
+            fh.write(data)
     console = [l for _, l in srv.lines]
     summ = summarize(console, texts, crashed, rc_before, srv.proc.returncode, args)
     summ['map_up'] = srv.map_up.is_set()
@@ -459,19 +505,22 @@ _SNAP = None
 
 
 def _annotate(frame):
-    """'[0] vexmira_zombie.sma::Func (line N)' -> + the source line from the compiled snapshot."""
+    """'[0] vexmira_zombie.sma::Func (line N)' or '[0] <path>/vex/hud.inc::Func (line N)'
+    -> + the source line from the compiled snapshot (.sma or the module file)."""
     global _SNAP
-    m = re.search(r'vexmira_zombie\.sma::\w+ \(line (\d+)\)', frame)
+    m = re.search(r'([^\s:]*?)([\w.-]+\.(?:sma|inc))::\w+ \(line (\d+)\)', frame)
     if not m:
         return frame
     if _SNAP is None:
-        try:
-            _SNAP = open(SNAPSHOT, encoding='utf-8', errors='replace').read().splitlines()
-        except OSError:
-            _SNAP = []
-    n = int(m.group(1))
-    if 0 < n <= len(_SNAP):
-        return '%s   | %s' % (frame, _SNAP[n - 1].strip()[:150])
+        _SNAP = {}
+        for rel, data in read_snapshot().items():
+            _SNAP[os.path.basename(rel)] = data.decode('utf-8', 'replace').splitlines()
+    lines = _SNAP.get(m.group(2))
+    if lines is None:
+        return frame
+    n = int(m.group(3))
+    if 0 < n <= len(lines):
+        return '%s   | %s' % (frame, lines[n - 1].strip()[:150])
     return frame
 
 

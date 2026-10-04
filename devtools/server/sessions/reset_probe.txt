@@ -1,0 +1,68 @@
+# Round-reset probe (MAPS_v3.md section 4) for the vexprobe_reset map (devtools/server/make_resetmap.py):
+#   VEX_SERVER=$SP/server python3 devtools/server/run_test.py --map vexprobe_reset --no-rebuild \
+#       --no-vexmira --bots 2 --seconds 60 --commands devtools/server/sessions/reset_probe.txt
+# Results: grep "\[vexprobe\] \(ent\|use\|fire\|touch\|break\|broken\|vexcmd\|round_start\)" <run>/amxx_L.log
+2  bot_zombie 1
+2  mp_roundtime 9
+4  vexprobe_ents @r_*
+# ---- round 1: use every set piece once
+6  vexprobe_fire r_door
+6  vexprobe_fire r_rotdoor
+6  vexprobe_fire r_button
+6  vexprobe_fire r_btn_toggle
+6  vexprobe_fire r_button_cmd
+6  vexprobe_break r_break
+6  vexprobe_break r_break_glass
+6  vexprobe_fire r_train
+6  vexprobe_touch r_once ct
+6  vexprobe_touch r_multi ct
+6  vexprobe_fire r_mm
+6  vexprobe_fire r_light
+6  vexprobe_fire r_light_off
+6  vexprobe_fire r_spr_on
+6  vexprobe_fire r_spr_off
+6  vexprobe_fire r_amb_loop
+6  vexprobe_fire r_amb_on
+6  vexprobe_fire r_wt
+6  vexprobe_fire r_render
+6  vexprobe_fire r_rot
+6  vexprobe_fire r_plat
+6  vexprobe_fire r_counter
+6  vexprobe_fire r_relay_once
+6  vexprobe_fire r_ct
+6  vexprobe_fire r_hurt
+6  vexprobe_fire r_ms_in1
+6  vexprobe_fire r_break_metal
+6  vexprobe_fire r_break_trig
+6  vexprobe_fire r_ms2_in1
+6  vexprobe_fire r_ms2_in2
+7  vexprobe_fire r_ms2door
+# team masters (game_team_master): T on the CT-only door / trigger / button must do nothing
+7  vexprobe_touch func_door@-336/308/64 t
+7  vexprobe_touch func_door@-136/308/64 ct
+7  vexprobe_touch r_teamtrig t
+7  vexprobe_fire r_teambutton 3 t
+8  vexprobe_ents func_door
+12 vexprobe_ents @r_*
+13 vexprobe_touch func_door@-336/308/64 ct
+13 vexprobe_touch func_door@-136/308/64 t
+13 vexprobe_touch r_teamtrig ct
+13 vexprobe_fire r_teambutton 3 ct
+14 vexprobe_ents func_door
+# ---- round restart
+18 sv_restart 1
+21 vexprobe_ents @r_*
+30 vexprobe_ents @r_*
+# ---- round 2: fire again -> what still works
+32 vexprobe_touch r_once ct
+32 vexprobe_touch r_multi ct
+32 vexprobe_fire r_button
+32 vexprobe_fire r_counter
+32 vexprobe_fire r_relay_once
+32 vexprobe_fire r_ct_src
+32 vexprobe_fire r_ms_in2
+33 vexprobe_fire r_msdoor
+33 vexprobe_break r_break
+36 vexprobe_ents @r_*
+40 sv_restart 1
+44 vexprobe_ents @r_*
