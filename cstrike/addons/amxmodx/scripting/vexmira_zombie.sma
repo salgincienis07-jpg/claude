@@ -23662,7 +23662,7 @@ public srv_DbgAlign()
         new mdl[32];
         read_argv(2, mdl, charsmax(mdl));
         for (new id = 1; id <= g_iMax; id++)
-            if (is_user_alive(id))
+            if (is_user_alive(id) && g_iOvhBar[id])
             {
                 rg_set_user_model(id, mdl);
                 new Float:st, Float:du;
