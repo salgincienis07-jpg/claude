@@ -1,0 +1,60 @@
+diff --git a/amxmodx/AMBuilder b/amxmodx/AMBuilder
+index a792815..c1c75dc 100644
+--- a/amxmodx/AMBuilder
++++ b/amxmodx/AMBuilder
+@@ -36,6 +36,7 @@ binary.compiler.linkflags += [AMXX.zlib.binary, AMXX.hashing.binary, AMXX.utf8re
+ 
+ binary.sources = [
+   'meta_api.cpp',
++  'vexprof.cpp',
+   'CVault.cpp',
+   'vault.cpp',
+   'float.cpp',
+diff --git a/amxmodx/amx.cpp b/amxmodx/amx.cpp
+index 93f38b6..b5c4f7f 100755
+--- a/amxmodx/amx.cpp
++++ b/amxmodx/amx.cpp
+@@ -4177,8 +4177,12 @@ int AMXAPI amx_GetStringOld(char *dest,const cell *source,int use_wchar)
+   return AMX_ERR_NONE;
+ }
+ 
++int vexprof_Exec(AMX *amx, cell *retval, int index);   // vexprof.cpp (test-server profiler)
++
+ int AMXAPI amx_ExecPerf(AMX* amx, cell* retval, int index)
+ {
++    if (amxmodx_perflog->value < 0.0f)
++        return vexprof_Exec(amx, retval, index);
+     CPluginMngr::CPlugin* perf_Plug = g_plugins.findPluginFast(amx);
+     if (amxmodx_perflog->value > 0.0f && perf_Plug && (perf_Plug->isDebug() || (int)amxmodx_debug->value == 2))
+     {
+diff --git a/amxmodx/meta_api.cpp b/amxmodx/meta_api.cpp
+index 3370e02..9ed33e9 100755
+--- a/amxmodx/meta_api.cpp
++++ b/amxmodx/meta_api.cpp
+@@ -35,6 +35,10 @@
+ #include <resdk/mod_rehlds_api.h>
+ #include <amtl/am-utility.h>
+ 
++// vexprof.cpp (test-server profiler, devtools/server/amxx_prof)
++void vexprof_InstallMsgHooks(enginefuncs_t *fromEngine, enginefuncs_t *amxxCopy);
++void vexprof_Cmd(void);
++
+ plugin_info_t Plugin_info =
+ {
+ 	META_INTERFACE_VERSION,		// ifvers
+@@ -1653,6 +1657,7 @@ C_DLLEXPORT	int	Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, m
+ 	amxmodx_perflog = CVAR_GET_POINTER(init_amxmodx_perflog.name);
+ 
+ 	REG_SVR_COMMAND("amxx", amx_command);
++	REG_SVR_COMMAND("amx_profdump", vexprof_Cmd);
+ 
+ 	char gameDir[512];
+ 	GET_GAME_DIR(gameDir);
+@@ -1805,6 +1810,7 @@ C_DLLEXPORT	int	Meta_Detach(PLUG_LOADTIME now, PL_UNLOAD_REASON	reason)
+ C_DLLEXPORT void WINAPI GiveFnptrsToDll(enginefuncs_t* pengfuncsFromEngine, globalvars_t *pGlobals)
+ {
+ 	memcpy(&g_engfuncs, pengfuncsFromEngine, sizeof(enginefuncs_t));
++	vexprof_InstallMsgHooks(pengfuncsFromEngine, &g_engfuncs);
+ 	gpGlobals = pGlobals;
+ }
+ 

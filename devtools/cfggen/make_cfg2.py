@@ -2,7 +2,10 @@ import re
 SMA = '/home/user/claude/cstrike/addons/amxmodx/scripting/vexmira_zombie.sma'
 OUT = '/home/user/claude/cstrike/addons/amxmodx/configs/vexmira.cfg'
 G = '/tmp/claude-0/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/scratchpad/gen/'
-src = open(SMA, encoding='utf-8').read()
+# eklenti kaynagi: .sma + moduller (scripting/vex/*.inc, bkz. devtools/plugin/MODULES.md)
+import glob, os
+src = ''.join(open(f, encoding='utf-8').read() for f in
+              [SMA] + sorted(glob.glob(os.path.join(os.path.dirname(SMA), 'vex', '*.inc'))))
 body = src[src.index('SetDefaultResources()\n{'):src.index('// Ses dosyasi sunucuda var mi?')]
 defs = re.findall(r'DefSound\("([A-Z0-9_]+)",\s*"([^"]*)",\s*"([^"]*)"\)', body)
 trie = re.findall(r'TrieSetString\(g_tRes, "([A-Z0-9_]+)",\s*"([^"]*)"\)', body)

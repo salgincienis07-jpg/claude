@@ -124,6 +124,16 @@ def build():
     E(Entity('trigger_multiple', box((0, 300, 0), (64, 364, 72), TRIGGER), targetname='r_teamtrig',
              target='r_teamtrig_out', wait=1, master='r_gtm_ct'))
     E(out('r_teamtrig_out'))
+    # team-filtered damage zone, switchable: trigger (zombies only) -> game_player_hurt gated by a multisource
+    E(Entity('trigger_multiple', box((200, 300, 0), (264, 364, 72), TRIGGER), targetname='r_zhurt',
+             target='r_zhurt_do', wait=0.5, master='r_gtm_t'))
+    E(Entity('game_player_hurt', origin=(0, 0, 240), targetname='r_zhurt_do', dmg=15, master='r_zhurt_on'))
+    E(Entity('multisource', origin=(0, 0, 240), targetname='r_zhurt_on'))
+    E(relay('r_zhurt_switch', 'r_zhurt_on', state=2))
+    # human heal pad: negative damage heals the activator (CT only)
+    E(Entity('trigger_multiple', box((300, 300, 0), (364, 364, 72), TRIGGER), targetname='r_heal',
+             target='r_heal_do', wait=0.5, master='r_gtm_ct'))
+    E(Entity('game_player_hurt', origin=(0, 0, 240), targetname='r_heal_do', dmg=-10))
 
     # --- lights / sprites / sounds / render ------------------------------------------------------
     E(light((300, 200, 100), (255, 80, 40), 200, targetname='r_light'))

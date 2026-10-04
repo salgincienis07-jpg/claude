@@ -2,7 +2,10 @@
 import re
 SMA = '/home/user/claude/cstrike/addons/amxmodx/scripting/vexmira_zombie.sma'
 OUT = '/home/user/claude/cstrike/addons/amxmodx/configs/vexmira.cfg'
-src = open(SMA, encoding='utf-8').read()
+# eklenti kaynagi: .sma + moduller (scripting/vex/*.inc, bkz. devtools/plugin/MODULES.md)
+import glob, os
+src = ''.join(open(f, encoding='utf-8').read() for f in
+              [SMA] + sorted(glob.glob(os.path.join(os.path.dirname(SMA), 'vex', '*.inc'))))
 
 def arr(name):
     m = re.search(r'^new (?:Float:)?' + name + r'\[[^\]]*\]\s*=\s*\{([^}]*)\}', src, re.M)

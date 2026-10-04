@@ -1,0 +1,109 @@
+diff --git a/engine/platform/posix/con_posix.c b/engine/platform/posix/con_posix.c
+index e9285a0..626dbd3 100644
+--- a/engine/platform/posix/con_posix.c
++++ b/engine/platform/posix/con_posix.c
+@@ -28,7 +28,14 @@ char *Posix_Input( void )
+ 	static int len;
+ 	struct timeval tv = { 0 };
+ 
+-	if( !Host_IsDedicated( ))
++	static int allow_stdin = -1;
++
++	// vexmira render client patch: "-stdincmd" lets a controlling script pipe console
++	// commands into a regular (non-dedicated) client, exactly like the dedicated console
++	if( allow_stdin < 0 )
++		allow_stdin = Host_IsDedicated( ) || Sys_CheckParm( "-stdincmd" ) ? 1 : 0;
++
++	if( !allow_stdin )
+ 		return NULL;
+ 
+ 	FD_ZERO( &rfds );
+diff --git a/ref/gl/gl_backend.c b/ref/gl/gl_backend.c
+index 144771c..6dcbb8e 100644
+--- a/ref/gl/gl_backend.c
++++ b/ref/gl/gl_backend.c
+@@ -42,6 +42,37 @@ qboolean R_SpeedsMessage( char *out, size_t size )
+ 	return true;
+ }
+ 
++/*
++==============
++R_SpeedsDump_f
++
++vexmira render client patch: one parseable line with the counters of the last frame that
++drew the world (needs r_speeds > 0, otherwise the counters are never reset) and the average
++frame rate since the previous dump.
++==============
++*/
++static ref_speeds_t r_stats_last;
++static int r_last_ents, r_last_srvents;
++static uint r_dump_frames;
++static double r_dump_start = -1.0;
++
++void R_SpeedsDump_f( void )
++{
++	double now = gp_host->realtime;
++	double secs = r_dump_start >= 0.0 ? now - r_dump_start : 0.0;
++
++	gEngfuncs.Con_Printf( "R_SPEEDS wpoly=%u epoly=%u spoly=%u apoly=%u leafs=%u studio_drawn=%u sprites_drawn=%u"
++		" statics=%u ents=%i srvents=%i tents=%u beams=%u particles=%u frames=%u secs=%.2f fps=%.1f\n",
++		r_stats_last.c_world_polys, r_stats_last.c_studio_polys, r_stats_last.c_sprite_polys,
++		r_stats_last.c_alias_polys, r_stats_last.c_world_leafs, r_stats_last.c_studio_models_drawn,
++		r_stats_last.c_sprite_models_drawn, r_stats_last.c_client_ents, r_last_ents, r_last_srvents,
++		r_stats_last.c_active_tents_count, r_stats_last.c_view_beams_count, r_stats_last.c_particle_count,
++		r_dump_frames, secs, secs > 0.0 ? r_dump_frames / secs : 0.0 );
++
++	r_dump_frames = 0;
++	r_dump_start = now;
++}
++
+ /*
+ ==============
+ GL_BackendStartFrame
+@@ -64,6 +95,14 @@ void GL_BackendEndFrame( void )
+ 
+ 	mleaf_t *curleaf = RI.viewleaf ? RI.viewleaf : WORLDMODEL->leafs;
+ 
++	// vexmira render client patch: keep a copy for r_speeds_dump
++	r_stats_last = r_stats;
++	r_last_ents = r_numEntities - r_numStatics;
++	r_last_srvents = (int)ENGINE_GET_PARM( PARM_NUMENTITIES );
++	r_dump_frames++;
++	if( r_dump_start < 0.0 )
++		r_dump_start = gp_host->realtime;
++
+ 	switch( (int)r_speeds->value )
+ 	{
+ 	case 1:
+diff --git a/ref/gl/gl_local.h b/ref/gl/gl_local.h
+index 1e4d23e..3a31b12 100644
+--- a/ref/gl/gl_local.h
++++ b/ref/gl/gl_local.h
+@@ -300,6 +300,7 @@ extern float		gldepthmin, gldepthmax;
+ //
+ void GL_BackendStartFrame( void );
+ void GL_BackendEndFrame( void );
++void R_SpeedsDump_f( void );
+ void GL_CleanUpTextureUnits( int last );
+ void GL_Bind( int tmu, unsigned int texnum );
+ void GL_MultiTexCoord2f( int tmu, GLfloat s, GLfloat t );
+diff --git a/ref/gl/gl_opengl.c b/ref/gl/gl_opengl.c
+index f05a3dd..a098992 100644
+--- a/ref/gl/gl_opengl.c
++++ b/ref/gl/gl_opengl.c
+@@ -1272,6 +1272,7 @@ static void GL_InitCommands( void )
+ 	SetBits( gl_vsync->flags, FCVAR_CHANGED );
+ 
+ 	gEngfuncs.Cmd_AddCommand( "r_info", R_RenderInfo_f, "display renderer info" );
++	gEngfuncs.Cmd_AddCommand( "r_speeds_dump", R_SpeedsDump_f, "print last frame r_speeds counters and average fps (vexmira patch)" );
+ 	gEngfuncs.Cmd_AddCommand( "timerefresh", SCR_TimeRefresh_f, "turn quickly and print rendering statistcs" );
+ }
+ 
+@@ -1320,6 +1321,7 @@ GL_RemoveCommands
+ static void GL_RemoveCommands( void )
+ {
+ 	gEngfuncs.Cmd_RemoveCommand( "r_info" );
++	gEngfuncs.Cmd_RemoveCommand( "r_speeds_dump" );
+ 	gEngfuncs.Cmd_RemoveCommand( "timerefresh" );
+ }
+ 

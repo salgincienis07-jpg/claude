@@ -787,9 +787,12 @@ public srv_Touch()
     log_amx("[vexprobe] touch t=%.1f '%s' by #%d team=%d -> %d entities", RoundTime(), name, who, who ? get_user_team(who) : 0, n);
     if (!who)
         return PLUGIN_HANDLED;
+    new hp0 = get_user_health(who);
     for (new i = 0; i < n; i++)
         if (pev_valid(list[i]))
             ExecuteHamB(Ham_Touch, list[i], who);
+    if (is_user_connected(who) && get_user_health(who) != hp0)
+        log_amx("[vexprobe] touch_hp #%d team=%d hp %d -> %d", who, get_user_team(who), hp0, get_user_health(who));
     return PLUGIN_HANDLED;
 }
 
