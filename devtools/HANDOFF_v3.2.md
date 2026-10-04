@@ -28,3 +28,14 @@ Kurallar: devtools/HANDOFF_v3.1.md (tek .sma dosyasi, tek cfg, EN+TR, Turkce har
    pakette olmayan dosyalar (pence v_claw_*, p_ silah modelleri, hook/egg/spore, vex_tank, x.wav, mp3...) ya uretilsin ya da
    var olan / bos (orijinale don) varsayilana cekilsin -> temiz kurulumda "bulunamadi" uyarisi olmasin.
 Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan devtools/PROGRESS_v3.md.
+
+## Ek istekler (2026-10-04 aksam) - 4. asama
+11. MENU RENKLERI: tum menuler renkli ve dikkat cekici; BEYAZ ve GRI KULLANILMAYACAK (CS 1.6 menu renkleri sadece
+    \r kirmizi, \y sari, \w beyaz, \d gri). Baslik: kirmizi "VEXMIRA" + sari baslik; numaralar kirmizi; madde adlari sari;
+    fiyat/seviye/durum kirmizi; kilitli maddeler gri DEGIL: tiklanabilir kalsin, "[KILITLI]" etiketi, secilince mesaj
+    (menu callback ITEM_DISABLED kullanma -> gri olur). Ayiricilar kirmizi. Chat mesajlari/ipuclari renkli (yesil/takim/sari).
+12. UST ROUND BILGISI + SAG HUD + MVP: duz yazi degil, sprite / ozel tasarim. Gercek sprite olabilenler sprite olsun
+    (MVP: kafa ustu sprite amblem + efekt; kafa ustu barlar; boss bari), ekran HUD'u icin motorun izin verdigi en
+    gorsel cozum: oyunun hud.txt ikonlari (StatusIcon/Scenario), BarTime ilerleme cubuklari, cercevel renkli DHUD tasarimi.
+    Eksik sprite dosyalari uretilsin (devtools/sprkit). Sinir (sunucu eklentisi ekrana keyfi 2D resim cizemez) raporda acikca.
+13. HERSEYI KONTROL ET: tum ozellikler, menuler, HUD'lar, mesajlar tek tek; hicbiri unutulmasin.
