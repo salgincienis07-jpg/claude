@@ -1,0 +1,184 @@
+=====================================================================
+  VEXMIRA ZOMBIE v3.1
+=====================================================================
+
+Bu paket 3.0.1'in uzerine gelir: hata duzeltmeleri, bolunmus (moduler)
+eklenti, cfg'de model ekleme rehberi. 3.0.1'deki her sey (hizalama,
+zm_vex_laboratory haritasi, silah / dunya modelleri) bu pakette de var.
+
+KURULUM: "cstrike" klasorunu sunucundaki cstrike ile birlestir
+(ayrinti: KURULUM_OKU.txt). Derlenmis plugin hazir:
+addons/amxmodx/plugins/vexmira_zombie.amxx (AMXX 1.10 + ReAPI 5.26).
+Eski vexmira.cfg'yi YENISIYLE DEGISTIR.
+
+ONEMLI - 3.0.0-ara'dan gecenler: sunucudaki eski deneme modellerini
+silebilirsin (artik kullanilmiyor):
+  models/player/vex_z_walker/   models/vexmira/claws/v_walker.mdl
+  maps/zm_vex_pilot.bsp (+ .nav .res)
+
+Haritayi acmak: changelevel zm_vex_laboratory
+(veya mapcycle.txt / vex_map_pool icine ekli; asagiya bak)
+
+---------------------------------------------------------------------
+ YENILER (3.1)
+---------------------------------------------------------------------
+
+[HATA DUZELTMELERI]
+ - Boss ustundeki "siyah arka planli beyaz efekt" kaldirildi: isaret
+   sprite'i oyuncuya yapistirilinca oyun istemcisi onu her zaman normal
+   modda ciziyordu (beyaz kare). Boss artik kafa ustu can bari ve
+   amblemiyle isaretlenir; Reaper olum isareti tek seferlik parlama.
+ - Kasap (Butcher) kancasi: zincir modelin el noktasindan cikiyordu; bu
+   nokta orijinal CS modellerinde ve atanin kendi gozunde bos / eski
+   oldugu icin zincir haritanin ters ucundan geliyordu. Artik oyuncunun
+   kendisinden cikar. Olculdu: zincir yonu / atis yonu uyumu %98+.
+   Ayni duzeltme boss simsek isinlarinda da.
+ - Diger yonler kontrol edildi (geri tepme, atilma, boss itme/cekme,
+   Charger, Phantom, Spitter): dogru. Bossun govdesinin one/arkaya
+   egilmesi ve zombi ziplama esyasinin yer cekimi hatasi duzeltildi.
+ - LAZER MENZILI: vex_lm_max_range 600 (isin en fazla 600 birim gider,
+   duvara ulasmazsa havada biter).
+ - NEMESIS / ASSASSIN modunda lazer kurulamaz: vex_lm_block_modes
+   "nemesis assassin" (mesajla engellenir, kurulu mayinlar round basinda
+   kaldirilir).
+ - PARASUT: kapaninca / yere inince / olunce / zombi olunca / yeni roundda
+   oyuncunun dogru yer cekimi (sinif, esya, event, survivor) geri gelir.
+
+[OTOMATIK TAKIM]
+ - Haritaya / sunucuya girince takim ve karakter menusu ACILMAZ; oyuncu
+   otomatik insan takimina atilir (mp_auto_join_team 1,
+   humans_join_team "CT"). Eski menu icin: mp_auto_join_team 0.
+
+[KENDI MODELINI EKLEME REHBERI]
+ - vexmira.cfg'de model bolumunun basinda Turkce rehber: insan / zombi /
+   VIP / admin / survivor oyuncu modelleri, zombi elleri (Z<n>_CLAW,
+   B<n>_CLAW, CLAW_MODEL), insan eli / bicak (V_KNIFE, P_KNIFE), bombalar,
+   ozel silahlar, dunya modelleri. Dosya yoksa oyun cokmez, orijinal
+   modele duser.
+
+[MODULER EKLENTI]
+ - Kaynak kod 13 dosyaya bolundu (scripting/vex/*.inc) ama TEK eklenti
+   olarak derlenir (en hizli yol: ayri eklentiler birbirini cagirirken
+   ek yuk olusur). Derlenmis kod eskisiyle birebir ayni dogrulandi.
+   Kaynaktan derleyeceksen vexmira_zombie.sma'yi vex/ klasoruyle birlikte
+   scripting/ altinda derle.
+
+---------------------------------------------------------------------
+ 3.0.1'DEN GELENLER
+---------------------------------------------------------------------
+
+[OTOMATIK HIZALAMA]
+ - Can barlari ve kafa ustu ikonlar (boss bari, boss amblemi, nemesis /
+   assassin / alfa bari, son insan, MVP, admin, VIP) artik oyuncunun
+   ICINDE degil, KAFASININ USTUNDE. Sebep: oyun istemcisi "takip eden"
+   sprite'lari oyuncunun belinde ciziyordu; artik her ag paketinde
+   oyuncunun o anki konumu + modelin gercek kafa yuksekligi ile
+   yerlestiriliyor (oyuncuyla birlikte akici hareket eder).
+ - Kafa yuksekligi her oyuncu modeli dosyasindan OTOMATIK okunur
+   (ayakta / egilince ayri): kisa zombi, uzun boss, orijinal CS modeli -
+   hepsinde dogru yukseklik. Egilince bar da asagi iner.
+ - Ust uste gostergeler sirali: bar -> boss amblemi -> ikon.
+ - Ayar: vex_overhead_margin (kafa ile bar arasi bosluk, 5),
+   vex_overhead_gap (gostergeler arasi bosluk, 2).
+ - LAZER MAYINI: duvara / yere / tavana DUZ oturur, arkasi yuzeye
+   yapisik, lazer isini merceginin ucundan cikar. Yerde / tavanda kuranin
+   baktigi yone doner. (Ters duruyordu - duzeltildi.) Baska bir mayin
+   modeli kullanirsan: v_tripmine.mdl ve w_c4.mdl icin hazir ayar var;
+   farkli bir model icin vexmira.cfg: LASERMINE_ANGLES / LASERMINE_OFFSET
+   / LASERMINE_EMITTER.
+ - Ikmal kutusu isareti kutunun icinde degil 32 birim ustunde; altin isik
+   sutunu kutunun tepesinden baslar.
+ - Kasap (Butcher) kancasinin zinciri ve boss simsek / zincir isinlari
+   artik govdenin ortasindan degil ELDEN cikar.
+ - Oyuncuyu / kutuyu takip eden alan efektleri geride kalmaz.
+
+[HARITA: zm_vex_laboratory - "Vexmira Arastirma Tesisi"]
+ - Zehirli kazaya ugramis yeraltindaki Vexmira biyolabi:
+   * ATRIUM: ortada zehirli atik havuzu (icine dusen hasar alir),
+     ustunde 2. katta capraz metal yurume yolu, kuzey/guney balkonlar,
+     merdivenler + seyyar merdivenler. Genis zemin = boss arenasi.
+   * KONTROL ODASI (2. kat): kapi + kirilabilir cam pencereler, isikli
+     ekranlar, bati laboratuvarina havalandirma kanali.
+   * BATI LABORATUVARLARI: cam duvarli laboratuvarlar (camlar
+     kirilabilir), parlayan numune tanklari, ust kat.
+   * SUNUCU ODASI: LED'li sunucu dolaplari, merkeze kopru, asma kat.
+   * GUNEY KARANTINA HOLU: zombi dogma alani, kirmizi acil durum isigi,
+     laboratuvara ve sunucu odasina giden emekleme kanallari (zombiler
+     icin yandan sizma yollari).
+   * 4 kamp noktasi (kontrol odasi, sunucu asma kati, lab ust kati,
+     merkez yurume yolu) - CT'ler icin savunma, zombiler icin hedef.
+ - 32 CT + 32 T dogma noktasi (32 kisilik sunucuya uygun).
+ - Ozel isiklandirma (alarm isiklari, isikli tavan lambalari, tank
+   parlamasi) ve haritaya ozel ortam sesi (sound/vexmira/map/).
+ - Botlar icin .nav dosyasi hazir (zm_vex_laboratory.nav): botlar
+   haritayi ilk acilista ogrenmeye ugrasmaz, merdivenlerde takilmaz.
+ - .res dosyasi: oyuncular haritaya girerken haritanin sesi otomatik
+   iner.
+
+[YENI SILAH MODELLERI (birinci sahis, v_)]
+ - Hepsinde yeni CT kollari: taktik eldivenler (dikisli eklem pedleri,
+   kaymaz avuc), operator kiyafeti kollari.
+ - CT bicagi "Vexblade": tirtikli bicak + cyan enerji kenari, paracord
+   sap, parlayan kabza (8 animasyon: bekleme, 2 kesme, cekme, saplama...).
+ - Yangin bombasi, buz bombasi, isik fisegi: her biri kendi tasarimi
+   (pim, tetik kolu) + atilan halleri (w_ modelleri) ayri.
+ - 8 ozel silahin (ekstra menu) her birine ayri v_ modeli:
+   0 Plazma (M4A1)  1 Ejder Topu (M249)  2 Yildirim (AWP)
+   3 Buz Kiran (XM1014)  4 Altin Kartal (Deagle)  5 Cehennem SMG (P90)
+   6 Vex Bicici (AK-47)  7 Bosluk Cagirici (SG550)
+   Animasyon sirasi oyunun silah kodu ile birebir (ates, sarjor
+   degistirme, cekme ayni zamanlamada).
+ - 3. sahis (p_) modeller: su an orijinal CS modelleri (tam surumde).
+
+[YENI DUNYA MODELLERI]
+ - Lazer mayini: yeni tasarim; duvara DUZ oturur, lazer gozden cikar
+   (eskiden ters duruyordu - duzeltildi).
+ - Ikmal kutusu (airdrop), atilan bombalar (w_firebomb / w_frostbomb /
+   w_flare).
+
+[ZOMBI PENCELERI]
+ - Eski deneme pence modelleri kaldirildi (indirme suresi kisa olsun).
+   Simdilik zombilerin elinde orijinal CS bicagi gorunur. Tam
+   surumde 4 ortak pence modeli gelecek (siradan / agir / cevik / boss);
+   vexmira.cfg buna gore hazir (Z<n>_CLAW, B<n>_CLAW).
+
+[HARITA OYLAMASI]
+ - 30. round sonunda oylama vex_map_pool listesindeki, SUNUCUDA OLAN
+   haritalar arasinda yapilir. Bu ara surumde yalniz zm_vex_laboratory
+   var; listede baska harita yoksa oylama atlanir, oyunun kendi
+   mapcycle'i gecerli olur. Kendi zm haritalarini eklemek istersen
+   vexmira.cfg'de: vex_map_pool "zm_vex_laboratory zm_haritan1 ..."
+   (sunucuda olmayan haritalar otomatik atlanir).
+
+---------------------------------------------------------------------
+ TEST
+---------------------------------------------------------------------
+ - Gercek ReHLDS + ReGameDLL + AMXX + ReAPI sunucusunda, zm_vex_laboratory
+   haritasinda 16 botla ~8 dakika: tum modlar (enfeksiyon, nemesis,
+   survivor, assassin, swarm, sniper, armageddon), 4 boss, eventler.
+   Sonuc: 0 calisma zamani hatasi, 0 cokme.
+ - Precache (oyun + harita + eklenti): ses 442/512, model 334/512.
+ - Hizalama gercek bir istemci baglantisiyla (HLTV) olculdu: bar / ikon
+   oyuncu kafasinin ustunde, yana kayma 0; lazer mayini 24 farkli
+   yuzeyde (duvar, egim, zemin, tavan) yuzeye tam dik.
+ - Henuz oyuncu gozuyle (oyun istemcisinde) bakilmadi: bir sey yanlis
+   gorunurse ekran goruntusu ile haber ver.
+
+---------------------------------------------------------------------
+ SIRADAKI GUNCELLEMEDE (yapiliyor)
+---------------------------------------------------------------------
+ - Haritalar <-> eklenti konusmasi: hedefler, olaylar, oduller, hikaye
+ - zm_vex_laboratory: FPS iyilestirme + etkilesimler + hikaye dosyasi
+ - Ozel silah sistemi: cfg'den eklenen silahin animasyon / ses / efekti
+   otomatik
+ - Grafik HUD (cfg'den klasik / varsayilan gorunume donulebilir)
+ - Optimizasyon
+ - Sonra: jetpack, RPG, 5 pet + 5 kanat, 4 yeni harita
+
+---------------------------------------------------------------------
+ BILINEN NOTLAR
+---------------------------------------------------------------------
+ - FastDL (sv_downloadurl) onerilir: harita + yeni modeller + sesler.
+ - Bir sey yanlis hizali / garip gorunur ya da duyulursa ekran goruntusu
+   ile haber ver; hizalama ayarlari vexmira.cfg'de (vex_overhead_margin,
+   vex_overhead_gap, LASERMINE_*) elle de degistirilebilir.
