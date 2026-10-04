@@ -47,7 +47,7 @@
 #pragma dynamic 32768
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "2.0.0"
+#define VERSION  "3.0.1-ara"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ------------------------------------------------------------------ */
@@ -786,7 +786,6 @@ new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, 
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];       // varlik -> sahibi / kafa ustunden yukseklik
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
-new g_iDbgFp, bool:g_bDbgDuck;   //ALIGNDBG
 // Boss / ozel karakter sesleri: bekleme sureleri
 new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
 new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
@@ -2708,7 +2707,6 @@ public plugin_init()
     g_pPrefixVip     = register_cvar("vex_chat_prefix_vip", "^4[^3VIP^4]^1");
     g_pPrefixAdmin   = register_cvar("vex_chat_prefix_admin", "^3[ADMIN]^1");
     register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
-    register_srvcmd("vex_dbg_align", "srv_DbgAlign");   //ALIGNDBG
     register_forward(FM_SetModel, "fw_SetModelPost", 1);
     register_forward(FM_AddToFullPack, "fw_AddToFullPackPost", 1);
     PrecacheReportTotals();
@@ -14560,7 +14558,7 @@ AimedMine(id, Float:range)
    varlik acisi (P, Y, R) icin model +X = MakeVectors(-P, Y, R).forward, +Z = .up.
    Model eksenleri: E = isinin ciktigi yon, U = duvardayken yukari bakan yon.
    - HL v_tripmine (govde 3, "world"): E = +X, U = +Z, normal boyunca 8 birim, isin merkezden.
-   - Vexmira lasermine.mdl: E = +X (lens 6.8), montaj yuzu -X (x = 0), 0.4 birim.
+   - Vexmira lasermine.mdl: E = +X (lens ucu = attachment 0 = 10.3), montaj yuzu x = 0, 0.3 birim.
    - w_c4 yedegi: alt yuzu duvarda (E = +Z).
    Duvarda U dunya yukarisina; zemin / tavanda kuran oyuncunun bakis yonune (yamuk durmaz).
    cfg: LASERMINE_ANGLES "pitch yaw roll" (model uzayinda ek donus), LASERMINE_OFFSET (birim),
@@ -14584,8 +14582,8 @@ MinePreset(bool:tripmine, bool:c4, bool:fellBack)
     }
     else
     {
-        g_fMineOff = 0.4;
-        g_fMineEmit = Float:{6.8, 0.0, 0.0};
+        g_fMineOff = 0.3;
+        g_fMineEmit = Float:{10.3, 0.0, 0.0};
     }
     if (fellBack)
         return;
@@ -15995,8 +15993,8 @@ public menu_nade_handler(id, menu, item)
 /* ================================================================== */
 
 #define DROP_CLASS "vex_airdrop"
-#define DROP_TOP_Z  20.0   // kutu modelinin ust yuzu (supply_crate: taban z = 0, 20 birim)
-#define DROP_GLOW_Z 30.0   // isaret sprite'inin merkezi (kutunun ustunde)
+#define DROP_TOP_Z  22.0   // kutu modelinin ust yuzu (supply_crate: taban z = 0, cerceve 21.6 birim)
+#define DROP_GLOW_Z 32.0   // isaret sprite'inin merkezi (kutunun ustunde)
 
 /* ---------------- Hava ikmali ----------------
    Round icinde belirli araliklarla gokten parlayan bir kutu iner.
@@ -22575,19 +22573,6 @@ public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
     get_entvar(id, var_origin, o);
     o[2] += ((get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id]) + g_fOvhDz[ent];
     set_es(es, ES_Origin, o);
-    //ALIGNDBG_BEGIN
-    if (g_iDbgFp > 0)
-    {
-        g_iDbgFp--;
-        new Float:po[3], Float:so[3], mdl[32];
-        get_entvar(id, var_origin, po);
-        get_es(es, ES_Origin, so);
-        get_user_info(id, "model", mdl, charsmax(mdl));
-        log_amx("[ALIGNDBG] ovh ent=%d owner=%d host=%d mdl=%s boss=%d duck=%d stand=%.1f duckTop=%.1f slotDz=%.1f SENT_DZ=%.1f dx=%.1f dy=%.1f mt=%d eff=%d",
-            ent, id, host, mdl, g_bBoss[id], (get_entvar(id, var_flags) & FL_DUCKING) ? 1 : 0, g_fOvhStand[id], g_fOvhDuck[id], g_fOvhDz[ent],
-            so[2] - po[2], so[0] - po[0], so[1] - po[1], get_es(es, ES_MoveType), get_es(es, ES_Effects));
-    }
-    //ALIGNDBG_END
     return FMRES_IGNORED;
 }
 
@@ -23627,117 +23612,3 @@ ResetPlayerLate(id)
     g_iVoteMenu[id] = -1;
     g_iMapVoteMenu[id] = -1;
 }
-
-//ALIGNDBG_BEGIN  (gecici hizalama telemetrisi - dogrulamadan sonra silinecek)
-public fw_DbgCmdStart(id, uc, seed)
-{
-    if (g_bDbgDuck && is_user_bot(id) && (g_iOvhBar[id] || g_iOvhIcon[id]))
-        set_uc(uc, UC_Buttons, get_uc(uc, UC_Buttons) | IN_DUCK);
-    return FMRES_IGNORED;
-}
-public srv_DbgAlign()
-{
-    new arg[16];
-    read_argv(1, arg, charsmax(arg));
-    if (equal(arg, "ovh"))
-    {
-        new num[8];
-        read_argv(2, num, charsmax(num));
-        g_iDbgFp = num[0] ? str_to_num(num) : 40;
-        for (new id = 1; id <= g_iMax; id++)
-        {
-            if (!is_user_alive(id) || !(g_iOvhBar[id] || g_iOvhEmb[id] || g_iOvhIcon[id]))
-                continue;
-            new mdl[32];
-            get_user_info(id, "model", mdl, charsmax(mdl));
-            log_amx("[ALIGNDBG] stack id=%d mdl=%s boss=%d bar=%d(%.1f) emb=%d(%.1f) icon=%d(%.1f) top=%.1f stand=%.1f duck=%.1f",
-                id, mdl, g_bBoss[id], g_iOvhBar[id], g_iOvhBar[id] ? g_fOvhDz[g_iOvhBar[id]] : 0.0, g_iOvhEmb[id], g_iOvhEmb[id] ? g_fOvhDz[g_iOvhEmb[id]] : 0.0,
-                g_iOvhIcon[id], g_iOvhIcon[id] ? g_fOvhDz[g_iOvhIcon[id]] : 0.0, g_fOvhStackTop[id], g_fOvhStand[id], g_fOvhDuck[id]);
-        }
-        return PLUGIN_HANDLED;
-    }
-    if (equal(arg, "model"))
-    {
-        // vex_dbg_align model <ad>: ilk canli bota model ver (stok model testi)
-        new mdl[32];
-        read_argv(2, mdl, charsmax(mdl));
-        for (new id = 1; id <= g_iMax; id++)
-            if (is_user_alive(id) && g_iOvhBar[id])
-            {
-                rg_set_user_model(id, mdl);
-                new Float:st, Float:du;
-                MdlHeadTops(mdl, st, du);
-                log_amx("[ALIGNDBG] model id=%d -> %s stand=%.1f duck=%.1f", id, mdl, st, du);
-                break;
-            }
-        return PLUGIN_HANDLED;
-    }
-    if (equal(arg, "duck"))
-    {
-        // vex_dbg_align duck: gostergesi olan botlari comeltir (CmdStart'ta IN_DUCK)
-        static bool:reg;
-        if (!reg)
-        {
-            register_forward(FM_CmdStart, "fw_DbgCmdStart");
-            reg = true;
-        }
-        g_bDbgDuck = !g_bDbgDuck;
-        log_amx("[ALIGNDBG] duck=%d", g_bDbgDuck);
-        return PLUGIN_HANDLED;
-    }
-    if (equal(arg, "mine"))
-    {
-        new n;
-        for (new id = 1; id <= g_iMax && n < 2; id++)
-        {
-            if (!is_user_alive(id))
-                continue;
-            n++;
-            new Float:eye[3], Float:dir[3], Float:end[3], Float:surf[3], Float:nrm[3], Float:frac;
-            get_entvar(id, var_origin, eye);
-            eye[2] += 17.0;
-            for (new k = 0; k < 6; k++)
-            {
-                dir[0] = dir[1] = dir[2] = 0.0;
-                switch (k)
-                {
-                    case 0: dir[0] = 1.0;
-                    case 1: dir[1] = 1.0;
-                    case 2: dir[0] = -1.0;
-                    case 3: dir[1] = -1.0;
-                    case 4: dir[2] = -1.0;
-                    case 5: dir[2] = 1.0;
-                }
-                for (new i = 0; i < 3; i++)
-                    end[i] = eye[i] + dir[i] * 2048.0;
-                engfunc(EngFunc_TraceLine, eye, end, IGNORE_MONSTERS, id, 0);
-                get_tr2(0, TR_flFraction, frac);
-                if (frac >= 1.0)
-                    continue;
-                get_tr2(0, TR_vecEndPos, surf);
-                get_tr2(0, TR_vecPlaneNormal, nrm);
-                new ent = CreateMine(id, surf, nrm);
-                if (!ent)
-                    continue;
-                new Float:ang[3], Float:o[3], Float:bs[3], Float:a2[3], Float:fw[3], Float:rt[3], Float:up[3], Float:va[3];
-                get_entvar(ent, var_angles, ang);
-                get_entvar(ent, var_origin, o);
-                get_entvar(ent, var_vuser3, bs);
-                get_entvar(id, var_v_angle, va);
-                a2[0] = -ang[0]; a2[1] = ang[1]; a2[2] = ang[2];
-                engfunc(EngFunc_MakeVectors, a2);
-                global_get(glb_v_forward, fw);
-                global_get(glb_v_right, rt);
-                global_get(glb_v_up, up);
-                new Float:d = (o[0] - surf[0]) * nrm[0] + (o[1] - surf[1]) * nrm[1] + (o[2] - surf[2]) * nrm[2];
-                new Float:be = (bs[0] - o[0]) * nrm[0] + (bs[1] - o[1]) * nrm[1] + (bs[2] - o[2]) * nrm[2];
-                log_amx("[ALIGNDBG] mine k=%d mdl=%s body=%d seq=%d normal=(%.2f %.2f %.2f) angles=(%.1f %.1f %.1f) modelX=(%.2f %.2f %.2f) X.n=%.3f modelZ=(%.2f %.2f %.2f) Z.up=%.2f viewyaw=%.0f origin-surf=%.2f emitter-along-n=%.2f",
-                    k, g_szMineModel, get_entvar(ent, var_body), get_entvar(ent, var_sequence), nrm[0], nrm[1], nrm[2], ang[0], ang[1], ang[2], fw[0], fw[1], fw[2],
-                    fw[0] * nrm[0] + fw[1] * nrm[1] + fw[2] * nrm[2], up[0], up[1], up[2], up[2], va[1], d, be);
-            }
-        }
-        return PLUGIN_HANDLED;
-    }
-    return PLUGIN_HANDLED;
-}
-//ALIGNDBG_END
