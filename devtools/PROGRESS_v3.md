@@ -87,6 +87,11 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   sira (kullanici istegi): OZEL SILAH SISTEMI -> GRAFIK HUD (cfg ile geri donulebilir) -> map-story -> laboratuvar (FPS + etkilesim + ini)
   -> optimizasyon+final -> paket ($SP/pack31.sh / devtools/release/pack31.sh, not: SURUM_v3.1_OKU.txt) -> gonder.
   Sonra: jetpack/RPG, 5 pet + 5 kanat, 4 harita.
+- 2026-10-04 15:25: sahip "eklentiyi bolmussun, .inc dosyalari yuzunden hicbir sey calismiyor" dedi (tek basina
+  derleyince vex/*.inc bulunamiyor). Kaynak yeniden TEK dosya vexmira_zombie.sma (13 "BOLUM n/13" bolumu), vex/
+  silindi, VERSION "3.1". amxx_compare: bolunmus derlemeyle EQUIVALENT; test 120 s / 8 bot 0 hata. Paket yeniden
+  gonderildi. KURAL: eklentiyi bir daha include dosyalarina bolme. p1.js: split/bugfix adimlari tamam olarak
+  isaretlendi (yeniden calismaz), ortak metin tek dosya kuralini soyler.
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
