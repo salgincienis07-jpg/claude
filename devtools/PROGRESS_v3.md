@@ -46,7 +46,7 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
 - 2026-10-04 00:18: content301 bitti (commit 602ccbe): zm_vex_laboratory (+nav, ambiyans), v_vexblade, v_firebomb/
   frostbomb/flare, v_sw0..7, lasermine, supply_crate, w_ bombalar. Merdiven yan direkleri katı değil yapıldı +
   yeniden derlendi + yeni nav (1817c0c). Hizalama ajanı (wf_f59e0f41-149) HLTV ile gerçek istemci testi yapıyor.
-  Paket: `$SP/pack301.sh` (v1 oyuncu/pençe modelleri, p_ak47, pilot HARİÇ) + not `$SP/ARA_SURUM_v3.0.1_OKU.txt`
+  Paket: `devtools/release/pack301.sh` (v1 oyuncu/pençe modelleri, p_ak47, pilot HARİÇ) + not `devtools/release/ARA_SURUM_v3.0.1_OKU.txt` (betik $SP kopyasını okur)
   (@@ALIGN@@ ve @@TEST@@ yerlerini doldur). Sonra VERSION "3.0.1-ara", botlu test, zip gönder.
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)

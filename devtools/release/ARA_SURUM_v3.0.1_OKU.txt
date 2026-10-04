@@ -1,0 +1,102 @@
+=====================================================================
+  VEXMIRA ZOMBIE v3.0.1 - ARA SURUM (3.0.1-ara)
+=====================================================================
+
+Bu paket 3.0.0-ara'nin uzerine gelir: hizalama duzeltmeleri, ilk tam
+harita (zm_vex_laboratory) ve yeni silah / dunya modelleri. Ozel oyuncu
+modelleri (CT, zombi, boss) bu pakette YOK; yerine orijinal CS oyuncu
+modelleri kullanilir (tam surumde yenileri gelecek).
+
+KURULUM: "cstrike" klasorunu sunucundaki cstrike ile birlestir
+(ayrinti: KURULUM_OKU.txt). Derlenmis plugin hazir:
+addons/amxmodx/plugins/vexmira_zombie.amxx (AMXX 1.10 + ReAPI 5.26).
+Eski vexmira.cfg'yi YENISIYLE DEGISTIR.
+
+ONEMLI - 3.0.0-ara'dan gecenler: sunucudaki eski deneme modellerini
+silebilirsin (artik kullanilmiyor):
+  models/player/vex_z_walker/   models/vexmira/claws/v_walker.mdl
+  maps/zm_vex_pilot.bsp (+ .nav .res)
+
+Haritayi acmak: changelevel zm_vex_laboratory
+(veya mapcycle.txt / vex_map_pool icine ekli; asagiya bak)
+
+---------------------------------------------------------------------
+ YENILER (3.0.1)
+---------------------------------------------------------------------
+
+[OTOMATIK HIZALAMA]
+@@ALIGN@@
+
+[HARITA: zm_vex_laboratory - "Vexmira Arastirma Tesisi"]
+ - Zehirli kazaya ugramis yeraltindaki Vexmira biyolabi:
+   * ATRIUM: ortada zehirli atik havuzu (icine dusen hasar alir),
+     ustunde 2. katta capraz metal yurume yolu, kuzey/guney balkonlar,
+     merdivenler + seyyar merdivenler. Genis zemin = boss arenasi.
+   * KONTROL ODASI (2. kat): kapi + kirilabilir cam pencereler, isikli
+     ekranlar, bati laboratuvarina havalandirma kanali.
+   * BATI LABORATUVARLARI: cam duvarli laboratuvarlar (camlar
+     kirilabilir), parlayan numune tanklari, ust kat.
+   * SUNUCU ODASI: LED'li sunucu dolaplari, merkeze kopru, asma kat.
+   * GUNEY KARANTINA HOLU: zombi dogma alani, kirmizi acil durum isigi,
+     laboratuvara ve sunucu odasina giden emekleme kanallari (zombiler
+     icin yandan sizma yollari).
+   * 4 kamp noktasi (kontrol odasi, sunucu asma kati, lab ust kati,
+     merkez yurume yolu) - CT'ler icin savunma, zombiler icin hedef.
+ - 32 CT + 32 T dogma noktasi (32 kisilik sunucuya uygun).
+ - Ozel isiklandirma (alarm isiklari, isikli tavan lambalari, tank
+   parlamasi) ve haritaya ozel ortam sesi (sound/vexmira/map/).
+ - Botlar icin .nav dosyasi hazir (zm_vex_laboratory.nav): botlar
+   haritayi ilk acilista ogrenmeye ugrasmaz, merdivenlerde takilmaz.
+ - .res dosyasi: oyuncular haritaya girerken haritanin sesi otomatik
+   iner.
+
+[YENI SILAH MODELLERI (birinci sahis, v_)]
+ - Hepsinde yeni CT kollari: taktik eldivenler (dikisli eklem pedleri,
+   kaymaz avuc), operator kiyafeti kollari.
+ - CT bicagi "Vexblade": tirtikli bicak + cyan enerji kenari, paracord
+   sap, parlayan kabza (8 animasyon: bekleme, 2 kesme, cekme, saplama...).
+ - Yangin bombasi, buz bombasi, isik fisegi: her biri kendi tasarimi
+   (pim, tetik kolu) + atilan halleri (w_ modelleri) ayri.
+ - 8 ozel silahin (ekstra menu) her birine ayri v_ modeli:
+   0 Plazma (M4A1)  1 Ejder Topu (M249)  2 Yildirim (AWP)
+   3 Buz Kiran (XM1014)  4 Altin Kartal (Deagle)  5 Cehennem SMG (P90)
+   6 Vex Bicici (AK-47)  7 Bosluk Cagirici (SG550)
+   Animasyon sirasi oyunun silah kodu ile birebir (ates, sarjor
+   degistirme, cekme ayni zamanlamada).
+ - 3. sahis (p_) modeller: su an orijinal CS modelleri (tam surumde).
+
+[YENI DUNYA MODELLERI]
+ - Lazer mayini: yeni tasarim; duvara DUZ oturur, lazer gozden cikar
+   (eskiden ters duruyordu - duzeltildi).
+ - Ikmal kutusu (airdrop), atilan bombalar (w_firebomb / w_frostbomb /
+   w_flare).
+
+[HARITA OYLAMASI]
+ - 30. round sonunda oylama vex_map_pool listesindeki, SUNUCUDA OLAN
+   haritalar arasinda yapilir. Bu ara surumde yalniz zm_vex_laboratory
+   var; listede baska harita yoksa oylama atlanir, oyunun kendi
+   mapcycle'i gecerli olur. Kendi zm haritalarini eklemek istersen
+   vexmira.cfg'de: vex_map_pool "zm_vex_laboratory zm_haritan1 ..."
+   (sunucuda olmayan haritalar otomatik atlanir).
+
+---------------------------------------------------------------------
+ TEST
+---------------------------------------------------------------------
+@@TEST@@
+
+---------------------------------------------------------------------
+ TAM SURUMDE GELECEKLER
+---------------------------------------------------------------------
+ - Profesyonel ozel oyuncu modelleri: 7 CT, 24 zombi, 9 boss, Nemesis,
+   Assassin + tum pence (zombi eli) modelleri, CT elleri
+ - Silahlarin 3. sahis (p_) modelleri, kanca / yumurta modelleri
+ - Kalan 4 harita (liman, yikik sehir, karli us, tapinak) + .nav
+ - 30. round oylamasinda 5 haritanin tamami
+
+---------------------------------------------------------------------
+ BILINEN NOTLAR
+---------------------------------------------------------------------
+ - FastDL (sv_downloadurl) onerilir: harita + yeni modeller + sesler.
+ - Bir sey yanlis hizali / garip gorunur ya da duyulursa ekran goruntusu
+   ile haber ver; hizalama ayarlari vexmira.cfg'de (vex_ovh_* ve
+   vex_mine_*) elle de degistirilebilir.
