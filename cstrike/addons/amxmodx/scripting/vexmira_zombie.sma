@@ -573,6 +573,9 @@ new g_szPrefix[64] = "^4[VEX]^1";
 // v2.0 kaynaklar
 new g_szSprZone[64], g_szSprTarget[64], g_szSprBeacon[64], g_szSprOrb[64], g_szSprMark[64], g_szSprFire[64], g_szSprLaser[64];
 new g_iMineBody, g_iMineSeq, g_iMineSkin;
+// Mayin yonu (v3.0 hizalama): yuzeyden uzaklik, model uzayinda isin cikis noktasi, isin ekseni (E),
+// modelin "ust" ekseni (U) ve cfg aci ofseti (LASERMINE_ANGLES "pitch yaw roll")
+new Float:g_fMineOff, Float:g_fMineEmit[3], Float:g_fMineAxE[3], Float:g_fMineAxU[3], Float:g_fMineAngOfs[3];
 
 // v2.0 cvar'lar
 new g_pPrefix, g_pHostname, g_pHostDyn, g_pEnv, g_pEnvCalm, g_pWeather;
@@ -772,8 +775,15 @@ new g_iOvhBar[33], g_iOvhEmb[33], g_iOvhIcon[33], g_iOvhIconType[33], g_iOvhBarT
 new g_iRoundMvp, Float:g_fStepDist[33];
 new g_iOvhTick, g_iOvhCount, g_iOvhHumans;
 // Son gonderilen durum (degismeyen deger tekrar yazilmaz: ag / islemci tasarrufu)
-new g_iOvhSent[33], Float:g_fOvhSentTop[33];
-new g_pOvhEnable, g_pBossBarW, g_pBossBarH, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf;
+new g_iOvhSent[33];
+new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, g_pOvhMargin, g_pOvhGap;
+// v3.0 hizalama: gostergeler MOVETYPE_FOLLOW kullanmaz (istemci FOLLOW sprite'ini govde merkezine
+// cizer, v_angle ofsetini yok sayar). Konum her pakette AddToFullPack'te oyuncunun o anki
+// konumu + modelin kafa ustu yuksekligi + yigin ofseti olarak yazilir.
+#define OVH_MAXENT 4096
+new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];       // varlik -> sahibi / kafa ustunden yukseklik
+new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
+new bool:g_bOvhSelf, Trie:g_tMdlTop;
 // Boss / ozel karakter sesleri: bekleme sureleri
 new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
 new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
@@ -1246,6 +1256,7 @@ DefSound(const key[], const first[], const second[])
 public plugin_precache()
 {
     g_tRes = TrieCreate();
+    g_tMdlTop = TrieCreate();
     g_tSndInfo = TrieCreate();
     g_tSnd2D = TrieCreate();
     g_tSnd3D = TrieCreate();
@@ -1598,7 +1609,10 @@ PlayerModelFallback(const name[], out[], len)
     if (!file_exists(model, true))
         return;
     if (PcModel(model, false))
+    {
         copy(out, len, name);
+        MdlHeadTops(name);
+    }
 }
 
 // Gokyuzu: listeden (orijinal CS gokyuzleri) her haritada rastgele biri
@@ -2109,7 +2123,10 @@ PlayerModelFile(const name[], out[], len)
         return;
     }
     if (PcModel(model))
+    {
         copy(out, len, name);
+        MdlHeadTops(name);
+    }
 }
 
 // Dunya modelleri: lazer mayini, ikmal kutusu, kovan yumurtasi, firlatilan bombalar, kanca, spor
@@ -2131,21 +2148,26 @@ LoadWorldModels()
     // Govde / animasyon / kaplama: orijinal tripmine modelinde 3 / 7 / 0, baska modelde cfg'den.
     // Yedek modele dusulduyse cfg'deki (Vexmira modeline ait) degerler kullanilmaz.
     new bool:tripmine = (containi(g_szMineModel, "tripmine") != -1) ? true : false;
+    new bool:c4 = (containi(g_szMineModel, "w_c4") != -1) ? true : false;
     new bool:fellBack = !equal(cfgModel, g_szMineModel);
     new seq[24];
-    g_iMineBody = fellBack ? (tripmine ? 3 : 0) : str_to_num(GetResString("LASERMINE_BODY", tripmine ? "3" : "0"));
-    copy(seq, charsmax(seq), fellBack ? (tripmine ? "7" : "0") : GetResString("LASERMINE_SEQUENCE", tripmine ? "7" : "idle"));
+    // HL v_tripmine.mdl duvar pozu: govde 3 (ellersiz mayin), animasyon "world" (TRIPMINE_WORLD = 7).
+    // cfg'deki LASERMINE_BODY / SEQUENCE Vexmira modeline aittir; tripmine'a uygulanmaz
+    // (govde 0 + "idle" = elle tutulan viewmodel pozu -> duvarda ters / yamuk gorunuyordu).
+    g_iMineBody = (fellBack || tripmine) ? (tripmine ? 3 : 0) : str_to_num(GetResString("LASERMINE_BODY", "0"));
+    copy(seq, charsmax(seq), tripmine ? "world" : (fellBack ? "0" : GetResString("LASERMINE_SEQUENCE", "idle")));
     // Sayi degilse animasyon ADI (model yuklenince aranir)
     g_szMineSeqName[0] = 0;
     if (isdigit(seq[0]))
         g_iMineSeq = str_to_num(seq);
     else
     {
-        g_iMineSeq = 0;
+        g_iMineSeq = tripmine ? 7 : 0;
         copy(g_szMineSeqName, charsmax(g_szMineSeqName), seq);
     }
-    copy(g_szMineDeploySeq, charsmax(g_szMineDeploySeq), fellBack ? "" : GetResString("LASERMINE_DEPLOY_SEQ", tripmine ? "" : "deploy"));
-    g_iMineSkin = fellBack ? 0 : str_to_num(GetResString("LASERMINE_SKIN", "0"));
+    copy(g_szMineDeploySeq, charsmax(g_szMineDeploySeq), (fellBack || tripmine) ? "" : GetResString("LASERMINE_DEPLOY_SEQ", "deploy"));
+    g_iMineSkin = (fellBack || tripmine) ? 0 : str_to_num(GetResString("LASERMINE_SKIN", "0"));
+    MinePreset(tripmine, c4, fellBack);
 
     copy(cfgModel, charsmax(cfgModel), GetResString("AIRDROP_MODEL", ""));
     GetFileModel("AIRDROP_MODEL", g_szDropModel, charsmax(g_szDropModel));
@@ -2342,6 +2364,8 @@ GetPlayerModel(const key[], out[], len)
     }
     if (!PcModel(model))
         out[0] = 0;
+    else
+        MdlHeadTops(out);
 }
 
 GetFileModel(const key[], out[], len)
@@ -2665,11 +2689,12 @@ public plugin_init()
     // v3.0 (B): kafa ustu gostergeler, boss / ozel karakter sesleri, sohbet etiketleri
     g_pOvhEnable     = register_cvar("vex_overhead", "1");
     g_pBossBarW      = register_cvar("vex_bossbar_width", "110");
-    g_pBossBarH      = register_cvar("vex_bossbar_height", "92");
     g_pSmallBarW     = register_cvar("vex_hpbar_width", "44");
     g_pIconSize      = register_cvar("vex_head_icon_size", "18");
     g_pIcons         = register_cvar("vex_head_icons", "31");
     g_pOvhSelf       = register_cvar("vex_overhead_self", "0");
+    g_pOvhMargin     = register_cvar("vex_overhead_margin", "5");
+    g_pOvhGap        = register_cvar("vex_overhead_gap", "2");
     g_pBossIdleMin   = register_cvar("vex_boss_idle_min", "9");
     g_pBossIdleMax   = register_cvar("vex_boss_idle_max", "16");
     g_pBossPainCd    = register_cvar("vex_boss_pain_cd", "0.9");
@@ -9890,6 +9915,8 @@ stock FxHeadMark(ent, spr, life)
 
     new Float:o[3];
     get_entvar(ent, var_origin, o);
+    // v3.0 hizalama: modelin kafa ustu (+ varsa can bari / ikon yigininin ustu) + sprite payi
+    new ofs = floatround(OvhTopOf(ent) + 8.0);
 
     for (new p = 1; p <= g_iMax; p++)
     {
@@ -9897,7 +9924,7 @@ stock FxHeadMark(ent, spr, life)
         message_begin(MSG_ONE_UNRELIABLE, SVC_TEMPENTITY, _, p);
         write_byte(TE_PLAYERATTACHMENT);
         write_byte(ent);
-        write_coord(45);
+        write_coord(ofs);
         write_short(spr);
         write_short(life);
         message_end();
@@ -21870,8 +21897,12 @@ TickAfk()
 /*  - Ikonlar: VIP / admin / round MVP'si / son insan / alfa zombi     */
 /*    (vex_head_icons bit maskesi: 1 VIP 2 admin 4 MVP 8 son insan     */
 /*    16 alfa).                                                        */
-/*  Konum: MOVETYPE_FOLLOW (motor her karede oyuncuyu izler, ofset =   */
-/*  v_angle). Kare / gorunurluk 0.05 sn'de bir guncellenir. Olum,      */
+/*  Konum: FOLLOW YOK (istemci FOLLOW sprite'ini govde merkezine        */
+/*  cizer). AddToFullPack her pakette konumu oyuncunun o anki konumu + */
+/*  modelin kafa ustu yuksekligi (studio basligi / idle1, comelince    */
+/*  crouch_idle) + yigin ofseti (bar -> amblem -> ikon) yapar; varlik  */
+/*  MOVETYPE_NOCLIP oldugu icin istemci onu oyuncuyla ayni gecikmeyle  */
+/*  yumusatir. Kare / gorunurluk 0.05 sn'de bir guncellenir. Olum,     */
 /*  rol degisimi, round sonu, cikis ve harita degisiminde silinir.     */
 /*  Sprite dosyasi yoksa o gosterge sessizce kapali kalir.             */
 /* ================================================================== */
@@ -21924,6 +21955,7 @@ public fw_OvhThink(ent)
     g_iOvhTick++;
 
     new bool:on = get_pcvar_num(g_pOvhEnable) ? true : false;
+    g_bOvhSelf = get_pcvar_num(g_pOvhSelf) ? true : false;
     if (g_iOvhTick % 5 == 0)
         g_iOvhHumans = (g_bRoundActive && !g_bRoundEnded) ? CountHumans(true) : 0;
 
@@ -21938,7 +21970,7 @@ public fw_OvhThink(ent)
         // Rol / ikon secimi 0.25 sn'de bir (oyuncular arasi dagitilmis)
         if ((g_iOvhTick + id) % 5 == 0)
             OvhRefresh(id, on);
-        // Kare / yukseklik: oyuncu basina 0.1 sn (konumu motor her karede izler)
+        // Kare / yigin / sunucu konumu: oyuncu basina 0.1 sn (cizim konumu her pakette AddToFullPack'te)
         if ((g_iOvhTick + id) % 2 == 0 && (g_iOvhBar[id] || g_iOvhEmb[id] || g_iOvhIcon[id]))
             OvhUpdate(id);
         if (g_bZombie[id] && (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]))
@@ -22051,6 +22083,103 @@ bool:OvhHidden(id)
     return false;
 }
 
+// Studio modelinin kafa ustu yuksekligi (oyuncu merkezine gore, birim): ayakta / comelmis.
+// Kaynak (models/player/<ad>/<ad>.mdl): $bbox gercek gorsel sinira ayarlanmissa (+-36 hull degil)
+// basliktaki max z; degilse "idle1" animasyonunun sinir kutusu (studiomdl her animasyon icin
+// gercek kose noktalarindan hesaplar - orijinal CS modelleri de dahil). Comelme: "crouch_idle".
+// Sonuclar model adina gore onbellekte (dosya harita basina bir kez okunur).
+MdlHeadTops(const name[], &Float:stand = 0.0, &Float:duck = 0.0)
+{
+    new Float:v[2];
+    if (name[0] && TrieGetArray(g_tMdlTop, name, v, 2))
+    {
+        stand = v[0];
+        duck = v[1];
+        return;
+    }
+    stand = 36.0;
+    duck = -1.0;
+    new path[128], fp;
+    formatex(path, charsmax(path), "models/player/%s/%s.mdl", name, name);
+    if (name[0] && (fp = fopen(path, "rb", true)))
+    {
+        new id, raw, Float:hdrTop, numseq, seqidx, Float:idle = -1.0, lab[32], Float:z;
+        fread(fp, id, BLOCK_INT);
+        if (id == 0x54534449)   // "IDST"
+        {
+            fseek(fp, 108, SEEK_SET);           // studiohdr_t.max[2] ($bbox)
+            fread(fp, raw, BLOCK_INT);
+            hdrTop = Float:raw;
+            fseek(fp, 164, SEEK_SET);           // numseq, seqindex
+            fread(fp, numseq, BLOCK_INT);
+            fread(fp, seqidx, BLOCK_INT);
+            numseq = clamp(numseq, 0, 512);
+            for (new i = 0; i < numseq && (idle < 0.0 || duck < 0.0); i++)
+            {
+                fseek(fp, seqidx + i * 176, SEEK_SET);   // mstudioseqdesc_t: label[32] ... bbmax @ +108
+                fread_blocks(fp, lab, 32, BLOCK_CHAR);
+                lab[31] = 0;
+                new bool:isIdle = equali(lab, "idle1") ? true : false;
+                if (!isIdle && !equali(lab, "crouch_idle"))
+                    continue;
+                fseek(fp, seqidx + i * 176 + 116, SEEK_SET);
+                fread(fp, raw, BLOCK_INT);
+                z = Float:raw;
+                if (z < 4.0 || z > 400.0)
+                    continue;
+                if (isIdle)
+                    idle = z;
+                else
+                    duck = z;
+            }
+            if (hdrTop > 8.0 && hdrTop < 400.0 && floatabs(hdrTop - 36.0) > 0.5)
+                stand = hdrTop;
+            else if (idle > 0.0)
+                stand = idle;
+        }
+        fclose(fp);
+    }
+    if (duck <= 0.0)
+        duck = floatmax(8.0, stand - 10.0);
+    duck = floatmin(duck, stand);
+    if (name[0])
+    {
+        v[0] = stand;
+        v[1] = duck;
+        TrieSetArray(g_tMdlTop, name, v, 2);
+    }
+}
+
+// Oyuncunun su anki modeline gore kafa ustu (model degisince yenilenir; olcek uygulanir)
+OvhModelTops(id)
+{
+    new mdl[32];
+    get_user_info(id, "model", mdl, charsmax(mdl));
+    new Float:sc = Float:get_entvar(id, var_scale);
+    if (!equal(mdl, g_szOvhMdl[id]) || g_fOvhStand[id] <= 0.0)
+    {
+        copy(g_szOvhMdl[id], charsmax(g_szOvhMdl[]), mdl);
+        MdlHeadTops(mdl, g_fOvhStand[id], g_fOvhDuck[id]);
+        if (sc > 0.05 && floatabs(sc - 1.0) > 0.01)
+        {
+            g_fOvhStand[id] *= sc;
+            g_fOvhDuck[id] *= sc;
+        }
+    }
+}
+
+// Oyuncunun kafasi + gosterge yigininin en ustu (merkeze gore; baska isaretler bunun ustune konur)
+Float:OvhTopOf(id)
+{
+    if (!(1 <= id <= g_iMax))
+        return 40.0;
+    OvhModelTops(id);
+    new Float:head = (get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id];
+    if (g_iOvhBar[id] || g_iOvhEmb[id] || g_iOvhIcon[id])
+        return head + g_fOvhStackTop[id];
+    return head + floatclamp(get_pcvar_float(g_pOvhMargin), 0.0, 64.0);
+}
+
 OvhSpawn(id, slot, Float:scale)
 {
     if (!g_szOvhSpr[slot][0])
@@ -22058,14 +22187,18 @@ OvhSpawn(id, slot, Float:scale)
     new ent = rg_create_entity("info_target");
     if (is_nullent(ent))
         return 0;
+    if (ent >= OVH_MAXENT)
+    {
+        set_entvar(ent, var_flags, FL_KILLME);
+        return 0;
+    }
     set_entvar(ent, var_classname, OVH_CLASS);
     engfunc(EngFunc_SetModel, ent, g_szOvhSpr[slot]);
     set_entvar(ent, var_solid, SOLID_NOT);
-    set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
-    set_entvar(ent, var_aiment, id);
+    // NOCLIP (hiz 0): sunucuda yerinde durur; istemci bunu oyuncular gibi enterpole eder
+    set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
     set_entvar(ent, var_iuser1, id);
     set_entvar(ent, var_iuser2, OVH_MAGIC);
-    set_entvar(ent, var_v_angle, Float:{0.0, 0.0, 56.0});
     g_iOvhSent[id] = -1;   // yeni varlik: bir sonraki guncellemede konum / kare yazilir
     set_entvar(ent, var_rendermode, g_iOvhMode[slot]);
     set_entvar(ent, var_renderamt, 255.0);
@@ -22073,10 +22206,13 @@ OvhSpawn(id, slot, Float:scale)
     set_entvar(ent, var_scale, floatclamp(scale, 0.02, 4.0));
     set_entvar(ent, var_frame, 0.0);
     set_entvar(ent, var_framerate, 0.0);
+    OvhModelTops(id);
     new Float:o[3];
     get_entvar(id, var_origin, o);
-    o[2] += 60.0;
+    o[2] += g_fOvhStand[id] + 8.0;
     engfunc(EngFunc_SetOrigin, ent, o);
+    g_fOvhDz[ent] = 8.0;
+    g_iOvhOwn[ent] = id;
     g_iOvhCount++;
     return ent;
 }
@@ -22089,12 +22225,13 @@ OvhKill(ent)
         {
             set_entvar(ent, var_iuser2, 0);
             set_entvar(ent, var_movetype, MOVETYPE_NONE);
-            set_entvar(ent, var_aiment, 0);
             set_entvar(ent, var_effects, EF_NODRAW);
             set_entvar(ent, var_flags, FL_KILLME);
             g_iOvhCount = max(0, g_iOvhCount - 1);
         }
     }
+    if (0 < ent < OVH_MAXENT)
+        g_iOvhOwn[ent] = 0;
 }
 
 OvhRemove(id)
@@ -22119,14 +22256,18 @@ OvhRemoveAll()
     {
         set_entvar(ent, var_iuser2, 0);
         set_entvar(ent, var_movetype, MOVETYPE_NONE);
-        set_entvar(ent, var_aiment, 0);
         set_entvar(ent, var_classname, "vex_removed");
         set_entvar(ent, var_flags, FL_KILLME);
+        if (ent < OVH_MAXENT)
+            g_iOvhOwn[ent] = 0;
     }
+    arrayset(g_iOvhOwn, 0, sizeof g_iOvhOwn);
     g_iOvhCount = 0;
 }
 
-// Kare (can) + yukseklik + gizlilik
+// Yigin: kafa ustu + bosluk -> can bari -> boss amblemi -> ikon (her biri kendi yuksekliginin
+// yarisi kadar ortalanir). g_fOvhDz = kafa ustunden merkez yuksekligi; AddToFullPack bunu
+// oyuncunun o anki konumuna ve comelme durumuna ekler.
 OvhUpdate(id)
 {
     if (!is_user_alive(id))
@@ -22135,10 +22276,8 @@ OvhUpdate(id)
         return;
     }
     new bool:hidden = OvhHidden(id);
-    new Float:duck = (get_entvar(id, var_flags) & FL_DUCKING) ? -18.0 : 0.0;
-    new Float:top = 48.0 + duck, Float:ofs[3];
+    OvhModelTops(id);
 
-    // Degisiklik yoksa hicbir sey yazma (kare + gizlilik + comelme ayni)
     new frameNow = -1;
     if (g_iOvhBar[id] && g_iOvhBarType[id] >= 0)
     {
@@ -22153,11 +22292,10 @@ OvhUpdate(id)
         if (hp0 > 0.0 && frameNow < 1 && last0 > 0)
             frameNow = 1;
     }
-    new sig = (frameNow + 1) | (hidden ? 0x1000 : 0) | (g_iOvhBar[id] << 13);
-    if (sig == g_iOvhSent[id] && g_fOvhSentTop[id] == duck)
-        return;
-    g_iOvhSent[id] = sig;
-    g_fOvhSentTop[id] = duck;
+
+    new Float:gap = floatclamp(get_pcvar_float(g_pOvhGap), 0.0, 32.0);
+    new Float:z = floatclamp(get_pcvar_float(g_pOvhMargin), 0.0, 64.0);
+    new ents[3], n;
 
     new bar = g_iOvhBar[id];
     if (bar && !OvhValid(bar, id))
@@ -22167,14 +22305,10 @@ OvhUpdate(id)
     }
     if (bar)
     {
-        new slot = g_iOvhBarType[id];
-        if (slot == OVS_BOSSBAR)
-            top = get_pcvar_float(g_pBossBarH) + duck;
-        set_entvar(bar, var_frame, float(max(0, frameNow)));
-        ofs[2] = top;
-        set_entvar(bar, var_v_angle, ofs);
-        set_entvar(bar, var_effects, hidden ? EF_NODRAW : 0);
-        top += float(g_iOvhHeight[slot]) * Float:get_entvar(bar, var_scale) * 0.5;
+        new Float:h = float(g_iOvhHeight[g_iOvhBarType[id]]) * Float:get_entvar(bar, var_scale);
+        g_fOvhDz[bar] = z + h * 0.5;
+        z += h + gap;
+        ents[n++] = bar;
     }
 
     new emb = g_iOvhEmb[id];
@@ -22185,11 +22319,10 @@ OvhUpdate(id)
     }
     if (emb)
     {
-        new Float:esz = float(max(g_iOvhWidth[OVS_BOSSICON], g_iOvhHeight[OVS_BOSSICON])) * Float:get_entvar(emb, var_scale);
-        ofs[2] = top + esz * 0.5 + 3.0;
-        set_entvar(emb, var_v_angle, ofs);
-        set_entvar(emb, var_effects, hidden ? EF_NODRAW : 0);
-        top = ofs[2] + esz * 0.5;
+        new Float:h = float(g_iOvhHeight[OVS_BOSSICON]) * Float:get_entvar(emb, var_scale);
+        g_fOvhDz[emb] = z + h * 0.5;
+        z += h + gap;
+        ents[n++] = emb;
     }
 
     new icon = g_iOvhIcon[id];
@@ -22201,25 +22334,56 @@ OvhUpdate(id)
     if (icon)
     {
         new slot = g_iOvhIconType[id];
-        new Float:isz = 16.0;
+        new Float:h = 16.0;
         if (slot >= 0)
-            isz = float(max(g_iOvhWidth[slot], g_iOvhHeight[slot])) * Float:get_entvar(icon, var_scale);
-        ofs[2] = (bar ? top + 3.0 : top) + isz * 0.5;
-        set_entvar(icon, var_v_angle, ofs);
-        set_entvar(icon, var_effects, hidden ? EF_NODRAW : 0);
+            h = float(g_iOvhHeight[slot]) * Float:get_entvar(icon, var_scale);
+        g_fOvhDz[icon] = z + h * 0.5;
+        z += h + gap;
+        ents[n++] = icon;
     }
+    g_fOvhStackTop[id] = z;
+
+    // Sunucu konumu: oyuncunun kafasinin ustunde tutulur (PVS / ses icin; cizim konumu AddToFullPack'te)
+    new Float:o[3], Float:p[3];
+    get_entvar(id, var_origin, o);
+    new Float:head = (get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id];
+    for (new i = 0; i < n; i++)
+    {
+        p[0] = o[0];
+        p[1] = o[1];
+        p[2] = o[2] + head + g_fOvhDz[ents[i]];
+        engfunc(EngFunc_SetOrigin, ents[i], p);
+    }
+
+    // Kare / gizlilik degismediyse yazma
+    new sig = (frameNow + 1) | (hidden ? 0x1000 : 0) | (bar << 13);
+    if (sig == g_iOvhSent[id])
+        return;
+    g_iOvhSent[id] = sig;
+    if (bar)
+        set_entvar(bar, var_frame, float(max(0, frameNow)));
+    for (new i = 0; i < n; i++)
+        set_entvar(ents[i], var_effects, hidden ? EF_NODRAW : 0);
 }
 
-// Kendi gostergeni gormezsin (ekranin ustunu kapatmasin)
+// Gosterge konumu her pakette: oyuncunun AYNI paketteki konumu + kafa ustu + yigin ofseti.
+// Kendi gostergeni gormezsin (vex_overhead_self 0); gozunden izleyen seyirci de gormez.
 public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
 {
-    if (player || !g_iOvhCount || ent <= g_iMax || !(1 <= host <= g_iMax))
+    if (player || !g_iOvhCount || ent >= OVH_MAXENT || ent <= g_iMax)
         return FMRES_IGNORED;
-    if (ent != g_iOvhBar[host] && ent != g_iOvhEmb[host] && ent != g_iOvhIcon[host])
+    new id = g_iOvhOwn[ent];
+    if (!id || !get_orig_retval())
         return FMRES_IGNORED;
-    if (get_pcvar_num(g_pOvhSelf))
+    if (!g_bOvhSelf && (host == id || (get_entvar(host, var_iuser1) == 4 && get_entvar(host, var_iuser2) == id)))
+    {
+        set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
         return FMRES_IGNORED;
-    set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+    }
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    o[2] += ((get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id]) + g_fOvhDz[ent];
+    set_es(es, ES_Origin, o);
     return FMRES_IGNORED;
 }
 
