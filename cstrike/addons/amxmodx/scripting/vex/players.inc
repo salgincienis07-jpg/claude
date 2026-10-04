@@ -775,7 +775,6 @@ TickPlayers()
             continue;
 
         get_entvar(id, var_origin, o);
-        FixGravity(id);
 
         // Ortak: donma / yavaslama / yanma
         if (g_fFrozen[id] > 0.0 && now > g_fFrozen[id])
@@ -1529,6 +1528,14 @@ ApplyKnockback(victim, attacker, WeaponIdType:wid, Float:damage)
     vel[0] += dir[0] / len * force;
     vel[1] += dir[1] / len * force;
     set_entvar(victim, var_velocity, vel);
+    if (g_iDirLogN[DIR_KNOCK] < DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+    {
+        // Saldirgandan kurbana (geri itme) ile eklenen hiz ayni yonde olmali
+        new Float:add[3];
+        add[0] = dir[0] / len * force;
+        add[1] = dir[1] / len * force;
+        DirCheck(DIR_KNOCK, "knockback", add, dir);
+    }
 }
 
 // v3.0 (C): patlama hasariyla (DMG_BLAST) olen oyuncuyu oyun m_vBlastVector yonune savurur
@@ -1917,6 +1924,8 @@ public fw_PreThink(id)
     ZcPreThink(id);
     if (!is_user_alive(id))
         return FMRES_IGNORED;
+    // v3.1: parasut vb. disaridan bozulan yercekimi (kapaninca / yere inince) geri yuklenir
+    FixGravity(id);
 
     // Hiz Tutkusu: zipladiktan sonra yavaslama yok (akici kosu)
     if (g_iEvent == EV_SPEED)

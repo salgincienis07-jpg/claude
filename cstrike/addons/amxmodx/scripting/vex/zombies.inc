@@ -262,15 +262,27 @@ SetGravity(id, Float:grav)
     set_entvar(id, var_gravity, grav);
 }
 
-// Her saniye: yerdeki oyuncunun yercekimi bozulduysa duzelt
+// v3.1: her karede (fw_PreThink). Parasut eklentileri acikken yercekimini dusurur, kapaninca
+// ya da yere inince 1.0'a (ya da eski degere) sabitler -> sinif / esya / event / survivor
+// yercekimi kaybolurdu (eskiden yalniz yerde ve saniyede bir duzeltiliyordu, havada kapatilan
+// parasut ve 'Ziplama' esyasi bozuk degeri kalici yapiyordu). Parasut acikken (havada + E
+// basili) dokunulmaz; kapaninca / yere inince / suda / merdivende dogru deger geri yuklenir.
 FixGravity(id)
 {
-    if (g_fGrav[id] <= 0.0 || !(get_entvar(id, var_flags) & FL_ONGROUND))
+    if (g_fGrav[id] <= 0.0)
         return;
-
     new Float:cur = Float:get_entvar(id, var_gravity);
-    if (floatabs(cur - g_fGrav[id]) > 0.01)
-        set_entvar(id, var_gravity, g_fGrav[id]);
+    if (floatabs(cur - g_fGrav[id]) <= 0.001)
+        return;
+    if (!(get_entvar(id, var_flags) & FL_ONGROUND) && (get_entvar(id, var_button) & IN_USE)
+        && get_entvar(id, var_movetype) != MOVETYPE_FLY && get_entvar(id, var_waterlevel) < 2)
+        return;
+    set_entvar(id, var_gravity, g_fGrav[id]);
+    if (get_pcvar_num(g_pDbgDirs) && g_iDirLogN[DIR_GRAV] < DIR_LOG_MAX)
+    {
+        g_iDirLogN[DIR_GRAV]++;
+        log_amx("[Vexmira] DIRCHK gravity_restore id=%d %.3f -> %.3f", id, cur, g_fGrav[id]);
+    }
 }
 
 ApplyHumanGravity(id)
@@ -656,6 +668,13 @@ LeapForward(id, Float:power, Float:up)
     vel[1] = fwd[1] * power;
     vel[2] = up;
     set_entvar(id, var_velocity, vel);
+    if (g_iDirLogN[DIR_LEAP] < DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+    {
+        new Float:hv[3], Float:hf[3];
+        hv = vel; hv[2] = 0.0;
+        hf = fwd; hf[2] = 0.0;
+        DirCheck(DIR_LEAP, "leap", hv, hf);
+    }
 }
 
 UseAbility(id)
@@ -1315,9 +1334,12 @@ ZProjSpawn(owner, type, Float:speed, Float:range)
 }
 
 // Kanca zinciri: kalici isin varligi (titremesiz). chain.spr yoksa koyu kirmizi lazer.
-// v3.0 hizalama: zincir BEAM_ENTPOINT; baslangic = sahibin el eki (attachment 1, oyuncu
-// modellerinde "Bip01 R Hand"). Istemci bunu oyuncunun cizilen (enterpole) pozundan alir;
-// sunucu noktasi (ZcHand) yalnizca PVS / yedek icin guncellenir.
+// v3.1: zincir BEAM_ENTPOINT; baslangic = sahibin KONUMU (ek noktasi 0). Eskiden attachment 1
+// kullaniliyordu: istemci onu modelin son cizilen pozundan alir; eki olmayan stok CS
+// modellerinde ve atanin kendi birinci sahis bakisinda (kendi modeli cizilmez) ek bayat /
+// (0,0,0) kalir ve zincir ters capraz yonden gelirdi. Konum her modelde dogru; yerel oyuncu
+// icin istemcinin tahmin ettigi konum kullanilir (titremesiz). Sunucu noktasi (ZcHand)
+// yalnizca PVS / BEAM_POINTS yedegi icin guncellenir.
 ChainBeamCreate(const Float:a[3], const Float:b[3], owner = 0)
 {
     new beam = rg_create_entity("beam");
@@ -1346,7 +1368,7 @@ ChainBeamCreate(const Float:a[3], const Float:b[3], owner = 0)
     set_entvar(beam, var_sequence, 0);
     set_entvar(beam, var_rendermode, (1 <= owner <= g_iMax) ? BEAM_ENTPOINT : BEAM_POINTS);
     if (1 <= owner <= g_iMax)
-        set_entvar(beam, var_sequence, owner | (1 << 12));
+        set_entvar(beam, var_sequence, BeamEntHand(owner));
     set_entvar(beam, var_iuser1, BEAM_MARK_HOOK);
     BeamPoints(beam, a, b);
     return beam;
@@ -1442,6 +1464,16 @@ public fw_ZProjThink(ent)
         {
             ZcHand(owner, hand);
             BeamPoints(beam, hand, cur);
+            if (g_iDirLogN[DIR_HOOK] < DIR_LOG_MAX && trav > 60.0 && get_pcvar_num(g_pDbgDirs))
+            {
+                // Istemcinin cizdigi zincir: sahibin konumu -> kanca; atis yonuyle ayni olmali
+                new Float:oo[3], Float:aim[3], Float:seg2[3];
+                get_entvar(owner, var_origin, oo);
+                ZcAimDir(owner, aim);
+                for (new i = 0; i < 3; i++)
+                    seg2[i] = cur[i] - oo[i];
+                DirCheck(DIR_HOOK, "hook_beam", seg2, aim);
+            }
         }
     }
     else if (Float:get_entvar(ent, var_fuser4) == 0.0 && trav > 20.0)
@@ -1578,6 +1610,8 @@ HookPullVictim(id)
     if ((get_entvar(id, var_flags) & FL_ONGROUND) && vel[2] < 90.0)
         vel[2] = 90.0;
     set_entvar(id, var_velocity, vel);
+    if (g_iDirLogN[DIR_PULL] < DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+        DirCheck(DIR_PULL, "hook_pull", vel, dir);
 }
 
 ZProjRemove(ent)

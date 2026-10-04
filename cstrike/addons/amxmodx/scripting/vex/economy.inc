@@ -386,7 +386,8 @@ BuyItem(id, i)
             g_fCloak[id] = now + float(max(1, val));
             ApplyRender(id);
         }
-        case IT_ZJUMP:   SetGravity(id, Float:get_entvar(id, var_gravity) * float(clamp(val, 10, 100)) / 100.0);
+        // v3.1: kayitli (dogru) yercekiminden hesaplanir; anlik deger parasut vb. ile bozuk olabilir
+        case IT_ZJUMP:   SetGravity(id, (g_fGrav[id] > 0.0 ? g_fGrav[id] : Float:get_entvar(id, var_gravity)) * float(clamp(val, 10, 100)) / 100.0);
         case IT_ZREGEN:  g_bZRegen[id] = 1;
         case IT_ZNOKB:   g_bNoKB[id] = 1;
     }

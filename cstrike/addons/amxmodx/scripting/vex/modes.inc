@@ -1086,6 +1086,8 @@ StartMode()
         g_iMode = MODE_INFECTION;
 
     g_bRoundActive = true;
+    // v3.1: lazerin kapali oldugu mod (vex_lm_block_modes): geri sayimda kurulanlar kaldirilir
+    LmModeStart();
 
     switch (g_iMode)
     {

@@ -295,6 +295,9 @@ public plugin_precache()
     g_sprBlood      = PrecacheSafe("sprites/blood.spr");
     g_sprBloodSpray = PrecacheSafe("sprites/bloodspray.spr");
     g_sprHeadMark   = PrecacheSafe(GetResString("BOSS_MARK_SPRITE", "sprites/glow01.spr"));
+    // TE_PLAYERATTACHMENT istemcide her zaman kRenderNormal cizilir: additive (glow01 gibi)
+    // sprite'lar siyah zeminli beyaz kare gorunur. Yalniz alphatest sprite'lar bu yolla cizilir.
+    g_bHeadMarkAt   = (g_sprHeadMark && SprFileFormat(GetResString("BOSS_MARK_SPRITE", "sprites/glow01.spr")) == SPR_FMT_ALPHATEST) ? true : false;
     g_sprLaser      = g_sprBeam;
     g_sprFlare      = PrecacheSafe("sprites/flare6.spr");
     if (!g_sprFlare)
@@ -328,8 +331,13 @@ public plugin_precache()
             copy(g_szSprOrb, charsmax(g_szSprOrb), g_szSprBeacon);
         }
     }
-    if (!g_sprMark)
+    if (g_sprMark)
+        g_bMarkAt = (SprFileFormat(g_szSprMark) == SPR_FMT_ALPHATEST) ? true : false;
+    else
+    {
         g_sprMark = g_sprHeadMark;
+        g_bMarkAt = g_bHeadMarkAt;
+    }
     if (g_sprLmBeam)
         g_sprLaser = g_sprLmBeam;
     else
@@ -583,6 +591,9 @@ public plugin_init()
     g_pLmColor       = register_cvar("vex_lm_color", "0 200 255");
     g_pLmRange       = register_cvar("vex_lm_plant_range", "128");
     g_pLmTakeRange   = register_cvar("vex_lm_take_range", "170");
+    g_pLmMaxRange    = register_cvar("vex_lm_max_range", "600");
+    g_pLmBlockModes  = register_cvar("vex_lm_block_modes", "nemesis assassin");
+    g_pDbgDirs       = register_cvar("vex_debug_dirs", "0");
     g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
     g_pNadeSensorArm = register_cvar("vex_nade_sensor_arm", "1.5");
     g_pNadeSensorLife= register_cvar("vex_nade_sensor_life", "60");

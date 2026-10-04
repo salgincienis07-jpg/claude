@@ -654,7 +654,107 @@ bool:LasersAllowed()
         return false;
     if (g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss))
         return false;
+    if (LmModeBlocked(g_iMode))
+        return false;
     return true;
+}
+
+// v3.1: vex_lm_block_modes - lazerin kapali oldugu modlar (ad ya da numara, bosluk / virgul ile).
+// Cvar degismedikce onbellekteki bit maskesi kullanilir.
+new const LM_MODE_KEYS[MODE_TOTAL][] =
+{
+    "infection", "multi", "nemesis", "assassin", "survivor", "sniper", "swarm", "plague", "armageddon", "boss"
+};
+
+bool:LmModeBlocked(mode)
+{
+    if (!(0 <= mode < MODE_TOTAL))
+        return false;
+    new str[64];
+    get_pcvar_string(g_pLmBlockModes, str, charsmax(str));
+    if (g_iLmBlockMask < 0 || !equal(str, g_szLmBlockCache))
+    {
+        copy(g_szLmBlockCache, charsmax(g_szLmBlockCache), str);
+        g_iLmBlockMask = 0;
+        replace_all(str, charsmax(str), ",", " ");
+        new tok[16], pos, len = strlen(str);
+        while (pos < len)
+        {
+            while (pos < len && str[pos] == ' ')
+                pos++;
+            new n;
+            while (pos < len && str[pos] != ' ')
+            {
+                if (n < charsmax(tok))
+                    tok[n++] = str[pos];
+                pos++;
+            }
+            tok[n] = 0;
+            if (!n)
+                continue;
+            if (isdigit(tok[0]))
+            {
+                new m = str_to_num(tok);
+                if (0 <= m < MODE_TOTAL)
+                    g_iLmBlockMask |= (1 << m);
+                continue;
+            }
+            for (new m = 0; m < MODE_TOTAL; m++)
+            {
+                if (equali(tok, LM_MODE_KEYS[m]))
+                    g_iLmBlockMask |= (1 << m);
+            }
+        }
+    }
+    return (g_iLmBlockMask & (1 << mode)) ? true : false;
+}
+
+// Lazer neden kapali: boss / bu mod / genel
+LmDenyReason(id)
+{
+    if (g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss))
+    {
+        LmMessage(id, "LM_NO_BOSS");
+        return;
+    }
+    if (get_pcvar_num(g_pLmEnable) && LmModeBlocked(g_iMode))
+    {
+        new Float:now = get_gametime();
+        if (now < g_fLmMsg[id])
+            return;
+        g_fLmMsg[id] = now + 1.0;
+        new key[16], name[48];
+        formatex(key, charsmax(key), "MODE_NAME_%d", g_iMode);
+        Translate(name, charsmax(name), key, id);
+        Chat(id, "LM_NO_MODE", name);
+        PlayKey(id, "LM_DENY");
+        return;
+    }
+    LmMessage(id, "LM_DISABLED");
+}
+
+// v3.1: lazerin kapali oldugu bir mod (vex_lm_block_modes) basladi: kurulu mayinlar kaldirilir
+LmModeStart()
+{
+    if (!LmModeBlocked(g_iMode))
+        return;
+    new had[33], ent;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", LM_CLASS)) > 0)
+    {
+        new o = get_entvar(ent, var_iuser1);
+        if (1 <= o <= g_iMax)
+            had[o] = 1;
+    }
+    RemoveAllMines();
+    new key[16], name[48];
+    formatex(key, charsmax(key), "MODE_NAME_%d", g_iMode);
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!had[p] || !is_user_connected(p))
+            continue;
+        Translate(name, charsmax(name), key, p);
+        Chat(p, "LM_MODE_REMOVED", name);
+    }
 }
 
 // Ayni anda kurulu olabilecek lazer sayisi
@@ -770,7 +870,7 @@ public cmd_lm_plant(id)
 
     if (!LasersAllowed())
     {
-        LmMessage(id, g_iMode == MODE_BOSS ? "LM_NO_BOSS" : "LM_DISABLED");
+        LmDenyReason(id);
         return PLUGIN_HANDLED;
     }
     if (!g_bRoundActive && !g_bCounting && !get_member_game(m_bFreezePeriod))
@@ -1323,9 +1423,11 @@ public fw_MineThink(ent)
     {
         if (now >= Float:get_entvar(ent, var_fuser1))
         {
-            end[0] = start[0] + normal[0] * 8192.0;
-            end[1] = start[1] + normal[1] * 8192.0;
-            end[2] = start[2] + normal[2] * 8192.0;
+            // v3.1: isin en fazla vex_lm_max_range kadar uzar; duvara ulasmazsa havada biter
+            new Float:maxr = floatclamp(get_pcvar_float(g_pLmMaxRange), 32.0, 8192.0);
+            end[0] = start[0] + normal[0] * maxr;
+            end[1] = start[1] + normal[1] * maxr;
+            end[2] = start[2] + normal[2] * maxr;
 
             engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, ent, 0);
             get_tr2(0, TR_vecEndPos, end);
@@ -1688,7 +1790,7 @@ ShowMineMenu(id)
 
     if (!ok)
     {
-        formatex(item, charsmax(item), "\d%L", id, g_iMode == MODE_BOSS ? "LM_NO_BOSS_SHORT" : "LM_DISABLED_SHORT");
+        formatex(item, charsmax(item), "\d%L", id, (g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss)) ? "LM_NO_BOSS_SHORT" : (get_pcvar_num(g_pLmEnable) && LmModeBlocked(g_iMode)) ? "LM_NO_MODE_SHORT" : "LM_DISABLED_SHORT");
         menu_addtext(menu, item, 0);
     }
     else

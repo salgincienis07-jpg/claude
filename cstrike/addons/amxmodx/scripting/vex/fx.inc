@@ -338,8 +338,50 @@ stock FxSkyStrike(const Float:o[3], r, g, b)
     FxSparks(o);
 }
 
-// Oyuncunun basinin ustunde parlayan isaret (boss, nemesis...)
-stock FxHeadMark(ent, spr, life)
+// v3.1 gelistirici yon testi (vex_debug_dirs 1): uygulanan hiz / cizilen isin ile beklenen yon
+// arasindaki aci kosinusu log'a yazilir (1.000 = ayni yon, -1.000 = ters). Etiket basina 25 kayit.
+enum { DIR_HOOK = 0, DIR_PULL, DIR_LEAP, DIR_KNOCK, DIR_PUSH, DIR_DRAW, DIR_GRAV, DIR_TOTAL };
+#define DIR_LOG_MAX 25
+new g_iDirLogN[DIR_TOTAL];
+
+stock DirCheck(tag, const name[], const Float:a[3], const Float:b[3])
+{
+    new Float:la = floatsqroot(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+    new Float:lb = floatsqroot(b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
+    if (la < 0.001 || lb < 0.001 || g_iDirLogN[tag] >= DIR_LOG_MAX)
+        return;
+    g_iDirLogN[tag]++;
+    log_amx("[Vexmira] DIRCHK %s cos=%.3f", name, (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (la * lb));
+}
+
+#define SPR_FMT_NORMAL    0
+#define SPR_FMT_ADDITIVE  1
+#define SPR_FMT_INDEXALPHA 2
+#define SPR_FMT_ALPHATEST 3
+
+// Sprite dosyasinin doku bicimi ("IDSP" ver type texFormat ...); okunamazsa -1
+stock SprFileFormat(const path[])
+{
+    if (!path[0])
+        return -1;
+    new fp = fopen(path, "rb", true);
+    if (!fp)
+        return -1;
+    new ident, ver, type, fmt;
+    fread(fp, ident, BLOCK_INT);
+    fread(fp, ver, BLOCK_INT);
+    fread(fp, type, BLOCK_INT);
+    fread(fp, fmt, BLOCK_INT);
+    fclose(fp);
+    return (ident == 0x50534449) ? fmt : -1;   // "IDSP"
+}
+
+// Oyuncunun basinin ustunde isaret (boss, olum isareti...)
+// v3.1: TE_PLAYERATTACHMENT istemcide HER ZAMAN kRenderNormal cizilir (render modu secilemez):
+// additive sprite (glow01, mark.spr) siyah zeminli beyaz kare olur. attach = sprite alphatest
+// (SprFileFormat == 3) ise oyuncuya bagli cizilir; degilse tek seferlik additive TE_SPRITE
+// (kafa hizasinda, dogru karisimla) gonderilir.
+stock FxHeadMark(ent, spr, life, bool:attach)
 {
     if (!spr)
         return;
@@ -353,11 +395,24 @@ stock FxHeadMark(ent, spr, life)
     {
         if (!FxWants(p, o) || p == ent) continue;
         message_begin(MSG_ONE_UNRELIABLE, SVC_TEMPENTITY, _, p);
-        write_byte(TE_PLAYERATTACHMENT);
-        write_byte(ent);
-        write_coord(ofs);
-        write_short(spr);
-        write_short(life);
+        if (attach)
+        {
+            write_byte(TE_PLAYERATTACHMENT);
+            write_byte(ent);
+            write_coord(ofs);
+            write_short(spr);
+            write_short(life);
+        }
+        else
+        {
+            write_byte(TE_SPRITE);
+            engfunc(EngFunc_WriteCoord, o[0]);
+            engfunc(EngFunc_WriteCoord, o[1]);
+            engfunc(EngFunc_WriteCoord, o[2] + float(ofs));
+            write_short(spr);
+            write_byte(5);
+            write_byte(200);
+        }
         message_end();
     }
 }
@@ -889,11 +944,14 @@ stock FxFunnel(const Float:o[3], spr, bool:reverse)
     }
 }
 
-// Isin baslangic varligi: oyuncuysa el eki (attachment 1 = "Bip01 R Hand"; ek yoksa istemci
-// oyuncunun kendi konumunu kullanir) - simsek / zincir govde merkezinden degil elden cikar
+// Isin baslangic varligi. v3.1: ek noktasi (attachment) KULLANILMAZ. Istemci attachment N'yi
+// varligin son cizilen pozundan alir: ek tanimsiz modelde (stok CS modelleri) ya da birinci
+// sahis bakista (kendi modeli cizilmez -> ekler bayat / 0,0,0) isin haritanin baska ucundan,
+// ters capraz yonden gelir. Ek 0 = varligin konumu (yerel oyuncu icin tahmin edilen konum):
+// her modelde, her bakista dogru ve titremesiz.
 stock BeamEntHand(ent)
 {
-    return (1 <= ent <= g_iMax) ? (ent | (1 << 12)) : ent;
+    return ent;
 }
 
 // Varliktan noktaya isin (zincir simsek)

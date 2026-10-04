@@ -213,7 +213,11 @@ TickBoss()
     if (g_iFrame % 2 == 0)
     {
         FxFollow(boss, r, g, b, 18, 10);
-        FxHeadMark(boss, g_sprHeadMark, 21);
+        // v3.1: boss zaten kafa ustu can bari / amblemiyle isaretli; ek isaret yalniz bunlar
+        // yoksa ve sprite oyuncuya bagli cizilebiliyorsa (alphatest). Additive glow01 eskiden
+        // TE_PLAYERATTACHMENT ile normal cizilip siyah zeminli beyaz kare olarak gorunuyordu.
+        if (g_bHeadMarkAt && !g_iOvhBar[boss] && !g_iOvhEmb[boss])
+            FxHeadMark(boss, g_sprHeadMark, 21, true);
 
         new Float:feet[3];
         feet = o;
@@ -1483,6 +1487,13 @@ PushFrom(p, const Float:c[3], Float:force, Float:up)
     vel[1] = dy / len * force;
     vel[2] = up;
     set_entvar(p, var_velocity, vel);
+    if (g_iDirLogN[DIR_PUSH] < DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+    {
+        new Float:hv[3], Float:away[3];
+        hv[0] = vel[0]; hv[1] = vel[1];
+        away[0] = dx; away[1] = dy;
+        DirCheck(DIR_PUSH, force >= 0.0 ? "boss_push" : "boss_pushin", hv, away);
+    }
 }
 
 // Insani bir noktaya dogru cek (hiz ekler)
@@ -1494,6 +1505,13 @@ PullTo(p, const Float:c[3], Float:force)
     if (d < 24.0)
         return;
     get_entvar(p, var_velocity, vel);
+    if (g_iDirLogN[DIR_DRAW] < DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+    {
+        new Float:add[3], Float:to[3];
+        add[0] = (c[0] - po[0]) / d * force; add[1] = (c[1] - po[1]) / d * force;
+        to[0] = c[0] - po[0]; to[1] = c[1] - po[1];
+        DirCheck(DIR_DRAW, "boss_pull", add, to);
+    }
     vel[0] += (c[0] - po[0]) / d * force;
     vel[1] += (c[1] - po[1]) / d * force;
     new Float:sp = floatsqroot(vel[0] * vel[0] + vel[1] * vel[1]);
@@ -1678,6 +1696,8 @@ BossFace(t)
     engfunc(EngFunc_VecToAngles, dir, ang);
     ang[0] = -ang[0];
     set_entvar(g_iBoss, var_v_angle, ang);
+    // Model acisi: yalniz yon (bakis egimi modele verilirse govde one / arkaya yatar)
+    ang[0] = 0.0;
     set_entvar(g_iBoss, var_angles, ang);
 }
 
@@ -2572,7 +2592,7 @@ bool:Bsk_ReaperMark()
             FxSprite(po, g_sprTarget, 5, 230);
         BskTask(3.0, "task_DeathMark", po);
         if (g_sprMark && !is_user_bot(p))
-            FxHeadMark(p, g_sprMark, 30);
+            FxHeadMark(p, g_sprMark, 30, g_bMarkAt);
         client_print(p, print_center, "%L", p, "BSK_MARKED");
         n++;
     }

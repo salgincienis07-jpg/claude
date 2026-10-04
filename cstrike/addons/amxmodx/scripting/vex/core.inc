@@ -539,6 +539,11 @@ new g_pNemOneShot, g_pAsnOneShot, g_pNemVsSurv, g_pNemSpeed, g_pAsnSpeed, g_pNem
 new g_pNemRageTime, g_pNemRageCd, g_pAsnVeilTime, g_pAsnVeilCd, g_pSpecialLeapCd;
 new g_pLmPerRound, g_pLmPerRoundVip, g_pLmOneShot, g_pLmSpecialDmg, g_pLmKillWear, g_pLmPlantTime, g_pLmTakeTime;
 new g_pLmArmTime, g_pLmBeamWidth, g_pLmColorMode, g_pLmColor, g_pLmRange, g_pLmTakeRange, g_pAirdropLaser;
+// v3.1: lazer isini azami boyu, lazerin kapali oldugu modlar, yon testi kaydi (gelistirici)
+new g_pLmMaxRange, g_pLmBlockModes, g_pDbgDirs;
+new g_szLmBlockCache[64], g_iLmBlockMask = -1;
+// v3.1: kafa ustu isaret sprite'lari TE_PLAYERATTACHMENT ile cizilebilir mi (yalniz alphatest)
+new bool:g_bHeadMarkAt, bool:g_bMarkAt;
 new g_pNadeSensorArm, g_pNadeSensorLife, g_pNadeLaserArm, g_pNadeFireDmg, g_pNadeFireRad, g_pNadeFireBurn;
 new g_pNadeFrostRad, g_pNadeFrostTime, g_pNadeInfectRad, g_pNadeFlareTime, g_pNadeClusterDmg;
 new g_pBossPhase2, g_pBossPhase3, g_pBossRAuto, g_pBossRCdMult, g_pBossRDmgMult, g_pBossAutoAbil;
