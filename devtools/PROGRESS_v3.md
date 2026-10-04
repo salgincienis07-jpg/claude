@@ -103,6 +103,10 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   menu sadelestirme, VIP, ozel silah 8-15 hatasi, lazer sokme bari, denge/ekonomi, meteor, mesajlar -> chat ipuclari,
   kod incelemesi, HUD grafik dosyalari. DEVAM: Workflow({scriptPath: "$SP/wf/v32.js", resumeFromRunId: "wf_9488d02c-ff8"}).
 
+- 2026-10-04 17:18: sahip kullanim %88 dedi -> buyuk v3.2 akisi DURDURULDU; yalin akis vex-v32-lean (run wf_c7a55db0-ddf,
+  betik $SP/wf/v32lean.js): 1) ozel silah 8-15 hatasi + lazer sokme bari + meteor + lazer menuden cikar, 2) menu/VIP/mesajlar,
+  3) denge + eksik dosya varsayilanlari + HUD grafik modu yedek yazi. Her ajan commit eder; sonra paket ($SP/pack31.sh, ad v3.2).
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
