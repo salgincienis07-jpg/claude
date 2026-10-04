@@ -12,7 +12,8 @@ devtools/mapkit/
   textures.py     91 original textures (105 wad entries incl. animation frames) + texlights
   mapwriter.py    Map / Entity / Brush, Valve220 writer, brush + entity helpers
   compile.py      CSG -> BSP -> VIS -> RAD (SDHLT), log parsing, leak report, .res
-  bspcheck.py     BSP v30 parser + engine-limit / texture / spawn validator
+  bspcheck.py     BSP v30 parser + engine-limit / texture / spawn validator, precache budget,
+                  rendering cost (r_speeds wpoly estimate: per-leaf PVS + view replay)
   preview.py      top-down + oblique renders with real textures and lightmaps
   pilot.py        zm_vex_pilot test map (pipeline proof)
   selftest.py     WAD round trip + compile of every helper
@@ -28,6 +29,7 @@ export MAPKIT_WORK=/tmp/mapwork                 # build dir (default devtools/ma
 python3 -m mapkit.selftest                      # sanity check (~2 s)
 python3 -m mapkit.pilot --quality final --preview /tmp/prev   # -> cstrike/maps/zm_vex_pilot.bsp
 python3 -m mapkit.bspcheck ../cstrike/maps/zm_vex_pilot.bsp
+python3 -m mapkit.bspcheck --perf-only ../cstrike/maps/zm_vex_pilot.bsp --at "0 400 54"   # FPS cost + budget
 python3 -m mapkit.preview  ../cstrike/maps/zm_vex_pilot.bsp /tmp/prev
 python3 -m mapkit.textures --list               # texture catalogue
 python3 -m mapkit.textures --sheet /tmp/sheet.png --wad /tmp/vexmira_all.wad
@@ -114,6 +116,13 @@ Tool textures: `NULL` (removed, use on hidden faces of detail), `CLIP`, `SKIP`, 
 * Leaks: BSP writes a pointfile; the result fails with `LEAK: pointfile ... first point: x y z`.
 * Writes `out_dir/<map>.res` listing custom (`vexmira/`) sounds/sprites/models referenced by entities.
 * Threads = CPU count; timings and parsed errors/warnings per stage in `CompileResult.summary()`.
+* Every build ends with `bspcheck` **including the rendering-cost analysis and the precache budget**
+  (see below): the report is printed and saved as `<work>/<map>.check.json`. Over-budget numbers
+  (view wpoly max > 1300, brush entities > 60, new sound precaches > 10, bsp > 4.5 MB) are
+  **errors** for `normal`/`final` builds (`CompileResult.ok = False`, the `.bsp` is still written)
+  and warnings for `draft` (`vis -fast` PVS is too coarse to judge). Overrides:
+  `compile_map(..., perf={'error_max': 1500, 'warn_p95': 1000})`, `perf={'enabled': False}`
+  skips the analysis; CLI `--perf-warn N --perf-error N --no-perf`.
 
 ### Validate (`bspcheck.py`)
 Exit code 1 on errors. Checks lump counts/sizes vs GoldSrc limits (HLSDK `bspfile.h`: models 400,
@@ -124,6 +133,66 @@ warns at 85 %), non-embedded textures, wad key, stock sky, texture sizes, face l
 brush-model counts, and **spawns**: >= 32 `info_player_start` (CT) + 32 `info_player_deathmatch`
 (T), each tested against the compiled standing player clip hull (hull 1) of the world and of
 static solid brush entities (exact engine point-contents test), distance to the floor, spacing.
+
+#### Rendering cost (`perf_analysis`) — what costs FPS in GoldSrc
+The GL renderer draws, every frame: the world faces of all leaves in the view leaf's **PVS** that
+are inside the view frustum (node/leaf bounding boxes) and face the viewer, plus **every brush
+entity** whose leaves touch the PVS and whose bbox is in the frustum — brush entities are drawn
+**whole**, VIS never culls inside them. `r_speeds` "wpoly" counts all of these polys. bspcheck
+reproduces it from the BSP:
+
+| metric | how | use |
+|---|---|---|
+| **view** (default for thresholds) | replay of `R_MarkLeaves` + `R_RecursiveWorldNode` (`R_CullBox`, plane side test) + `R_DrawBrushModel` from **player eye positions**: every walkable floor (world + solid brush entities, standing hull must fit, 96-unit grid + face centres) and every spawn, eye = floor + 54, 8 yaw directions at pitch 0, fov 90 (4:3 definition, widened to 16:9 Hor+ = 106x74); worst direction per point | what players will see in `r_speeds`; `max` / `p95` over all eye points |
+| **pvs** | per world leaf, 360 deg, no frustum/backface: all faces referenced by the marksurfaces of every PVS-visible leaf (deduped) + all faces of PVS-visible brush entities | upper bound; shows how well VIS blocks (`sees N%` = average share of leaves each leaf sees) |
+
+Polys are counted like the GL renderer draws them: one per face, sky faces 0 (sky box), warped
+faces (`!name`, `water*`, `laser*`) cut into 64-unit pieces (`GL_SubdivideSurface`), faces in
+water leaves never backface-culled. Not modelled: studio models / sprites / particles (epoly),
+dynamic lights, overdraw/fill rate, decals; eyes under water may count a few warped faces extra.
+
+Report lines (printed by every compile and by `python3 -m mapkit.bspcheck [--perf-only]`):
+```
+perf (0.5s; wpoly = GL polys incl. brush entities, sky excluded, water subdivided):
+  world 1441 faces (0 sky, 24 water -> 214 polys), 265 leaves (265 open), vis 7 KiB, each leaf sees 44% ...
+  brush entities 14 (9 drawn, 3999 faces); 49 textures 1059 KiB (largest: ...); lightmaps 568 KiB; bsp 2.22 MB
+  PVS per leaf (...): total max 5333 p95 5273 mean 4753 | world faces max 1239 ... ents max 3999
+  VIEW r_speeds estimate (eye points n=493, worst of 8 yaws, ...): total max 2858 p95 2795 mean 2619 (world ...; ents ...)
+  worst leaves (PVS total; * = players stand there):   leaf N centre (x y z) size (dx dy dz): total = world + ents
+  worst views (eye position, yaw):                      eye (x y z) yaw Y: total = world + ents
+  biggest drawn brush entities: *12 func_wall 3739f/260 leaves, ...
+  lights 52 (animated styles [2, 10] ...), styled faces: animated 963 ...; sprites 20 (20 additive) ...
+precache budget: brush entities 14/60, new models [...] -> model slots +16; sounds 6 referenced, 3/10 new [...]
+```
+Thresholds (`PERF_DEFAULTS`, flags in brackets): error when view wpoly **max > 1300**
+(`--perf-error`), warning when **p95 > 900** (`--perf-warn`); `--perf-metric pvs` applies them to
+the per-leaf PVS totals instead. Warnings also for: a drawn brush entity with > 200 faces, > 64
+faces lit by **animated light styles** (`style` 1-31 on `light`: those lightmaps are rebuilt and
+re-uploaded every frame), > 24 `env_sprite`/`env_glow`, no VIS data. Other flags: `--fov`,
+`--aspect`, `--yaws`, `--spacing`, `--perf-lenient` (errors -> warnings), `--no-perf`, `--json`.
+
+`--at "x y z"` (repeatable) prints PVS + per-direction view numbers at chosen eye positions — use
+it to compare a fix before/after or two rooms (`perf_at(bsp, points)` from Python).
+
+Validation (2026-10): PVS decoding checked against the compiler's `.prt` (every portal-adjacent
+leaf pair mutually visible, every portal inside both leaf boxes); per-leaf PVS numbers identical to
+a brute-force set union; the vectorised view replay identical to a scalar, engine-order port of
+`R_RecursiveWorldNode`/`R_DrawBrushModel` in 2384 of 2392 sampled views (the 8 others: one eye
+under water); a known-answer map (sealed closet sees 1 leaf / 16 faces from every direction, an
+L-corridor hides the atrium from the side room, a 256x256 water face = 16 polys). Runtime: 0.5 s
+for zm_vex_laboratory, ~4 s for a 22k-face / 5k-leaf map.
+
+#### Precache budget (`entity_budget`)
+Brush entities (each `*n` model = one model precache slot) and the sounds / models the game DLL
+precaches for the map's entities (ReGameDLL rules: `func_door` movesnd/stopsnd, `func_button`
+sounds (+ sparks), `func_breakable`/`func_pushable` material gibs + break/impact sounds,
+`func_plat`/`func_train`/`func_tracktrain`/`func_rotating` sounds, `ambient_generic`, `env_spark`,
+`env_shooter`, `env_sprite`/`env_glow` models, ...). "new" = not already precached by the game on
+every map (list measured on the test server, `GAME_BASE_SOUNDS`/`GAME_BASE_MODELS`); the plugin's
+own precaches are not subtracted. Budget errors: > 60 brush entities (`--max-brush-ents`),
+> 10 new sounds (`--max-map-sounds`), bsp > 4.5 MB (`--max-bsp-mb`). Checked against the test
+server's real precache lists (vexprobe, plugin off): predicted new sounds/models for
+zm_vex_laboratory and zm_vex_pilot match the engine exactly.
 
 ### Preview (`preview.py`)
 `render_views(bsp, out_dir, size=1200, zcut=None, eyes=[(x, y, z, yaw, pitch), ...])` writes
@@ -210,15 +279,28 @@ danger red, toxic green); `light_environment` (pitch -50..-75, `_diffuse_light` 
 outdoor maps; `env_sprite` glows on lamps (stock `sprites/glow01.spr`, additive, scale 0.2-1.2);
 final compiles use `-extra -bounce 4 -ao`. Never leave zones black: zombies need to see humans too.
 
-**Performance** (r_speeds): aim for < 800 wpoly / < 15k epoly in busy views. Break long sight
-lines (corners, walls, raised blocks) so VIS can cull; put HINT brushes at corridor mouths; make
-small detail (pipes, rails, signs, lamps) `func_illusionary`/`func_wall` or texture hidden faces
-`NULL`; use `SKIP`/`CLIP` for smooth collision on stairs; keep outdoor sky boxes tight around the
-playable volume; keep big flat floors as few large faces (no needless brush splits).
-Brush entities each take a **model precache slot** (512 total shared with the plugin's ~100+
-models): keep them < 64 (group decorative brushes into one `func_illusionary`/`func_wall`).
-Entities < 600 (edicts ~900 with 32 players). Map <= 4 MB (textures dominate: ~22 KB per
-128x128, ~87 KB per 256x256 — use 20-35 textures per map).
+**Performance** (r_speeds; bspcheck measures it on every compile, see *Rendering cost*): keep
+view wpoly p95 < 900 and max < 1300 (aim for < 700 in busy fight areas) and < 15k epoly. Break
+long sight lines (corners, walls, raised blocks, S-bends, doors in different walls) so VIS can
+cull — a hub that every room opens into makes every room see the whole map; put HINT brushes at
+corridor mouths; keep outdoor sky boxes tight around the playable volume; keep big flat floors as
+few large faces (no needless brush splits); texture hidden faces `NULL`; use `SKIP`/`CLIP` for
+smooth collision on stairs.
+**Detail geometry** (crates, pipes, trims, pillars, consoles, lamps): use **`func_detail`**
+(`Entity('func_detail', brushes, zhlt_detaillevel=1)`, SDHLT): it is compiled into the world —
+no model precache slot, VIS-culled per leaf like the world — but does not split VIS leaves or
+block VIS. **Never group the map's detail into one big `func_wall`/`func_illusionary`**: a brush
+entity is drawn whole whenever any of its leaves is visible. Measured on a 10x10-room test map
+(400 pillars): pillars as world brushes view wpoly max 608 / p95 433, as `func_detail` 572 / 480,
+as ONE `func_wall` 1512 / 1421; zm_vex_laboratory's map-wide func_wall (*12, 3739 faces) alone
+adds ~2000 wpoly to every view. Use brush entities only where an entity is needed (doors,
+breakables, masked `{` textures that need rendermode 4, glass, ladders, triggers) and keep each
+one local (one room, < 200 faces).
+Light styles: animated `style` (1-31) only on a few small fixtures — every face such a light
+touches is re-uploaded every frame. `env_sprite` glows: <= 24 per map, only where a lamp is.
+Brush entities each take a **model precache slot** (512 total shared with the plugin):
+<= 60 per map (bspcheck budget). Entities < 600 (edicts ~900 with 32 players). Map <= 4.5 MB
+(textures dominate: ~22 KB per 128x128, ~87 KB per 256x256 — use 20-35 textures per map).
 
 **Engine/compat limits**: geometry within +-4096 (CS player origins), texture names <= 15 chars,
 texture sizes multiples of 16 and <= 256 for software/old GL, sky = stock name only
