@@ -100,6 +100,7 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 
 #define TASK_HUDQ     8400
 #define TASK_PLANT    8500
+#define TASK_LMTAKE   39700   // v3.2: lazer sokme denetimi (0.1 sn)
 #define TASK_MOTD     8600
 #define TASK_BOSSFX   8700
 #define TASK_NADES    8800
@@ -615,6 +616,8 @@ new Float:g_fMineOff, Float:g_fMineEmit[3], Float:g_fMineAxE[3], Float:g_fMineAx
 new g_pPrefix, g_pHostname, g_pHostDyn, g_pEnv, g_pEnvCalm, g_pWeather;
 new g_pNemOneShot, g_pAsnOneShot, g_pNemVsSurv, g_pNemSpeed, g_pAsnSpeed, g_pNemGrav, g_pAsnGrav, g_pMinionHP;
 new g_pNemRageTime, g_pNemRageCd, g_pAsnVeilTime, g_pAsnVeilCd, g_pSpecialLeapCd;
+new g_iLmTakeEnt[33];
+new g_pMeteorEvery, g_pMeteorCount;
 new g_pLmPerRound, g_pLmPerRoundVip, g_pLmOneShot, g_pLmSpecialDmg, g_pLmKillWear, g_pLmPlantTime, g_pLmTakeTime;
 new g_pLmArmTime, g_pLmBeamWidth, g_pLmColorMode, g_pLmColor, g_pLmRange, g_pLmTakeRange, g_pAirdropLaser;
 // v3.1: lazer isini azami boyu, lazerin kapali oldugu modlar, yon testi kaydi (gelistirici)
@@ -7533,6 +7536,19 @@ WeaponIdType:GetActiveWeaponId(id)
     return get_member(item, m_iId);
 }
 
+// v3.2: atilan ozel silahin biti temizlenir (yerden alinan sade silah ozel sayilmaz)
+public rg_DropPlayerItemPost(id, const pszItemName[])
+{
+    if (!(1 <= id <= g_iMax) || !g_iSpecW[id] || !is_user_connected(id))
+        return HC_CONTINUE;
+    for (new s = 0; s < NUM_SPECIAL; s++)
+    {
+        if ((g_iSpecW[id] & (1 << s)) && !rg_has_item_by_name(id, SW_BASE_ENT[s]))
+            g_iSpecW[id] &= ~(1 << s);
+    }
+    return HC_CONTINUE;
+}
+
 SpecialIndex(id, WeaponIdType:wid)
 {
     if (!g_iSpecW[id])
@@ -7718,10 +7734,15 @@ public fw_PrimaryAttackPost(weapon)
     if (sw < 0)
         return HAM_IGNORED;
 
+    // v3.2 FIX: ReGameDLL'de m_flNextPrimaryAttack GORECELI zamandir (UTIL_WeaponTimeBase = 0).
+    // Eskiden get_gametime()+oran yaziliyordu -> silah dakikalarca ates edemiyor, istemci
+    // tahmini bozulup diger silahlar da kilitleniyordu. Simdi sadece goreceli oran uygulanir.
     new Float:attackReady = Float:get_member(weapon, m_Weapon_flNextPrimaryAttack);
-    new Float:minReady = get_gametime() + SW_RATE[sw];
+    new Float:minReady = floatclamp(SW_RATE[sw], 0.05, 5.0);
     if (attackReady < minReady)
         set_member(weapon, m_Weapon_flNextPrimaryAttack, minReady);
+    if (Float:get_member(weapon, m_Weapon_flTimeWeaponIdle) < minReady)
+        set_member(weapon, m_Weapon_flTimeWeaponIdle, minReady);
     if (SW_RECOIL[sw] != 1.0)
     {
         new Float:punch[3];
@@ -8219,6 +8240,44 @@ bool:LmModeBlocked(mode)
 
 // Gelistirici testi (vex_debug_dirs 1): "vex_debug_lmtest [force]" - canli insanlar (botlar)
 // icin yakin duvara mayin kurar (force: lazer kapali modda da). Izin / kurulum log'a yazilir.
+// v3.2: ozel silah testi - 16 slotun her birini canli bir insana verir, bir atis yaptirir
+// ve klip / yedek / sonraki atis (goreceli) degerlerini loglar.
+public srv_DbgSwTest()
+{
+    if (!get_pcvar_num(g_pDbgDirs))
+        return PLUGIN_HANDLED;
+    new id;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (is_user_alive(p) && !g_bZombie[p] && !g_bSurvivor[p] && !g_bSniper[p]) { id = p; break; }
+    }
+    if (!id)
+    {
+        log_amx("[Vexmira] SWTEST no living human");
+        return PLUGIN_HANDLED;
+    }
+    new bad;
+    for (new i = 0; i < NUM_SPECIAL; i++)
+    {
+        g_iSpecW[id] = (1 << i);
+        new weapon = rg_give_item(id, SW_BASE_ENT[i], GT_REPLACE);
+        if (is_nullent(weapon)) { log_amx("[Vexmira] SWTEST slot=%d give FAILED", i); bad++; continue; }
+        set_member(weapon, m_Weapon_iClip, SW_CLIP[i]);
+        rg_set_user_bpammo(id, SW_BASE_ID[i], SW_BPAMMO[i]);
+        set_member(weapon, m_Weapon_flNextPrimaryAttack, 0.0);
+        ExecuteHamB(Ham_Weapon_PrimaryAttack, weapon);
+        new Float:na = Float:get_member(weapon, m_Weapon_flNextPrimaryAttack);
+        new clip = get_member(weapon, m_Weapon_iClip), bp = rg_get_user_bpammo(id, SW_BASE_ID[i]);
+        new si = SpecialIndex(id, SW_BASE_ID[i]);
+        new bool:ok = (si == i && clip >= 0 && clip <= SW_CLIP[i] && bp > 0 && na >= 0.0 && na <= 5.0);
+        if (!ok) bad++;
+        log_amx("[Vexmira] SWTEST slot=%d ent=%s idx=%d clip=%d/%d bp=%d next=%.2f %s", i, SW_BASE_ENT[i], si, clip, SW_CLIP[i], bp, na, ok ? "OK" : "BAD");
+    }
+    g_iSpecW[id] = 0;
+    log_amx("[Vexmira] SWTEST done player=%d bad=%d", id, bad);
+    return PLUGIN_HANDLED;
+}
+
 public srv_DbgLmTest()
 {
     if (!get_pcvar_num(g_pDbgDirs))
@@ -8401,7 +8460,9 @@ public cmd_lm_release_take(id)
 CancelPlant(id)
 {
     g_iPlantAction[id] = 0;
+    g_iLmTakeEnt[id] = 0;
     remove_task(id + TASK_PLANT);
+    remove_task(id + TASK_LMTAKE);
     if (is_user_connected(id))
         rg_send_bartime(id, 0, false);
 }
@@ -8493,16 +8554,55 @@ public cmd_lm_take(id)
     get_entvar(id, var_origin, g_fPlantPos[id]);
     g_iPlantAction[id] = 2;
 
-    // Varsayilan: ANINDA sokulur (C'ye bir kez basmak yeterli)
+    // v3.2: sokme ANINDA degil - vex_lm_take_time sn ilerleme cubugu (varsayilan 2.0).
+    // Uzaklasma (>96), nisani kacirma, olum, hasar alma veya round sonu iptal eder.
     new Float:t = get_pcvar_float(g_pLmTakeTime);
     if (t <= 0.05)
     {
         task_PlantDone(id + TASK_PLANT);
         return PLUGIN_HANDLED;
     }
+    g_iLmTakeEnt[id] = mine;
     rg_send_bartime(id, floatround(t, floatround_ceil), false);
     set_task(t, "task_PlantDone", id + TASK_PLANT);
+    set_task(0.1, "task_LmTakeCheck", id + TASK_LMTAKE, _, _, "b");
+    Chat(id, "LM_TAKING", floatround(t, floatround_ceil));
     return PLUGIN_HANDLED;
+}
+
+// v3.2: sokme surerken her 0.1 sn kosullar denetlenir
+public task_LmTakeCheck(tid)
+{
+    new id = tid - TASK_LMTAKE;
+    if (g_iPlantAction[id] != 2)
+    {
+        remove_task(tid);
+        return;
+    }
+    new mine = g_iLmTakeEnt[id];
+    if (!is_user_alive(id) || g_bZombie[id] || !mine || is_nullent(mine))
+    {
+        LmTakeCancel(id, "LM_TAKE_CANCEL");
+        return;
+    }
+    new Float:o[3];
+    get_entvar(id, var_origin, o);
+    if (get_distance_f(o, g_fPlantPos[id]) > 96.0)
+    {
+        LmTakeCancel(id, "LM_MOVED");
+        return;
+    }
+    if (AimedMine(id, get_pcvar_float(g_pLmTakeRange) + 10.0) != mine)
+        LmTakeCancel(id, "LM_TAKE_AIM");
+}
+
+LmTakeCancel(id, const key[] = "")
+{
+    if (g_iPlantAction[id] != 2)
+        return;
+    CancelPlant(id);
+    if (key[0] && is_user_connected(id))
+        Chat(id, key);
 }
 
 public task_PlantDone(tid)
@@ -8514,10 +8614,14 @@ public task_PlantDone(tid)
     if (!is_user_alive(id) || g_bZombie[id] || !action)
         return;
 
+    new takeEnt = g_iLmTakeEnt[id];
+    g_iLmTakeEnt[id] = 0;
+    remove_task(id + TASK_LMTAKE);
+
     // Islem sirasinda yer degistirdiyse iptal
     new Float:o[3];
     get_entvar(id, var_origin, o);
-    if (get_distance_f(o, g_fPlantPos[id]) > 48.0)
+    if (get_distance_f(o, g_fPlantPos[id]) > (action == 2 ? 96.0 : 48.0))
     {
         Chat(id, "LM_MOVED");
         return;
@@ -8546,7 +8650,7 @@ public task_PlantDone(tid)
     else
     {
         new mine = AimedMine(id, get_pcvar_float(g_pLmTakeRange) + 10.0);
-        if (!mine)
+        if (!mine || (takeEnt && mine != takeEnt))
             return;
         new owner = get_entvar(mine, var_iuser1);
         if (owner != id && !(get_user_flags(id) & ADMIN_BAN))
@@ -14681,9 +14785,12 @@ BossMeteorRain()
     {
         new pick = random(n);
         new Float:o[3];
-        get_entvar(alive[pick], var_origin, o);
+        new victim = alive[pick];
         alive[pick] = alive[n - 1];
         n--;
+        // v3.2: carpma noktasi asla oyuncunun ustu degil - onunde/yaninda 96-220 birim
+        if (!MeteorSpot(victim, o))
+            continue;
 
         ZoneSpawn(o, 200.0, 255, 80, 0, 1.2 + 0.2 * float(i), 0, i == 0);
         FxLight(o, 255, 60, 0, 30, 15, 5);
@@ -17546,6 +17653,8 @@ public rg_FreezeEnd()
 
 public rg_RoundEnd(WinStatus:status, ScenarioEventEndRound:event, Float:tmDelay)
 {
+    for (new p = 1; p <= g_iMax; p++)
+        LmTakeCancel(p);
     OnRoundEnd(status);
 }
 
@@ -18086,33 +18195,82 @@ TickMeteor()
     if (g_iEvent != EV_METEOR)
         return;
 
-    if (++g_iMeteorTick < 4)
+    // v3.2: eskiden 4 sn'de bir; artik vex_meteor_interval (varsayilan 9 sn) x vex_meteor_count (1)
+    if (++g_iMeteorTick < clamp(get_pcvar_num(g_pMeteorEvery), 2, 60))
         return;
     g_iMeteorTick = 0;
 
     new alive[32], n;
     for (new id = 1; id <= g_iMax; id++)
     {
-        if (is_user_alive(id))
+        if (is_user_alive(id) && !g_bZombie[id])
             alive[n++] = id;
     }
     if (!n)
         return;
 
-    new Float:o[3];
-    get_entvar(alive[random(n)], var_origin, o);
-    o[0] += random_float(-120.0, 120.0);
-    o[1] += random_float(-120.0, 120.0);
+    new cnt = clamp(get_pcvar_num(g_pMeteorCount), 1, 4);
+    for (new k = 0; k < cnt && n > 0; k++)
+    {
+        new pick = random(n);
+        new victim = alive[pick];
+        alive[pick] = alive[--n];
 
-    ZoneSpawn(o, 220.0, 255, 80, 0, 1.5, 0, false);
-    FxLight(o, 255, 60, 0, 30, 15, 5);
+        new Float:o[3];
+        if (!MeteorSpot(victim, o))
+            continue;
 
-    new params[4];
-    params[0] = _:o[0];
-    params[1] = _:o[1];
-    params[2] = _:o[2];
-    params[3] = 0;
-    set_task(1.5, "task_MeteorHit", TASK_METEOR + (g_iFrame % 40), params, 4);
+        ZoneSpawn(o, 220.0, 255, 80, 0, 1.5, 0, false);
+        FxLight(o, 255, 60, 0, 30, 15, 5);
+
+        new params[4];
+        params[0] = _:o[0];
+        params[1] = _:o[1];
+        params[2] = _:o[2];
+        params[3] = 0;
+        set_task(1.5 + 0.4 * float(k), "task_MeteorHit", TASK_METEOR + ((g_iFrame + k) % 40), params, 4);
+    }
+}
+
+// v3.2: meteor carpma noktasi - insanin 96-220 birim onunde veya yaninda, zemine izlenir;
+// hicbir oyuncunun 80 birim yakinina dusmez. Bulunamazsa false (meteor atlanir).
+bool:MeteorSpot(id, Float:out[3])
+{
+    new Float:base[3], Float:ang[3], Float:end[3], Float:frac, Float:po[3];
+    get_entvar(id, var_origin, base);
+    get_entvar(id, var_v_angle, ang);
+    for (new tries = 0; tries < 6; tries++)
+    {
+        new Float:yaw = ang[1] + float(random_num(-1, 1)) * 90.0 + random_float(-25.0, 25.0);
+        new Float:dist = random_float(96.0, 220.0);
+        end[0] = base[0] + floatcos(yaw, degrees) * dist;
+        end[1] = base[1] + floatsin(yaw, degrees) * dist;
+        end[2] = base[2];
+        engfunc(EngFunc_TraceLine, base, end, IGNORE_MONSTERS, id, 0);
+        get_tr2(0, TR_flFraction, frac);
+        get_tr2(0, TR_vecEndPos, out);
+        if (get_distance_f(base, out) < 96.0)
+            continue; // duvar cok yakin
+        // zemine indir
+        end[0] = out[0]; end[1] = out[1]; end[2] = out[2] - 512.0;
+        engfunc(EngFunc_TraceLine, out, end, IGNORE_MONSTERS, id, 0);
+        get_tr2(0, TR_flFraction, frac);
+        if (frac >= 1.0)
+            continue; // bosluk
+        get_tr2(0, TR_vecEndPos, out);
+        out[2] += 4.0;
+        new bool:clear = true;
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (!is_user_alive(p))
+                continue;
+            get_entvar(p, var_origin, po);
+            if (get_distance_f(out, po) < 80.0) { clear = false; break; }
+        }
+        if (clear)
+            return true;
+    }
+    return false;
 }
 
 public task_MeteorHit(params[], tid)
@@ -18141,15 +18299,18 @@ public task_MeteorHit(params[], tid)
             continue;
 
         get_entvar(id, var_origin, po);
-        if (get_distance_f(o, po) > 220.0)
+        new Float:d = get_distance_f(o, po);
+        if (d > 220.0)
             continue;
 
         ShakeOne(id);
         FadeOne(id, 255, 140, 0, 100, 0.8);
+        // v3.2: sadece patlama hasari, mesafeyle azalir (merkezde tam, 220'de %25)
+        new Float:fall = 1.0 - 0.75 * (d / 220.0);
         if (bossMeteor)
-            ExecuteHamB(Ham_TakeDamage, id, 0, (g_iBoss && is_user_connected(g_iBoss)) ? g_iBoss : 0, 35.0, DMG_BLAST);
+            ExecuteHamB(Ham_TakeDamage, id, 0, (g_iBoss && is_user_connected(g_iBoss)) ? g_iBoss : 0, 30.0 * fall, DMG_BLAST);
         else
-            ExecuteHamB(Ham_TakeDamage, id, 0, 0, g_bZombie[id] ? 150.0 : 25.0, DMG_BLAST);
+            ExecuteHamB(Ham_TakeDamage, id, 0, 0, g_bZombie[id] ? 150.0 * fall : 20.0 * fall, DMG_BLAST);
     }
 }
 
@@ -20279,6 +20440,9 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
 
 public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 {
+    // v3.2: hasar alan oyuncunun lazer sokmesi iptal
+    if (1 <= victim <= g_iMax && g_iPlantAction[victim] == 2 && damage > 0.0)
+        LmTakeCancel(victim, "LM_TAKE_HURT");
     // v3.0 Kale yansitmasi (oldurmez: insan en az 1 canda kalir)
     if (g_iReflVictim && g_iReflVictim == victim && g_iReflAttacker == attacker)
     {
@@ -20513,6 +20677,7 @@ public rg_PlayerKilled(victim, attacker, gib)
     // v3.0: olenin yetenekleri / ustundeki etkiler (kanca, ninni, keseler...) temizlenir
     ZcCleanup(victim);
     OvhRemove(victim);
+    g_iSpecW[victim] = 0; // v3.2: ozel silah bitleri olumde temizlenir
     // v3.0 (B): boss bir insani oldurdu -> alay sesi
     if (valid && g_bBoss[attacker] && !g_bZombie[victim])
         BossKillTaunt(attacker);
@@ -20950,7 +21115,8 @@ public rg_PlayerJump(id)
 /* ---------------- Ana menu ---------------- */
 
 // Ana menu sirasi (anahtar MAIN_<no>): market, ozel silah, lazer, bomba modu, silah, sinif...
-new const MAIN_ORDER[] = { 1, 2, 18, 19, 3, 4, 5, 6, 20, 8, 21, 9, 7, 10, 22, 11, 12, 13, 14, 15, 16, 17 };
+// v3.2: lazer (18) oyuncu menusunden kaldirildi - market, say lazer/lm ve bind (+setlaser/+dellaser) calisir
+new const MAIN_ORDER[] = { 1, 2, 19, 3, 4, 5, 6, 20, 8, 21, 9, 7, 10, 22, 11, 12, 13, 14, 15, 16, 17 };
 
 ShowMainMenu(id)
 {
@@ -24390,7 +24556,9 @@ public plugin_init()
     g_pLmSpecialDmg  = register_cvar("vex_lm_special_damage", "600");
     g_pLmKillWear    = register_cvar("vex_lm_kill_wear", "100");
     g_pLmPlantTime   = register_cvar("vex_lm_plant_time", "1.0");
-    g_pLmTakeTime    = register_cvar("vex_lm_take_time", "0");
+    g_pLmTakeTime    = register_cvar("vex_lm_take_time", "2.0");
+    g_pMeteorEvery   = register_cvar("vex_meteor_interval", "9");
+    g_pMeteorCount   = register_cvar("vex_meteor_count", "1");
     g_pLmArmTime     = register_cvar("vex_lm_arm_time", "1.5");
     g_pLmBeamWidth   = register_cvar("vex_lm_beam_width", "8");
     g_pLmColorMode   = register_cvar("vex_lm_color_mode", "0");
@@ -24532,6 +24700,7 @@ public plugin_init()
     g_pPrefixAdmin   = register_cvar("vex_chat_prefix_admin", "^3[ADMIN]^1");
     register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
     register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
+    register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
     register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
     register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
     register_forward(FM_SetModel, "fw_SetModelPost", 1);
@@ -24567,6 +24736,7 @@ public plugin_init()
     RegisterHookChain(RG_CBasePlayer_MakeBomber,         "rg_MakeBomber", false);
     RegisterHookChain(RG_CSGameRules_FlPlayerFallDamage, "rg_FallDamage", false);
     RegisterHookChain(RG_CBasePlayerWeapon_DefaultDeploy, "rg_DefaultDeploy", false);
+    RegisterHookChain(RG_CBasePlayer_DropPlayerItem,     "rg_DropPlayerItemPost", true);
     RegisterHookChain(RG_ThrowHeGrenade,                 "rg_ThrowHe", true);
     RegisterHookChain(RG_ThrowSmokeGrenade,              "rg_ThrowSmoke", true);
     RegisterHookChain(RG_ThrowFlashbang,                 "rg_ThrowFlash", true);
