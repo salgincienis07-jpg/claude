@@ -830,6 +830,10 @@ CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
 CSO_TOP_B = HUMAN  %d      VS      %d  ZOMBIE
 CSO_TOP_BOSS = BOSS FIGHT      VS      %d  HUMAN
 CSO_MVP_SUB = %d damage  |  %d kills  |  %d infections
+CSO_P1 = Lv.%d   %s
+CSO_P1R = Lv.%d   %s   #%d
+CSO_P_HP = HP  %d     AR  %d
+CSO_P3 = AP  %d     VC  %d     STREAK  %d
 CSO_LEVEL_SUB = LEVEL  %d
 TOP_C_BOSSIN = %s   ::   %s   ::   BOSS IN %d
 TOP_C_FINAL = %s   ::   %s   ::   FINAL ROUND
@@ -2202,6 +2206,10 @@ CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
 CSO_TOP_B = INSAN  %d      VS      %d  ZOMBI
 CSO_TOP_BOSS = BOSS SAVASI      VS      %d  INSAN
 CSO_MVP_SUB = %d hasar  |  %d oldurme  |  %d enfeksiyon
+CSO_P1 = Lv.%d   %s
+CSO_P1R = Lv.%d   %s   #%d
+CSO_P_HP = CAN  %d     ZIRH  %d
+CSO_P3 = AP  %d     VC  %d     SERI  %d
 CSO_LEVEL_SUB = SEVIYE  %d
 TOP_C_BOSSIN = %s   ::   %s   ::   BOSS: %d ROUND SONRA
 TOP_C_FINAL = %s   ::   %s   ::   SON ROUND

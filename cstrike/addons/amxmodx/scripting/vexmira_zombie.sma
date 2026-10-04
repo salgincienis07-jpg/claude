@@ -271,7 +271,8 @@ new const SOUND_KEYS[][] =
     // v2.0
     "ZONE_WARN", "SKILL_UNLOCK", "NEM_RAGE", "ASN_VEIL", "LM_KILL", "NADE_TRIGGER", "UI_OPEN", "LM_DENY",
     // v3.2 (B): CSO ekran bildirimi sesleri
-    "CSO_KM", "CSO_KM_SP", "CSO_MVP", "CSO_BANNER", "CSO_WIN", "CSO_ALERT", "CSO_LEVEL"
+    "CSO_KM", "CSO_KM_SP", "CSO_MVP", "CSO_BANNER", "CSO_WIN", "CSO_ALERT", "CSO_LEVEL",
+    "CSO_FB", "CSO_BKILL", "CSO_INFD", "CSO_TEN"
 };
 
 // Zombi siniflari: 0 Walker 1 Runner 2 Tank 3 Banshee 4 Leech 5 Stalker 6 Bomber 7 Frost
@@ -847,12 +848,17 @@ new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, 
 new g_pHudStyle, g_pHudTop, g_pHudRight, g_pHudMvp, g_pHudXp, g_pHudOvh, g_pHudObjective;
 // v3.2 (B): CSO tarzi ekran bildirimi (killmark yontemi) - BOLUM 3 "CSO EKRAN BILDIRIMI"
 enum { CN_KM1 = 0, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE, CN_MVP, CN_HWIN, CN_ZWIN, CN_BOSS,
-       CN_INFECT, CN_NEMESIS, CN_ASSASSIN, CN_SURVIVOR, CN_LAST, CN_LEVEL, CN_ROUND, CN_TOTAL };
+       CN_INFECT, CN_NEMESIS, CN_ASSASSIN, CN_SURVIVOR, CN_LAST, CN_LEVEL, CN_ROUND,
+       CN_FIRST, CN_BKILL, CN_INFD, CN_TEN, CN_TOTAL };  // v3.3: ilk kan / boss oldu / enfekte oldun / son 10 sn
 #define CSO_ROUNDS  30
 #define CSO_QMAX    4
 #define TASK_CSO    41500   // CSO ekran bildirimi zamanlayicisi (tek, tekrarli)
 new g_pCso, g_pCsoNotes, g_pCsoTime, g_pCsoKmTime, g_pCsoFov, g_pCsoSnd, g_pCsoBots, g_pCsoLog, g_pCsoIcons;
 new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
+new g_pComboTime, bool:g_bFirstBlood;  // v3.3: combo penceresi / roundun ilk oldurmesi
+// v3.3 CSO sag panel: son gonderilen icerik (degismediyse tekrar gonderilmez) + XP cubugu
+new g_szHudSig[33][400], Float:g_fHudNext[33], g_iHudXpSeen[33] = { -1, ... }, Float:g_fXpBarEnd[33];
+new g_msgBarTime, g_msgBarTime2;
 new g_msgWL, g_msgCurW, g_msgFOV, g_msgSIcon;
 new g_szWL[31][24], g_iWL[31][8], bool:g_bWL[31];
 new g_iCsoCur[33] = { -1, ... }, g_iCsoArg[33], g_iCsoWpn[33], Float:g_fCsoEnd[33];
@@ -913,8 +919,8 @@ stock MenuInfo(menu, item)
     return str_to_num(data);
 }
 
-// CSO tarzi menu renkleri: sadece \r (kirmizi) ve \y (sari). Beyaz (\w) ve
-// gri (\d) hicbir menu metninde kalmaz: \w -> \y, \d -> \r. Renksiz baslayan
+// CSO tarzi menu renkleri: ad / secenek \y (sari), sayi / deger / etiket \r (kirmizi),
+// v3.3: aciklama / bilgi satirlari \d (yari saydam beyaz). Beyaz (\w) kalmaz: \w -> \y. Renksiz baslayan
 // metin sari yapilir. Kilitli girdiler secilebilir kalir (ITEM_DISABLED yok),
 // kirmizi [KILITLI] etiketi alir; secilince handler sohbette nedenini yazar.
 stock VexMenuColor(const src[], dst[], len, const lead[] = "\y")
@@ -924,7 +930,6 @@ stock VexMenuColor(const src[], dst[], len, const lead[] = "\y")
     else
         formatex(dst, len, "%s%s", lead, src);
     replace_string(dst, len, "\w", "\y");
-    replace_string(dst, len, "\d", "\r");
 }
 
 new g_szMenuLast[512];   // son menu basligi (test araci vexprobe callfunc ile okur)
@@ -949,7 +954,7 @@ public VexDbgMenuTitle()
 stock VexAddText(menu, const text[], slot = 1)
 {
     new t[192];
-    VexMenuColor(text, t, charsmax(t), "\r");
+    VexMenuColor(text, t, charsmax(t), "\d");
     menu_addtext(menu, t, slot);
 }
 
@@ -964,7 +969,7 @@ stock MenuAdd(menu, const text[], value)
 // v3.2 menu tasarimi v2: her menude ayni baslik.
 //   1. satir: "\rVEXMIRA \y<BASLIK BUYUK HARF>"
 //   2. satir: oyuncunun canli degerleri [AP] [VC] [Lv] [VIP] [MOD] (koseli parantez kirmizi, deger sari)
-//   3. satir (istege bagli): kirmizi kisa aciklama; ardindan bos satir.
+//   3. satir (istege bagli): yari saydam beyaz (\d) kisa aciklama; ardindan bos satir.
 stock VexHead(id, out[], len, const key[], const sub[] = "")
 {
     new t[64], mn[32], k2[16], vip[24];
@@ -980,7 +985,7 @@ stock VexHead(id, out[], len, const key[], const sub[] = "")
     formatex(out, len, "\rVEXMIRA \y%s^n\r[\yAP %d\r] [\yVC %d\r] [\yLv %d\r]%s [\y%s\r]^n", t, g_iAP[id], g_iVC[id], g_iLevel[id], vip, mn);
     if (sub[0])
     {
-        add(out, len, "\r");
+        add(out, len, "\d");
         add(out, len, sub);
         add(out, len, "^n");
     }
@@ -2582,15 +2587,22 @@ DrawHud()
         new xpPct = (lvl >= MAX_LEVEL) ? 100 : clamp((g_iXP[id] - base) * 100 / max(1, need - base), 0, 100);
 
         TitleName(id, id, tname, charsmax(tname));
-        if (g_iTopRank[id] > 0)
+        new bool:cso = CsoOn();
+        if (cso)
+        {
+            // v3.3 CSO sag panel: kisa baslik, ASCII cubuk / suslemeler yok
+            if (g_iTopRank[id] > 0)
+                formatex(head, charsmax(head), "%L", id, "CSO_P1R", lvl, tname, g_iTopRank[id]);
+            else
+                formatex(head, charsmax(head), "%L", id, "CSO_P1", lvl, tname);
+        }
+        else if (g_iTopRank[id] > 0)
             formatex(head, charsmax(head), "%L", id, "HUD_P1R", lvl, tname, g_iTopRank[id]);
         else
             formatex(head, charsmax(head), "%L", id, "HUD_P1", lvl, tname);
-        if (CsoOn())
-            format(head, charsmax(head), "=[ %s ]=", head);
 
         if (is_user_alive(id))
-            formatex(l1, charsmax(l1), "%L", id, "HUD_P_HP", floatround(Float:get_entvar(id, var_health)), rg_get_user_armor(id));
+            formatex(l1, charsmax(l1), "%L", id, cso ? "CSO_P_HP" : "HUD_P_HP", floatround(Float:get_entvar(id, var_health)), rg_get_user_armor(id));
         else
             formatex(l1, charsmax(l1), "%L", id, "HUD_P_DEAD");
 
@@ -2600,7 +2612,7 @@ DrawHud()
         l2[0] = 0;
         if (HudPartMode(g_pHudXp) != 0)
             formatex(l2, charsmax(l2), "%L", id, "HUD_P2", xbar, g_iXP[id], need);
-        formatex(l3, charsmax(l3), "%L", id, "HUD_P3", g_iAP[id], g_iVC[id], g_iStreak[id]);
+        formatex(l3, charsmax(l3), "%L", id, cso ? "CSO_P3" : "HUD_P3", g_iAP[id], g_iVC[id], g_iStreak[id]);
 
         l4[0] = 0;
         if (is_user_alive(id))
@@ -2687,11 +2699,73 @@ DrawHud()
             }
         }
 
+        if (cso)
+        {
+            // XP: yazi yerine oyunun kendi ilerleme cubugu (BarTime2), sadece XP degisince 2.5 sn
+            if (HudPartMode(g_pHudXp) != 0)
+                CsoXpBar(id, xpPct);
+            if (l4[0])
+                replace_string(l4, charsmax(l4), "   ::   ", "   ");
+            if (l5[0])
+                replace_string(l5, charsmax(l5), " : ", "  ");
+            new body[320];
+            formatex(body, charsmax(body), "^n%s^n%s%s%s%s%s", l1, l3, l4[0] ? "^n" : "", l4, l5[0] ? "^n" : "", l5);
+            // Daha az paket: icerik degismediyse 3 sn'de bir yenilenir
+            new Float:now = get_gametime();
+            new sig[400];
+            formatex(sig, charsmax(sig), "%d%s%s", pos, head, body);
+            if (now < g_fHudNext[id] && equal(sig, g_szHudSig[id]))
+                continue;
+            copy(g_szHudSig[id], charsmax(g_szHudSig[]), sig);
+            g_fHudNext[id] = now + 3.0;
+            if (!is_user_alive(id) || !g_bZombie[id])
+            {
+                hr = 0; hg = 220; hb = 255;      // CSO camgobegi baslik
+                br = 235; bg = 235; bb = 245;    // acik govde
+            }
+            set_hudmessage(hr, hg, hb, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 3.6, 0.0, 0.0, 1);
+            show_hudmessage(id, "%s", head);
+            set_hudmessage(br, bg, bb, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 3.6, 0.0, 0.0, 2);
+            show_hudmessage(id, "%s", body);
+            continue;
+        }
+
         set_hudmessage(hr, hg, hb, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 1);
         show_hudmessage(id, "%s", head);
 
         set_hudmessage(br, bg, bb, HUDPOS_X[pos], HUDPOS_Y[pos], 0, 0.0, 1.1, 0.0, 0.0, 2);
         show_hudmessage(id, "^n%s^n%s^n%s^n%s^n%s", l1, l2, l3, l4, l5);
+    }
+}
+
+// v3.3: XP ilerlemesi oyunun kendi cubuguyla (BarTime2: sure, baslangic yuzdesi). Cok uzun sure
+// verilir -> cubuk pratikte sabit durur; 2.5 sn sonra BarTime 0 ile kaldirilir.
+CsoXpBar(id, pct)
+{
+    if (!is_user_alive(id))
+    {
+        g_iHudXpSeen[id] = g_iXP[id];
+        return;
+    }
+    new Float:now = get_gametime();
+    if (g_iHudXpSeen[id] != g_iXP[id])
+    {
+        new bool:first = (g_iHudXpSeen[id] == -1) ? true : false;
+        g_iHudXpSeen[id] = g_iXP[id];
+        if (first)
+            return;
+        message_begin(MSG_ONE_UNRELIABLE, g_msgBarTime2, _, id);
+        write_short(3000);
+        write_short(clamp(pct, 0, 99));
+        message_end();
+        g_fXpBarEnd[id] = now + 2.5;
+    }
+    else if (g_fXpBarEnd[id] > 0.0 && now >= g_fXpBarEnd[id])
+    {
+        g_fXpBarEnd[id] = 0.0;
+        message_begin(MSG_ONE_UNRELIABLE, g_msgBarTime, _, id);
+        write_short(0);
+        message_end();
     }
 }
 
@@ -2889,18 +2963,21 @@ stock HudAllS(slot, r, g, b, Float:hold, const key[], const sVal[])
 /* ================================================================== */
 
 new const CSO_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "knife", "nade", "mvp", "hwin", "zwin", "boss",
-    "infect", "nemesis", "assassin", "survivor", "last", "level", "rnd" };
+    "infect", "nemesis", "assassin", "survivor", "last", "level", "rnd", "fb", "bkill", "infd", "ten" };
 // 1 = _en / _tr ayri gorsel
-new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0 };
-// Oncelik (buyuk once). 1-2 = killmark: yeni killmark eskisinin yerini alir, bant varken sadece ses
-new const CSO_PRIO[CN_TOTAL] = { 1, 1, 1, 1, 1, 2, 2, 2, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9 };
-// vex_cso_notes biti: 1 killmark, 2 MVP, 4 round, 8 kazanan, 16 mod/boss/enfeksiyon, 32 son insan, 64 level
-new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16, 16, 32, 64, 4 };
-new const CSO_SND[CN_TOTAL][] = { "CSO_KM", "CSO_KM", "CSO_KM", "CSO_KM", "CSO_KM", "CSO_KM_SP", "CSO_KM_SP", "CSO_KM_SP",
+new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1 };
+// Oncelik (buyuk once). 1-2 = killmark: yeni killmark eskisinin yerini alir, bant varken sadece ses.
+// v3.3: COMBO (km2-km5) = 2, headshot / bomba = 1 -> combo her zaman headshot'in onune gecer
+new const CSO_PRIO[CN_TOTAL] = { 1, 2, 2, 2, 2, 1, 2, 1, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9, 3, 8, 7, 5 };
+// vex_cso_notes biti: 1 killmark/combo, 2 MVP, 4 round, 8 kazanan, 16 mod/boss/enfeksiyon, 32 son insan, 64 level,
+// 128 ek bantlar (ilk kan / boss oldu / enfekte oldun / son 10 sn)
+new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16, 16, 32, 64, 4, 128, 128, 128, 128 };
+// v3.3: combo sesleri = seslendirme (DOUBLE / TRIPLE / MULTI / MEGA KILL); tek ses calinir (ust uste spk birbirini keser)
+new const CSO_SND[CN_TOTAL][] = { "CSO_KM", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "CSO_KM_SP", "CSO_KM_SP", "CSO_KM_SP",
     "CSO_MVP", "CSO_WIN", "CSO_WIN", "CSO_ALERT", "CSO_ALERT", "CSO_BANNER", "CSO_BANNER", "CSO_BANNER", "CSO_ALERT",
-    "CSO_LEVEL", "CSO_BANNER" };
-// Sprite sayfalari (generic precache): killmark 2, alt bant 2, orta bant 3, round 4
-new const CSO_SHEETS[][] = { "km1", "km2", "low1", "low2", "mid1", "mid2", "mid3" };
+    "CSO_LEVEL", "CSO_BANNER", "CSO_FB", "CSO_BKILL", "CSO_INFD", "CSO_TEN" };
+// Sprite sayfalari (generic precache): killmark 1, combo 2, alt bant 3, orta bant 5, round 4
+new const CSO_SHEETS[][] = { "km1", "cmb1", "cmb2", "low1", "low2", "low3", "mid1", "mid2", "mid3", "mid4", "mid5" };
 
 // plugin_precache: dosyasi olan bildirimler; vex_cso_style 0 ise hicbiri indirilmez
 CsoPrecache()
@@ -3052,6 +3129,11 @@ stock CsoName(id, note, arg, out[], len)
         formatex(out, len, "vexmira/cso/%s_%s", CSO_FILE[note], g_iLang[id] == 2 ? "tr" : "en");
     else
         formatex(out, len, "vexmira/cso/%s", CSO_FILE[note]);
+}
+
+stock bool:CsoNoteOn(note)
+{
+    return (CsoOn() && g_bCsoFile[note] && (get_pcvar_num(g_pCsoNotes) & CSO_BIT[note])) ? true : false;
 }
 
 stock bool:CsoOn()
@@ -3209,6 +3291,17 @@ bool:CsoNotify(id, note, arg = 0)
         CsoQueue(id, note, arg);
         return true;
     }
+    // v3.3: ekranda killmark varken yenisi: daha dusuk oncelikli olan combo'nun yerini almaz;
+    // once orijinal WeaponList geri gonderilir (istemci yeni betigi kesin yeniden yukler)
+    if (cur >= 0)
+    {
+        if (CSO_PRIO[cur] > CSO_PRIO[note] && g_fCsoEnd[id] - get_gametime() > 0.3)
+        {
+            CsoSound(id, note);
+            return true;
+        }
+        CsoRestore(id, false);
+    }
     return CsoApply(id, note, arg, CsoDur(note), true);
 }
 
@@ -3247,7 +3340,7 @@ CsoSub(id, note, arg)
             set_dhudmessage(0, 220, 255, -1.0, 0.63, 0, 0.0, 2.2, 0.1, 0.4);
             show_dhudmessage(id, "%L", id, "CSO_LEVEL_SUB", arg);
         }
-        case CN_KM1, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE:
+        case CN_KM1, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE, CN_FIRST:
         {
             // v3.2: VIP oldurme rozeti (killmark altinda; vex_vip_killicon)
             if (IsVip(id) && get_pcvar_num(g_pVipKillIcon))
@@ -4174,6 +4267,11 @@ SetDefaultResources()
     DefSound("CSO_WIN",        "vexmira/cso/win.wav",         "events/task_complete.wav");
     DefSound("CSO_ALERT",      "vexmira/cso/alert.wav",       "buttons/blip2.wav");
     DefSound("CSO_LEVEL",      "vexmira/cso/levelup.wav",     "plats/elevbell1.wav");
+    // v3.3: ilk kan / boss oldu / enfekte oldun / son 10 saniye
+    DefSound("CSO_FB",         "vexmira/cso/firstblood.wav",  "buttons/blip2.wav");
+    DefSound("CSO_BKILL",      "vexmira/cso/bosskill.wav",    "events/task_complete.wav");
+    DefSound("CSO_INFD",       "vexmira/cso/infected.wav",    "buttons/blip2.wav");
+    DefSound("CSO_TEN",        "vexmira/cso/tensec.wav",      "buttons/blip1.wav");
     DefSound("VIP_JOIN",       "vexmira/vip_join.wav",        "buttons/bell1.wav");
     DefSound("BOSS_WARN",      "vexmira/boss_warn.wav",       "buttons/blip2.wav");
     DefSound("BOSS_ROAR",      "garg/gar_alert1.wav",         "ambience/the_horror1.wav");
@@ -4622,7 +4720,8 @@ new const SOUND_2D_KEYS[][] =
     "STORM_STRIKE", "STREAK_5", "STREAK_10", "STREAK_15", "VIP_JOIN", "WELCOME", "ZOMBIE_WIN", "UI_OPEN",
     // v3.0 (C): sadece ATTN_NONE (herkes duyar) ile calinanlar
     "NEM_RAGE",
-    "CSO_KM", "CSO_KM_SP", "CSO_MVP", "CSO_BANNER", "CSO_WIN", "CSO_ALERT", "CSO_LEVEL"
+    "CSO_KM", "CSO_KM_SP", "CSO_MVP", "CSO_BANNER", "CSO_WIN", "CSO_ALERT", "CSO_LEVEL",
+    "CSO_FB", "CSO_BKILL", "CSO_INFD", "CSO_TEN"
 };
 
 // Sadece yedek olarak kullanilan ses anahtarlari (sinifin / bossun kendi sesi varsa gereksiz)
@@ -6404,9 +6503,9 @@ ShowAchMenu(id)
         formatex(n1, charsmax(n1), "%L", id, k1);
         formatex(n2, charsmax(n2), "%L", id, k2);
         if (g_iAch[id] & (1 << i))
-            formatex(item, charsmax(item), "\r[\yX\r] \y%s \r- %s", n1, n2);
+            formatex(item, charsmax(item), "\r[\yX\r] \y%s \r- \d%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\r[ ] \y%s \r- %s", n1, n2);
+            formatex(item, charsmax(item), "\r[ ] \y%s \r- \d%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -7675,24 +7774,24 @@ ShowVipInfo(id, page = 0)
     if (page == 0)
     {
         // Ekonomi / oyun ici
-        formatex(ln, charsmax(ln), "\r1. \y%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r2. \y%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r3. \y%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r4. \y%L^n", id, "VIPI_7", get_pcvar_num(g_pVipDaily), get_pcvar_num(g_pEliteDaily)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r1. \d%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r2. \d%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r3. \d%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r4. \d%L^n", id, "VIPI_7", get_pcvar_num(g_pVipDaily), get_pcvar_num(g_pEliteDaily)); add(title, charsmax(title), ln);
         formatex(ln, charsmax(ln), "\r5. \y%L^n", id, get_pcvar_num(g_pVipAutoPack) ? "VIPI_4A" : "VIPI_4"); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r6. \y%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r7. \y%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r6. \d%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r7. \d%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
     }
     else
     {
         // Konfor / gorunum (pay-to-win degil)
-        formatex(ln, charsmax(ln), "\r8. \y%L^n", id, "VIPI_9", get_pcvar_float(g_pVipSpawnProt)); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r9. \y%L^n", id, "VIPI_10", clamp(get_pcvar_num(g_pVipVoteW), 1, 3)); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r10. \y%L^n", id, "VIPI_11"); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r11. \y%L^n", id, "VIPI_12"); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r12. \y%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r13. \y%L^n", id, "VIPI_13"); add(title, charsmax(title), ln);
-        formatex(ln, charsmax(ln), "\r14. \y%L^n", id, "VIPI_14"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r8. \d%L^n", id, "VIPI_9", get_pcvar_float(g_pVipSpawnProt)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r9. \d%L^n", id, "VIPI_10", clamp(get_pcvar_num(g_pVipVoteW), 1, 3)); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r10. \d%L^n", id, "VIPI_11"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r11. \d%L^n", id, "VIPI_12"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r12. \d%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r13. \d%L^n", id, "VIPI_13"); add(title, charsmax(title), ln);
+        formatex(ln, charsmax(ln), "\r14. \d%L^n", id, "VIPI_14"); add(title, charsmax(title), ln);
     }
 
     new menu = VexMenuCreate(title, "menu_vipinfo_handler");
@@ -10844,7 +10943,7 @@ ShowMineMenu(id)
     }
     else
     {
-        formatex(item, charsmax(item), "\r%L", id, "LM_M_RULE", RoundMines(id));
+        formatex(item, charsmax(item), "\d%L", id, "LM_M_RULE", RoundMines(id));
         VexAddText(menu, item, 0);
     }
     MenuFinish(id, menu);
@@ -12481,6 +12580,7 @@ Infect(victim, attacker)
 
     // Kisisel bildirimler
     Chat(victim, "YOU_INFECTED", aname);
+    CsoNotify(victim, CN_INFD);
     Chat(attacker, "YOU_INFECTOR", vname);
 
     if (!g_bFirstInfect)
@@ -13090,9 +13190,9 @@ ShowClassMenu(id)
         if (g_iLevel[id] < CLASS_LVL[i])
             formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, CLASS_LVL[i], id, "MENU_LOCKED");
         else if (g_iClass[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[*\r] \r%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r[*\r] \d%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\y%s \r%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \d%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -16226,7 +16326,7 @@ BossDeath(victim, const Float:o[3], const killer[])
         EndBlizzard();
 
     ChatAllS("BOSS_DOWN", killer);
-    HudAll(SL_ANN, CLR_GOOD, 4.0, "BOSS_DOWN_HUD");
+    CsoHudAll(CN_BKILL, 0, SL_ANN, CLR_GOOD, 4.0, "BOSS_DOWN_HUD");
     PlayBossSound("DEATH");
     PlayVoxAll("VOX_BOSSDOWN");
 
@@ -18666,6 +18766,7 @@ public rg_RestartRound()
     g_bEnraged = false;
     g_bLastAnn = false;
     g_bFirstInfect = false;
+    g_bFirstBlood = false;
     g_iBoss = 0;
     g_iBossTick = 0;
     g_iMeteorTick = 0;
@@ -19506,7 +19607,7 @@ public task_Tick()
     if (tl == 30)
         LiveAll(0, "LIVE_30S", 3);
     else if (tl == 10)
-        HudAll(SL_ALERT, CLR_WARN, 2.0, "HUD_10S");
+        CsoHudAll(CN_TEN, 0, SL_ALERT, CLR_WARN, 2.0, "HUD_10S");
 
     TickPlayers();
     TickBoss();
@@ -20083,7 +20184,7 @@ ShowVoteMenu(id)
     }
 
     new note[96];
-    formatex(note, charsmax(note), "^n\r%L", id, "VOTE_TIE");
+    formatex(note, charsmax(note), "^n\d%L", id, "VOTE_TIE");
     VexAddText(menu, note, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_NEVER);
     MenuProps(id, menu);
@@ -20519,6 +20620,10 @@ public client_putinserver(id)
     g_iCsoQn[id] = 0;
     g_iCsoWpn[id] = 0;
     g_iCsoIcon[id] = 0;
+    g_szHudSig[id][0] = 0;
+    g_fHudNext[id] = 0.0;
+    g_iHudXpSeen[id] = -1;
+    g_fXpBarEnd[id] = 0.0;
     ResetPlayer(id);
     HudReset(id);
     if (get_pcvar_num(g_pAutoJoinHumans) && !is_user_bot(id))
@@ -22229,11 +22334,31 @@ KillStreak(attacker, victim)
 
     g_iStreak[attacker]++;
 
-    if (now - g_fLastKill[attacker] <= 4.0)
+    // v3.3: combo penceresi (vex_combo_time); zombi canlari yuksek oldugu icin 4 sn azdi
+    if (now - g_fLastKill[attacker] <= floatclamp(get_pcvar_float(g_pComboTime), 2.0, 15.0))
         g_iMulti[attacker]++;
     else
         g_iMulti[attacker] = 1;
     g_fLastKill[attacker] = now;
+
+    // v3.3 (B): CSO bildirimi ONCE secilir; gosterilirse tek ses calinir (ust uste "spk" komutlari
+    // birbirini kesiyordu: headshot sesi + combo seslendirmesi + killmark sesi -> combo hic duyulmuyordu)
+    new km;
+    new bool:knife = (get_user_weapon(attacker) == CSW_KNIFE) ? true : false;
+    if (g_iMulti[attacker] >= 2)
+        km = CN_KM1 + clamp(g_iMulti[attacker], 2, 5) - 1;
+    else if (!g_bFirstBlood && CsoNoteOn(CN_FIRST))
+        km = CN_FIRST;
+    else if (knife)
+        km = CN_KNIFE;
+    else if (nade)
+        km = CN_NADE;
+    else if (hs)
+        km = CN_HS;
+    else
+        km = CN_KM1;
+    g_bFirstBlood = true;
+    new bool:shown = CsoNotify(attacker, km);
 
     new ktxt[96];
     if (hs)
@@ -22244,7 +22369,7 @@ KillStreak(attacker, victim)
         new hsap = get_pcvar_num(g_pHsAP);
         AddAP(attacker, g_iEvent == EV_HEADHUNTER ? hsap * 3 : hsap, true, false);
         formatex(ktxt, charsmax(ktxt), "%L", attacker, "HUD_HEADSHOT");
-        if (!(g_iSet[attacker] & SET_NO_STREAK))
+        if (!shown && !(g_iSet[attacker] & SET_NO_STREAK) && g_iMulti[attacker] < 2)
             PlayKey(attacker, "HEADSHOT");
     }
 
@@ -22259,7 +22384,8 @@ KillStreak(attacker, victim)
         else
             formatex(ktxt, charsmax(ktxt), "%L", attacker, key);
 
-        if (!(g_iSet[attacker] & SET_NO_STREAK))
+        // 6+ (MONSTER) her zaman seslendirilir; 2-5 sprite gosterildiyse CsoNotify zaten caldi
+        if (!(g_iSet[attacker] & SET_NO_STREAK) && (!shown || m >= 6))
         {
             switch (m)
             {
@@ -22272,18 +22398,6 @@ KillStreak(attacker, victim)
         }
         AddAP(attacker, m - 1, true, false);
     }
-
-    // v3.2 (B): CSO killmark (seri 1-5, headshot / bicak / bomba); gosterilirse yazi yok
-    new km;
-    if (nade)
-        km = CN_NADE;
-    else if (get_user_weapon(attacker) == CSW_KNIFE)
-        km = CN_KNIFE;
-    else if (hs && g_iMulti[attacker] < 2)
-        km = CN_HS;
-    else
-        km = CN_KM1 + clamp(g_iMulti[attacker], 1, 5) - 1;
-    new bool:shown = CsoNotify(attacker, km);
 
     if (ktxt[0] && !shown)
         HudText(attacker, SL_KILL, CLR_WARN, 1.2, ktxt);
@@ -22763,9 +22877,9 @@ ShowJobMenu(id)
         if (g_iLevel[id] < JOB_LVL[i])
             formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, JOB_LVL[i], id, "MENU_LOCKED");
         else if (g_iJob[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[*\r] \r%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r[*\r] \d%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\y%s \r%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \d%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -22825,9 +22939,9 @@ ShowStyleMenu(id)
         formatex(n2, charsmax(n2), "%L", id, k2);
 
         if (g_iStyle[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[*\r] \r%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r[*\r] \d%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\y%s \r%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \d%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -25101,7 +25215,7 @@ ShowMapVoteMenu(id)
         {
             formatex(key, charsmax(key), "MAPDESC_%s", g_szMapOpt[i]);
             if (GetLangTransKey(key) != TransKey_Bad)
-                formatex(desc, charsmax(desc), " \r%L", id, key);
+                formatex(desc, charsmax(desc), " \d%L", id, key);
         }
         new pct = total > 0 ? (g_iMapVotes[i] * 100 + total / 2) / total : 0;
         if (g_iMapVoted[id] == i)
@@ -25112,7 +25226,7 @@ ShowMapVoteMenu(id)
     }
 
     new note[96];
-    formatex(note, charsmax(note), "^n\r%L", id, "MAPV_NOTE");
+    formatex(note, charsmax(note), "^n\d%L", id, "MAPV_NOTE");
     VexAddText(menu, note, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_NEVER);
     menu_setprop(menu, MPROP_PERPAGE, 0);
@@ -26262,7 +26376,8 @@ public plugin_init()
     g_pHudObjective  = register_cvar("vex_hud_objective", "-1");
     // v3.2 (B): CSO tarzi ekran bildirimi
     g_pCso           = register_cvar("vex_cso_style", "1");
-    g_pCsoNotes      = register_cvar("vex_cso_notes", "127");
+    g_pCsoNotes      = register_cvar("vex_cso_notes", "255");
+    g_pComboTime     = register_cvar("vex_combo_time", "6.0");
     g_pCsoTime       = register_cvar("vex_cso_time", "2.5");
     g_pCsoKmTime     = register_cvar("vex_cso_km_time", "1.5");
     g_pCsoFov        = register_cvar("vex_cso_fov", "89");
@@ -26271,6 +26386,8 @@ public plugin_init()
     g_pCsoBots       = register_cvar("vex_cso_bots", "0");
     g_pCsoLog        = register_cvar("vex_cso_log", "0");
     g_msgWL    = get_user_msgid("WeaponList");
+    g_msgBarTime  = get_user_msgid("BarTime");
+    g_msgBarTime2 = get_user_msgid("BarTime2");
     g_msgCurW  = get_user_msgid("CurWeapon");
     g_msgFOV   = get_user_msgid("SetFOV");
     g_msgSIcon = get_user_msgid("StatusIcon");
