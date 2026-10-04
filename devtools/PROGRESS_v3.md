@@ -19,6 +19,7 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
 | Modeller (insan 7, zombi 24+24 pençe, boss 9+2 + 11 pençe, silah v_/p_, dünya) | bekliyor | `cstrike/models/...` |
 | Haritalar (5) + .nav | bekliyor | `cstrike/maps/zm_vex_*.bsp` |
 | Entegrasyon testi, inceleme, belgeler, zip | bekliyor | |
+| Sahip hata listesi 7 madde (boss ustu siyah kare, kanca zinciri yonu, isin / itme yon denetimi, lazer menzil + nemesis/assassin yasagi, parasut yercekimi, model rehberi) | bitti (2026-10-04) | eklenti + `vexmira.cfg` "KENDI MODELINI EKLEME REHBERI"; dogrulama: `devtools/server/README.md` DIRCHK testleri |
 
 ## Arka plan iş akışları (aynı oturum içinde devam ettirmek için)
 

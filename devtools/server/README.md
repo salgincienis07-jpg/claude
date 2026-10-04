@@ -96,6 +96,13 @@ Console commands of the plugin (server console has all admin rights):
 8 armageddon 9 boss), `vex_event <0-18>`, `vex_boss <-1..8>` (only the bosses in the map's boss
 plan are loaded), all apply to the next round — follow with `sv_restart 1`. `vexprobe_status`
 prints a probe sample on demand.
+Direction / laser / gravity self-tests (developer): `vex_debug_dirs 1` (send it at >= 10 s:
+vexmira.cfg is re-applied ~7 s after map start and resets it to 0), then `vex_debug_hooktest`
+(up to 3 zombie bots become Butchers and throw hooks at the nearest human), `vex_debug_lmtest
+[force]` (humans plant a mine on a nearby wall; `force` ignores vex_lm_block_modes),
+`vex_debug_gravtest` (breaks everyone's gravity like a closing parachute). Results are
+`DIRCHK` lines in amxx_L.log: `cos=` of drawn chain / pull / knockback / leap vs. the expected
+direction (1.000 = same), `lm_beam len=`, `lm_test allowed=`, `gravity_restore a -> b`.
 
 Every run is archived in `$S/runs/<stamp>_<map>/`: `console.log` (timestamped, `>>>` = sent
 commands), `amxx_L.log`, `amxx_error.log`, `game.log`, `vexprobe_precache_<map>.txt` (every
