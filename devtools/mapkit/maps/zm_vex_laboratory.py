@@ -167,7 +167,10 @@ def rails(c: Ctx, segs, z, height=40):
 
 
 def lad(c: Ctx, base, facing, height):
-    e, vis = ladder(base, facing, height, width=32, depth=12)
+    # the climbable volume reaches 36 units above the top floor (invisible, inside the rail gap) so players
+    # and bots can grab it from above and step off cleanly at the top; the visible ladder ends at the floor
+    e, _ = ladder(base, facing, height + 36, width=32, depth=12)
+    _, vis = ladder(base, facing, height, width=32, depth=12)
     c.m.add_entity(e)
     c.masked += vis
     x, y, z = base
