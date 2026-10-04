@@ -112,6 +112,13 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   denge/dosya/HUD), sonra paket v3.2 + gonder. Ardindan harita: Workflow({scriptPath: "$SP/wf/flagship.js"}).
   $SP yoksa (yeni oturum): istekler devtools/HANDOFF_v3.1.md + bu dosyadaki listeye gore.
 
+- 2026-10-04 SON DURUM (otomatik devam icin): sahip "devam et; sinir dolarsa kayitli yerden otomatik devam et" dedi.
+  SIRA: (1) vex-v33 is akisi run wf_91ca5680-a67, betik $SP/wf/v33.js (madde 22 combo/sag HUD/menu aciklama,
+  madde 23 animasyonlu transparan CSO sprite'lar) -> yarim kaldiysa: Workflow({scriptPath: "$SP/wf/v33.js",
+  resumeFromRunId: "wf_91ca5680-a67"}). (2) bitince paket: bash $SP/pack32h.sh (HEAD'den derler) -> SendUserFile.
+  (3) sonra harita: Workflow({scriptPath: "$SP/wf/flagship.js"}) (bitince paket + gonder).
+  Saatlik rutin bunu okuyup yarim kalan akisi devam ettirir; kullanici durdurmadikca ilerle.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
