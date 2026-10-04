@@ -339,12 +339,12 @@ new MODE_MINPL[MODE_TOTAL]  = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
 new JOB_LVL[NUM_JOBS] = { 1, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 21, 24, 28, 7, 9, 11, 13, 15, 17, 20, 23, 26, 32 };
 
 // Market: fiyat (AP), takim (0 insan / 1 zombi), round limiti (0 = sinirsiz)
-new ITEM_COST[NUM_ITEMS]  = { 12, 10, 12, 12, 5, 15, 10, 12, 25, 30, 40, 30, 20, 35, 15, 12, 10, 18, 15, 25, 8, 30, 10, 15, 20, 12, 25, 18 };
+new ITEM_COST[NUM_ITEMS]  = { 12, 10, 12, 12, 5, 15, 10, 12, 35, 45, 50, 40, 20, 35, 15, 12, 10, 18, 15, 25, 8, 40, 10, 15, 20, 12, 25, 18 };
 new const ITEM_TEAM[NUM_ITEMS]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 };
 new ITEM_LIMIT[NUM_ITEMS] = { 3, 2, 2, 2, 3, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1 };
 // v2.0: esya level kilidi ve ana deger (can / zirh / sure / yuzde ...) - vexmira.cfg: vex_item
 new ITEM_LVL[NUM_ITEMS]   = { 1, 1, 1, 1, 1, 2, 1, 1, 3, 4, 2, 1, 1, 3, 1, 2, 1, 3, 2, 3, 1, 4, 1, 1, 2, 1, 3, 2 };
-new ITEM_VAL[NUM_ITEMS]   = { 100, 200, 1, 1, 1, 1, 55, 12, 0, 30, 0, 0, 5, 3, 1000, 20, 0, 20, 6, 8, 0, 2, 0, 6, 6, 60, 60, 0 };
+new ITEM_VAL[NUM_ITEMS]   = { 100, 200, 1, 1, 1, 1, 55, 12, 0, 20, 0, 0, 5, 3, 1500, 20, 0, 20, 6, 8, 0, 2, 0, 6, 6, 60, 80, 0 };
 // Satin alininca herkese duyurulan esyalar
 new const ITEM_ANNOUNCE[NUM_ITEMS] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1 };
 
@@ -363,8 +363,8 @@ new const WeaponIdType:SW_BASE_ID[NUM_SPECIAL] =
     WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
     WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550
 };
-new Float:SW_MULT[NUM_SPECIAL] = { 1.8, 1.5, 3.0, 1.6, 2.2, 1.6, 1.9, 2.4, 1.7, 1.45, 2.6, 1.5, 2.0, 1.5, 1.7, 2.0 };
-new SW_COST[NUM_SPECIAL]       = { 40, 60, 70, 45, 30, 50, 55, 80, 48, 72, 85, 58, 38, 65, 68, 92 };
+new Float:SW_MULT[NUM_SPECIAL] = { 1.35, 1.2, 1.9, 1.3, 1.5, 1.25, 1.35, 1.6, 1.3, 1.2, 1.7, 1.25, 1.4, 1.2, 1.3, 1.45 };
+new SW_COST[NUM_SPECIAL]       = { 80, 100, 120, 85, 70, 95, 105, 135, 90, 115, 140, 100, 75, 110, 120, 150 };
 new SW_LVL[NUM_SPECIAL]        = { 3, 8, 12, 5, 4, 10, 15, 20, 6, 11, 16, 8, 7, 13, 19, 24 };
 new SW_BPAMMO[NUM_SPECIAL]     = { 180, 300, 60, 64, 70, 200, 180, 180, 180, 300, 60, 64, 70, 200, 180, 180 };
 new SW_CLIP[NUM_SPECIAL]       = { 30, 100, 10, 7, 7, 50, 30, 30, 30, 100, 10, 7, 7, 50, 30, 30 };
@@ -617,6 +617,7 @@ new Float:g_fMineOff, Float:g_fMineEmit[3], Float:g_fMineAxE[3], Float:g_fMineAx
 
 // v2.0 cvar'lar
 new g_pPrefix, g_pHostname, g_pHostDyn, g_pEnv, g_pEnvCalm, g_pWeather;
+new g_pZHPPer, g_pNemHPPer, g_pAsnHPPer, g_pKBMult, g_pSpecCap;
 new g_pNemOneShot, g_pAsnOneShot, g_pNemVsSurv, g_pNemSpeed, g_pAsnSpeed, g_pNemGrav, g_pAsnGrav, g_pMinionHP;
 new g_pNemRageTime, g_pNemRageCd, g_pAsnVeilTime, g_pAsnVeilCd, g_pSpecialLeapCd;
 new g_iLmTakeEnt[33];
@@ -792,6 +793,11 @@ new g_iMapExtends, g_iMapExtendTo, bool:g_bRtv[MAX_PLAYERS + 1], g_iRtvCount;
 
 // Boss dosya adlari (model vex_b_<ad>, pence v_<ad>.mdl, sesler boss/<ad>_*.wav)
 new const BOSS_FILE[NUM_BOSSES][] = { "brute", "banshee", "overlord", "inferno", "reaper", "frostlord", "stormcaller", "hivequeen", "void" };
+// v3.2: depoda ozel modeli olmayan sinif / boss icin varsayilan yedek dosya adlari
+// (models/player/vex_z_<ad> ve models/vexmira/claws/v_<ad>.mdl). Kendi dosyani koyunca vexmira.cfg'de degistir.
+new const CLASS_MDL_DEF[NUM_CLASSES][] = { "walker", "runner", "tank", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "tank", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "tank", "spitter", "phantom" };
+new const CLASS_CLAW_DEF[NUM_CLASSES][] = { "walker", "runner", "hulk", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "hulk", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "hulk", "spitter", "phantom" };
+new const BOSS_MDL_DEF[NUM_BOSSES][] = { "tank", "banshee", "hulk", "bomber", "phantom", "frost", "voodoo", "spitter", "stalker" };
 // Ozel model yoksa kullanilan orijinal CS modelleri
 new const BOSS_OLDMODEL[NUM_BOSSES][] = { "terror", "vip", "leet", "arctic", "gsg9", "sas", "gign", "guerilla", "urban" };
 
@@ -2355,7 +2361,7 @@ stock HudPartMode(pcvar)
     switch (clamp(get_pcvar_num(g_pHudStyle), 0, 2))
     {
         case 0: return 1; // Classic Vexmira text HUD
-        case 1: return 2; // Graphic first; unsupported text-only parts stay hidden
+        case 1: return 2; // Graphic first; parts without a graphic form fall back to compact text
     }
     return 0; // Stock Counter-Strike HUD
 }
@@ -2378,7 +2384,8 @@ DrawHud()
         new t = g_iTheme[id];
 
         // ---------- Ust bilgi: 3 satir, 2 renk, 2 saniyede bir ----------
-        if (top && HudPartMode(g_pHudTop) == 1)
+        // v3.2: grafik stilde (2) de yazi gosterilir: sunucu eklentisi serbest 2D resim cizemez
+        if (top && HudPartMode(g_pHudTop) != 0)
         {
             formatex(key, charsmax(key), "MODE_NAME_%d", g_iMode);
             formatex(mn, charsmax(mn), "%L", id, key);
@@ -2417,7 +2424,7 @@ DrawHud()
         }
 
         // ---------- Nisan alinan / izlenen oyuncu ----------
-        if (HudPartMode(g_pHudRight) == 1)
+        if (HudPartMode(g_pHudRight) != 0)
         {
             if (is_user_alive(id))
                 DrawAimInfo(id);
@@ -2425,7 +2432,7 @@ DrawHud()
                 DrawSpecInfo(id);
         }
 
-        if ((g_iSet[id] & SET_NO_HUD) || HudPartMode(g_pHudRight) != 1)
+        if ((g_iSet[id] & SET_NO_HUD) || HudPartMode(g_pHudRight) == 0)
             continue;
 
         // ---------- Kisisel panel: baslik (tema) + govde (acik ton) ----------
@@ -2448,7 +2455,8 @@ DrawHud()
         // XP cubugu (ASCII, 12 parca)
         new xbar[16];
         AsciiBar(xbar, 12, xpPct);
-        if (HudPartMode(g_pHudXp) == 1)
+        l2[0] = 0;
+        if (HudPartMode(g_pHudXp) != 0)
             formatex(l2, charsmax(l2), "%L", id, "HUD_P2", xbar, g_iXP[id], need);
         formatex(l3, charsmax(l3), "%L", id, "HUD_P3", g_iAP[id], g_iVC[id], g_iStreak[id]);
 
@@ -2499,7 +2507,7 @@ DrawHud()
         }
 
         QuestLine(id, l5, charsmax(l5));
-        if (HudPartMode(g_pHudObjective) != 1)
+        if (HudPartMode(g_pHudObjective) == 0)
             l5[0] = 0;
         if (is_user_alive(id) && !g_bZombie[id])
         {
@@ -3696,16 +3704,16 @@ SetModelResources()
     for (new b = 0; b < NUM_BOSSES; b++)
     {
         formatex(key, charsmax(key), "B%d_MODEL", b);
-        formatex(val, charsmax(val), "vex_b_%s", BOSS_FILE[b]);
+        formatex(val, charsmax(val), "vex_z_%s", BOSS_MDL_DEF[b]);
         TrieSetString(g_tRes, key, val);
         formatex(key, charsmax(key), "B%d_CLAW", b);
-        formatex(val, charsmax(val), "models/vexmira/claws/v_%s.mdl", BOSS_FILE[b]);
+        copy(val, charsmax(val), "models/vexmira/claws/v_hulk.mdl");
         TrieSetString(g_tRes, key, val);
     }
-    TrieSetString(g_tRes, "NEMESIS_MODEL",  "vex_nemesis");
-    TrieSetString(g_tRes, "ASSASSIN_MODEL", "vex_assassin");
-    TrieSetString(g_tRes, "NEMESIS_CLAW",   "models/vexmira/claws/v_nemesis.mdl");
-    TrieSetString(g_tRes, "ASSASSIN_CLAW",  "models/vexmira/claws/v_assassin.mdl");
+    TrieSetString(g_tRes, "NEMESIS_MODEL",  "vex_z_hulk");
+    TrieSetString(g_tRes, "ASSASSIN_MODEL", "vex_z_phantom");
+    TrieSetString(g_tRes, "NEMESIS_CLAW",   "models/vexmira/claws/v_hulk.mdl");
+    TrieSetString(g_tRes, "ASSASSIN_CLAW",  "models/vexmira/claws/v_phantom.mdl");
     TrieSetString(g_tRes, "SURVIVOR_MODEL", "vex_survivor");
     TrieSetString(g_tRes, "SNIPER_MODEL",   "vex_sniper");
     TrieSetString(g_tRes, "VIP_MODEL",      "vex_vip");
@@ -3727,6 +3735,8 @@ SetModelResources()
         strtolower(lower);
         formatex(key, charsmax(key), "P_%s", WEAPON_KEYNAME[w]);
         formatex(val, charsmax(val), "models/vexmira/weapons/p_%s.mdl", lower);
+        if (!file_exists(val, true))
+            val[0] = 0;     // v3.2: dosya yoksa bos = oyunun kendi p_ modeli (log yok)
         TrieSetString(g_tRes, key, val);
     }
     // Bombalar / bicak: ozel adli p_ modeli varsa o, yoksa silah adli olan
@@ -3737,10 +3747,13 @@ SetModelResources()
     for (new i = 0; i < NUM_SPECIAL; i++)
     {
         formatex(key, charsmax(key), "SW%d_VMODEL", i);
-        formatex(val, charsmax(val), "models/vexmira/weapons/v_sw%d.mdl", i);
+        // v3.2: SW8..SW15 ayni CS silahini kullanan SW0..SW7 el modelini paylasir
+        formatex(val, charsmax(val), "models/vexmira/weapons/v_sw%d.mdl", i % 8);
         TrieSetString(g_tRes, key, val);
         formatex(key, charsmax(key), "SW%d_PMODEL", i);
         formatex(val, charsmax(val), "models/vexmira/weapons/p_sw%d.mdl", i);
+        if (!file_exists(val, true))
+            val[0] = 0;
         TrieSetString(g_tRes, key, val);
     }
 
@@ -3749,7 +3762,7 @@ SetModelResources()
     // LASERMINE_BODY / LASERMINE_SEQUENCE / LASERMINE_SKIN: yazilmazsa modele gore secilir
     // (Vexmira lazeri: govde 0, animasyon "idle"; kurulurken "deploy")
     TrieSetString(g_tRes, "AIRDROP_MODEL",   "models/vexmira/world/supply_crate.mdl");
-    TrieSetString(g_tRes, "EGG_MODEL",       "models/vexmira/world/hive_egg.mdl");
+    TrieSetString(g_tRes, "EGG_MODEL",       "");   // v3.2: hive_egg.mdl depoda yok -> parlayan kure
     TrieSetString(g_tRes, "W_HEGRENADE",     "models/vexmira/world/w_firebomb.mdl");
     TrieSetString(g_tRes, "W_SMOKEGRENADE",  "models/vexmira/world/w_frostbomb.mdl");
     TrieSetString(g_tRes, "W_FLASHBANG",     "models/vexmira/world/w_flare.mdl");
@@ -3809,11 +3822,11 @@ SetClassResources()
     for (new i = 0; i < NUM_CLASSES; i++)
     {
         formatex(key, charsmax(key), "Z%d_MODEL", i);
-        formatex(val, charsmax(val), "vex_z_%s", CLASS_FILE[i]);
+        formatex(val, charsmax(val), "vex_z_%s", CLASS_MDL_DEF[i]);
         TrieSetString(g_tRes, key, val);
 
         formatex(key, charsmax(key), "Z%d_CLAW", i);
-        formatex(val, charsmax(val), "models/vexmira/claws/v_%s.mdl", CLASS_FILE[i]);
+        formatex(val, charsmax(val), "models/vexmira/claws/v_%s.mdl", CLASS_CLAW_DEF[i]);
         TrieSetString(g_tRes, key, val);
 
         for (new e = 0; e < sizeof CEV; e++)
@@ -3841,8 +3854,8 @@ SetClassResources()
     DefSound("HOOK_MISS",  "vexmira/hook/miss.wav",  "zombie/claw_miss2.wav");
 
     // Modeller / sprite'lar (dosya yoksa: sprite -> orijinal efekt, model -> sprite)
-    TrieSetString(g_tRes, "HOOK_MODEL",  "models/vexmira/world/hook.mdl");
-    TrieSetString(g_tRes, "SPORE_MODEL", "models/vexmira/world/spore_pod.mdl");
+    TrieSetString(g_tRes, "HOOK_MODEL",  "");   // v3.2: hook.mdl depoda yok -> parlayan sprite
+    TrieSetString(g_tRes, "SPORE_MODEL", "");   // v3.2: spore_pod.mdl depoda yok -> SPR_SPORE
     TrieSetString(g_tRes, "SPR_CHAIN",   "sprites/vexmira/chain.spr");
     TrieSetString(g_tRes, "SPR_WEB",     "sprites/vexmira/web.spr");
     TrieSetString(g_tRes, "SPR_SPORE",   "sprites/vexmira/spore.spr");
@@ -6228,7 +6241,8 @@ Reward(id, xp, ap)
     if (ap > 0)
         AddAP(id, ap, true, false);
 
-    if ((xp > 0 || ap > 0) && HudPartMode(g_pHudXp) == 1)
+    // v3.2: grafik modda da kisa yazi (bartime yalniz XP ilerlemesini gosterir, AP'yi gostermez)
+    if ((xp > 0 || ap > 0) && HudPartMode(g_pHudXp) != 0)
     {
         new txt[48];
         if (ap > 0)
@@ -10790,7 +10804,7 @@ ApplyZombieStats(id)
 
     if (g_bNemesis[id])
     {
-        hp = float(get_pcvar_num(g_pNemHP) + 500 * CountPlaying());
+        hp = float(get_pcvar_num(g_pNemHP) + get_pcvar_num(g_pNemHPPer) * CountPlaying());
         if (g_iMode == MODE_ARMAGEDDON)
             hp *= 0.5;
         grav = get_pcvar_float(g_pNemGrav);
@@ -10798,7 +10812,7 @@ ApplyZombieStats(id)
     }
     else if (g_bAssassin[id])
     {
-        hp = float(get_pcvar_num(g_pAsnHP) + 300 * CountPlaying());
+        hp = float(get_pcvar_num(g_pAsnHP) + get_pcvar_num(g_pAsnHPPer) * CountPlaying());
         grav = get_pcvar_float(g_pAsnGrav);
         copy(model, charsmax(model), g_szAsnModel);
     }
@@ -10810,7 +10824,7 @@ ApplyZombieStats(id)
     }
     else
     {
-        hp = float(get_pcvar_num(g_bFirst[id] ? g_pFirstHP : g_pZombieHP)) * CLASS_HP[cls];
+        hp = float(get_pcvar_num(g_bFirst[id] ? g_pFirstHP : g_pZombieHP) + max(0, get_pcvar_num(g_pZHPPer)) * CountPlaying()) * CLASS_HP[cls];
         hp *= 1.0 + 0.06 * float(g_iPerk[id][PK_HIDE]);
         grav = CLASS_GRAV[cls];
         copy(model, charsmax(model), g_szZModel[cls]);
@@ -17834,7 +17848,7 @@ RoundSummary()
             if (!is_user_connected(p) || is_user_bot(p))
                 continue;
             formatex(txt, charsmax(txt), "%L", p, "MVP_HUD", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp]);
-            if (HudPartMode(g_pHudMvp) == 1)
+            if (HudPartMode(g_pHudMvp) != 0)
                 HudText(p, SL_ALERT, CLR_REWARD, 4.0, txt);
             client_print_color(p, mvp, "%s %L", ChatTag("MVP_CHAT2"), p, "MVP_CHAT2", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp], ap, vc);
             if (!(g_iSet[p] & SET_NO_AMB))
@@ -20437,7 +20451,7 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
             dmg *= m;
 
             if (g_bBoss[victim] || g_bNemesis[victim] || g_bAssassin[victim])
-                dmg = floatmin(dmg, 3000.0);
+                dmg = floatmin(dmg, floatmax(100.0, get_pcvar_float(g_pSpecCap)));
         }
     }
 
@@ -20652,7 +20666,7 @@ ApplyKnockback(victim, attacker, WeaponIdType:wid, Float:damage)
     if (w < 0 || w > 30 || KB_POWER[w] <= 0.0)
         return;
 
-    new Float:power = KB_POWER[w];
+    new Float:power = KB_POWER[w] * floatclamp(get_pcvar_float(g_pKBMult), 0.0, 3.0);
     if (g_bNemesis[victim] || g_bAssassin[victim])
         power *= 0.25;
     else if (!g_bMinion[victim])
@@ -20662,7 +20676,7 @@ ApplyKnockback(victim, attacker, WeaponIdType:wid, Float:damage)
         power *= 1.3;
 
     if (SpecialIndex(attacker, wid) == 7)
-        power *= 2.0;
+        power *= 1.5;
 
     if (get_entvar(victim, var_flags) & FL_DUCKING)
         power *= 0.5;
@@ -24584,17 +24598,17 @@ public plugin_init()
 
     // Cvar'lar
     g_pCountdown    = register_cvar("vex_countdown", "15");
-    g_pFirstHP      = register_cvar("vex_first_zombie_hp", "4500");
-    g_pZombieHP     = register_cvar("vex_zombie_hp", "1800");
+    g_pFirstHP      = register_cvar("vex_first_zombie_hp", "6000");
+    g_pZombieHP     = register_cvar("vex_zombie_hp", "2400");
     g_pBossEvery    = register_cvar("vex_boss_every", "6");
-    g_pBossHP       = register_cvar("vex_boss_hp", "7000");
+    g_pBossHP       = register_cvar("vex_boss_hp", "9000");
     g_pEventChance  = register_cvar("vex_event_chance", "85");
-    g_pNemHP        = register_cvar("vex_nemesis_hp", "9000");
-    g_pAsnHP        = register_cvar("vex_assassin_hp", "6000");
-    g_pSurvHP       = register_cvar("vex_survivor_hp", "1200");
+    g_pNemHP        = register_cvar("vex_nemesis_hp", "15000");
+    g_pAsnHP        = register_cvar("vex_assassin_hp", "10000");
+    g_pSurvHP       = register_cvar("vex_survivor_hp", "1000");
     g_pSnipHP       = register_cvar("vex_sniper_hp", "900");
     g_pRespawn      = register_cvar("vex_zombie_respawn", "4.0");
-    g_pDmgPerAP     = register_cvar("vex_damage_per_ap", "500");
+    g_pDmgPerAP     = register_cvar("vex_damage_per_ap", "800");
     g_pKnockback    = register_cvar("vex_knockback", "1");
     g_pStartAP      = register_cvar("vex_start_ap", "20");
     g_pArmorProtect = register_cvar("vex_armor_protect", "1");
@@ -24616,14 +24630,14 @@ public plugin_init()
     g_pBossRounds   = register_cvar("vex_boss_rounds", "7 15 23 30");
     g_pSpecialRounds= register_cvar("vex_special_rounds", "4 11 19 26");
     g_pMultiChance  = register_cvar("vex_multi_chance", "15");
-    g_pBossHPPer    = register_cvar("vex_boss_hp_per_player", "1500");
+    g_pBossHPPer    = register_cvar("vex_boss_hp_per_player", "2500");
     g_pBossFinal    = register_cvar("vex_boss_final_mult", "1.5");
-    g_pBossDmg      = register_cvar("vex_boss_damage", "75");
+    g_pBossDmg      = register_cvar("vex_boss_damage", "90");
     g_pBossAbil     = register_cvar("vex_boss_ability_mult", "1.0");
-    g_pNemDmg       = register_cvar("vex_nemesis_damage", "250");
-    g_pAsnDmg       = register_cvar("vex_assassin_damage", "200");
+    g_pNemDmg       = register_cvar("vex_nemesis_damage", "400");
+    g_pAsnDmg       = register_cvar("vex_assassin_damage", "300");
     g_pMinionDmg    = register_cvar("vex_minion_damage", "35");
-    g_pZombieDmg    = register_cvar("vex_zombie_damage", "60");
+    g_pZombieDmg    = register_cvar("vex_zombie_damage", "75");
     g_pHumanHP      = register_cvar("vex_human_hp", "100");
     g_pLastHumanHP  = register_cvar("vex_last_human_bonus", "150");
     g_pZSpeed       = register_cvar("vex_zombie_speed_mult", "1.0");
@@ -24664,14 +24678,19 @@ public plugin_init()
     g_pEnv           = register_cvar("vex_env", "1");
     g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
     g_pWeather       = register_cvar("vex_weather", "1");
+    g_pZHPPer = register_cvar("vex_zombie_hp_per_player", "40");
+    g_pNemHPPer = register_cvar("vex_nemesis_hp_per_player", "1200");
+    g_pAsnHPPer = register_cvar("vex_assassin_hp_per_player", "800");
+    g_pKBMult = register_cvar("vex_knockback_mult", "0.75");
+    g_pSpecCap = register_cvar("vex_special_dmg_cap", "1500");
     g_pNemOneShot    = register_cvar("vex_nemesis_oneshot", "1");
     g_pAsnOneShot    = register_cvar("vex_assassin_oneshot", "1");
-    g_pNemVsSurv     = register_cvar("vex_nemesis_vs_survivor", "250");
+    g_pNemVsSurv     = register_cvar("vex_nemesis_vs_survivor", "350");
     g_pNemSpeed      = register_cvar("vex_nemesis_speed", "265");
     g_pAsnSpeed      = register_cvar("vex_assassin_speed", "340");
     g_pNemGrav       = register_cvar("vex_nemesis_gravity", "0.5");
     g_pAsnGrav       = register_cvar("vex_assassin_gravity", "0.45");
-    g_pMinionHP      = register_cvar("vex_minion_hp", "400");
+    g_pMinionHP      = register_cvar("vex_minion_hp", "600");
     g_pNemRageTime   = register_cvar("vex_nemesis_rage_time", "5");
     g_pNemRageCd     = register_cvar("vex_nemesis_rage_cooldown", "25");
     g_pAsnVeilTime   = register_cvar("vex_assassin_veil_time", "4");
@@ -24725,21 +24744,21 @@ public plugin_init()
     g_pKillXP        = register_cvar("vex_kill_xp", "8");
     g_pInfectXP      = register_cvar("vex_infect_xp", "10");
     g_pWinHXP        = register_cvar("vex_win_human_xp", "25");
-    g_pWinHAP        = register_cvar("vex_win_human_ap", "6");
+    g_pWinHAP        = register_cvar("vex_win_human_ap", "5");
     g_pWinZXP        = register_cvar("vex_win_zombie_xp", "15");
     g_pWinZAP        = register_cvar("vex_win_zombie_ap", "4");
     g_pBossKillXP    = register_cvar("vex_boss_kill_xp", "120");
     g_pBossKillAP    = register_cvar("vex_boss_kill_ap", "25");
-    g_pBossKillVC    = register_cvar("vex_boss_kill_vc", "3");
+    g_pBossKillVC    = register_cvar("vex_boss_kill_vc", "2");
     g_pSpecKillXP    = register_cvar("vex_special_kill_xp", "80");
     g_pSpecKillAP    = register_cvar("vex_special_kill_ap", "15");
     g_pBossBoard     = register_cvar("vex_boss_board_ap", "40 25 15");
     g_pHsAP          = register_cvar("vex_headshot_ap", "1");
-    g_pExchange      = register_cvar("vex_exchange_cost", "60");
-    g_pPerkStep      = register_cvar("vex_perk_cost_step", "4");
+    g_pExchange      = register_cvar("vex_exchange_cost", "100");
+    g_pPerkStep      = register_cvar("vex_perk_cost_step", "5");
     g_pDailyAP       = register_cvar("vex_daily_ap", "20");
     g_pAchAP         = register_cvar("vex_achievement_ap", "25");
-    g_pAchVC         = register_cvar("vex_achievement_vc", "3");
+    g_pAchVC         = register_cvar("vex_achievement_vc", "2");
     g_pBurnDmg       = register_cvar("vex_burn_damage_human", "6");
     g_pZombieBurnDmg = register_cvar("vex_burn_damage_zombie", "35");
 
