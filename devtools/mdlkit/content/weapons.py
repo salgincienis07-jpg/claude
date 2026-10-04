@@ -176,3 +176,102 @@ def grenades():
 
 def all():
     return [v_vexblade()] + grenades()
+
+
+# --------------------------------------------------------------------------------------------- special guns
+# (index, name, base vkind, body colour, glow colour, accent colour)
+SPECIALS = [
+    (0, 'Plasma rifle', 'm4a1', (44, 50, 70), (0, 220, 255), (160, 90, 255)),
+    (1, 'Dragon cannon', 'm249', (70, 30, 24), (255, 120, 0), (255, 40, 20)),
+    (2, 'Lightning sniper', 'awp', (36, 40, 60), (120, 200, 255), (255, 255, 120)),
+    (3, 'Ice breaker', 'xm1014', (150, 185, 210), (90, 210, 255), (230, 250, 255)),
+    (4, 'Golden eagle', 'deagle', (196, 160, 60), (255, 215, 0), (255, 250, 200)),
+    (5, 'Hell SMG', 'p90', (60, 20, 18), (255, 50, 0), (255, 170, 40)),
+    (6, 'Vex reaper', 'ak47', (40, 32, 56), (190, 90, 255), (0, 220, 255)),
+    (7, 'Void caller', 'sg550', (22, 20, 34), (150, 0, 255), (255, 60, 200)),
+]
+
+
+def _bounds(meshes, names):
+    V = [m.v for m in meshes if any(m.name.startswith(n) for n in names)]
+    if not V:
+        return None
+    V = np.vstack(V)
+    return V.min(0), V.max(0)
+
+
+def _scifi_kit(base):
+    """Stock silhouette of the base weapon + Vexmira sci-fi kit: armour side plates with screws, twin glow
+    strips, energy coils around the barrel, emitter shroud at the muzzle, glow sight dot, mag glow window."""
+    from ..pmodel import muzzle_point
+    P = standard_gun(base)
+    for m in P:                                     # re-skin: wood -> body colour, poly -> dark
+        if m.mat in ('gun_wood',):
+            m.mat = 'gun_body'
+    rb = _bounds(P, ['receiver', 'slide', 'frame', 'body']) or _bounds(P, [''])
+    lo, hi = rb
+    L = hi[0] - lo[0]
+    hw = max(abs(lo[1]), abs(hi[1]))
+    zc = (lo[2] + hi[2]) / 2
+    K = []
+    for sg in (1, -1):
+        K.append(bx((L * 0.55, 0.12, (hi[2] - lo[2]) * 0.45), (lo[0] + L * 0.45, sg * (hw + 0.05), zc), 'gun_dark', 'plate', 0.05))
+        K.append(bx((L * 0.6, 0.1, 0.16), (lo[0] + L * 0.45, sg * (hw + 0.13), zc + (hi[2] - lo[2]) * 0.12), 'gun_glow', 'glow', 0.0))
+        K.append(bx((L * 0.35, 0.1, 0.1), (lo[0] + L * 0.4, sg * (hw + 0.13), zc - (hi[2] - lo[2]) * 0.12), 'gun_accent', 'glow2', 0.0))
+        for fx in (0.22, 0.68):
+            K.append(_m(cylinder((lo[0] + L * fx, sg * (hw + 0.1), zc), (lo[0] + L * fx, sg * (hw + 0.2), zc), 0.12, segs=6),
+                        'screw', 'gun_metal'))
+    mp = muzzle_point(P)
+    bb = _bounds(P, ['barrel'])
+    br = 0.35 if bb is None else max(0.25, (bb[1][2] - bb[0][2]) / 2)
+    x_b0 = hi[0] if bb is None else max(hi[0], bb[0][0])
+    span = mp[0] - 0.3 - x_b0
+    if span > 2.0:                                  # energy coils along the free barrel
+        for k in range(3):
+            x = x_b0 + span * (0.35 + 0.18 * k)
+            K.append(_m(cylinder((x, 0, mp[2]), (x + 0.3, 0, mp[2]), br + 0.32, segs=10), 'coil', 'gun_glow'))
+            K.append(_m(cylinder((x + 0.3, 0, mp[2]), (x + 0.45, 0, mp[2]), br + 0.22, segs=10), 'coil', 'gun_dark'))
+    K.append(_m(cylinder((mp[0] - 1.1, 0, mp[2]), (mp[0] - 0.35, 0, mp[2]), br + 0.38, br + 0.3, segs=10), 'shroud', 'gun_dark'))
+    K.append(_m(cylinder((mp[0] - 0.36, 0, mp[2]), (mp[0] - 0.3, 0, mp[2]), br + 0.12, segs=10), 'emitter', 'gun_glow'))
+    K.append(bx((0.3, 0.3, 0.3), (hi[0] - 0.4, 0, hi[2] + 0.12), 'gun_accent', 'sightdot', 0.0))
+    mb = _bounds(P, ['mag'])
+    if mb is not None:                              # glow window on the magazine (follows v_mag)
+        mlo, mhi = mb
+        for sg in (1, -1):
+            K.append(bx((max(0.3, (mhi[0] - mlo[0]) * 0.3), 0.08, (mhi[2] - mlo[2]) * 0.45),
+                        ((mlo[0] + mhi[0]) / 2, sg * (max(abs(mlo[1]), abs(mhi[1])) + 0.03), (mlo[2] + mhi[2]) / 2),
+                        'gun_glow', 'magglow', 0.0))
+    return P + K
+
+
+def _special(i):
+    idx, title, base, body, gl, acc = SPECIALS[i]
+    from ..guns import standard_materials
+    M = dict(standard_materials(base))
+    M.update({'gun_body': metal(body, seed=940 + i, panels=1.3, chipping=0.3, edge_wear=0.85, scratches=0.4),
+              'gun_metal': metal(tuple(int(c * 0.55 + 20) for c in body), seed=950 + i, scratches=0.45, edge_wear=0.8),
+              'gun_poly': {'type': 'rubber', 'color': tuple(int(c * 0.4 + 12) for c in body), 'seed': 960 + i},
+              'gun_dark': metal((26, 26, 30), seed=970 + i, scratches=0.3),
+              'gun_glow': glow(gl), 'gun_accent': glow(acc),
+              'gun_lens': {'type': 'visor', 'color': tuple(int(c * 0.5) for c in gl), 'color2': (230, 250, 255)}})
+    for k in list(M):
+        if k not in GUNMATS and k not in ('gun_lens',) and M[k] is None:
+            del M[k]
+    d = dict(kind='vhuman', name='v_sw%d' % idx, vkind=base, gun=_scifi_kit(base), materials=M, arms=vex_arms())
+    d['doc'] = title
+    return d
+
+
+def v_sw0(): return _special(0)
+def v_sw1(): return _special(1)
+def v_sw2(): return _special(2)
+def v_sw3(): return _special(3)
+def v_sw4(): return _special(4)
+def v_sw5(): return _special(5)
+def v_sw6(): return _special(6)
+def v_sw7(): return _special(7)
+
+
+def specials():
+    """v_sw0..v_sw7 (special weapons on their base-weapon enum order)."""
+    return [_special(i) for i in range(8)]

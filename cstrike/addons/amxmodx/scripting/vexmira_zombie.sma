@@ -682,6 +682,8 @@ new g_pZc[ZCV_TOTAL];
 #define ZP_HOOK       1
 #define ZP_WEB        2
 #define BEAM_MARK_HOOK 7779
+#define BEAM_POINTS   0     // beam varligi turu (rendermode & 0x0F): iki nokta
+#define BEAM_ENTPOINT 1     // varlik (+ ek noktasi, sequence) -> nokta (angles)
 #define TASK_ZCTICK   33500
 // v3.0 (C)
 #define TASK_AMBREST  34000   // ortam sesleri (ambient_generic) yeniden baslatma
@@ -784,6 +786,7 @@ new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, 
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];       // varlik -> sahibi / kafa ustunden yukseklik
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
+new g_iDbgFp;   //ALIGNDBG
 // Boss / ozel karakter sesleri: bekleme sureleri
 new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
 new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
@@ -2705,6 +2708,7 @@ public plugin_init()
     g_pPrefixVip     = register_cvar("vex_chat_prefix_vip", "^4[^3VIP^4]^1");
     g_pPrefixAdmin   = register_cvar("vex_chat_prefix_admin", "^3[ADMIN]^1");
     register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
+    register_srvcmd("vex_dbg_align", "srv_DbgAlign");   //ALIGNDBG
     register_forward(FM_SetModel, "fw_SetModelPost", 1);
     register_forward(FM_AddToFullPack, "fw_AddToFullPackPost", 1);
     PrecacheReportTotals();
@@ -10747,6 +10751,13 @@ stock FxFunnel(const Float:o[3], spr, bool:reverse)
     }
 }
 
+// Isin baslangic varligi: oyuncuysa el eki (attachment 1 = "Bip01 R Hand"; ek yoksa istemci
+// oyuncunun kendi konumunu kullanir) - simsek / zincir govde merkezinden degil elden cikar
+stock BeamEntHand(ent)
+{
+    return (1 <= ent <= g_iMax) ? (ent | (1 << 12)) : ent;
+}
+
 // Varliktan noktaya isin (zincir simsek)
 stock FxBeamEntPoint(ent, const Float:b[3], spr, r, g, bl, width, noise, life = 3)
 {
@@ -10756,7 +10767,7 @@ stock FxBeamEntPoint(ent, const Float:b[3], spr, r, g, bl, width, noise, life = 
             continue;
         FxBegin(b, p);
         write_byte(TE_BEAMENTPOINT);
-        write_short(ent);
+        write_short(BeamEntHand(ent));
         engfunc(EngFunc_WriteCoord, b[0]);
         engfunc(EngFunc_WriteCoord, b[1]);
         engfunc(EngFunc_WriteCoord, b[2]);
@@ -15984,6 +15995,8 @@ public menu_nade_handler(id, menu, item)
 /* ================================================================== */
 
 #define DROP_CLASS "vex_airdrop"
+#define DROP_TOP_Z  20.0   // kutu modelinin ust yuzu (supply_crate: taban z = 0, 20 birim)
+#define DROP_GLOW_Z 30.0   // isaret sprite'inin merkezi (kutunun ustunde)
 
 /* ---------------- Hava ikmali ----------------
    Round icinde belirli araliklarla gokten parlayan bir kutu iner.
@@ -16111,11 +16124,15 @@ SpawnAirdrop()
                 set_entvar(spr, var_renderamt, 255.0);
                 set_entvar(spr, var_rendercolor, Float:{255.0, 200.0, 40.0});
                 set_entvar(spr, var_scale, 1.2);
-                set_entvar(spr, var_movetype, MOVETYPE_FOLLOW);
-                set_entvar(spr, var_aiment, ent);
-                set_entvar(spr, var_v_angle, Float:{0.0, 0.0, 26.0});
+                // v3.0 hizalama: FOLLOW degil (istemci FOLLOW sprite'ini kutunun icine cizer).
+                // Kutunun ustunde; kutuyla ayni hizla iner (NOCLIP + hiz, istemci yumusatir).
+                set_entvar(spr, var_movetype, MOVETYPE_NOCLIP);
                 set_entvar(spr, var_solid, SOLID_NOT);
-                engfunc(EngFunc_SetOrigin, spr, top);
+                new Float:gp[3];
+                gp = top;
+                gp[2] += DROP_GLOW_Z;
+                engfunc(EngFunc_SetOrigin, spr, gp);
+                set_entvar(spr, var_velocity, Float:{0.0, 0.0, -40.0});
                 set_entvar(ent, var_iuser3, spr);
             }
         }
@@ -16160,14 +16177,30 @@ public fw_DropThink(ent)
         ZoneSpawn(o, 70.0, 255, 200, 40, Float:get_entvar(ent, var_fuser1) - now, ent, false);
     }
 
-    // Altin isin sutunu kutuyu takip eder (duserken de)
-    DropSkyPoint(o, sky);
+    // Altin isin sutunu kutuyu takip eder (duserken de); kutunun ustunden baslar
+    new Float:ct[3], Float:vel[3];
+    ct = o;
+    ct[2] += DROP_TOP_Z;
+    DropSkyPoint(ct, sky);
     new beam = get_entvar(ent, var_iuser2);
     if (beam > 0 && !is_nullent(beam))
-        BeamPoints(beam, o, sky);
+        BeamPoints(beam, ct, sky);
     new core = get_entvar(ent, var_iuser4);
     if (core > 0 && !is_nullent(core))
-        BeamPoints(core, o, sky);
+        BeamPoints(core, ct, sky);
+    // Isaret sprite'i kutunun ustunde, kutunun hiziyla
+    new glow = get_entvar(ent, var_iuser3);
+    if (glow > 0 && !is_nullent(glow))
+    {
+        new Float:gp[3];
+        gp = o;
+        gp[2] += DROP_GLOW_Z;
+        engfunc(EngFunc_SetOrigin, glow, gp);
+        get_entvar(ent, var_velocity, vel);
+        if (landed)
+            vel[0] = vel[1] = vel[2] = 0.0;
+        set_entvar(glow, var_velocity, vel);
+    }
 
     // Altin nabiz isigi (eski ince sutun yedek olarak)
     if (!get_pcvar_num(g_pDropBeacon) || !beam)
@@ -18044,10 +18077,14 @@ public fw_ZoneThink(ent)
             set_entvar(ent, var_flags, FL_KILLME);
             return;
         }
-        new Float:fo[3], Float:pos[3];
+        new Float:fo[3], Float:pos[3], Float:fv[3];
         get_entvar(follow, var_origin, fo);
         FloorAt(fo, pos);
         engfunc(EngFunc_SetOrigin, ent, pos);
+        // Dusunceler arasinda da takip etsin (NOCLIP + yatay hiz; istemci yumusatir)
+        get_entvar(follow, var_velocity, fv);
+        fv[2] = 0.0;
+        set_entvar(ent, var_velocity, fv);
     }
 
     new Float:radius = Float:get_entvar(ent, var_fuser3);
@@ -19617,7 +19654,6 @@ EggSpawn(const Float:o[3])
         return 0;
     new Float:pos[3];
     FloorAt(o, pos);
-    pos[2] += 14.0;
 
     set_entvar(ent, var_classname, EGG_CLASS);
     if (g_szEggModel[0])
@@ -19640,7 +19676,17 @@ EggSpawn(const Float:o[3])
     }
     set_entvar(ent, var_movetype, MOVETYPE_NONE);
     set_entvar(ent, var_solid, SOLID_BBOX);
-    engfunc(EngFunc_SetSize, ent, Float:{-14.0, -14.0, -14.0}, Float:{14.0, 14.0, 14.0});
+    if (g_szEggModel[0])
+    {
+        // hive_egg.mdl: taban z = 0 -> zemine oturur (eskiden 14 birim havada duruyordu)
+        pos[2] -= 1.0;
+        engfunc(EngFunc_SetSize, ent, Float:{-12.0, -12.0, 0.0}, Float:{12.0, 12.0, 24.0});
+    }
+    else
+    {
+        pos[2] += 14.0;   // sprite merkezi
+        engfunc(EngFunc_SetSize, ent, Float:{-14.0, -14.0, -14.0}, Float:{14.0, 14.0, 14.0});
+    }
     engfunc(EngFunc_SetOrigin, ent, pos);
 
     new Float:hp = 150.0 + 40.0 * float(CountHumans(true));
@@ -19670,6 +19716,8 @@ public fw_EggThink(ent)
 
     new Float:o[3], Float:now = get_gametime();
     get_entvar(ent, var_origin, o);
+    if (g_szEggModel[0])
+        o[2] += 12.0;   // efektler yumurtanin ortasindan (model tabani zeminde)
     if (now >= Float:get_entvar(ent, var_fuser1))
     {
         // Catladi: asit patlamasi + (varsa) yardimci zombi
@@ -19693,6 +19741,8 @@ EggTakeDamage(ent, attacker, Float:damage)
     new Float:hp = Float:get_entvar(ent, var_health) - damage;
     new Float:o[3];
     get_entvar(ent, var_origin, o);
+    if (g_szEggModel[0])
+        o[2] += 12.0;
     if (hp <= 0.0)
     {
         FxSprite(o, g_sprSmoke, 15, 180);
@@ -19998,7 +20048,7 @@ stock BeamEnts(a, b, spr, r, g, bl, width, noise, life)
 {
     message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
     write_byte(TE_BEAMENTS);
-    write_short(a);
+    write_short(BeamEntHand(a));
     write_short(b);
     write_short(spr);
     write_byte(0);
@@ -20355,7 +20405,7 @@ ZProjSpawn(owner, type, Float:speed, Float:range)
     {
         new Float:hand[3];
         ZcHand(owner, hand);
-        set_entvar(ent, var_iuser3, ChainBeamCreate(hand, start));
+        set_entvar(ent, var_iuser3, ChainBeamCreate(hand, start, owner));
     }
     // fuser4 = 0: iz (TE_BEAMFOLLOW) ilk dusunmede gonderilir (varlik istemciye ulassin)
     set_entvar(ent, var_fuser4, 0.0);
@@ -20366,7 +20416,10 @@ ZProjSpawn(owner, type, Float:speed, Float:range)
 }
 
 // Kanca zinciri: kalici isin varligi (titremesiz). chain.spr yoksa koyu kirmizi lazer.
-ChainBeamCreate(const Float:a[3], const Float:b[3])
+// v3.0 hizalama: zincir BEAM_ENTPOINT; baslangic = sahibin el eki (attachment 1, oyuncu
+// modellerinde "Bip01 R Hand"). Istemci bunu oyuncunun cizilen (enterpole) pozundan alir;
+// sunucu noktasi (ZcHand) yalnizca PVS / yedek icin guncellenir.
+ChainBeamCreate(const Float:a[3], const Float:b[3], owner = 0)
 {
     new beam = rg_create_entity("beam");
     if (is_nullent(beam))
@@ -20392,7 +20445,9 @@ ChainBeamCreate(const Float:a[3], const Float:b[3])
     set_entvar(beam, var_animtime, 0.0);
     set_entvar(beam, var_skin, 0);
     set_entvar(beam, var_sequence, 0);
-    set_entvar(beam, var_rendermode, 0);
+    set_entvar(beam, var_rendermode, (1 <= owner <= g_iMax) ? BEAM_ENTPOINT : BEAM_POINTS);
+    if (1 <= owner <= g_iMax)
+        set_entvar(beam, var_sequence, owner | (1 << 12));
     set_entvar(beam, var_iuser1, BEAM_MARK_HOOK);
     BeamPoints(beam, a, b);
     return beam;
@@ -22520,6 +22575,19 @@ public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
     get_entvar(id, var_origin, o);
     o[2] += ((get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id]) + g_fOvhDz[ent];
     set_es(es, ES_Origin, o);
+    //ALIGNDBG_BEGIN
+    if (g_iDbgFp > 0)
+    {
+        g_iDbgFp--;
+        new Float:po[3], Float:so[3], mdl[32];
+        get_entvar(id, var_origin, po);
+        get_es(es, ES_Origin, so);
+        get_user_info(id, "model", mdl, charsmax(mdl));
+        log_amx("[ALIGNDBG] ovh ent=%d owner=%d host=%d mdl=%s boss=%d duck=%d stand=%.1f duckTop=%.1f slotDz=%.1f SENT_DZ=%.1f dx=%.1f dy=%.1f mt=%d eff=%d",
+            ent, id, host, mdl, g_bBoss[id], (get_entvar(id, var_flags) & FL_DUCKING) ? 1 : 0, g_fOvhStand[id], g_fOvhDuck[id], g_fOvhDz[ent],
+            so[2] - po[2], so[0] - po[0], so[1] - po[1], get_es(es, ES_MoveType), get_es(es, ES_Effects));
+    }
+    //ALIGNDBG_END
     return FMRES_IGNORED;
 }
 
@@ -23559,3 +23627,98 @@ ResetPlayerLate(id)
     g_iVoteMenu[id] = -1;
     g_iMapVoteMenu[id] = -1;
 }
+
+//ALIGNDBG_BEGIN  (gecici hizalama telemetrisi - dogrulamadan sonra silinecek)
+public srv_DbgAlign()
+{
+    new arg[16];
+    read_argv(1, arg, charsmax(arg));
+    if (equal(arg, "ovh"))
+    {
+        new num[8];
+        read_argv(2, num, charsmax(num));
+        g_iDbgFp = num[0] ? str_to_num(num) : 40;
+        for (new id = 1; id <= g_iMax; id++)
+        {
+            if (!is_user_alive(id) || !(g_iOvhBar[id] || g_iOvhEmb[id] || g_iOvhIcon[id]))
+                continue;
+            new mdl[32];
+            get_user_info(id, "model", mdl, charsmax(mdl));
+            log_amx("[ALIGNDBG] stack id=%d mdl=%s boss=%d bar=%d(%.1f) emb=%d(%.1f) icon=%d(%.1f) top=%.1f stand=%.1f duck=%.1f",
+                id, mdl, g_bBoss[id], g_iOvhBar[id], g_iOvhBar[id] ? g_fOvhDz[g_iOvhBar[id]] : 0.0, g_iOvhEmb[id], g_iOvhEmb[id] ? g_fOvhDz[g_iOvhEmb[id]] : 0.0,
+                g_iOvhIcon[id], g_iOvhIcon[id] ? g_fOvhDz[g_iOvhIcon[id]] : 0.0, g_fOvhStackTop[id], g_fOvhStand[id], g_fOvhDuck[id]);
+        }
+        return PLUGIN_HANDLED;
+    }
+    if (equal(arg, "model"))
+    {
+        // vex_dbg_align model <ad>: ilk canli bota model ver (stok model testi)
+        new mdl[32];
+        read_argv(2, mdl, charsmax(mdl));
+        for (new id = 1; id <= g_iMax; id++)
+            if (is_user_alive(id))
+            {
+                rg_set_user_model(id, mdl);
+                new Float:st, Float:du;
+                MdlHeadTops(mdl, st, du);
+                log_amx("[ALIGNDBG] model id=%d -> %s stand=%.1f duck=%.1f", id, mdl, st, du);
+                break;
+            }
+        return PLUGIN_HANDLED;
+    }
+    if (equal(arg, "mine"))
+    {
+        new n;
+        for (new id = 1; id <= g_iMax && n < 2; id++)
+        {
+            if (!is_user_alive(id))
+                continue;
+            n++;
+            new Float:eye[3], Float:dir[3], Float:end[3], Float:surf[3], Float:nrm[3], Float:frac;
+            get_entvar(id, var_origin, eye);
+            eye[2] += 17.0;
+            for (new k = 0; k < 6; k++)
+            {
+                dir[0] = dir[1] = dir[2] = 0.0;
+                switch (k)
+                {
+                    case 0: dir[0] = 1.0;
+                    case 1: dir[1] = 1.0;
+                    case 2: dir[0] = -1.0;
+                    case 3: dir[1] = -1.0;
+                    case 4: dir[2] = -1.0;
+                    case 5: dir[2] = 1.0;
+                }
+                for (new i = 0; i < 3; i++)
+                    end[i] = eye[i] + dir[i] * 2048.0;
+                engfunc(EngFunc_TraceLine, eye, end, IGNORE_MONSTERS, id, 0);
+                get_tr2(0, TR_flFraction, frac);
+                if (frac >= 1.0)
+                    continue;
+                get_tr2(0, TR_vecEndPos, surf);
+                get_tr2(0, TR_vecPlaneNormal, nrm);
+                new ent = CreateMine(id, surf, nrm);
+                if (!ent)
+                    continue;
+                new Float:ang[3], Float:o[3], Float:bs[3], Float:a2[3], Float:fw[3], Float:rt[3], Float:up[3], Float:va[3];
+                get_entvar(ent, var_angles, ang);
+                get_entvar(ent, var_origin, o);
+                get_entvar(ent, var_vuser3, bs);
+                get_entvar(id, var_v_angle, va);
+                a2[0] = -ang[0]; a2[1] = ang[1]; a2[2] = ang[2];
+                engfunc(EngFunc_MakeVectors, a2);
+                global_get(glb_v_forward, fw);
+                global_get(glb_v_right, rt);
+                global_get(glb_v_up, up);
+                new Float:d = (o[0] - surf[0]) * nrm[0] + (o[1] - surf[1]) * nrm[1] + (o[2] - surf[2]) * nrm[2];
+                new Float:be = (bs[0] - o[0]) * nrm[0] + (bs[1] - o[1]) * nrm[1] + (bs[2] - o[2]) * nrm[2];
+                log_amx("[ALIGNDBG] mine k=%d mdl=%s body=%d seq=%d normal=(%.2f %.2f %.2f) angles=(%.1f %.1f %.1f) modelX=(%.2f %.2f %.2f) X.n=%.3f modelZ=(%.2f %.2f %.2f) Z.up=%.2f viewyaw=%.0f origin-surf=%.2f emitter-along-n=%.2f",
+                    k, g_szMineModel, get_entvar(ent, var_body), get_entvar(ent, var_sequence), nrm[0], nrm[1], nrm[2], ang[0], ang[1], ang[2], fw[0], fw[1], fw[2],
+                    fw[0] * nrm[0] + fw[1] * nrm[1] + fw[2] * nrm[2], up[0], up[1], up[2], up[2], va[1], d, be);
+            }
+        }
+        return PLUGIN_HANDLED;
+    }
+    return PLUGIN_HANDLED;
+}
+//ALIGNDBG_END
