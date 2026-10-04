@@ -51,3 +51,14 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
 16. MOD SILAHLARI CFG: survivor / sniper / (nemesis-assassin pence) icin cfg'den silah TURU (hangi silah verilir), hasar
     carpani, mermi, ozel efekt, v_/p_ model ve ses ayarlanabilsin (su an sadece modeller: SURVIVOR_M249/DEAGLE_V/PMODEL,
     SNIPER_AWP_V/PMODEL, NEMESIS_CLAW, ASSASSIN_CLAW). Ozel silahlar gibi tablo: vex_modewpn <mod> <silah> <hasar> ...
+17. MENU TASARIMI v2 (sahip ornek resim gonderdi: rusca "Vip menu", baslik + sari baslik satiri + kirmizi fiyat/bilgi satiri,
+    numaralar kirmizi, madde adi + koseli parantez icinde renkli deger). Ornegin daha gelismis, essiz hali: her menude
+    baslik (buyuk / ozel karakterli), alt bilgi satiri (AP / VC / seviye / durum), dogru yerde dogru renk, bos satirlarla
+    gruplama, kisa ve net madde adlari, degerler [koseli parantez] icinde renkli. Karmasik olmasin, sade/kotu da olmasin.
+    Yanlis yerdeki seyler duzelsin: MARKETTE YETENEKLER (perks) OLMAZ -> yetenekler Karakter/Gelisim tarafina.
+18. SILAH SECIM MENUSU: "otomatik silah" ac/kapa maddesinin yaninda [ACIK]/[KAPALI] durumu; diger ac/kapa ayarlarinda da.
+19. VIP: cok daha fazla VIP ozelligi (adil, pay-to-win degil), menude net listelensin.
+20. KOZMETIK: kanat + pet + sapka bolumleri (model dosyalarini sahip koyacak, cfg'ye eklenecek: her biri icin ad EN/TR,
+    model yolu, fiyat VC, VIP-only, ve HIZALAMA: bag noktasi/attachment veya bone, ofset x y z, aci, olcek, animasyon
+    sequence/framerate). Pet: oyuncuyu takip eden, yuzen; kanat: sirta bagli; sapka: kafaya bagli (aiment + body/attachment).
+    Dosya yoksa menude gizli/kapali, hata yok. Model yapmiyoruz.
