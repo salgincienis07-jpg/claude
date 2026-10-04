@@ -44,3 +44,7 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
     icindeki crosshair bolgesi = gorsel; gosterilir, 2-3 sn sonra oyuncunun gercek silah HUD'u geri yuklenir). Sprite'lar
     devtools/sprkit ile uretilir (mor/camgobegi palet, EN ve TR ayri gorseller). Sabit ust skor tablosu ve sag panel icin
     sunucu eklentisi ekranin kosesine resim koyamaz -> en gorsel DHUD + hud.txt ikon tasarimi; bu sinir raporda yazilir.
+15. GENEL STIL = CSO (Counter-Strike Online) gibi: ekran ortasi sprite bildirimler (killmark: 1-5'li seri olum isaretleri
+    + headshot/knife ozel, MVP, round/kazanan, boss, enfeksiyon, level up, son insan), CSO tarzi renkli menu basliklari,
+    CSO tarzi chat ve sesli bildirim (sesler devtools/sfx), CSO tarzi ust skor/round tasarimi (DHUD + ikon), hepsi cfg'den
+    acilip kapanir (vex_cso_style 1) ve EN/TR.
