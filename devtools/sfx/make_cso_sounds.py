@@ -1,4 +1,4 @@
-# Vexmira v3.2 - CSO tarzi ekran bildirimi sesleri (7 kisa WAV, prosedurel, sabit tohum)
+# Vexmira v3.2 - CSO tarzi ekran bildirimi sesleri (11 kisa WAV, prosedurel, sabit tohum)
 #   python3 make_cso_sounds.py [cikti_klasoru]
 # Cikti: cstrike/sound/vexmira/cso/*.wav  (mono 16 bit 22050 Hz; 2D "spk" ile calinir,
 #   eklenti precache_generic kullanir -> ses yuvasi harcamaz)
@@ -93,7 +93,45 @@ def level():
     return reverb(mix(*parts), 1.0, 0.25)
 
 
-SOUNDS = {'km': (km, 0.7), 'km_sp': (km_sp, 0.9), 'mvp': (mvp, 1.8), 'banner': (banner, 1.3),
+def firstblood():
+    # v3.3 ilk kan: agir darbe + kisa metal cinlama
+    d = 1.0
+    n = n_of(d)
+    b = boom(0.7, 120, 45, 0.18) * 0.9
+    hit = metal_hit(520, 0.6, 0.2, 'plate') * 0.6
+    st = chord_stab([146.8, 220.0, 293.7], 0.6, 3500, 500) * 0.45
+    return reverb(mix(at(b, n, 0), at(hit, n, 0), at(st, n, 0.05)), 0.9, 0.2)
+
+
+def bosskill():
+    # v3.3 boss oldu: patlama + yukselen zafer akoru
+    d = 1.8
+    n = n_of(d)
+    b = boom(1.0, 90, 30, 0.3) * 0.9
+    c = chord_stab([392.0, 493.9, 587.3, 784.0], 1.2, 6000, 900) * 0.7
+    return reverb(mix(at(b, n, 0), at(c, n, 0.25), at(timpani(60, 1.0) * 0.5, n, 0.25)), 1.2, 0.25)
+
+
+def infected():
+    # v3.3 enfekte oldun: inen alcak braam + kalp atisi
+    d = 1.4
+    n = n_of(d)
+    br = braam(45, 1.2, 2.8) * 0.75
+    down = sine(sweep(600, 120, 0.5), 0.5) * env_lin([(0, 0), (0.1, 1), (1, 0)], 0.5) * 0.3
+    return reverb(mix(at(br, n, 0), at(down, n, 0), at(thump(0.3, 55, 0.08), n, 0.6), at(thump(0.3, 55, 0.08), n, 0.85)), 0.9, 0.2)
+
+
+def tensec():
+    # v3.3 son 10 saniye: uc saat tiki + kisa uyari
+    d = 1.0
+    n = n_of(d)
+    parts = [at(metal_hit(1800, 0.12, 0.03, 'plate') * 0.5, n, i * 0.22) for i in range(3)]
+    parts.append(at(beep(990, 0.18, 'square') * 0.3, n, 0.68))
+    return mix(*parts)
+
+
+SOUNDS = {'firstblood': (firstblood, 1.1), 'bosskill': (bosskill, 2.0), 'infected': (infected, 1.5), 'tensec': (tensec, 1.1),
+          'km': (km, 0.7), 'km_sp': (km_sp, 0.9), 'mvp': (mvp, 1.8), 'banner': (banner, 1.3),
           'win': (win, 2.0), 'alert': (alert, 1.8), 'levelup': (level, 1.4)}
 
 if __name__ == '__main__':

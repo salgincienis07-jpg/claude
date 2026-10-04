@@ -217,7 +217,11 @@ def write_txt(name, sheet, x, y, w, h):
 # ---------------------------------------------------------------------------
 # icerik tablolari
 # ---------------------------------------------------------------------------
-KILLMARKS = ['km1', 'km2', 'km3', 'km4', 'km5', 'hs', 'knife', 'nade']
+KILLMARKS = ['km1', 'hs', 'nade']  # tek sayfa (km1.spr)
+# v3.3: COMBO (2..5 oldurme pencere icinde) = buyuk yazili alt bant. Ardisik seviyeler FARKLI
+# sayfada (cmb1 / cmb2): istemci ayni sayfanin baska bolgesine gecmeyi bazen yenilemez.
+COMBO = [('km2', 'DOUBLE KILL', 'cyan', CYAN, 2), ('km3', 'TRIPLE KILL', 'purple', PURPLE, 3),
+         ('km4', 'MULTI KILL', 'gold', GOLD, 4), ('km5', 'MEGA KILL', 'red', (255, 70, 70), 5)]
 # orta bantlar: (dosya adi, metin, renk, vurgu, ust kucuk yazi)
 MID = [
     ('mvp', 'M V P', 'gold', GOLD, 'MOST VALUABLE PLAYER'),
@@ -238,6 +242,20 @@ LOW = [
     ('last_tr', 'SON INSAN', 'gold', GOLD, None),
     ('level_en', 'LEVEL UP', 'cyan', CYAN, None),
     ('level_tr', 'SEVIYE ATLADIN', 'cyan', CYAN, None),
+    # v3.3: zombiye bicakla oldurme (killmark sinifi, nisangah alti)
+    ('knife_en', 'KNIFE KILL', 'gold', GOLD, 'HUMILIATION'),
+    ('knife_tr', 'BICAKLA OLDURDUN', 'gold', GOLD, 'REZALET'),
+]
+# v3.3: ek orta bantlar (vex_cso_notes 128)
+MID2 = [
+    ('fb_en', 'FIRST BLOOD', 'red', (255, 60, 60), 'ROUND'),
+    ('fb_tr', 'ILK KAN', 'red', (255, 60, 60), 'ROUND'),
+    ('bkill_en', 'BOSS KILLED', 'gold', GOLD, 'VICTORY'),
+    ('bkill_tr', 'BOSS OLDURULDU', 'gold', GOLD, 'ZAFER'),
+    ('ten_en', '10 SECONDS LEFT', 'cyan', CYAN, 'SURVIVE'),
+    ('ten_tr', 'SON 10 SANIYE', 'cyan', CYAN, 'HAYATTA KAL'),
+    ('infd_en', 'INFECTED', 'green', (120, 255, 60), 'YOU ARE A ZOMBIE'),
+    ('infd_tr', 'ENFEKTE OLDUN', 'green', (120, 255, 60), 'ARTIK ZOMBISIN'),
 ]
 NROUNDS = 30
 
@@ -245,15 +263,31 @@ NROUNDS = 30
 def main():
     os.makedirs(OUT, exist_ok=True)
     total = 0
-    # killmark: 2 sayfa x 4 hucre (128x128)
+    # killmark: 1 sayfa x 3 hucre (128x128)
+    cv = Canvas(256, 256, SS)
+    for j, k in enumerate(KILLMARKS):
+        ox, oy = (j % 2) * 128, (j // 2) * 128
+        killmark(cv, ox, oy, k)
+        write_txt(k, 'km1', ox, oy, 128, 128)
+    total += save_sheet('km1', cv)
+    # combo: 2 sayfa x 2 (256x128, icerik alt 64); km2/km4 -> cmb1, km3/km5 -> cmb2
+    for si in range(2):
+        cv = Canvas(256, 256, SS)
+        for j in range(2):
+            name, text, grad, acc, n = COMBO[j * 2 + si]
+            oy = j * 128
+            banner(cv, 0, oy + 64, 256, 64, text, grad, acc, 'x%d COMBO' % n)
+            write_txt(name, 'cmb%d' % (si + 1), 0, oy, 256, 128)
+        total += save_sheet('cmb%d' % (si + 1), cv)
+    # v3.3 ek orta bantlar: 2 sayfa x 4 (256x64)
     for si in range(2):
         cv = Canvas(256, 256, SS)
         for j in range(4):
-            k = KILLMARKS[si * 4 + j]
-            ox, oy = (j % 2) * 128, (j // 2) * 128
-            killmark(cv, ox, oy, k)
-            write_txt(k, 'km%d' % (si + 1), ox, oy, 128, 128)
-        total += save_sheet('km%d' % (si + 1), cv)
+            name, text, grad, acc, sub = MID2[si * 4 + j]
+            oy = j * 64
+            banner(cv, 0, oy, 256, 64, text, grad, acc, sub)
+            write_txt(name, 'mid%d' % (si + 4), 0, oy, 256, 64)
+        total += save_sheet('mid%d' % (si + 4), cv)
     # orta bantlar: 3 sayfa x 4 (256x64)
     for si in range(3):
         cv = Canvas(256, 256, SS)
@@ -263,8 +297,8 @@ def main():
             banner(cv, 0, oy, 256, 64, text, grad, acc, sub)
             write_txt(name, 'mid%d' % (si + 1), 0, oy, 256, 64)
         total += save_sheet('mid%d' % (si + 1), cv)
-    # alt bantlar: 2 sayfa x 2 (256x128, icerik alt 64)
-    for si in range(2):
+    # alt bantlar: 3 sayfa x 2 (256x128, icerik alt 64)
+    for si in range(3):
         cv = Canvas(256, 256, SS)
         for j in range(2):
             name, text, grad, acc, sub = LOW[si * 2 + j]
