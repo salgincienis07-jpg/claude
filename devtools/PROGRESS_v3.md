@@ -49,6 +49,12 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   Paket: `devtools/release/pack301.sh` (v1 oyuncu/pençe modelleri, p_ak47, pilot HARİÇ) + not `devtools/release/ARA_SURUM_v3.0.1_OKU.txt` (betik $SP kopyasını okur)
   (@@ALIGN@@ ve @@TEST@@ yerlerini doldur). Sonra VERSION "3.0.1-ara", botlu test, zip gönder.
 
+- 2026-10-04 00:33: kullanıcı (%79 kullanım): oyuncu modelleri beklesin; yetişebildiğince silah modelleri, bıçaklar
+  (zombi pençeleri), efektler. 3.0.1 paketi sabit revizyondan (`$SP/pin301_rev.txt`, `$SP/pack301.sh`) çıkar.
+  3.0.2 iş akışı `$SP/wf/weapons-fx-302.js` run `wf_446ac8ba-53e`: 34 pençe (MakeHuman el anatomisi), p_ modeller
+  (vexblade, 3 bomba, sw0-7), hook/hive_egg/spore_pod dünya modelleri, efekt sprite yükseltmesi + entegrasyon testi.
+  Sonra: 3.0.2 zip (v1 oyuncu modelleri hariç).
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
