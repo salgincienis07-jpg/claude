@@ -25,7 +25,29 @@ Haritayi acmak: changelevel zm_vex_laboratory
 ---------------------------------------------------------------------
 
 [OTOMATIK HIZALAMA]
-@@ALIGN@@
+ - Can barlari ve kafa ustu ikonlar (boss bari, boss amblemi, nemesis /
+   assassin / alfa bari, son insan, MVP, admin, VIP) artik oyuncunun
+   ICINDE degil, KAFASININ USTUNDE. Sebep: oyun istemcisi "takip eden"
+   sprite'lari oyuncunun belinde ciziyordu; artik her ag paketinde
+   oyuncunun o anki konumu + modelin gercek kafa yuksekligi ile
+   yerlestiriliyor (oyuncuyla birlikte akici hareket eder).
+ - Kafa yuksekligi her oyuncu modeli dosyasindan OTOMATIK okunur
+   (ayakta / egilince ayri): kisa zombi, uzun boss, orijinal CS modeli -
+   hepsinde dogru yukseklik. Egilince bar da asagi iner.
+ - Ust uste gostergeler sirali: bar -> boss amblemi -> ikon.
+ - Ayar: vex_overhead_margin (kafa ile bar arasi bosluk, 5),
+   vex_overhead_gap (gostergeler arasi bosluk, 2).
+ - LAZER MAYINI: duvara / yere / tavana DUZ oturur, arkasi yuzeye
+   yapisik, lazer isini merceginin ucundan cikar. Yerde / tavanda kuranin
+   baktigi yone doner. (Ters duruyordu - duzeltildi.) Baska bir mayin
+   modeli kullanirsan: v_tripmine.mdl ve w_c4.mdl icin hazir ayar var;
+   farkli bir model icin vexmira.cfg: LASERMINE_ANGLES / LASERMINE_OFFSET
+   / LASERMINE_EMITTER.
+ - Ikmal kutusu isareti kutunun icinde degil 32 birim ustunde; altin isik
+   sutunu kutunun tepesinden baslar.
+ - Kasap (Butcher) kancasinin zinciri ve boss simsek / zincir isinlari
+   artik govdenin ortasindan degil ELDEN cikar.
+ - Oyuncuyu / kutuyu takip eden alan efektleri geride kalmaz.
 
 [HARITA: zm_vex_laboratory - "Vexmira Arastirma Tesisi"]
  - Zehirli kazaya ugramis yeraltindaki Vexmira biyolabi:
@@ -98,5 +120,5 @@ Haritayi acmak: changelevel zm_vex_laboratory
 ---------------------------------------------------------------------
  - FastDL (sv_downloadurl) onerilir: harita + yeni modeller + sesler.
  - Bir sey yanlis hizali / garip gorunur ya da duyulursa ekran goruntusu
-   ile haber ver; hizalama ayarlari vexmira.cfg'de (vex_ovh_* ve
-   vex_mine_*) elle de degistirilebilir.
+   ile haber ver; hizalama ayarlari vexmira.cfg'de (vex_overhead_margin,
+   vex_overhead_gap, LASERMINE_*) elle de degistirilebilir.
