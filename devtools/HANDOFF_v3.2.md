@@ -39,3 +39,8 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
     gorsel cozum: oyunun hud.txt ikonlari (StatusIcon/Scenario), BarTime ilerleme cubuklari, cercevel renkli DHUD tasarimi.
     Eksik sprite dosyalari uretilsin (devtools/sprkit). Sinir (sunucu eklentisi ekrana keyfi 2D resim cizemez) raporda acikca.
 13. HERSEYI KONTROL ET: tum ozellikler, menuler, HUD'lar, mesajlar tek tek; hicbiri unutulmasin.
+14. EKRAN SPRITE'LARI (kafa ustu degil, EKRANDA): MVP, round basi/sonu, kazanan, boss geliyor, enfeksiyon, level up gibi
+    bilgilendirmeler ekranin ortasinda SPRITE gorsel olarak (CSO "killmark" yontemi: WeaponList + ozel sprites/vex_*.txt
+    icindeki crosshair bolgesi = gorsel; gosterilir, 2-3 sn sonra oyuncunun gercek silah HUD'u geri yuklenir). Sprite'lar
+    devtools/sprkit ile uretilir (mor/camgobegi palet, EN ve TR ayri gorseller). Sabit ust skor tablosu ve sag panel icin
+    sunucu eklentisi ekranin kosesine resim koyamaz -> en gorsel DHUD + hud.txt ikon tasarimi; bu sinir raporda yazilir.
