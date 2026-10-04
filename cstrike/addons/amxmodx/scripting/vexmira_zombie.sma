@@ -144,7 +144,7 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 
 // Chat oneki vexmira.cfg'deki vex_chat_prefix'ten gelir (^1 ^3 ^4 renk kodlari desteklenir)
 #define CHAT_PREFIX   g_szPrefix
-#define MENU_TAG      "\r[\wVexmira\r] \d||"
+#define MENU_TAG      "\rVEXMIRA \y|"
 
 // Kisisel ayar bitleri (bit = KAPALI)
 #define SET_NO_HUD     (1<<0)
@@ -564,7 +564,17 @@ new g_szZModel[NUM_CLASSES][32], g_szBModel[NUM_BOSSES][32];
 new g_szNemModel[32], g_szAsnModel[32], g_szSurvModel[32], g_szSnipModel[32];
 new g_szHumanModel[32], g_szVipModel[32], g_szAdminModel[32];
 new g_szClawModel[96], g_szSWView[NUM_SPECIAL][96], g_szSWPlayer[NUM_SPECIAL][96];
-new g_szSurvGunV[2][96], g_szSurvGunP[2][96], g_szSniperGunV[96], g_szSniperGunP[96];
+// Mod silahlari (vex_modewpn): [0] survivor, [1] sniper; her biri 2 yuva.
+#define MW_MODES 2
+#define MW_SLOTS 2
+new g_szMwV[MW_MODES][MW_SLOTS][96], g_szMwP[MW_MODES][MW_SLOTS][96];
+new MW_ENT[MW_MODES][MW_SLOTS][24] = { { "weapon_m249", "weapon_deagle" }, { "weapon_awp", "" } };
+new WeaponIdType:MW_ID[MW_MODES][MW_SLOTS] = { { WEAPON_M249, WEAPON_DEAGLE }, { WEAPON_AWP, WEAPON_NONE } };
+new Float:MW_DMG[MW_MODES][MW_SLOTS] = { { 1.5, 1.5 }, { 5000.0, 1.0 } }; // > 50 = sabit mermi hasari
+new MW_CLIP[MW_MODES][MW_SLOTS] = { { 0, 0 }, { 0, 0 } };                // 0 = silahin kendi sarjoru
+new MW_BP[MW_MODES][MW_SLOTS] = { { 400, 100 }, { 100, 0 } };
+new MW_FX[MW_MODES][MW_SLOTS];                                          // SWE_* (varsayilan yok)
+new const MW_KEY[MW_MODES][] = { "SURVIVOR", "SNIPER" };
 new g_szZClaw[NUM_CLASSES][96], g_szBClaw[NUM_BOSSES][96], g_szNemClaw[96], g_szAsnClaw[96];
 new g_szWepV[31][96], g_szWepP[31][96], bool:g_bEmitting;
 new bool:g_bVoxCountdown = true;
@@ -874,20 +884,54 @@ stock MenuInfo(menu, item)
     return str_to_num(data);
 }
 
-stock MenuAdd(menu, const text[], value)
+// CSO tarzi menu renkleri: sadece \r (kirmizi) ve \y (sari). Beyaz (\w) ve
+// gri (\d) hicbir menu metninde kalmaz: \w -> \y, \d -> \r. Renksiz baslayan
+// metin sari yapilir. Kilitli girdiler secilebilir kalir (ITEM_DISABLED yok),
+// kirmizi [KILITLI] etiketi alir; secilince handler sohbette nedenini yazar.
+stock VexMenuColor(const src[], dst[], len, const lead[] = "\y")
 {
-    new info[8];
-    num_to_str(value, info, charsmax(info));
-    menu_additem(menu, text, info);
+    if (src[0] == '\' || src[0] == '^n')
+        copy(dst, len, src);
+    else
+        formatex(dst, len, "%s%s", lead, src);
+    replace_string(dst, len, "\w", "\y");
+    replace_string(dst, len, "\d", "\r");
 }
 
-stock MenuFinish(id, menu)
+stock VexMenuCreate(const title[], const handler[])
+{
+    new t[512];
+    VexMenuColor(title, t, charsmax(t), "\r");
+    return menu_create(t, handler);
+}
+
+stock VexAddText(menu, const text[], slot = 1)
+{
+    new t[192];
+    VexMenuColor(text, t, charsmax(t), "\r");
+    menu_addtext(menu, t, slot);
+}
+
+stock MenuAdd(menu, const text[], value)
+{
+    new info[8], t[192];
+    num_to_str(value, info, charsmax(info));
+    VexMenuColor(text, t, charsmax(t));
+    menu_additem(menu, t, info);
+}
+
+stock MenuProps(id, menu)
 {
     new t[32];
     formatex(t, charsmax(t), "\y%L", id, "MENU_BACK");  menu_setprop(menu, MPROP_BACKNAME, t);
     formatex(t, charsmax(t), "\y%L", id, "MENU_NEXT");  menu_setprop(menu, MPROP_NEXTNAME, t);
-    formatex(t, charsmax(t), "\r%L", id, "MENU_EXIT");  menu_setprop(menu, MPROP_EXITNAME, t);
+    formatex(t, charsmax(t), "\y%L", id, "MENU_EXIT");  menu_setprop(menu, MPROP_EXITNAME, t);
     menu_setprop(menu, MPROP_NUMBER_COLOR, "\r");
+}
+
+stock MenuFinish(id, menu)
+{
+    MenuProps(id, menu);
     menu_display(id, menu, 0);
 }
 
@@ -4989,6 +5033,46 @@ bool:ApplyTableCmd(const args[][], argc)
         }
         return true;
     }
+    if (equali(args[0], "vex_modewpn"))
+    {
+        // vex_modewpn <survivor|sniper> <yuva 1-2> <weapon_xxx|none> <hasar> <sarjor> <yedek> <efekt>
+        if (argc < 4)
+            return true;
+        new mm = equali(args[1], "survivor") ? 0 : (equali(args[1], "sniper") ? 1 : -1);
+        new ms = str_to_num(args[2]) - 1;
+        if (mm < 0 || ms < 0 || ms >= MW_SLOTS)
+        {
+            log_amx("[Vexmira] vex_modewpn: gecersiz mod / yuva: %s %s", args[1], args[2]);
+            return true;
+        }
+        if (equali(args[3], "none") || equal(args[3], "-"))
+        {
+            MW_ENT[mm][ms][0] = 0;
+            return true;
+        }
+        new WeaponIdType:w = WeaponIdType:rg_get_weapon_info(args[3], WI_ID);
+        if (w == WEAPON_NONE || w == WEAPON_KNIFE || w == WEAPON_HEGRENADE || w == WEAPON_SMOKEGRENADE || w == WEAPON_FLASHBANG || w == WEAPON_C4)
+        {
+            log_amx("[Vexmira] vex_modewpn: gecersiz silah: %s", args[3]);
+            return true;
+        }
+        copy(MW_ENT[mm][ms], charsmax(MW_ENT[][]), args[3]);
+        MW_ID[mm][ms] = w;
+        if (argc >= 5) MW_DMG[mm][ms]  = floatclamp(str_to_float(args[4]), 0.1, 99999.0);
+        if (argc >= 6) MW_CLIP[mm][ms] = clamp(str_to_num(args[5]), 0, 250);
+        if (argc >= 7) MW_BP[mm][ms]   = clamp(str_to_num(args[6]), 0, 999);
+        if (argc >= 8)
+        {
+            if (equali(args[7], "fire")) MW_FX[mm][ms] = SWE_FIRE;
+            else if (equali(args[7], "lightning")) MW_FX[mm][ms] = SWE_LIGHTNING;
+            else if (equali(args[7], "ice")) MW_FX[mm][ms] = SWE_ICE;
+            else if (equali(args[7], "vampire")) MW_FX[mm][ms] = SWE_VAMPIRE;
+            else if (equali(args[7], "void")) MW_FX[mm][ms] = SWE_VOID;
+            else if (equali(args[7], "explosive")) MW_FX[mm][ms] = SWE_EXPLOSIVE;
+            else MW_FX[mm][ms] = SWE_NONE;
+        }
+        return true;
+    }
     if (equali(args[0], "vex_sw"))
     {
         // vex_sw <no> <fiyat AP> <level> <hasar carpani> <yedek mermi>
@@ -5629,7 +5713,7 @@ ShowTitleMenu(id)
     new title[64], item[128], key[12], tn[40];
 
     formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_TITLE");
-    new menu = menu_create(title, "menu_title_handler");
+    new menu = VexMenuCreate(title, "menu_title_handler");
 
     for (new i = 0; i < NUM_TITLES; i++)
     {
@@ -5641,10 +5725,10 @@ ShowTitleMenu(id)
             new ak[16], an[40];
             formatex(ak, charsmax(ak), "ACH_NAME_%d", TITLE_ACH[i]);
             formatex(an, charsmax(an), "%L", id, ak);
-            formatex(item, charsmax(item), "\d%s \r(%s)", tn, an);
+            formatex(item, charsmax(item), "\y%s \r(%s) \r[%L]", tn, an, id, "MENU_LOCKED");
         }
         else if (g_iTitle[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[\w*\r]", tn);
+            formatex(item, charsmax(item), "\y%s \r[*\r]", tn);
         else
             formatex(item, charsmax(item), "\y%s", tn);
 
@@ -5697,8 +5781,8 @@ ShowAchMenu(id)
             count++;
     }
 
-    formatex(title, charsmax(title), "%s \y%L \r[\w%d/%d\r]^n", MENU_TAG, id, "MENU_ACH", count, NUM_ACH);
-    new menu = menu_create(title, "menu_ach_handler");
+    formatex(title, charsmax(title), "%s \y%L \r[%d/%d\r]^n", MENU_TAG, id, "MENU_ACH", count, NUM_ACH);
+    new menu = VexMenuCreate(title, "menu_ach_handler");
 
     for (new i = 0; i < NUM_ACH; i++)
     {
@@ -5711,9 +5795,9 @@ ShowAchMenu(id)
         if (g_szSWDesc[lang][i][0]) copy(n2, charsmax(n2), g_szSWDesc[lang][i]);
 
         if (g_iAch[id] & (1 << i))
-            formatex(item, charsmax(item), "\r[\wX\r] \y%s \d%s", n1, n2);
+            formatex(item, charsmax(item), "\r[X\r] \y%s \r%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\r[ \r] \d%s - %s", n1, n2);
+            formatex(item, charsmax(item), "\r[ ] \y%s \r- %s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -6270,8 +6354,8 @@ ShowShopMenu(id)
     new title[128], item[160], k1[12], k2[16], n1[40], n2[64];
     new isZ = g_bZombie[id] ? 1 : 0;
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, isZ ? "MENU_SHOP_Z" : "MENU_SHOP_H", id, "MENU_WALLET_AP", g_iAP[id]);
-    new menu = menu_create(title, "menu_shop_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, isZ ? "MENU_SHOP_Z" : "MENU_SHOP_H", id, "MENU_WALLET_AP", g_iAP[id]);
+    new menu = VexMenuCreate(title, "menu_shop_handler");
 
     for (new i = 0; i < NUM_ITEMS; i++)
     {
@@ -6286,13 +6370,13 @@ ShowShopMenu(id)
         formatex(n2, charsmax(n2), "%L", id, k2);
 
         if (g_iLevel[id] < ITEM_LVL[i])
-            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r] \d%s", n1, ITEM_LVL[i], n2);
+            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, ITEM_LVL[i], id, "MENU_LOCKED");
         else if (ITEM_LIMIT[i] && g_iBought[id][i] >= ITEM_LIMIT[i])
-            formatex(item, charsmax(item), "\d%s \r[\w%L\r]", n1, id, "SHOP_SOLDOUT");
+            formatex(item, charsmax(item), "\y%s \r[%L] \r[%L]", n1, id, "SHOP_SOLDOUT", id, "MENU_LOCKED");
         else if (g_iAP[id] >= cost)
-            formatex(item, charsmax(item), "\y%s \r[\w%d AP\r] \d%s", n1, cost, n2);
+            formatex(item, charsmax(item), "\y%s \r[%d AP\r] \r%s", n1, cost, n2);
         else
-            formatex(item, charsmax(item), "\d%s \r[\d%d AP\r] \d%s", n1, cost, n2);
+            formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, cost, id, "MENU_LOCKED");
 
         MenuAdd(menu, item, i);
     }
@@ -6580,8 +6664,8 @@ ShowSpecialMenu(id)
 {
     new title[128], item[160], k1[12], k2[16], n1[40], n2[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_SPECIAL", id, "MENU_WALLET_AP", g_iAP[id]);
-    new menu = menu_create(title, "menu_special_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_SPECIAL", id, "MENU_WALLET_AP", g_iAP[id]);
+    new menu = VexMenuCreate(title, "menu_special_handler");
 
     for (new i = 0; i < NUM_SPECIAL; i++)
     {
@@ -6591,11 +6675,13 @@ ShowSpecialMenu(id)
         formatex(n2, charsmax(n2), "%L", id, k2);
 
         if (g_iLevel[id] < SW_LVL[i])
-            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r]", n1, SW_LVL[i]);
+            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, SW_LVL[i], id, "MENU_LOCKED");
         else if (g_iSpecW[id] & (1 << i))
-            formatex(item, charsmax(item), "\y%s \r[\w%L\r]", n1, id, "OWNED");
+            formatex(item, charsmax(item), "\y%s \r[%L\r]", n1, id, "OWNED");
+        else if (g_iAP[id] >= SwPrice(id, i))
+            formatex(item, charsmax(item), "\y%s \r[%d AP] %s", n1, SwPrice(id, i), n2);
         else
-            formatex(item, charsmax(item), "%s%s \r[\w%d AP\r] \d%s", g_iAP[id] >= SwPrice(id, i) ? "\y" : "\d", n1, SwPrice(id, i), n2);
+            formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, SwPrice(id, i), id, "MENU_LOCKED");
 
         MenuAdd(menu, item, i);
     }
@@ -6678,8 +6764,8 @@ ShowPerkMenu(id)
 {
     new title[128], item[160], k1[12], k2[16], n1[32], n2[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_PERKS", id, "MENU_WALLET_VC", g_iVC[id]);
-    new menu = menu_create(title, "menu_perk_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_PERKS", id, "MENU_WALLET_VC", g_iVC[id]);
+    new menu = VexMenuCreate(title, "menu_perk_handler");
 
     for (new i = 0; i < NUM_PERKS; i++)
     {
@@ -6695,9 +6781,9 @@ ShowPerkMenu(id)
         stars[PERK_MAX] = 0;
 
         if (lv >= PERK_MAX)
-            formatex(item, charsmax(item), "\y%s \r[\w%s\r] \d%s \r[\wMAX\r]", n1, stars, n2);
+            formatex(item, charsmax(item), "\y%s \r[%s\r] \r%s \r[MAX\r]", n1, stars, n2);
         else
-            formatex(item, charsmax(item), "\y%s \r[\w%s\r] \d%s %s%d VC", n1, stars, n2,
+            formatex(item, charsmax(item), "\y%s \r[%s\r] \r%s %s%d VC", n1, stars, n2,
                 g_iVC[id] >= (lv + 1) * PERK_COST_STEP ? "\y" : "\r", (lv + 1) * PERK_COST_STEP);
 
         MenuAdd(menu, item, i);
@@ -6922,22 +7008,22 @@ ShowVipInfo(id)
     get_pcvar_string(g_pVipContact, contact, charsmax(contact));
 
     formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "VIPI_TITLE");
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, get_pcvar_num(g_pVipAutoPack) ? "VIPI_4A" : "VIPI_4"); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_7"); add(title, charsmax(title), ln);
-    formatex(ln, charsmax(ln), "\w%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_1"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_2", get_pcvar_num(g_pVipBonus), get_pcvar_num(g_pEliteBonus)); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_3", get_pcvar_num(g_pVipDisc), get_pcvar_num(g_pEliteDisc)); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, get_pcvar_num(g_pVipAutoPack) ? "VIPI_4A" : "VIPI_4"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_5", get_pcvar_num(g_pVipArmor), get_pcvar_num(g_pEliteArmor), get_pcvar_num(g_pLmPerRoundVip)); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_6", get_pcvar_num(g_pVipRoundVC), get_pcvar_num(g_pVipRoundVC) * 2); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_7"); add(title, charsmax(title), ln);
+    formatex(ln, charsmax(ln), "\y%L^n", id, "VIPI_8"); add(title, charsmax(title), ln);
     if (!IsVip(id))
     {
         formatex(ln, charsmax(ln), "^n\r%L^n", id, "VIPI_BUY", contact); add(title, charsmax(title), ln);
     }
 
-    new menu = menu_create(title, "menu_vipinfo_handler");
+    new menu = VexMenuCreate(title, "menu_vipinfo_handler");
     new item[64];
-    formatex(item, charsmax(item), "\d%L", id, "HUB_BACK");
+    formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, 1);
     menu_setprop(menu, MPROP_PERPAGE, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
@@ -6967,18 +7053,18 @@ ShowVipMenu(id)
     else
         formatex(left, charsmax(left), "%L", id, "VIP_PERMANENT");
 
-    formatex(title, charsmax(title), "%s \y%L^n\w%s \d|| %s^n", MENU_TAG, id, "MENU_VIP", tn, left);
-    new menu = menu_create(title, "menu_vip_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\y%s \r|| %s^n", MENU_TAG, id, "MENU_VIP", tn, left);
+    new menu = VexMenuCreate(title, "menu_vip_handler");
 
-    formatex(item, charsmax(item), "%s%L", g_bVipFreeUsed[id] ? "\d" : "\y", id, g_bZombie[id] ? "VIPM_FREE_Z" : "VIPM_FREE_H");
+    formatex(item, charsmax(item), "\y%L%s", id, g_bZombie[id] ? "VIPM_FREE_Z" : "VIPM_FREE_H", g_bVipFreeUsed[id] ? " \r[X]" : "");
     MenuAdd(menu, item, 1);
 
     new ak[16];
     formatex(ak, charsmax(ak), "AURA_%d", g_iVipAura[id]);
-    formatex(item, charsmax(item), "\y%L \r[\w%L\r]", id, "VIPM_AURA", id, ak);
+    formatex(item, charsmax(item), "\y%L \r[%L\r]", id, "VIPM_AURA", id, ak);
     MenuAdd(menu, item, 2);
 
-    formatex(item, charsmax(item), "\y%L \r[%s%L\r]", id, "VIPM_TRAIL", g_bVipTrail[id] ? "\w" : "\d", id, g_bVipTrail[id] ? "ON" : "OFF");
+    formatex(item, charsmax(item), "\y%L \r[%s%L\r]", id, "VIPM_TRAIL", g_bVipTrail[id] ? "\y" : "\r", id, g_bVipTrail[id] ? "ON" : "OFF");
     MenuAdd(menu, item, 3);
 
     formatex(item, charsmax(item), "\y%L", id, "VIPM_JUMPS");
@@ -6987,7 +7073,7 @@ ShowVipMenu(id)
     formatex(item, charsmax(item), "\y%L", id, "VIPM_INFO");
     MenuAdd(menu, item, 5);
 
-    formatex(item, charsmax(item), "\d%L", id, "HUB_BACK");
+    formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, 6);
 
     MenuFinish(id, menu);
@@ -7179,8 +7265,8 @@ public cmd_cosmetic(id)
 ShowCosmeticMenu(id)
 {
     new title[192], item[128], cur[48];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "COS_MENU", id, "COS_SUB", g_iVC[id]);
-    new menu = menu_create(title, "menu_cos_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "COS_MENU", id, "COS_SUB", g_iVC[id]);
+    new menu = VexMenuCreate(title, "menu_cos_handler");
 
     static const CATKEY[3][] = { "COS_CAT_TRAIL", "COS_CAT_KFX", "COS_CAT_IFX" };
     for (new c = 0; c < 3; c++)
@@ -7190,7 +7276,7 @@ ShowCosmeticMenu(id)
             CosName(id, c, sel - 1, cur, charsmax(cur));
         else
             formatex(cur, charsmax(cur), "%L", id, "COS_NONE");
-        formatex(item, charsmax(item), "\y%L \r[\w%s\r]", id, CATKEY[c], cur);
+        formatex(item, charsmax(item), "\y%L \r[%s\r]", id, CATKEY[c], cur);
         MenuAdd(menu, item, c);
     }
     MenuFinish(id, menu);
@@ -7213,22 +7299,22 @@ ShowCosList(id, cat)
 {
     new title[192], item[128], nm[48];
     static const CATKEY[3][] = { "COS_CAT_TRAIL", "COS_CAT_KFX", "COS_CAT_IFX" };
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, CATKEY[cat], id, "COS_SUB", g_iVC[id]);
-    new menu = menu_create(title, "menu_coslist_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, CATKEY[cat], id, "COS_SUB", g_iVC[id]);
+    new menu = VexMenuCreate(title, "menu_coslist_handler");
 
     new sel = CosSelected(id, cat);
-    formatex(item, charsmax(item), sel == 0 ? "\y%L \r[\w*\r]" : "\y%L", id, "COS_NONE");
+    formatex(item, charsmax(item), sel == 0 ? "\y%L \r[*\r]" : "\y%L", id, "COS_NONE");
     MenuAdd(menu, item, cat * 100);
 
     for (new i = 0; i < CosCount(cat); i++)
     {
         CosName(id, cat, i, nm, charsmax(nm));
         if (sel == i + 1)
-            formatex(item, charsmax(item), "\y%s \r[\w%L\r]", nm, id, "COS_EQUIPPED");
+            formatex(item, charsmax(item), "\y%s \r[%L\r]", nm, id, "COS_EQUIPPED");
         else if (g_iCosOwned[id] & CosBit(cat, i))
-            formatex(item, charsmax(item), "\y%s \d[%L]", nm, id, "COS_OWNED");
+            formatex(item, charsmax(item), "\y%s \r[%L]", nm, id, "COS_OWNED");
         else
-            formatex(item, charsmax(item), "\y%s \r[\w%d VC\r]", nm, CosPrice(id, cat, i));
+            formatex(item, charsmax(item), "\y%s \r[%d VC\r]", nm, CosPrice(id, cat, i));
         MenuAdd(menu, item, cat * 100 + i + 1);
     }
     MenuFinish(id, menu);
@@ -7615,6 +7701,43 @@ public rg_DropPlayerItemPost(id, const pszItemName[])
     return HC_CONTINUE;
 }
 
+// Survivor = 0, Sniper = 1, digerleri -1
+ModeOf(id)
+{
+    if (g_bSurvivor[id]) return 0;
+    if (g_bSniper[id]) return 1;
+    return -1;
+}
+
+// Bu modun hangi yuvasi bu silah (yoksa -1)
+ModeSlot(mm, WeaponIdType:wid)
+{
+    for (new s = 0; s < MW_SLOTS; s++)
+    {
+        if (MW_ENT[mm][s][0] && MW_ID[mm][s] == wid)
+            return s;
+    }
+    return -1;
+}
+
+// Survivor / Sniper mod silahlarini ver (vex_modewpn)
+GiveModeWeapons(id, mm)
+{
+    for (new s = 0; s < MW_SLOTS; s++)
+    {
+        if (!MW_ENT[mm][s][0])
+            continue;
+        new ent = rg_give_item(id, MW_ENT[mm][s], GT_REPLACE);
+        if (!is_nullent(ent) && MW_CLIP[mm][s] > 0)
+        {
+            rg_set_iteminfo(ent, ItemInfo_iMaxClip, MW_CLIP[mm][s]);
+            set_member(ent, m_Weapon_iClip, MW_CLIP[mm][s]);
+        }
+        if (MW_BP[mm][s] > 0)
+            rg_set_user_bpammo(id, MW_ID[mm][s], MW_BP[mm][s]);
+    }
+}
+
 SpecialIndex(id, WeaponIdType:wid)
 {
     if (!g_iSpecW[id])
@@ -7744,17 +7867,14 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
     }
 
     // Mode loadouts may use dedicated cfg models; empty entries inherit the normal weapon model.
-    if (g_bSurvivor[id] && (wid == WEAPON_M249 || wid == WEAPON_DEAGLE))
+    new mm = ModeOf(id), ms = (mm >= 0) ? ModeSlot(mm, wid) : -1;
+    if (ms >= 0)
     {
-        new slot = (wid == WEAPON_M249) ? 0 : 1;
-        if (g_szSurvGunV[slot][0]) SetHookChainArg(2, ATYPE_STRING, g_szSurvGunV[slot]);
-        if (g_szSurvGunP[slot][0]) SetHookChainArg(3, ATYPE_STRING, g_szSurvGunP[slot]);
-        return HC_CONTINUE;
-    }
-    if (g_bSniper[id] && wid == WEAPON_AWP)
-    {
-        if (g_szSniperGunV[0]) SetHookChainArg(2, ATYPE_STRING, g_szSniperGunV);
-        if (g_szSniperGunP[0]) SetHookChainArg(3, ATYPE_STRING, g_szSniperGunP);
+        new w = _:wid;
+        if (g_szMwV[mm][ms][0]) SetHookChainArg(2, ATYPE_STRING, g_szMwV[mm][ms]);
+        else if (g_szWepV[w][0]) SetHookChainArg(2, ATYPE_STRING, g_szWepV[w]);
+        if (g_szMwP[mm][ms][0]) SetHookChainArg(3, ATYPE_STRING, g_szMwP[mm][ms]);
+        else if (g_szWepP[w][0]) SetHookChainArg(3, ATYPE_STRING, g_szWepP[w]);
         return HC_CONTINUE;
     }
 
@@ -7794,6 +7914,16 @@ public fw_PrimaryAttackPost(weapon)
         new clip = rg_get_weapon_info(wid, WI_GUN_CLIP_SIZE);
         if (clip > 0)
             set_member(weapon, m_Weapon_iClip, clip);
+    }
+
+    new mm = ModeOf(id), ms = (mm >= 0) ? ModeSlot(mm, wid) : -1;
+    if (ms >= 0)
+    {
+        // vex_res <MOD>_W<yuva>_SOUND: ek atis sesi (istemcinin kendi atis sesi sunucudan susturulamaz)
+        new key[24];
+        formatex(key, charsmax(key), "%s_W%d_SOUND", MW_KEY[mm], ms + 1);
+        EmitKey(id, key, CHAN_WEAPON);
+        return HAM_IGNORED;
     }
 
     new sw = SpecialIndex(id, wid);
@@ -8049,15 +8179,15 @@ ShowPrimaryMenu(id)
 {
     new title[96], item[64];
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_PRIMARY", id, "MENU_GUNS_SUB");
-    new menu = menu_create(title, "menu_primary_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_PRIMARY", id, "MENU_GUNS_SUB");
+    new menu = VexMenuCreate(title, "menu_primary_handler");
 
     for (new i = 0; i < sizeof PRIM_NAME; i++)
     {
         if (g_iLevel[id] >= PRIM_LVL[i])
             formatex(item, charsmax(item), "\y%s", PRIM_NAME[i]);
         else
-            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r]", PRIM_NAME[i], PRIM_LVL[i]);
+            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", PRIM_NAME[i], PRIM_LVL[i], id, "MENU_LOCKED");
         MenuAdd(menu, item, i);
     }
 
@@ -8092,14 +8222,14 @@ ShowSecondaryMenu(id)
     new title[64], item[64];
 
     formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_SECONDARY");
-    new menu = menu_create(title, "menu_secondary_handler");
+    new menu = VexMenuCreate(title, "menu_secondary_handler");
 
     for (new i = 0; i < sizeof SEC_NAME; i++)
     {
         if (g_iLevel[id] >= SEC_LVL[i])
             formatex(item, charsmax(item), "\y%s", SEC_NAME[i]);
         else
-            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r]", SEC_NAME[i], SEC_LVL[i]);
+            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", SEC_NAME[i], SEC_LVL[i], id, "MENU_LOCKED");
         MenuAdd(menu, item, i);
     }
 
@@ -9521,24 +9651,24 @@ TickMineHints()
 ShowMineMenu(id)
 {
     new title[192], item[96];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "LM_MENU", id, "LM_MENU_SUB", g_iMines[id], CountMines(id), MaxMines(id));
-    new menu = menu_create(title, "menu_mine_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "LM_MENU", id, "LM_MENU_SUB", g_iMines[id], CountMines(id), MaxMines(id));
+    new menu = VexMenuCreate(title, "menu_mine_handler");
 
     new bool:ok = LasersAllowed();
-    formatex(item, charsmax(item), ok ? "\y%L" : "\d%L", id, "LM_M_PLANT"); MenuAdd(menu, item, 1);
+    formatex(item, charsmax(item), ok ? "\y%L" : "\y%L \r[%L]", id, "LM_M_PLANT", id, "MENU_LOCKED"); MenuAdd(menu, item, 1);
     formatex(item, charsmax(item), "\y%L", id, "LM_M_TAKE"); MenuAdd(menu, item, 2);
     formatex(item, charsmax(item), "\y%L", id, "LM_M_INFO"); MenuAdd(menu, item, 3);
     formatex(item, charsmax(item), "\y%L", id, "LM_M_BIND"); MenuAdd(menu, item, 4);
 
     if (!ok)
     {
-        formatex(item, charsmax(item), "\d%L", id, (g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss)) ? "LM_NO_BOSS_SHORT" : (get_pcvar_num(g_pLmEnable) && LmModeBlocked(g_iMode)) ? "LM_NO_MODE_SHORT" : "LM_DISABLED_SHORT");
-        menu_addtext(menu, item, 0);
+        formatex(item, charsmax(item), "\r%L", id, (g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss)) ? "LM_NO_BOSS_SHORT" : (get_pcvar_num(g_pLmEnable) && LmModeBlocked(g_iMode)) ? "LM_NO_MODE_SHORT" : "LM_DISABLED_SHORT");
+        VexAddText(menu, item, 0);
     }
     else
     {
-        formatex(item, charsmax(item), "\d%L", id, "LM_M_RULE", RoundMines(id));
-        menu_addtext(menu, item, 0);
+        formatex(item, charsmax(item), "\r%L", id, "LM_M_RULE", RoundMines(id));
+        VexAddText(menu, item, 0);
     }
     MenuFinish(id, menu);
 }
@@ -10202,15 +10332,15 @@ public cmd_nade_menu(id)
 ShowNadeMenu(id)
 {
     new title[192], item[128], key[16], nm[32];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "NMENU_TITLE", id, "NMENU_SUB");
-    new menu = menu_create(title, "menu_nade_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "NMENU_TITLE", id, "NMENU_SUB");
+    new menu = VexMenuCreate(title, "menu_nade_handler");
 
     static const SLOTKEY[3][] = { "NMENU_HE", "NMENU_FROST", "NMENU_FLARE" };
     for (new s = 0; s < 3; s++)
     {
         formatex(key, charsmax(key), "NMODE_%d", g_iNadeMode[id][s]);
         formatex(nm, charsmax(nm), "%L", id, key);
-        formatex(item, charsmax(item), "\y%L \r[\w%s\r]", id, SLOTKEY[s], nm);
+        formatex(item, charsmax(item), "\y%L \r[%s\r]", id, SLOTKEY[s], nm);
         MenuAdd(menu, item, s);
     }
     formatex(item, charsmax(item), "\y%L", id, "NMENU_HELP");
@@ -10898,17 +11028,13 @@ MakeSurvivor(id, bool:sniper)
 
     if (sniper)
     {
-        rg_give_item(id, "weapon_awp");
-        rg_set_user_bpammo(id, WEAPON_AWP, 100);
+        GiveModeWeapons(id, 1);
         g_iMaxHP[id] = get_pcvar_num(g_pSnipHP);
         if (g_szSnipModel[0]) rg_set_user_model(id, g_szSnipModel);
     }
     else
     {
-        rg_give_item(id, "weapon_m249");
-        rg_set_user_bpammo(id, WEAPON_M249, 400);
-        rg_give_item(id, "weapon_deagle");
-        rg_set_user_bpammo(id, WEAPON_DEAGLE, 100);
+        GiveModeWeapons(id, 0);
         g_iMaxHP[id] = get_pcvar_num(g_pSurvHP);
         if (g_iMode == MODE_ARMAGEDDON)
             g_iMaxHP[id] /= 2;
@@ -11770,8 +11896,8 @@ ShowClassMenu(id)
 {
     new title[96], item[160], k1[16], k2[20], n1[32], n2[72];
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_CLASS", id, "MENU_CLASS_SUB");
-    new menu = menu_create(title, "menu_class_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_CLASS", id, "MENU_CLASS_SUB");
+    new menu = VexMenuCreate(title, "menu_class_handler");
 
     for (new i = 0; i < NUM_CLASSES; i++)
     {
@@ -11781,11 +11907,11 @@ ShowClassMenu(id)
         formatex(n2, charsmax(n2), "%L", id, k2);
 
         if (g_iLevel[id] < CLASS_LVL[i])
-            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r]", n1, CLASS_LVL[i]);
+            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, CLASS_LVL[i], id, "MENU_LOCKED");
         else if (g_iClass[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[\w*\r] \d%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r[*\r] \r%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\y%s \d%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -18738,8 +18864,8 @@ bool:AnyMenuOpen(id)
 ShowVoteMenu(id)
 {
     new title[192], item[96], key[16], nm[40];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, g_iVoteType == 1 ? "VOTE_TITLE_MODE" : "VOTE_TITLE_EVENT", id, "VOTE_LEFT", g_iVoteLeft);
-    new menu = menu_create(title, "menu_vote_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, g_iVoteType == 1 ? "VOTE_TITLE_MODE" : "VOTE_TITLE_EVENT", id, "VOTE_LEFT", g_iVoteLeft);
+    new menu = VexMenuCreate(title, "menu_vote_handler");
 
     for (new i = 0; i < VOTE_OPTS; i++)
     {
@@ -18747,17 +18873,17 @@ ShowVoteMenu(id)
         formatex(nm, charsmax(nm), "%L", id, key);
 
         if (g_iVoted[id] == i)
-            formatex(item, charsmax(item), "\w%s \r[ \w%d %L\r ] \y<", nm, g_iVoteCount[i], id, "VOTE_VOTES");
+            formatex(item, charsmax(item), "\y%s \r[ %d %L\r ] \y<", nm, g_iVoteCount[i], id, "VOTE_VOTES");
         else
-            formatex(item, charsmax(item), "%s%s \r[ \w%d %L\r ]", g_iVoted[id] >= 0 ? "\d" : "\y", nm, g_iVoteCount[i], id, "VOTE_VOTES");
+            formatex(item, charsmax(item), "%s%s \r[ %d %L\r ]", g_iVoted[id] >= 0 ? "\r" : "\y", nm, g_iVoteCount[i], id, "VOTE_VOTES");
         MenuAdd(menu, item, i);
     }
 
     new note[96];
-    formatex(note, charsmax(note), "^n\d%L", id, "VOTE_TIE");
-    menu_addtext(menu, note, 0);
+    formatex(note, charsmax(note), "^n\r%L", id, "VOTE_TIE");
+    VexAddText(menu, note, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_NEVER);
-    menu_setprop(menu, MPROP_NUMBER_COLOR, "\r");
+    MenuProps(id, menu);
     g_iVoteMenu[id] = menu;
     menu_display(id, menu, 0, 1);
 }
@@ -20417,9 +20543,20 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
             new bool:bulletHit = (inflictor == attacker && (bits & DMG_BULLET)) ? true : false;
             new bool:headshot = (bulletHit && get_member(victim, m_LastHitGroup) == HIT_HEAD) ? true : false;
 
-            if (g_bSniper[attacker] && wid == WEAPON_AWP && bulletHit)
-                dmg = 5000.0;
-            if (g_bSurvivor[attacker])
+            // vex_modewpn: mod silahi carpani (> 50 = sabit mermi hasari); survivor'un
+            // diger silahlari (bicak, bomba) eskisi gibi x1.5
+            new mm = ModeOf(attacker), ms = (mm >= 0) ? ModeSlot(mm, wid) : -1;
+            if (ms >= 0)
+            {
+                if (MW_DMG[mm][ms] > 50.0)
+                {
+                    if (bulletHit)
+                        dmg = MW_DMG[mm][ms];
+                }
+                else
+                    m *= MW_DMG[mm][ms];
+            }
+            else if (mm == 0)
                 m *= 1.5;
 
             if (g_iEvent == EV_DOUBLEDMG)
@@ -20584,11 +20721,13 @@ public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
         return;
 
     new sw = SpecialIndex(attacker, wid);
+    new mm = ModeOf(attacker), ms = (mm >= 0) ? ModeSlot(mm, wid) : -1;
+    new fx = (sw >= 0) ? SW_EFFECT[sw] : ((ms >= 0) ? MW_FX[mm][ms] : SWE_NONE);
     // Knockback
     if (bullet && get_pcvar_num(g_pKnockback))
     {
         new Float:kbDamage = damage;
-        if (sw >= 0 && SW_EFFECT[sw] == SWE_VOID)
+        if (fx == SWE_VOID)
             kbDamage *= 1.35;
         ApplyKnockback(victim, attacker, wid, kbDamage);
     }
@@ -20599,7 +20738,7 @@ public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
         steal += 0.05;
     if (g_iEvent == EV_VAMPIRE)
         steal += 0.05;
-    if (sw >= 0 && SW_EFFECT[sw] == SWE_VAMPIRE)
+    if (fx == SWE_VAMPIRE)
         steal += 0.05;
     if (steal > 0.0)
         HealTo(attacker, max(1, floatround(damage * steal)), MaxHumanHP(attacker) + 50);
@@ -20614,10 +20753,14 @@ public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
         Freeze(victim, 1.0);
 
     // Ozel silah efektleri
-    switch (sw >= 0 ? SW_EFFECT[sw] : SWE_NONE)
+    switch (fx)
     {
         case SWE_FIRE: if (random_num(1, 100) <= 20) Ignite(victim, attacker, 3);
-        case SWE_LIGHTNING: if (SW_CHAIN_DMG[sw] > 0) ChainLightning(victim, attacker, float(SW_CHAIN_DMG[sw]));
+        case SWE_LIGHTNING:
+        {
+            new chain = (sw >= 0) ? SW_CHAIN_DMG[sw] : 25;
+            if (chain > 0) ChainLightning(victim, attacker, float(chain));
+        }
         case SWE_ICE: if (random_num(1, 100) <= 25) Freeze(victim, 1.5);
         case SWE_EXPLOSIVE:
         {
@@ -20625,7 +20768,10 @@ public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
             {
                 new Float:origin[3], Float:other[3];
                 get_entvar(victim, var_origin, origin);
-                FxRing(origin, SW_RGB[sw][0], SW_RGB[sw][1], SW_RGB[sw][2], 140);
+                if (sw >= 0)
+                    FxRing(origin, SW_RGB[sw][0], SW_RGB[sw][1], SW_RGB[sw][2], 140);
+                else
+                    FxRing(origin, 255, 140, 40, 140);
                 for (new p = 1; p <= g_iMax; p++)
                 {
                     if (p == victim || !is_user_alive(p) || !g_bZombie[p] || g_bBoss[p])
@@ -21208,8 +21354,8 @@ ShowMainMenu(id)
 {
     new title[192], item[96];
 
-    formatex(title, charsmax(title), "\r[\wV E X M I R A\r] \d|| \y%L^n\d%L^n", id, "MENU_MAIN_SUB", id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
-    new menu = menu_create(title, "menu_main_handler");
+    formatex(title, charsmax(title), "\rVEXMIRA \y| %L^n\r%L^n", id, "MENU_MAIN_SUB", id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
+    new menu = VexMenuCreate(title, "menu_main_handler");
     PlayKey(id, "UI_OPEN");
 
     new bool:adm = (get_user_flags(id) & ADMIN_BAN) ? true : false;
@@ -21219,7 +21365,7 @@ ShowMainMenu(id)
     formatex(item, charsmax(item), "\y%L", id, "MAINH_3"); MenuAdd(menu, item, HUB_CLASS);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_4");
     if (g_iQuest[id] >= 0 && g_bQuestDone[id])
-        add(item, charsmax(item), " \r[\wOK\r]");
+        add(item, charsmax(item), " \r[OK\r]");
     MenuAdd(menu, item, HUB_CHAR);
     formatex(item, charsmax(item), "\y%L", id, "MAINH_5");
     if (g_iDailyDay[id] < get_systime() / 86400)
@@ -21240,8 +21386,8 @@ ShowHub(id, hub)
 {
     new title[160], item[96], key[16];
     formatex(key, charsmax(key), "HUB_%d", hub - 200);
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, key, id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
-    new menu = menu_create(title, "menu_main_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, key, id, "MENU_WALLET", g_iAP[id], g_iVC[id], g_iLevel[id]);
+    new menu = VexMenuCreate(title, "menu_main_handler");
 
     new list[8], n;
     switch (hub)
@@ -21264,10 +21410,10 @@ ShowHub(id, hub)
         if (c == 6 && g_iDailyDay[id] < get_systime() / 86400)
             add(item, charsmax(item), " \r(!)");
         if (c == 20 && g_iQuest[id] >= 0 && g_bQuestDone[id])
-            add(item, charsmax(item), " \r[\wOK\r]");
+            add(item, charsmax(item), " \r[OK\r]");
         MenuAdd(menu, item, c);
     }
-    formatex(item, charsmax(item), "\d%L", id, "HUB_BACK");
+    formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, HUB_BACK);
 
     menu_setprop(menu, MPROP_PERPAGE, 0);
@@ -21331,7 +21477,7 @@ ShowProfileMenu(id)
 {
     new title[96], item[64];
     formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_PROFILE");
-    new menu = menu_create(title, "menu_profile_handler");
+    new menu = VexMenuCreate(title, "menu_profile_handler");
 
     formatex(item, charsmax(item), "\y%L", id, "PROF_1"); MenuAdd(menu, item, 1);
     formatex(item, charsmax(item), "\y%L", id, "PROF_2"); MenuAdd(menu, item, 2);
@@ -21367,8 +21513,8 @@ ShowJobMenu(id)
 {
     new title[96], item[160], k1[12], k2[16], n1[32], n2[72];
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_JOB", id, "MENU_JOB_SUB");
-    new menu = menu_create(title, "menu_job_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_JOB", id, "MENU_JOB_SUB");
+    new menu = VexMenuCreate(title, "menu_job_handler");
 
     for (new i = 0; i < NUM_JOBS; i++)
     {
@@ -21378,11 +21524,11 @@ ShowJobMenu(id)
         formatex(n2, charsmax(n2), "%L", id, k2);
 
         if (g_iLevel[id] < JOB_LVL[i])
-            formatex(item, charsmax(item), "\d%s \r[\wLv.%d\r]", n1, JOB_LVL[i]);
+            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, JOB_LVL[i], id, "MENU_LOCKED");
         else if (g_iJob[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[\w*\r] \d%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r[*\r] \r%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\y%s \d%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -21432,7 +21578,7 @@ ShowStyleMenu(id)
     new title[64], item[160], k1[12], k2[16], n1[32], n2[64];
 
     formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_STYLE");
-    new menu = menu_create(title, "menu_style_handler");
+    new menu = VexMenuCreate(title, "menu_style_handler");
 
     for (new i = 0; i < NUM_STYLES; i++)
     {
@@ -21442,9 +21588,9 @@ ShowStyleMenu(id)
         formatex(n2, charsmax(n2), "%L", id, k2);
 
         if (g_iStyle[id] == i)
-            formatex(item, charsmax(item), "\y%s \r[\w*\r] \d%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r[*\r] \r%s", n1, n2);
         else
-            formatex(item, charsmax(item), "\y%s \d%s", n1, n2);
+            formatex(item, charsmax(item), "\y%s \r%s", n1, n2);
 
         MenuAdd(menu, item, i);
     }
@@ -21474,28 +21620,28 @@ ShowSettingsMenu(id)
 {
     new title[96], item[96], key[12], onoff[16], tn[24];
 
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_SETTINGS", id, "MENU_SETTINGS_SUB");
-    new menu = menu_create(title, "menu_settings_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_SETTINGS", id, "MENU_SETTINGS_SUB");
+    new menu = VexMenuCreate(title, "menu_settings_handler");
 
     for (new i = 0; i < 10; i++)
     {
         formatex(key, charsmax(key), "SET_%d", i);
         formatex(onoff, charsmax(onoff), "%L", id, (g_iSet[id] & (1 << i)) ? "OFF" : "ON");
-        formatex(item, charsmax(item), "\y%L \r[%s%s\r]", id, key, (g_iSet[id] & (1 << i)) ? "\d" : "\w", onoff);
+        formatex(item, charsmax(item), "\y%L \r[%s%s\r]", id, key, (g_iSet[id] & (1 << i)) ? "\r" : "\y", onoff);
         MenuAdd(menu, item, i);
     }
 
     formatex(key, charsmax(key), "THEME_%d", g_iTheme[id]);
     formatex(tn, charsmax(tn), "%L", id, key);
-    formatex(item, charsmax(item), "\y%L \r[\w%s\r]", id, "SET_THEME", tn);
+    formatex(item, charsmax(item), "\y%L \r[%s\r]", id, "SET_THEME", tn);
     MenuAdd(menu, item, 20);
 
     formatex(key, charsmax(key), "HUDPOS_%d", g_iHudPos[id]);
     formatex(tn, charsmax(tn), "%L", id, key);
-    formatex(item, charsmax(item), "\y%L \r[\w%s\r]", id, "SET_HUDPOS", tn);
+    formatex(item, charsmax(item), "\y%L \r[%s\r]", id, "SET_HUDPOS", tn);
     MenuAdd(menu, item, 23);
 
-    formatex(item, charsmax(item), "\y%L \r[\w%s\r]", id, "SET_LANG", g_iLang[id] == 2 ? "Turkce" : "English");
+    formatex(item, charsmax(item), "\y%L \r[%s\r]", id, "SET_LANG", g_iLang[id] == 2 ? "Turkce" : "English");
     MenuAdd(menu, item, 21);
 
     formatex(item, charsmax(item), "\y%L", id, "SET_FPS");
@@ -21544,10 +21690,10 @@ ShowLangMenu(id)
 {
     new title[64];
     formatex(title, charsmax(title), "%s \y%L^n", MENU_TAG, id, "MENU_LANG");
-    new menu = menu_create(title, "menu_lang_handler");
+    new menu = VexMenuCreate(title, "menu_lang_handler");
 
-    MenuAdd(menu, g_iLang[id] == 1 ? "\yEnglish \r[\w*\r]" : "\yEnglish", 1);
-    MenuAdd(menu, g_iLang[id] == 2 ? "\yTurkce \r[\w*\r]" : "\yTurkce", 2);
+    MenuAdd(menu, g_iLang[id] == 1 ? "\yEnglish \r[*\r]" : "\yEnglish", 1);
+    MenuAdd(menu, g_iLang[id] == 2 ? "\yTurkce \r[*\r]" : "\yTurkce", 2);
 
     MenuFinish(id, menu);
 }
@@ -21573,8 +21719,8 @@ public menu_lang_handler(id, menu, item)
 ShowFpsMenu(id)
 {
     new title[192], item[96];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_FPS", id, "MENU_FPS_SUB");
-    new menu = menu_create(title, "menu_fps_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_FPS", id, "MENU_FPS_SUB");
+    new menu = VexMenuCreate(title, "menu_fps_handler");
 
     formatex(item, charsmax(item), "\y%L", id, "FPS_1"); MenuAdd(menu, item, 1);
     formatex(item, charsmax(item), "\y%L", id, "FPS_2"); MenuAdd(menu, item, 2);
@@ -22186,8 +22332,8 @@ public cmd_fun(id)
 ShowFunMenu(id)
 {
     new title[96], item[96], key[12];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MENU_FUN", id, "MENU_FUN_SUB");
-    new menu = menu_create(title, "menu_fun_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MENU_FUN", id, "MENU_FUN_SUB");
+    new menu = VexMenuCreate(title, "menu_fun_handler");
 
     for (new i = 1; i <= 12; i++)
     {
@@ -22746,8 +22892,8 @@ ShowAdminMenu(id)
         return;
 
     new title[192], item[96];
-    formatex(title, charsmax(title), "%s \r%L^n\d%L^n", MENU_TAG, id, "MENU_ADMIN", id, "MENU_ADMIN_SUB");
-    new menu = menu_create(title, "menu_admin_handler");
+    formatex(title, charsmax(title), "%s \r%L^n\r%L^n", MENU_TAG, id, "MENU_ADMIN", id, "MENU_ADMIN_SUB");
+    new menu = VexMenuCreate(title, "menu_admin_handler");
 
     for (new i = 1; i <= 20; i++)
     {
@@ -22755,9 +22901,9 @@ ShowAdminMenu(id)
         formatex(key, charsmax(key), "ADMM_%d", i);
         formatex(item, charsmax(item), "\y%L", id, key);
         if (i == 17)
-            add(item, charsmax(item), g_bRespawnOff ? " \r[OFF]" : " \w[ON]");
+            add(item, charsmax(item), g_bRespawnOff ? " \r[OFF]" : " \y[ON]");
         else if (i == 18)
-            add(item, charsmax(item), get_pcvar_num(g_pLmEnable) ? " \w[ON]" : " \r[OFF]");
+            add(item, charsmax(item), get_pcvar_num(g_pLmEnable) ? " \y[ON]" : " \r[OFF]");
         MenuAdd(menu, item, i);
     }
 
@@ -22871,7 +23017,7 @@ ShowAdminEnvMenu(id)
 {
     new title[128], item[96], key[16];
     formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADMM_8");
-    new menu = menu_create(title, "menu_admenv");
+    new menu = VexMenuCreate(title, "menu_admenv");
     for (new i = 0; i <= 9; i++)
     {
         formatex(key, charsmax(key), "ADME_%d", i);
@@ -22940,8 +23086,8 @@ ShowAdminEnvDetail(id)
     }
 
     new title[192], item[112], menu;
-    formatex(title, charsmax(title), "%s %L^n\dL:%c F:%d RGB:%d/%d/%d W:%d^n", MENU_TAG, id, "ADME_DETAIL", g_iAdminEnvLight, g_iAdminEnvFog[3], g_iAdminEnvFog[0], g_iAdminEnvFog[1], g_iAdminEnvFog[2], g_iAdminEnvWeather);
-    menu = menu_create(title, "menu_admenv_detail");
+    formatex(title, charsmax(title), "%s %L^n\rL:%c F:%d RGB:%d/%d/%d W:%d^n", MENU_TAG, id, "ADME_DETAIL", g_iAdminEnvLight, g_iAdminEnvFog[3], g_iAdminEnvFog[0], g_iAdminEnvFog[1], g_iAdminEnvFog[2], g_iAdminEnvWeather);
+    menu = VexMenuCreate(title, "menu_admenv_detail");
 
     formatex(item, charsmax(item), "\y%L \r[%c]", id, "ADME_LIGHT", g_iAdminEnvLight); MenuAdd(menu, item, 1);
     formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_DENSITY", g_iAdminEnvFog[3]); MenuAdd(menu, item, 2);
@@ -23017,7 +23163,7 @@ ShowAdminModeMenu(id, bool:now)
 {
     new title[192], item[96], key[16];
     formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, now ? "ADMM_2" : "ADMM_1");
-    new menu = menu_create(title, now ? "menu_admmode_now" : "menu_admmode_next");
+    new menu = VexMenuCreate(title, now ? "menu_admmode_now" : "menu_admmode_next");
 
     for (new m = 0; m < MODE_TOTAL; m++)
     {
@@ -23059,7 +23205,7 @@ ShowAdminBossMenu(id, bool:now)
 {
     new title[128], item[96], key[16];
     formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADM_BOSS_PICK");
-    new menu = menu_create(title, now ? "menu_admboss_now" : "menu_admboss_next");
+    new menu = VexMenuCreate(title, now ? "menu_admboss_now" : "menu_admboss_next");
 
     formatex(item, charsmax(item), "\y%L", id, "ADM_BOSS_RANDOM");
     MenuAdd(menu, item, 99);
@@ -23132,7 +23278,7 @@ ShowAdminEventMenu(id, bool:now)
 {
     new title[192], item[96], key[16];
     formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, now ? "ADMM_4" : "ADMM_3");
-    new menu = menu_create(title, now ? "menu_admevent_now" : "menu_admevent");
+    new menu = VexMenuCreate(title, now ? "menu_admevent_now" : "menu_admevent");
 
     for (new e = 1; e < EV_TOTAL; e++)
     {
@@ -23170,14 +23316,14 @@ ShowAdminPlayers(id)
 {
     new title[192], item[96], name[32];
     formatex(title, charsmax(title), "%s \r%L^n", MENU_TAG, id, "ADMM_4");
-    new menu = menu_create(title, "menu_admplayers");
+    new menu = VexMenuCreate(title, "menu_admplayers");
 
     for (new p = 1; p <= g_iMax; p++)
     {
         if (!is_user_connected(p))
             continue;
         get_user_name(p, name, charsmax(name));
-        formatex(item, charsmax(item), "\y%s \r[\w%s%s\r]", name, g_bZombie[p] ? "Z" : "H", IsVip(p) ? (IsElite(p) ? " ELITE" : " VIP") : "");
+        formatex(item, charsmax(item), "\y%s \r[%s%s\r]", name, g_bZombie[p] ? "Z" : "H", IsVip(p) ? (IsElite(p) ? " ELITE" : " VIP") : "");
         MenuAdd(menu, item, get_user_userid(p));
     }
     MenuFinish(id, menu);
@@ -23211,8 +23357,8 @@ ShowAdminActions(id)
 
     new title[192], item[96], name[32];
     get_user_name(target, name, charsmax(name));
-    formatex(title, charsmax(title), "%s \r%L^n\w%s \d|| Lv.%d \d|| %d AP \d|| %d VC^n", MENU_TAG, id, "ADMM_4", name, g_iLevel[target], g_iAP[target], g_iVC[target]);
-    new menu = menu_create(title, "menu_admactions");
+    formatex(title, charsmax(title), "%s \r%L^n\y%s \r|| Lv.%d \r|| %d AP \r|| %d VC^n", MENU_TAG, id, "ADMM_4", name, g_iLevel[target], g_iAP[target], g_iVC[target]);
+    new menu = VexMenuCreate(title, "menu_admactions");
 
     for (new i = 1; i <= 17; i++)
     {
@@ -23693,8 +23839,8 @@ ShowMapVoteMenu(id)
         total += g_iMapVotes[i];
 
     new title[192], item[128], nm[64], desc[48], key[48];
-    formatex(title, charsmax(title), "%s \y%L^n\d%L^n", MENU_TAG, id, "MAPV_TITLE", id, "MAPV_LEFT", g_iMapVoteLeft, total);
-    new menu = menu_create(title, "menu_mapvote_handler");
+    formatex(title, charsmax(title), "%s \y%L^n\r%L^n", MENU_TAG, id, "MAPV_TITLE", id, "MAPV_LEFT", g_iMapVoteLeft, total);
+    new menu = VexMenuCreate(title, "menu_mapvote_handler");
 
     for (new i = 0; i < g_iMapOptN; i++)
     {
@@ -23704,23 +23850,23 @@ ShowMapVoteMenu(id)
         {
             formatex(key, charsmax(key), "MAPDESC_%s", g_szMapOpt[i]);
             if (GetLangTransKey(key) != TransKey_Bad)
-                formatex(desc, charsmax(desc), " \d%L", id, key);
+                formatex(desc, charsmax(desc), " \r%L", id, key);
         }
         new pct = total > 0 ? (g_iMapVotes[i] * 100 + total / 2) / total : 0;
         if (g_iMapVoted[id] == i)
-            formatex(item, charsmax(item), "\w%s%s \r[\w%d \r- \w%d%%\r] \y<", nm, desc, g_iMapVotes[i], pct);
+            formatex(item, charsmax(item), "\y%s%s \r[%d \r- %d%%\r] \y<", nm, desc, g_iMapVotes[i], pct);
         else
-            formatex(item, charsmax(item), "\y%s%s \r[\w%d \r- \w%d%%\r]", nm, desc, g_iMapVotes[i], pct);
+            formatex(item, charsmax(item), "\y%s%s \r[%d \r- %d%%\r]", nm, desc, g_iMapVotes[i], pct);
         MenuAdd(menu, item, i);
     }
 
     new note[96];
-    formatex(note, charsmax(note), "^n\d%L", id, "MAPV_NOTE");
-    menu_addtext(menu, note, 0);
+    formatex(note, charsmax(note), "^n\r%L", id, "MAPV_NOTE");
+    VexAddText(menu, note, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_NEVER);
     menu_setprop(menu, MPROP_PERPAGE, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
-    menu_setprop(menu, MPROP_NUMBER_COLOR, "\r");
+    MenuProps(id, menu);
     g_iMapVoteMenu[id] = menu;
     menu_display(id, menu, 0, 1);
 }
@@ -24543,18 +24689,32 @@ public plugin_precache()
         GetFileModel(key, g_szWepP[w], charsmax(g_szWepP[]));
     }
 
-    GetFileModel("SURVIVOR_M249_VMODEL", g_szSurvGunV[0], charsmax(g_szSurvGunV[]));
-    GetFileModel("SURVIVOR_M249_PMODEL", g_szSurvGunP[0], charsmax(g_szSurvGunP[]));
-    GetFileModel("SURVIVOR_DEAGLE_VMODEL", g_szSurvGunV[1], charsmax(g_szSurvGunV[]));
-    GetFileModel("SURVIVOR_DEAGLE_PMODEL", g_szSurvGunP[1], charsmax(g_szSurvGunP[]));
-    GetFileModel("SNIPER_AWP_VMODEL", g_szSniperGunV, charsmax(g_szSniperGunV));
-    GetFileModel("SNIPER_AWP_PMODEL", g_szSniperGunP, charsmax(g_szSniperGunP));
-    if (!g_szSurvGunV[0][0]) copy(g_szSurvGunV[0], charsmax(g_szSurvGunV[]), g_szWepV[_:WEAPON_M249]);
-    if (!g_szSurvGunP[0][0]) copy(g_szSurvGunP[0], charsmax(g_szSurvGunP[]), g_szWepP[_:WEAPON_M249]);
-    if (!g_szSurvGunV[1][0]) copy(g_szSurvGunV[1], charsmax(g_szSurvGunV[]), g_szWepV[_:WEAPON_DEAGLE]);
-    if (!g_szSurvGunP[1][0]) copy(g_szSurvGunP[1], charsmax(g_szSurvGunP[]), g_szWepP[_:WEAPON_DEAGLE]);
-    if (!g_szSniperGunV[0]) copy(g_szSniperGunV, charsmax(g_szSniperGunV), g_szWepV[_:WEAPON_AWP]);
-    if (!g_szSniperGunP[0]) copy(g_szSniperGunP, charsmax(g_szSniperGunP), g_szWepP[_:WEAPON_AWP]);
+    // Mod silahi modelleri: <MOD>_W<yuva>_VMODEL / _PMODEL / _SOUND (vex_res). Eski anahtarlar
+    // (SURVIVOR_M249_* = W1, SURVIVOR_DEAGLE_* = W2, SNIPER_AWP_* = W1) da calisir.
+    // Bos ise silahin genel V_<SILAH> / P_<SILAH> modeli kullanilir.
+    static const OLDK[MW_MODES][MW_SLOTS][] = { { "SURVIVOR_M249", "SURVIVOR_DEAGLE" }, { "SNIPER_AWP", "" } };
+    for (new mm = 0; mm < MW_MODES; mm++)
+    {
+        for (new ms = 0; ms < MW_SLOTS; ms++)
+        {
+            formatex(key, charsmax(key), "%s_W%d_VMODEL", MW_KEY[mm], ms + 1);
+            GetFileModel(key, g_szMwV[mm][ms], charsmax(g_szMwV[][]));
+            if (!g_szMwV[mm][ms][0] && OLDK[mm][ms][0])
+            {
+                formatex(key, charsmax(key), "%s_VMODEL", OLDK[mm][ms]);
+                GetFileModel(key, g_szMwV[mm][ms], charsmax(g_szMwV[][]));
+            }
+            formatex(key, charsmax(key), "%s_W%d_PMODEL", MW_KEY[mm], ms + 1);
+            GetFileModel(key, g_szMwP[mm][ms], charsmax(g_szMwP[][]));
+            if (!g_szMwP[mm][ms][0] && OLDK[mm][ms][0])
+            {
+                formatex(key, charsmax(key), "%s_PMODEL", OLDK[mm][ms]);
+                GetFileModel(key, g_szMwP[mm][ms], charsmax(g_szMwP[][]));
+            }
+            formatex(key, charsmax(key), "%s_W%d_SOUND", MW_KEY[mm], ms + 1);
+            PrecacheSoundKeyEx(key, false);
+        }
+    }
 
     PickSky();
 

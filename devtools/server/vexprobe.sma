@@ -114,6 +114,9 @@ public plugin_init()
     register_srvcmd("vexprobe_break", "srv_Break");
     register_srvcmd("vexprobe_touch", "srv_Touch");
     register_srvcmd("vexprobe_tp", "srv_Tp");
+    register_srvcmd("vexprobe_cmd", "srv_Cmd");
+    register_srvcmd("vexprobe_call", "srv_Call");
+    register_message(get_user_msgid("ShowMenu"), "msg_ShowMenu");
     for (new i = 0; i < sizeof USE_CLASSES; i++)
         RegisterHam(Ham_Use, USE_CLASSES[i], "fw_MapUse", 0);
     RegisterHam(Ham_TakeDamage, "func_breakable", "fw_BreakPre", 0);
@@ -888,4 +891,105 @@ public srv_Ents()
             pev(e, pev_rendermode), amt, v[0], v[1], v[2], av[1], nt > 0.0 ? nt - base : -1.0, pev(e, pev_spawnflags), extra);
     }
     return PLUGIN_HANDLED;
+}
+
+
+/* vexprobe_cmd <#id|bot> <command> [arg]: runs a client command through AMXX
+ * (amxclient_cmd, so plugin say / menuselect handlers fire). ShowMenu text sent to
+ * that player is logged as "[vexprobe] menu #id: ..." (multi-part messages joined). */
+new g_iMenuWatch, g_szMenuBuf[1024];
+
+public srv_Cmd()
+{
+    new who[16], cmd[64], arg[128];
+    read_argv(1, who, charsmax(who));
+    read_argv(2, cmd, charsmax(cmd));
+    read_argv(3, arg, charsmax(arg));
+    new id = 0;
+    if (who[0] == '#')
+        id = str_to_num(who[1]);
+    else
+    {
+        for (new p = 1; p <= get_maxplayers(); p++)
+        {
+            if (is_user_connected(p) && is_user_bot(p)) { id = p; break; }
+        }
+    }
+    if (!(1 <= id <= get_maxplayers()) || !is_user_connected(id))
+    {
+        log_amx("[vexprobe] cmd: no player for %s", who);
+        return PLUGIN_HANDLED;
+    }
+    g_iMenuWatch = id;
+    log_amx("[vexprobe] cmd #%d: %s %s", id, cmd, arg);
+    if (arg[0]) amxclient_cmd(id, cmd, arg);
+    else amxclient_cmd(id, cmd);
+    DumpMenu(id);
+    return PLUGIN_HANDLED;
+}
+
+public msg_ShowMenu(msgid, dest, id)
+{
+    if (!id || id != g_iMenuWatch)
+        return PLUGIN_CONTINUE;
+    new part[512];
+    get_msg_arg_string(4, part, charsmax(part));
+    add(g_szMenuBuf, charsmax(g_szMenuBuf), part);
+    if (get_msg_arg_int(3))   // more parts follow
+        return PLUGIN_CONTINUE;
+    replace_string(g_szMenuBuf, charsmax(g_szMenuBuf), "^n", " | ");
+    log_amx("[vexprobe] menu #%d: %s", id, g_szMenuBuf);
+    g_szMenuBuf[0] = 0;
+    return PLUGIN_CONTINUE;
+}
+
+/* vexprobe_call <#id|bot> <public func in vexmira_zombie.amxx>: calls func(id) directly
+ * (bots never reach the plugin's say handler). Menu output is logged like vexprobe_cmd. */
+public srv_Call()
+{
+    new who[16], fn[64];
+    read_argv(1, who, charsmax(who));
+    read_argv(2, fn, charsmax(fn));
+    new id = 0;
+    if (who[0] == '#')
+        id = str_to_num(who[1]);
+    else
+    {
+        for (new p = 1; p <= get_maxplayers(); p++)
+        {
+            if (is_user_connected(p) && is_user_bot(p)) { id = p; break; }
+        }
+    }
+    if (!(1 <= id <= get_maxplayers()) || !is_user_connected(id))
+        return PLUGIN_HANDLED;
+    g_iMenuWatch = id;
+    log_amx("[vexprobe] call #%d: %s", id, fn);
+    if (callfunc_begin(fn, "vexmira_zombie.amxx") == 1)
+    {
+        callfunc_push_int(id);
+        callfunc_end();
+        DumpMenu(id);
+    }
+    else
+        log_amx("[vexprobe] call: %s not found", fn);
+    return PLUGIN_HANDLED;
+}
+
+// AMXX core sends ShowMenu itself (not hookable), so dump the open newmenu's items instead.
+DumpMenu(id)
+{
+    new oldm, newm, page;
+    player_menu_info(id, oldm, newm, page);
+    if (newm < 0)
+    {
+        log_amx("[vexprobe] menu #%d: (none)", id);
+        return;
+    }
+    new n = menu_items(newm), info[16], name[192], acc, cb, line[1024];
+    for (new i = 0; i < n; i++)
+    {
+        menu_item_getinfo(newm, i, acc, info, charsmax(info), name, charsmax(name), cb);
+        format(line, charsmax(line), "%s%s%s", line, i ? " || " : "", name);
+    }
+    log_amx("[vexprobe] menu #%d items=%d: %s", id, n, line);
 }
