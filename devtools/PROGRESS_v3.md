@@ -73,6 +73,13 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   Yarida kalirsa: TaskStop (calisiyorsa) + Workflow({scriptPath, resumeFromRunId}).
   Sonra: tum haritalarla entegrasyon testi, paket 3.1 (v1 oyuncu modelleri haric), kullaniciya gonder.
 
+- 2026-10-04 10:30: kullanici "limite takilmadan bitsin" dedi -> paralel is akislari durduruldu; TEK AJAN, sirali,
+  tasarruflu plan. Parca 1: `$SP/wf/p1.js` run `wf_1c110c81-b75` (split kontrol -> hata duzeltmeleri -> test istemcisi ->
+  MAPS_v3.md -> laboratuvar yenileme -> harita hikaye destegi). Bitince 3.1-ara paketi gonderilir.
+  Parca 2 (sonra): ozel silah sistemi, jetpack/RPG (+modeller), grafik HUD, 5 pet + 5 kanat.
+  Parca 3 (sonra): liman, yikik sehir, karli us, tapinak + optimizasyon + final kontrol.
+  Harita<->eklenti sozlesmesi: devtools/MAP_CONTRACT.md.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
