@@ -81,6 +81,13 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   Parca 3 (sonra): liman, yikik sehir, karli us, tapinak + optimizasyon + final kontrol.
   Harita<->eklenti sozlesmesi: devtools/MAP_CONTRACT.md.
 
+- 2026-10-04 11:22: kullanim %95 -> is akisi DURDURULDU. Gonderildi: Vexmira_Zombie_v3.1.zip (hata duzeltmeleri, otomatik
+  takim, cfg model rehberi, moduler eklenti). Bitenler (onbellekte): split-check, bugfixes.
+  DEVAM (limit sifirlaninca): Workflow({scriptPath: "$SP/wf/p1.js", resumeFromRunId: "wf_1c110c81-b75"})
+  sira: map-story -> laboratuvar (FPS + etkilesim + ini) -> ozel silah sistemi -> grafik HUD (cfg ile geri donulebilir)
+  -> optimizasyon+final -> paket ($SP/pack31.sh / devtools/release/pack31.sh, not: SURUM_v3.1_OKU.txt) -> gonder.
+  Sonra: jetpack/RPG, 5 pet + 5 kanat, 4 harita.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
