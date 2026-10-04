@@ -62,3 +62,6 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
     model yolu, fiyat VC, VIP-only, ve HIZALAMA: bag noktasi/attachment veya bone, ofset x y z, aci, olcek, animasyon
     sequence/framerate). Pet: oyuncuyu takip eden, yuzen; kanat: sirta bagli; sapka: kafaya bagli (aiment + body/attachment).
     Dosya yoksa menude gizli/kapali, hata yok. Model yapmiyoruz.
+21. FPS / PERFORMANS: yeni eklenenler (CSO ekran bildirimleri, CSO HUD, kanat/pet/sapka, meteor, chat ipuclari) istemci
+    FPS'ini ve sunucu CPU'sunu yormasin: her karede mesaj/hesap yok, entity sayisi az, gorunmeyene gonderme yok,
+    HUD guncellemesi seyrek; olcum: devtools/plugin/PERF_BASELINE.md ile ayni test, once/sonra tablo PERF_v32.md.
