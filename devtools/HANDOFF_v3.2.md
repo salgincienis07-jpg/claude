@@ -48,3 +48,6 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
     + headshot/knife ozel, MVP, round/kazanan, boss, enfeksiyon, level up, son insan), CSO tarzi renkli menu basliklari,
     CSO tarzi chat ve sesli bildirim (sesler devtools/sfx), CSO tarzi ust skor/round tasarimi (DHUD + ikon), hepsi cfg'den
     acilip kapanir (vex_cso_style 1) ve EN/TR.
+16. MOD SILAHLARI CFG: survivor / sniper / (nemesis-assassin pence) icin cfg'den silah TURU (hangi silah verilir), hasar
+    carpani, mermi, ozel efekt, v_/p_ model ve ses ayarlanabilsin (su an sadece modeller: SURVIVOR_M249/DEAGLE_V/PMODEL,
+    SNIPER_AWP_V/PMODEL, NEMESIS_CLAW, ASSASSIN_CLAW). Ozel silahlar gibi tablo: vex_modewpn <mod> <silah> <hasar> ...
