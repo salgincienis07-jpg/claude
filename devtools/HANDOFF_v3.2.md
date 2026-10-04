@@ -65,3 +65,6 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
 21. FPS / PERFORMANS: yeni eklenenler (CSO ekran bildirimleri, CSO HUD, kanat/pet/sapka, meteor, chat ipuclari) istemci
     FPS'ini ve sunucu CPU'sunu yormasin: her karede mesaj/hesap yok, entity sayisi az, gorunmeyene gonderme yok,
     HUD guncellemesi seyrek; olcum: devtools/plugin/PERF_BASELINE.md ile ayni test, once/sonra tablo PERF_v32.md.
+22. (2026-10-04 22:45, %97'de durdu; yarim is: $SP/stoppedE.patch) combo/seri olum 2-5 CSO sprite+ses cikmiyor -> duzelt;
+    SAG HUD CSO tarzi yeniden (kisa, hizali, renkli; "=[ // ]=" ve "[||||....]" yok, XP BarTime2); yeni CSO bildirimleri:
+    ILK KAN, BOSS OLDURULDU, ENFEKTE OLDUN, ZOMBIYE BICAK, SON 10 SN; menu madde aciklamalari \d (seffaf beyaz).
