@@ -1275,16 +1275,21 @@ def perf_analysis(src, opts: Optional[dict] = None) -> dict:
 
 
 def perf_at(src, points, opts: Optional[dict] = None) -> List[dict]:
-    """PVS and view numbers at given eye positions (x, y, z), e.g. to compare two spots or to
-    check a fix: bspcheck map.bsp --at "x y z" --at "x y z"."""
+    """PVS and view numbers at given eye positions, e.g. to compare two spots or to check a fix:
+    bspcheck map.bsp --at "x y z" --at "x y z pitch yaw".  A point is (x, y, z) -> all o['yaws']
+    directions, or (x, y, z, pitch, yaw) in engine angles (pitch > 0 looks down, like
+    getpos / vexcam_pos) -> additionally that exact view ('exact')."""
     o = dict(PERF_DEFAULTS, **(opts or {}))
     b = src if isinstance(src, BSP) else BSP(src)
     w = _World(b, o)
     V = _Viewer(w, o)
     out = []
     for p in points:
-        eye = np.asarray(p, np.float64)
-        lf, tot, vw, ve = V.eval(eye)
+        p = [float(x) for x in p]
+        if len(p) not in (3, 5):
+            raise ValueError(f'--at needs "x y z" or "x y z pitch yaw", got {p}')
+        eye = np.asarray(p[:3], np.float64)
+        lf, tot, vw, ve, nf = V.eval(eye)
         row = w.pvs(lf)
         marked = np.bincount(w.mark_face, weights=row[w.mark_leaf].astype(np.float64), minlength=w.nwf) > 0
         evis = w.ent_pvs(row) & w.ent_drawn if w.E else np.zeros(0, bool)
@@ -1294,9 +1299,14 @@ def perf_at(src, points, opts: Optional[dict] = None) -> List[dict]:
         out.append({'eye': eye.round(1).tolist(), 'leaf': int(lf), 'contents': CONTENTS.get(int(w.contents[lf]) if 0 <= lf < w.L else -2, '?'),
                     'visible_leaves': int(row.sum()), 'pvs_faces': int((marked & (w.kind[:w.nwf] != 1)).sum()),
                     'pvs_world': int(pvs_world), 'pvs_ents': int(pvs_ent), 'pvs_total': int(pvs_world + pvs_ent),
-                    'view_max': int(tot[k]), 'view_world': int(vw[k]), 'view_ents': int(ve[k]), 'view_yaw': V.dirs[k][0],
+                    'view_max': int(tot[k]), 'view_world': int(vw[k]), 'view_ents': int(ve[k]), 'view_faces': int(nf[k]),
+                    'view_yaw': V.dirs[k][0],
                     'view_by_dir': {f'{y:.0f}/{pt:.0f}': int(t) for (y, pt), t in zip(V.dirs, tot)},
                     'ents_visible': [f"*{w.ents[i]['model']}" for i in np.nonzero(evis)[0]]})
+        if len(p) == 5:
+            _, t1, w1, e1, n1 = _Viewer(w, o, dirs=[(p[4], -p[3])]).eval(eye)
+            out[-1]['exact'] = {'pitch': p[3], 'yaw': p[4], 'total': int(t1[0]), 'world': int(w1[0]),
+                                'ents': int(e1[0]), 'faces': int(n1[0])}
     return out
 
 
@@ -1305,7 +1315,12 @@ def format_at(rows: List[dict]) -> str:
     for r in rows:
         L.append(f"  at ({_xyz(r['eye'])}) leaf {r['leaf']} ({r['contents']}), sees {r['visible_leaves']} leaves: "
                  f"PVS total {r['pvs_total']} (world faces {r['pvs_faces']}, world wpoly {r['pvs_world']}, ents {r['pvs_ents']}); "
-                 f"view max {r['view_max']} at yaw {r['view_yaw']:.0f} (world {r['view_world']} + ents {r['view_ents']})")
+                 f"view max {r['view_max']} at yaw {r['view_yaw']:.0f} (world {r['view_world']} + ents {r['view_ents']}"
+                 f"{'' if r['view_faces'] == r['view_max'] else '; ' + str(r['view_faces']) + ' faces'})")
+        x = r.get('exact')
+        if x:
+            L.append(f"      view pitch {x['pitch']:g} yaw {x['yaw']:g}: {x['total']} = world {x['world']} + ents {x['ents']}"
+                     f"{'' if x['faces'] == x['total'] else ' (' + str(x['faces']) + ' faces = r_speeds counter)'}")
         L.append('      by yaw/pitch: ' + ' '.join(f'{k}:{v}' for k, v in r['view_by_dir'].items())
                  + (f"; brush ents in PVS: {' '.join(r['ents_visible'])}" if r['ents_visible'] else ''))
     return '\n'.join(L)
@@ -1343,6 +1358,9 @@ def format_perf(p: dict, bud: Optional[dict] = None) -> str:
     L.append(f"    VIEW r_speeds estimate (eye points n={v['samples']}, worst of {v['directions']} yaws, fov {v['fov'][0]}x{v['fov'][1]}, "
              f"frustum + backface): total max {v['total']['max']} p95 {v['total']['p95']} mean {v['total']['mean']} "
              f"(world max {v['world_wpoly']['max']} p95 {v['world_wpoly']['p95']}; ents max {v['ent_wpoly']['max']} p95 {v['ent_wpoly']['p95']})")
+    if v.get('faces') and v['faces']['max'] != v['total']['max']:
+        L.append(f"      faces drawn (r_speeds counter, a water face counts once): max {v['faces']['max']} "
+                 f"p95 {v['faces']['p95']} mean {v['faces']['mean']}")
     if s.get('worst'):
         L.append('    worst leaves (PVS total; * = players stand there):')
         for x in s['worst']:
@@ -1427,8 +1445,9 @@ def main(argv=None):
     g.add_argument('--max-brush-ents', type=int, default=D['max_brush_ents'])
     g.add_argument('--max-map-sounds', type=int, default=D['max_map_sounds'])
     g.add_argument('--max-bsp-mb', type=float, default=D['max_bsp_mb'])
-    g.add_argument('--at', action='append', metavar='"X Y Z"',
-                   help='also print PVS + view numbers at this eye position (repeatable)')
+    g.add_argument('--at', action='append', metavar='"X Y Z [PITCH YAW]"',
+                   help='also print PVS + view numbers at this eye position (repeatable); with engine angles '
+                        '(pitch > 0 = down, as getpos / vexcam_pos) also that exact view')
     a = ap.parse_args(argv)
     opts = {'warn_p95': a.perf_warn, 'error_max': a.perf_error, 'metric': a.perf_metric, 'strict': not a.perf_lenient,
             'fov': a.fov, 'aspect': a.aspect, 'yaws': a.yaws, 'spacing': a.spacing, 'max_brush_ents': a.max_brush_ents,

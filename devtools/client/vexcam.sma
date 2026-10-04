@@ -13,6 +13,8 @@
  *        pulled in front of walls; track 1 re-aims every 0.05 s until vexcam_stop
  *   vexcam_stop                                    stop tracking
  *   vexcam_freeze <target> <0|1>                   FL_FROZEN on/off (pose a bot for a shot)
+ *   vexcam_put <target> <x> <y> <z> [yaw] [freeze]  teleport a target (e.g. the boss) to a
+ *        clean spot, drop it to the floor, turn it to <yaw>, optionally freeze it (default 1)
  *   vexcam_status                                  print cameras, boss + its overhead entities
  *
  * Spectators are switched to free roaming (iuser1 3); a live camera client becomes an
@@ -36,6 +38,7 @@ public plugin_init()
     register_srvcmd("vexcam_stop", "cmd_stop");
     register_srvcmd("vexcam_freeze", "cmd_freeze");
     register_srvcmd("vexcam_status", "cmd_status");
+    register_srvcmd("vexcam_put", "cmd_put");
 }
 
 bool:IsCam(id)
@@ -247,6 +250,49 @@ public cmd_freeze()
     set_pev(t, pev_flags, on ? (fl | FL_FROZEN) : (fl & ~FL_FROZEN));
     set_pev(t, pev_velocity, Float:{0.0, 0.0, 0.0});
     server_print("[vexcam] freeze %s (ent %d) = %d", target, t, on);
+    return PLUGIN_HANDLED;
+}
+
+public cmd_put()
+{
+    if (read_argc() < 5)
+    {
+        server_print("[vexcam] usage: vexcam_put <boss|#userid|ent:N|name> <x> <y> <z> [yaw] [freeze 1]");
+        return PLUGIN_HANDLED;
+    }
+    new target[64];
+    read_argv(1, target, charsmax(target));
+    new t = ResolveTarget(target);
+    if (!t)
+    {
+        server_print("[vexcam] put: target '%s' not found", target);
+        return PLUGIN_HANDLED;
+    }
+    new Float:o[3];
+    for (new i = 0; i < 3; i++)
+        o[i] = read_argv_float(i + 2);
+    set_pev(t, pev_velocity, Float:{0.0, 0.0, 0.0});
+    engfunc(EngFunc_SetOrigin, t, o);
+    new drop = engfunc(EngFunc_DropToFloor, t);
+    if (read_argc() > 5)
+    {
+        new Float:ang[3];
+        pev(t, pev_angles, ang);
+        ang[0] = 0.0;
+        ang[1] = read_argv_float(5);
+        ang[2] = 0.0;
+        set_pev(t, pev_angles, ang);
+        if (t <= get_maxplayers())
+        {
+            set_pev(t, pev_v_angle, ang);
+            set_pev(t, pev_fixangle, 1);
+        }
+    }
+    new freeze = read_argc() > 6 ? read_argv_int(6) : 1;
+    new fl = pev(t, pev_flags);
+    set_pev(t, pev_flags, freeze ? (fl | FL_FROZEN) : (fl & ~FL_FROZEN));
+    pev(t, pev_origin, o);
+    server_print("[vexcam] put %s (ent %d) at %.1f %.1f %.1f drop %d frozen %d", target, t, o[0], o[1], o[2], drop, freeze);
     return PLUGIN_HANDLED;
 }
 

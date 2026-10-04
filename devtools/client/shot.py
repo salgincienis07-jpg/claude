@@ -46,6 +46,7 @@ GAME = os.path.join(CLIENT, 'game')
 AMXXPC_DIR = os.path.join(SP, 'tools', 'bin')
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 RE_SPEEDS = re.compile(r'R_SPEEDS (.*)$')
+RE_MODEL = re.compile(r'R_MODEL tris=(\d+) ents=(\d+) name=(\S+)')
 
 
 def log(msg):
@@ -317,6 +318,9 @@ def main(argv=None):
     ap.add_argument('--client-cmd', action='append', help='"<sec> <command>" for the client console')
     ap.add_argument('--wait-boss', type=float, default=0.0)
     ap.add_argument('--freeze', action='store_true', help='freeze a --look target (FL_FROZEN) while shooting it')
+    ap.add_argument('--put', action='append',
+                    help='"<target> x y z [yaw]": before each --look at <target>, teleport it there (dropped to '
+                         'the floor, turned to yaw, frozen) - deterministic boss shots')
     ap.add_argument('--settle', type=float, default=1.5, help='seconds between positioning and measuring')
     ap.add_argument('--fps-window', type=float, default=3.0)
     ap.add_argument('--fps-max', type=int, default=200)
@@ -335,6 +339,9 @@ def main(argv=None):
     args.server = os.path.abspath(args.server)
     prefix = args.prefix or args.map
     views = parse_views(args)
+    puts = {}
+    for pt in args.put or []:
+        puts.setdefault(pt.split()[0], []).append(pt)
 
     if not os.path.exists(os.path.join(GAME, 'xash3d')):
         raise SystemExit('client not built: see devtools/client/README.md (setup_client.sh)')
@@ -427,7 +434,12 @@ def main(argv=None):
                         sleep_timed(1.0)
                     sleep_timed(1.0)
                 run_timed(time.monotonic() - t_game)
-                placed = server_query(srv, place_cmd(v), r'\[vexcam\] (pos|look)', 2.0)
+                placed = []
+                for pt in puts.get(v.get('look'), []):
+                    placed += server_query(srv, 'vexcam_put %s' % pt, r'\[vexcam\] put', 2.0)
+                if placed:
+                    sleep_timed(0.5)      # let the overhead entities follow the teleported target
+                placed += server_query(srv, place_cmd(v), r'\[vexcam\] (pos|look)', 2.0)
                 if v.get('look') and args.freeze:
                     srv.send('vexcam_freeze %s 1' % v['look'])
             else:
@@ -436,10 +448,15 @@ def main(argv=None):
             t_m = time.monotonic()
             cl.send('r_speeds_dump')
             sleep_timed(args.fps_window)
-            cl.send('r_speeds_dump')
-            time.sleep(0.4)
+            cl.send('r_speeds_dump models')
+            cl.wait_line(r'R_MODELS_END', t_m, 3.0)
             dumps = [RE_SPEEDS.search(l).group(1) for l in cl.since(t_m) if RE_SPEEDS.search(l)]
             speeds = parse_speeds(dumps[-1]) if dumps else {}
+            models = []
+            for l in cl.since(t_m):
+                mm = RE_MODEL.search(l)
+                if mm:
+                    models.append({'name': mm.group(3), 'tris': int(mm.group(1)), 'ents': int(mm.group(2))})
             raw = os.path.join(shotdir, '%s_%s.png' % (prefix, label))
             if os.path.exists(raw):
                 os.unlink(raw)
@@ -455,7 +472,8 @@ def main(argv=None):
             if srv:
                 srv.send('vexcam_stop')
             entry = {'label': v['label'], 'view': v, 'placed': [l.split('] ', 1)[-1] for l in placed],
-                     'r_speeds': speeds, 'status': [l.split('] ', 1)[-1] for l in status], 'png': None}
+                     'r_speeds': speeds, 'models': models,
+                     'status': [l.split('] ', 1)[-1] for l in status], 'png': None}
             if os.path.exists(raw):
                 out = os.path.join(args.out, '%s_%s.png' % (prefix, label))
                 cam = [l for l in entry['status'] if l.startswith('cam ')]
@@ -468,6 +486,10 @@ def main(argv=None):
                                      speeds.get('leafs'), speeds.get('studio_drawn'), speeds.get('sprites_drawn'),
                                      speeds.get('ents'), speeds.get('tents'), speeds.get('particles'),
                                      speeds.get('fps'), speeds.get('secs', 0)))
+                if models:
+                    lines.append('epoly by model: ' + '  '.join(
+                        '%s %d/%d' % (os.path.basename(m['name']), m['tris'], m['ents']) for m in models[:5]) +
+                        ('  (+%d more)' % (len(models) - 5) if len(models) > 5 else ''))
                 if cam:
                     lines.append(cam[0])
                 for l in entry['status']:
@@ -496,6 +518,8 @@ def main(argv=None):
             f.write('\n[%s] %s\n' % (e['label'], e['png']))
             if e['r_speeds']:
                 f.write('  r_speeds: %s\n' % ' '.join('%s=%s' % kv for kv in e['r_speeds'].items()))
+            for m in e['models']:
+                f.write('  model %6d tris %3d ents  %s\n' % (m['tris'], m['ents'], m['name']))
             for l in e['placed'] + e['status']:
                 f.write('  %s\n' % l)
     log('report: %s' % rep_json)

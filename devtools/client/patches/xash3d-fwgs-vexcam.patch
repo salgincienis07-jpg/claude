@@ -19,10 +19,10 @@ index e9285a0..626dbd3 100644
  
  	FD_ZERO( &rfds );
 diff --git a/ref/gl/gl_backend.c b/ref/gl/gl_backend.c
-index 144771c..6dcbb8e 100644
+index 144771c..7602957 100644
 --- a/ref/gl/gl_backend.c
 +++ b/ref/gl/gl_backend.c
-@@ -42,6 +42,37 @@ qboolean R_SpeedsMessage( char *out, size_t size )
+@@ -42,6 +42,96 @@ qboolean R_SpeedsMessage( char *out, size_t size )
  	return true;
  }
  
@@ -40,6 +40,53 @@ index 144771c..6dcbb8e 100644
 +static uint r_dump_frames;
 +static double r_dump_start = -1.0;
 +
++// per studio model breakdown of epoly ("r_speeds_dump models"): triangles and entity count
++// per model file in the current frame; copied together with r_stats at the end of a world frame
++#define R_MDLSTATS_MAX 192
++typedef struct
++{
++	char name[64];
++	uint tris;
++	uint ents;
++	const cl_entity_t *last_ent;
++} r_mdlstat_t;
++
++static r_mdlstat_t r_mdl_cur[R_MDLSTATS_MAX], r_mdl_last[R_MDLSTATS_MAX];
++static int r_mdl_numcur, r_mdl_numlast;
++
++void R_SpeedsCountModel( const char *name, const cl_entity_t *ent, int tris )
++{
++	int i;
++
++	for( i = 0; i < r_mdl_numcur; i++ )
++	{
++		if( !Q_strncmp( r_mdl_cur[i].name, name, sizeof( r_mdl_cur[i].name )))
++			break;
++	}
++
++	if( i == r_mdl_numcur )
++	{
++		if( r_mdl_numcur >= R_MDLSTATS_MAX )
++			return;
++		r_mdl_numcur++;
++		memset( &r_mdl_cur[i], 0, sizeof( r_mdl_cur[i] ));
++		Q_strncpy( r_mdl_cur[i].name, name, sizeof( r_mdl_cur[i].name ));
++	}
++
++	r_mdl_cur[i].tris += tris;
++	if( r_mdl_cur[i].last_ent != ent )
++	{
++		r_mdl_cur[i].last_ent = ent;
++		r_mdl_cur[i].ents++;
++	}
++}
++
++static int R_MdlStatCmp( const void *a, const void *b )
++{
++	const r_mdlstat_t *x = a, *y = b;
++	return x->tris < y->tris ? 1 : x->tris > y->tris ? -1 : 0;
++}
++
 +void R_SpeedsDump_f( void )
 +{
 +	double now = gp_host->realtime;
@@ -55,12 +102,24 @@ index 144771c..6dcbb8e 100644
 +
 +	r_dump_frames = 0;
 +	r_dump_start = now;
++
++	if( gEngfuncs.Cmd_Argc() > 1 && !Q_stricmp( gEngfuncs.Cmd_Argv( 1 ), "models" ))
++	{
++		r_mdlstat_t sorted[R_MDLSTATS_MAX];
++		int i;
++
++		memcpy( sorted, r_mdl_last, sizeof( r_mdlstat_t ) * r_mdl_numlast );
++		qsort( sorted, r_mdl_numlast, sizeof( r_mdlstat_t ), R_MdlStatCmp );
++		for( i = 0; i < r_mdl_numlast; i++ )
++			gEngfuncs.Con_Printf( "R_MODEL tris=%u ents=%u name=%s\n", sorted[i].tris, sorted[i].ents, sorted[i].name );
++		gEngfuncs.Con_Printf( "R_MODELS_END count=%i\n", r_mdl_numlast );
++	}
 +}
 +
  /*
  ==============
  GL_BackendStartFrame
-@@ -64,6 +95,14 @@ void GL_BackendEndFrame( void )
+@@ -64,6 +154,17 @@ void GL_BackendEndFrame( void )
  
  	mleaf_t *curleaf = RI.viewleaf ? RI.viewleaf : WORLDMODEL->leafs;
  
@@ -71,19 +130,23 @@ index 144771c..6dcbb8e 100644
 +	r_dump_frames++;
 +	if( r_dump_start < 0.0 )
 +		r_dump_start = gp_host->realtime;
++	memcpy( r_mdl_last, r_mdl_cur, sizeof( r_mdlstat_t ) * r_mdl_numcur );
++	r_mdl_numlast = r_mdl_numcur;
++	r_mdl_numcur = 0;
 +
  	switch( (int)r_speeds->value )
  	{
  	case 1:
 diff --git a/ref/gl/gl_local.h b/ref/gl/gl_local.h
-index 1e4d23e..3a31b12 100644
+index 1e4d23e..d184e34 100644
 --- a/ref/gl/gl_local.h
 +++ b/ref/gl/gl_local.h
-@@ -300,6 +300,7 @@ extern float		gldepthmin, gldepthmax;
+@@ -300,6 +300,8 @@ extern float		gldepthmin, gldepthmax;
  //
  void GL_BackendStartFrame( void );
  void GL_BackendEndFrame( void );
 +void R_SpeedsDump_f( void );
++void R_SpeedsCountModel( const char *name, const cl_entity_t *ent, int tris );
  void GL_CleanUpTextureUnits( int last );
  void GL_Bind( int tmu, unsigned int texnum );
  void GL_MultiTexCoord2f( int tmu, GLfloat s, GLfloat t );
@@ -107,3 +170,23 @@ index f05a3dd..a098992 100644
  	gEngfuncs.Cmd_RemoveCommand( "timerefresh" );
  }
  
+diff --git a/ref/gl/gl_studio.c b/ref/gl/gl_studio.c
+index 39873fb..43bd8ca 100644
+--- a/ref/gl/gl_studio.c
++++ b/ref/gl/gl_studio.c
+@@ -2124,6 +2124,7 @@ static void R_StudioDrawPoints( void )
+ 		}
+ 
+ 		r_stats.c_studio_polys += pmesh->numtris;
++		R_SpeedsCountModel( RI.currentmodel ? RI.currentmodel->name : m_pStudioHeader->name, RI.currententity, pmesh->numtris );
+ 		tr.blend = oldblend;
+ 	}
+ }
+@@ -2624,6 +2625,7 @@ static void R_StudioDrawPointsShadow( void )
+ 		short *ptricmds = (short *)((byte *)m_pStudioHeader + pmesh->triindex);
+ 
+ 		r_stats.c_studio_polys += pmesh->numtris;
++		R_SpeedsCountModel( RI.currentmodel ? RI.currentmodel->name : m_pStudioHeader->name, RI.currententity, pmesh->numtris );
+ 
+ 		int i;
+ 		while(( i = *( ptricmds++ )))
