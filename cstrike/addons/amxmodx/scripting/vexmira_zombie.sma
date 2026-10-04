@@ -719,6 +719,7 @@ public plugin_init()
     register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
     register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
     register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
+    register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
     register_forward(FM_SetModel, "fw_SetModelPost", 1);
     register_forward(FM_AddToFullPack, "fw_AddToFullPackPost", 1);
     PrecacheReportTotals();

@@ -286,6 +286,29 @@ FixGravity(id)
     }
 }
 
+// Gelistirici testi (vex_debug_dirs 1): "vex_debug_hooktest" - en fazla 3 normal zombi bot
+// Kasap olur, en yakin insana doner ve kanca atar (zincir / cekme yonleri DIRCHK ile yazilir).
+public srv_DbgHookTest()
+{
+    if (!get_pcvar_num(g_pDbgDirs))
+        return PLUGIN_HANDLED;
+    new n;
+    for (new id = 1; id <= g_iMax && n < 3; id++)
+    {
+        if (!is_user_alive(id) || !is_user_bot(id) || !g_bZombie[id] || g_bMinion[id] || g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id])
+            continue;
+        new t = ZcNearestHuman(id, 900.0);
+        if (!t)
+            continue;
+        g_iClass[id] = ZC_BUTCHER;
+        ZcFace(id, t);
+        if (ButcherHook(id))
+            n++;
+    }
+    log_amx("[Vexmira] DIRCHK hook_test thrown=%d", n);
+    return PLUGIN_HANDLED;
+}
+
 // Gelistirici testi (vex_debug_dirs 1): "vex_debug_gravtest" - parasut kapanisini taklit eder
 // (canli herkesin yercekimini 1.0 / 0.1'e bozar); FixGravity bir sonraki karede duzeltmeli.
 public srv_DbgGravTest()
@@ -1485,10 +1508,10 @@ public fw_ZProjThink(ent)
             BeamPoints(beam, hand, cur);
             if (g_iDirLogN[DIR_HOOK] < DIR_LOG_MAX && trav > 60.0 && get_pcvar_num(g_pDbgDirs))
             {
-                // Istemcinin cizdigi zincir: sahibin konumu -> kanca; atis yonuyle ayni olmali
+                // Istemcinin cizdigi zincir: sahibin konumu -> kanca; atis yonuyle (mermi hizi) ayni olmali
                 new Float:oo[3], Float:aim[3], Float:seg2[3];
                 get_entvar(owner, var_origin, oo);
-                ZcAimDir(owner, aim);
+                get_entvar(ent, var_velocity, aim);
                 for (new i = 0; i < 3; i++)
                     seg2[i] = cur[i] - oo[i];
                 DirCheck(DIR_HOOK, "hook_beam", seg2, aim);
