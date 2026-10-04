@@ -93,6 +93,12 @@ Haritayi acmak: changelevel zm_vex_laboratory
  - Ikmal kutusu (airdrop), atilan bombalar (w_firebomb / w_frostbomb /
    w_flare).
 
+[ZOMBI PENCELERI]
+ - Eski deneme pence modelleri kaldirildi (indirme suresi kisa olsun).
+   Simdilik zombilerin elinde orijinal CS bicagi gorunur. Tam
+   surumde 4 ortak pence modeli gelecek (siradan / agir / cevik / boss);
+   vexmira.cfg buna gore hazir (Z<n>_CLAW, B<n>_CLAW).
+
 [HARITA OYLAMASI]
  - 30. round sonunda oylama vex_map_pool listesindeki, SUNUCUDA OLAN
    haritalar arasinda yapilir. Bu ara surumde yalniz zm_vex_laboratory
@@ -104,7 +110,16 @@ Haritayi acmak: changelevel zm_vex_laboratory
 ---------------------------------------------------------------------
  TEST
 ---------------------------------------------------------------------
-@@TEST@@
+ - Gercek ReHLDS + ReGameDLL + AMXX + ReAPI sunucusunda, zm_vex_laboratory
+   haritasinda 16 botla ~8 dakika: tum modlar (enfeksiyon, nemesis,
+   survivor, assassin, swarm, sniper, armageddon), 4 boss, eventler.
+   Sonuc: 0 calisma zamani hatasi, 0 cokme.
+ - Precache (oyun + harita + eklenti): ses 442/512, model 334/512.
+ - Hizalama gercek bir istemci baglantisiyla (HLTV) olculdu: bar / ikon
+   oyuncu kafasinin ustunde, yana kayma 0; lazer mayini 24 farkli
+   yuzeyde (duvar, egim, zemin, tavan) yuzeye tam dik.
+ - Henuz oyuncu gozuyle (oyun istemcisinde) bakilmadi: bir sey yanlis
+   gorunurse ekran goruntusu ile haber ver.
 
 ---------------------------------------------------------------------
  TAM SURUMDE GELECEKLER

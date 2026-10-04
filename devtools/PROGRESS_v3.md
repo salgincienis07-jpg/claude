@@ -55,6 +55,12 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   (vexblade, 3 bomba, sw0-7), hook/hive_egg/spore_pod dünya modelleri, efekt sprite yükseltmesi + entegrasyon testi.
   Sonra: 3.0.2 zip (v1 oyuncu modelleri hariç).
 
+- 2026-10-04 00:37: kullanıcı %92 kullanımda "bitir at" dedi: 3.0.1 zip gönderildi (Vexmira_Zombie_v3.0.1_ARA.zip).
+  3.0.2 iş akışı (4 pençe: v_claw_zombie/mutant/stalker/boss, p_ modeller, hook/hive_egg/spore_pod, efekt sprite'ları)
+  BAŞLAMADAN durduruldu; devam: `Workflow({scriptPath: "$SP/wf/weapons-fx-302.js"})` (yeni çalıştırma).
+  cfg pençeleri zaten 4 modele eşlendi. Kalan: oyuncu modelleri (MakeHuman), 4 harita, laboratuvar havalandırma
+  ağzında bot takılması (y -800..-736 ağız dar), tam sürüm belgeleri + zip.
+
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
 1. Depoyu klonla, bu branch'e geç. `devtools/DESIGN_v3.md` sözleşmedir.
