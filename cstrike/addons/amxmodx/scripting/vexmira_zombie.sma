@@ -717,6 +717,8 @@ public plugin_init()
     g_pPrefixVip     = register_cvar("vex_chat_prefix_vip", "^4[^3VIP^4]^1");
     g_pPrefixAdmin   = register_cvar("vex_chat_prefix_admin", "^3[ADMIN]^1");
     register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
+    register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
+    register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
     register_forward(FM_SetModel, "fw_SetModelPost", 1);
     register_forward(FM_AddToFullPack, "fw_AddToFullPackPost", 1);
     PrecacheReportTotals();

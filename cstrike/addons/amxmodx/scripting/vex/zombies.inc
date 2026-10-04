@@ -281,8 +281,27 @@ FixGravity(id)
     if (get_pcvar_num(g_pDbgDirs) && g_iDirLogN[DIR_GRAV] < DIR_LOG_MAX)
     {
         g_iDirLogN[DIR_GRAV]++;
-        log_amx("[Vexmira] DIRCHK gravity_restore id=%d %.3f -> %.3f", id, cur, g_fGrav[id]);
+        log_amx("[Vexmira] DIRCHK gravity_restore id=%d zombie=%d class=%d boss=%d nem=%d asn=%d surv=%d %.3f -> %.3f",
+            id, g_bZombie[id], g_iClass[id], g_bBoss[id], g_bNemesis[id], g_bAssassin[id], g_bSurvivor[id], cur, g_fGrav[id]);
     }
+}
+
+// Gelistirici testi (vex_debug_dirs 1): "vex_debug_gravtest" - parasut kapanisini taklit eder
+// (canli herkesin yercekimini 1.0 / 0.1'e bozar); FixGravity bir sonraki karede duzeltmeli.
+public srv_DbgGravTest()
+{
+    if (!get_pcvar_num(g_pDbgDirs))
+        return PLUGIN_HANDLED;
+    new n;
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_alive(id) || g_fGrav[id] <= 0.0)
+            continue;
+        set_entvar(id, var_gravity, (n % 2) ? 0.1 : 1.0);
+        n++;
+    }
+    log_amx("[Vexmira] DIRCHK grav_test broken=%d", n);
+    return PLUGIN_HANDLED;
 }
 
 ApplyHumanGravity(id)

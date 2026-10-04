@@ -957,6 +957,7 @@ PlayerModelFile(const name[], out[], len)
     {
         copy(out, len, name);
         MdlHeadTops(name);
+        PcPlayerTex(name);
     }
 }
 
@@ -1196,7 +1197,21 @@ GetPlayerModel(const key[], out[], len)
     if (!PcModel(model))
         out[0] = 0;
     else
+    {
         MdlHeadTops(out);
+        PcPlayerTex(out);
+    }
+}
+
+// v3.1: dokulari ayri dosyada olan oyuncu modeli (<ad>T.mdl) da indirilsin; yoksa istemci
+// modeli dokusuz / hatali gorur. precache_generic: model yuvasi harcamaz.
+PcPlayerTex(const name[])
+{
+    new tex[128];
+    formatex(tex, charsmax(tex), "models/player/%s/%sT.mdl", name, name);
+    // g_iFwPcMdl != 0 yalniz precache asamasinda (sonra precache yapilamaz)
+    if (g_iFwPcMdl && file_exists(tex, true))
+        precache_generic(tex);
 }
 
 GetFileModel(const key[], out[], len)

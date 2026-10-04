@@ -709,6 +709,48 @@ bool:LmModeBlocked(mode)
     return (g_iLmBlockMask & (1 << mode)) ? true : false;
 }
 
+// Gelistirici testi (vex_debug_dirs 1): "vex_debug_lmtest [force]" - canli insanlar (botlar)
+// icin yakin duvara mayin kurar (force: lazer kapali modda da). Izin / kurulum log'a yazilir.
+public srv_DbgLmTest()
+{
+    if (!get_pcvar_num(g_pDbgDirs))
+        return PLUGIN_HANDLED;
+    new arg[8];
+    read_argv(1, arg, charsmax(arg));
+    new bool:force = equali(arg, "force") ? true : false;
+    new bool:allowed = LasersAllowed();
+    new planted, tries;
+    for (new id = 1; id <= g_iMax && planted < 4; id++)
+    {
+        if (!is_user_alive(id) || g_bZombie[id])
+            continue;
+        tries++;
+        if (!allowed && !force)
+            continue;
+        new Float:eye[3], Float:end[3], Float:pos[3], Float:nrm[3], Float:frac;
+        ZcEye(id, eye);
+        for (new k = 0; k < 8; k++)
+        {
+            end[0] = eye[0] + floatcos(float(k) * 45.0, degrees) * 128.0;
+            end[1] = eye[1] + floatsin(float(k) * 45.0, degrees) * 128.0;
+            end[2] = eye[2] - 16.0;
+            engfunc(EngFunc_TraceLine, eye, end, IGNORE_MONSTERS, id, 0);
+            get_tr2(0, TR_flFraction, frac);
+            if (frac >= 1.0)
+                continue;
+            get_tr2(0, TR_vecEndPos, pos);
+            get_tr2(0, TR_vecPlaneNormal, nrm);
+            if (CreateMine(id, pos, nrm))
+            {
+                planted++;
+                break;
+            }
+        }
+    }
+    log_amx("[Vexmira] DIRCHK lm_test mode=%d allowed=%d force=%d humans=%d planted=%d mines=%d", g_iMode, allowed, force, tries, planted, CountMines(0));
+    return PLUGIN_HANDLED;
+}
+
 // Lazer neden kapali: boss / bu mod / genel
 LmDenyReason(id)
 {
@@ -738,14 +780,18 @@ LmModeStart()
 {
     if (!LmModeBlocked(g_iMode))
         return;
-    new had[33], ent;
+    new had[33], ent, n;
     while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", LM_CLASS)) > 0)
     {
         new o = get_entvar(ent, var_iuser1);
         if (1 <= o <= g_iMax)
             had[o] = 1;
+        n++;
     }
+    if (!n)
+        return;
     RemoveAllMines();
+    log_amx("[Vexmira] lazer kapali mod (%d) basladi: %d mayin kaldirildi, kalan %d", g_iMode, n, CountMines(0));
     new key[16], name[48];
     formatex(key, charsmax(key), "MODE_NAME_%d", g_iMode);
     for (new p = 1; p <= g_iMax; p++)
@@ -1435,6 +1481,8 @@ public fw_MineThink(ent)
 
             new r, g, b;
             MineColor(ent, r, g, b);
+            if (get_pcvar_num(g_pDbgDirs))
+                log_amx("[Vexmira] DIRCHK lm_beam len=%.1f max=%.1f", get_distance_f(start, end), maxr);
             new beam = BeamCreate(start, end, r, g, b, clamp(get_pcvar_num(g_pLmBeamWidth), 1, 100), 200);
             if (beam)
                 set_entvar(beam, var_iuser1, BEAM_MARK_LM);
