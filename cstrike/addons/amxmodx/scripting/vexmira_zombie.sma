@@ -33,12 +33,9 @@
       Gerekli: ReHLDS, ReGameDLL_CS, ReAPI modulu, AMX Mod X 1.9 / 1.10
       Moduller: reapi, fakemeta, hamsandwich, fun, nvault (geoip istege bagli)
     ---------------------------------------------------------------------
-      DOSYA DUZENI (v3.1): kaynak 13 modul dosyasina bolundu, derleme
-      sonucu yine TEK eklenti (vexmira_zombie.amxx). Bu dosyada sadece
-      giris noktalari var (plugin_natives / plugin_precache / plugin_init
-      / plugin_cfg / plugin_end); geri kalan her sey scripting/vex/ altinda.
-      Derleme: vex/ klasoru bu .sma ile ayni klasorde olmali.
-      Modul haritasi ve duzenleme kurallari: devtools/plugin/MODULES.md
+      TEK DOSYALIK KAYNAK: Bu .sma tum Vexmira kodunu icerir.
+      AMX Mod X include dosyalari (amxmodx, reapi vb.) disinda baska
+      .inc klasorune bagimli degildir; .sma tek basina derlenebilir.
     =====================================================================
 */
 
@@ -54,13 +51,8 @@
 #pragma dynamic 32768
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "3.1"
+#define VERSION  "3.2-dev"
 #define AUTHOR   "SmurfSexy & Capital"
-
-/* ------------------------------------------------------------------ */
-/*  Bolumler asagida sirayla - sira onemli: CORE once (globaller)     */
-/*  Ayrinti: devtools/plugin/MODULES.md                               */
-/* ------------------------------------------------------------------ */
 
 /* ================================================================== */
 /*  BOLUM 1/13: CORE                                                  */
@@ -78,7 +70,8 @@
 #define NUM_BOSSES    9
 #define NUM_JOBS      26
 #define NUM_ITEMS     28
-#define NUM_SPECIAL   8
+#define NUM_SPECIAL   16
+enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SWE_EXPLOSIVE };
 #define NUM_PERKS     6
 #define PERK_MAX      5
 #define NUM_ACH       14
@@ -119,6 +112,8 @@
 #define TASK_HOSTNAME 9500
 #define HOSTNAME_MAX  63
 #define TASK_CFGLOAD  9600
+#define TASK_AUTOTEAM 34500   // ReGameDLL auto-join guvencesi
+#define TASK_JOINCLASS 34600  // otomatik takim sonrasi sinif secimi
 #define TASK_SNDSTOP  31000   // +0..63 (dongulu ses durdurma)
 #define TASK_BSK      32000   // +0..255 (boss R yetenekleri, gecikmeli vuruslar)
 
@@ -258,7 +253,13 @@ new const SOUND_KEYS[][] =
     "HEADSHOT", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "KILL_MONSTER",
     "STREAK_5", "STREAK_10", "STREAK_15",
     "NADE_FIRE", "NADE_FROST", "NADE_INFECT", "FREEZE", "BURN", "ANTIDOTE", "MADNESS",
-    "SW_FIRE", "ZAP", "MVP", "VIP_JOIN", "BOSS_WARN", "BOSS_ROAR", "BOSS_ABILITY",
+    "SW_FIRE", "SW0_FIRE", "SW1_FIRE", "SW2_FIRE", "SW3_FIRE", "SW4_FIRE", "SW5_FIRE", "SW6_FIRE", "SW7_FIRE",
+    "SW8_FIRE", "SW9_FIRE", "SW10_FIRE", "SW11_FIRE", "SW12_FIRE", "SW13_FIRE", "SW14_FIRE", "SW15_FIRE",
+    "SW0_DRAW", "SW1_DRAW", "SW2_DRAW", "SW3_DRAW", "SW4_DRAW", "SW5_DRAW", "SW6_DRAW", "SW7_DRAW",
+    "SW8_DRAW", "SW9_DRAW", "SW10_DRAW", "SW11_DRAW", "SW12_DRAW", "SW13_DRAW", "SW14_DRAW", "SW15_DRAW",
+    "SW0_RELOAD", "SW1_RELOAD", "SW2_RELOAD", "SW3_RELOAD", "SW4_RELOAD", "SW5_RELOAD", "SW6_RELOAD", "SW7_RELOAD",
+    "SW8_RELOAD", "SW9_RELOAD", "SW10_RELOAD", "SW11_RELOAD", "SW12_RELOAD", "SW13_RELOAD", "SW14_RELOAD", "SW15_RELOAD",
+    "ZAP", "MVP", "VIP_JOIN", "BOSS_WARN", "BOSS_ROAR", "BOSS_ABILITY",
     "ZOMBIE_IDLE", "ZOMBIE_SLASH", "ZOMBIE_HITWALL", "ZOMBIE_HIT", "ZOMBIE_STAB", "ZOMBIE_ACID", "ZOMBIE_HEAL", "ZOMBIE_BLINK", "ZOMBIE_SHOCK",
     "WELCOME", "PLAYER_JOIN", "PLAYER_LEAVE", "BOSS_SOON", "BOSS_INTRO", "BOSS_STEP", "BOSS_PHASE", "BOSS_ENRAGE",
     "LM_DEPLOY", "LM_CHARGE", "LM_ACTIVATE", "LM_HIT", "LM_BREAK", "LM_PICKUP",
@@ -349,22 +350,34 @@ new const ITEM_ANNOUNCE[NUM_ITEMS] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
 new const SW_BASE_ENT[NUM_SPECIAL][] =
 {
     "weapon_m4a1", "weapon_m249", "weapon_awp", "weapon_xm1014",
+    "weapon_deagle", "weapon_p90", "weapon_ak47", "weapon_sg550",
+    "weapon_m4a1", "weapon_m249", "weapon_awp", "weapon_xm1014",
     "weapon_deagle", "weapon_p90", "weapon_ak47", "weapon_sg550"
 };
 new const WeaponIdType:SW_BASE_ID[NUM_SPECIAL] =
 {
     WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
+    WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550,
+    WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
     WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550
 };
-new Float:SW_MULT[NUM_SPECIAL] = { 1.8, 1.5, 3.0, 1.6, 2.2, 1.6, 1.9, 2.4 };
-new SW_COST[NUM_SPECIAL]       = { 40, 60, 70, 45, 30, 50, 55, 80 };
-new SW_LVL[NUM_SPECIAL]        = { 3, 8, 12, 5, 4, 10, 15, 20 };
-new SW_BPAMMO[NUM_SPECIAL]     = { 180, 300, 60, 64, 70, 200, 180, 180 };
-new const SW_RGB[NUM_SPECIAL][3]     =
+new Float:SW_MULT[NUM_SPECIAL] = { 1.8, 1.5, 3.0, 1.6, 2.2, 1.6, 1.9, 2.4, 1.7, 1.45, 2.6, 1.5, 2.0, 1.5, 1.7, 2.0 };
+new SW_COST[NUM_SPECIAL]       = { 40, 60, 70, 45, 30, 50, 55, 80, 48, 72, 85, 58, 38, 65, 68, 92 };
+new SW_LVL[NUM_SPECIAL]        = { 3, 8, 12, 5, 4, 10, 15, 20, 6, 11, 16, 8, 7, 13, 19, 24 };
+new SW_BPAMMO[NUM_SPECIAL]     = { 180, 300, 60, 64, 70, 200, 180, 180, 180, 300, 60, 64, 70, 200, 180, 180 };
+new SW_CLIP[NUM_SPECIAL]       = { 30, 100, 10, 7, 7, 50, 30, 30, 30, 100, 10, 7, 7, 50, 30, 30 };
+new SW_CHAIN_DMG[NUM_SPECIAL]  = { 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0 };
+new Float:SW_RATE[NUM_SPECIAL] = { 0.10, 0.08, 1.5, 0.25, 0.23, 0.07, 0.10, 0.20, 0.10, 0.08, 1.5, 0.25, 0.23, 0.07, 0.10, 0.20 };
+new Float:SW_RECOIL[NUM_SPECIAL] = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
+new SW_EFFECT[NUM_SPECIAL] = { 0, 1, 2, 3, 0, 1, 4, 5, 0, 1, 2, 3, 0, 1, 4, 5 };
+new SW_RGB[NUM_SPECIAL][3]     =
 {
     {0, 220, 255}, {255, 110, 0}, {200, 220, 255}, {120, 220, 255},
-    {255, 210, 0}, {255, 60, 0}, {170, 0, 255}, {90, 0, 160}
+    {255, 210, 0}, {255, 60, 0}, {170, 0, 255}, {90, 0, 160},
+    {60, 255, 240}, {255, 80, 30}, {130, 200, 255}, {80, 190, 255},
+    {255, 180, 40}, {255, 35, 20}, {180, 50, 255}, {120, 30, 200}
 };
+new g_szSWName[2][NUM_SPECIAL][48], g_szSWDesc[2][NUM_SPECIAL][80];
 
 // Perk maliyeti: (seviye + 1) * vex_perk_cost_step VC
 #define PERK_COST_STEP max(1, get_pcvar_num(g_pPerkStep))
@@ -499,6 +512,7 @@ new g_iBossBag[NUM_BOSSES], g_iBossBagPos = NUM_BOSSES, bool:g_bFinalBoss, g_iLa
 new g_iBossPhase, g_iBossDmg[33];
 new g_iBoss, g_iBossType, g_iBossMaxHP, g_iBossTick, g_iMeteorTick, g_iGlobalInfBombs;
 new bool:g_bWaiting, bool:g_bCounting, bool:g_bRoundActive, bool:g_bRoundEnded, bool:g_bEnraged, bool:g_bLastAnn;
+new bool:g_bAdminEnvOverride, g_iAdminEnvLight = 'm', g_iAdminEnvFog[4], g_iAdminEnvWeather;
 new g_szLight[4] = "m";
 
 new Float:g_fFlarePos[MAX_FLARES][3], Float:g_fFlareEnd[MAX_FLARES];
@@ -548,6 +562,7 @@ new g_szZModel[NUM_CLASSES][32], g_szBModel[NUM_BOSSES][32];
 new g_szNemModel[32], g_szAsnModel[32], g_szSurvModel[32], g_szSnipModel[32];
 new g_szHumanModel[32], g_szVipModel[32], g_szAdminModel[32];
 new g_szClawModel[96], g_szSWView[NUM_SPECIAL][96], g_szSWPlayer[NUM_SPECIAL][96];
+new g_szSurvGunV[2][96], g_szSurvGunP[2][96], g_szSniperGunV[96], g_szSniperGunP[96];
 new g_szZClaw[NUM_CLASSES][96], g_szBClaw[NUM_BOSSES][96], g_szNemClaw[96], g_szAsnClaw[96];
 new g_szWepV[31][96], g_szWepP[31][96], bool:g_bEmitting;
 new bool:g_bVoxCountdown = true;
@@ -604,6 +619,7 @@ new g_pLmPerRound, g_pLmPerRoundVip, g_pLmOneShot, g_pLmSpecialDmg, g_pLmKillWea
 new g_pLmArmTime, g_pLmBeamWidth, g_pLmColorMode, g_pLmColor, g_pLmRange, g_pLmTakeRange, g_pAirdropLaser;
 // v3.1: lazer isini azami boyu, lazerin kapali oldugu modlar, yon testi kaydi (gelistirici)
 new g_pLmMaxRange, g_pLmBlockModes, g_pDbgDirs;
+new g_pAutoJoinHumans;
 new g_szLmBlockCache[64], g_iLmBlockMask = -1;
 // v3.1: kafa ustu isaret sprite'lari TE_PLAYERATTACHMENT ile cizilebilir mi (yalniz alphatest)
 new bool:g_bHeadMarkAt, bool:g_bMarkAt;
@@ -790,7 +806,7 @@ new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
 // istemcide bunlari da susturur; round basladiktan kisa sure sonra yeniden calinirlar.
 #define MAX_AMB 64
 new g_iAmbEnt[MAX_AMB], g_szAmbSnd[MAX_AMB][64], Float:g_fAmbVol[MAX_AMB], Float:g_fAmbAttn[MAX_AMB];
-new g_iAmbPitch[MAX_AMB], bool:g_bAmbOn[MAX_AMB], g_iAmbN, g_iAmbRestored, bool:g_bAmbReplay;
+new g_iAmbPitch[MAX_AMB], bool:g_bAmbOn[MAX_AMB], g_iAmbN, g_iAmbRestored, bool:g_bAmbReplay, bool:g_bAmbMuted;
 
 // Kafa ustu gostergeler: boss can bari + amblem, kucuk can bari, ikonlar
 #define OVH_CLASS     "vex_ovh"
@@ -803,6 +819,7 @@ new g_iOvhTick, g_iOvhCount, g_iOvhHumans;
 // Son gonderilen durum (degismeyen deger tekrar yazilmaz: ag / islemci tasarrufu)
 new g_iOvhSent[33];
 new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, g_pOvhMargin, g_pOvhGap;
+new g_pHudStyle, g_pHudTop, g_pHudRight, g_pHudMvp, g_pHudXp, g_pHudOvh, g_pHudObjective;
 // v3.0 hizalama: gostergeler MOVETYPE_FOLLOW kullanmaz (istemci FOLLOW sprite'ini govde merkezine
 // cizer, v_angle ofsetini yok sayar). Konum her pakette AddToFullPack'te oyuncunun o anki
 // konumu + modelin kafa ustu yuksekligi + yigin ofseti olarak yazilir.
@@ -881,6 +898,8 @@ new QUEST_AP[NUM_QUESTS]   = { 10, 20, 10, 20, 12, 8, 20, 12 };
 new TRAIL_PRICE[NUM_TRAILS] = { 15, 15, 15, 20, 30, 50 };
 new KFX_PRICE[NUM_KFX]      = { 20, 25, 25, 30, 35, 50 };
 new IFX_PRICE[NUM_IFX]      = { 20, 30, 40 };
+
+/* ===== End module: core.inc ===== */
 /* ================================================================== */
 /*  BOLUM 2/13: FX                                                    */
 /*  Gorsel / ses efekt yardimcilari (TE mesajlari, isinlar, ekran     */
@@ -918,6 +937,15 @@ CurrentEnv(&light, fog[4], &weather)
     weather = 0;
     if (!get_pcvar_num(g_pEnv))
         return;
+
+    if (g_bAdminEnvOverride)
+    {
+        light = g_iAdminEnvLight;
+        for (new i = 0; i < 4; i++)
+            fog[i] = g_iAdminEnvFog[i];
+        weather = g_iAdminEnvWeather;
+        return;
+    }
 
     if (g_iMode == MODE_BOSS && g_iBossType >= 0 && g_iBossType < NUM_BOSSES)
     {
@@ -1628,6 +1656,16 @@ stock EmitKey(ent, const key[], chan = CHAN_VOICE, Float:attn = ATTN_NORM)
     EmitSafe(ent, chan, path, VOL_NORM, attn, 0, PITCH_NORM);
 }
 
+stock EmitSpecialFire(id, sw)
+{
+    new key[24], path[96];
+    formatex(key, charsmax(key), "SW%d_FIRE", sw);
+    if (TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
+        EmitSafe(id, CHAN_WEAPON, path, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+    else if (SW_EFFECT[sw] == SWE_LIGHTNING || SW_EFFECT[sw] == SWE_VOID)
+        EmitKey(id, "SW_FIRE");
+}
+
 // Varliktan ses: dongulu WAV ise kisa sure sonra otomatik durdurulur
 stock EmitSafe(ent, chan, const path[], Float:vol = VOL_NORM, Float:attn = ATTN_NORM, flags = 0, pitch = PITCH_NORM)
 {
@@ -2271,6 +2309,8 @@ stock AnimByName(ent, const name[], fallback, Float:rate = 1.0)
     set_entvar(ent, var_framerate, rate);
     return seq;
 }
+
+/* ===== End module: fx.inc ===== */
 /* ================================================================== */
 /*  BOLUM 3/13: HUD                                                   */
 /*  HUD paneli, nisan bilgisi, sirali buyuk yazi yuvalari, chat       */
@@ -2300,6 +2340,20 @@ ChatKeyName(id, const msgKey[], const prefix[], idx)
 new const Float:HUDPOS_X[NUM_HUDPOS] = { 0.76, 0.015, 0.015, 0.76, -1.0 };
 new const Float:HUDPOS_Y[NUM_HUDPOS] = { 0.40, 0.33,  0.20,  0.12,  0.80 };
 
+// Overrides: -1 follows style; 0 off; 1 text; 2 graphic when supported.
+stock HudPartMode(pcvar)
+{
+    new mode = get_pcvar_num(pcvar);
+    if (mode >= 0)
+        return clamp(mode, 0, 2);
+    switch (clamp(get_pcvar_num(g_pHudStyle), 0, 2))
+    {
+        case 0: return 1; // Classic Vexmira text HUD
+        case 1: return 2; // Graphic first; unsupported text-only parts stay hidden
+    }
+    return 0; // Stock Counter-Strike HUD
+}
+
 DrawHud()
 {
     new humans = CountHumans(true), zombies = CountZombies(true);
@@ -2318,7 +2372,7 @@ DrawHud()
         new t = g_iTheme[id];
 
         // ---------- Ust bilgi: 3 satir, 2 renk, 2 saniyede bir ----------
-        if (top)
+        if (top && HudPartMode(g_pHudTop) == 1)
         {
             formatex(key, charsmax(key), "MODE_NAME_%d", g_iMode);
             formatex(mn, charsmax(mn), "%L", id, key);
@@ -2357,12 +2411,15 @@ DrawHud()
         }
 
         // ---------- Nisan alinan / izlenen oyuncu ----------
-        if (is_user_alive(id))
-            DrawAimInfo(id);
-        else
-            DrawSpecInfo(id);
+        if (HudPartMode(g_pHudRight) == 1)
+        {
+            if (is_user_alive(id))
+                DrawAimInfo(id);
+            else
+                DrawSpecInfo(id);
+        }
 
-        if (g_iSet[id] & SET_NO_HUD)
+        if ((g_iSet[id] & SET_NO_HUD) || HudPartMode(g_pHudRight) != 1)
             continue;
 
         // ---------- Kisisel panel: baslik (tema) + govde (acik ton) ----------
@@ -2385,7 +2442,8 @@ DrawHud()
         // XP cubugu (ASCII, 12 parca)
         new xbar[16];
         AsciiBar(xbar, 12, xpPct);
-        formatex(l2, charsmax(l2), "%L", id, "HUD_P2", xbar, g_iXP[id], need);
+        if (HudPartMode(g_pHudXp) == 1)
+            formatex(l2, charsmax(l2), "%L", id, "HUD_P2", xbar, g_iXP[id], need);
         formatex(l3, charsmax(l3), "%L", id, "HUD_P3", g_iAP[id], g_iVC[id], g_iStreak[id]);
 
         l4[0] = 0;
@@ -2435,6 +2493,8 @@ DrawHud()
         }
 
         QuestLine(id, l5, charsmax(l5));
+        if (HudPartMode(g_pHudObjective) != 1)
+            l5[0] = 0;
         if (is_user_alive(id) && !g_bZombie[id])
         {
             new cmp[64];
@@ -2944,7 +3004,7 @@ public fw_OvhThink(ent)
     set_entvar(ent, var_nextthink, now + 0.05);
     g_iOvhTick++;
 
-    new bool:on = get_pcvar_num(g_pOvhEnable) ? true : false;
+    new bool:on = (get_pcvar_num(g_pOvhEnable) && HudPartMode(g_pHudOvh) != 0) ? true : false;
     g_bOvhSelf = get_pcvar_num(g_pOvhSelf) ? true : false;
     if (g_iOvhTick % 5 == 0)
         g_iOvhHumans = (g_bRoundActive && !g_bRoundEnded) ? CountHumans(true) : 0;
@@ -3045,7 +3105,7 @@ OvhIconFor(id)
         return -1;
     if ((bits & OVH_ICONBIT_LAST) && g_szOvhSpr[OVS_LAST][0] && !g_bZombie[id] && g_iOvhHumans == 1)
         return OVS_LAST;
-    if ((bits & OVH_ICONBIT_MVP) && g_szOvhSpr[OVS_MVP][0] && g_iRoundMvp == id)
+    if ((bits & OVH_ICONBIT_MVP) && HudPartMode(g_pHudMvp) != 0 && g_szOvhSpr[OVS_MVP][0] && g_iRoundMvp == id)
         return OVS_MVP;
     if ((bits & OVH_ICONBIT_ALPHA) && g_szOvhSpr[OVS_ALPHA][0] && g_bZombie[id] && g_bAlpha[id])
         return OVS_ALPHA;
@@ -3376,6 +3436,8 @@ public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
     set_es(es, ES_Origin, o);
     return FMRES_IGNORED;
 }
+
+/* ===== End module: hud.inc ===== */
 /* ================================================================== */
 /*  BOLUM 4/13: KAYNAKLAR                                             */
 /*  vex_res kaynak tablosu, precache + butceler (ses / model /        */
@@ -3443,6 +3505,12 @@ SetDefaultResources()
     DefSound("ANTIDOTE",       "vexmira/antidote.wav",        "items/smallmedkit1.wav");
     DefSound("MADNESS",        "vexmira/madness.wav",         "ambience/the_horror1.wav");
     DefSound("SW_FIRE",        "vexmira/sw_fire.wav",         "weapons/electro5.wav");
+    for (new swi = 0; swi < NUM_SPECIAL; swi++)
+    {
+        new swkey[24];
+        formatex(swkey, charsmax(swkey), "SW%d_FIRE", swi);
+        TrieSetString(g_tRes, swkey, ""); // Optional per-weapon sound; empty falls back to SW_FIRE when applicable.
+    }
     DefSound("ZAP",            "vexmira/zap.wav",             "weapons/electro4.wav");
     DefSound("MVP",            "vexmira/mvp.wav",             "events/task_complete.wav");
     DefSound("VIP_JOIN",       "vexmira/vip_join.wav",        "buttons/bell1.wav");
@@ -4909,8 +4977,46 @@ bool:ApplyTableCmd(const args[][], argc)
         {
             SW_COST[i]   = max(0, str_to_num(args[2]));
             SW_LVL[i]    = clamp(str_to_num(args[3]), 1, MAX_LEVEL);
-            SW_MULT[i]   = floatmax(0.1, str_to_float(args[4]));
+            SW_MULT[i]   = floatclamp(str_to_float(args[4]), 0.1, 4.0);
             SW_BPAMMO[i] = clamp(str_to_num(args[5]), 1, 999);
+            if (argc >= 7)
+            {
+                if (equali(args[6], "fire")) SW_EFFECT[i] = SWE_FIRE;
+                else if (equali(args[6], "lightning")) SW_EFFECT[i] = SWE_LIGHTNING;
+                else if (equali(args[6], "ice")) SW_EFFECT[i] = SWE_ICE;
+                else if (equali(args[6], "vampire")) SW_EFFECT[i] = SWE_VAMPIRE;
+                else if (equali(args[6], "void")) SW_EFFECT[i] = SWE_VOID;
+                else if (equali(args[6], "explosive")) SW_EFFECT[i] = SWE_EXPLOSIVE;
+                else if (equali(args[6], "none")) SW_EFFECT[i] = SWE_NONE;
+            }
+            if (argc >= 10)
+            {
+                SW_RGB[i][0] = clamp(str_to_num(args[7]), 0, 255);
+                SW_RGB[i][1] = clamp(str_to_num(args[8]), 0, 255);
+                SW_RGB[i][2] = clamp(str_to_num(args[9]), 0, 255);
+            }
+            if (argc >= 11)
+                SW_CLIP[i] = clamp(str_to_num(args[10]), 1, 100);
+            if (argc >= 12)
+                SW_CHAIN_DMG[i] = clamp(str_to_num(args[11]), 0, 100);
+            if (argc >= 13)
+                SW_RATE[i] = floatclamp(str_to_float(args[12]), 0.05, 5.0);
+            if (argc >= 14)
+                SW_RECOIL[i] = floatclamp(str_to_float(args[13]), 0.5, 2.0);
+        }
+        return true;
+    }
+    if (equali(args[0], "vex_sw_text"))
+    {
+        // vex_sw_text <no> <en|tr> <name> <description>
+        if ((i = TblIdx(args, argc, 5, NUM_SPECIAL)) >= 0)
+        {
+            new lang = equali(args[2], "tr") ? 1 : (equali(args[2], "en") ? 0 : -1);
+            if (lang >= 0)
+            {
+                copy(g_szSWName[lang][i], charsmax(g_szSWName[][]), args[3]);
+                copy(g_szSWDesc[lang][i], charsmax(g_szSWDesc[][]), args[4]);
+            }
         }
         return true;
     }
@@ -5139,6 +5245,8 @@ public task_Hostname()
 {
     ApplyHostname();
 }
+
+/* ===== End module: resources.inc ===== */
 /* ================================================================== */
 /*  BOLUM 5/13: ISTATISTIK                                            */
 /*  nvault kayit / yukleme, level / rutbe / basarim / unvan /         */
@@ -5579,6 +5687,9 @@ ShowAchMenu(id)
         formatex(k2, charsmax(k2), "ACH_DESC_%d", i);
         formatex(n1, charsmax(n1), "%L", id, k1);
         formatex(n2, charsmax(n2), "%L", id, k2);
+        new lang = (g_iLang[id] == 2) ? 1 : 0;
+        if (g_szSWName[lang][i][0]) copy(n1, charsmax(n1), g_szSWName[lang][i]);
+        if (g_szSWDesc[lang][i][0]) copy(n2, charsmax(n2), g_szSWDesc[lang][i]);
 
         if (g_iAch[id] & (1 << i))
             formatex(item, charsmax(item), "\r[\wX\r] \y%s \d%s", n1, n2);
@@ -6020,6 +6131,8 @@ TopJoinAnnounce(id)
             client_print_color(p, id, "%s %L", ChatTag("TOP_JOIN"), p, "TOP_JOIN", r, name);
     }
 }
+
+/* ===== End module: stats.inc ===== */
 /* ================================================================== */
 /*  BOLUM 6/13: EKONOMI                                               */
 /*  AP / VC / XP odulleri, market (esya), ozel silah satin alma,      */
@@ -6103,10 +6216,19 @@ Reward(id, xp, ap)
     g_iRoundXP[id] += xp;
     g_iLevel[id] = CalcLevel(g_iXP[id]);
 
+    // A short native XP progress animation is sent only on positive XP gains.
+    // Do not overwrite the active laser plant/take countdown bar.
+    if (xp > 0 && HudPartMode(g_pHudXp) == 2 && !g_iPlantAction[id])
+    {
+        new lvl = g_iLevel[id];
+        new pct = (lvl >= MAX_LEVEL) ? 100 : clamp((g_iXP[id] - XPForLevel(lvl)) * 100 / max(1, XPForLevel(lvl + 1) - XPForLevel(lvl)), 0, 100);
+        rg_send_bartime2(id, 2, float(pct), false);
+    }
+
     if (ap > 0)
         AddAP(id, ap, true, false);
 
-    if (xp > 0 || ap > 0)
+    if ((xp > 0 || ap > 0) && HudPartMode(g_pHudXp) == 1)
     {
         new txt[48];
         if (ap > 0)
@@ -6521,7 +6643,9 @@ public menu_special_handler(id, menu, item)
     }
 
     g_iSpecW[id] |= (1 << i);
-    rg_give_item(id, SW_BASE_ENT[i], GT_REPLACE);
+    new weapon = rg_give_item(id, SW_BASE_ENT[i], GT_REPLACE);
+    if (!is_nullent(weapon))
+        set_member(weapon, m_Weapon_iClip, SW_CLIP[i]);
     rg_set_user_bpammo(id, SW_BASE_ID[i], SW_BPAMMO[i]);
     engclient_cmd(id, SW_BASE_ENT[i]);
 
@@ -7352,6 +7476,8 @@ InfectFx(idx, const Float:o[3])
         }
     }
 }
+
+/* ===== End module: economy.inc ===== */
 /* ================================================================== */
 /*  BOLUM 7/13: SILAHLAR                                              */
 /*  Silah dagitimi (birincil / ikincil menu), ozel silahlar (deploy   */
@@ -7454,7 +7580,7 @@ Freeze(victim, Float:dur)
     FxElSmall(vo, EL_ICE, 7);
 }
 
-ChainLightning(victim, attacker)
+ChainLightning(victim, attacker, Float:chainDamage)
 {
     if (g_bChaining)
         return;
@@ -7472,7 +7598,7 @@ ChainLightning(victim, attacker)
             continue;
 
         FxBeam(vo, po, g_sprLightning, 200, 220, 255, 30);
-        ExecuteHamB(Ham_TakeDamage, p, attacker, attacker, 120.0, DMG_SHOCK);
+        ExecuteHamB(Ham_TakeDamage, p, attacker, attacker, chainDamage, DMG_SHOCK);
         hits++;
     }
 
@@ -7535,6 +7661,21 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
         return HC_CONTINUE;
     }
 
+    // Mode loadouts may use dedicated cfg models; empty entries inherit the normal weapon model.
+    if (g_bSurvivor[id] && (wid == WEAPON_M249 || wid == WEAPON_DEAGLE))
+    {
+        new slot = (wid == WEAPON_M249) ? 0 : 1;
+        if (g_szSurvGunV[slot][0]) SetHookChainArg(2, ATYPE_STRING, g_szSurvGunV[slot]);
+        if (g_szSurvGunP[slot][0]) SetHookChainArg(3, ATYPE_STRING, g_szSurvGunP[slot]);
+        return HC_CONTINUE;
+    }
+    if (g_bSniper[id] && wid == WEAPON_AWP)
+    {
+        if (g_szSniperGunV[0]) SetHookChainArg(2, ATYPE_STRING, g_szSniperGunV);
+        if (g_szSniperGunP[0]) SetHookChainArg(3, ATYPE_STRING, g_szSniperGunP);
+        return HC_CONTINUE;
+    }
+
     new sw = SpecialIndex(id, wid);
     if (sw >= 0)
     {
@@ -7577,8 +7718,22 @@ public fw_PrimaryAttackPost(weapon)
     if (sw < 0)
         return HAM_IGNORED;
 
+    new Float:attackReady = Float:get_member(weapon, m_Weapon_flNextPrimaryAttack);
+    new Float:minReady = get_gametime() + SW_RATE[sw];
+    if (attackReady < minReady)
+        set_member(weapon, m_Weapon_flNextPrimaryAttack, minReady);
+    if (SW_RECOIL[sw] != 1.0)
+    {
+        new Float:punch[3];
+        get_entvar(id, var_punchangle, punch);
+        punch[0] *= SW_RECOIL[sw];
+        punch[1] *= SW_RECOIL[sw];
+        punch[2] *= SW_RECOIL[sw];
+        set_entvar(id, var_punchangle, punch);
+    }
+
     // Hizli silahlarda her atista iz cizme (performans)
-    if ((sw == 1 || sw == 5) && (g_iFrame + id) % 2)
+    if ((sw % 8 == 1 || sw % 8 == 5) && (g_iFrame + id) % 2)
         return HAM_IGNORED;
 
     new Float:start[3], Float:end[3], Float:ofs[3], Float:ang[3], Float:fwd[3];
@@ -7600,11 +7755,11 @@ public fw_PrimaryAttackPost(weapon)
     get_tr2(0, TR_vecEndPos, end);
 
     start[2] -= 6.0;
-    FxBeam(start, end, (sw == 2) ? g_sprLightning : g_sprBeam, SW_RGB[sw][0], SW_RGB[sw][1], SW_RGB[sw][2], (sw == 2) ? 40 : 12);
+    new bool:lightning = (SW_EFFECT[sw] == SWE_LIGHTNING);
+    FxBeam(start, end, lightning ? g_sprLightning : g_sprBeam, SW_RGB[sw][0], SW_RGB[sw][1], SW_RGB[sw][2], lightning ? 40 : 12);
     FxLight(end, SW_RGB[sw][0], SW_RGB[sw][1], SW_RGB[sw][2], 8, 3, 30);
 
-    if (sw == 2 || sw == 7)
-        EmitKey(id, "SW_FIRE");
+    EmitSpecialFire(id, sw);
 
     return HAM_IGNORED;
 }
@@ -8291,10 +8446,13 @@ public cmd_lm_plant(id)
         return PLUGIN_HANDLED;
     }
 
-    new Float:pos[3], Float:normal[3];
-    if (!FindPlantSpot(id, pos, normal))
+    new Float:pos[3], Float:normal[3], Float:hitDistance;
+    if (!FindPlantSpot(id, pos, normal, hitDistance))
     {
-        LmMessage(id, "LM_NO_WALL");
+        if (hitDistance > 0.0)
+            LmMessage(id, "LM_TOO_FAR", floatround(floatclamp(get_pcvar_float(g_pLmRange), 48.0, 256.0)));
+        else
+            LmMessage(id, "LM_NO_WALL");
         return PLUGIN_HANDLED;
     }
 
@@ -8370,10 +8528,13 @@ public task_PlantDone(tid)
         if (!LasersAllowed() || g_iMines[id] <= 0 || CountMines(id) >= MaxMines(id))
             return;
 
-        new Float:pos[3], Float:normal[3];
-        if (!FindPlantSpot(id, pos, normal))
+        new Float:pos[3], Float:normal[3], Float:hitDistance;
+        if (!FindPlantSpot(id, pos, normal, hitDistance))
         {
-            Chat(id, "LM_NO_WALL");
+            if (hitDistance > 0.0)
+                Chat(id, "LM_TOO_FAR", floatround(floatclamp(get_pcvar_float(g_pLmRange), 48.0, 256.0)));
+            else
+                Chat(id, "LM_NO_WALL");
             return;
         }
         if (CreateMine(id, pos, normal))
@@ -8405,8 +8566,9 @@ public task_PlantDone(tid)
 }
 
 // Nisan alinan yuzey: duvar / zemin / tavan (sadece sabit dunya)
-bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
+bool:FindPlantSpot(id, Float:pos[3], Float:normal[3], &Float:hitDistance)
 {
+    hitDistance = 0.0;
     new Float:start[3], Float:end[3], Float:ofs[3], Float:ang[3], Float:fwd[3];
     get_entvar(id, var_origin, start);
     get_entvar(id, var_view_ofs, ofs);
@@ -8419,9 +8581,12 @@ bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
     global_get(glb_v_forward, fwd);
 
     new Float:range = floatclamp(get_pcvar_float(g_pLmRange), 48.0, 256.0);
-    end[0] = start[0] + fwd[0] * range;
-    end[1] = start[1] + fwd[1] * range;
-    end[2] = start[2] + fwd[2] * range;
+    // Aim farther than the allowed install distance only to return a useful warning.
+    // The mine itself is still rejected whenever the hit lies past `range`.
+    new Float:traceRange = floatmax(range, 8192.0), Float:endDist;
+    end[0] = start[0] + fwd[0] * traceRange;
+    end[1] = start[1] + fwd[1] * traceRange;
+    end[2] = start[2] + fwd[2] * traceRange;
 
     new tr = create_tr2();
     engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, id, tr);
@@ -8436,6 +8601,13 @@ bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
     if (frac >= 1.0)
         return false;
 
+    endDist = get_distance_f(start, pos);
+    if (endDist > range + 1.0)
+    {
+        hitDistance = endDist;
+        return false;
+    }
+
     // Hareketli kapi / asansor uzerine kurulmaz
     if (hit > 0)
     {
@@ -8446,6 +8618,7 @@ bool:FindPlantSpot(id, Float:pos[3], Float:normal[3])
     }
 
     // pos yuzeyde kalir; modele gore ofset CreateMine'da (MineOrient) uygulanir
+    hitDistance = endDist;
     return true;
 }
 
@@ -10387,6 +10560,8 @@ public fw_SetModelPost(ent, const model[])
     engfunc(EngFunc_SetSize, ent, mins, maxs);
     return FMRES_IGNORED;
 }
+
+/* ===== End module: weapons.inc ===== */
 /* ================================================================== */
 /*  BOLUM 8/13: ZOMBILER                                              */
 /*  Zombi / insan donusumleri, enfeksiyon, sinif menusu, [R] / [F]    */
@@ -10543,6 +10718,7 @@ MakeSurvivor(id, bool:sniper)
     ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
+    g_iSpecW[id] = 0; // Loadout weapons are mode-owned, not retained shop weapon modifiers.
     if (sniper)
         g_bSniper[id] = 1;
     else
@@ -13377,6 +13553,8 @@ BotAbilities()
         SkillTrigger(id, 1);
     }
 }
+
+/* ===== End module: zombies.inc ===== */
 /* ================================================================== */
 /*  BOLUM 9/13: BOSSLAR                                               */
 /*  Boss baslatma / faz / olum, pasif yetenekler, fazli [R]           */
@@ -16941,6 +17119,8 @@ VoiceReset(id)
     g_fStepDist[id] = 0.0;
     g_iPainAlt[id] = 0;
 }
+
+/* ===== End module: bosses.inc ===== */
 /* ================================================================== */
 /*  BOLUM 10/13: MODLAR                                               */
 /*  Round akisi (ReAPI round hook'lari, kazanma kosulu), 1 sn tick,   */
@@ -17487,7 +17667,8 @@ RoundSummary()
             if (!is_user_connected(p) || is_user_bot(p))
                 continue;
             formatex(txt, charsmax(txt), "%L", p, "MVP_HUD", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp]);
-            HudText(p, SL_ALERT, CLR_REWARD, 4.0, txt);
+            if (HudPartMode(g_pHudMvp) == 1)
+                HudText(p, SL_ALERT, CLR_REWARD, 4.0, txt);
             client_print_color(p, mvp, "%s %L", ChatTag("MVP_CHAT2"), p, "MVP_CHAT2", name, g_iRoundDmg[mvp], g_iRoundKills[mvp], g_iRoundInf[mvp], ap, vc);
             if (!(g_iSet[p] & SET_NO_AMB))
                 PlayKey(p, "MVP");
@@ -18665,6 +18846,8 @@ StormStrike()
             ExecuteHamB(Ham_TakeDamage, p, 0, 0, 10.0, DMG_SHOCK);
     }
 }
+
+/* ===== End module: modes.inc ===== */
 /* ================================================================== */
 /*  BOLUM 11/13: OYUNCULAR                                            */
 /*  Baglanti / ayrilma, dil, oyuncu komutlari ve menuleri (ana        */
@@ -18769,6 +18952,8 @@ public client_putinserver(id)
 {
     ResetPlayer(id);
     HudReset(id);
+    if (get_pcvar_num(g_pAutoJoinHumans) && !is_user_bot(id))
+        set_task(0.25, "task_AutoJoinHuman", id + TASK_AUTOTEAM);
 
     // Kayit anahtari (SteamID) hazirsa hemen yukle; degilse dogrulamayi bekle.
     // (STEAM_ID_PENDING iken yuklenip sonra kaydedilirse gercek profil ezilirdi.)
@@ -18795,6 +18980,64 @@ public client_putinserver(id)
     // Karsilama: oyuncu takim secip dogunca gosterilir (MOTD / takim menusu
     // acikken yazilar kaybolmasin). Takim secmezse 25 sn sonra yine gosterilir.
     set_task(25.0, "task_Welcome", id + TASK_WELCOME2);
+}
+
+// Team-full / team-balance checks in the stock join menu can reject players
+// even when this mode intentionally uses CT for humans and T for zombies.
+public cmd_jointeam(id)
+{
+    if (!get_pcvar_num(g_pAutoJoinHumans))
+        return PLUGIN_CONTINUE;
+
+    // Zombie mode owns team assignment. Never let the stock menu try T or
+    // reject CT with its player-count / balance checks; keep humans on CT.
+    if (!is_user_alive(id) && get_member(id, m_iTeam) != TEAM_CT)
+        ForceJoinHuman(id);
+    return PLUGIN_HANDLED;
+}
+
+ForceJoinHuman(id)
+{
+    if (!is_user_connected(id) || is_user_alive(id))
+        return;
+
+    if (get_member(id, m_iTeam) != TEAM_CT && !rg_join_team(id, TEAM_CT))
+        rg_set_user_team(id, TEAM_CT, MODEL_UNASSIGNED, true, false);
+    remove_task(id + TASK_JOINCLASS);
+    set_task(0.2, "task_JoinClassAuto", id + TASK_JOINCLASS);
+}
+
+public task_AutoJoinHuman(tid)
+{
+    new id = tid - TASK_AUTOTEAM;
+    if (!is_user_connected(id) || is_user_alive(id) || !get_pcvar_num(g_pAutoJoinHumans))
+        return;
+
+    if (get_member(id, m_iTeam) != TEAM_CT)
+        ForceJoinHuman(id);
+    else
+        task_JoinClassAuto(id + TASK_JOINCLASS);
+}
+
+public task_JoinClassAuto(tid)
+{
+    new id = tid - TASK_JOINCLASS;
+    if (!is_user_connected(id) || is_user_alive(id) || get_member(id, m_iTeam) != TEAM_CT)
+        return;
+
+    // Class 5 is ReGameDLL's automatic/random player-model selection.
+    engclient_cmd(id, "joinclass", "5");
+}
+
+public task_EnforceAutoTeam()
+{
+    if (!get_pcvar_num(g_pAutoJoinHumans))
+        return;
+
+    set_cvar_num("mp_auto_join_team", 1);
+    set_cvar_string("humans_join_team", "CT");
+    set_cvar_num("mp_limitteams", 0);
+    set_cvar_num("mp_autoteambalance", 0);
 }
 
 bool:AuthReady(id)
@@ -18878,6 +19121,8 @@ public task_JoinAnnounce(tid)
 
 public client_disconnected(id, bool:drop, message[], maxlen)
 {
+    remove_task(id + TASK_AUTOTEAM);
+    remove_task(id + TASK_JOINCLASS);
     remove_task(id + TASK_LOADWAIT);
     remove_task(id + TASK_WELCOME);
     remove_task(id + TASK_WELCOME2);
@@ -20100,18 +20345,23 @@ public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
     if (!is_user_alive(victim))
         return;
 
+    new sw = SpecialIndex(attacker, wid);
     // Knockback
     if (bullet && get_pcvar_num(g_pKnockback))
-        ApplyKnockback(victim, attacker, wid, damage);
+    {
+        new Float:kbDamage = damage;
+        if (sw >= 0 && SW_EFFECT[sw] == SWE_VOID)
+            kbDamage *= 1.35;
+        ApplyKnockback(victim, attacker, wid, kbDamage);
+    }
 
     // Can calma (Vampire meslegi / Vampir Gecesi eventi / Vex Reaper)
-    new sw = SpecialIndex(attacker, wid);
     new Float:steal = 0.0;
     if (g_iJob[attacker] == JOB_VAMPIRE)
         steal += 0.05;
     if (g_iEvent == EV_VAMPIRE)
         steal += 0.05;
-    if (sw == 6)
+    if (sw >= 0 && SW_EFFECT[sw] == SWE_VAMPIRE)
         steal += 0.05;
     if (steal > 0.0)
         HealTo(attacker, max(1, floatround(damage * steal)), MaxHumanHP(attacker) + 50);
@@ -20126,11 +20376,28 @@ public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
         Freeze(victim, 1.0);
 
     // Ozel silah efektleri
-    switch (sw)
+    switch (sw >= 0 ? SW_EFFECT[sw] : SWE_NONE)
     {
-        case 1, 5: if (random_num(1, 100) <= 20) Ignite(victim, attacker, 3);
-        case 2: ChainLightning(victim, attacker);
-        case 3: if (random_num(1, 100) <= 25) Freeze(victim, 1.5);
+        case SWE_FIRE: if (random_num(1, 100) <= 20) Ignite(victim, attacker, 3);
+        case SWE_LIGHTNING: if (SW_CHAIN_DMG[sw] > 0) ChainLightning(victim, attacker, float(SW_CHAIN_DMG[sw]));
+        case SWE_ICE: if (random_num(1, 100) <= 25) Freeze(victim, 1.5);
+        case SWE_EXPLOSIVE:
+        {
+            if (random_num(1, 100) <= 12)
+            {
+                new Float:origin[3], Float:other[3];
+                get_entvar(victim, var_origin, origin);
+                FxRing(origin, SW_RGB[sw][0], SW_RGB[sw][1], SW_RGB[sw][2], 140);
+                for (new p = 1; p <= g_iMax; p++)
+                {
+                    if (p == victim || !is_user_alive(p) || !g_bZombie[p] || g_bBoss[p])
+                        continue;
+                    get_entvar(p, var_origin, other);
+                    if (get_distance_f(origin, other) <= 140.0)
+                        ExecuteHamB(Ham_TakeDamage, p, attacker, attacker, 18.0, DMG_BLAST);
+                }
+            }
+        }
     }
 }
 
@@ -20541,6 +20808,29 @@ public rg_FallDamage(id)
 
 public fw_EmitSound(ent, channel, const sample[], Float:volume, Float:attn, flags, pitch)
 {
+    // Ozel silahlar: sadece cfg'de ses tanimlanmissa motorun stok cekme/sarjor sesini degistir.
+    // FM_EmitSound oyuncu ent'siyle cagrilir; aktif silah + ozel silah bit'i birlikte eslestirilir.
+    if (!g_bEmitting && (1 <= ent <= g_iMax) && is_user_connected(ent) && !g_bZombie[ent])
+    {
+        new sw = SpecialIndex(ent, GetActiveWeaponId(ent));
+        if (sw >= 0)
+        {
+            new key[20], path[128];
+            if (containi(sample, "draw") != -1)
+                formatex(key, charsmax(key), "SW%d_DRAW", sw);
+            else if (containi(sample, "reload") != -1 || containi(sample, "clipin") != -1
+                || containi(sample, "clipout") != -1 || containi(sample, "boltpull") != -1
+                || containi(sample, "insert") != -1 || containi(sample, "slide") != -1)
+                formatex(key, charsmax(key), "SW%d_RELOAD", sw);
+
+            if (key[0] && TrieGetString(g_tRes, key, path, charsmax(path)) && path[0])
+            {
+                EmitSafe(ent, channel, path, volume, attn, flags, pitch);
+                return FMRES_SUPERCEDE;
+            }
+        }
+    }
+
     if (g_bEmitting || !(1 <= ent <= g_iMax) || !g_bZombie[ent] || !is_user_connected(ent))
         return FMRES_IGNORED;
 
@@ -21926,6 +22216,8 @@ ResetPlayerLate(id)
     g_iVoteMenu[id] = -1;
     g_iMapVoteMenu[id] = -1;
 }
+
+/* ===== End module: players.inc ===== */
 /* ================================================================== */
 /*  BOLUM 12/13: ADMIN                                                */
 /*  Admin menusu ve alt menuleri, admin konsol komutlari (mod /       */
@@ -22290,6 +22582,8 @@ ShowAdminEnvMenu(id)
         formatex(item, charsmax(item), "\y%L", id, key);
         MenuAdd(menu, item, i);
     }
+    formatex(item, charsmax(item), "\y%L", id, "ADME_CUSTOM");
+    MenuAdd(menu, item, 10);
     MenuFinish(id, menu);
 }
 
@@ -22298,8 +22592,13 @@ public menu_admenv(id, menu, item)
     if (item < 0 || !(get_user_flags(id) & ADMIN_BAN)) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
+    if (sel == 10)
+    {
+        ShowAdminEnvDetail(id);
+        return PLUGIN_HANDLED;
+    }
     AdminSetEnv(sel);
-    AdminNotify(id, "ADM_ENV_SET", sel);
+    AdminNotify(id, sel == 0 ? "ADM_ENV_RESET" : "ADM_ENV_SET", sel);
     ShowAdminEnvMenu(id);
     return PLUGIN_HANDLED;
 }
@@ -22309,6 +22608,8 @@ AdminSetEnv(sel)
 {
     if (sel <= 0)
     {
+        g_bAdminEnvOverride = false;
+        SetMapAmbienceMuted(false);
         ApplyWorldEvent();
         return;
     }
@@ -22319,19 +22620,100 @@ AdminSetEnv(sel)
         {180, 190, 210, 22}, {150, 150, 150, 45}, {60, 70, 90, 35}, {100, 0, 10, 30}, {0, 0, 0, 40}
     };
     static const W[10] = { 0, 0, 0, 0, 1, 2, 0, 1, 0, 0 };
-    g_szLight[0] = L[sel];
-    g_szLight[1] = 0;
-    engfunc(EngFunc_LightStyle, 0, g_szLight);
-    for (new p = 1; p <= g_iMax; p++)
-    {
-        if (!is_user_connected(p) || is_user_bot(p))
-            continue;
-        SendWeather(p, W[sel]);
-        if (!(g_iSet[p] & SET_NO_FOG))
-            SendFogEx(p, F[sel][0], F[sel][1], F[sel][2], F[sel][3]);
-    }
+    g_bAdminEnvOverride = true;
+    g_iAdminEnvLight = L[sel];
+    for (new c = 0; c < 4; c++)
+        g_iAdminEnvFog[c] = F[sel][c];
+    g_iAdminEnvWeather = W[sel];
+    ApplyWorldEvent();
     if (sel == 7)
         Lightning();
+}
+
+ShowAdminEnvDetail(id)
+{
+    if (!g_bAdminEnvOverride)
+    {
+        new light, fog[4], weather;
+        CurrentEnv(light, fog, weather);
+        g_iAdminEnvLight = light;
+        for (new c = 0; c < 4; c++)
+            g_iAdminEnvFog[c] = fog[c];
+        g_iAdminEnvWeather = weather;
+        g_bAdminEnvOverride = true;
+    }
+
+    new title[192], item[112], menu;
+    formatex(title, charsmax(title), "%s %L^n\dL:%c F:%d RGB:%d/%d/%d W:%d^n", MENU_TAG, id, "ADME_DETAIL", g_iAdminEnvLight, g_iAdminEnvFog[3], g_iAdminEnvFog[0], g_iAdminEnvFog[1], g_iAdminEnvFog[2], g_iAdminEnvWeather);
+    menu = menu_create(title, "menu_admenv_detail");
+
+    formatex(item, charsmax(item), "\y%L \r[%c]", id, "ADME_LIGHT", g_iAdminEnvLight); MenuAdd(menu, item, 1);
+    formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_DENSITY", g_iAdminEnvFog[3]); MenuAdd(menu, item, 2);
+    formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_RED", g_iAdminEnvFog[0]); MenuAdd(menu, item, 3);
+    formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_GREEN", g_iAdminEnvFog[1]); MenuAdd(menu, item, 4);
+    formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_FOG_BLUE", g_iAdminEnvFog[2]); MenuAdd(menu, item, 5);
+    formatex(item, charsmax(item), "\y%L \r[%d]", id, "ADME_WEATHER", g_iAdminEnvWeather); MenuAdd(menu, item, 6);
+    formatex(item, charsmax(item), "\y%L \r[%L]", id, "ADME_MAP_AMBIENCE", id, g_bAmbMuted ? "OFF" : "ON"); MenuAdd(menu, item, 7);
+    formatex(item, charsmax(item), "\r%L", id, "ADME_ENV_RESET"); MenuAdd(menu, item, 8);
+    formatex(item, charsmax(item), "\y%L", id, "MENU_BACK"); MenuAdd(menu, item, 9);
+    MenuFinish(id, menu);
+}
+
+public menu_admenv_detail(id, menu, item)
+{
+    if (item < 0 || !(get_user_flags(id) & ADMIN_BAN)) { menu_destroy(menu); return PLUGIN_HANDLED; }
+    new sel = MenuInfo(menu, item);
+    menu_destroy(menu);
+
+    if (sel == 9)
+    {
+        ShowAdminEnvMenu(id);
+        return PLUGIN_HANDLED;
+    }
+    if (sel == 8)
+    {
+        g_bAdminEnvOverride = false;
+        SetMapAmbienceMuted(false);
+        ApplyWorldEvent();
+        AdminNotify(id, "ADM_ENV_RESET", 0);
+        ShowAdminEnvMenu(id);
+        return PLUGIN_HANDLED;
+    }
+
+    switch (sel)
+    {
+        case 1:
+        {
+            g_iAdminEnvLight++;
+            if (g_iAdminEnvLight > 'z') g_iAdminEnvLight = 'a';
+        }
+        case 2: g_iAdminEnvFog[3] = (g_iAdminEnvFog[3] >= 80) ? 0 : g_iAdminEnvFog[3] + 10;
+        case 3: g_iAdminEnvFog[0] = (g_iAdminEnvFog[0] > 223) ? 0 : g_iAdminEnvFog[0] + 32;
+        case 4: g_iAdminEnvFog[1] = (g_iAdminEnvFog[1] > 223) ? 0 : g_iAdminEnvFog[1] + 32;
+        case 5: g_iAdminEnvFog[2] = (g_iAdminEnvFog[2] > 223) ? 0 : g_iAdminEnvFog[2] + 32;
+        case 6: g_iAdminEnvWeather = (g_iAdminEnvWeather + 1) % 3;
+        case 7: SetMapAmbienceMuted(!g_bAmbMuted);
+    }
+    ApplyWorldEvent();
+    ShowAdminEnvDetail(id);
+    return PLUGIN_HANDLED;
+}
+
+SetMapAmbienceMuted(bool:mute)
+{
+    g_bAmbMuted = mute;
+    remove_task(TASK_AMBREST);
+    if (mute)
+    {
+        for (new i = 0; i < g_iAmbN; i++)
+        {
+            if (!g_bAmbOn[i] || !g_szAmbSnd[i][0] || !pev_valid(g_iAmbEnt[i]))
+                continue;
+            emit_sound(g_iAmbEnt[i], CHAN_STATIC, g_szAmbSnd[i], 0.0, g_fAmbAttn[i], SND_STOP, g_iAmbPitch[i]);
+        }
+        return;
+    }
+    set_task(0.1, "task_AmbientRestore", TASK_AMBREST);
 }
 
 // now = true -> modu hemen baslat (round yeniden baslar)
@@ -22660,6 +23042,8 @@ GiveVipDays(admin, target, days, tier)
     Chat(target, "VIP_GRANTED", days);
     VipWelcome(target);
 }
+
+/* ===== End module: admin.inc ===== */
 /* ================================================================== */
 /*  BOLUM 13/13: HARITALAR                                            */
 /*  Harita oylamasi, Rock The Vote, sonraki harita, harita            */
@@ -22716,18 +23100,22 @@ public fw_AmbientPost(ent, const Float:pos[3], const sample[], Float:vol, Float:
             g_fAmbVol[slot] = vol;
         if (flags & SND_CHANGE_PITCH)
             g_iAmbPitch[slot] = pitch;
-        return FMRES_IGNORED;
+        return g_bAmbMuted ? FMRES_SUPERCEDE : FMRES_IGNORED;
     }
     copy(g_szAmbSnd[slot], charsmax(g_szAmbSnd[]), sample);
     g_fAmbVol[slot] = vol;
     g_fAmbAttn[slot] = attn;
     g_iAmbPitch[slot] = pitch;
     g_bAmbOn[slot] = true;   // ses duzeyi 0 olsa bile (spin-up rampasi) sonraki degisimler bu kanala uygulanir
+    if (g_bAmbMuted)
+        return FMRES_SUPERCEDE;
     return FMRES_IGNORED;
 }
 
 public task_AmbientRestore()
 {
+    if (g_bAmbMuted)
+        return;
     new Float:o[3], n;
     g_bAmbReplay = true;
     for (new i = 0; i < g_iAmbN; i++)
@@ -23480,10 +23868,11 @@ public task_MapChooserCheck()
         log_amx("[Vexmira] UYARI: mapchooser.amxx yuklu ve vex_map_vote 1: iki ayri harita oylamasi olabilir. plugins.ini'den kaldirin.");
 }
 
+/* ===== End module: maps.inc ===== */
 /* ================================================================== */
 /*  GIRIS NOKTALARI                                                    */
 /*  Yeni cvar / komut / menu / hook kaydi -> plugin_init (asagida),    */
-/*  yeni kaynak -> plugin_precache / KAYNAKLAR bolumu.                */
+/*  yeni kaynak -> plugin_precache ve ilgili kaynak tanimlari.                */
 /* ================================================================== */
 
 /* ================================================================== */
@@ -23857,6 +24246,19 @@ public plugin_precache()
         GetFileModel(key, g_szWepP[w], charsmax(g_szWepP[]));
     }
 
+    GetFileModel("SURVIVOR_M249_VMODEL", g_szSurvGunV[0], charsmax(g_szSurvGunV[]));
+    GetFileModel("SURVIVOR_M249_PMODEL", g_szSurvGunP[0], charsmax(g_szSurvGunP[]));
+    GetFileModel("SURVIVOR_DEAGLE_VMODEL", g_szSurvGunV[1], charsmax(g_szSurvGunV[]));
+    GetFileModel("SURVIVOR_DEAGLE_PMODEL", g_szSurvGunP[1], charsmax(g_szSurvGunP[]));
+    GetFileModel("SNIPER_AWP_VMODEL", g_szSniperGunV, charsmax(g_szSniperGunV));
+    GetFileModel("SNIPER_AWP_PMODEL", g_szSniperGunP, charsmax(g_szSniperGunP));
+    if (!g_szSurvGunV[0][0]) copy(g_szSurvGunV[0], charsmax(g_szSurvGunV[]), g_szWepV[_:WEAPON_M249]);
+    if (!g_szSurvGunP[0][0]) copy(g_szSurvGunP[0], charsmax(g_szSurvGunP[]), g_szWepP[_:WEAPON_M249]);
+    if (!g_szSurvGunV[1][0]) copy(g_szSurvGunV[1], charsmax(g_szSurvGunV[]), g_szWepV[_:WEAPON_DEAGLE]);
+    if (!g_szSurvGunP[1][0]) copy(g_szSurvGunP[1], charsmax(g_szSurvGunP[]), g_szWepP[_:WEAPON_DEAGLE]);
+    if (!g_szSniperGunV[0]) copy(g_szSniperGunV, charsmax(g_szSniperGunV), g_szWepV[_:WEAPON_AWP]);
+    if (!g_szSniperGunP[0]) copy(g_szSniperGunP, charsmax(g_szSniperGunP), g_szWepP[_:WEAPON_AWP]);
+
     PickSky();
 
     // Ozet (precache_* donus indekslerinden). Bu noktada oyun / harita henuz kendi
@@ -23998,6 +24400,7 @@ public plugin_init()
     g_pLmMaxRange    = register_cvar("vex_lm_max_range", "600");
     g_pLmBlockModes  = register_cvar("vex_lm_block_modes", "nemesis assassin");
     g_pDbgDirs       = register_cvar("vex_debug_dirs", "0");
+    g_pAutoJoinHumans= register_cvar("vex_auto_join_humans", "1");
     g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
     g_pNadeSensorArm = register_cvar("vex_nade_sensor_arm", "1.5");
     g_pNadeSensorLife= register_cvar("vex_nade_sensor_life", "60");
@@ -24104,6 +24507,13 @@ public plugin_init()
 
     // v3.0 (B): kafa ustu gostergeler, boss / ozel karakter sesleri, sohbet etiketleri
     g_pOvhEnable     = register_cvar("vex_overhead", "1");
+    g_pHudStyle      = register_cvar("vex_hud_style", "1");
+    g_pHudTop        = register_cvar("vex_hud_top", "-1");
+    g_pHudRight      = register_cvar("vex_hud_right", "-1");
+    g_pHudMvp        = register_cvar("vex_hud_mvp", "-1");
+    g_pHudXp         = register_cvar("vex_hud_xp", "-1");
+    g_pHudOvh        = register_cvar("vex_hud_overhead", "-1");
+    g_pHudObjective  = register_cvar("vex_hud_objective", "-1");
     g_pBossBarW      = register_cvar("vex_bossbar_width", "110");
     g_pSmallBarW     = register_cvar("vex_hpbar_width", "44");
     g_pIconSize      = register_cvar("vex_head_icon_size", "18");
@@ -24135,7 +24545,7 @@ public plugin_init()
     static const TABLE_CMDS[][] =
     {
         "vex_item", "vex_class", "vex_sw", "vex_gun", "vex_job", "vex_boss_stat", "vex_boss_skill",
-        "vex_mode_rule", "vex_env_event", "vex_env_mode", "vex_env_boss", "vex_env_calm", "vex_cosmetic", "vex_quest"
+        "vex_mode_rule", "vex_env_event", "vex_env_mode", "vex_env_boss", "vex_env_calm", "vex_cosmetic", "vex_quest", "vex_sw_text"
     };
     for (new i = 0; i < sizeof TABLE_CMDS; i++)
         register_srvcmd(TABLE_CMDS[i], "srv_TableCmd");
@@ -24194,6 +24604,7 @@ public plugin_init()
     g_tCmds = TrieCreate();
     g_tRoundBuys = TrieCreate();
     register_clcmd("chooseteam", "cmd_menu");
+    register_clcmd("jointeam", "cmd_jointeam");
     register_clcmd("vexmenu", "cmd_menu");
     register_clcmd("nightvision", "cmd_nvg");
     // v3.0: yetenek tuslari icin yedek yollar (G = drop, konsol: vex_skill / vex_skill2)
@@ -24304,6 +24715,9 @@ public plugin_cfg()
     log_amx("[Vexmira] vexmira.cfg yuklendi (%d satir).", n);
 
     LoadTop();
+    task_EnforceAutoTeam();
+    remove_task(TASK_AUTOTEAM);
+    set_task(15.0, "task_EnforceAutoTeam", TASK_AUTOTEAM, _, _, "b");
     set_task(1.5, "task_EnforceRoundInfinite", TASK_ROUNDINF);
     set_task(6.0, "task_LoadConfig", TASK_CFGLOAD);
     set_task(30.0, "task_Hostname", TASK_HOSTNAME, _, _, "b");
