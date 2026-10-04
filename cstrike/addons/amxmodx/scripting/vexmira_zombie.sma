@@ -786,7 +786,7 @@ new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, 
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];       // varlik -> sahibi / kafa ustunden yukseklik
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
-new g_iDbgFp;   //ALIGNDBG
+new g_iDbgFp, bool:g_bDbgDuck;   //ALIGNDBG
 // Boss / ozel karakter sesleri: bekleme sureleri
 new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
 new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
@@ -23629,6 +23629,12 @@ ResetPlayerLate(id)
 }
 
 //ALIGNDBG_BEGIN  (gecici hizalama telemetrisi - dogrulamadan sonra silinecek)
+public fw_DbgCmdStart(id, uc, seed)
+{
+    if (g_bDbgDuck && is_user_bot(id) && (g_iOvhBar[id] || g_iOvhIcon[id]))
+        set_uc(uc, UC_Buttons, get_uc(uc, UC_Buttons) | IN_DUCK);
+    return FMRES_IGNORED;
+}
 public srv_DbgAlign()
 {
     new arg[16];
@@ -23664,6 +23670,19 @@ public srv_DbgAlign()
                 log_amx("[ALIGNDBG] model id=%d -> %s stand=%.1f duck=%.1f", id, mdl, st, du);
                 break;
             }
+        return PLUGIN_HANDLED;
+    }
+    if (equal(arg, "duck"))
+    {
+        // vex_dbg_align duck: gostergesi olan botlari comeltir (CmdStart'ta IN_DUCK)
+        static bool:reg;
+        if (!reg)
+        {
+            register_forward(FM_CmdStart, "fw_DbgCmdStart");
+            reg = true;
+        }
+        g_bDbgDuck = !g_bDbgDuck;
+        log_amx("[ALIGNDBG] duck=%d", g_bDbgDuck);
         return PLUGIN_HANDLED;
     }
     if (equal(arg, "mine"))
