@@ -1,13 +1,15 @@
 # Vexmira Zombie - DEVIR TESLIM (baska bir yapay zeka / gelistirici icin)
 
 Bu belge 3.1 paketinden sonra KALAN TUM isleri anlatir. Depo: bu repo, branch `claude/zombie-boss-mode-dev-a0m5oq`.
-Son gonderilen paket: Vexmira_Zombie_v3.1.zip (hata duzeltmeleri, otomatik takim, cfg model rehberi, moduler eklenti).
+Son gonderilen paket: Vexmira_Zombie_v3.1.zip (hata duzeltmeleri, otomatik takim, cfg model rehberi). Eklenti kaynagi sonra yeniden TEK dosyaya birlestirildi (asagiya bak).
 
 ## 1. Proje ozeti
 - CS 1.6 (GoldSrc) zombi modu. Sunucu: ReHLDS + ReGameDLL 5.30 + Metamod + AMX Mod X 1.10 + ReAPI 5.26.
-- Tek eklenti: `cstrike/addons/amxmodx/scripting/vexmira_zombie.sma` + modul dosyalari `scripting/vex/*.inc`
-  (13 modul: core, resources, hud, economy, zombies, bosses, modes, weapons, fx, maps, admin, stats, players).
-  Hangi kod nerede: `devtools/plugin/MODULES.md`. TEK .amxx olarak derlenir (bilerek: ayri eklentiler yavaslatir).
+- Tek eklenti, TEK kaynak dosya: `cstrike/addons/amxmodx/scripting/vexmira_zombie.sma` (13 bolum: dosyada
+  `BOLUM n/13` ara: CORE, FX, HUD, KAYNAKLAR, ISTATISTIK, EKONOMI, SILAHLAR, ZOMBILER, BOSSLAR, MODLAR,
+  OYUNCULAR, ADMIN, HARITALAR). Hangi kod nerede: `devtools/plugin/MODULES.md`. TEK .amxx olarak derlenir.
+  KURAL: kodu ASLA ayri `#include "..."` dosyalarina bolme. Sahip eklentiyi tek basina derliyor; 3.1'de
+  `vex/*.inc` diye bolununce derleyici dosyalari bulamadi ve "hicbir sey calismiyor" dedi. Tek dosya kalacak.
 - Tum ayarlar tek dosyada: `cstrike/addons/amxmodx/configs/vexmira.cfg` (Turkce aciklamali).
 - Tum oyuncu metinleri EN + TR: `cstrike/addons/amxmodx/data/lang/vexmira_zombie.txt` (Turkce harfsiz yazilir: s, g, i, o, u, c).
 - Tasarim sozlesmesi: `devtools/DESIGN_v3.md`. Ilerleme / gecmis: `devtools/PROGRESS_v3.md`.
@@ -38,7 +40,7 @@ Asagidaki gorev tanimlari ayrintili spesifikasyondur (Ingilizce). Her gorevin so
 ### 1. OZEL SILAH SISTEMI (oncelik 1)
 
 ```
-TASK: data-driven special weapon framework (weapons module + cfg + lang). The owner will replace/add special weapons with downloaded models and asked: "will sounds, animations and effects work automatically?" Make that true:
+TASK: data-driven special weapon framework (SILAHLAR section of the .sma + cfg + lang). The owner will replace/add special weapons with downloaded models and asked: "will sounds, animations and effects work automatically?" Make that true:
 - every special weapon defined in vexmira.cfg (keep the 8 current ones as defaults, allow up to 16): EN/TR name, base CS weapon, price, team/limits, v_/p_/w_ models, fire sound(s), optional draw/reload sounds, damage multiplier, clip/ammo, fire rate, recoil, effect type (plasma/fire/ice/lightning/void/explosive/none) with tracer, impact and muzzle sprite + colour;
 - animations automatic: at precache read the v_ model's studio header (sequence names/count) and map idle/shoot/reload/draw by name patterns, falling back to the base weapon's standard indexes; play the right animations even when a custom model's sequence order differs;
 - sounds automatic: if the shoot sequences have sound events (5001/5004 etc.) do not double them, otherwise play the configured fire sound; precache only existing files, safe fallbacks;
@@ -49,14 +51,14 @@ Prove it with a stock v_ model of another weapon used as a "custom" model (diffe
 ### 2. GRAFIK HUD (oncelik 2)
 
 ```
-TASK: HUD redesign (hud module, new sprites under cstrike/sprites/vexmira/ made with devtools/sprkit in the Vexmira purple + cyan palette, cfg, lang). Owner: "replace the top info HUD (round counter, zombie vs human counts, boss), the right-side HUD (level, HP, armor, XP, AP, VC, streak, profession, quest) and the end-of-round MVP text with special graphic gauges like the boss health bars, unique; no text HUD at all."
+TASK: HUD redesign (HUD section of the .sma, new sprites under cstrike/sprites/vexmira/ made with devtools/sprkit in the Vexmira purple + cyan palette, cfg, lang). Owner: "replace the top info HUD (round counter, zombie vs human counts, boss), the right-side HUD (level, HP, armor, XP, AP, VC, streak, profession, quest) and the end-of-round MVP text with special graphic gauges like the boss health bars, unique; no text HUD at all."
 Engine reality: a server plugin cannot draw arbitrary 2D images on the client screen. Available: native HUD elements (health, armor, money (already shows AP), round timer, radar, BarTime/BarTime2 progress bar, StatusIcon icons that exist in the client's hud.txt, weapon/ammo icons and crosshair via custom sprites/weapon_*.txt + WeaponList), world-space sprites/models (like our overhead boss bars), screen fades, HUD/DHUD text. Research what CS 1.6 servers really do for graphic HUDs and implement the best achievable no-text design: native elements where they already show the value, graphic world-space elements and native progress bars where they fit (e.g. XP progress via BarTime2 on gain, MVP crown sprite + flash above the MVP at round end instead of text, round/boss state via graphic elements), details on demand (menu). Keep readability and performance (no per-frame message spam). Everything must be switchable back from vexmira.cfg: vex_hud_style (0 = classic Vexmira text HUD exactly as before, 1 = new graphic HUD (default), 2 = default CS look: no custom HUD panels, only the game's native HUD) plus a per-element override for each part (top info, right panel, MVP, XP/progress, overhead bars/icons, story/objective lines) with values like -1 = follow vex_hud_style, 0 = off, 1 = text, 2 = graphic where applicable; document all of it in Turkish in vexmira.cfg and make sure changing them at runtime (or on map change) works. In the report state clearly which parts became graphic and which could not and why (the owner will read it). Compile 0/0, full session 0 runtime errors, commit.
 ```
 
 ### 3. HARITA <-> EKLENTI KONUSMASI (oncelik 3)
 
 ```
-TASK: implement the plugin side of devtools/MAP_CONTRACT.md in the maps module: fire vex_* targetnames on the listed events; hook Use of trigger_relay for vexcmd_* (msg/reward/objective, once per round each, cheap); load configs/vexmira_maps/<map>.ini (info, story typewriter on first spawn + /story, objectives at freeze end with completion state, messages EN|TR by player language, extra [events], optional [markers] shown to humans as a guiding world-space sprite while the objective is open). Robust parsing (missing file = off), cvars to toggle, light on CPU/network. Test with zm_vex_laboratory and its .ini (fire relays with vexprobe_fire) for 3 rounds. Compile 0/0, full session 0 runtime errors, commit.
+TASK: implement the plugin side of devtools/MAP_CONTRACT.md in the HARITALAR section of the .sma: fire vex_* targetnames on the listed events; hook Use of trigger_relay for vexcmd_* (msg/reward/objective, once per round each, cheap); load configs/vexmira_maps/<map>.ini (info, story typewriter on first spawn + /story, objectives at freeze end with completion state, messages EN|TR by player language, extra [events], optional [markers] shown to humans as a guiding world-space sprite while the objective is open). Robust parsing (missing file = off), cvars to toggle, light on CPU/network. Test with zm_vex_laboratory and its .ini (fire relays with vexprobe_fire) for 3 rounds. Compile 0/0, full session 0 runtime errors, commit.
 ```
 
 ### 4. LABORATUVAR: FPS + ETKILESIM + HIKAYE (oncelik 4)
@@ -68,7 +70,7 @@ TASK: improve the EXISTING zm_vex_laboratory (devtools/mapkit/maps/zm_vex_labora
 ### 5. OPTIMIZASYON + SON KONTROL (oncelik 5)
 
 ```
-TASK: optimize the plugin (server CPU and, importantly, CLIENT FPS load it causes) without changing behaviour. Baseline: devtools/plugin/PERF_BASELINE.md. Look at per-frame forwards (PreThink/PostThink/AddToFullPack/CmdStart/thinks/tasks: early exits, cached values, bitsums, no string formatting in hot paths), entity counts (overhead sprites, projectiles, beams), TE effect spam and dynamic lights (TE_DLIGHT is expensive for clients), env_sprite glows, screen fades, HUD message frequency/size, sending effects only to clients that can see them (PVS/PAS), per-player rate limits. Measure after with the same 300 s / 31 bots / --no-debug run (+ the HLTV proxy as a real client if practical) and write devtools/plugin/PERF_v31.md (before/after, list of changes, and a concrete answer whether splitting into several .amxx plugins would help - the source is already split into modules inside one plugin). Then a final regression pass over this part's changes: full session on zm_vex_laboratory (480 s, 16 bots) with 0 runtime errors, EN/TR lang completeness for new keys, precache totals. Update devtools/PROGRESS_v3.md. Commit.
+TASK: optimize the plugin (server CPU and, importantly, CLIENT FPS load it causes) without changing behaviour. Baseline: devtools/plugin/PERF_BASELINE.md. Look at per-frame forwards (PreThink/PostThink/AddToFullPack/CmdStart/thinks/tasks: early exits, cached values, bitsums, no string formatting in hot paths), entity counts (overhead sprites, projectiles, beams), TE effect spam and dynamic lights (TE_DLIGHT is expensive for clients), env_sprite glows, screen fades, HUD message frequency/size, sending effects only to clients that can see them (PVS/PAS), per-player rate limits. Measure after with the same 300 s / 31 bots / --no-debug run (+ the HLTV proxy as a real client if practical) and write devtools/plugin/PERF_v31.md (before/after, list of changes, and a concrete answer whether splitting into several .amxx plugins would help - the source is one file with 13 sections inside one plugin). Then a final regression pass over this part's changes: full session on zm_vex_laboratory (480 s, 16 bots) with 0 runtime errors, EN/TR lang completeness for new keys, precache totals. Update devtools/PROGRESS_v3.md. Commit.
 ```
 
 ### 6a. JETPACK / RPG MODELLERI
@@ -88,7 +90,7 @@ Render previews (devtools/previews_items_v3.png), run mdlkit validation, a short
 ### 6b. JETPACK + RPG (market)
 
 ```
-YOUR AREA: market items Jetpack and RPG (economy + weapons modules, cfg, lang). Server: kendi test sunucun. Previous plugin work:
+YOUR AREA: market items Jetpack and RPG (EKONOMI + SILAHLAR sections, cfg, lang). Server: kendi test sunucun. Previous plugin work:
 (yok - kendi test sunucunu kullan)
 Item model builder report (models at cstrike/models/vexmira/items/: p_jetpack, w_jetpack, v_rpg (sequences idle/draw/shoot/reload), p_rpg, w_rpg, rocket):
 (yok - kendi test sunucunu kullan)
@@ -128,7 +130,7 @@ Feathers/membranes via masked or additive textures where it improves the look. S
 ### 7c. PET + KANAT KOZMETIK (VC market)
 
 ```
-YOUR AREA: pets + wings cosmetics in the coin (VC) market (economy/cosmetics module, cfg, lang). Server: kendi test sunucun. Previous plugin work:
+YOUR AREA: pets + wings cosmetics in the coin (VC) market (EKONOMI section / cosmetics, cfg, lang). Server: kendi test sunucun. Previous plugin work:
 (yok - kendi test sunucunu kullan)
 Model reports (files: cstrike/models/vexmira/cosmetics/pet_drone|pet_wisp|pet_dragon|pet_owl|pet_jelly.mdl with sequences idle/move/happy; wings_angel|wings_demon|wings_phoenix|wings_cyber|wings_frost.mdl with sequences idle/run/fly, bone-merged to the CS player skeleton):
 (yok - kendi test sunucunu kullan)

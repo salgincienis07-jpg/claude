@@ -38,7 +38,7 @@ SERVER = os.environ.get('VEX_SERVER', os.path.join(SP, 'server'))
 AMXXPC_DIR = os.path.join(SP, 'tools', 'bin')
 
 SNAPSHOT = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.sma.snapshot')
-# source of the installed build: the .sma + its modules (vex/*.inc), same relative layout as scripting/
+# source of the installed build: the .sma (single file since 3.1; vex/*.inc only if ever present again)
 SNAPSHOT_DIR = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.src')
 SCRIPTING = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting')
 RE_TS = re.compile(r'^L \d\d/\d\d/\d{4} - \d\d:\d\d:\d\d: ')
@@ -46,7 +46,7 @@ RE_TS = re.compile(r'^L \d\d/\d\d/\d{4} - \d\d:\d\d:\d\d: ')
 
 def plugin_sources():
     """{relative path: bytes} of everything the plugin build reads from the repo:
-    scripting/vexmira_zombie.sma + scripting/vex/*.inc (the modules it #includes)."""
+    scripting/vexmira_zombie.sma (+ scripting/vex/*.inc if present; none since the 3.1 merge)."""
     files = {'vexmira_zombie.sma': os.path.join(SCRIPTING, 'vexmira_zombie.sma')}
     for f in sorted(glob.glob(os.path.join(SCRIPTING, 'vex', '*.inc'))):
         files['vex/' + os.path.basename(f)] = f

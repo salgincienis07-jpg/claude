@@ -2,8 +2,8 @@
   VEXMIRA ZOMBIE v3.1
 =====================================================================
 
-Bu paket 3.0.1'in uzerine gelir: hata duzeltmeleri, bolunmus (moduler)
-eklenti, cfg'de model ekleme rehberi. 3.0.1'deki her sey (hizalama,
+Bu paket 3.0.1'in uzerine gelir: hata duzeltmeleri, otomatik takim,
+cfg'de model ekleme rehberi. 3.0.1'deki her sey (hizalama,
 zm_vex_laboratory haritasi, silah / dunya modelleri) bu pakette de var.
 
 KURULUM: "cstrike" klasorunu sunucundaki cstrike ile birlestir
@@ -56,12 +56,19 @@ Haritayi acmak: changelevel zm_vex_laboratory
    ozel silahlar, dunya modelleri. Dosya yoksa oyun cokmez, orijinal
    modele duser.
 
-[MODULER EKLENTI]
- - Kaynak kod 13 dosyaya bolundu (scripting/vex/*.inc) ama TEK eklenti
-   olarak derlenir (en hizli yol: ayri eklentiler birbirini cagirirken
-   ek yuk olusur). Derlenmis kod eskisiyle birebir ayni dogrulandi.
-   Kaynaktan derleyeceksen vexmira_zombie.sma'yi vex/ klasoruyle birlikte
-   scripting/ altinda derle.
+[EKLENTI KAYNAGI - TEK DOSYA]
+ - Derlenmis eklenti HAZIR: addons/amxmodx/plugins/vexmira_zombie.amxx
+   Sunucu icin derlemen GEREKMEZ; bu dosya + configs/vexmira.cfg +
+   data/lang/vexmira_zombie.txt yeterli (plugins.ini'de: vexmira_zombie.amxx).
+ - Kaynak kod yine TEK dosya: scripting/vexmira_zombie.sma (ek klasor,
+   .inc dosyasi YOK). Kendin derlemek istersen her derleyicide calisir
+   (compile.exe, amxxpc'ye surukle-birak, web derleyici); sadece AMXX 1.10
+   include'lari + ReAPI 5.26 reapi.inc gerekir.
+ - Ara bir 3.1 paketinde kaynak "vex/*.inc" dosyalarina bolunmustu; tek
+   basina derlenince bu dosyalar bulunamiyordu. Geri birlestirildi:
+   derlenmis kod bolunmus surumle birebir ayni program (dogrulandi).
+   Eski paketten kalan scripting/vex/ klasorunu SILEBILIRSIN (kullanilmiyor;
+   .inc dosyalarini asla plugins/ klasorune koyma).
 
 ---------------------------------------------------------------------
  3.0.1'DEN GELENLER
