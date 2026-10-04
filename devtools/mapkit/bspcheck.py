@@ -1002,10 +1002,9 @@ class _Viewer:
         passb = (c['A'] >= dd[:, :, None] - 1e-6).all(1)                # (D, boxes): R_CullBox
         passN, passL, passE = passb[:, :nN], passb[:, nN:nN + nL], passb[:, nN + nL:]
         if F:
-            wts = passL[:, c['mleaf']]                                  # leaf reached -> marks its faces
-            idx = c['mface'][None, :] + F * np.arange(D)[:, None]
-            marked = np.bincount(idx.ravel(), weights=wts.ravel().astype(np.float64),
-                                 minlength=D * F).reshape(D, F) > 0
+            di, mi = np.nonzero(passL[:, c['mleaf']])                   # leaf reached -> marks its faces
+            marked = np.zeros((D, F), bool)
+            marked[di, c['mface'][mi]] = True
             facing = ((c['fn'] @ eye - c['fd'] < 0) == c['fb']) | c['nc']
             drawn = marked & passN[:, c['fnl']] & (c['fok'] & facing)[None, :]
             vw = drawn.astype(np.float64) @ c['pw']
@@ -1136,20 +1135,21 @@ def perf_analysis(src, opts: Optional[dict] = None) -> dict:
     pv_nleaf = np.zeros(len(leaves))
     drawable = w.kind[:nwf] != 1
     pw = w.poly[:nwf]
-    B = 64
-    for s in range(0, len(leaves), B):
-        chunk = leaves[s:s + B]
-        rows = np.stack([w.pvs(int(l)) for l in chunk])            # (b, L)
-        wts = rows[:, w.mark_leaf]                                  # (b, nnz)
-        idx = w.mark_face[None, :] + nwf * np.arange(len(chunk))[:, None]
-        marked = np.bincount(idx.ravel(), weights=wts.ravel().astype(np.float64),
-                             minlength=len(chunk) * nwf).reshape(len(chunk), nwf) > 0
-        pv_faces[s:s + B] = (marked & drawable[None, :]).sum(1)
-        pv_world[s:s + B] = marked.astype(np.float64) @ pw
-        pv_nleaf[s:s + B] = rows.sum(1)
+    # gather only the marksurfaces of the visible leaves (mark arrays are grouped by leaf)
+    mcount = np.bincount(w.mark_leaf, minlength=L)
+    mstart = np.cumsum(mcount) - mcount
+    for i, l in enumerate(leaves):
+        row = w.pvs(int(l))
+        vl = np.flatnonzero(row)
+        cnt = mcount[vl]
+        tot = int(cnt.sum())
+        idx = np.repeat(mstart[vl] - (np.cumsum(cnt) - cnt), cnt) + np.arange(tot)
+        f = np.unique(w.mark_face[idx])
+        pv_faces[i] = int(drawable[f].sum())
+        pv_world[i] = float(pw[f].sum())
+        pv_nleaf[i] = len(vl)
         if w.E:
-            ev = (w.ent_touch[None, :, :] & rows[:, None, :]).any(2)   # (b, E)
-            pv_ent[s:s + B] = ev.astype(np.float64) @ w.ent_visible_polys
+            pv_ent[i] = float(w.ent_visible_polys[w.ent_touch[:, vl].any(1)].sum())
     pv_total = pv_world + pv_ent
     res['pvs'] = {'faces': _stats(pv_faces), 'world_wpoly': _stats(pv_world), 'ent_wpoly': _stats(pv_ent),
                   'total': _stats(pv_total), 'visible_leaves': _stats(pv_nleaf),
@@ -1437,7 +1437,7 @@ def main(argv=None):
             if r.get('perf'):
                 print(format_perf(r['perf'], r.get('budget')))
             for e in r['errors']:
-                if e.startswith(('perf', 'budget')):
+                if e.startswith(('perf', 'budget')) or not r.get('perf'):
                     print(f'  ERROR {e}')
             for w in r['warnings']:
                 if w.startswith(('perf', 'budget')):
