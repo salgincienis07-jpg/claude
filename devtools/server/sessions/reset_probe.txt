@@ -43,6 +43,22 @@
 7  vexprobe_touch r_teamtrig t
 7  vexprobe_fire r_teambutton 3 t
 8  vexprobe_ents func_door
+# team-filtered hurt zone (off until switched) and human heal pad
+8  vexprobe_touch r_zhurt t
+8  vexprobe_fire r_zhurt_switch
+9  vexprobe_touch r_zhurt t
+9  vexprobe_touch r_zhurt ct
+9  vexprobe_fire r_dmg30 3 ct
+10 vexprobe_touch r_heal ct
+10 vexprobe_touch r_heal t
+# +use-only human door: T activator must do nothing, CT opens it
+10 vexprobe_fire r_usedoor 3 t
+11 vexprobe_ents @r_usedoor
+11 vexprobe_fire r_usedoor 3 ct
+12 vexprobe_ents @r_usedoor
+# plugin contract relays (fired by hand here; the plugin fires them in game)
+11 vexprobe_fire vex_round_start
+11 vexprobe_fire vex_minute
 12 vexprobe_ents @r_*
 13 vexprobe_touch func_door@-336/308/64 ct
 13 vexprobe_touch func_door@-136/308/64 t
@@ -63,6 +79,9 @@
 32 vexprobe_fire r_ms_in2
 33 vexprobe_fire r_msdoor
 33 vexprobe_break r_break
+34 vexprobe_touch r_zhurt t
+34 vexprobe_fire r_dmg30 3 ct
+35 vexprobe_touch r_heal ct
 36 vexprobe_ents @r_*
 40 sv_restart 1
 44 vexprobe_ents @r_*

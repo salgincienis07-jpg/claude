@@ -92,6 +92,8 @@ class Client:
                '+con_notifytime', str(args.notify), '+cl_showfps', '0', '+scr_drawversion', '0',
                # no MOTD window, team/buy menus go to (disabled) touch configs instead of UI windows
                '+cl_hide_motd', '1', '+cl_oldtouchmenus', '1',
+               # cs16-client patch: no dark spectator bars / status line over the picture
+               '+vexcam_specbars', '1' if args.specbars else '0',
                '+connect', '%s gs' % args.connect]
         env = dict(os.environ, DISPLAY=display, SDL_AUDIODRIVER='dummy',
                    LD_LIBRARY_PATH=GAME + ':' + os.environ.get('LD_LIBRARY_PATH', ''))
@@ -320,6 +322,7 @@ def main(argv=None):
     ap.add_argument('--fps-max', type=int, default=200)
     ap.add_argument('--rspeeds', type=int, default=1, help='r_speeds mode drawn on screen (0 = off)')
     ap.add_argument('--no-hud', dest='hud', action='store_false')
+    ap.add_argument('--specbars', action='store_true', help='keep the spectator top/bottom bars + status line')
     ap.add_argument('--notify', type=float, default=0.0, help='con_notifytime (0 hides console notify lines)')
     ap.add_argument('--width', type=int, default=1280)
     ap.add_argument('--height', type=int, default=720)

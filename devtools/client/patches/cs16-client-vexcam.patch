@@ -1,0 +1,37 @@
+diff --git a/cl_dll/hud/spectator_gui.cpp b/cl_dll/hud/spectator_gui.cpp
+index 991ebdd..1472020 100644
+--- a/cl_dll/hud/spectator_gui.cpp
++++ b/cl_dll/hud/spectator_gui.cpp
+@@ -47,8 +47,14 @@ version.
+ #define INT_XPOS(x) int(XPOS(x) * ScreenWidth)
+ #define INT_YPOS(y) int(YPOS(y) * ScreenHeight)
+ 
++// vexmira render client patch: "vexcam_specbars 0" hides the spectator top/bottom bars and the
++// team/timer status line, so screenshots taken while spectating show the plain scene + mod HUD
++static cvar_t *vexcam_specbars;
++
+ int CHudSpectatorGui::Init()
+ {
++	vexcam_specbars = gEngfuncs.pfnRegisterVariable( "vexcam_specbars", "1", FCVAR_ARCHIVE );
++
+ 	if( !g_iXash )
+ 		return 1;
+ 
+@@ -186,10 +192,14 @@ int CHudSpectatorGui::Draw( float flTime )
+ 		startpos = XRES(gHUD.m_Spectator.m_OverviewData.insetWindowWidth) + XRES(gHUD.m_Spectator.m_OverviewData.insetWindowX);
+ 		startpos *= ScreenWidth / TrueWidth; // hud_scale adjust
+ 	}
+-	FillRGBABlend(startpos, 0, ScreenWidth - startpos, INT_YPOS(2), 0, 0, 0, 153);
+-	FillRGBABlend(0, ScreenHeight - INT_YPOS(2), ScreenWidth, INT_YPOS(2), 0, 0, 0, 153);
++	if( !vexcam_specbars || vexcam_specbars->value )
++	{
++		FillRGBABlend(startpos, 0, ScreenWidth - startpos, INT_YPOS(2), 0, 0, 0, 153);
++		FillRGBABlend(0, ScreenHeight - INT_YPOS(2), ScreenWidth, INT_YPOS(2), 0, 0, 0, 153);
++	}
+ 
+-	if ( gHUD.m_Spectator.m_drawstatus && gHUD.m_Spectator.m_drawstatus->value )
++	if ( gHUD.m_Spectator.m_drawstatus && gHUD.m_Spectator.m_drawstatus->value
++		&& ( !vexcam_specbars || vexcam_specbars->value ))
+ 	{
+ 		// divider
+ 		{

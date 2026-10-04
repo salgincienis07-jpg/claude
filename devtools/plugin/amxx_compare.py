@@ -107,6 +107,210 @@ def analyse(path):
     }
 
 
+# ----------------------------------------------------------------------------- symbolic check
+# Uses the debug info (amxdbg.h: files, lines, symbols) that amxxpc writes by default. Every
+# function is compared BY NAME, with each address operand replaced by what it points to:
+#   call -> callee name, jumps / switch / case table -> offset inside the function,
+#   global / static variable -> (name, offset), string / array literal -> its cells,
+#   sysreq.c -> native name.
+# This also catches what the multiset check above cannot see (a call to another function or a
+# load from another global with the same opcode shape).
+CODE_OPS = {'jump', 'jzer', 'jnz', 'jeq', 'jneq', 'jless', 'jleq', 'jgrtr', 'jgeq', 'jsless', 'jsleq',
+            'jsgrtr', 'jsgeq', 'switch'}
+DATA_OPS = {'load.pri', 'load.alt', 'stor.pri', 'stor.alt', 'lref.pri', 'lref.alt', 'sref.pri', 'sref.alt',
+            'inc', 'dec', 'zero', 'push'}
+MAYBE_DATA_OPS = {'const.pri', 'const.alt', 'push.c'}      # a number or the address of a global / literal
+
+
+def parse_debug(img, size):
+    """-> (files, symbols) from the amxdbg block behind the AMX image; symbols are tuples
+    (address, codestart, codeend, ident, vclass, dims, name)."""
+    d = img[size:]
+    if len(d) < 22:
+        return None
+    (_dsize, magic, _fv, _av, _flags, nfiles, nlines, nsyms, _ntags, _naut, _nst) = struct.unpack('<iHbbhhhhhhh', d[:22])
+    if magic != 0xf1ef:
+        return None
+    o, files = 22, []
+    for _ in range(nfiles & 0xffff):
+        addr = struct.unpack('<I', d[o:o + 4])[0]
+        e = d.index(b'\0', o + 4)
+        files.append((addr, d[o + 4:e].decode('utf-8', 'replace')))
+        o = e + 1
+    o += (nlines & 0xffff) * 8
+    syms = []
+    for _ in range(nsyms & 0xffff):
+        addr, _tag, cs, ce, ident, vclass, ndim = struct.unpack('<IhIIbbh', d[o:o + 18])
+        e = d.index(b'\0', o + 18)
+        name = d[o + 18:e].decode('utf-8', 'replace')
+        o = e + 1
+        dims = []
+        for _ in range(ndim):
+            dims.append(struct.unpack('<hI', d[o:o + 6])[1])
+            o += 6
+        syms.append((addr, cs, ce, ident, vclass, tuple(dims), name))
+    return files, syms
+
+
+def symbolic(path):
+    img = load(path)
+    (size, _magic, _fv, _av, _flags, defsize, cod, dat, hea, _stp, _cip, publics, natives, libraries,
+     _pubvars, _tags, _nametable) = struct.unpack('<iHBBhhiiiiiiiiiii', img[:56])
+    dbg = parse_debug(img, size)
+    if dbg is None:
+        return None
+    _files, syms = dbg
+    natnames = []
+    for o in range(natives, libraries, defsize):
+        _addr, nofs = struct.unpack('<ii', img[o:o + 8])
+        natnames.append(img[nofs:img.index(b'\0', nofs)].decode())
+    pubs = {}
+    for o in range(publics, natives, defsize):
+        addr, nofs = struct.unpack('<ii', img[o:o + 8])
+        pubs[img[nofs:img.index(b'\0', nofs)].decode()] = addr
+    code = struct.unpack('<%di' % ((dat - cod) // 4), img[cod:dat])
+    data = struct.unpack('<%di' % ((hea - dat) // 4), img[dat:hea])
+    ncell = len(data)
+
+    funcs = sorted((s[0], s[2], s[6]) for s in syms if s[3] == 9)          # (start, end, name)
+    fname = {}
+    seen = collections.Counter()
+    for start, _end, name in funcs:
+        seen[name] += 1
+        fname[start] = name if seen[name] == 1 else '%s#%d' % (name, seen[name])
+
+    def owner(cs):
+        for start, end, name in funcs:
+            if start <= cs < end:
+                return fname[start]
+        return None
+
+    def extent(addr, dims):
+        """cells of a global: plain variable / 1-D array from dims, multi-dim arrays by walking the
+        indirection vectors (ragged string tables have an open last dimension)."""
+        if not dims:
+            return 1
+        if len(dims) == 1:
+            return max(dims[0], 1)
+        base = addr // 4
+        end = base + dims[0]
+        for i in range(dims[0]):
+            if base + i >= ncell:
+                break
+            row = (addr + 4 * i + data[base + i]) // 4
+            sub = extent(row * 4, dims[1:]) if len(dims) > 2 or dims[1] else None
+            if sub is None:                                   # open last dimension: up to the 0 cell
+                k = row
+                while k < ncell and data[k] != 0:
+                    k += 1
+                sub = k - row + 1
+            end = max(end, row + sub)
+        return end - base
+
+    gvars = []                                                  # (start cell, end cell, key)
+    for addr, cs, _ce, ident, vclass, dims, name in syms:
+        if ident in (1, 3) and vclass in (0, 2):
+            own = owner(cs) if vclass == 2 else None
+            key = '%s::%s' % (own, name) if own else name
+            gvars.append((addr // 4, addr // 4 + extent(addr, dims), key, dims))
+    gvars.sort()
+    starts = [g[0] for g in gvars]
+
+    import bisect
+
+    def resolve_data(addr):
+        if addr % 4 or not 0 <= addr < ncell * 4:
+            return ('#', addr)
+        c = addr // 4
+        i = bisect.bisect_right(starts, c) - 1
+        if i >= 0 and gvars[i][0] <= c < gvars[i][1]:
+            return ('G', gvars[i][2], c - gvars[i][0])
+        k, lit = c, []                                          # literal: its cells up to the 0 cell
+        while k < ncell and len(lit) < 512:
+            lit.append(data[k])
+            if data[k] == 0:
+                break
+            k += 1
+        return ('L', tuple(lit))
+
+    out = {}
+    for start, end, _name in funcs:
+        k, toks = start // 4, []
+        stop = end // 4
+        while k < stop:
+            op = code[k]
+            if op == 130:
+                n = code[k + 1]
+                toks.append(('casetbl', n, code[k + 2] - start) +
+                            tuple((code[k + 3 + 2 * i], code[k + 4 + 2 * i] - start) for i in range(n)))
+                k += 3 + 2 * n
+                continue
+            name, nargs = OPS[op]
+            args = code[k + 1:k + 1 + nargs]
+            if name == 'call':
+                toks.append((name, fname.get(args[0], '?%d' % args[0])))
+            elif name in CODE_OPS:
+                toks.append((name, args[0] - start))
+            elif name in DATA_OPS:
+                toks.append((name, resolve_data(args[0])))
+            elif name in MAYBE_DATA_OPS:
+                toks.append((name, args[0], resolve_data(args[0])))
+            elif name == 'sysreq.c':
+                toks.append((name, natnames[args[0]]))
+            else:
+                toks.append((name,) + tuple(args))
+            k += 1 + nargs
+        out[fname[start]] = toks
+    gcontent = {key: (dims, data[s:e]) for s, e, key, dims in gvars}
+    return {'funcs': out, 'globals': gcontent,
+            'publics': {p: fname.get(a, '?%d' % a) for p, a in pubs.items()}}
+
+
+def same_tok(x, y):
+    """const.pri / const.alt / push.c: equal when they point to the same global / literal, or when
+    they are the same number that is not an address in either build."""
+    if x == y:
+        return True
+    if len(x) == 3 and len(y) == 3 and x[0] == y[0] and x[0] in MAYBE_DATA_OPS:
+        if x[2][0] in 'GL' and x[2] == y[2]:
+            return True
+    return False
+
+
+def symbolic_compare(pa, pb, show=8):
+    a, b = symbolic(pa), symbolic(pb)
+    if a is None or b is None:
+        print('symbolic check: no debug info in one of the files (compile without -d0)')
+        return None
+    ok = True
+    fa, fb = set(a['funcs']), set(b['funcs'])
+    if fa != fb:
+        ok = False
+        print('functions only in A: %s' % sorted(fa - fb)[:show])
+        print('functions only in B: %s' % sorted(fb - fa)[:show])
+    bad = []
+    for f in sorted(fa & fb):
+        ta, tb = a['funcs'][f], b['funcs'][f]
+        if len(ta) != len(tb) or not all(same_tok(x, y) for x, y in zip(ta, tb)):
+            bad.append(f)
+            if len(bad) <= show:
+                for i, (x, y) in enumerate(zip(ta, tb)):
+                    if not same_tok(x, y):
+                        print('  %s: instruction %d: %r != %r' % (f, i, x, y))
+                        break
+                else:
+                    print('  %s: %d vs %d instructions' % (f, len(ta), len(tb)))
+    ga, gb = a['globals'], b['globals']
+    gbad = sorted(k for k in set(ga) | set(gb) if ga.get(k) != gb.get(k))
+    pbad = sorted(k for k in set(a['publics']) | set(b['publics']) if a['publics'].get(k) != b['publics'].get(k))
+    print('%-48s %s' % ('functions by name (%d, operands resolved)' % len(fa & fb),
+                        'same' if not bad and fa == fb else 'DIFFERENT (%d)' % len(bad)))
+    print('%-48s %s' % ('globals by name (%d, size + initial value)' % len(set(ga) & set(gb)),
+                        'same' if not gbad else 'DIFFERENT %s' % gbad[:show]))
+    print('%-48s %s' % ('publics -> function', 'same' if not pbad else 'DIFFERENT %s' % pbad[:show]))
+    return ok and not bad and not gbad and not pbad
+
+
 def main():
     if len(sys.argv) != 3:
         print(__doc__)
@@ -127,6 +331,9 @@ def main():
         print('functions only in A: %d, only in B: %d' % (sum((a['funcs'] - b['funcs']).values()),
                                                          sum((b['funcs'] - a['funcs']).values())))
     same = all(ok for _, ok in checks)
+    sym = symbolic_compare(sys.argv[1], sys.argv[2])
+    if sym is False:
+        same = False
     print('=> %s' % ('EQUIVALENT (same program, code only moved)' if same else 'DIFFERENT program'))
     return 0 if same else 1
 

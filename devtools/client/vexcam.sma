@@ -270,15 +270,16 @@ public cmd_status()
         server_print("[vexcam] boss none");
         return PLUGIN_HANDLED;
     }
-    new model[64], Float:hp, Float:mins[3], Float:maxs[3];
+    new model[64], skin[32], Float:hp, Float:mins[3], Float:maxs[3];
     get_user_name(boss, name, charsmax(name));
+    get_user_info(boss, "model", skin, charsmax(skin));
     pev(boss, pev_origin, o);
     pev(boss, pev_health, hp);
     pev(boss, pev_mins, mins);
     pev(boss, pev_maxs, maxs);
     pev(boss, pev_model, model, charsmax(model));
-    server_print("[vexcam] boss %d '%s' hp %.0f origin %.1f %.1f %.1f hull z %.1f..%.1f model %s",
-        boss, name, hp, o[0], o[1], o[2], mins[2], maxs[2], model);
+    server_print("[vexcam] boss %d '%s' hp %.0f origin %.1f %.1f %.1f hull z %.1f..%.1f model %s skin %s",
+        boss, name, hp, o[0], o[1], o[2], mins[2], maxs[2], model, skin);
     for (new e = get_maxplayers() + 1; e < global_get(glb_maxEntities); e++)
     {
         if (!pev_valid(e) || pev(e, pev_iuser2) != OVH_MAGIC || pev(e, pev_iuser1) != boss)

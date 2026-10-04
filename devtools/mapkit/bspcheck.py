@@ -776,6 +776,7 @@ class _World:
                 kind[i] = 2
                 poly[i] = _subdivide_count(b.face_vertices(i), o['subdivide'])
         self.kind, self.poly = kind, poly
+        self.unit = (kind != 1).astype(np.float64)      # r_speeds counter: one per drawn face (warped too)
         pl = b.planes[b.faces['planenum']]
         self.fn = pl['normal'].astype(np.float64)
         self.fd = pl['dist'].astype(np.float64)
@@ -931,6 +932,7 @@ class _World:
         self.eowner = np.concatenate([np.full(en['fc'], i) for i, en in enumerate(ents)]) if E else np.zeros(0, np.int64)
         self.eoff = np.array([en['off'] for en in ents]).reshape(E, 3)
         self.ent_polys = np.bincount(self.eowner, weights=self.poly[fidx], minlength=E) if E else np.zeros(0)
+        self.ent_units = np.bincount(self.eowner, weights=self.unit[fidx], minlength=E) if E else np.zeros(0)
         self.ent_faces = np.array([en['fc'] for en in ents], np.int64)
         self.ent_visible_polys = np.where(self.ent_drawn, self.ent_polys, 0.0)
 
@@ -943,14 +945,17 @@ class _World:
 class _Viewer:
     """Replays the GL renderer's world + brush entity drawing from an eye position for a fixed
     set of view directions (R_MarkLeaves, R_RecursiveWorldNode with R_CullBox and the plane side
-    test, R_DrawBrushModel).  eval(eye) -> (leaf, total[D], world[D], ents[D]) polys per direction."""
+    test, R_DrawBrushModel).  eval(eye) -> (leaf, total[D], world[D], ents[D], faces[D]) per direction:
+    GL polys (warped faces subdivided), world / brush-entity part, and the r_speeds counter (one per
+    drawn face).  dirs: [(yaw, pitch_up_degrees)], default o['yaws'] x o['pitches']."""
 
-    def __init__(self, w: _World, o: dict):
+    def __init__(self, w: _World, o: dict, dirs=None):
         self.w = w
         fov_x0 = float(o['fov'])
         self.fov_y = math.degrees(2 * math.atan(math.tan(math.radians(fov_x0 / 2)) * 3.0 / 4.0))
         self.fov_x = math.degrees(2 * math.atan(math.tan(math.radians(self.fov_y / 2)) * float(o['aspect'])))
-        self.dirs = [(360.0 * k / int(o['yaws']), float(p)) for p in o['pitches'] for k in range(int(o['yaws']))]
+        self.dirs = list(dirs) if dirs else \
+            [(360.0 * k / int(o['yaws']), float(p)) for p in o['pitches'] for k in range(int(o['yaws']))]
         self.Nn = np.stack([_frustum_normals(y, p, self.fov_x, self.fov_y) for y, p in self.dirs])   # (D,4,3)
         # boxes: all nodes, leaves 0..nvis, brush entities; box passes a plane if its farthest corner is in front
         bmins = np.concatenate([w.node_mins, w.leaf_mins, w.ent_mins])
@@ -959,11 +964,12 @@ class _Viewer:
         self.A = np.einsum('dpk,nk->dpn', self.Nn, bc) + np.einsum('dpk,nk->dpn', np.abs(self.Nn), bh)
         nwf = w.nwf
         self.pw = w.poly[:nwf]
+        self.p1 = w.unit[:nwf]
         self.fnw, self.fdw, self.fbw, self.ncw = w.fn[:nwf], w.fd[:nwf], w.fback[:nwf], w.nocull[:nwf]
         self.fnode_ok = w.face_node >= 0
         self.static = self.fnode_ok & (self.pw > 0)
         self.efn, self.efd, self.efb = w.fn[w.ef], w.fd[w.ef], w.fback[w.ef]
-        self.efnc, self.efp = w.nocull[w.ef], w.poly[w.ef]
+        self.efnc, self.efp, self.ef1 = w.nocull[w.ef], w.poly[w.ef], w.unit[w.ef]
         self.cache: Dict[int, tuple] = {}
 
     def leaf_data(self, lf: int):
@@ -987,7 +993,7 @@ class _Viewer:
         boxes = np.concatenate([mn, w.nn + vl, w.nn + w.L + ev])
         c = {'row': row, 'A': self.A[:, :, boxes], 'nN': len(mn), 'nL': len(vl), 'mleaf': mleaf, 'mface': mface,
              'cf': cf, 'fnl': np.where(fnl >= 0, fnl, 0), 'fok': fok, 'fn': self.fnw[cf], 'fd': self.fdw[cf],
-             'fb': self.fbw[cf], 'nc': self.ncw[cf], 'pw': self.pw[cf], 'ev': ev}
+             'fb': self.fbw[cf], 'nc': self.ncw[cf], 'pw': self.pw[cf], 'p1': self.p1[cf], 'ev': ev}
         self.cache[lf] = c
         return c
 
@@ -1006,20 +1012,22 @@ class _Viewer:
             marked = np.zeros((D, F), bool)
             marked[di, c['mface'][mi]] = True
             facing = ((c['fn'] @ eye - c['fd'] < 0) == c['fb']) | c['nc']
-            drawn = marked & passN[:, c['fnl']] & (c['fok'] & facing)[None, :]
-            vw = drawn.astype(np.float64) @ c['pw']
+            drawn = (marked & passN[:, c['fnl']] & (c['fok'] & facing)[None, :]).astype(np.float64)
+            vw, nw = drawn @ c['pw'], drawn @ c['p1']
         else:
-            vw = np.zeros(D)
+            vw = nw = np.zeros(D)
         if len(c['ev']):
             sel = np.isin(w.eowner, c['ev'])
             own = w.eowner[sel]
             edots = np.einsum('mk,mk->m', self.efn[sel], eye[None, :] - w.eoff[own]) - self.efd[sel]
             efacing = ((edots < 0) == self.efb[sel]) | self.efnc[sel]
             per_ent = np.bincount(own, weights=self.efp[sel] * efacing, minlength=w.E)[c['ev']]
-            ve = passE.astype(np.float64) @ per_ent
+            per_ent1 = np.bincount(own, weights=self.ef1[sel] * efacing, minlength=w.E)[c['ev']]
+            pe = passE.astype(np.float64)
+            ve, ne = pe @ per_ent, pe @ per_ent1
         else:
-            ve = np.zeros(D)
-        return lf, vw + ve, vw, ve
+            ve = ne = np.zeros(D)
+        return lf, vw + ve, vw, ve, nw + ne
 
 
 def _floor_samples(w: _World, o: dict) -> List[np.ndarray]:
@@ -1158,19 +1166,21 @@ def perf_analysis(src, opts: Optional[dict] = None) -> dict:
     # ------------------------------------------------ view metric at player eye positions
     V = _Viewer(w, o)
     eyes = _floor_samples(w, o)
-    view_tot, view_world, view_ent, view_dir, view_leaf = [], [], [], [], []
+    view_tot, view_world, view_ent, view_faces, view_dir, view_leaf = [], [], [], [], [], []
     for eye in eyes:
-        lf, tot, vw, ve = V.eval(eye)
+        lf, tot, vw, ve, nf = V.eval(eye)
         k = int(np.argmax(tot))
         view_tot.append(tot[k])
         view_world.append(vw[k])
         view_ent.append(ve[k])
+        view_faces.append(nf[k])
         view_dir.append(V.dirs[k])
         view_leaf.append(lf)
     D, fov_x, fov_y = len(V.dirs), V.fov_x, V.fov_y
     view_tot = np.array(view_tot)
     res['view'] = {'samples': len(eyes), 'fov': [round(fov_x, 1), round(fov_y, 1)], 'directions': D,
-                   'total': _stats(view_tot), 'world_wpoly': _stats(view_world), 'ent_wpoly': _stats(view_ent)}
+                   'total': _stats(view_tot), 'world_wpoly': _stats(view_world), 'ent_wpoly': _stats(view_ent),
+                   'faces': _stats(view_faces)}
 
     # ------------------------------------------------ worst spots
     player_leaves = set(view_leaf)
@@ -1191,7 +1201,7 @@ def perf_analysis(src, opts: Optional[dict] = None) -> dict:
             continue
         worst_views.append({'eye': e.round(0).tolist(), 'yaw': view_dir[i][0], 'pitch': view_dir[i][1],
                             'total': int(view_tot[i]), 'world': int(view_world[i]), 'ents': int(view_ent[i]),
-                            'leaf': int(view_leaf[i])})
+                            'faces': int(view_faces[i]), 'leaf': int(view_leaf[i])})
         if len(worst_views) >= 5:
             break
     res['view']['worst'] = worst_views

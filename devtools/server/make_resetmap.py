@@ -134,6 +134,10 @@ def build():
     E(Entity('trigger_multiple', box((300, 300, 0), (364, 364, 72), TRIGGER), targetname='r_heal',
              target='r_heal_do', wait=0.5, master='r_gtm_ct'))
     E(Entity('game_player_hurt', origin=(0, 0, 240), targetname='r_heal_do', dmg=-10))
+    E(Entity('game_player_hurt', origin=(0, 0, 240), targetname='r_dmg30', dmg=30))     # test helper: hurt the activator
+    # +use-only door (spawnflags 256) for humans only: Use with a T activator must do nothing
+    E(door(box((400, 300, 0), (528, 316, 128), MT), 'up', speed=400, wait=3, targetname='r_usedoor', use_only=True))
+    m.entities[-1]['master'] = 'r_gtm_ct'
 
     # --- lights / sprites / sounds / render ------------------------------------------------------
     E(light((300, 200, 100), (255, 80, 40), 200, targetname='r_light'))
