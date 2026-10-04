@@ -92,6 +92,10 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   silindi, VERSION "3.1". amxx_compare: bolunmus derlemeyle EQUIVALENT; test 120 s / 8 bot 0 hata. Paket yeniden
   gonderildi. KURAL: eklentiyi bir daha include dosyalarina bolme. p1.js: split/bugfix adimlari tamam olarak
   isaretlendi (yeniden calismaz), ortak metin tek dosya kuralini soyler.
+- 2026-10-04: sahip "sadece 1 tane mukemmel etkilesimli essiz buyuk, bol FPS'li harita bitir" dedi. Is akisi
+  vex-flagship-map (run wf_b52843c0-d85, betik $SP/wf/flagship.js): 3 tasarim + 3 hakem -> SPEC, harita 4 asamada
+  (serverB) || eklenti harita-hikaye destegi (serverC), entegrasyon (serverD), 3 acili denetim + duzeltme (serverE/F).
+  DEVAM: Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_b52843c0-d85"}). Sonra paket + gonder.
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
 
