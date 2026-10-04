@@ -176,7 +176,8 @@ def lad(c: Ctx, base, facing, height):
     px, py = -dy, dx
     for s in (-1, 1):
         cx, cy = x + px * s * 18 - dx * 3, y + py * s * 18 - dy * 3
-        c.D(box((cx - 2, cy - 2, z), (cx + 2, cy + 2, z + height), DARK))
+        # non-solid (func_illusionary) so players / bots never snag on them at the top
+        c.masked += box((cx - 2, cy - 2, z), (cx + 2, cy + 2, z + height), DARK)
 
 
 def glass_pane(c: Ctx, axis, a0, a1, at, z0, z1, health=40):
