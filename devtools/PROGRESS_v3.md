@@ -116,7 +116,7 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   SIRA: (1) vex-v33 is akisi run wf_91ca5680-a67, betik $SP/wf/v33.js (madde 22 combo/sag HUD/menu aciklama,
   madde 23 animasyonlu transparan CSO sprite'lar) -> yarim kaldiysa: Workflow({scriptPath: "$SP/wf/v33.js",
   resumeFromRunId: "wf_91ca5680-a67"}). (2) bitince paket: bash $SP/pack32h.sh (HEAD'den derler) -> SendUserFile.
-  (3) sonra harita: Workflow({scriptPath: "$SP/wf/flagship.js"}) (bitince paket + gonder).
+  (3) harita CALISIYOR: run wf_e0c4a70f-a93 -> yarim kaldiysa Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_e0c4a70f-a93"}) (bitince paket + gonder). v33 + v3.2 paketi BITTI (01:39 UTC gonderildi).
   Saatlik rutin bunu okuyup yarim kalan akisi devam ettirir; kullanici durdurmadikca ilerle.
 
 ## Yeni oturumda sıfırdan devam (iş akışı kayıtları yoksa)
