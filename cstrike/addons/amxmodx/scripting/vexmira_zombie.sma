@@ -853,7 +853,7 @@ enum { CN_KM1 = 0, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE, CN_
 #define CSO_ROUNDS  30
 #define CSO_QMAX    4
 #define TASK_CSO    41500   // CSO ekran bildirimi zamanlayicisi (tek, tekrarli)
-new g_pCso, g_pCsoNotes, g_pCsoTime, g_pCsoKmTime, g_pCsoFov, g_pCsoSnd, g_pCsoBots, g_pCsoLog, g_pCsoIcons;
+new g_pCso, g_pCsoNotes, g_pCsoTime, g_pCsoKmTime, g_pCsoFov, g_pCsoSnd, g_pCsoBots, g_pCsoLog, g_pCsoIcons, g_pCsoAnim;
 new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
 new g_pComboTime, bool:g_bFirstBlood;  // v3.3: combo penceresi / roundun ilk oldurmesi
 // v3.3 CSO sag panel: son gonderilen icerik (degismediyse tekrar gonderilmez) + XP cubugu
@@ -861,6 +861,9 @@ new g_szHudSig[33][400], Float:g_fHudNext[33], g_iHudXpSeen[33] = { -1, ... }, F
 new g_msgWL, g_msgCurW, g_msgFOV, g_msgSIcon;
 new g_szWL[31][24], g_iWL[31][8], bool:g_bWL[31];
 new g_iCsoCur[33] = { -1, ... }, g_iCsoArg[33], g_iCsoWpn[33], Float:g_fCsoEnd[33];
+// v3.4: animasyon (kare: 0 a giris cizgisi, 1 b parlama, 2 g kayan isik, 3 m ana, 4 c cikis)
+new Float:g_fCsoStart[33], g_iCsoFrm[33];
+enum { CF_A = 0, CF_B, CF_G, CF_M, CF_C };
 new g_iCsoQ[33][CSO_QMAX], g_iCsoQA[33][CSO_QMAX], Float:g_fCsoQT[33][CSO_QMAX], g_iCsoQn[33];
 new g_iCsoIcon[33], g_iCsoShown, g_iCsoRestored;
 // v3.0 hizalama: gostergeler MOVETYPE_FOLLOW kullanmaz (istemci FOLLOW sprite'ini govde merkezine
@@ -2952,6 +2955,11 @@ stock HudAllS(slot, r, g, b, Float:hold, const key[], const sVal[])
 /*  sprites/vexmira/cso/<ad>.txt dosyasini yukler ve "crosshair /      */
 /*  zoom" bolgesini ekranin ORTASINA (nisangah noktasina) cizer.       */
 /*  Sira: SetFOV(vex_cso_fov) + WeaponList(ozel ad) + CurWeapon.       */
+/*  v3.4 ANIMASYON: istemci nisangahi tek kare cizer; her kare ayri    */
+/*  betik (.txt). 0.1 sn zamanlayici sadece kare DEGISINCE yeni        */
+/*  WeaponList + CurWeapon gonderir (gosterim basina ~6-12 kucuk       */
+/*  mesaj). Dizi: a giris -> b parlama -> g/m nabiz -> c cikis.        */
+/*  Ardisik kareler hep farkli sayfada (make_cso_sprites.py).          */
 /*  Geri yukleme: WeaponList(orijinal) + SetFOV(gercek m_iFOV) +       */
 /*  CurWeapon. Silah degisimi / olum / durbun / round sonu / cikista   */
 /*  hemen geri yuklenir; oyuncu basina oncelikli kuyruk (4).           */
@@ -2972,8 +2980,10 @@ new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16,
 new const CSO_SND[CN_TOTAL][] = { "CSO_KM", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "CSO_KM_SP", "CSO_KM_SP", "CSO_KM_SP",
     "CSO_MVP", "CSO_WIN", "CSO_WIN", "CSO_ALERT", "CSO_ALERT", "CSO_BANNER", "CSO_BANNER", "CSO_BANNER", "CSO_ALERT",
     "CSO_LEVEL", "CSO_BANNER", "CSO_FB", "CSO_BKILL", "CSO_INFD", "CSO_TEN" };
-// Sprite sayfalari (generic precache): killmark 1, combo 2, alt bant 3, orta bant 5, round 4
-new const CSO_SHEETS[][] = { "km1", "cmb1", "cmb2", "low1", "low2", "low3", "mid1", "mid2", "mid3", "mid4", "mid5" };
+// v3.4: ortak giris / cikis karelerinin duzeni: k killmark, l alt bant, c orta bant, r round
+new const CSO_LAY[CN_TOTAL] = { 'k', 'l', 'l', 'l', 'l', 'k', 'l', 'k', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'l', 'l', 'r', 'c', 'c', 'c', 'c' };
+// Sprite sayfalari (generic precache): m1.. ana kareler, g1.. kayan isik kareleri, fx1.. ortak kareler (dosya varken)
+new const CSO_SHEETS[][] = { "m", "g", "fx" };
 
 // plugin_precache: dosyasi olan bildirimler; vex_cso_style 0 ise hicbiri indirilmez
 CsoPrecache()
@@ -2984,26 +2994,47 @@ CsoPrecache()
     new path[96];
     for (new i = 0; i < sizeof CSO_SHEETS; i++)
     {
-        formatex(path, charsmax(path), "sprites/vexmira/cso/%s.spr", CSO_SHEETS[i]);
-        if (file_exists(path, true))
+        for (new k = 1; k <= 16; k++)
+        {
+            formatex(path, charsmax(path), "sprites/vexmira/cso/%s%d.spr", CSO_SHEETS[i], k);
+            if (!file_exists(path, true))
+                break;
             precache_generic(path);
+        }
     }
-    static const LNG[][] = { "en", "tr" };
+    // ortak kareler (a giris / b parlama / c cikis) x duzen
+    new fxok = 1;
+    static const FXK[] = { 'a', 'b', 'c' }, FXL[] = { 'c', 'l', 'k', 'r' };
+    for (new i = 0; i < sizeof FXK; i++)
+    {
+        for (new j = 0; j < sizeof FXL; j++)
+        {
+            formatex(path, charsmax(path), "sprites/vexmira/cso/fx%c_%c.txt", FXK[i], FXL[j]);
+            if (file_exists(path, true))
+                precache_generic(path);
+            else
+                fxok = 0;
+        }
+    }
+    static const LNG[][] = { "en", "tr" }, FR[] = { 'm', 'g' };
     for (new n = 0; n < CN_TOTAL; n++)
     {
         if (n == CN_ROUND)
             continue;
-        new ok = 1;
+        new ok = fxok;
         for (new l = 0; l < (CSO_LANG[n] ? 2 : 1); l++)
         {
-            if (CSO_LANG[n])
-                formatex(path, charsmax(path), "sprites/vexmira/cso/%s_%s.txt", CSO_FILE[n], LNG[l]);
-            else
-                formatex(path, charsmax(path), "sprites/vexmira/cso/%s.txt", CSO_FILE[n]);
-            if (file_exists(path, true))
-                precache_generic(path);
-            else
-                ok = 0;
+            for (new f = 0; f < sizeof FR; f++)
+            {
+                if (CSO_LANG[n])
+                    formatex(path, charsmax(path), "sprites/vexmira/cso/%s_%s_%c.txt", CSO_FILE[n], LNG[l], FR[f]);
+                else
+                    formatex(path, charsmax(path), "sprites/vexmira/cso/%s_%c.txt", CSO_FILE[n], FR[f]);
+                if (file_exists(path, true))
+                    precache_generic(path);
+                else
+                    ok = 0;
+            }
         }
         g_bCsoFile[n] = ok ? true : false;
     }
@@ -3017,13 +3048,13 @@ CsoPrecache()
         precache_generic(path);
         g_iCsoRounds = r;
     }
-    for (new s = 0; s < (g_iCsoRounds + 7) / 8; s++)
+    for (new s = 0; s < (g_iCsoRounds + 11) / 12; s++)
     {
         formatex(path, charsmax(path), "sprites/vexmira/cso/rnd%d.spr", s + 1);
         if (file_exists(path, true))
             precache_generic(path);
     }
-    g_bCsoFile[CN_ROUND] = g_iCsoRounds > 0 ? true : false;
+    g_bCsoFile[CN_ROUND] = (g_iCsoRounds > 0 && fxok) ? true : false;
 }
 
 // Orijinal CS WeaponList degerleri (yedek). Oyunun gonderdigi gercek degerler msg_WeaponList ile
@@ -3117,14 +3148,49 @@ stock CsoCurW(id, w, clip)
     message_end();
 }
 
-stock CsoName(id, note, arg, out[], len)
+stock CsoName(id, note, arg, frm, out[], len)
 {
-    if (note == CN_ROUND)
+    static const FRC[] = { 'a', 'b', 'g', 'm', 'c' };
+    if (frm == CF_A || frm == CF_B || frm == CF_C)
+        formatex(out, len, "vexmira/cso/fx%c_%c", FRC[frm], CSO_LAY[note]);
+    else if (note == CN_ROUND)
         formatex(out, len, "vexmira/cso/rnd%d", arg);
     else if (CSO_LANG[note])
-        formatex(out, len, "vexmira/cso/%s_%s", CSO_FILE[note], g_iLang[id] == 2 ? "tr" : "en");
+        formatex(out, len, "vexmira/cso/%s_%s_%c", CSO_FILE[note], g_iLang[id] == 2 ? "tr" : "en", FRC[frm]);
     else
-        formatex(out, len, "vexmira/cso/%s", CSO_FILE[note]);
+        formatex(out, len, "vexmira/cso/%s_%c", CSO_FILE[note], FRC[frm]);
+}
+
+// v3.4: gecen sureye gore animasyon karesi. cur = ekrandaki kare (-1 yok).
+// a (0-0.08 sn) -> b (-0.18) -> govde: g (kayan isik 0.2 sn) / m (0.6 sn) nabiz -> son 0.2 sn c.
+// c, a / b'nin hemen ardindan gelmez (ayni sayfa olabilir): once en az bir govde karesi.
+stock CsoFrameAt(note, Float:t, Float:dur, cur)
+{
+    if (get_pcvar_num(g_pCsoAnim) <= 0)
+        return CF_M;
+    if (t < 0.08)
+        return CF_A;
+    if (t < 0.18)
+        return CF_B;
+    if (dur - t < 0.2 && cur >= CF_G)
+        return CF_C;
+    if (note == CN_ROUND)
+        return CF_M;
+    new Float:p = t - 0.18;
+    p -= float(floatround(p / 0.8, floatround_floor)) * 0.8;
+    return p < 0.2 ? CF_G : CF_M;
+}
+
+// Ekrandaki kareyi degistir (sadece WeaponList + CurWeapon; FOV zaten ayarli)
+CsoSendFrame(id, frm, w, clip)
+{
+    new nm[40];
+    CsoName(id, g_iCsoCur[id], g_iCsoArg[id], frm, nm, charsmax(nm));
+    CsoSendWL(id, nm, w);
+    CsoCurW(id, w, clip);
+    g_iCsoFrm[id] = frm;
+    if (get_pcvar_num(g_pCsoLog) > 1)
+        log_amx("[CSO] frame %s -> #%d", nm, id);
 }
 
 stock bool:CsoNoteOn(note)
@@ -3153,8 +3219,8 @@ CsoSound(id, note)
     PlayKey(id, CSO_SND[note]);
 }
 
-// Bildirimi elindeki silahin HUD'una uygula
-bool:CsoApply(id, note, arg, Float:dur, bool:sound)
+// Bildirimi elindeki silahin HUD'una uygula (elapsed: silah degisiminde animasyon kaldigi yerden)
+bool:CsoApply(id, note, arg, Float:dur, bool:sound, Float:elapsed = 0.0)
 {
     new clip, ammo, w = get_user_weapon(id, clip, ammo);
     if (w < 1 || w > 30 || !g_bWL[w])
@@ -3162,16 +3228,16 @@ bool:CsoApply(id, note, arg, Float:dur, bool:sound)
     if (g_iCsoCur[id] >= 0 && g_iCsoWpn[id] != w)
         CsoRestore(id, false);
 
-    new nm[40];
-    CsoName(id, note, arg, nm, charsmax(nm));
-    CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 90));
-    CsoSendWL(id, nm, w);
-    CsoCurW(id, w, clip);
-
     g_iCsoCur[id] = note;
     g_iCsoArg[id] = arg;
     g_iCsoWpn[id] = w;
-    g_fCsoEnd[id] = get_gametime() + dur;
+    g_fCsoStart[id] = get_gametime() - elapsed;
+    g_fCsoEnd[id] = g_fCsoStart[id] + dur;
+    new frm = CsoFrameAt(note, elapsed, dur, elapsed > 0.0 ? CF_M : -1);
+    CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 90));
+    CsoSendFrame(id, frm, w, clip);
+    new nm[40];
+    CsoName(id, note, arg, frm, nm, charsmax(nm));
     g_iCsoShown++;
     if (sound)
     {
@@ -3381,13 +3447,20 @@ public task_CsoTick()
                 // silah degisti: eski silahin HUD'u geri, kalan sure yeni silahta
                 new note = g_iCsoCur[id], arg = g_iCsoArg[id];
                 new Float:left = g_fCsoEnd[id] - now;
+                new Float:el = now - g_fCsoStart[id], Float:tot = g_fCsoEnd[id] - g_fCsoStart[id];
                 CsoRestore(id);
                 if (left > 0.4)
-                    CsoApply(id, note, arg, left, false);
+                    CsoApply(id, note, arg, tot, false, el);
                 continue;
             }
             if (now < g_fCsoEnd[id])
+            {
+                // v3.4: animasyon karesi degistiyse yeni betik
+                new frm = CsoFrameAt(g_iCsoCur[id], now - g_fCsoStart[id], g_fCsoEnd[id] - g_fCsoStart[id], g_iCsoFrm[id]);
+                if (frm != g_iCsoFrm[id])
+                    CsoSendFrame(id, frm, w, clip);
                 continue;
+            }
             CsoRestore(id, g_iCsoQn[id] == 0);
         }
         // Kuyruk
@@ -26384,6 +26457,7 @@ public plugin_init()
     g_pCsoIcons      = register_cvar("vex_cso_icons", "1");
     g_pCsoBots       = register_cvar("vex_cso_bots", "0");
     g_pCsoLog        = register_cvar("vex_cso_log", "0");
+    g_pCsoAnim       = register_cvar("vex_cso_anim", "1");
     g_msgWL    = get_user_msgid("WeaponList");
     g_msgCurW  = get_user_msgid("CurWeapon");
     g_msgFOV   = get_user_msgid("SetFOV");

@@ -68,7 +68,7 @@ Sonra: tek amiral gemisi harita (etkilesimli, eszsiz, buyuk, yuksek FPS) - plan 
 22. (2026-10-04 22:45, %97'de durdu; yarim is: $SP/stoppedE.patch) combo/seri olum 2-5 CSO sprite+ses cikmiyor -> duzelt;
     SAG HUD CSO tarzi yeniden (kisa, hizali, renkli; "=[ // ]=" ve "[||||....]" yok, XP BarTime2); yeni CSO bildirimleri:
     ILK KAN, BOSS OLDURULDU, ENFEKTE OLDUN, ZOMBIYE BICAK, SON 10 SN; menu madde aciklamalari \d (seffaf beyaz).
-23. TUM CSO SPRITE'LARI yeniden: daha transparan (additive, yumusak kenar), ANIMASYONLU (cok kareli: giris parlamasi,
+23. [TAMAM v3.4: m*/g*/fx*/rnd* sayfalari, vex_cso_anim] TUM CSO SPRITE'LARI yeniden: daha transparan (additive, yumusak kenar), ANIMASYONLU (cok kareli: giris parlamasi,
     kayan isik, nabiz, cikista solma), efektli (parilti, halka, partikul hissi), uyumlu ve essiz tek stil; daha fazla CSO
     tarzi sprite efekti (bildirim cesitleri + oyun ici efektler). Yarim kalanlar (madde 22, git stash@{0}) da bitecek.
 24. EN SONDA: amiral gemisi harita (Workflow scriptPath $SP/wf/flagship.js; PROGRESS_v3.md).

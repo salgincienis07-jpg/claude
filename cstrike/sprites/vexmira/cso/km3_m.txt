@@ -1,0 +1,17 @@
+16
+crosshair	320	vexmira/cso/m2	0	80	256	80
+autoaim	320	vexmira/cso/m2	0	80	256	80
+zoom	320	vexmira/cso/m2	0	80	256	80
+zoom_autoaim	320	vexmira/cso/m2	0	80	256	80
+weapon	320	vexmira/cso/m2	0	0	4	4
+weapon_s	320	vexmira/cso/m2	0	0	4	4
+ammo	320	vexmira/cso/m2	0	0	4	4
+ammo2	320	vexmira/cso/m2	0	0	4	4
+crosshair	640	vexmira/cso/m2	0	80	256	80
+autoaim	640	vexmira/cso/m2	0	80	256	80
+zoom	640	vexmira/cso/m2	0	80	256	80
+zoom_autoaim	640	vexmira/cso/m2	0	80	256	80
+weapon	640	vexmira/cso/m2	0	0	4	4
+weapon_s	640	vexmira/cso/m2	0	0	4	4
+ammo	640	vexmira/cso/m2	0	0	4	4
+ammo2	640	vexmira/cso/m2	0	0	4	4
