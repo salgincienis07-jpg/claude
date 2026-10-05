@@ -46,6 +46,18 @@ DUZELTMELER / YENILER
   VIP, hizalama: ofset x y z, aci, olcek, animasyon). Dosya yoksa menude
   gorunmez, hata vermez.
 
+CSO GUNCELLEMESI (v3.2 son)
+- Seri olum (combo 2-5) sprite + sesleri artik cikiyor (eksik dosya hatasi
+  duzeltildi; vex_combo_time 6 sn).
+- SAG HUD CSO tarzi: kisa, renkli; XP oyunun kendi cubugunda.
+- Yeni bildirimler: ILK KAN, BOSS OLDURULDU, ENFEKTE OLDUN, ZOMBIYE BICAK,
+  SON 10 SANIYE (vex_cso_notes 255).
+- Tum CSO sprite'lari yeniden: seffaf neon, parlak kenar, partikul;
+  ANIMASYONLU (giris cizgisi, parlama + halka, kayan isik, solma);
+  level-up patlamasi, boss uyari cercevesi, MVP / boss tac parlamasi,
+  enfeksiyon sicramasi. vex_cso_anim 1 (0 = tek kare).
+- Menu aciklamalari seffaf beyaz, isimler sari, fiyatlar kirmizi.
+
 TEST: 150 sn / 12 bot oturumu: 0 calisma hatasi, cokme yok. Menuler ve
 kozmetikler gercek oyuncuyla denenmedi - gorunusle ilgili bir sey yanlissa
 ekran goruntusu at.
