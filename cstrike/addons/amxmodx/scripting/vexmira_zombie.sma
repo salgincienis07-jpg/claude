@@ -858,7 +858,6 @@ new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
 new g_pComboTime, bool:g_bFirstBlood;  // v3.3: combo penceresi / roundun ilk oldurmesi
 // v3.3 CSO sag panel: son gonderilen icerik (degismediyse tekrar gonderilmez) + XP cubugu
 new g_szHudSig[33][400], Float:g_fHudNext[33], g_iHudXpSeen[33] = { -1, ... }, Float:g_fXpBarEnd[33];
-new g_msgBarTime, g_msgBarTime2;
 new g_msgWL, g_msgCurW, g_msgFOV, g_msgSIcon;
 new g_szWL[31][24], g_iWL[31][8], bool:g_bWL[31];
 new g_iCsoCur[33] = { -1, ... }, g_iCsoArg[33], g_iCsoWpn[33], Float:g_fCsoEnd[33];
@@ -2742,9 +2741,11 @@ DrawHud()
 // verilir -> cubuk pratikte sabit durur; 2.5 sn sonra BarTime 0 ile kaldirilir.
 CsoXpBar(id, pct)
 {
-    if (!is_user_alive(id))
+    // Lazer kurma / sokme cubugu (BarTime) aktifken ona dokunulmaz
+    if (!is_user_alive(id) || g_iPlantAction[id])
     {
         g_iHudXpSeen[id] = g_iXP[id];
+        g_fXpBarEnd[id] = 0.0;
         return;
     }
     new Float:now = get_gametime();
@@ -2754,18 +2755,13 @@ CsoXpBar(id, pct)
         g_iHudXpSeen[id] = g_iXP[id];
         if (first)
             return;
-        message_begin(MSG_ONE_UNRELIABLE, g_msgBarTime2, _, id);
-        write_short(3000);
-        write_short(clamp(pct, 0, 99));
-        message_end();
+        rg_send_bartime2(id, 3000, float(clamp(pct, 0, 99)), false);
         g_fXpBarEnd[id] = now + 2.5;
     }
     else if (g_fXpBarEnd[id] > 0.0 && now >= g_fXpBarEnd[id])
     {
         g_fXpBarEnd[id] = 0.0;
-        message_begin(MSG_ONE_UNRELIABLE, g_msgBarTime, _, id);
-        write_short(0);
-        message_end();
+        rg_send_bartime(id, 0, false);
     }
 }
 
@@ -2968,7 +2964,7 @@ new const CSO_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "kni
 new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1 };
 // Oncelik (buyuk once). 1-2 = killmark: yeni killmark eskisinin yerini alir, bant varken sadece ses.
 // v3.3: COMBO (km2-km5) = 2, headshot / bomba = 1 -> combo her zaman headshot'in onune gecer
-new const CSO_PRIO[CN_TOTAL] = { 1, 2, 2, 2, 2, 1, 2, 1, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9, 3, 8, 7, 5 };
+new const CSO_PRIO[CN_TOTAL] = { 1, 2, 2, 2, 2, 1, 2, 1, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9, 2, 8, 7, 5 };
 // vex_cso_notes biti: 1 killmark/combo, 2 MVP, 4 round, 8 kazanan, 16 mod/boss/enfeksiyon, 32 son insan, 64 level,
 // 128 ek bantlar (ilk kan / boss oldu / enfekte oldun / son 10 sn)
 new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16, 16, 32, 64, 4, 128, 128, 128, 128 };
@@ -7023,7 +7019,7 @@ Reward(id, xp, ap)
 
     // A short native XP progress animation is sent only on positive XP gains.
     // Do not overwrite the active laser plant/take countdown bar.
-    if (xp > 0 && HudPartMode(g_pHudXp) == 2 && !g_iPlantAction[id])
+    if (xp > 0 && HudPartMode(g_pHudXp) == 2 && !g_iPlantAction[id] && !CsoOn())
     {
         new lvl = g_iLevel[id];
         new pct = (lvl >= MAX_LEVEL) ? 100 : clamp((g_iXP[id] - XPForLevel(lvl)) * 100 / max(1, XPForLevel(lvl + 1) - XPForLevel(lvl)), 0, 100);
@@ -7082,7 +7078,7 @@ ShowShopMenu(id)
         else if (ITEM_LIMIT[i] && g_iBought[id][i] >= ITEM_LIMIT[i])
             formatex(item, charsmax(item), "\y%s \r[%L] \r[%L]", n1, id, "SHOP_SOLDOUT", id, "MENU_LOCKED");
         else if (g_iAP[id] >= cost)
-            formatex(item, charsmax(item), "\y%s \r[\y%d AP\r]", n1, cost);
+            formatex(item, charsmax(item), "\y%s \r[%d AP]", n1, cost);
         else
             formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, cost, id, "MENU_LOCKED");
 
@@ -7390,7 +7386,7 @@ ShowSpecialMenu(id)
         else if (g_iSpecW[id] & (1 << i))
             formatex(item, charsmax(item), "\y%s \r[%L\r]", n1, id, "OWNED");
         else if (g_iAP[id] >= SwPrice(id, i))
-            formatex(item, charsmax(item), "\y%s \r[\y%d AP\r]", n1, SwPrice(id, i));
+            formatex(item, charsmax(item), "\y%s \r[%d AP]", n1, SwPrice(id, i));
         else
             formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, SwPrice(id, i), id, "MENU_LOCKED");
 
@@ -22326,7 +22322,10 @@ public rg_PlayerKilled(victim, attacker, gib)
 KillStreak(attacker, victim)
 {
     if (is_user_bot(attacker))
+    {
+        g_bFirstBlood = true;
         return;
+    }
 
     new Float:now = get_gametime();
     new bool:hs = (get_member(victim, m_LastHitGroup) == HIT_HEAD) ? true : false;
@@ -26386,8 +26385,6 @@ public plugin_init()
     g_pCsoBots       = register_cvar("vex_cso_bots", "0");
     g_pCsoLog        = register_cvar("vex_cso_log", "0");
     g_msgWL    = get_user_msgid("WeaponList");
-    g_msgBarTime  = get_user_msgid("BarTime");
-    g_msgBarTime2 = get_user_msgid("BarTime2");
     g_msgCurW  = get_user_msgid("CurWeapon");
     g_msgFOV   = get_user_msgid("SetFOV");
     g_msgSIcon = get_user_msgid("StatusIcon");
