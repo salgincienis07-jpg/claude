@@ -25942,7 +25942,7 @@ public cmd_MsStory(id)
 MapVoteInit()
 {
     g_pMapVote        = register_cvar("vex_map_vote", "1");
-    g_pMapPool        = register_cvar("vex_map_pool", "zm_vex_laboratory zm_vex_harbor zm_vex_ruins zm_vex_frostbase zm_vex_temple");
+    g_pMapPool        = register_cvar("vex_map_pool", "zm_vex_cordon zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
     g_pMapVoteExtend  = register_cvar("vex_map_vote_extend", "0");
