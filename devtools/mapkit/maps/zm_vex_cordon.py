@@ -523,8 +523,8 @@ def dress(b):
     L((-2816, -312, 230), CYAN, 140)
     SPR((-2976, 884, 92), RED, 0.15, name='cd_brk_a_red')
     SPR((-2976, 884, 92), (60, 255, 80), 0.15, name='cd_brk_a_grn', on=False)
-    SPR((-2160, -466, 232), RED, 0.15, name='cd_brk_b_red')
-    SPR((-2160, -466, 232), (60, 255, 80), 0.15, name='cd_brk_b_grn', on=False)
+    SPR((-2248, -480, 244), RED, 0.15, name='cd_brk_b_red')
+    SPR((-2248, -480, 244), (60, 255, 80), 0.15, name='cd_brk_b_grn', on=False)
     D(lamp_post(-2560, 720, arm=(0, -40)))
     D(lamp_post(-2400, -500, arm=(0, 40)))
     SW((-2560, 680, 196), SODIUM, 220, 'cd_lt_west')
@@ -775,8 +775,8 @@ def dress(b):
     D(floor_arrow(600, -1712, -128, (1, 0)))
     D(floor_arrow(-1650, -2100, -128, (1, 0)))
     D(floor_arrow(0, -1700, -128, (1, 0)))
-    SPR((1104, -1712, 60), RED, 0.15, name='cd_cab_red')
-    SPR((1104, -1712, 60), (60, 255, 80), 0.15, name='cd_cab_grn', on=False)
+    SPR((1104, -1756, 62), RED, 0.15, name='cd_cab_red')
+    SPR((1104, -1756, 62), (60, 255, 80), 0.15, name='cd_cab_grn', on=False)
     L((1032, -1696, 90), (255, 200, 150), 70)
     for y in (-1840, -2256):
         D(P((1136, y - 16, -128), (1168, y + 16, 384), RUST))                       # bridge towers
@@ -824,6 +824,191 @@ def dress(b):
 
     # moon
     ents.append(light_environment(-58, 135, (150, 165, 215), 70, diffuse=(55, 65, 100, 35), origin=(0, 0, 800)))
+
+
+# ==============================================================================================
+# STAGE 3: interactive set pieces + story wiring (spec section 9, devtools/MAP_CONTRACT.md)
+# ----------------------------------------------------------------------------------------------
+def wire(b):
+    D, E, ents = b.D, b.ent, b.ents
+    ORG = 'ORIGIN'
+    made = set()
+
+    def pt(cls, name=None, **kw):
+        e = Entity(cls, **kw)
+        if name:
+            e['targetname'] = name
+        ents.append(e)
+        return e
+
+    def mm(name, seq, origin=(0, 0, 64)):
+        """multi_manager: seq = [(target, delay)], duplicate targets get #2, #3 (max 16 per entity)."""
+        assert len(seq) <= 16, name
+        e = pt('multi_manager', name, origin=origin)
+        seen = {}
+        for tgt, dl in seq:
+            seen[tgt] = seen.get(tgt, 0) + 1
+            e[tgt if seen[tgt] == 1 else f'{tgt}#{seen[tgt]}'] = dl
+        return e
+
+    def rel(tgt, on):
+        """State-explicit trigger_relay (triggerstate 1 = on, 0 = off): re-firing is harmless."""
+        base = tgt[6:] if tgt.startswith('cd_lt_') else tgt[3:]
+        name = f"cd_r_{base}_{'on' if on else 'off'}"
+        if name not in made:
+            made.add(name)
+            pt('trigger_relay', name, target=tgt, triggerstate=1 if on else 0, origin=(0, 0, 80))
+        return name
+
+    def cmd(name):
+        """Map -> plugin relay (vexcmd_*, class trigger_relay, no target)."""
+        if name not in made:
+            made.add(name)
+            pt('trigger_relay', name, triggerstate=2, origin=(0, 0, 96))
+        return name
+
+    def button(mn, mx, name, target, master=None, lip=4, speed=40):
+        e = E(Entity('func_button', box(mn, mx, HAZ), targetname=name, target=target, wait=-1, sounds=11,
+                     speed=speed, lip=lip, angles=(0, -2, 0), _minlight=0.3))
+        if master:
+            e['master'], e['locked_sound'] = master, 14
+        return e
+
+    def rotdoor(brushes, hinge, name, dist, flags, speed):
+        o = box((hinge[0] - 4, hinge[1] - 4, hinge[2] - 4), (hinge[0] + 4, hinge[1] + 4, hinge[2] + 4), ORG)
+        return E(Entity('func_door_rotating', brushes + o, targetname=name, distance=dist, speed=speed, wait=-1,
+                        dmg=0, lip=0, movesnd=0, stopsnd=0, spawnflags=flags, _minlight=0.2))
+
+    def shake(name, p, amp, dur, rad, freq=40, glob=False):
+        pt('env_shake', name, origin=p, amplitude=amp, duration=dur, radius=rad, frequency=freq,
+           spawnflags=1 if glob else 0)
+
+    def boomfx(name, p, mag):
+        pt('env_explosion', name, origin=p, iMagnitude=mag, spawnflags=3)   # no damage, repeatable
+
+    GRP = ('cd_lt_west', 'cd_lt_plaza', 'cd_lt_plazared', 'cd_lt_east', 'cd_lt_harbor', 'cd_lt_pad',
+           'cd_lt_alarm', 'cd_lt_flash', 'cd_lt_flood_out')
+    LOOPS = ('cd_hum', 'cd_siren_st', 'cd_siren_pz', 'cd_siren_all', 'cd_rotor')
+    SPR_ON = ('cd_brk_a_red', 'cd_brk_b_red', 'cd_cab_red', 'cd_pad_red')
+    SPR_OFF = ('cd_brk_a_grn', 'cd_brk_b_grn', 'cd_cab_grn', 'cd_pad_grn', 'cd_bridge_spr', 'cd_alarm_spr')
+
+    # ------------------------------------------------------------ SP1 power: two breakers (Substation)
+    D(P((-2996, 888, 40), (-2956, 896, 112), MDARK))                                   # breaker panel A
+    button((-2988, 880, 52), (-2964, 888, 84), 'cd_brk_a', 'cd_brk_a_mm', lip=8)
+    D(P((-2268, -506, 160), (-2228, -490, 236), MDARK))                                # breaker post B (gantry)
+    button((-2260, -490, 196), (-2236, -482, 228), 'cd_brk_b', 'cd_brk_b_mm', lip=8)
+    for k in 'ab':
+        mm(f'cd_brk_{k}_mm', [('cd_ms_power', 0), (rel(f'cd_brk_{k}_red', 0), 0), (rel(f'cd_brk_{k}_grn', 1), 0)])
+    pt('multisource', 'cd_ms_power', target='cd_power_mm', origin=(-2600, 400, 96))
+    mm('cd_power_mm', [(rel('cd_hum', 1), 0), (rel('cd_lt_west', 1), 0.6), (rel('cd_lt_plaza', 1), 1.4),
+                       (rel('cd_lt_east', 1), 2.2), (rel('cd_cab_red', 0), 2.2), (rel('cd_cab_grn', 1), 2.2),
+                       (cmd('vexcmd_obj_1_done'), 2.5), (cmd('vexcmd_reward_h_5'), 2.5),
+                       (cmd('vexcmd_msg_power'), 2.5)])
+
+    # ------------------------------------------------------------ SP2 lift bridge (Quay cabin)
+    D(P((1040, -1776, 0), (1128, -1744, 40), MDARK))                                   # cabin console
+    button((1096, -1768, 40), (1112, -1752, 48), 'cd_bridge_btn', 'cd_bridge_mm', master='cd_ms_power')
+    mm('cd_bridge_mm', [(rel('cd_bridge_spr', 1), 0), ('cd_bridge', 0.5), (rel('cd_bridge_spr', 0), 9),
+                        (rel('cd_lt_harbor', 1), 8.5), ('cd_ms_bridge', 8.5), (cmd('vexcmd_obj_2_done'), 8.5),
+                        (cmd('vexcmd_reward_h_8'), 8.5), (cmd('vexcmd_msg_bridge'), 8.5)])
+    pt('multisource', 'cd_ms_bridge', origin=(1104, -1712, 96))
+
+    # ------------------------------------------------------------ SP3 evac beacon + medevac helicopter
+    D(P((1648, -112, 576), (1680, -80, 624), MDARK))                                   # beacon console
+    button((1656, -104, 624), (1672, -88, 632), 'cd_beacon_btn', 'cd_beacon_mm', master='cd_ms_bridge')
+    mm('cd_beacon_mm', [(rel('cd_lt_pad', 1), 0), (rel('cd_pad_red', 0), 0), (rel('cd_pad_grn', 1), 0),
+                        (cmd('vexcmd_obj_3_done'), 0.5), (cmd('vexcmd_msg_beacon'), 0.5), (rel('cd_rotor', 1), 10),
+                        ('cd_heli', 14), ('cd_heli_rotor', 14), ('cd_heli_drop_mm', 25)])
+    body = []                                         # built in the sealed hangar, nose to -x
+    body += box((3696, 2976, 160), (3840, 3040, 224), MDARK)                           # cabin
+    body += box((3664, 2984, 168), (3696, 3032, 208), 'vx_glass')                      # cockpit
+    body += box((3840, 3000, 196), (3936, 3016, 212), MDARK)                           # tail boom
+    body += box((3920, 3000, 212), (3936, 3016, 256), HAZ)                             # tail fin
+    for y0 in (2964, 3044):
+        body += box((3704, y0, 144), (3832, y0 + 4, 148), MDARK)                       # skids
+    rotor = prism((3768, 3008), 112, 8, 236, 240, MDARK)
+    bmn, bmx = np.array([3664, 2964, 144]), np.array([3936, 3048, 256])
+    off = np.array([3768, 3008, 238]) - (bmn + bmx) / 2
+    hb = E(Entity('func_train', body, targetname='cd_heli', target='cd_hp0', speed=260, dmg=0, spawnflags=8,
+                  _minlight=0.35))
+    hr = E(Entity('func_train', rotor, targetname='cd_heli_rotor', target='cd_rp0', speed=260, dmg=0,
+                  spawnflags=8, rendermode=2, renderamt=110, _minlight=0.35))
+    path = [((3800, 3006, 200), 3, 0), ((2100, 780, 1400), 2, 0), ((1760, 300, 1050), 0, 120),
+            ((1664, 224, 860), 1, 0), ((1400, -300, 1450), 0, 260)]
+    for pre, shift in (('cd_hp', np.zeros(3)), ('cd_rp', off)):
+        for i, (p, fl, spd) in enumerate(path):
+            e = pt('path_corner', f'{pre}{i}', origin=tuple(np.array(p) + shift),
+                   target=f'{pre}{(i + 1) % len(path)}', spawnflags=fl)
+            if spd:
+                e['speed'] = spd
+    mm('cd_heli_drop_mm', [(cmd('vexcmd_reward_h_15'), 0), (cmd('vexcmd_msg_heli'), 0), ('cd_shake_roof', 0),
+                           ('cd_ms_heli', 0)])
+    shake('cd_shake_roof', (1664, 224, 640), 4, 2, 600, freq=60)
+    pt('multisource', 'cd_ms_heli', origin=(1664, 224, 700))
+    pt('game_counter', 'cd_heli_go', target='cd_heli_depart_mm', master='cd_ms_heli', frags=0, health=1,
+       spawnflags=2, origin=(1664, 224, 720))
+    mm('cd_heli_depart_mm', [('cd_heli', 0), ('cd_heli_rotor', 0), (rel('cd_rotor', 0), 9)])
+
+    # ------------------------------------------------------------ SP4 train breach (vex_infection)
+    td = box((800, 2104, 0), (864, 2112, 96), RUST) + box((812, 2102, 48), (852, 2104, 80), 'vx_glass')
+    rotdoor(td, (864, 2108, 48), 'cd_train_door', 100, 0, 600)
+    boomfx('cd_breach_fx', (832, 2090, 48), 60)
+    shake('cd_shake_st', (500, 2000, 64), 10, 1.5, 1600)
+    mm('vex_infection', [('cd_train_door', 0), ('cd_breach_fx', 0), ('cd_shake_st', 0), ('cd_boom_st', 0),
+                         (rel('cd_lt_alarm', 1), 0.3), (rel('cd_alarm_spr', 1), 0.3), (rel('cd_siren_st', 1), 1),
+                         (cmd('vexcmd_msg_breach'), 1.5)])
+    rel('cd_siren_st', 0)                                                              # ini: infection 30
+
+    # ------------------------------------------------------------ SP5 boss arrival (Plaza billboard)
+    for x in (-840, -440):
+        D(P((x - 8, -876, 0), (x + 8, -860, 176), MDARK))                              # billboard legs
+    bb = box((-880, -872, 176), (-400, -864, 416), SIGNS) + box((-880, -876, 168), (-400, -860, 176), MDARK)
+    rotdoor(bb, (-640, -868, 172), 'cd_billboard', 85, 64, 140)                        # roll: falls south
+    boomfx('cd_billboard_fx', (-640, -900, 200), 50)
+    shake('cd_shake_pz', (0, 0, 64), 8, 2, 2000)
+    mm('vex_boss', [(rel('cd_lt_plaza', 0), 0), (rel('cd_lt_plazared', 1), 0), (rel('cd_siren_pz', 1), 0),
+                    ('cd_shake_pz', 0), ('cd_boom_pz', 0), (cmd('vexcmd_msg_boss'), 1)])
+    mm('cd_billboard_mm', [('cd_billboard', 0), ('cd_boom_pz', 0.7), ('cd_shake_pz', 0.7), ('cd_billboard_fx', 0.7)])
+    pt('game_counter', 'cd_plaza_gate', target=rel('cd_lt_plaza', 1), master='cd_ms_power', frags=0, health=1,
+       spawnflags=2, origin=(0, 0, 120))
+    mm('vex_boss_dead', [(rel('cd_lt_plazared', 0), 0), (rel('cd_siren_pz', 0), 0), ('cd_plaza_gate', 0.5)])
+
+    # ------------------------------------------------------------ SP6 shelling (every minute, two impacts)
+    shake('cd_shake_far', (0, 0, 64), 3, 1.2, 9000, glob=True)
+    mm('vex_minute', [('cd_boom_far', 0), (rel('cd_lt_flash', 1), 0.35), ('cd_shake_far', 0.4),
+                      (rel('cd_lt_flash', 0), 0.7), ('cd_boom_far', 6), (rel('cd_lt_flash', 1), 6),
+                      ('cd_shake_far', 6.1), (rel('cd_lt_flash', 0), 6.3)])
+
+    # ------------------------------------------------------------ SP7 riot barricade (zombie goal)
+    mm('cd_barricade_mm', [(cmd('vexcmd_reward_z_5'), 0), (cmd('vexcmd_msg_barricade'), 0)])
+
+    # ------------------------------------------------------------ SP8 Gate 7 (barrier arm + win)
+    D(P((-2504, 2432, 0), (-2488, 2456, 40), MDARK))                                   # barrier post
+    arm = box((-2832, 2440, 40), (-2504, 2448, 48), HAZ) + box((-2504, 2438, 36), (-2472, 2450, 52), MDARK)
+    rotdoor(arm, (-2496, 2444, 44), 'cd_barrier_up', 80, 128, 60)                      # pitch: arm swings up
+    mm('vex_win_humans', [('cd_gate7', 0), (rel('cd_lt_flood_out', 1), 0)])
+
+    # ------------------------------------------------------------ SP9 blackout / last human / zombie win
+    mm('cd_blackout_mm', [(rel('cd_hum', 0), 0), (rel('cd_lt_west', 0), 0), (rel('cd_lt_plaza', 0), 0.3),
+                          (rel('cd_lt_east', 0), 0.6), (rel('cd_lt_harbor', 0), 0.9), ('cd_boom_far', 0),
+                          (cmd('vexcmd_msg_blackout'), 1)])
+    for nm in ('vex_nemesis', 'vex_assassin'):
+        pt('trigger_relay', nm, target='cd_blackout_mm', triggerstate=2, origin=(0, 0, 112))
+    mm('vex_lasthuman', [('cd_blackout_mm', 0), (rel('cd_siren_all', 1), 1), (rel('cd_lt_plazared', 1), 1)])
+    mm('vex_win_zombies', [('cd_blackout_mm', 0), (rel('cd_lt_alarm', 1), 0), (rel('cd_lt_plazared', 1), 0),
+                           (rel('cd_siren_all', 1), 0)])
+
+    # ------------------------------------------------------------ lighthouse beam (always turning)
+    beam = box((-850, -3204, 464), (-650, -3196, 476), '~vx_light_w') + \
+        box((-550, -3204, 464), (-350, -3196, 476), '~vx_light_w') + \
+        box((-604, -3204, 466), (-596, -3196, 474), ORG)
+    E(Entity('func_rotating', beam, speed=30, spawnflags=1, rendermode=5, renderamt=50, _minlight=1))
+
+    # ------------------------------------------------------------ round reset (vex_round_start, idempotent)
+    reset = [(rel(g, 0), 0) for g in GRP] + [(rel(s, 0), 0) for s in LOOPS]
+    reset += [(rel(s, 1), 0) for s in SPR_ON] + [(rel(s, 0), 0) for s in SPR_OFF]
+    for i in range(0, len(reset), 16):
+        mm('vex_round_start', reset[i:i + 16], origin=(0, 0, 128 + i))
 
 
 # ==============================================================================================
@@ -1106,15 +1291,16 @@ def build(mock=False, mock_scale=1.0) -> Map:
     for y0, y1, d in ((96, 224, '-y'), (224, 352, '+y')):                                         # lobby glass
         g = E(door(box((1152, y0, 0), (1168, y1, 128), 'vx_glass'), d, speed=160, wait=4))
         g['rendermode'], g['renderamt'] = 2, 90
-    E(door(box((1152, -2176, 240), (1344, -1920, 256), RUST), 'down', speed=48, wait=-1, lip=0,
-           targetname='cd_bridge'))
+    br = E(door(box((1152, -2176, 240), (1344, -1920, 256), RUST), 'down', speed=48, wait=-1, lip=-368,
+                targetname='cd_bridge'))                               # lowers 384 to the quay level z -128
+    br['movesnd'], br['_minlight'] = 2, 0.2
     for mn, mx, hp in (((-1728, 2240, 48), (-1600, 2256, 144), 80),    # pharmacy window
                        ((1152, -288, 240), (1168, -128, 320), 80),    # office glass W
                        ((1152, 176, 240), (1168, 336, 320), 80),      # office glass E
                        ((960, -1792, 48), (1120, -1776, 112), 60)):   # cabin glass
         E(glass(box(mn, mx, 'vx_glass'), health=hp))
     bar = E(glass(box((1440, 464, 0), (1456, 592, 112), 'vx_glass'), health=1500))               # riot barricade
-    bar['targetname'] = 'cd_barricade'
+    bar['targetname'], bar['target'] = 'cd_barricade', 'cd_barricade_mm'
     for area, vis in b.lad_vis.items():
         E(masked_entity(vis, solid=False))
 
@@ -1124,6 +1310,8 @@ def build(mock=False, mock_scale=1.0) -> Map:
 
     # ============================================================== stage 2: detail, light, atmosphere
     dress(b)
+    # ============================================================== stage 3: interactivity + story wiring
+    wire(b)
 
     # ============================================================== mock detail (perf check only)
     if mock:
