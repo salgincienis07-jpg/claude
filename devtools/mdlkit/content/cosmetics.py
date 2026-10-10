@@ -157,7 +157,7 @@ def wing_cyber():
         a = math.radians(ang)
         dx, dy = math.cos(a), math.sin(a)
         px, py = -dy, dx
-        w0, w1 = 1.4, 2.2
+        w0, w1 = 2.3, 3.6
         quad = [(b[0] - px * w0, b[1] - py * w0), (b[0] + dx * L - px * w1, b[1] + dy * L - py * w1),
                 (b[0] + dx * L + px * w1 * 0.4, b[1] + dy * L + py * w1 * 0.4), (b[0] + px * w0, b[1] + py * w0)]
         P.append(_flat(quad, 0.6, 'panel', d=-0.2 - 0.15 * (k % 2)))
@@ -191,9 +191,9 @@ def wing_void():
         b = (2.5 + 2.6 * k, 4 + 1.2 * k)
         a = math.radians(ang)
         tip = (b[0] + math.cos(a) * L, b[1] + math.sin(a) * L)
-        P.append(_gem(_wp(b[0], b[1], -0.2), _wp(tip[0], tip[1], -0.2), 1.9 - 0.15 * k, 'obs', segs=5))
+        P.append(_gem(_wp(b[0], b[1], -0.2), _wp(tip[0], tip[1], -0.2), 2.7 - 0.2 * k, 'obs', segs=5))
         tip2 = (b[0] + math.cos(a) * L * 0.65, b[1] + math.sin(a) * L * 0.65)
-        P.append(_gem(_wp(b[0] + math.cos(a) * 3, b[1] + math.sin(a) * 3, 0.9), _wp(tip2[0], tip2[1], 0.9), 0.9, 'cry', segs=5))
+        P.append(_gem(_wp(b[0] + math.cos(a) * 3, b[1] + math.sin(a) * 3, 0.9), _wp(tip2[0], tip2[1], 0.9), 1.3, 'cry', segs=5))
     mats = {'obs': {'type': 'crystal', 'color': (34, 26, 52), 'color2': (110, 80, 170), 'seed': 41},
             'cry': {'type': 'crystal', 'color': (40, 200, 255), 'color2': (220, 255, 255), 'seed': 42},
             'har': metal((30, 28, 40), seed=43)}
@@ -254,7 +254,7 @@ def hat_cowboy():
         p[:, 2] -= 0.7 * np.exp(-(pu[:, 1] ** 2) * 18) * np.clip(pu[:, 2], 0, 1)   # top crease
         return p
     P = [ellipsoid((9.0, 7.6, 0.45), (0, 0, -1.2), segs=16, rings=5, mat='hat', deform=brim_def),
-         ellipsoid((4.4, 3.9, 4.0), (0, 0, -0.6), segs=12, rings=7, mat='hat', deform=crown_def),
+         ellipsoid((4.2, 3.6, 3.4), (0, 0, 0.6), segs=12, rings=7, mat='hat', deform=crown_def),
          _ring((0, 0, -0.2), 4.35, 0.45, 'band', n=16),
          bx((0.4, 1.4, 1.1), (4.5, 0, -0.2), 'buckle', 'buckle', 0.1)]
     mats = {'hat': {'type': 'leather', 'color': (120, 76, 40), 'seed': 61},
@@ -312,12 +312,12 @@ def pet_drone():
         P.append(cylinder((e[0], e[1], 0.0), (e[0], e[1], 1.2), 0.75, segs=8, mat='arm'))
         nm = 'rot%d' % k
         bones.append(Bone(nm, 'root', (e[0], e[1], 1.4)))
-        b1 = box((5.2, 0.7, 0.12), (0, 0, 0), mat='blade'); b1.transform(rot_z(0.3 * k), (e[0], e[1], 1.4))
+        b1 = box((5.6, 1.0, 0.3), (0, 0, 0), mat='blade'); b1.transform(rot_z(0.3 * k), (e[0], e[1], 1.4))
         P += on(nm, [b1])
     mats = {'shell': metal((40, 44, 56), seed=91, panels=2.5, shine=0.6),
             'top': metal((110, 60, 200), seed=92, panels=1.0, shine=0.7),
             'arm': metal((80, 84, 96), seed=93),
-            'blade': metal((30, 30, 34), seed=94),
+            'blade': metal((150, 155, 170), seed=94, shine=0.7),
             'eye': {'type': 'visor', 'color': (0, 200, 255), 'color2': (220, 255, 255)},
             'eye2': glow(VEX_CYAN)}
     seqs = [dict(name='idle', frames=7, fps=30, loop=True,
@@ -369,7 +369,7 @@ def pet_dragon():
     bones = [Bone('root'), Bone('head', 'root', (2.0, 0, 1.0)), Bone('wl', 'root', (0, 1.6, 1.4)), Bone('wr', 'root', (0, -1.6, 1.4))]
     for s, nm in ((1, 'wl'), (-1, 'wr')):
         arm = tube([(0, s * 1.6, 1.4), (0.3, s * 4.0, 3.2), (-0.5, s * 7.2, 2.8)], [0.4, 0.3, 0.1], segs=4, mat='horn')
-        mem = [(0, 1.6), (0.3, 4.0 * 1), (-0.5, 7.2), (-2.0, 5.0), (-2.8, 2.0)]
+        mem = [(0.3, 1.6), (0.3, 4.0), (-0.5, 7.2), (-2.4, 6.0), (-3.0, 4.0), (-3.6, 1.6)]
         pts = [(x, s * y, 1.4 + (0.9 if y > 3 else 0)) for x, y in mem]
         poly = [(x, y) for x, y, _ in pts]
         m = extrude(poly, 0.25, t=(0, 0, 1.8), mat='memb')
