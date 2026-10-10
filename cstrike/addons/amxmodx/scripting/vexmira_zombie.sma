@@ -51,7 +51,7 @@
 #pragma dynamic 32768
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "3.4"
+#define VERSION  "3.5"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -155,6 +155,7 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 #define SET_NO_AUTOGUN (1<<6)
 #define SET_NO_FOG     (1<<7)
 #define SET_NO_TIPS    (1<<9)
+#define SET_NO_COS     (1<<10)   // v3.5: diger oyuncularin kanat / pet / sapkasini gizle
 
 enum
 {
@@ -885,7 +886,9 @@ new g_iCmPrice[CM_CATS][CM_MAX], g_iCmVip[CM_CATS][CM_MAX], g_iCmAtt[CM_CATS][CM
 new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Float:g_fCmScale[CM_CATS][CM_MAX], Float:g_fCmFps[CM_CATS][CM_MAX];
 new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
 new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];   // sahiplik: bit (kat*8 + no); secim: 4 bit / kat
-new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no)
+new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no; 100+ = on izleme)
+new g_iCmPrev[33], g_iCmPrevInfo[33], Float:g_fCmPrevEnd[33];  // v3.5 on izleme (vitrin) varligi / (kat*16 + no) / bitis
+new g_pCosPreview, g_pCosDeal, g_pCosHide;
 #define MS_MAXMK 4                                             // v3.3 harita senaryosu: en fazla yon isareti
 new g_iMsMkOf[OVH_MAXENT];                                     // varlik -> harita isareti + 1 (sadece insanlara gorunur)
 // v3.3 harita olaylari (BOLUM 13 MsEvent): vex_<ME_NAME> targetname'li varliklar tetiklenir
@@ -8278,6 +8281,11 @@ ShowCosmeticMenu(id)
         formatex(item, charsmax(item), "\y%L \r[%s\r]", id, CM_CATKEY[c], cur);
         MenuAdd(menu, item, 3 + c);
     }
+    if (gap && get_pcvar_num(g_pCosHide))
+    {
+        formatex(item, charsmax(item), "\y%L \r[%L\r]", id, "COS_HIDE_OTHERS", id, (g_iSet[id] & SET_NO_COS) ? "COS_HIDDEN" : "COS_VISIBLE");
+        MenuAdd(menu, item, 9);
+    }
     MenuFinish(id, menu);
 }
 
@@ -8290,7 +8298,14 @@ public menu_cos_handler(id, menu, item)
     }
     new cat = MenuInfo(menu, item);
     menu_destroy(menu);
-    if (cat >= 3)
+    if (cat == 9)
+    {
+        g_iSet[id] ^= SET_NO_COS;
+        Chat(id, (g_iSet[id] & SET_NO_COS) ? "COS_HIDE_ON" : "COS_HIDE_OFF");
+        SaveData(id);
+        ShowCosmeticMenu(id);
+    }
+    else if (cat >= 3)
         ShowCmList(id, cat - 3);
     else
         ShowCosList(id, cat);
@@ -8501,7 +8516,119 @@ CmName(id, c, i, out[], len)
 
 CmPrice(id, c, i)
 {
-    return max(0, g_iCmPrice[c][i] * (100 - VipDiscPct(id)) / 100);
+    new p = g_iCmPrice[c][i] * (100 - VipDiscPct(id)) / 100;
+    if (CmDealIdx() == c * 16 + i)
+        p = p * (100 - CmDealPct()) / 100;
+    return max(0, p);
+}
+
+// v3.5 gunun firsati: her gun (sunucu saatiyle) sirayla bir kanat / pet / sapka indirimli
+CmDealPct()
+{
+    return clamp(get_pcvar_num(g_pCosDeal), 0, 90);
+}
+
+CmDealIdx()
+{
+    if (CmDealPct() <= 0)
+        return -1;
+    new total = g_iCmN[0] + g_iCmN[1] + g_iCmN[2];
+    if (total <= 0)
+        return -1;
+    new k = (get_systime() / 86400) % total;
+    for (new c = 0; c < CM_CATS; c++)
+        for (new i = 0; i < CM_MAX; i++)
+            if (g_bCmOk[c][i] && g_iCmPrice[c][i] > 0 && k-- == 0)
+                return c * 16 + i;
+    return -1;
+}
+
+// v3.5 vitrin (on izleme): model oyuncunun onunde doner, sadece kendisi gorur, VC harcamaz
+CmPrevRemove(id)
+{
+    new ent = g_iCmPrev[id];
+    g_iCmPrev[id] = 0;
+    if (ent > 0 && ent < OVH_MAXENT)
+    {
+        if (g_iCmOwn[ent] == id)
+            g_iCmOwn[ent] = 0;
+        if (CmValid(ent, id))
+            set_entvar(ent, var_flags, FL_KILLME);
+    }
+}
+
+CmPrevTarget(id, c, Float:t[3])
+{
+    new Float:o[3], Float:vo[3], Float:va[3];
+    get_entvar(id, var_origin, o);
+    get_entvar(id, var_view_ofs, vo);
+    get_entvar(id, var_v_angle, va);
+    new Float:yaw = va[1] * 3.14159265 / 180.0;
+    new Float:d = (c == 0) ? 64.0 : 44.0;
+    t[0] = o[0] + floatcos(yaw) * d;
+    t[1] = o[1] + floatsin(yaw) * d;
+    t[2] = o[2] + vo[2] + ((c == 0) ? -6.0 : ((c == 2) ? -5.0 : -2.0));
+}
+
+CmPreview(id, c, i)
+{
+    CmPrevRemove(id);
+    new secs = get_pcvar_num(g_pCosPreview);
+    if (secs <= 0 || !g_bCmOk[c][i])
+        return;
+    new ent = rg_create_entity("info_target");
+    if (is_nullent(ent))
+        return;
+    if (ent >= OVH_MAXENT)
+    {
+        set_entvar(ent, var_flags, FL_KILLME);
+        return;
+    }
+    set_entvar(ent, var_classname, "vex_cosmodel");
+    engfunc(EngFunc_SetModel, ent, g_szCmMdl[c][i]);
+    set_entvar(ent, var_solid, SOLID_NOT);
+    set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+    set_entvar(ent, var_iuser1, id);
+    set_entvar(ent, var_iuser2, CM_MAGIC);
+    set_entvar(ent, var_scale, g_fCmScale[c][i]);
+    set_entvar(ent, var_sequence, g_iCmSeq[c][i]);
+    set_entvar(ent, var_framerate, g_fCmFps[c][i] > 0.0 ? g_fCmFps[c][i] : 1.0);
+    set_entvar(ent, var_animtime, get_gametime());
+    new Float:t[3], Float:av[3];
+    CmPrevTarget(id, c, t);
+    engfunc(EngFunc_SetOrigin, ent, t);
+    av[1] = 90.0;
+    set_entvar(ent, var_avelocity, av);
+    g_iCmOwn[ent] = id;
+    g_iCmInfo[ent] = 100 + c * 16 + i;
+    g_iCmPrev[id] = ent;
+    g_iCmPrevInfo[id] = c * 16 + i;
+    g_fCmPrevEnd[id] = get_gametime() + float(clamp(secs, 3, 30));
+    new nm[32];
+    CmName(id, c, i, nm, charsmax(nm));
+    Chat(id, "COS_PREV_START", nm, clamp(secs, 3, 30));
+}
+
+CmPrevTick(id, Float:now, bool:conn)
+{
+    new ent = g_iCmPrev[id];
+    if (!conn || now >= g_fCmPrevEnd[id] || !CmValid(ent, id))
+    {
+        CmPrevRemove(id);
+        return;
+    }
+    new Float:t[3], Float:o[3], Float:v[3];
+    CmPrevTarget(id, g_iCmPrevInfo[id] / 16, t);
+    get_entvar(ent, var_origin, o);
+    if (get_distance_f(o, t) > 300.0)
+    {
+        engfunc(EngFunc_SetOrigin, ent, t);
+        set_entvar(ent, var_velocity, v);
+        return;
+    }
+    for (new k = 0; k < 3; k++)
+        v[k] = (t[k] - o[k]) * 8.0;
+    set_entvar(ent, var_velocity, v);
 }
 
 bool:CmValid(ent, id)
@@ -8607,6 +8734,8 @@ CmTick(Float:now)
     for (new id = 1; id <= g_iMax; id++)
     {
         new bool:conn = is_user_connected(id) ? true : false;
+        if (g_iCmPrev[id])
+            CmPrevTick(id, now, conn);
         for (new c = 0; c < CM_CATS; c++)
         {
             new ent = g_iCmEnt[id][c];
@@ -8673,6 +8802,18 @@ CmPack(es, ent, host)
     new id = g_iCmOwn[ent];
     if (!(1 <= id <= g_iMax))
         return FMRES_IGNORED;
+    if (g_iCmInfo[ent] >= 100)
+    {
+        // v3.5 vitrin: sadece sahibi gorur
+        if (host != id)
+            set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+        return FMRES_IGNORED;
+    }
+    if (host != id && (g_iSet[host] & SET_NO_COS) && get_pcvar_num(g_pCosHide))
+    {
+        set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+        return FMRES_IGNORED;
+    }
     new c = g_iCmInfo[ent] / 16, i = g_iCmInfo[ent] % 16;
     if (c >= CM_CATS || i >= CM_MAX)
         return FMRES_IGNORED;
@@ -8721,6 +8862,8 @@ ShowCmList(id, c)
             formatex(item, charsmax(item), "\y%s%s \r[\y%L\r]", nm, vt, id, "COS_EQUIPPED");
         else if (g_iCmOwned[id] & (1 << (c * 8 + i)))
             formatex(item, charsmax(item), "\y%s%s \r[%L]", nm, vt, id, "COS_OWNED");
+        else if (CmDealIdx() == c * 16 + i)
+            formatex(item, charsmax(item), "\y%s%s \r[%d VC] \y-%d%%", nm, vt, CmPrice(id, c, i), CmDealPct());
         else
             formatex(item, charsmax(item), "\y%s%s \r[%d VC]", nm, vt, CmPrice(id, c, i));
         MenuAdd(menu, item, c * 100 + i + 1);
@@ -8764,6 +8907,73 @@ public menu_cmlist_handler(id, menu, item)
     new bit = 1 << (c * 8 + i);
     if (!(g_iCmOwned[id] & bit))
     {
+        // v3.5: satin almadan once onay + vitrin (yanlislikla VC harcanmaz)
+        ShowCmBuy(id, c, i);
+        return PLUGIN_HANDLED;
+    }
+    CmSetSel(id, c, i + 1);
+    Chat(id, "COS_EQUIP", nm);
+    SaveData(id);
+    ShowCmList(id, c);
+    return PLUGIN_HANDLED;
+}
+
+// v3.5 satin alma onayi: Satin al / Vitrinde gor / Geri
+ShowCmBuy(id, c, i)
+{
+    new title[320], item[128], nm[32], hsub[96];
+    CmName(id, c, i, nm, charsmax(nm));
+    formatex(hsub, charsmax(hsub), "%s - %d VC (%L: %d VC)", nm, CmPrice(id, c, i), id, "COS_YOUR_VC", g_iVC[id]);
+    VexHead(id, title, charsmax(title), CM_CATKEY[c], hsub);
+    new menu = VexMenuCreate(title, "menu_cmbuy_handler");
+    new base = c * 100 + i;
+    formatex(item, charsmax(item), "\y%L \r[%d VC]", id, "COS_BUY_ITEM", CmPrice(id, c, i));
+    MenuAdd(menu, item, 10000 + base);
+    if (get_pcvar_num(g_pCosPreview) > 0)
+    {
+        formatex(item, charsmax(item), "\y%L \r[%d %L]", id, "COS_PREV_ITEM", clamp(get_pcvar_num(g_pCosPreview), 3, 30), id, "COS_SEC");
+        MenuAdd(menu, item, 20000 + base);
+    }
+    formatex(item, charsmax(item), "\y%L", id, "COS_BACK");
+    MenuAdd(menu, item, 30000 + base);
+    MenuFinish(id, menu);
+}
+
+public menu_cmbuy_handler(id, menu, item)
+{
+    if (item < 0)
+    {
+        menu_destroy(menu);
+        return PLUGIN_HANDLED;
+    }
+    new v = MenuInfo(menu, item);
+    menu_destroy(menu);
+    if (!is_user_connected(id))
+        return PLUGIN_HANDLED;
+    new act = v / 10000, c = (v % 10000) / 100, i = v % 100;
+    if (c < 0 || c >= CM_CATS || i < 0 || i >= CM_MAX || !g_bCmOk[c][i])
+        return PLUGIN_HANDLED;
+    if (act == 2)
+    {
+        CmPreview(id, c, i);
+        ShowCmBuy(id, c, i);
+        return PLUGIN_HANDLED;
+    }
+    if (act != 1)
+    {
+        ShowCmList(id, c);
+        return PLUGIN_HANDLED;
+    }
+    new nm[32], bit = 1 << (c * 8 + i);
+    CmName(id, c, i, nm, charsmax(nm));
+    if (g_iCmVip[c][i] && !IsVip(id))
+    {
+        Chat(id, "VIP_ONLY");
+        ShowCmList(id, c);
+        return PLUGIN_HANDLED;
+    }
+    if (!(g_iCmOwned[id] & bit))
+    {
         new price = CmPrice(id, c, i);
         if (g_iVC[id] < price)
         {
@@ -8776,6 +8986,7 @@ public menu_cmlist_handler(id, menu, item)
         PlayKey(id, "SHOP_BUY");
         Chat(id, "COS_BOUGHT", nm, price);
     }
+    CmPrevRemove(id);
     CmSetSel(id, c, i + 1);
     Chat(id, "COS_EQUIP", nm);
     SaveData(id);
@@ -21001,6 +21212,7 @@ public client_disconnected(id, bool:drop, message[], maxlen)
 {
     for (new c = 0; c < CM_CATS; c++)
         CmRemove(id, c);
+    CmPrevRemove(id);
     g_iCsoCur[id] = -1;
     g_iCsoQn[id] = 0;
     g_iCsoWpn[id] = 0;
@@ -25942,6 +26154,9 @@ public cmd_MsStory(id)
 MapVoteInit()
 {
     g_pMapVote        = register_cvar("vex_map_vote", "1");
+    g_pCosPreview     = register_cvar("vex_cos_preview", "10");     // v3.5 vitrin suresi (sn), 0 = kapali
+    g_pCosDeal        = register_cvar("vex_cos_daily_deal", "25");  // v3.5 gunun firsati indirimi (yuzde), 0 = kapali
+    g_pCosHide        = register_cvar("vex_cos_hide", "1");         // v3.5 /kozmetik: digerlerininkini gizle secenegi
     g_pMapPool        = register_cvar("vex_map_pool", "zm_vex_cordon zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
@@ -27535,6 +27750,9 @@ public plugin_init()
     RegisterSay("hof",      "liderler",  "cmd_top10");
     RegisterSay("card",     "kart",      "cmd_card");
     RegisterSay("cosmetic", "kozmetik",  "cmd_cosmetic");
+    RegisterSay("wings",    "kanat",     "cmd_cosmetic");
+    RegisterSay("hat",      "sapka",     "cmd_cosmetic");
+    RegisterSay("pet",      "",          "cmd_cosmetic");
     RegisterSay("trail",    "iz",        "cmd_cosmetic");
     RegisterSay("skill",    "beceri",    "cmd_skill");
     RegisterSay("skill2",   "beceri2",   "cmd_skill2");
