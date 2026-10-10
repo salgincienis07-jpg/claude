@@ -60,3 +60,16 @@ city). No blocking issue found.
   not watched in a game client.
 - Harbor steps (906) and crane (924) are above their soft spec targets but under the hard gates.
 - Pad lamp has no amber stage (sprite budget 24/24).
+
+## Owner-feedback pass (2026-10-10): heli ride, pads, guidance, scares
+| check | result | evidence |
+|---|---|---|
+| budgets (final) | PASS | view wpoly max 1045 / p95 889; brush entities 56/60; new sounds 10/10; entities 573; bsp 4.06 MB; 32+32 spawns |
+| heli: beacon -> lands on roof pad (deck 16 above roof), waits 15 s (path_corner wait), loops plaza + roof | PASS | vexprobe: cd_heli centre 1665 224 668 at the pad, departs +15 s, route x 1557 -> 861 (window) -> 474 400 346 (plaza oval) ... |
+| heli carries riders | PASS (plugin off, bot_stop 1) | rider #1 sampled every 4 s: -698 -444 296 -> 624 -463 305 -> 849 -24 755 -> 1160 -23 756 (deck +36, through the air window) |
+| heli resets on round restart | PASS | after sv_restart 1: cd_heli back at 3745 3008 176 (hangar), sf=1 (waiting) |
+| S1 plaza updraft -> roof | PASS | bot rises 59 -> 803+ along the facade under the window |
+| S2 / Q pads (arc sim + server) | PASS | S2 landed on the gantry deck (y -174, z 196); Q-west landed 1590 units east, apex +150 |
+| geysers / trampolines | jump to launch | vertical push = acceleration only while airborne (pm_shared); verified bouncing apex ~+260..+530 |
+| scares (6), collapses (3), barrel reward | PASS | vexprobe_touch/fire: shadow trains move, skylight breaks, door bursts, barrel breaks -> fx + reward relay |
+| bot run 78 s, 4 bots, plugin on | PASS | crash=False, rounds 2, infections 1, in_solid 0, fall deaths 0; 1 stuck sample at the Kade roof hatch (2161 63 612) |
