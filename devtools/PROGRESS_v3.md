@@ -144,3 +144,7 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   eklenti yarim, COMMIT EDILMEMIS dosyalar diskte; yedek $SP/wip_cordon_plugin.diff + $SP/wip_zm_vex_cordon.py). Sinir 12:10'da
   sifirlandi -> ayni run devam ettirildi (ajanlara "yarim isten devam et" notu eklendi).
   Yarim kalirsa: Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_8f0bb905-afd"}).
+- 2026-10-10 13:50: FLAGSHIP HARITA BITTI. zm_vex_cordon (Kordon 7) asama 1-4 + eklenti harita-hikaye destegi + entegrasyon
+  testi (serverD, 16 bot, 3 kosu, 0 hata) b091ca0. Perf: max 1042 / p95 880 / ort 544. Paket $SP/Vexmira_Zombie_v3.3_cordon.zip
+  (26.7 MB, $SP/pack33c.sh) sahibine gonderildi. Acik (engel degil): bariyer kolu + pano donus yonu oyun icinde izlenmeli;
+  vex_boss_dead / vex_win_humans eklenti tarafi sadece kodla kontrol edildi. Saatlik rutin silindi.
