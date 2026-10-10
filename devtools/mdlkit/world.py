@@ -165,7 +165,7 @@ def _anchors(rig, ref):
 def build_world_model(name, parts, sequences=None, out=None, bones=None, bodygroups=None, materials=None,
                       decals=(), tex=(256, 256), pages=1, budget=0.25e6, preview=True, attachments=(),
                       rendermodes=None, preview_area='mdlkit', ao=True, toplight=0.22, dither=4.0, verbose=True,
-                      eye=(0, 0, 0)):
+                      eye=(0, 0, 0), controllers=()):
     """Compile a world/prop model. Returns a report dict (raises RuntimeError on errors).
     parts: meshes of the always-visible body (bodypart 0 "body"). See module doc for the rest."""
     import time
@@ -225,6 +225,10 @@ def build_world_model(name, parts, sequences=None, out=None, bones=None, bodygro
         q.rendermodes.append((pg[int(k)]['name'], mode))
     for i, (bn, pos) in enumerate(attachments):
         q.attachment(i, bn, pos)
+    # bone controllers: (index 0-3, bone, 'X'|'Y'|'Z'|'XR'|'YR'|'ZR', start, end); translation types move
+    # the bone in its parent space (root: model space), set at run time with pev->controller[index]
+    for ci, bn, typ, c0, c1 in controllers:
+        q.extra.append('$controller %d "%s" %s %g %g' % (ci, bn, typ, c0, c1))
     seqs = sequences or [dict(name='idle', frames=1)]
     for sd in seqs:
         n = int(sd.get('frames', 1))

@@ -4,7 +4,11 @@
     python3 -m mdlkit build mdlkit.content.cosmetics:all
     python3 -m mdlkit build mdlkit.content.cosmetics:all --only cos_wing_angel
 
-Contracts (plugin CmTarget / CmPack, the entity yaw = player yaw, so model +X = where the player looks):
+Contracts (plugin CmSpawn / CmCtl, the entity yaw = player yaw, so model +X = where the player looks):
+  v3.6 attach: every cosmetic is MOVETYPE_FOLLOW + aiment = player, so the client draws it at the player's
+  own (interpolated / predicted) origin every frame - no trailing. The offset from the player origin
+  (head height of the current player model, back / shoulder offset) is applied by three translation bone
+  controllers on 'root' (CTL below: 0 = X forward, 1 = Y left, 2 = Z up); the plugin writes the bytes.
   wings  'back': origin = attach point between the shoulder blades, wings spread along +-Y and sweep
                  back (-X). Sequences: 0 idle (slow flap), 1 flap (fast).
   hats   'head': origin = top of the head (MdlHeadTops); the hat rim sits at z ~ -1.5.
@@ -25,9 +29,13 @@ def _out(name):
     return os.path.join(CSTRIKE, 'models/vexmira/cos', name + '.mdl')
 
 
+# root translation controllers (must match CM_CTL_* in vexmira_zombie.sma)
+CTL = [(0, 'root', 'X', -32, 32), (1, 'root', 'Y', -48, 48), (2, 'root', 'Z', -32, 96)]
+
+
 def _spec(name, parts, bones, seqs, mats, budget=0.06e6, tex=(128, 128)):
     return dict(kind='world', name=name, parts=parts, bones=bones, sequences=seqs, materials=mats,
-                tex=tex, out=_out(name), preview_area=AREA, budget=budget)
+                tex=tex, out=_out(name), preview_area=AREA, budget=budget, controllers=CTL)
 
 
 def _ring(center, r, tube_r, mat, axis='z', n=16, segs=5):

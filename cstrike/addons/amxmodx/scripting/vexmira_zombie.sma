@@ -878,6 +878,13 @@ new bool:g_bOvhSelf, Trie:g_tMdlTop;
 #define CM_CATS 3
 #define CM_MAX 8
 #define CM_MAGIC 0x56584353   // var_iuser2 isareti
+// v3.6 kozmetik ofset kontrolculeri (root kemigi; cosmetics.py CTL ile ayni): X ileri, Y sol, Z yukari
+#define CM_CTL_X0 -32.0
+#define CM_CTL_X1 32.0
+#define CM_CTL_Y0 -48.0
+#define CM_CTL_Y1 48.0
+#define CM_CTL_Z0 -32.0
+#define CM_CTL_Z1 96.0
 enum { CMA_BONE = 0, CMA_HEAD, CMA_BACK, CMA_FOLLOW };
 new const CM_TABLE[CM_CATS][] = { "vex_wing", "vex_pet", "vex_hat" };
 new const CM_CATKEY[CM_CATS][] = { "COS_CAT_WING", "COS_CAT_PET", "COS_CAT_HAT" };
@@ -8419,16 +8426,19 @@ public menu_coslist_handler(id, menu, item)
 /*  v3.2 KOZMETIK MODELLER: KANAT / PET / SAPKA                        */
 /*  Tablolar vexmira.cfg'de (vex_wing / vex_pet / vex_hat), harita     */
 /*  basinda okunur; model dosyasi yoksa satir gizlenir, indirilmez.    */
-/*  Bag tipi:                                                          */
-/*   bone   = MOVETYPE_FOLLOW + aiment: CS iskeleti (Bip01 ...) ile    */
-/*            yapilmis model kemiklere oturur, animasyonla oynar.      */
-/*   head   = kafanin ustu: AddToFullPack her pakette oyuncu konumu +  */
-/*            model kafa yuksekligi (gostergelerle ayni okuma) +       */
-/*            yona gore donen ofset / aci yazar (titreme yok).         */
-/*   back   = sirt (kafa yuksekliginin 18 birim alti) ayni yontem.     */
-/*   follow = pet: ayri varlik, 0.1 sn'de bir hedefe yumusak hizla     */
-/*            suzulur (NOCLIP + hiz; istemci enterpole eder), hafif    */
-/*            yukari-asagi salinir; uzaklasirsa isinlanir.             */
+/*  v3.6: TUM bag tipleri MOVETYPE_FOLLOW + aiment = oyuncu. Istemci   */
+/*  modeli her karede oyuncunun KENDI (enterpole / tahmin edilen)      */
+/*  konumuna cizer: geriden takip / gecikme yok, sunucu maliyeti yok.  */
+/*  Ofset (kafa yuksekligi + ileri / yan) modeldeki 'root' kemiginin   */
+/*  3 kaydirma kontrolcusu ile verilir (0 = X ileri, 1 = Y sol,        */
+/*  2 = Z yukari; devtools/mdlkit/content/cosmetics.py CTL). Kafa      */
+/*  yuksekligi oyuncu modelinden okunur (gostergelerle ayni tablo),    */
+/*  egilince her pakette AddToFullPack'te guncellenir.                 */
+/*   bone   = CS iskeleti (Bip01 ...) ile yapilmis model kemiklere     */
+/*            oturur, animasyonla oynar (ofset yok sayilir).           */
+/*   head   = kafanin ustu (kafa yuksekligi + z).                      */
+/*   back   = sirt (kafa yuksekliginin 18 birim alti + z).             */
+/*   follow = pet: omuz yaninda sabit (kafa yuksekliginin 10 alti).    */
 /*  Olu / zombi / izleyici iken yok; cikista silinir. Sapka ve kanat   */
 /*  sahibine birinci sahis gorunumde gizlidir (kamerayi kapatmasin).   */
 /* ================================================================== */
@@ -8594,6 +8604,10 @@ CmPreview(id, c, i)
     set_entvar(ent, var_sequence, g_iCmSeq[c][i]);
     set_entvar(ent, var_framerate, g_fCmFps[c][i] > 0.0 ? g_fCmFps[c][i] : 1.0);
     set_entvar(ent, var_animtime, get_gametime());
+    // v3.6 ofset kontrolculeri sifirda (vitrin modeli kendi konumunda doner)
+    set_pev(ent, pev_controller_0, CmCtlByte(0.0, CM_CTL_X0, CM_CTL_X1));
+    set_pev(ent, pev_controller_1, CmCtlByte(0.0, CM_CTL_Y0, CM_CTL_Y1));
+    set_pev(ent, pev_controller_2, CmCtlByte(0.0, CM_CTL_Z0, CM_CTL_Z1));
     new Float:t[3], Float:av[3];
     CmPrevTarget(id, c, t);
     engfunc(EngFunc_SetOrigin, ent, t);
@@ -8663,25 +8677,37 @@ CmWanted(id, c)
     return v;
 }
 
-// Oyuncu yonune gore ofset: x ileri, y sag, z yukari (+ kafa / sirt yuksekligi)
-CmTarget(id, c, i, Float:o[3])
+// v3.6 ofset kontrolcu baytlari (model 'root' kemigi: X ileri, Y sol, Z yukari; oyuncu konumuna gore).
+// Araliklar cosmetics.py CTL ile ayni olmali. Olcek modelle birlikte ofseti de buyuttugu icin bolunur.
+CmCtlByte(Float:v, Float:a, Float:b)
 {
-    new Float:ang[3];
-    get_entvar(id, var_origin, o);
-    get_entvar(id, var_angles, ang);
-    new Float:yaw = ang[1] * 3.14159265 / 180.0;
-    new Float:cy = floatcos(yaw), Float:sy = floatsin(yaw);
-    new Float:fx = g_fCmOfs[c][i][0], Float:ry = g_fCmOfs[c][i][1];
-    o[0] += cy * fx + sy * ry;
-    o[1] += sy * fx - cy * ry;
-    new Float:top = (get_entvar(id, var_flags) & FL_DUCKING) ? g_fOvhDuck[id] : g_fOvhStand[id];
+    return clamp(floatround((v - a) * 255.0 / (b - a)), 0, 255);
+}
+
+CmCtl(id, c, i, bool:duck, ctl[4])
+{
+    new Float:top = duck ? g_fOvhDuck[id] : g_fOvhStand[id];
+    new Float:z = g_fCmOfs[c][i][2];
     switch (g_iCmAtt[c][i])
     {
-        case CMA_HEAD:   o[2] += top + g_fCmOfs[c][i][2];
-        case CMA_BACK:   o[2] += top - 18.0 + g_fCmOfs[c][i][2];
-        case CMA_FOLLOW: o[2] += top * 0.6 + g_fCmOfs[c][i][2];
-        default:         o[2] += g_fCmOfs[c][i][2];
+        case CMA_HEAD:   z += top;
+        case CMA_BACK:   z += top - 18.0;
+        case CMA_FOLLOW: z += top - 10.0;
     }
+    new Float:sc = g_fCmScale[c][i] > 0.05 ? g_fCmScale[c][i] : 1.0;
+    ctl[0] = CmCtlByte(g_fCmOfs[c][i][0] / sc, CM_CTL_X0, CM_CTL_X1);
+    ctl[1] = CmCtlByte(-g_fCmOfs[c][i][1] / sc, CM_CTL_Y0, CM_CTL_Y1);
+    ctl[2] = CmCtlByte(z / sc, CM_CTL_Z0, CM_CTL_Z1);
+    ctl[3] = 0;
+}
+
+CmApplyCtl(ent, id, c, i)
+{
+    new ctl[4];
+    CmCtl(id, c, i, (get_entvar(id, var_flags) & FL_DUCKING) ? true : false, ctl);
+    set_pev(ent, pev_controller_0, ctl[0]);
+    set_pev(ent, pev_controller_1, ctl[1]);
+    set_pev(ent, pev_controller_2, ctl[2]);
 }
 
 CmSpawn(id, c, i)
@@ -8706,20 +8732,14 @@ CmSpawn(id, c, i)
     set_entvar(ent, var_frame, 0.0);
     new Float:o[3];
     OvhModelTops(id);
-    if (g_iCmAtt[c][i] == CMA_BONE)
-    {
-        // Kemige bagli: istemci oyuncunun iskeletini kopyalar (ayni kemik adlari)
-        get_entvar(id, var_origin, o);
-        engfunc(EngFunc_SetOrigin, ent, o);
-        set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
-        set_entvar(ent, var_aiment, id);
-    }
-    else
-    {
-        CmTarget(id, c, i, o);
-        engfunc(EngFunc_SetOrigin, ent, o);
-        set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
-    }
+    // v3.6: hepsi oyuncuya kilitli (istemci her karede oyuncunun konumuna cizer); bone tipinde istemci
+    // ayni adli kemikleri de kopyalar, digerlerinde ofset kontrolculerden gelir
+    get_entvar(id, var_origin, o);
+    engfunc(EngFunc_SetOrigin, ent, o);
+    set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
+    set_entvar(ent, var_aiment, id);
+    if (g_iCmAtt[c][i] != CMA_BONE)
+        CmApplyCtl(ent, id, c, i);
     g_iCmOwn[ent] = id;
     g_iCmInfo[ent] = c * 16 + i;
     g_iCmEnt[id][c] = ent;
@@ -8754,47 +8774,15 @@ CmTick(Float:now)
                 if (!ent)
                     continue;
             }
+            // Model degisirse (sinif / skin) kafa yuksekligi yeniden okunur; konum istemcide (FOLLOW)
             OvhModelTops(id);
-            if (g_iCmAtt[c][i] == CMA_BONE)
-                continue;
-
-            new Float:t[3], Float:o[3], Float:v[3], Float:pa[3], Float:a[3];
-            CmTarget(id, c, i, t);
-            get_entvar(id, var_angles, pa);
-            a[0] = g_fCmAng[c][i][0];
-            a[1] = pa[1] + g_fCmAng[c][i][1];
-            a[2] = g_fCmAng[c][i][2];
-            if (g_iCmAtt[c][i] != CMA_FOLLOW)
-            {
-                // Sunucu konumu PVS / ses icin; cizim konumu AddToFullPack'te
-                engfunc(EngFunc_SetOrigin, ent, t);
-                set_entvar(ent, var_angles, a);
-                continue;
-            }
-            // Pet: hafif salinim + yumusak takip
-            t[2] += 3.0 * floatsin(now * 2.5 + float(id));
-            get_entvar(ent, var_origin, o);
-            new Float:dist = get_distance_f(o, t);
-            if (dist > 400.0)
-            {
-                engfunc(EngFunc_SetOrigin, ent, t);
-                v[0] = 0.0; v[1] = 0.0; v[2] = 0.0;
-            }
-            else
-            {
-                for (new k = 0; k < 3; k++)
-                    v[k] = (t[k] - o[k]) * 6.0;
-                new Float:sp = vector_length(v);
-                if (sp > 700.0)
-                    for (new k = 0; k < 3; k++) v[k] *= 700.0 / sp;
-            }
-            set_entvar(ent, var_velocity, v);
-            set_entvar(ent, var_angles, a);
+            if (g_iCmAtt[c][i] != CMA_BONE)
+                CmApplyCtl(ent, id, c, i);
         }
     }
 }
 
-// Her pakette: sapka / kanat sahibinin gozunden gizli; head / back konumu oyuncunun o anki konumu
+// Her pakette: sapka / kanat sahibinin gozunden gizli; ofset baytlari (egilme aninda gecikmesiz) + yon
 CmPack(es, ent, host)
 {
     if (!get_orig_retval())
@@ -8823,15 +8811,15 @@ CmPack(es, ent, host)
         set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
         return FMRES_IGNORED;
     }
-    if (att == CMA_HEAD || att == CMA_BACK)
+    if (att != CMA_BONE)
     {
-        new Float:o[3], Float:pa[3], Float:a[3];
-        CmTarget(id, c, i, o);
+        new ctl[4], Float:pa[3], Float:a[3];
+        CmCtl(id, c, i, (get_entvar(id, var_flags) & FL_DUCKING) ? true : false, ctl);
+        set_es(es, ES_Controller, ctl);
         get_entvar(id, var_angles, pa);
         a[0] = g_fCmAng[c][i][0];
         a[1] = pa[1] + g_fCmAng[c][i][1];
         a[2] = g_fCmAng[c][i][2];
-        set_es(es, ES_Origin, o);
         set_es(es, ES_Angles, a);
     }
     return FMRES_IGNORED;
