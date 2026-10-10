@@ -48,6 +48,7 @@ NAME = 'zm_vex_cordon'
 
 T = 16
 INF = 100000
+CORNICE = True
 SKY = 'sky'
 HINT, SKIP = 'HINT', 'SKIP'
 
@@ -227,6 +228,15 @@ class Builder:
                     self.W(_wall_box(axis, line, sgn, b0, b1, s0, s1, tin, tout))
                 for b0, b1, s0, s1 in _solid(p, q, r, z1, hl):
                     self.W(_wall_box(axis, line, sgn, b0, b1, s0, s1, SKY, SKY))
+                if CORNICE and z0 + 96 < r < z1 and q - p >= 32:
+                    # roof cap / cornice: a 16-deep, 24-high stone band on top of the facade (visible wall
+                    # thickness; the building no longer ends in a paper-thin edge against the sky)
+                    i0, i1 = (line - 16, line) if sgn > 0 else (line, line + 16)
+                    face_in = {'x': ('w' if sgn > 0 else 'e'), 'y': ('s' if sgn > 0 else 'n')}[axis]
+                    spec = {'all': NULL, face_in: CONC, 'bottom': CONC, 'top': CONC}
+                    mn = (i0, p, r - 16) if axis == 'x' else (p, i0, r - 16)
+                    mx = (i1, q, r + 8) if axis == 'x' else (q, i1, r + 8)
+                    self.det += box(mn, mx, spec)
             # corner columns (convex corners only)
             c0, c1 = _band(axis, line, sgn)
             for e0, e1 in ((a0 - T, a0), (a1, a1 + T)):
@@ -1102,7 +1112,7 @@ def launch(H, apex, vh, d):
 
 def lane(x, y, z, d, H, L, w=56):
     """Push field box starting on the pad (x, y) and running L (+w) along d, H high."""
-    L = int(math.ceil(L / 16.0) * 16) + 128          # + slack: runners entering fast stay inside until the top
+    L = int(math.ceil(L / 16.0) * 16)
     x1, y1 = x + d[0] * (L + w), y + d[1] * (L + w)
     return ((min(x - w, x1 - w * abs(d[1])) if d[0] == 0 else min(x - w * d[0], x1), min(y - w, y1) if d[1] else y - w, z),
             (max(x + w, x1 + w * abs(d[1])) if d[0] == 0 else max(x - w * d[0], x1), max(y + w, y1) if d[1] else y + w, z + H))
@@ -1173,22 +1183,27 @@ def fun(b):
             tb += box(mn, mx, 'AAATRIGGER')
         E(Entity('trigger_push', tb, speed=speed, angles=angles))
 
-    # S1 Liberation Plaza -> Customs Tower roof, through the medevac air window (apex ~z 780, lands ~x 1530)
-    pad(400, 120, 0, 'go', (1, 0))
-    sp, an, L = launch(200, 900, 320, (1, 0))
-    push([lane(400, 120, 0, (1, 0), 200, L)], sp, an)
-    D(osign('w', 1152, 120, 500, 3))                                   # ZIPLA! over the lobby (pad's target)
-    # S2 Substation express: supply-alley mouth -> gantry deck z 160 (breaker B)
+    # Launch physics (GoldSrc pm_shared): a push field's vertical part is an ACCELERATION while you are inside
+    # it (basevelocity.z * frametime) and is lost while standing on the ground, so every pad is a JUMP pad
+    # (signs: ZIPLA! / JUMP!); the horizontal part is a conveyor + exit momentum. Arcs verified with a
+    # frame-step simulation of that model (gravity 800, jump 268 u/s, entry speed 0 and 250) and on the
+    # test server (vexprobe): see zm_vex_cordon_TEST.md.
+    # S1 Liberation Plaza -> Customs Tower roof: a vertical updraft against the tower facade right under the
+    # medevac air window (shared G_UP field, H 200 -> apex ~+780); hold forward: you slide up the wall,
+    # pass the parapet (640) and drop ~200 onto the roof (no fall damage)
+    pad(1088, -50, 0, 'go', None, r=48)
+    ups_s1 = [((1040, -120, 0), (1136, 20, 200))]
+    # S2 Substation express: supply-alley mouth -> gantry deck z 160 (breaker B). H 64, up 3000, fwd 550:
+    # lands 800 (standing jump) .. 1170 (running) units south = deck y 140 .. -230, apex +290, clears the stairs
     pad(-2112, 940, 0, 'go', (0, -1))
-    sp, an, L = launch(90, 360, 800, (0, -1))
-    push([lane(-2112, 940, 0, (0, -1), 90, L)], sp, an)
-    # S3/S4 Quay express (both ways along the quay, low arc: safe landing)
+    push([lane(-2112, 940, 0, (0, -1), 64, 320)], round(math.hypot(3000, 550)),
+         f'{-math.degrees(math.atan2(3000, 550)):.1f} -90.0 0')
+    # S3/S4 Quay express both ways: H 48, up 1600, fwd 1050 -> lands 1290..1600 units on, apex +140 (safe)
     pad(-1560, -2050, -128, 'go', (1, 0))
     pad(560, -1960, -128, 'go', (-1, 0))
-    sp, an, L = launch(60, 200, 1000, (1, 0))
-    push([lane(-1560, -2050, -128, (1, 0), 60, L)], sp, an)
-    sp, an, L = launch(60, 200, 1000, (-1, 0))
-    push([lane(560, -1960, -128, (-1, 0), 60, L)], sp, an)
+    qa = f'{-math.degrees(math.atan2(1600, 1050)):.1f}'
+    push([lane(-1560, -2050, -128, (1, 0), 48, 400)], round(math.hypot(1600, 1050)), qa + ' 0.0 0')
+    push([lane(560, -1960, -128, (-1, 0), 48, 400)], round(math.hypot(1600, 1050)), qa + ' 180.0 0')
     D(osign('s', -1600, -1200, -40, 3, (1, 0)))
     D(osign('s', -1600, 760, -40, 3, (-1, 0)))
     # heli-access geysers (zombies): straight up, apex ~ +380, beside the medevac route
@@ -1299,6 +1314,7 @@ def fun(b):
     for x, y, z in tramp:
         D(box((x - 28, y - 28, z), (x + 28, y + 28, z + 2), {'top': CHEV, 'bottom': NULL, 'all': HAZ}))
     ups += [((x - 24, y - 24, z), (x + 24, y + 24, z + 75)) for x, y, z in tramp]      # measured apex ~ +170
+    ups += ups_s1
     push(ups, G_UP, '-90 0 0')
     # fun: lobby vending machine (use it: clunk + a little ammo, 30 s cooldown)
     D(P((2096, 200, 0), (2160, 280, 104), 'vx_cont_red', hide=('bottom', 'e')))

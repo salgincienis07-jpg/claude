@@ -1835,64 +1835,136 @@ def _neon_tube(h, w, mask, col, rng, core=0.55):
     return img
 
 
-NEON_ROWS = [('1', 'TRAFO', 1, (255, 170, 30)), ('1', 'TRAFO', -1, (255, 170, 30)),
-             ('2', 'KOPRU', 1, (40, 200, 255)), ('2', 'KOPRU', -1, (40, 200, 255)),
-             ('3', 'CATI', 1, (70, 255, 110)), ('3', 'CATI', -1, (70, 255, 110)),
-             ('^', 'ZIPLA!', 0, (255, 70, 230)), ('^', 'HELI', 0, (255, 50, 40))]
+NEON_ROWS = [('1', 'TRAFO / SUBSTATION', 1, (255, 170, 30)), ('1', 'TRAFO / SUBSTATION', -1, (255, 170, 30)),
+             ('2', 'KOPRU / BRIDGE', 1, (40, 200, 255)), ('2', 'KOPRU / BRIDGE', -1, (40, 200, 255)),
+             ('3', 'CATI / ROOF EVAC', 1, (70, 255, 110)), ('3', 'CATI / ROOF EVAC', -1, (70, 255, 110)),
+             ('^', 'ZIPLA! / JUMP!', 0, (255, 70, 230)), ('^', 'HELI / ZOMBIE LIFT', 0, (255, 50, 40))]
 
 
-@tex('~vx_objsign', 128, 256, 'cordon', light=(255, 235, 220, 140), desc='neon objective signs, 8 rows of 128x32: '
-     '1 TRAFO > / < 1 TRAFO (amber), 2 KOPRU (cyan), 3 CATI (green), ZIPLA! launch pad (magenta), HELI zombie geyser (red)')
+def _neon_row(rng, w, num, word, ar, col):
+    cv = Canvas(32, w)
+    yy, xx = np.mgrid[0:32, 0:w].astype(F)
+    x0 = 24 if ar < 0 else 4
+    cx = x0 + 12
+    ring = (np.abs(np.hypot(xx - cx, yy - 16) - 10.5) < 1.3).astype(F)
+    if num == '^':
+        cv.poly([(cx, 9), (cx + 6, 17), (cx + 2, 17), (cx + 2, 23), (cx - 2, 23), (cx - 2, 17), (cx - 6, 17)])
+    elif num:
+        cv.text(num, cx - 4, 10, 12, 2.0, spacing=1.0)
+    else:
+        ring = ring * 0
+    tx = x0 + (28 if num else 2)
+    avail = (w - 28 if ar > 0 else w - 6) - tx
+    th = min(14.0, avail / max(1e-3, text_width(word, 1.0, 1.12)))
+    cv.text(word, tx, (32 - th) / 2, th, max(1.5, th * 0.14), spacing=1.12)
+    if ar > 0:
+        for k in (0, 8):
+            cv.line([(w - 22 + k, 9), (w - 15 + k, 16), (w - 22 + k, 23)], 2.2)
+    elif ar < 0:
+        for k in (0, 8):
+            cv.line([(21 - k, 9), (14 - k, 16), (21 - k, 23)], 2.2)
+    m = np.clip(cv.mask() + ring, 0, 1)
+    sub = _neon_tube(32, w, m, col, rng)
+    fr = ((xx < 1) | (xx >= w - 1) | (yy < 1) | (yy >= 31)).astype(F)
+    return np.clip(mix(sub, fill(32, w, (44, 44, 50)), fr), 0, 1)
+
+
+@tex('~vx_objsign', 256, 256, 'cordon', light=(255, 235, 220, 140), desc='bilingual neon objective signs, 8 rows of '
+     '256x32: 1 TRAFO / SUBSTATION > and <, 2 KOPRU / BRIDGE, 3 CATI / ROOF EVAC, ZIPLA! / JUMP!, HELI / ZOMBIE LIFT')
 def t_objsign(rng, w, h):
     img = np.zeros((h, w, 3), F)
     for i, (num, word, ar, col) in enumerate(NEON_ROWS):
-        cv = Canvas(32, w)
-        x0 = 22 if ar < 0 else 4
-        # number in a tube ring
-        cx = x0 + 12
-        yy, xx = np.mgrid[0:32, 0:w].astype(F)
-        ring = (np.abs(np.hypot(xx - cx, yy - 16) - 10.5) < 1.3).astype(F)
-        if num == '^':
-            cv.poly([(cx, 9), (cx + 6, 17), (cx + 2, 17), (cx + 2, 23), (cx - 2, 23), (cx - 2, 17), (cx - 6, 17)])
-        else:
-            cv.text(num, cx - 4, 10, 12, 2.0, spacing=1.0)
-        tx = x0 + 28
-        avail = (w - 26 if ar > 0 else w - 4) - tx
-        th = min(14.0, avail / max(1e-3, text_width(word, 1.0, 1.15)))
-        cv.text(word, tx, (32 - th) / 2, th, max(1.6, th * 0.15), spacing=1.15)
-        if ar > 0:
-            for k in (0, 7):
-                cv.line([(w - 20 + k, 9), (w - 13 + k, 16), (w - 20 + k, 23)], 2.0)
-        elif ar < 0:
-            for k in (0, 7):
-                cv.line([(19 - k, 9), (12 - k, 16), (19 - k, 23)], 2.0)
-        m = np.clip(cv.mask() + ring, 0, 1)
-        sub = _neon_tube(32, w, m, col, rng)
-        fr = ((xx < 1) | (xx >= w - 1) | (yy < 1) | (yy >= 31)).astype(F)
-        sub = mix(sub, fill(32, w, (40, 40, 46)), fr)
-        img[i * 32:(i + 1) * 32] = np.clip(sub, 0, 1)
+        img[i * 32:(i + 1) * 32] = _neon_row(rng, w, num, word, ar, col)
     return grain(img, rng, 0.01)
 
 
-@tex('vx_chev', 64, 64, 'cordon', light=(90, 255, 150, 70), frames=8,
-     desc='animated neon floor chevrons (+0..+7): a light wave chases along +u (texture right), 0.8 s loop')
-def t_chev(rng, w, h):
+INFO_ROWS = [('KARANTINA / QUARANTINE ZONE', (255, 200, 40)), ('TEHLIKE: ENFEKTE / DANGER: INFECTED', (255, 60, 50)),
+             ('TAHLIYE: CATI / EVAC: ROOF', (80, 255, 120)), ('ECZANE / PHARMACY', (90, 255, 160)),
+             ('BALIK PAZARI / FISH MARKET', (60, 210, 255)), ('LIMAN / HARBOR', (80, 150, 255)),
+             ('KURTULUS MEYDANI / LIBERATION SQ', (235, 235, 255)), ('GUMRUK KULESI / CUSTOMS TOWER', (255, 170, 60))]
+
+
+@tex('~vx_infosign', 256, 256, 'cordon', light=(240, 235, 225, 110), desc='bilingual neon district / warning signs, '
+     '8 rows of 256x32 (quarantine, danger, evac, pharmacy, fish market, harbor, plaza, customs tower)')
+def t_infosign(rng, w, h):
+    img = np.zeros((h, w, 3), F)
+    for i, (word, col) in enumerate(INFO_ROWS):
+        img[i * 32:(i + 1) * 32] = _neon_row(rng, w, '', word, 0, col)
+    return grain(img, rng, 0.01)
+
+
+@tex('~vx_objboard', 256, 128, 'cordon', light=(230, 235, 255, 160), desc='CT spawn mission board: '
+     '1 TRAFO -> 2 KOPRU -> 3 CATI with a mini map of the route')
+def t_objboard(rng, w, h):
+    img = fill(h, w, (12, 13, 18)).copy()
+    yy, xx = np.mgrid[0:h, 0:w].astype(F)
+    cv = Canvas(h, w)
+    cv.text('GOREV / MISSION', 8, 5, 11, 1.8, spacing=1.12)
+    img = _neon_tube(h, w, cv.mask(), (235, 235, 255), rng) * 1.0
+    steps = [('1', 'TRAFO / SUBSTATION', (255, 170, 30)), ('2', 'KOPRU / BRIDGE', (40, 200, 255)),
+             ('3', 'CATI / ROOF EVAC', (70, 255, 110))]
+    for k, (n, word, col) in enumerate(steps):
+        cv = Canvas(h, w)
+        y = 26 + k * 32
+        ring = (np.abs(np.hypot(xx - 16, yy - (y + 10)) - 9) < 1.2).astype(F)
+        cv.text(n, 13, y + 5, 10, 1.8, spacing=1.0)
+        cv.text(word, 30, y + 6, 7.5, 1.3, spacing=1.05)
+        if k < 2:
+            cv.line([(16, y + 22), (16, y + 30)], 1.6)
+            cv.line([(12, y + 26), (16, y + 30), (20, y + 26)], 1.6)
+        img = img + _neon_tube(h, w, np.clip(cv.mask() + ring, 0, 1), col, rng) - fill(h, w, (14, 14, 18))
+    # mini map (right part): north up, CT spawn NW, substation W, bridge S, tower E
+    ox, oy = 186, 20
+    cv = Canvas(h, w)
+    cv.line([(ox, oy), (ox + 62, oy), (ox + 62, oy + 100), (ox, oy + 100), (ox, oy)], 1.0)
+    img = img + _neon_tube(h, w, cv.mask(), (120, 120, 150), rng) - fill(h, w, (14, 14, 18))
+    pts = {'A': (ox + 8, oy + 14), '1': (ox + 9, oy + 48), '2': (ox + 34, oy + 90), '3': (ox + 52, oy + 50)}
+    for a, b, col in (('A', '1', (255, 170, 30)), ('1', '2', (40, 200, 255)), ('2', '3', (70, 255, 110))):
+        cv = Canvas(h, w)
+        cv.line([pts[a], pts[b]], 1.6)
+        img = img + _neon_tube(h, w, cv.mask(), col, rng) - fill(h, w, (14, 14, 18))
+    for key, col in (('A', (90, 140, 255)), ('1', (255, 170, 30)), ('2', (40, 200, 255)), ('3', (70, 255, 110))):
+        d = (np.hypot(xx - pts[key][0], yy - pts[key][1]) < 4).astype(F)
+        img = mix(img, fill(h, w, col), d)
+    fr = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= h - 2)).astype(F)
+    return np.clip(mix(img, fill(h, w, (60, 60, 70)), fr), 0, 1)
+
+
+def _chev_frames(rng, w, h, col):
     frames = []
     yy, xx = np.mgrid[0:h, 0:w].astype(F)
-    base = steel(h, w, rng, (22, 26, 24), brushed=False)
+    base = steel(h, w, rng, (22, 24, 26), brushed=False)
     frame = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= h - 2)).astype(F)
+    c = np.array(col, F)
     for f in range(8):
-        img = mix(base, fill(h, w, (10, 12, 11)), frame)
+        img = mix(base, fill(h, w, (10, 11, 12)), frame)
         for k, cx in enumerate((14, 30, 46)):
             cv = Canvas(h, w)
             cv.line([(cx - 6, 14), (cx + 6, 32), (cx - 6, 50)], 4.0)
             m = cv.mask()
             phase = (f / 8.0 - k / 3.0) % 1.0          # wave travels toward +u
             lvl = 0.25 + 0.75 * max(0.0, math.cos(phase * 2 * math.pi)) ** 2
-            img = img + glow(m, 3, (60, 255, 130), 0.5 * lvl)
-            img = mix(img, fill(h, w, (150, 255, 180)) * lvl + fill(h, w, (20, 60, 30)) * (1 - lvl), m)
+            img = img + glow(m, 3, tuple(c), 0.5 * lvl)
+            hi = tuple(np.minimum(255, c * 0.6 + 110))
+            img = mix(img, fill(h, w, hi) * lvl + fill(h, w, tuple(c * 0.2)) * (1 - lvl), m)
         frames.append(np.clip(img, 0, 1))
     return frames
+
+
+@tex('vx_chev', 64, 64, 'cordon', light=(90, 255, 150, 70), frames=8,
+     desc='animated neon floor chevrons, green (objective 3 / general): a light wave chases along +u, 0.8 s loop')
+def t_chev(rng, w, h):
+    return _chev_frames(rng, w, h, (60, 255, 130))
+
+
+@tex('vx_chev1', 64, 64, 'cordon', light=(255, 180, 60, 70), frames=8, desc='animated neon floor chevrons, amber (objective 1)')
+def t_chev1(rng, w, h):
+    return _chev_frames(rng, w, h, (255, 170, 30))
+
+
+@tex('vx_chev2', 64, 64, 'cordon', light=(60, 200, 255, 70), frames=8, desc='animated neon floor chevrons, cyan (objective 2)')
+def t_chev2(rng, w, h):
+    return _chev_frames(rng, w, h, (40, 200, 255))
 
 
 @tex('{vx_shadow', 64, 128, 'decal', desc='masked shambling zombie silhouette (dark, ragged edge), for a passing figure')
