@@ -622,8 +622,8 @@ def main(argv=None):
         from ..bspcheck import perf_at
         try:
             for (label, p), res in zip(CHECKPOINTS, perf_at(r.bsp, [pt for _, pt in CHECKPOINTS])):
-                print('  at', label, p, res if not isinstance(res, dict) else
-                      {k: res[k] for k in res if k in ('view_max', 'pvs_total', 'view', 'pvs')})
+                print(f"  at {label:10s} {p}: view max {res['view_max']} (yaw {res['view_yaw']:.0f}), "
+                      f"PVS {res['pvs_total']}, leaves {res['visible_leaves']}, {res['contents']}")
         except Exception as ex:   # perf_at output format is informative only
             print('  (perf_at:', ex, ')')
     if r.ok and a.preview:
