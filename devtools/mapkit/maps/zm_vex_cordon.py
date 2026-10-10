@@ -732,7 +732,7 @@ def dress(b):
     D(car(2260, 300, 'y', MDARK))
     D(jersey('x', 2200, 2400, -150))
     for y in (1000, 160, -600):
-        D(lamp_post(2540, y, arm=(-40, 0)))
+        D(lamp_post(2500, y))
         SW((2500, y, 196), SODIUM, 220, 'cd_lt_east')
         L((2368, y, 300), MOON, 90)
     D(sign('w', 2560, 900, 160, 1))                                                # HARBOR (south)
@@ -766,14 +766,14 @@ def dress(b):
     DEC((-200, -1300, 1), '{blood4')
 
     # ------------------------------------------------------------ Q quay + cabin + canal
-    for x in range(-1700, 1100, 256):
+    for x in range(-1700, 1100, 512):
         D(P((x, -2552, -128), (x + 20, -2532, -104), MDARK))                       # bollards
     for x, y in ((-1700, -1660), (-1640, -1660), (-1700, -1720), (-300, -2400), (-244, -2400)):
         D(crate((x, y, -128), 56, MIL))
     D(car(-900, -2100, 'x', MDARK, z=-128))
     D(P((200, -2300, -128), (328, -2236, -96), TARP))                              # net pile
     for x in (-1200, -200, 700):
-        D(lamp_post(x, -2520, z=-128, arm=(0, 40)))
+        D(lamp_post(x, -2500, z=-128))
         SW((x, -2480, 70), SODIUM, 220, 'cd_lt_harbor')
     for p in ((-300, -2080, 120), (-1300, -2000, 120), (700, -2000, 120)):
         L(p, MOON, 110)
@@ -1434,7 +1434,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(stairs((656, -1712, -128), '+x', 96, 128, rise=16, run=32, tex=CONC, clip=True))
     Z('~', [(1168, -2560, 1328, -1600)], -224, 768, 'vx_rock', CONC, rl=384,
       holes=[sk(X, 1168, h0=-128), sk(X, 1328, h0=-128), sk(Y, -2560, h0=-192)])
-    b.W(box((1168, -2560, -224), (1328, -1600, -176), WATER))        # wading water (48 deep)
+    b.W(box((1168, -2368, -224), (1328, -1728, -176), WATER))        # wading water (48 deep; dry rock ends)
     b.W(stairs((1264, -2208, -224), '-x', 64, 96, rise=16, run=16, tex=CONC))   # exit steps W bank
     b.W(stairs((1232, -1888, -224), '+x', 64, 96, rise=16, run=16, tex=CONC))   # exit steps E bank
 
