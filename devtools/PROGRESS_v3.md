@@ -128,3 +128,9 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
    harita ajanları `devtools/mapkit/README.md` ile çalışır; eklenti `devtools/plugin/build_plugin.sh` ile derlenir.
 4. Son aşama: `devtools/server/run_test.py` ile botlu test, `KURULUM_OKU.txt` + `DEGISIKLIKLER_v3.0.txt`,
    zip (`git archive` + zip), push.
+
+- 2026-10-10 07:30: sahip haritanin hedeflerini yeniledi: yuksek FPS, duzgun texture/tasarim, net yonlendirme, her raund calisan
+  hikaye/eventler, gercekci gerilimli ambiyans, duzgun etkilesim/efekt/animasyon, 32 kisi rahat oynasin (ana yollar >= 128),
+  essiz ve eglenceli. Bunlar flagship.js'e "OWNER REQUIREMENTS" olarak eklendi; eski run durduruldu (tasarim yeni basliyordu).
+  YENI run wf_57454fa6-612 -> yarim kaldiysa: Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_57454fa6-612"}).
+  Bitince: paket + gonder + push.
