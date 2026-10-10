@@ -140,3 +140,7 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   1 ajan tasarim+SPEC (Aci B karantina bolgesi + diger acilardan en iyi fikirler) -> harita 3 asama || eklenti hikaye destegi
   -> entegrasyon -> 1 birlesik inceleme + 1 duzeltme. ~7 ajan (onceden ~17). YENI run wf_8f0bb905-afd ->
   yarim kaldiysa Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_8f0bb905-afd"}).
+- 2026-10-10 12:12: run wf_8f0bb905-afd 08:20 civarinda kullanim siniri yuzunden durdu (SPEC bitti 5da96d1; harita asama 1 +
+  eklenti yarim, COMMIT EDILMEMIS dosyalar diskte; yedek $SP/wip_cordon_plugin.diff + $SP/wip_zm_vex_cordon.py). Sinir 12:10'da
+  sifirlandi -> ayni run devam ettirildi (ajanlara "yarim isten devam et" notu eklendi).
+  Yarim kalirsa: Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_8f0bb905-afd"}).
