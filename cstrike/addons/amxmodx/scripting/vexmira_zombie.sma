@@ -25403,6 +25403,12 @@ new g_iMsCmdType[MS_MAXCMD], g_iMsCmdArg[MS_MAXCMD], g_iMsCmdRound[MS_MAXCMD], F
 new g_iMsRound = 1, bool:g_bMsObjDone[3], bool:g_bMsLive, g_iMsSec, Float:g_fMsMsgNext;
 new bool:g_bMsSeen[33], g_iMsStep[33], g_iMsTries[33];
 new g_szMsSndLine[96], g_szMsSndMsg[96], g_szMsSndObj[96];
+// v3.5.1 [locks] / [hints]: func_button targetname -> gerekli gorev + mesaj (harita basinda cozulur)
+#define MS_MAXLK 8
+new g_szMsLkTn[MS_MAXLK][32], g_szMsLkKey[MS_MAXLK][24], g_iMsLkObj[MS_MAXLK], bool:g_bMsLkHint[MS_MAXLK];
+new g_iMsLkMsg[MS_MAXLK], g_iMsLkRound[MS_MAXLK], g_iMsLkN, bool:g_bMsSeq;
+new g_iMsLockOf[OVH_MAXENT];   // varlik -> kilit + 1
+new Float:g_fMsLkNext[33];
 
 stock MsLang(id)
 {
@@ -25449,12 +25455,106 @@ MsInit()
 
     for (new m = 0; m < g_iMsMkN; m++)
         MsMkCreate(m);
+    MsLockInit();
 
     new total;
     for (new e = 0; e < ME_NUM; e++)
         total += g_iMeCnt[e];
     log_amx("[Vexmira] Harita senaryosu: ini=%d hikaye=%d/%d gorev=%d mesaj=%d ek-olay=%d isaret=%d | vex_* hedef=%d vexcmd=%d",
         g_bMsIni, g_iMsStoryN[0], g_iMsStoryN[1], g_iMsObjN, g_iMsMsgN, g_iMsExN, g_iMsMkN, total, g_iMsCmdN);
+}
+
+// [locks] / [hints]: mesaj anahtari + func_button varliklari bir kez cozulur; Use'ta sadece dizi okunur
+MsLockInit()
+{
+    new hooked, ent, n, cls[32];
+    for (new k = 0; k < g_iMsLkN; k++)
+    {
+        g_iMsLkMsg[k] = -1;
+        for (new i = 0; i < g_iMsMsgN; i++)
+        {
+            if (equali(g_szMsLkKey[k], g_szMsMsgKey[i]))
+            {
+                g_iMsLkMsg[k] = i;
+                break;
+            }
+        }
+        n = 0;
+        ent = -1;
+        while ((ent = engfunc(EngFunc_FindEntityByString, ent, "targetname", g_szMsLkTn[k])) > 0)
+        {
+            pev(ent, pev_classname, cls, charsmax(cls));
+            if (ent < OVH_MAXENT && equal(cls, "func_button"))
+            {
+                g_iMsLockOf[ent] = k + 1;
+                n++;
+            }
+        }
+        if (g_iMsLkMsg[k] < 0 || !n)
+            log_amx("[Vexmira] map kilit '%s' yok sayildi (mesaj=%d buton=%d)", g_szMsLkTn[k], g_iMsLkMsg[k] + 1, n);
+        else
+            hooked++;
+    }
+    if (hooked)
+        RegisterHam(Ham_Use, "func_button", "fw_MsButtonUse", 0);
+}
+
+public fw_MsButtonUse(ent, caller, activator, type, Float:value)
+{
+    if (ent <= 0 || ent >= OVH_MAXENT || !g_iMsLockOf[ent] || !(1 <= activator <= g_iMax))
+        return HAM_IGNORED;
+    new k = g_iMsLockOf[ent] - 1, msg = g_iMsLkMsg[k];
+    if (msg < 0 || g_bMsObjDone[g_iMsLkObj[k]] || !is_user_connected(activator))
+        return HAM_IGNORED;
+    if (g_bMsLkHint[k])
+    {
+        // ipucu: bu gorev icin round basina ilk basista tum insanlara
+        for (new j = 0; j < g_iMsLkN; j++)
+        {
+            if (g_bMsLkHint[j] && g_iMsLkObj[j] == g_iMsLkObj[k] && g_iMsLkRound[j] == g_iMsRound)
+                return HAM_IGNORED;
+        }
+        g_iMsLkRound[k] = g_iMsRound;
+        if (get_pcvar_num(g_pMsDebug))
+            log_amx("[Vexmira] map ipucu '%s' #%d -> %s", g_szMsLkTn[k], activator, g_szMsMsgKey[msg]);
+        for (new id = 1; id <= g_iMax; id++)
+        {
+            if (!is_user_connected(id) || is_user_bot(id) || (is_user_alive(id) && g_bZombie[id]))
+                continue;
+            HudText(id, SL_ANN, CLR_WARN, 4.0, g_szMsMsg[msg][MsLang(id)]);
+            client_print(id, print_console, "%s", g_szMsMsg[msg][MsLang(id)]);
+        }
+        return HAM_IGNORED;
+    }
+    // kilit: gorev tamamlanmadi -> basan oyuncuya kisa uyari (2 sn'de bir)
+    new Float:now = get_gametime();
+    if (now < g_fMsLkNext[activator])
+        return HAM_IGNORED;
+    g_fMsLkNext[activator] = now + 2.0;
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map kilit '%s' #%d: gorev %d bitmedi -> %s", g_szMsLkTn[k], activator, g_iMsLkObj[k] + 1, g_szMsMsgKey[msg]);
+    if (!is_user_bot(activator))
+    {
+        HudText(activator, SL_ALERT, CLR_WARN, 2.5, g_szMsMsg[msg][MsLang(activator)]);
+        client_print(activator, print_console, "%s", g_szMsMsg[msg][MsLang(activator)]);
+    }
+    return HAM_IGNORED;
+}
+
+// Isaret gorunurlugu: sirali modda sadece ilk acik gorevin isareti
+MsMkRefresh()
+{
+    new bool:mk = get_pcvar_num(g_pMsMarkers) != 0, cur = -1;
+    for (new k = 0; k < g_iMsObjN; k++)
+    {
+        if (!g_bMsObjDone[k])
+        {
+            cur = k;
+            break;
+        }
+    }
+    for (new m = 0; m < g_iMsMkN; m++)
+        MsMkShow(m, mk && (m >= g_iMsObjN || (!g_bMsObjDone[m] && (!g_bMsSeq || m == cur))));
 }
 
 // targetname'i 'name' olan tum varliklari duz listeye ekler, eklenen sayiyi dondurur
@@ -25528,6 +25628,8 @@ MsParseCmd(ent, const tn[])
 #define MSS_MSG   4
 #define MSS_EV    5
 #define MSS_MK    6
+#define MSS_LOCK  7
+#define MSS_HINT  8
 
 MsLoadIni()
 {
@@ -25565,6 +25667,8 @@ MsLoadIni()
             else if (equali(line, "[messages]"))     sec = MSS_MSG;
             else if (equali(line, "[events]"))       sec = MSS_EV;
             else if (equali(line, "[markers]"))      sec = MSS_MK;
+            else if (equali(line, "[locks]"))        { sec = MSS_LOCK; g_bMsSeq = true; }
+            else if (equali(line, "[hints]"))        sec = MSS_HINT;
             else
             {
                 sec = MSS_NONE;
@@ -25603,6 +25707,7 @@ MsLoadIni()
             {
                 if (equali(key, "name_en"))      copy(g_szMsName[0], charsmax(g_szMsName[]), val);
                 else if (equali(key, "name_tr")) copy(g_szMsName[1], charsmax(g_szMsName[]), val);
+                else if (equali(key, "sequential")) g_bMsSeq = str_to_num(val) != 0;
                 else MsBad(path, ln, line, bad);
             }
             case MSS_STORY:
@@ -25632,6 +25737,22 @@ MsLoadIni()
                 formatex(g_szMsMsg[g_iMsMsgN][0], MS_LEN - 1, "-=[  %s  ]=-", a);
                 formatex(g_szMsMsg[g_iMsMsgN][1], MS_LEN - 1, "-=[  %s  ]=-", b);
                 g_iMsMsgN++;
+            }
+            case MSS_LOCK, MSS_HINT:
+            {
+                // <button targetname> = <gorev no 1-3> <mesaj anahtari>
+                new so[8], sk[24];
+                if (g_iMsLkN >= MS_MAXLK || strlen(key) > 31 || parse(val, so, charsmax(so), sk, charsmax(sk)) != 2
+                    || !(1 <= str_to_num(so) <= 3))
+                {
+                    MsBad(path, ln, line, bad);
+                    continue;
+                }
+                copy(g_szMsLkTn[g_iMsLkN], 31, key);
+                copy(g_szMsLkKey[g_iMsLkN], 23, sk);
+                g_iMsLkObj[g_iMsLkN] = str_to_num(so) - 1;
+                g_bMsLkHint[g_iMsLkN] = sec == MSS_HINT;
+                g_iMsLkN++;
             }
             case MSS_MK:
             {
@@ -25890,9 +26011,7 @@ MsRoundRestart()
 
 public task_MsRoundStart()
 {
-    new bool:mk = get_pcvar_num(g_pMsMarkers) != 0;
-    for (new m = 0; m < g_iMsMkN; m++)
-        MsMkShow(m, mk && (m >= g_iMsObjN || !g_bMsObjDone[m]));
+    MsMkRefresh();
     MsEvent(ME_ROUND_START);
 }
 
@@ -25998,8 +26117,9 @@ MsCommand(c)
             if (g_bMsObjDone[arg])
                 return;
             g_bMsObjDone[arg] = true;
-            if (arg < g_iMsMkN)
-                MsMkShow(arg, false);
+            if (get_pcvar_num(g_pMsDebug))
+                log_amx("[Vexmira] map gorev %d tamam -> isaretler yenilendi", arg + 1);
+            MsMkRefresh();
             if (arg >= g_iMsObjN || !get_pcvar_num(g_pMsObj))
                 return;
             new bool:all = true;
@@ -26040,7 +26160,11 @@ MsShowObjectives(id, bool:hud)
         {
             if (cur < 0)
                 cur = k;
-            if (k < g_iMsMkN && get_pcvar_num(g_pMsMarkers))
+            if (g_bMsSeq && cur != k)
+                Chat(id, "MAP_OBJ_LINE_LOCK", k + 1, g_iMsObjN, g_szMsObj[l][k]);
+            else if (g_bMsSeq)
+                Chat(id, "MAP_OBJ_LINE_CUR", k + 1, g_iMsObjN, g_szMsObj[l][k]);
+            else if (k < g_iMsMkN && get_pcvar_num(g_pMsMarkers))
                 Chat(id, "MAP_OBJ_LINE_MK", g_szMsObj[l][k], g_szMsMkName[k][l]);
             else
                 Chat(id, "MAP_OBJ_LINE_OPEN", g_szMsObj[l][k]);
@@ -26051,7 +26175,9 @@ MsShowObjectives(id, bool:hud)
     if (hud && cur >= 0)
     {
         new t[128];
-        formatex(t, charsmax(t), "%L", id, "MAP_OBJ_CUR", done + 1, g_iMsObjN, g_szMsObj[l][cur]);
+        formatex(t, charsmax(t), "%L", id, "MAP_OBJ_CUR", cur + 1, g_iMsObjN, g_szMsObj[l][cur]);
+        if (g_bMsSeq && cur < g_iMsMkN && get_pcvar_num(g_pMsMarkers))
+            format(t, charsmax(t), "%s^n%L", t, id, "MAP_OBJ_CUR_MK", g_szMsMkName[cur][l]);
         HudText(id, SL_PERS, CLR_HUMAN, 6.0, t);
     }
 }

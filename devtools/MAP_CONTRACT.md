@@ -35,6 +35,10 @@ reactor = Reactor online! | Reaktor calisiyor!
 boss 0 lab_alarm
 [markers]           ; istege bagli: <ad_en> | <ad_tr> = x y z (gorev acikken insanlara yon gosteren isaret)
 Reactor | Reaktor = 0 512 64
+[locks]             ; istege bagli: <func_button targetname> = <gerekli gorev 1-3> <[messages] anahtari>
+reactor_btn = 1 locked_reactor
+[hints]             ; istege bagli: ayni bicim; gorev acikken round basina ILK basista insanlara ipucu
+fuse_a = 1 fuse_half
 ```
 Olaylar: round_start freeze_end infection boss boss_dead nemesis assassin survivor lasthuman win_humans win_zombies minute.
 
@@ -53,6 +57,14 @@ Olaylar: round_start freeze_end infection boss boss_dead nemesis assassin surviv
 - [markers]: n. isaret n. goreve aittir (gorev acikken gorunur, tamamlaninca kalkar); karsiligi olmayan isaret
   round boyunca gorunur. En fazla 4 isaret; koordinat oyuncu goz hizasinda (zeminden ~64) bir nokta,
   isaretin uzerinde 360 birimlik dikey isik sutunu cizilir (tavan altina koyma). Sadece insanlar gorur.
+- [locks]: gorev n bu roundda tamamlanmadiysa butona basan oyuncuya mesaj (oyuncu basina 2 sn'de bir;
+  butonu eklenti kilitlemez, gercek kilit haritadaki `master` ile yapilir, kilit sesi icin `locked_sound`).
+  [locks] bolumu varsa (ya da [info] `sequential = 1`) gorevler SIRALIDIR: sadece ilk acik gorevin isareti
+  gorunur (1 bitince 2 cikar...), freeze sonu listesinde bitenler [OK], simdiki "> n/N", sonrakiler (kilitli).
+  `sequential = 0` ile kapatilir. [locks] yoksa eski davranis (tum acik gorevlerin isareti).
+- [hints]: gorev n acikken o gorevin [hints] butonlarindan round icinde ILK basilanda tum insanlara mesaj
+  (or. iki salterden biri: "1/2 - digerini indir"). Butonlar ve anahtarlar harita basinda cozulur; bulunamayan
+  satir log'a yazilip yok sayilir. En fazla 8 [locks]+[hints] satiri.
 - Metin uzunlugu: satirlar ekranda tek satir okunmali (<= ~90 karakter; 111 uzeri kesilir).
   Satir icinde " ;" yorum baslatir. Eksik dil diger dilden doldurulur.
 - Hikaye/gorev kapatma ve test: cvar'lar vex_map_story / vex_map_objectives / vex_map_markers /
