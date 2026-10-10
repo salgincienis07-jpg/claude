@@ -1118,7 +1118,7 @@ def lane(x, y, z, d, H, L, w=56):
             (max(x + w, x1 + w * abs(d[1])) if d[0] == 0 else max(x - w * d[0], x1), max(y + w, y1) if d[1] else y + w, z + H))
 
 
-def osign(face, line, a, z, row, arrow=None, w=192, h=48):
+def osign(face, line, a, z, row, arrow=None, w=320, h=40):
     """Neon objective sign (~vx_objsign, 192x48, ONE drawn face) centred at `a` along the wall.
     row: 0 = 1 TRAFO, 1 = 2 KOPRU, 2 = 3 CATI, 3 = ZIPLA! (launch pad), 4 = HELI (zombie geyser);
     the printed chevrons point along the world direction `arrow` (picks the > or < atlas row)."""
@@ -1130,6 +1130,29 @@ def osign(face, line, a, z, row, arrow=None, w=192, h=48):
     else:
         r = 3 + row
     return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, OBJ, depth=2, row=r, rows=8)
+
+
+def isign(face, line, a, z, row, w=320, h=40):
+    """Bilingual neon district / warning sign (~vx_infosign row 0-7), one drawn face."""
+    return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, '~vx_infosign', depth=2, row=row, rows=8)
+
+
+def route_arrows(pts, tex, step=384, first=96):
+    """Neon floor chevrons (1 unit thick, flush on the floor) every `step` units along a polyline of
+    (x, y, z) points; a segment whose ends differ in z (stairs, ramp) gets none."""
+    out = []
+    for (x0, y0, z0), (x1, y1, z1) in zip(pts, pts[1:]):
+        dx, dy = x1 - x0, y1 - y0
+        ln = math.hypot(dx, dy)
+        if z0 != z1 or ln < 1:
+            continue
+        d = (dx / ln, dy / ln)
+        k = first
+        while k < ln - 48:
+            x, y = round(x0 + d[0] * k), round(y0 + d[1] * k)
+            out += plate('top', (x - 24, y - 24, z0), (x + 24, y + 24, z0 + 1), tex, arrow=(d[0], d[1], 0))
+            k += step
+    return out
 
 
 def fun(b):
@@ -1162,7 +1185,7 @@ def fun(b):
         col = (60, 220, 255) if kind == 'go' else (255, 50, 40)
         # one lit slab: cyan light panel = shortcut launch pad, red = zombie heli-access geyser (zombies take
         # no fall damage in this mod; a human who rides a red geyser lands back with ~40 damage)
-        D(box((x - r, y - r, z), (x + r, y + r, z + 2),
+        D(box((x - r, y - r, z), (x + r, y + r, z + 1),
               {'top': '~vx_light_c' if kind == 'go' else LRED, 'bottom': NULL, 'all': HAZ}))
         a, bb = f'cd_jet{nb[0]}a', f'cd_jet{nb[0]}b'
         pt('info_target', a, origin=(x, y, z + 6))
@@ -1227,6 +1250,25 @@ def fun(b):
             ('w', 2560, -500, 140, 2, (0, 1)),         # Ks: 3 CATI -> north
     ):
         D(osign(*args))
+    D(osign('w', 1152, -50, 330, 3))                                    # ZIPLA! / JUMP! over the tower updraft
+    D(osign('s', 1024, -2112, 120, 3))                                  # ... and over the substation express pad
+    # route chevrons, colour-coded per objective, every ~384 units and at the junctions
+    C1, C2, C3 = '+0vx_chev1', '+0vx_chev2', CHEV
+    D(route_arrows([(-2880, 1700, 0), (-2240, 1700, 0), (-2240, 1440, 0), (-2256, 1216, 0), (-2112, 1100, 0),
+                    (-2112, 1050, 0)], C1))
+    D(route_arrows([(-2200, 840, 0), (-2700, 640, 0), (-2900, 640, 0), (-2960, 820, 0)], C1))
+    D(route_arrows([(-2350, 300, 0), (-2000, -50, 0), (-1550, -50, 0), (-1550, -430, 0), (-900, -430, 0),
+                    (-300, -950, 0), (-256, -1190, 0), (-256, -1540, -128), (-256, -1720, -128), (640, -1712, -128)], C2))
+    D(route_arrows([(820, -1800, -128), (820, -2050, -128), (1600, -2050, -128), (1600, -1600, -128),
+                    (2368, -1600, -128), (2368, -1150, -128), (2368, -780, 0), (2368, -150, 0), (2330, -40, 0)], C3))
+    D(route_arrows([(0, -300, 0), (700, -60, 0), (1000, -50, 0)], C3))           # plaza -> roof updraft
+    # district / warning signs (bilingual)
+    for args in (('s', 2560, -2200, 330, 0), ('w', 1088, 1700, 260, 1), ('w', 2560, 100, 250, 2),
+                 ('s', 2240, -1700, 150, 3), ('e', -1776, -2112, 110, 4), ('n', -1152, 0, 160, 5),
+                 ('s', 1024, 800, 260, 6), ('w', 1152, 640, 300, 7), ('e', -1152, 300, 260, 1)):
+        D(isign(*args))
+    # CT spawn mission board (neon panel with the route on a mini map), facing the spawn
+    D(wall_plate('w', -1984, 1500, 1820, 70, 230, '~vx_objboard', depth=2))
 
     # ------------------------------------------------------------ travel moments (owner: one every ~600-900
     # units of every main route): trigger_multiple (wait = cooldown) -> multi_manager. Sounds are only game
@@ -1657,8 +1699,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
         E(glass(box(mn, mx, 'vx_glass'), health=hp))
     bar = E(glass(box((1440, 464, 0), (1456, 592, 112), 'vx_glass'), health=1500))               # riot barricade
     bar['targetname'], bar['target'] = 'cd_barricade', 'cd_barricade_mm'
-    for area, vis in b.lad_vis.items():
-        E(masked_entity(vis, solid=False))
+    E(masked_entity([v for vis in b.lad_vis.values() for v in vis], solid=False))    # all ladder visuals: 1 model
 
     # ============================================================== spawns
     b.ents += spawn_grid('ct', (-3200, 1536), (-2560, 1880), 0, 32, spacing=72, yaw=0)
