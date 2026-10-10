@@ -51,7 +51,7 @@
 #pragma dynamic 32768
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "3.2"
+#define VERSION  "3.4"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -353,14 +353,14 @@ new const ITEM_ANNOUNCE[NUM_ITEMS] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
 // Ozel silahlar
 new const SW_BASE_ENT[NUM_SPECIAL][] =
 {
-    "weapon_m4a1", "weapon_m249", "weapon_awp", "weapon_xm1014",
+    "weapon_elite", "weapon_ak47", "weapon_awp", "weapon_xm1014",
     "weapon_deagle", "weapon_p90", "weapon_ak47", "weapon_sg550",
     "weapon_m4a1", "weapon_m249", "weapon_awp", "weapon_xm1014",
     "weapon_deagle", "weapon_p90", "weapon_ak47", "weapon_sg550"
 };
 new const WeaponIdType:SW_BASE_ID[NUM_SPECIAL] =
 {
-    WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
+    WEAPON_ELITE, WEAPON_AK47, WEAPON_AWP, WEAPON_XM1014,
     WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550,
     WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
     WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550
@@ -609,7 +609,7 @@ new g_szTopKey[TOP_MAX][48], g_szTopName[TOP_MAX][32], g_iTopXP[TOP_MAX], g_iTop
 // Cvar'lar
 new g_pCountdown, g_pFirstHP, g_pZombieHP, g_pBossEvery, g_pBossHP, g_pEventChance;
 new g_pNemHP, g_pAsnHP, g_pSurvHP, g_pSnipHP, g_pRespawn, g_pDmgPerAP, g_pKnockback;
-new g_pStartAP, g_pArmorProtect, g_pVipContact;
+new g_pStartAP, g_pArmorProtect, g_pVipContact, g_pChatBcast, g_pChatBuyBcast;
 new g_pVipBonus, g_pEliteBonus, g_pVipDisc, g_pEliteDisc, g_pVipArmor, g_pEliteArmor, g_pVipRoundVC, g_pVipAutoPack;
 new g_pTipInterval, g_pLiveChatter, g_iTipIdx, g_iTipClock;
 new g_pBossRounds, g_pBossHPPer, g_pBossFinal, g_pBossDmg, g_pBossAbil, g_pSpecialRounds, g_pMultiChance, g_pRoundsTotal;
@@ -950,12 +950,18 @@ stock VexMenuColor(const src[], dst[], len, const lead[] = "\y")
 }
 
 new g_szMenuLast[512];   // son menu basligi (test araci vexprobe callfunc ile okur)
+new g_iMenuTitleLen, g_iMenuItemBytes, g_iMenuItemCnt;   // v3.4: istemci menu siniri (~511 bayt) icin otomatik sayfalama
+new bool:g_bMenuNoPage;
 
 stock VexMenuCreate(const title[], const handler[])
 {
     new t[512];
     VexMenuColor(title, t, charsmax(t), "\r");
     copy(g_szMenuLast, charsmax(g_szMenuLast), t);
+    g_iMenuTitleLen = strlen(t);
+    g_iMenuItemBytes = 0;
+    g_iMenuItemCnt = 0;
+    g_bMenuNoPage = false;
     return menu_create(t, handler);
 }
 
@@ -975,12 +981,77 @@ stock VexAddText(menu, const text[], slot = 1)
     menu_addtext(menu, t, slot);
 }
 
+// v3.4: menu satirlarinda aciklamalar BEYAZ (\w): gri (\d) aciklamalar ve ( ... ) icindeki
+// yazilar beyaz olur, parantezden sonra satirin onceki rengi geri gelir. "(!)" gibi
+// kisa isaretler (<=3 karakter) dokunulmaz.
+stock VexMenuItemFx(const src[], dst[], len)
+{
+    new tmp[192], n, i, o, j, close, lastc = 'y', depth;
+    copy(tmp, charsmax(tmp), src);
+    replace_string(tmp, charsmax(tmp), "\d", "\w");
+    n = strlen(tmp);
+    dst[0] = 0;
+    for (i = 0; i < n && o < len - 8; i++)
+    {
+        new ch = tmp[i];
+        if (ch == '\' && i + 1 < n)
+        {
+            if (!depth)
+                lastc = tmp[i + 1];
+            dst[o++] = ch;
+            dst[o++] = tmp[i + 1];
+            i++;
+            continue;
+        }
+        if (ch == '(' && !depth)
+        {
+            close = -1;
+            for (j = i + 1; j < n; j++)
+            {
+                if (tmp[j] == ')')
+                {
+                    close = j;
+                    break;
+                }
+            }
+            if (close > i && close - i - 1 > 3)
+            {
+                dst[o++] = '\';
+                dst[o++] = 'w';
+                depth = 1;
+            }
+            dst[o++] = ch;
+            continue;
+        }
+        if (ch == ')' && depth)
+        {
+            dst[o++] = ch;
+            dst[o++] = '\';
+            dst[o++] = lastc;
+            depth = 0;
+            continue;
+        }
+        dst[o++] = ch;
+    }
+    dst[o] = 0;
+}
+
 stock MenuAdd(menu, const text[], value)
 {
-    new info[8], t[192];
+    new info[8], t[192], t2[192];
     num_to_str(value, info, charsmax(info));
     VexMenuColor(text, t, charsmax(t));
-    menu_additem(menu, t, info);
+    VexMenuItemFx(t, t2, charsmax(t2));
+    g_iMenuItemBytes += strlen(t2) + 9;   // "\r1.\w " + "^n"
+    g_iMenuItemCnt++;
+    menu_additem(menu, t2, info);
+}
+
+// Sayfalamasiz (tek sayfa) menu
+stock MenuNoPage(menu)
+{
+    g_bMenuNoPage = true;
+    menu_setprop(menu, MPROP_PERPAGE, 0);
 }
 
 // v3.2 menu tasarimi v2: her menude ayni baslik.
@@ -1035,6 +1106,16 @@ stock MenuProps(id, menu)
 stock MenuFinish(id, menu)
 {
     MenuProps(id, menu);
+    // v3.4: CS 1.6 menu metni ~511 bayti asarsa Geri/Ileri/Cikis satirlari kesilir.
+    // Baslik + satirlar + alt tuslar sigmiyorsa sayfa basina satir sayisini kendimiz dusuruyoruz.
+    if (!g_bMenuNoPage && g_iMenuItemCnt > 0)
+    {
+        new avg = max(12, g_iMenuItemBytes / g_iMenuItemCnt);
+        new budget = 495 - g_iMenuTitleLen - 85;
+        new per = clamp(budget / avg, 3, 7);
+        if (per < 7 || g_iMenuItemCnt > 7)
+            menu_setprop(menu, MPROP_PERPAGE, per);
+    }
     menu_display(id, menu, 0);
 }
 
@@ -6370,7 +6451,7 @@ LevelUp(id, old)
         HudTo(id, SL_PERS, CLR_REWARD, 3.5, "LEVEL_UP_HUD", g_iLevel[id]);
     Chat(id, "LEVELUP_VC", vc);
 
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (is_user_connected(p) && p != id)
             client_print_color(p, id, "%s %L", ChatTag("LEVELUP_CHAT"), p, "LEVELUP_CHAT", name, g_iLevel[id]);
@@ -6397,7 +6478,7 @@ LevelUp(id, old)
     {
         new key[12];
         formatex(key, charsmax(key), "RANK_%d", RankOf(g_iLevel[id]));
-        for (new p = 1; p <= g_iMax; p++)
+        for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
         {
             if (!is_user_connected(p))
                 continue;
@@ -6457,7 +6538,7 @@ GrantAch(id, bit)
     FxRing(o, 255, 215, 0, 260);
     FadeOne(id, 255, 215, 0, 70, 0.7);
 
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (!is_user_connected(p))
             continue;
@@ -6750,7 +6831,7 @@ QuestEvent(id, type, amount)
 
     new name[32];
     get_user_name(id, name, charsmax(name));
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (is_user_connected(p) && !is_user_bot(p))
             client_print_color(p, id, "%s %L", ChatTag("QUEST_DONE_ALL"), p, "QUEST_DONE_ALL", name);
@@ -7023,13 +7104,13 @@ ShowCard(id, target)
     }
 
     len = formatex(html, charsmax(html), "<html><head><style>body{background:#06080e;color:#cfe6ff;font-family:Verdana;font-size:12px;margin:10px}h2{color:#00c8ff;letter-spacing:4px;margin:2px 0}.t{color:#ff4670;margin-bottom:6px}.bar{background:#13202f;height:14px;border:1px solid #1c3550}.fl{background:#00c8ff;height:14px}td{padding:4px 10px}b{color:#2ee6a6}</style></head><body>");
-    len += formatex(html[len], charsmax(html) - len, "<h2>%s</h2><div class=t>Lv.%d &bull; %s", name, lvl, tname);
+    len += formatex(html[len], charsmax(html) - len, "<h2>%s</h2><div class=t>Lv.%d • %s", name, lvl, tname);
     if (g_iTopRank[target] > 0)
-        len += formatex(html[len], charsmax(html) - len, " &bull; TOP #%d", g_iTopRank[target]);
+        len += formatex(html[len], charsmax(html) - len, " • TOP #%d", g_iTopRank[target]);
     if (IsElite(target))
-        len += formatex(html[len], charsmax(html) - len, " &bull; ELITE");
+        len += formatex(html[len], charsmax(html) - len, " • ELITE");
     else if (IsVip(target))
-        len += formatex(html[len], charsmax(html) - len, " &bull; VIP");
+        len += formatex(html[len], charsmax(html) - len, " • VIP");
     len += formatex(html[len], charsmax(html) - len, "</div><div class=bar><div class=fl style=^"width:%d%%^"></div></div>XP %d / %d (%d%%)<table>", pct, g_iXP[target], need, pct);
 
     len += formatex(html[len], charsmax(html) - len, "<tr><td>AP <b>%d</b><td>VC <b>%d</b><td>%L <b>%s</b>", g_iAP[target], g_iVC[target], id, "CARD_JOB", jn);
@@ -7050,7 +7131,7 @@ TopJoinAnnounce(id)
 
     new name[32];
     get_user_name(id, name, charsmax(name));
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (p != id && is_user_connected(p) && !is_user_bot(p))
             client_print_color(p, id, "%s %L", ChatTag("TOP_JOIN"), p, "TOP_JOIN", r, name);
@@ -7474,7 +7555,7 @@ AnnounceBuy(id, const itemKey[])
     new name[32], nm[48];
     get_user_name(id, name, charsmax(name));
 
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBuyBcast); p++)
     {
         if (!is_user_connected(p) || is_user_bot(p) || p == id)
             continue;
@@ -7914,7 +7995,7 @@ ShowVipInfo(id, page = 0)
     MenuAdd(menu, item, page == 0 ? 11 : 10);
     formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, 1);
-    menu_setprop(menu, MPROP_PERPAGE, 0);
+    MenuNoPage(menu);
     menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
     MenuFinish(id, menu);
 }
@@ -8295,7 +8376,7 @@ public menu_coslist_handler(id, menu, item)
 
             new name[32];
             get_user_name(id, name, charsmax(name));
-            for (new p = 1; p <= g_iMax; p++)
+            for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBuyBcast); p++)
             {
                 if (p == id || !is_user_connected(p) || is_user_bot(p))
                     continue;
@@ -12703,7 +12784,7 @@ Infect(victim, attacker)
         LiveAll(victim, "LIVE_FIRSTINF", 3, vname);
     }
 
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (is_user_connected(p))
             client_print_color(p, victim, "%s %L", ChatTag("INFECTED_BY"), p, "INFECTED_BY", vname, aname);
@@ -20335,7 +20416,7 @@ public menu_vote_handler(id, menu, item)
     get_user_name(id, name, charsmax(name));
     formatex(key, charsmax(key), g_iVoteType == 1 ? "MODE_NAME_%d" : "EV_NAME_%d", g_iVoteOpt[opt]);
 
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (!is_user_connected(p) || is_user_bot(p))
             continue;
@@ -20725,7 +20806,7 @@ public client_connect(id)
     if (g_bGeoIP)
         geoip_country_ex(ip, country, charsmax(country));
 
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (!is_user_connected(p) || is_user_bot(p) || p == id)
             continue;
@@ -21959,7 +22040,7 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
                 new armor = rg_get_user_armor(victim, atype);
                 if (get_pcvar_num(g_pArmorProtect) && armor > 0)
                 {
-                    rg_set_user_armor(victim, max(0, armor - floatround(dmg)), atype);
+                    rg_set_user_armor(victim, max(0, armor - max(1, floatround(dmg))), atype);
                     if (!(g_iSet[victim] & SET_NO_FX))
                         FadeOne(victim, 255, 120, 0, 60, 0.3);
                     SetHookChainReturn(ATYPE_INTEGER, 0);
@@ -22853,7 +22934,7 @@ ShowMainMenu(id)
     MenuAdd(menu, item, adm ? HUB_VIPADM : 8);
 
     // 8 giris tek sayfada: sayfalama yok, 0 = cikis
-    menu_setprop(menu, MPROP_PERPAGE, 0);
+    MenuNoPage(menu);
     menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
     MenuFinish(id, menu);
 }
@@ -22893,7 +22974,7 @@ ShowHub(id, hub)
     formatex(item, charsmax(item), "\y%L", id, "HUB_BACK");
     MenuAdd(menu, item, HUB_BACK);
 
-    menu_setprop(menu, MPROP_PERPAGE, 0);
+    MenuNoPage(menu);
     menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
     MenuFinish(id, menu);
 }
@@ -26135,7 +26216,7 @@ ShowMapVoteMenu(id)
     formatex(note, charsmax(note), "^n\d%L", id, "MAPV_NOTE");
     VexAddText(menu, note, 0);
     menu_setprop(menu, MPROP_EXIT, MEXIT_NEVER);
-    menu_setprop(menu, MPROP_PERPAGE, 0);
+    MenuNoPage(menu);
     menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
     MenuProps(id, menu);
     g_iMapVoteMenu[id] = menu;
@@ -26169,7 +26250,7 @@ public menu_mapvote_handler(id, menu, item)
 
     new name[32], nm[64];
     get_user_name(id, name, charsmax(name));
-    for (new p = 1; p <= g_iMax; p++)
+    for (new p = 1; p <= g_iMax && get_pcvar_num(g_pChatBcast); p++)
     {
         if (!is_user_connected(p) || is_user_bot(p))
             continue;
@@ -27052,6 +27133,8 @@ public plugin_init()
     g_pKnockback    = register_cvar("vex_knockback", "1");
     g_pStartAP      = register_cvar("vex_start_ap", "20");
     g_pArmorProtect = register_cvar("vex_armor_protect", "1");
+    g_pChatBcast    = register_cvar("vex_chat_broadcast", "1");   // v3.4: 1 = level/rutbe/basarim/gorev/liderlik/enfeksiyon/oy/baglanma mesajlari herkese gider
+    g_pChatBuyBcast = register_cvar("vex_chat_buy_broadcast", "0"); // v3.4: 1 = "X sunu satin aldi" mesajlari herkese gider (varsayilan kapali)
     g_pVipContact   = register_cvar("vex_vip_contact", "discord.gg/vexmira");
     g_pVipBonus     = register_cvar("vex_vip_bonus", "25");
     g_pEliteBonus   = register_cvar("vex_elite_bonus", "50");
@@ -27125,7 +27208,7 @@ public plugin_init()
 
     // v2.0
     g_pPrefix        = register_cvar("vex_chat_prefix", "^4[VEX]^1");
-    g_pHostname      = register_cvar("vex_hostname", "EN/TR ZOMBIE | VEXMIRA | BOSS + EVENTS + ADV. MENU");
+    g_pHostname      = register_cvar("vex_hostname", "EN-TR 2X Jump Zombie | Vexmira | CSO,Boss,Plague,Events");
     g_pHostDyn       = register_cvar("vex_hostname_dynamic", "1");
     g_pEnv           = register_cvar("vex_env", "1");
     g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
