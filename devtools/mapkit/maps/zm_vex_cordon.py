@@ -1244,16 +1244,30 @@ def fun(b):
     mm('cd_s_flk_mm', [('cd_lt_cpflk', 0), ('cd_s_spark', 0), ('cd_lt_cpflk#2', 0.15), ('cd_lt_cpflk#3', 0.3),
                        ('cd_lt_cpflk#4', 0.55), ('cd_lt_cpflk#5', 0.7), ('cd_lt_cpflk#6', 3.2)])
     trig((-2900, 1120, 0), (-2600, 1320, 72), 'cd_s_flk_mm', 20)
-    # lantern lane: a silhouette crosses the far end of the Z-bend and vanishes behind the corner
-    sil = box((-1552, -42, 0), (-1548, 2, 80), {'all': NULL, 'e': '{vx_shadow', 'w': '{vx_shadow'})
-    sil[0].fit_faces(('e', 'w'))
-    E(Entity('func_train', sil, targetname='cd_shadow', target='cd_shp0', speed=220, spawnflags=8,
-             rendermode=4, renderamt=255, dmg=0))
-    pt('path_corner', 'cd_shp0', origin=(-1550, 60, 40), target='cd_shp1', spawnflags=1)
-    pt('path_corner', 'cd_shp1', origin=(-1550, -420, 40), target='cd_shp0', spawnflags=1)
-    snd('cd_s_step', (-1550, -150, 40), 'common/npc_step2.wav', 8)
-    mm('cd_s_shadow_mm', [('cd_shadow', 0), ('cd_s_step', 0.4), ('cd_s_step#2', 1.0)])
-    trig((-1960, -180, 0), (-1880, 90, 72), 'cd_s_shadow_mm', 30)
+    # jump-scare silhouettes: a dark figure darts out of a wall, crosses fast and hides again (passable
+    # func_train, no damage), with footsteps / a thud and the local light flickering; 20-30 s cooldown
+    def shadow(tag, axis, p0, p1, trig_box, lightp):
+        x, y, z = p0
+        if axis == 'y':        # moves along y: thin in x, faces e/w
+            sil = box((x - 2, y - 22, z - 40), (x + 2, y + 22, z + 40), {'all': NULL, 'e': '{vx_shadow', 'w': '{vx_shadow'})
+            sil[0].fit_faces(('e', 'w'))
+        else:                  # moves along x: thin in y, faces n/s
+            sil = box((x - 22, y - 2, z - 40), (x + 22, y + 2, z + 40), {'all': NULL, 'n': '{vx_shadow', 's': '{vx_shadow'})
+            sil[0].fit_faces(('n', 's'))
+        E(Entity('func_train', sil, targetname=f'cd_{tag}', target=f'cd_{tag}0', speed=330, spawnflags=8,
+                 rendermode=4, renderamt=255, dmg=0))
+        pt('path_corner', f'cd_{tag}0', origin=p0, target=f'cd_{tag}1', spawnflags=1)      # hidden in the wall
+        pt('path_corner', f'cd_{tag}1', origin=p1, target=f'cd_{tag}0', wait=0.6)          # then back + stop
+        ents.append(light(lightp, (255, 190, 130), 140, targetname=f'cd_lt_{tag}'))
+        snd(f'cd_s_{tag}a', p1, 'common/npc_step2.wav', 9)
+        snd(f'cd_s_{tag}b', p1, 'common/bodysplat.wav', 9)
+        mm(f'cd_{tag}_mm', [(f'cd_lt_{tag}', 0), (f'cd_{tag}', 0.15), (f'cd_lt_{tag}#2', 0.15), (f'cd_s_{tag}a', 0.4),
+                            (f'cd_lt_{tag}#3', 0.5), (f'cd_s_{tag}b', 0.9), (f'cd_lt_{tag}#4', 1.4)])
+        trig(*trig_box, f'cd_{tag}_mm', 25)
+
+    # hidden around a corner (out of sight of the trigger zone), darts into view, goes back
+    shadow('shadow', 'y', (-1550, -450, 40), (-1550, 40, 40), ((-1960, -180, 0), (-1880, 90, 72)), (-1550, -60, 170))
+    shadow('shadow2', 'y', (-1408, 1500, 40), (-1408, 1920, 40), ((-1915, 1890, 0), (-1845, 2140, 72)), (-1408, 1900, 170))
     # fish market: the skylight bursts and glass rains down
     sky = E(glass(box((-2990, -1790, 236), (-2710, -1610, 240), 'vx_glass'), health=20))
     sky['targetname'], sky['spawnflags'] = 'cd_skylight', 1

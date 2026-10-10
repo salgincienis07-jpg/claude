@@ -153,3 +153,9 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   [VEXMİRA] onek I harfi; 3-4 ucuz yeni ozellik; VERSION 3.5; test; $SP/pack35.sh -> Vexmira_Zombie_v3.5.zip) sahip
   kullanimi %98 dedigi icin DURDURULDU; repoda degisiklik yapmamisti. DEVAM: ayni gorevi yeniden baslat (gorev metni bu
   oturumda; ozet bu satirda).
+- 2026-10-10 19:10: kullanim siniri yuzunden harita ajani DURDURULDU (yarim is WIP olarak kaydedildi). Bitenler: kozmetik
+  sabitleme (59bef51), harita bazli roundtime, kilitli dugme mesajlari + sirali gorevler (8d5006b). zm_vex_cordon
+  gelistirmesi YARIM: siren kisaltma, ziplama rampalari/trambolin, helikopter binis, neon yonlendirme, olaylar, dugme
+  isiklari, CS dokulari, korku anlari (zombi siluet jumpscare dahil) - test edilmedi. DEVAM: harita ajanini ayni
+  gorevle yeniden baslat (once mevcut durumu bspcheck + kisa test ile dogrula, bitir, sadece degisen dosyalari zip'le
+  gonder), sonra ozel gercekci silahlar.
