@@ -886,6 +886,21 @@ new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Floa
 new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
 new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];   // sahiplik: bit (kat*8 + no); secim: 4 bit / kat
 new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no)
+#define MS_MAXMK 4                                             // v3.3 harita senaryosu: en fazla yon isareti
+new g_iMsMkOf[OVH_MAXENT];                                     // varlik -> harita isareti + 1 (sadece insanlara gorunur)
+// v3.3 harita olaylari (BOLUM 13 MsEvent): vex_<ME_NAME> targetname'li varliklar tetiklenir
+#define ME_ROUND_START 0
+#define ME_FREEZE_END  1
+#define ME_INFECTION   2
+#define ME_BOSS        3
+#define ME_BOSS_DEAD   4
+#define ME_NEMESIS     5
+#define ME_ASSASSIN    6
+#define ME_SURVIVOR    7
+#define ME_LASTHUMAN   8
+#define ME_WIN_HUMANS  9
+#define ME_WIN_ZOMBIES 10
+#define ME_MINUTE      11
 // Boss / ozel karakter sesleri: bekleme sureleri
 new Float:g_fSndIdle[33], Float:g_fSndPain[33], Float:g_fSndAtk[33], Float:g_fSndKill, g_iPainAlt[33];
 new g_pBossIdleMin, g_pBossIdleMax, g_pBossPainCd, g_pBossAtkCd, g_pBossStepDist;
@@ -4233,6 +4248,8 @@ OvhUpdate(id)
 // Kendi gostergeni gormezsin (vex_overhead_self 0); gozunden izleyen seyirci de gormez.
 public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
 {
+    if (!player && ent < OVH_MAXENT && g_iMsMkOf[ent])
+        return MsMkPack(es, host);
     if (!player && ent > g_iMax && ent < OVH_MAXENT && g_iCmOwn[ent])
         return CmPack(es, ent, host);
     if (player || !g_iOvhCount || ent >= OVH_MAXENT || ent <= g_iMax)
@@ -15226,6 +15243,7 @@ StartBoss(players[32], n)
 
     BossCleanup();
     g_iBoss = boss;
+    MsEvent(ME_BOSS);
     g_iBossTick = 0;
     g_iBossPhase = 1;
     g_bEnraged = false;
@@ -16379,6 +16397,7 @@ BossDeath(victim, const Float:o[3], const killer[])
     BossCleanup();
     g_iBoss = 0;
     g_fBossIntro = 0.0;
+    MsEvent(ME_BOSS_DEAD);
     remove_task(TASK_BOSSCAST);
     remove_task(TASK_BOSSHIT);
     remove_task(TASK_BOSSFX);
@@ -18809,6 +18828,8 @@ public rg_MakeBomber(id)
 
 public rg_RestartRound()
 {
+    // v3.3: harita senaryosu (vex_round_start harita geri yuklendikten sonra tetiklenir)
+    MsRoundRestart();
     // v3.2 (B): CSO ekran bildirimi: aktif gorseller kalkar, kuyruk bosalir
     CsoFlushAll();
     // Onceki roundun sesleri (kalp atisi, muzik, yanma, ruzgar...) tamamen susar.
@@ -19185,6 +19206,7 @@ public rg_FreezeEnd()
 {
     g_iCountdown = get_pcvar_num(g_pCountdown);
     g_bCounting = true;
+    MsFreezeEnd();
 
     for (new id = 1; id <= g_iMax; id++)
     {
@@ -19236,6 +19258,7 @@ OnRoundEnd(WinStatus:status)
 
     new bool:wasActive = g_bRoundActive;
     g_bRoundActive = false;
+    MsRoundEnd(status, wasActive);
     // v3.2 (B): ekrandaki killmark / bantlar kalkar, gercek silah HUD'u geri gelir
     CsoFlushAll();
 
@@ -19563,6 +19586,7 @@ GetHumans(players[32])
 public task_Tick()
 {
     g_iFrame++;
+    MsTick();
 
     for (new id = 1; id <= g_iMax; id++)
     {
@@ -19963,6 +19987,7 @@ StartMode()
         copy(g_szLight, charsmax(g_szLight), "a");
         engfunc(EngFunc_LightStyle, 0, g_szLight);
     }
+    MsModeStart();
 }
 
 PickRandom(players[32], &n)
@@ -20695,6 +20720,7 @@ public client_putinserver(id)
     g_fXpBarEnd[id] = 0.0;
     ResetPlayer(id);
     HudReset(id);
+    MsResetPlayer(id);
     if (get_pcvar_num(g_pAutoJoinHumans) && !is_user_bot(id))
         set_task(0.25, "task_AutoJoinHuman", id + TASK_AUTOTEAM);
 
@@ -21574,6 +21600,7 @@ TickPlayers()
     if (humans == 1 && !g_bLastAnn && AllowsInfection())
     {
         g_bLastAnn = true;
+        MsEvent(ME_LASTHUMAN);
         new name[32];
         get_user_name(last, name, charsmax(name));
         CsoHudAll(CN_LAST, 0, SL_ALERT, CLR_WARN, 3.0, "LAST_HUMAN");
@@ -21677,6 +21704,7 @@ public rg_PlayerSpawn(id)
 
     g_fRespawnAt[id] = 0.0;
     ResetLifeData(id);
+    MsOnSpawn(id);
     // istemci ResetHUD'da durum ikonlarini siler: rol ikonu yeniden gonderilsin
     g_iCsoIcon[id] = 0;
 
@@ -25011,6 +25039,784 @@ public task_AmbientRestore()
 
 
 /* ================================================================== */
+/*  v3.3: HARITA SENARYOSU (devtools/MAP_CONTRACT.md)                  */
+/*  - Eklenti -> harita: vex_* targetname'li varliklari olaylarda      */
+/*    tetikler (liste harita basinda bir kez kurulur, tetik = dongu).  */
+/*  - Harita -> eklenti: vexcmd_* trigger_relay'leri (isimler harita   */
+/*    basinda cozulur, Use'ta sadece dizi okunur).                     */
+/*  - configs/vexmira_maps/<harita>.ini: hikaye, gorevler, mesajlar,   */
+/*    ek olaylar, yon isaretleri. Dosya yoksa ozellik kapali.          */
+/*  Kare basina tek is: isaretlerin insanlara gorunurluk filtresi      */
+/*  (fw_AddToFullPackPost, sadece isaret varliklari icin).             */
+/* ================================================================== */
+
+#define ME_NUM        12
+#define ME_MAXENT     256
+#define MS_MAXCMD     48
+#define MS_MAXMSG     32
+#define MS_MAXEX      32
+#define MS_LEN        112
+#define MS_CHART      0.035   // daktilo: harf basina sure (sn)
+#define TASK_MSSTORY  42000   // +id
+#define TASK_MSEX     42100   // +0..31 (gecikmeli ek olaylar)
+#define TASK_MSRS     42200   // round basi tetigi (harita varliklari geri yuklendikten sonra)
+
+new const ME_NAME[ME_NUM][] = { "round_start", "freeze_end", "infection", "boss", "boss_dead", "nemesis",
+    "assassin", "survivor", "lasthuman", "win_humans", "win_zombies", "minute" };
+
+#define MC_MSG 1
+#define MC_RH  2
+#define MC_RZ  3
+#define MC_OBJ 4
+
+new g_pMsStory, g_pMsObj, g_pMsMarkers, g_pMsRewards, g_pMsEvents, g_pMsDebug;
+new g_iMeEnt[ME_MAXENT], g_iMeTn[ME_MAXENT], g_iMeN, g_iMeFirst[ME_NUM], g_iMeCnt[ME_NUM];
+new bool:g_bMsIni, g_szMsName[2][48];
+new g_szMsStory[2][6][MS_LEN], g_iMsStoryN[2];
+new g_szMsObj[2][3][MS_LEN], g_iMsObjN;
+new g_szMsMsgKey[MS_MAXMSG][24], g_szMsMsg[MS_MAXMSG][2][MS_LEN], g_iMsMsgN;
+new g_iMsExEv[MS_MAXEX], Float:g_fMsExDelay[MS_MAXEX], g_iMsExFirst[MS_MAXEX], g_iMsExCnt[MS_MAXEX], g_iMsExN;
+new g_szMsMkName[MS_MAXMK][2][32], Float:g_fMsMkPos[MS_MAXMK][3], g_iMsMkSpr[MS_MAXMK], g_iMsMkBeam[MS_MAXMK], g_iMsMkN;
+new g_iMsCmdOf[OVH_MAXENT];   // varlik -> komut + 1
+new g_iMsCmdType[MS_MAXCMD], g_iMsCmdArg[MS_MAXCMD], g_iMsCmdRound[MS_MAXCMD], Float:g_fMsCmdNext[MS_MAXCMD], g_iMsCmdN;
+new g_iMsRound = 1, bool:g_bMsObjDone[3], bool:g_bMsLive, g_iMsSec, Float:g_fMsMsgNext;
+new bool:g_bMsSeen[33], g_iMsStep[33], g_iMsTries[33];
+new g_szMsSndLine[96], g_szMsSndMsg[96], g_szMsSndObj[96];
+
+stock MsLang(id)
+{
+    return g_iLang[id] == 2 ? 1 : 0;
+}
+
+// plugin_init: cvar'lar, komutlar, senaryo dosyasi, varlik listeleri, isaretler, relay kancasi
+MsInit()
+{
+    g_pMsStory   = register_cvar("vex_map_story", "1");
+    g_pMsObj     = register_cvar("vex_map_objectives", "1");
+    g_pMsMarkers = register_cvar("vex_map_markers", "1");
+    g_pMsRewards = register_cvar("vex_map_rewards", "1");
+    g_pMsEvents  = register_cvar("vex_map_events", "1");
+    g_pMsDebug   = register_cvar("vex_map_debug", "0");
+    RegisterSay("story", "hikaye", "cmd_MsStory");
+    register_srvcmd("vex_map_status", "srv_MsStatus");
+
+    TrieGetString(g_tRes, "UI_OPEN", g_szMsSndLine, charsmax(g_szMsSndLine));
+    TrieGetString(g_tRes, "ZONE_WARN", g_szMsSndMsg, charsmax(g_szMsSndMsg));
+    TrieGetString(g_tRes, "QUEST_DONE", g_szMsSndObj, charsmax(g_szMsSndObj));
+
+    MsLoadIni();
+
+    // vex_* olay hedefleri (harita varliklari plugin_init'te hazir)
+    new name[32];
+    for (new e = 0; e < ME_NUM; e++)
+    {
+        formatex(name, charsmax(name), "vex_%s", ME_NAME[e]);
+        g_iMeFirst[e] = g_iMeN;
+        g_iMeCnt[e] = MsCollect(name);
+    }
+
+    // vexcmd_* trigger_relay'ler
+    new ent = -1, tn[64];
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "trigger_relay")) > 0)
+    {
+        pev(ent, pev_targetname, tn, charsmax(tn));
+        if (equal(tn, "vexcmd_", 7) && ent < OVH_MAXENT)
+            MsParseCmd(ent, tn);
+    }
+    if (g_iMsCmdN)
+        RegisterHam(Ham_Use, "trigger_relay", "fw_MsRelayUse", 0);
+
+    for (new m = 0; m < g_iMsMkN; m++)
+        MsMkCreate(m);
+
+    new total;
+    for (new e = 0; e < ME_NUM; e++)
+        total += g_iMeCnt[e];
+    log_amx("[Vexmira] Harita senaryosu: ini=%d hikaye=%d/%d gorev=%d mesaj=%d ek-olay=%d isaret=%d | vex_* hedef=%d vexcmd=%d",
+        g_bMsIni, g_iMsStoryN[0], g_iMsStoryN[1], g_iMsObjN, g_iMsMsgN, g_iMsExN, g_iMsMkN, total, g_iMsCmdN);
+}
+
+// targetname'i 'name' olan tum varliklari duz listeye ekler, eklenen sayiyi dondurur
+MsCollect(const name[])
+{
+    new ent = -1, n;
+    while ((ent = engfunc(EngFunc_FindEntityByString, ent, "targetname", name)) > 0)
+    {
+        if (g_iMeN >= ME_MAXENT)
+        {
+            log_amx("[Vexmira] Harita senaryosu: hedef listesi dolu (%d), %s atlandi", ME_MAXENT, name);
+            break;
+        }
+        g_iMeEnt[g_iMeN] = ent;
+        g_iMeTn[g_iMeN] = pev(ent, pev_targetname);   // string_t: varlik silinip yeri baskasina gecerse ayirt edilir
+        g_iMeN++;
+        n++;
+    }
+    return n;
+}
+
+MsParseCmd(ent, const tn[])
+{
+    if (g_iMsCmdN >= MS_MAXCMD)
+    {
+        log_amx("[Vexmira] Harita senaryosu: en fazla %d vexcmd, %s atlandi", MS_MAXCMD, tn);
+        return;
+    }
+    new type, arg = -1;
+    if (equal(tn[7], "msg_", 4))
+    {
+        for (new i = 0; i < g_iMsMsgN; i++)
+        {
+            if (equali(tn[11], g_szMsMsgKey[i]))
+            {
+                arg = i;
+                break;
+            }
+        }
+        type = MC_MSG;
+    }
+    else if (equal(tn[7], "reward_h_", 9) || equal(tn[7], "reward_z_", 9))
+    {
+        type = (tn[14] == 'h') ? MC_RH : MC_RZ;
+        arg = str_to_num(tn[16]);
+        if (!isdigit(tn[16]) || arg < 1 || arg > 50)
+            arg = -1;
+    }
+    else if (equal(tn[7], "obj_", 4) && tn[11] >= '1' && tn[11] <= '3' && equal(tn[12], "_done"))
+    {
+        type = MC_OBJ;
+        arg = tn[11] - '1';
+    }
+    if (!type || arg < 0)
+    {
+        log_amx("[Vexmira] Harita senaryosu: tanimsiz vexcmd '%s' (varlik %d) yok sayildi", tn, ent);
+        return;
+    }
+    g_iMsCmdType[g_iMsCmdN] = type;
+    g_iMsCmdArg[g_iMsCmdN] = arg;
+    g_iMsCmdRound[g_iMsCmdN] = 0;
+    g_iMsCmdN++;
+    g_iMsCmdOf[ent] = g_iMsCmdN;
+}
+
+/* ---------------- senaryo dosyasi ---------------- */
+#define MSS_NONE  0
+#define MSS_INFO  1
+#define MSS_STORY 2
+#define MSS_OBJ   3
+#define MSS_MSG   4
+#define MSS_EV    5
+#define MSS_MK    6
+
+MsLoadIni()
+{
+    new map[32], path[160];
+    get_mapname(map, charsmax(map));
+    get_configsdir(path, charsmax(path));
+    format(path, charsmax(path), "%s/vexmira_maps/%s.ini", path, map);
+    new fp = fopen(path, "rt");
+    if (!fp)
+        return;
+    g_bMsIni = true;
+
+    new line[256], sec = MSS_NONE, lang, ln, bad, objN[2];
+    new key[64], val[192], a[MS_LEN], b[MS_LEN];
+    while (!feof(fp))
+    {
+        fgets(fp, line, charsmax(line));
+        ln++;
+        // satir sonu yorumu (" ;") ve basta yorum
+        new c = contain(line, " ;");
+        if (c != -1)
+            line[c] = 0;
+        trim(line);
+        if (!line[0] || line[0] == ';' || line[0] == '#' || (line[0] == '/' && line[1] == '/'))
+            continue;
+
+        if (line[0] == '[')
+        {
+            lang = 0;
+            if (equali(line, "[info]"))              sec = MSS_INFO;
+            else if (equali(line, "[story_en]"))     sec = MSS_STORY;
+            else if (equali(line, "[story_tr]"))     { sec = MSS_STORY; lang = 1; }
+            else if (equali(line, "[objective_en]")) sec = MSS_OBJ;
+            else if (equali(line, "[objective_tr]")) { sec = MSS_OBJ; lang = 1; }
+            else if (equali(line, "[messages]"))     sec = MSS_MSG;
+            else if (equali(line, "[events]"))       sec = MSS_EV;
+            else if (equali(line, "[markers]"))      sec = MSS_MK;
+            else
+            {
+                sec = MSS_NONE;
+                MsBad(path, ln, line, bad);
+            }
+            continue;
+        }
+
+        if (sec == MSS_EV)
+        {
+            if (!MsParseEvent(line))
+                MsBad(path, ln, line, bad);
+            continue;
+        }
+
+        // anahtar = deger
+        new eq = contain(line, "=");
+        if (eq < 1 || sec == MSS_NONE)
+        {
+            MsBad(path, ln, line, bad);
+            continue;
+        }
+        copy(key, min(eq, charsmax(key)), line);
+        copy(val, charsmax(val), line[eq + 1]);
+        trim(key);
+        trim(val);
+        if (!val[0])
+        {
+            MsBad(path, ln, line, bad);
+            continue;
+        }
+
+        switch (sec)
+        {
+            case MSS_INFO:
+            {
+                if (equali(key, "name_en"))      copy(g_szMsName[0], charsmax(g_szMsName[]), val);
+                else if (equali(key, "name_tr")) copy(g_szMsName[1], charsmax(g_szMsName[]), val);
+                else MsBad(path, ln, line, bad);
+            }
+            case MSS_STORY:
+            {
+                if (!equali(key, "line") || g_iMsStoryN[lang] >= 6)
+                    MsBad(path, ln, line, bad);
+                else
+                    copy(g_szMsStory[lang][g_iMsStoryN[lang]++], MS_LEN - 1, val);
+            }
+            case MSS_OBJ:
+            {
+                if (!equali(key, "line") || objN[lang] >= 3)
+                    MsBad(path, ln, line, bad);
+                else
+                    copy(g_szMsObj[lang][objN[lang]++], MS_LEN - 1, val);
+            }
+            case MSS_MSG:
+            {
+                if (g_iMsMsgN >= MS_MAXMSG || strlen(key) > 23)
+                {
+                    MsBad(path, ln, line, bad);
+                    continue;
+                }
+                MsSplitPipe(val, a, b);
+                copy(g_szMsMsgKey[g_iMsMsgN], charsmax(g_szMsMsgKey[]), key);
+                // SL_ANN susu burada bir kez eklenir (kullanimda bicimlendirme yok)
+                formatex(g_szMsMsg[g_iMsMsgN][0], MS_LEN - 1, "-=[  %s  ]=-", a);
+                formatex(g_szMsMsg[g_iMsMsgN][1], MS_LEN - 1, "-=[  %s  ]=-", b);
+                g_iMsMsgN++;
+            }
+            case MSS_MK:
+            {
+                new Float:p[3], sx[16], sy[16], sz[16];
+                if (g_iMsMkN >= MS_MAXMK || parse(val, sx, charsmax(sx), sy, charsmax(sy), sz, charsmax(sz)) != 3)
+                {
+                    MsBad(path, ln, line, bad);
+                    continue;
+                }
+                p[0] = str_to_float(sx);
+                p[1] = str_to_float(sy);
+                p[2] = str_to_float(sz);
+                if (floatabs(p[0]) > 4096.0 || floatabs(p[1]) > 4096.0 || floatabs(p[2]) > 4096.0)
+                {
+                    MsBad(path, ln, line, bad);
+                    continue;
+                }
+                MsSplitPipe(key, a, b);
+                copy(g_szMsMkName[g_iMsMkN][0], 31, a);
+                copy(g_szMsMkName[g_iMsMkN][1], 31, b);
+                g_fMsMkPos[g_iMsMkN] = p;
+                g_iMsMkN++;
+            }
+        }
+    }
+    fclose(fp);
+
+    // Eksik dil: diger dilden doldur
+    for (new l = 0; l < 2; l++)
+    {
+        new o = 1 - l;
+        if (!g_szMsName[l][0])
+            copy(g_szMsName[l], charsmax(g_szMsName[]), g_szMsName[o]);
+        if (!g_iMsStoryN[l])
+        {
+            for (new i = 0; i < g_iMsStoryN[o]; i++)
+                copy(g_szMsStory[l][i], MS_LEN - 1, g_szMsStory[o][i]);
+            g_iMsStoryN[l] = g_iMsStoryN[o];
+        }
+    }
+    g_iMsObjN = max(objN[0], objN[1]);
+    for (new i = 0; i < g_iMsObjN; i++)
+    {
+        if (!g_szMsObj[0][i][0]) copy(g_szMsObj[0][i], MS_LEN - 1, g_szMsObj[1][i]);
+        if (!g_szMsObj[1][i][0]) copy(g_szMsObj[1][i], MS_LEN - 1, g_szMsObj[0][i]);
+    }
+    if (bad)
+        log_amx("[Vexmira] %s: %d hatali satir atlandi", path, bad);
+}
+
+MsBad(const path[], ln, const line[], &bad)
+{
+    bad++;
+    if (bad <= 8)
+        log_amx("[Vexmira] %s satir %d atlandi: %s", path, ln, line);
+}
+
+// "English | Turkce" -> a / b (Turkce yoksa Ingilizce)
+MsSplitPipe(const src[], a[MS_LEN], b[MS_LEN])
+{
+    new p = contain(src, "|");
+    if (p == -1)
+    {
+        copy(a, MS_LEN - 1, src);
+        copy(b, MS_LEN - 1, src);
+    }
+    else
+    {
+        copy(a, min(p, MS_LEN - 1), src);
+        copy(b, MS_LEN - 1, src[p + 1]);
+    }
+    trim(a);
+    trim(b);
+    if (!b[0])
+        copy(b, MS_LEN - 1, a);
+    if (!a[0])
+        copy(a, MS_LEN - 1, b);
+}
+
+// "<olay> <gecikme sn> <targetname>"
+bool:MsParseEvent(const line[])
+{
+    new ev[24], dl[16], tn[64];
+    if (g_iMsExN >= MS_MAXEX || parse(line, ev, charsmax(ev), dl, charsmax(dl), tn, charsmax(tn)) != 3)
+        return false;
+    new e = -1;
+    for (new i = 0; i < ME_NUM; i++)
+    {
+        if (equali(ev, ME_NAME[i]))
+        {
+            e = i;
+            break;
+        }
+    }
+    new Float:d = str_to_float(dl);
+    if (e < 0 || d < 0.0 || d > 600.0 || !tn[0])
+        return false;
+    g_iMsExEv[g_iMsExN] = e;
+    g_fMsExDelay[g_iMsExN] = d;
+    g_iMsExFirst[g_iMsExN] = g_iMeN;
+    g_iMsExCnt[g_iMsExN] = MsCollect(tn);
+    if (!g_iMsExCnt[g_iMsExN])
+        log_amx("[Vexmira] Harita senaryosu: [events] '%s' hedefi haritada yok", tn);
+    g_iMsExN++;
+    return true;
+}
+
+/* ---------------- yon isaretleri ---------------- */
+MsMkCreate(m)
+{
+    new Float:o[3], Float:top[3];
+    o = g_fMsMkPos[m];
+    if (g_szSprBeacon[0])
+    {
+        new spr = rg_create_entity("info_target");
+        if (!is_nullent(spr) && spr < OVH_MAXENT)
+        {
+            set_entvar(spr, var_classname, "vex_mapmarker");
+            engfunc(EngFunc_SetModel, spr, g_szSprBeacon);
+            set_entvar(spr, var_rendermode, kRenderTransAdd);
+            set_entvar(spr, var_renderamt, 210.0);
+            set_entvar(spr, var_rendercolor, Float:{0.0, 200.0, 255.0});
+            set_entvar(spr, var_renderfx, kRenderFxPulseSlow);
+            set_entvar(spr, var_scale, 0.55);
+            set_entvar(spr, var_movetype, MOVETYPE_NONE);
+            set_entvar(spr, var_solid, SOLID_NOT);
+            engfunc(EngFunc_SetOrigin, spr, o);
+            g_iMsMkSpr[m] = spr;
+            g_iMsMkOf[spr] = m + 1;
+        }
+    }
+    // Isik sutunu: uzaktan gorulen hedef (ayni gorunurluk filtresi)
+    top = o;
+    top[2] += 360.0;
+    new beam = BeamCreate(o, top, 0, 170, 255, 26, 90);
+    if (beam && beam < OVH_MAXENT)
+    {
+        set_entvar(beam, var_classname, "vex_mapmarker");
+        g_iMsMkBeam[m] = beam;
+        g_iMsMkOf[beam] = m + 1;
+    }
+}
+
+MsMkShow(m, bool:on)
+{
+    new e;
+    for (new i = 0; i < 2; i++)
+    {
+        e = i ? g_iMsMkBeam[m] : g_iMsMkSpr[m];
+        if (!e || !pev_valid(e))
+            continue;
+        if (on)
+            set_entvar(e, var_effects, get_entvar(e, var_effects) & ~EF_NODRAW);
+        else
+            set_entvar(e, var_effects, get_entvar(e, var_effects) | EF_NODRAW);
+    }
+}
+
+// Isaret bu oyuncuya gizli mi: sadece insanlar gorur (canli insan / olu CT izleyici)
+bool:MsMkHidden(host)
+{
+    if (is_user_alive(host))
+        return g_bZombie[host] != 0;
+    new TeamName:t = get_member(host, m_iTeam);
+    return t != TEAM_CT;
+}
+
+// fw_AddToFullPackPost: sadece isaret varliklari icin cagrilir
+MsMkPack(es, host)
+{
+    if (MsMkHidden(host))
+        set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+    return FMRES_IGNORED;
+}
+
+// Sunucu konsolu: vex_map_status (senaryo durumu + isaretlerin kime gorundugu)
+public srv_MsStatus()
+{
+    new map[32];
+    get_mapname(map, charsmax(map));
+    log_amx("[Vexmira] map durum %s: ini=%d round=%d live=%d sn=%d gorev=%d done=%d%d%d isaret=%d komut=%d",
+        map, g_bMsIni, g_iMsRound, g_bMsLive, g_iMsSec, g_iMsObjN, g_bMsObjDone[0], g_bMsObjDone[1], g_bMsObjDone[2], g_iMsMkN, g_iMsCmdN);
+    for (new m = 0; m < g_iMsMkN; m++)
+    {
+        new see, hid;
+        for (new p = 1; p <= g_iMax; p++)
+        {
+            if (!is_user_connected(p))
+                continue;
+            if (MsMkHidden(p))
+                hid++;
+            else
+                see++;
+        }
+        new spr = g_iMsMkSpr[m], beam = g_iMsMkBeam[m];
+        log_amx("[Vexmira] map isaret %d '%s': sprite #%d beam #%d nodraw=%d | gorebilen=%d gizli=%d",
+            m + 1, g_szMsMkName[m][0], spr, beam, spr ? ((get_entvar(spr, var_effects) & EF_NODRAW) ? 1 : 0) : -1, see, hid);
+    }
+    return PLUGIN_HANDLED;
+}
+
+/* ---------------- olaylar: eklenti -> harita ---------------- */
+MsFireRange(first, cnt)
+{
+    for (new i = first, end = first + cnt; i < end; i++)
+    {
+        new ent = g_iMeEnt[i];
+        if (pev_valid(ent) && pev(ent, pev_targetname) == g_iMeTn[i])
+            ExecuteHamB(Ham_Use, ent, 0, 0, 3, 0.0);   // 3 = USE_TOGGLE (trigger_relay gibi)
+    }
+}
+
+MsEvent(ev)
+{
+    if (!get_pcvar_num(g_pMsEvents))
+        return;
+    if (g_iMeCnt[ev])
+        MsFireRange(g_iMeFirst[ev], g_iMeCnt[ev]);
+    for (new x = 0; x < g_iMsExN; x++)
+    {
+        if (g_iMsExEv[x] != ev || !g_iMsExCnt[x])
+            continue;
+        if (g_fMsExDelay[x] <= 0.0)
+            MsFireRange(g_iMsExFirst[x], g_iMsExCnt[x]);
+        else
+            set_task(g_fMsExDelay[x], "task_MsExtra", TASK_MSEX + x);
+    }
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map olay: vex_%s (%d hedef)", ME_NAME[ev], g_iMeCnt[ev]);
+}
+
+public task_MsExtra(tid)
+{
+    new x = tid - TASK_MSEX;
+    if (x >= 0 && x < g_iMsExN)
+    {
+        MsFireRange(g_iMsExFirst[x], g_iMsExCnt[x]);
+        if (get_pcvar_num(g_pMsDebug))
+            log_amx("[Vexmira] map ek olay %d (%s +%.1f sn, %d hedef)", x, ME_NAME[g_iMsExEv[x]], g_fMsExDelay[x], g_iMsExCnt[x]);
+    }
+}
+
+// rg_RestartRound (pre): durum sifirlanir; tetik, oyun haritayi geri yukledikten sonra
+MsRoundRestart()
+{
+    g_iMsRound++;
+    g_bMsLive = false;
+    g_iMsSec = 0;
+    for (new k = 0; k < 3; k++)
+        g_bMsObjDone[k] = false;
+    for (new x = 0; x < g_iMsExN; x++)
+        remove_task(TASK_MSEX + x);
+    remove_task(TASK_MSRS);
+    set_task(0.2, "task_MsRoundStart", TASK_MSRS);
+}
+
+public task_MsRoundStart()
+{
+    new bool:mk = get_pcvar_num(g_pMsMarkers) != 0;
+    for (new m = 0; m < g_iMsMkN; m++)
+        MsMkShow(m, mk && (m >= g_iMsObjN || !g_bMsObjDone[m]));
+    MsEvent(ME_ROUND_START);
+}
+
+MsFreezeEnd()
+{
+    g_bMsLive = true;
+    g_iMsSec = 0;
+    MsEvent(ME_FREEZE_END);
+    if (g_iMsObjN && get_pcvar_num(g_pMsObj))
+    {
+        for (new id = 1; id <= g_iMax; id++)
+        {
+            if (is_user_connected(id) && (!is_user_bot(id) || get_pcvar_num(g_pMsDebug) >= 2))
+                MsShowObjectives(id, true);
+        }
+    }
+}
+
+MsRoundEnd(WinStatus:status, bool:wasActive)
+{
+    g_bMsLive = false;
+    if (!wasActive)
+        return;
+    if (status == WINSTATUS_CTS)
+        MsEvent(ME_WIN_HUMANS);
+    else if (status == WINSTATUS_TERRORISTS)
+        MsEvent(ME_WIN_ZOMBIES);
+}
+
+// StartMode sonunda: mod basladi + moda ozel olaylar
+MsModeStart()
+{
+    MsEvent(ME_INFECTION);
+    switch (g_iMode)
+    {
+        case MODE_NEMESIS:  MsEvent(ME_NEMESIS);
+        case MODE_ASSASSIN: MsEvent(ME_ASSASSIN);
+        case MODE_SURVIVOR, MODE_SNIPER: MsEvent(ME_SURVIVOR);
+        case MODE_PLAGUE:
+        {
+            MsEvent(ME_NEMESIS);
+            MsEvent(ME_SURVIVOR);
+        }
+    }
+}
+
+// task_Tick (1 sn): round icinde her 60 sn
+MsTick()
+{
+    if (g_bMsLive && ++g_iMsSec % 60 == 0)
+        MsEvent(ME_MINUTE);
+}
+
+/* ---------------- komutlar: harita -> eklenti ---------------- */
+public fw_MsRelayUse(ent, caller, activator, type, Float:value)
+{
+    if (ent > 0 && ent < OVH_MAXENT && g_iMsCmdOf[ent])
+        MsCommand(g_iMsCmdOf[ent] - 1);
+    return HAM_IGNORED;
+}
+
+MsCommand(c)
+{
+    new arg = g_iMsCmdArg[c];
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map komut %d tur=%d arg=%d round=%d", c, g_iMsCmdType[c], arg, g_iMsRound);
+    switch (g_iMsCmdType[c])
+    {
+        case MC_MSG:
+        {
+            new Float:now = get_gametime();
+            if (now < g_fMsCmdNext[c] || now < g_fMsMsgNext)
+                return;
+            g_fMsCmdNext[c] = now + 4.0;
+            g_fMsMsgNext = now + 1.0;
+            for (new id = 1; id <= g_iMax; id++)
+            {
+                if (!is_user_connected(id) || is_user_bot(id))
+                    continue;
+                new l = MsLang(id);
+                HudText(id, SL_ANN, CLR_WARN, 4.0, g_szMsMsg[arg][l]);
+                client_print(id, print_console, "%s", g_szMsMsg[arg][l]);
+            }
+            if (g_szMsSndMsg[0])
+                client_cmd(0, "spk ^"%s^"", g_szMsSndMsg);
+        }
+        case MC_RH, MC_RZ:
+        {
+            if (!get_pcvar_num(g_pMsRewards) || g_bRoundEnded || g_iMsCmdRound[c] == g_iMsRound)
+                return;
+            g_iMsCmdRound[c] = g_iMsRound;
+            new bool:z = g_iMsCmdType[c] == MC_RZ;
+            for (new id = 1; id <= g_iMax; id++)
+            {
+                if (!is_user_alive(id) || (g_bZombie[id] != 0) != z)
+                    continue;
+                AddAP(id, arg, false, true);
+                Chat(id, z ? "MAP_REWARD_Z" : "MAP_REWARD_H", arg);
+            }
+        }
+        case MC_OBJ:
+        {
+            if (g_bMsObjDone[arg])
+                return;
+            g_bMsObjDone[arg] = true;
+            if (arg < g_iMsMkN)
+                MsMkShow(arg, false);
+            if (arg >= g_iMsObjN || !get_pcvar_num(g_pMsObj))
+                return;
+            new bool:all = true;
+            for (new k = 0; k < g_iMsObjN; k++)
+            {
+                if (!g_bMsObjDone[k])
+                    all = false;
+            }
+            for (new id = 1; id <= g_iMax; id++)
+            {
+                if (!is_user_connected(id) || is_user_bot(id))
+                    continue;
+                if (all)
+                    HudToS(id, SL_ALERT, CLR_GOOD, 3.5, "MAP_OBJ_ALL", g_szMsObj[MsLang(id)][arg]);
+                else
+                    HudToS(id, SL_ALERT, CLR_GOOD, 3.5, "MAP_OBJ_DONE_HUD", g_szMsObj[MsLang(id)][arg]);
+                MsShowObjectives(id, !all);
+            }
+            if (g_szMsSndObj[0])
+                client_cmd(0, "spk ^"%s^"", g_szMsSndObj);
+        }
+    }
+}
+
+// Gorev listesi: sohbet (durumla) + DHUD'da ilk acik gorev
+MsShowObjectives(id, bool:hud)
+{
+    new l = MsLang(id), cur = -1, done;
+    Chat(id, "MAP_OBJ_HEAD", g_szMsName[l][0] ? g_szMsName[l] : "-");
+    for (new k = 0; k < g_iMsObjN; k++)
+    {
+        if (g_bMsObjDone[k])
+        {
+            done++;
+            Chat(id, "MAP_OBJ_LINE_DONE", g_szMsObj[l][k]);
+        }
+        else
+        {
+            if (cur < 0)
+                cur = k;
+            if (k < g_iMsMkN && get_pcvar_num(g_pMsMarkers))
+                Chat(id, "MAP_OBJ_LINE_MK", g_szMsObj[l][k], g_szMsMkName[k][l]);
+            else
+                Chat(id, "MAP_OBJ_LINE_OPEN", g_szMsObj[l][k]);
+        }
+    }
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map gorevler #%d: %d/%d tamam, acik=%d", id, done, g_iMsObjN, cur + 1);
+    if (hud && cur >= 0)
+    {
+        new t[128];
+        formatex(t, charsmax(t), "%L", id, "MAP_OBJ_CUR", done + 1, g_iMsObjN, g_szMsObj[l][cur]);
+        HudText(id, SL_PERS, CLR_HUMAN, 6.0, t);
+    }
+}
+
+/* ---------------- hikaye (daktilo) ---------------- */
+MsOnSpawn(id)
+{
+    // vex_map_debug 2: botlar da (sunucu testi; HUD / sohbet botlara zaten gitmez)
+    if (g_bMsSeen[id] || (is_user_bot(id) && get_pcvar_num(g_pMsDebug) < 2) || !g_iMsStoryN[0] || !get_pcvar_num(g_pMsStory))
+        return;
+    g_bMsSeen[id] = true;
+    MsStoryStart(id, 2.0);
+}
+
+MsStoryStart(id, Float:delay)
+{
+    g_iMsStep[id] = g_szMsName[MsLang(id)][0] ? 0 : 1;
+    g_iMsTries[id] = 0;
+    remove_task(TASK_MSSTORY + id);
+    set_task(delay, "task_MsStory", TASK_MSSTORY + id);
+}
+
+MsResetPlayer(id)
+{
+    g_bMsSeen[id] = false;
+    remove_task(TASK_MSSTORY + id);
+}
+
+public task_MsStory(tid)
+{
+    new id = tid - TASK_MSSTORY;
+    if (!is_user_connected(id))
+        return;
+    new l = MsLang(id), step = g_iMsStep[id];
+    if (step > g_iMsStoryN[l])
+        return;
+    new slot = step ? SL_PERS : SL_ANN;
+    new Float:now = get_gametime();
+    // Yuva doluysa (baska bir yazi) kisa bekle: ust uste binmez
+    if (now < g_fSlotEnd[id][slot] && g_iMsTries[id] < 12)
+    {
+        g_iMsTries[id]++;
+        set_task(0.5, "task_MsStory", tid);
+        return;
+    }
+    g_iMsTries[id] = 0;
+    g_iMsStep[id]++;
+    if (!step)
+    {
+        new t[64];
+        formatex(t, charsmax(t), "-=[  %s  ]=-", g_szMsName[l]);
+        HudDraw(id, SL_ANN, CLR_BRAND, 3.0, t);
+        set_task(1.2, "task_MsStory", tid);
+        return;
+    }
+    new text[MS_LEN], len;
+    copy(text, charsmax(text), g_szMsStory[l][step - 1]);
+    len = strlen(text);
+    new Float:type = float(len) * MS_CHART;
+    set_dhudmessage(230, 205, 150, -1.0, SLOT_Y[SL_PERS], 2, 0.4, 2.4, MS_CHART, 0.5);
+    show_dhudmessage(id, "%s", text);
+    g_fSlotEnd[id][SL_PERS] = now + type + 2.4 + 1.0;
+    client_print(id, print_console, "   %s", text);
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map hikaye #%d satir %d/%d: %s", id, step, g_iMsStoryN[l], text);
+    if (g_szMsSndLine[0])
+        client_cmd(id, "spk ^"%s^"", g_szMsSndLine);
+    if (step < g_iMsStoryN[l])
+        set_task(type + 3.0, "task_MsStory", tid);
+}
+
+public cmd_MsStory(id)
+{
+    if (!g_iMsStoryN[0] || !get_pcvar_num(g_pMsStory))
+    {
+        Chat(id, "MAP_NO_STORY");
+        return PLUGIN_HANDLED;
+    }
+    MsStoryStart(id, 0.1);
+    if (g_iMsObjN && get_pcvar_num(g_pMsObj))
+        MsShowObjectives(id, false);
+    return PLUGIN_HANDLED;
+}
+
+
+/* ================================================================== */
 /*  v3.0 (C): HARITA OYLAMASI + ROCK THE VOTE                          */
 /*  - 30 roundluk haritanin vex_map_vote_round. roundunda (varsayilan: */
 /*    son roundan bir onceki) paket haritalari arasinda oylama.        */
@@ -26623,6 +27429,8 @@ public plugin_init()
     RegisterSay("skill2",   "beceri2",   "cmd_skill2");
     // v3.0 (C): harita oylamasi (/nextmap /maps /rtv, vex_mapvote, cvar'lar)
     MapVoteInit();
+    // v3.3: harita senaryosu (MAP_CONTRACT.md: vex_* olaylar, vexcmd_* relay'ler, vexmira_maps/<harita>.ini)
+    MsInit();
 
     // Lazer: V = +setlaser, C = +dellaser (C varsayilan olarak radio3: hedef mayinsa sokulur)
     register_clcmd("+setlaser", "cmd_lm_plant");
@@ -26674,6 +27482,8 @@ public plugin_cfg()
     set_task(1.5, "task_EnforceRoundInfinite", TASK_ROUNDINF);
     set_task(6.0, "task_LoadConfig", TASK_CFGLOAD);
     set_task(30.0, "task_Hostname", TASK_HOSTNAME, _, _, "b");
+    // Haritanin ilk roundu RestartRound'dan gecmeyebilir: round basi olayi bir kez
+    set_task(1.0, "task_MsRoundStart", TASK_MSRS);
 }
 
 public plugin_end()
