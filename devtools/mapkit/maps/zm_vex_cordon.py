@@ -540,7 +540,7 @@ def dress(b):
     SPR((-1552, -104, 200), SODIUM, 0.3, amt=150)
     L((-1824, -48, 200), MOON, 60)
     L((-1296, -432, 200), MOON, 60)
-    for x, y in ((-1940, 40), (-1676, -548), (-1196, -560)):
+    for x, y in ((-1940, 40), (-1676, -548), (-1260, -576)):    # no bin in the plaza mouth (bot snag)
         D(P((x - 0, y, 0), (x + 24, y + 32, 40), RUST))                            # bins
     D(car(-1550, -400, 'y', MDARK))
     D(floor_arrow(-1820, -40, 0, (1, 0)))
@@ -1120,7 +1120,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
       rls=[(Y, 1024, -INF, INF, 448), (Y, -1152, -INF, INF, 640), (X, 1152, -INF, INF, 640),
            (X, 1152, 448, 832, 1152)],                   # tower facade + crown
       holes=[(Y, 1024, -576, -384, 0, 192), (Y, 1024, 384, 576, 0, 192),      # forecourts
-             (X, -1152, 736, 960, 0, 192), (X, -1152, -560, -304, 0, 208),    # arcade, lantern lane
+             (X, -1152, 736, 960, 0, 192), (X, -1152, -576, -288, 0, 208),    # arcade, lantern lane (flush)
              (X, 1152, 96, 352, 0, 128),                                       # lobby glass doors
              (X, 1152, -288, -128, 240, 320), (X, 1152, 176, 336, 240, 320),   # office windows (T1)
              (X, 1152, -560, -400, 0, 208),                                    # south passage t
