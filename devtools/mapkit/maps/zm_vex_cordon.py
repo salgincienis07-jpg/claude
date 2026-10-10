@@ -276,7 +276,7 @@ class Builder:
 
 
 # ==============================================================================================
-def build(mock=False) -> Map:
+def build(mock=False, mock_scale=1.0) -> Map:
     b = Builder(mock)
     Z = b.zone
     X, Y = 'x', 'y'
@@ -518,6 +518,27 @@ def build(mock=False) -> Map:
     # ---------------------------------------------------------------- hidden helicopter hangar
     Z('hangar', [(3584, 2816, 3968, 3200)], 0, 384, NULL, NULL, top=NULL)
 
+    # ============================================================== VIS: extra HINT planes
+    # (mouth hints come from zone(); these split the big open cells into leaves that line up with
+    # the openings, so the long N-S axis Q -> e -> P -> forecourts -> R only marks a narrow strip)
+    def vplane(axis, c, a0, a1, z0, z1):
+        if axis == X:
+            b.hint((c - 4, a0, z0), (c + 4, a1, z1), 'x')
+        else:
+            b.hint((a0, c - 4, z0), (a1, c + 4, z1), 'y')
+    for x in (-384, 384):
+        vplane(X, x, -2560, -1600, -128, 384)          # quay: arcade edges
+        vplane(X, x, -1152, 1024, 0, 640)              # plaza: arch / forecourt lines
+    for x in (-576, 576):
+        vplane(X, x, -1152, 1024, 0, 640)
+        vplane(X, x, 1408, 2496, 0, 448)               # station: forecourt hole edges
+    vplane(Y, 0, -1152, 1152, 0, 640)                  # plaza centre line
+    vplane(X, -1680, -192, 96, 0, 640)                 # lantern lane Z-bend joints
+    vplane(X, -1424, -576, -288, 0, 640)
+    for key, zh in (('P', 232), ('Q', 72), ('R', 200), ('S', 232), ('C', 264), ('A', 216), ('H', 264)):
+        for r in b.zones[key].rects:
+            b.hint((r[0], r[1], zh), (r[2], r[3], zh + 8), 'z')
+
     # ============================================================== brush entities (structural set)
     E = b.ent
     gate = E(door(box((-2768, 2560, 0), (-2512, 2576, 320), RUST), 'up', speed=60, wait=-1, lip=0,
@@ -575,7 +596,7 @@ def build(mock=False) -> Map:
         rng = random.Random(7)
         for key, faces in budgets.items():
             zn = b.zones[key]
-            for _ in range(faces // 5):
+            for _ in range(int(faces * mock_scale) // 5):
                 r = rng.choice(zn.rects)
                 sx, sy = rng.randint(16, 48), rng.randint(16, 48)
                 x = rng.randint(int(r[0]) + 8, int(r[2]) - 8 - sx)
@@ -616,10 +637,10 @@ EYES = [
     (1300, 224, 630, 0, 0),         # T3 roof
     (2368, 900, 54, 270, 0),        # K north cell
     (-2560, -1500, -74, 270, 0),    # F fish market
-    (0, -1250, 30, 270, -10),       # e harbor steps
+    (-256, -1200, 54, 270, -10),    # e harbor steps (west flight, down to the quay arcade)
     (-600, -2100, -74, 0, 0),       # Q toward the bridge gap
     (2368, -1200, -74, 270, 0),     # C terminal from the ramp
-    (1800, 1900, 54, 0, 0),         # H yard
+    (1250, 1700, 54, 20, 0),        # H yard (from the breach side)
 ]
 
 
@@ -629,9 +650,10 @@ def main(argv=None):
     ap.add_argument('--out', default=os.path.join(REPO, 'cstrike', 'maps'))
     ap.add_argument('--preview', default=None)
     ap.add_argument('--mock', action='store_true', help='add mock detail at the spec face budgets (perf test)')
+    ap.add_argument('--mock-scale', type=float, default=1.0, help='mock density as a fraction of the budgets')
     ap.add_argument('--dry', action='store_true')
     a = ap.parse_args(argv)
-    m = build(mock=a.mock)
+    m = build(mock=a.mock, mock_scale=a.mock_scale)
     probs = m.spawn_problems()
     print('pre-compile spawn check:', probs or 'OK', m.stats())
     if a.dry:
