@@ -148,3 +148,8 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   testi (serverD, 16 bot, 3 kosu, 0 hata) b091ca0. Perf: max 1042 / p95 880 / ort 544. Paket $SP/Vexmira_Zombie_v3.3_cordon.zip
   (26.7 MB, $SP/pack33c.sh) sahibine gonderildi. Acik (engel degil): bariyer kolu + pano donus yonu oyun icinde izlenmeli;
   vex_boss_dead / vex_win_humans eklenti tarafi sadece kodla kontrol edildi. Saatlik rutin silindi.
+- 2026-10-10 16:45: sahibin v3.4 sma/cfg'si bizimkiyle birlestirildi (3c0b548, derleniyor, 0 cakisma). Kozmetik ajani
+  (5 kanat + 5 sapka + 5 pet VC ile, mevcut vex_wing/vex_pet/vex_hat sistemiyle; harita havuzundaki olmayan haritalar;
+  [VEXMİRA] onek I harfi; 3-4 ucuz yeni ozellik; VERSION 3.5; test; $SP/pack35.sh -> Vexmira_Zombie_v3.5.zip) sahip
+  kullanimi %98 dedigi icin DURDURULDU; repoda degisiklik yapmamisti. DEVAM: ayni gorevi yeniden baslat (gorev metni bu
+  oturumda; ozet bu satirda).
