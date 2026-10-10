@@ -1275,9 +1275,9 @@ def fun(b):
                  ('s', 1024, 800, 260, 6), ('w', 1152, 640, 300, 7), ('e', -1152, 300, 260, 1)):
         D(isign(*args))
     # CT spawn mission board (neon panel with the route on a mini map), facing the spawn
-    D(wall_plate('w', -1984, 1672, 1864, 60, 252, '~vx_board1', depth=2))    # (readable: 'w' face, u = -y)
-    D(wall_plate('w', -1984, 1480, 1672, 60, 252, '~vx_board2', depth=2))
-    L_b = light((-2040, 1672, 160), (220, 225, 255), 120)
+    D(wall_plate('w', -1984, 1624, 1816, 60, 252, '~vx_board1', depth=2))    # (readable: 'w' face, u = -y)
+    D(wall_plate('w', -1984, 1432, 1624, 60, 252, '~vx_board2', depth=2))
+    L_b = light((-2040, 1624, 160), (220, 225, 255), 120)
     ents.append(L_b)
     # landmark: Vexmira hero statue on the memorial column + VEXMIRA banners on the plaza facades
     for mn, mx in (((-14, -78, 336), (14, -50, 392)), ((-20, -82, 392), (20, -46, 440)),          # legs, torso
