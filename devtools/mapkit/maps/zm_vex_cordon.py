@@ -826,8 +826,8 @@ def dress(b):
     AMB((-2650, 1984, 300), 'cd_siren.wav', 3, 'everywhere', name='cd_siren_all', silent=True)
 
     # ------------------------------------------------------------ hidden hangar (lit for the helicopter body)
-    L((3776, 3008, 300), MOON, 200)
-    L((3776, 3008, 60), MOON, 120)
+    L((3760, 3008, 330), MOON, 220)
+    L((3760, 3008, 30), MOON, 120)
 
     # moon
     ents.append(light_environment(-58, 135, (150, 165, 215), 70, diffuse=(55, 65, 100, 35), origin=(0, 0, 800)))
@@ -920,41 +920,69 @@ def wire(b):
                         (cmd('vexcmd_reward_h_8'), 8.5), (cmd('vexcmd_msg_bridge'), 8.5)])
     pt('multisource', 'cd_ms_bridge', origin=(1104, -1712, 96))
 
-    # ------------------------------------------------------------ SP3 evac beacon + medevac helicopter
+    # ------------------------------------------------------------ SP3 evac beacon + medevac helicopter ride
+    # The beacon calls a medevac that LANDS on the roof pad (deck 16 above the roof: step on), waits 15 s
+    # (path_corner wait) and then flies a slow sightseeing loop until the round ends: out through the
+    # air window in the plaza facade, a low oval over Liberation Plaza (deck z ~265), back up through the
+    # window and a lap over the tower roof. The open deck carries standing players (func_train pushes
+    # riders); 40-high rails with boarding gaps. Zombie launch geysers sit 70-150 units beside the route.
+    # Not passable (riders stand on it), dmg ~0 (blocked = it just waits, never reverses).
     D(P((1648, -112, 576), (1680, -80, 624), MDARK))                                   # beacon console
     button((1656, -104, 624), (1672, -88, 632), 'cd_beacon_btn', 'cd_beacon_mm', master='cd_ms_bridge')
     mm('cd_beacon_mm', [(rel('cd_lt_pad', 1), 0), (rel('cd_pad_red', 0), 0), (rel('cd_pad_grn', 1), 0),
                         (cmd('vexcmd_obj_3_done'), 0.5), (cmd('vexcmd_msg_beacon'), 0.5), (rel('cd_rotor', 1), 10),
-                        ('cd_heli', 14), ('cd_heli_rotor', 14), ('cd_heli_drop_mm', 25)])
-    body = []                                         # built in the sealed hangar, nose to -x
-    body += box((3696, 2976, 160), (3840, 3040, 224), MDARK)                           # cabin
-    body += box((3664, 2984, 168), (3696, 3032, 208), 'vx_glass')                      # cockpit
-    body += box((3840, 3000, 196), (3936, 3016, 212), MDARK)                           # tail boom
-    body += box((3920, 3000, 212), (3936, 3016, 256), HAZ)                             # tail fin
-    for y0 in (2964, 3044):
-        body += box((3704, y0, 144), (3832, y0 + 4, 148), MDARK)                       # skids
-    rotor = prism((3768, 3008), 112, 8, 236, 240, MDARK)
-    bmn, bmx = np.array([3664, 2964, 144]), np.array([3936, 3048, 256])
-    off = np.array([3768, 3008, 238]) - (bmn + bmx) / 2
-    hb = E(Entity('func_train', body, targetname='cd_heli', target='cd_hp0', speed=260, dmg=0, spawnflags=8,
-                  _minlight=0.35))
-    hr = E(Entity('func_train', rotor, targetname='cd_heli_rotor', target='cd_rp0', speed=260, dmg=0,
-                  spawnflags=8, rendermode=2, renderamt=110, _minlight=0.35))
-    path = [((3800, 3006, 200), 3, 0), ((2100, 780, 1400), 2, 0), ((1760, 300, 1050), 0, 120),
-            ((1664, 224, 860), 1, 0), ((1400, -300, 1450), 0, 260)]
-    for pre, shift in (('cd_hp', np.zeros(3)), ('cd_rp', off)):
-        for i, (p, fl, spd) in enumerate(path):
-            e = pt('path_corner', f'{pre}{i}', origin=tuple(np.array(p) + shift),
-                   target=f'{pre}{(i + 1) % len(path)}', spawnflags=fl)
-            if spd:
-                e['speed'] = spd
-    mm('cd_heli_drop_mm', [(cmd('vexcmd_reward_h_15'), 0), (cmd('vexcmd_msg_heli'), 0), ('cd_shake_roof', 0),
-                           ('cd_ms_heli', 0)])
+                        ('cd_heli', 12)])
+    parts = [((-128, -96, -8), (128, 96, 0), {'top': 'vx_metal_floor', 'all': MDARK}),        # open deck
+             ((-112, -80, -15), (112, -72, -8), MDARK), ((-112, 72, -15), (112, 80, -8), MDARK),  # skids
+             ((-176, -64, 0), (-128, 64, 40), MDARK),                                         # cockpit lower
+             ((-176, -64, 40), (-136, 64, 96), 'vx_glass'),                                   # windscreen
+             ((-208, -48, 0), (-176, 48, 56), MDARK),                                         # nose
+             ((-176, -64, 96), (-128, 64, 104), HAZ),                                         # cabin roof
+             ((124, -96, 0), (128, 96, 40), HAZ),                                             # rear rail
+             ((-128, -96, 0), (-64, -92, 40), HAZ), ((64, -96, 0), (124, -92, 40), HAZ),       # side rails
+             ((-128, 92, 0), (-64, 96, 40), HAZ), ((64, 92, 0), (124, 96, 40), HAZ),           # (gaps = doors)
+             ((-158, -6, 104), (-146, 6, 164), MDARK),                                        # rotor mast
+             ((-302, -8, 164), (-2, 8, 168), MDARK), ((-160, -150, 164), (-144, 150, 168), MDARK),  # blades
+             ((128, -8, 24), (304, 8, 44), MDARK),                                            # tail boom
+             ((288, -4, 44), (304, 4, 104), HAZ), ((296, 4, 56), (300, 40, 96), MDARK)]        # fin + tail rotor
+    HG = np.array([3744, 3008, 100])                       # built in the sealed hangar (lit), deck top z 100
+    lmn = np.min([p[0] for p in parts], axis=0)
+    lmx = np.max([p[1] for p in parts], axis=0)
+    cen = (lmn + lmx) / 2.0                                 # func_train puts its bbox centre on the path_corner
+    body = []
+    for mn, mx, tx in parts:
+        body += box(tuple(HG + mn), tuple(HG + mx), tx)
+    E(Entity('func_train', body, targetname='cd_heli', target='cd_hp0', speed=200, dmg=0.001, _minlight=0.3))
+    # (deck centre x, y, deck top z, flags, speed for the next leg, wait, message)
+    route = [((3744, 3008, 100), 0, 0, 0, None),                                       # hp0 hangar (hidden)
+             ((2000, 600, 1200), 2, 200, 0, None),                                     # hp1 appears high NE
+             ((1664, 224, 760), 0, 70, 0, None),                                       # hp2 over the pad
+             ((1664, 224, 592), 0, 50, 15, 'cd_heli_land_mm'),                        # hp3 landed: board!
+             ((1664, 224, 720), 0, 120, 0, 'cd_heli_up_mm'),                          # hp4 lift-off
+             # ---- loop hp5..hp14 (hp14 -> hp5) ----
+             ((850, 200, 720), 0, 110, 0, None),                                       # hp5 through the air window
+             ((650, 400, 270), 0, 120, 0, None),                                       # hp6 down into the plaza
+             ((-760, 400, 260), 0, 120, 0, None),                                      # hp7 north lane (geyser G1)
+             ((-760, -420, 260), 0, 120, 0, None),                                     # hp8 west lane (G2)
+             ((650, -440, 270), 0, 110, 0, None),                                      # hp9 south lane (G3)
+             ((850, 0, 720), 0, 120, 0, None),                                         # hp10 climb to the window
+             ((1400, 0, 720), 0, 110, 0, None),                                        # hp11 over the roof
+             ((1820, -180, 800), 0, 110, 0, None),                                     # hp12 roof SE
+             ((1820, 520, 800), 0, 110, 0, None),                                      # hp13 roof NE (geyser G4)
+             ((1400, 200, 720), 0, 110, 0, None)]                                      # hp14 -> hp5
+    n = len(route)
+    for i, (p, fl, spd, wt, msg) in enumerate(route):
+        nxt = i + 1 if i + 1 < n else 5
+        e = pt('path_corner', f'cd_hp{i}', origin=tuple(np.array(p) + cen), target=f'cd_hp{nxt}', spawnflags=fl)
+        if spd:
+            e['speed'] = spd
+        if wt:
+            e['wait'] = wt
+        if msg:
+            e['message'] = msg
+    mm('cd_heli_land_mm', [(cmd('vexcmd_reward_h_15'), 0), (cmd('vexcmd_msg_heli'), 0), ('cd_shake_roof', 0)])
+    mm('cd_heli_up_mm', [(cmd('vexcmd_msg_heli_go'), 0), ('cd_shake_roof', 0)])
     shake('cd_shake_roof', (1664, 224, 640), 4, 2, 600, freq=60)
-    pt('multisource', 'cd_ms_heli', origin=(1664, 224, 700))
-    pt('game_counter', 'cd_heli_go', target='cd_heli_depart_mm', master='cd_ms_heli', frags=0, health=1,
-       spawnflags=2, origin=(1664, 224, 720))
-    mm('cd_heli_depart_mm', [('cd_heli', 0), ('cd_heli_rotor', 0), (rel('cd_rotor', 0), 9)])
 
     # ------------------------------------------------------------ SP4 train breach (vex_infection)
     td = box((800, 2104, 0), (864, 2112, 96), RUST) + box((812, 2102, 48), (852, 2104, 80), 'vx_glass')
@@ -1157,6 +1185,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
              (X, 1152, 96, 352, 0, 128),                                       # lobby glass doors
              (X, 1152, -288, -128, 240, 320), (X, 1152, 176, 336, 240, 320),   # office windows (T1)
              (X, 1152, -560, -400, 0, 208),                                    # south passage t
+             (X, 1152, -160, 400, 640, 920),                                   # heli air window (roof)
              (Y, -1152, -384, 384, 0, 224)],                                   # harbor steps arch
       out={(X, 1152): PLAST})
     b.D(box((-160, -224, 0), (160, 96, 96), CONC))                   # monument plinth (blockout)
@@ -1287,7 +1316,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(box((-664, -3264, -192), (-536, -3136, 448), CONC))         # lighthouse (blockout)
 
     # ---------------------------------------------------------------- hidden helicopter hangar
-    Z('hangar', [(3584, 2816, 3968, 3200)], 0, 384, NULL, NULL, top=NULL)
+    Z('hangar', [(3456, 2752, 4080, 3264)], 0, 384, NULL, NULL, top=NULL)
 
     # ============================================================== VIS: extra HINT planes
     # (mouth hints come from zone(); these split the big open cells into leaves that line up with
