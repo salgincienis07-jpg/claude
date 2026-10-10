@@ -1824,6 +1824,34 @@ def t_signs(rng, w, h):
     return grain(img, rng, 0.02)
 
 
+@tex('~vx_objsign', 128, 128, 'cordon', light=(255, 235, 200, 260), desc='objective route signs (lit), 4 rows of 128x32: 1 TRAFO (amber), 2 KOPRU (cyan), 3 CATI (green), ZIPLA! launch pad (magenta)')
+def t_objsign(rng, w, h):
+    rows = [('1', 'TRAFO', (150, 95, 10)), ('2', 'KOPRU', (10, 95, 135)), ('3', 'CATI', (20, 120, 40)),
+            ('^', 'ZIPLA!', (125, 25, 115))]
+    img = np.zeros((h, w, 3), F)
+    for i, (num, word, col) in enumerate(rows):
+        sub = steel(32, w, rng, col, brushed=True)
+        yy, xx = np.mgrid[0:32, 0:w].astype(F)
+        disc = (np.hypot(xx - 16, yy - 16) < 13).astype(F)
+        sub = mix(sub, fill(32, w, (245, 240, 225)), disc)
+        cv = Canvas(32, w)
+        if num == '^':
+            cv.poly([(16, 6), (25, 18), (19, 18), (19, 26), (13, 26), (13, 18), (7, 18)])
+        else:
+            cv.text(num, 12, 7, 18, 3.2, spacing=1.0)
+        sub = mix(sub, fill(32, w, col) * 0.6, cv.mask())
+        cv2 = Canvas(32, w)
+        th = min(18.0, 88 / max(1e-3, text_width(word, 1.0, 1.1)))
+        cv2.text(word, 34, (32 - th) / 2, th, max(2.0, th * 0.18), spacing=1.1)
+        m = cv2.mask()
+        sub = sub + glow(m, 2, (255, 255, 230), 0.35)
+        sub = mix(sub, fill(32, w, (255, 252, 235)), m)
+        fr = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= 30)).astype(F)
+        sub = mix(sub, fill(32, w, (240, 240, 230)), fr * 0.8)
+        img[i * 32:(i + 1) * 32] = np.clip(sub, 0, 1)
+    return grain(img, rng, 0.015)
+
+
 @tex('{vx_scorch', 128, 128, 'decal', desc='burn / blast scorch decal (masked)')
 def t_scorch(rng, w, h):
     ys, xs = np.mgrid[0:h, 0:w].astype(F)

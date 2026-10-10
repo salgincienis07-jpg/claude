@@ -1073,6 +1073,164 @@ def wire(b):
 
 
 # ==============================================================================================
+# STAGE 4 (owner feedback): launch pads + geysers, objective guidance, collapses, moving things
+# ----------------------------------------------------------------------------------------------
+OBJ = '~vx_objsign'
+
+
+def launch(vh, vz, d):
+    """trigger_push speed + angles for a launch of horizontal speed vh along d=(dx, dy) and vertical vz."""
+    sp = math.hypot(vh, vz)
+    pitch = -math.degrees(math.atan2(vz, vh))
+    yaw = math.degrees(math.atan2(d[1], d[0])) if vh else 0
+    return round(sp), f'{pitch:.1f} {yaw:.1f} 0'
+
+
+def osign(face, line, a, z, row, arrow=None, w=192, h=48):
+    """Objective sign (~vx_objsign row 0-3, 192x48) centred at `a` along the wall, with an optional
+    green arrow plate on the side the world direction `arrow` points to."""
+    out = wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, OBJ, depth=4, row=row)
+    if arrow is not None:
+        along = arrow[0] if face in ('n', 's') else arrow[1]
+        b0 = a + w / 2 + 8 if along > 0 else a - w / 2 - 8 - h
+        out += wall_plate(face, line, b0, b0 + h, z, z + h, ARROW, depth=4, arrow=(arrow[0], arrow[1], 0))
+    return out
+
+
+def fun(b):
+    D, W, E, ents = b.D, b.W, b.ent, b.ents
+
+    def pt(cls, name=None, **kw):
+        e = Entity(cls, **kw)
+        if name:
+            e['targetname'] = name
+        ents.append(e)
+        return e
+
+    def mm(name, seq, origin=(0, 0, 64)):
+        e = pt('multi_manager', name, origin=origin)
+        for tgt, dl in seq:
+            e[tgt] = dl
+        return e
+
+    # ------------------------------------------------------------ pads: lit slab, jet beam (env_beam), light, hiss
+    nb = [0]
+
+    SKIPF = os.environ.get('FUNSKIP', '')
+
+    def pad(x, y, z, kind, d=None, r=40):
+        nb[0] += 1
+        if 'pads' in SKIPF:
+            return
+        col = (60, 220, 255) if kind == 'go' else (255, 50, 40)
+        # one lit slab: cyan light panel = shortcut launch pad, red = zombie heli-access geyser (zombies take
+        # no fall damage in this mod; a human who rides a red geyser lands back with ~40 damage)
+        D(box((x - r, y - r, z), (x + r, y + r, z + 2),
+              {'top': '~vx_light_c' if kind == 'go' else LRED, 'bottom': NULL, 'all': HAZ}))
+        a, bb = f'cd_jet{nb[0]}a', f'cd_jet{nb[0]}b'
+        pt('info_target', a, origin=(x, y, z + 6))
+        if d is None:
+            end = (x, y, z + 300)
+        else:
+            end = (x + d[0] * 150, y + d[1] * 150, z + 170)
+        pt('info_target', bb, origin=end)
+        pt('env_beam', LightningStart=a, LightningEnd=bb, spawnflags=1, life=0, NoiseAmplitude=6, BoltWidth=48,
+           texture='sprites/laserbeam.spr', rendercolor=col, renderamt=110, TextureScroll=60, damage=0,
+           Radius=64, StrikeTime=0, origin=(x, y, z + 6))
+        ents.append(light((x, y, z + 48), col, 110))
+        ents.append(ambient((x, y, z + 24), 'vexmira/map/cd_jet.wav', 4, 'small'))
+
+    def push(boxes, speed, angles):
+        tb = []
+        for mn, mx in boxes:
+            tb += box(mn, mx, 'AAATRIGGER')
+        E(Entity('trigger_push', tb, speed=speed, angles=angles))
+
+    # S1 Liberation Plaza -> Customs Tower roof, through the medevac air window (apex ~z 780, lands ~x 1530)
+    pad(400, 120, 0, 'go', (1, 0))
+    sp, an = launch(540, 1120, (1, 0))
+    push([((368, 88, 0), (432, 152, 40))], sp, an)
+    D(osign('w', 1152, 120, 500, 3))                                   # ZIPLA! over the lobby (pad's target)
+    # S2 Substation express: supply-alley mouth -> gantry deck z 160 (breaker B)
+    pad(-2112, 940, 0, 'go', (0, -1))
+    sp, an = launch(580, 760, (0, -1))
+    push([((-2144, 908, 0), (-2080, 972, 40))], sp, an)
+    # S3/S4 Quay express (both ways along the quay, low arc: safe landing)
+    pad(-1560, -2050, -128, 'go', (1, 0))
+    pad(560, -1960, -128, 'go', (-1, 0))
+    sp, an = launch(1250, 560, (1, 0))
+    push([((-1592, -2082, -128), (-1528, -2018, -88))], sp, an)
+    sp, an = launch(1250, 560, (-1, 0))
+    push([((528, -1992, -128), (592, -1928, -88))], sp, an)
+    D(osign('s', -1600, -1200, -40, 3, (1, 0)))
+    D(osign('s', -1600, 760, -40, 3, (-1, 0)))
+    # heli-access geysers (zombies): straight up, apex ~ +380, beside the medevac route
+    G = [(-300, 600, 0), (-1040, 0, 0), (250, -660, 0), (2060, 170, 576)]
+    for x, y, z in G:
+        pad(x, y, z, 'z')
+    push([((x - 32, y - 32, z), (x + 32, y + 32, z + 40)) for x, y, z in G], 780, '-90 0 0')
+
+    # ------------------------------------------------------------ objective guidance (numbered, colour-coded)
+    for args in (
+            ('n', 1408, -2496, 150, 0, (1, 0)),        # A CT spawn: 1 TRAFO -> supply alley / command post
+            ('s', 1024, -2400, 140, 0, (-1, 0)),       # S north wall: switch house is west
+            ('w', -1984, 360, 230, 1, (0, -1)),        # S east wall: 2 KOPRU -> lantern lane
+            ('n', -640, -2700, 250, 1, (-1, 0)),       # S south wall: 2 KOPRU -> stair lane
+            ('e', -1152, -100, 230, 1, (0, -1)),       # P west: 2 KOPRU -> harbor steps
+            ('n', -1152, 640, 250, 1, (-1, 0)),        # P south wall: -> arch
+            ('s', 1024, -100, 230, 2, (1, 0)),         # P north: 3 CATI -> tower
+            ('s', -1600, 560, 40, 1, (1, 0)),         # Q arcade: 2 KOPRU -> cabin
+            ('s', -1088, 1900, 40, 2, (1, 0)),         # C: 3 CATI -> Kade ramp
+            ('e', 2176, 330, 130, 2, (0, -1)),         # Km: 3 CATI -> fire escape
+            ('w', 2560, -500, 140, 2, (0, 1)),         # Ks: 3 CATI -> north
+    ):
+        if 'signs' not in SKIPF:
+            D(osign(*args))
+
+    # ------------------------------------------------------------ moving things (always on, no reset needed)
+    ORG = 'ORIGIN'
+    if 'moving' in SKIPF:
+        return
+    dish = box((1300, 600, 1160), (1324, 680, 1216), MDARK) + box((1306, 636, 1152), (1318, 644, 1160), MDARK) + \
+        box((1308, 636, 1180), (1316, 644, 1188), ORG)
+    E(Entity('func_rotating', dish, speed=40, spawnflags=1, _minlight=0.3))   # radar dish on the crown
+    trol = box((2440, -2016, 424), (2504, -1984, 446), MDARK) + box((2468, -2004, 376), (2476, -1996, 424), MDARK) + \
+        box((2420, -2040, 336), (2524, -1960, 376), 'vx_cont_red')
+    pt('path_corner', 'cd_trol0', origin=(2472, -2000, 391), target='cd_trol1', wait=2)
+    pt('path_corner', 'cd_trol1', origin=(2730, -2000, 391), target='cd_trol0', wait=2)
+    E(Entity('func_train', trol, target='cd_trol0', speed=40, spawnflags=8, dmg=0.001, _minlight=0.2))
+    lamp = box((-700, 1796, 380), (-692, 1804, 444), MDARK) + \
+        box((-716, 1780, 360), (-676, 1820, 380), {'bottom': '~vx_light_w', 'all': MDARK}) + \
+        box((-700, 1796, 436), (-692, 1804, 444), ORG)
+    E(Entity('func_pendulum', lamp, speed=30, distance=30, damp=0, spawnflags=1 + 8 + 64, _minlight=0.5))
+
+    # ------------------------------------------------------------ timed collapses after freeze end (once per round;
+    # func_door(_rotating) wait -1 are restored by the game on round restart; dmg 0 = blocked just waits)
+    def boom(name, p, mag, snd_name):
+        pt('env_explosion', name + '_fx', origin=p, iMagnitude=mag, spawnflags=3)
+        pt('env_shake', name + '_sh', origin=p, amplitude=9, duration=1.5, radius=1400, frequency=40)
+        ents.append(ambient(p, 'vexmira/map/cd_boom.wav', 10, 'large', False, True, snd_name))
+    # C1 Kade: radio mast crashes across the north road
+    mast = box((2360, 1192, 0), (2376, 1208, 400), RUST) + box((2340, 1196, 360), (2396, 1204, 368), RUST) + \
+        box((2364, 1196, 4), (2372, 1204, 12), ORG)
+    E(Entity('func_door_rotating', mast, targetname='cd_mast', distance=88, speed=70, wait=-1, dmg=0, lip=0,
+             movesnd=0, stopsnd=0, spawnflags=64, _minlight=0.2))
+    boom('cd_mast', (2368, 1100, 40), 80, 'cd_boom_kn')
+    # C2 station: hanging departure board slams down onto the platform
+    E(Entity('func_door', box((-760, 1490, 260), (-440, 1506, 330), SIGNS), targetname='cd_board', speed=500,
+             wait=-1, lip=-190, dmg=0, movesnd=0, stopsnd=0, angles=(0, -2, 0), _minlight=0.2))
+    boom('cd_board', (-600, 1520, 40), 50, 'cd_boom_rb')
+    # C3 container terminal: the crane drops a container (from z 300 to the deck)
+    E(Entity('func_door', box((2830, -2060, 300), (2900, -1940, 400), 'vx_cont_blue'), targetname='cd_drop',
+             speed=600, wait=-1, lip=-328, dmg=0, movesnd=0, stopsnd=0, angles=(0, -2, 0), _minlight=0.2))
+    boom('cd_drop', (2865, -2000, -100), 70, 'cd_boom_c')
+    mm('vex_freeze_end', [('cd_mast', 50), ('cd_mast_fx', 50.8), ('cd_mast_sh', 50.8), ('cd_boom_kn', 50.8),
+                          ('cd_board', 95), ('cd_board_fx', 95.3), ('cd_board_sh', 95.3), ('cd_boom_rb', 95.3),
+                          ('cd_drop', 140), ('cd_drop_fx', 140.7), ('cd_drop_sh', 140.7), ('cd_boom_c', 140.7)],
+       origin=(0, 0, 300))
+
+
+# ==============================================================================================
 def build(mock=False, mock_scale=1.0) -> Map:
     b = Builder(mock)
     Z = b.zone
@@ -1114,7 +1272,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
       holes=[(X, -2752, 576, 704, 0, 128), (Y, 384, -3040, -2912, 0, 128)])
     # gantry deck z 160 (camp C3): stairs N end (CLIP ramp), ladder S end
     b.W(box((-2272, -512, 144), (-2048, 480, 160), MDARK))
-    b.W(stairs((-2144, 800, 0), '-y', 128, 160, rise=8, run=16, tex=MDARK, clip=True))
+    b.W(stairs((-2144, 800, 0), '-y', 128, 160, rise=16, run=32, tex=MDARK, clip=True))
     b.W(box((-2192, -512, 0), (-2128, -496, 144), MDARK))            # ladder back plate
     b.ladder('S', (-2160, -512, 0), '+y', 164)
     for x, y in ((-2264, -500), (-2064, -500), (-2264, 460), (-2064, 460), (-2264, -20), (-2064, -20)):
@@ -1185,8 +1343,8 @@ def build(mock=False, mock_scale=1.0) -> Map:
              (X, 1152, 96, 352, 0, 128),                                       # lobby glass doors
              (X, 1152, -288, -128, 240, 320), (X, 1152, 176, 336, 240, 320),   # office windows (T1)
              (X, 1152, -560, -400, 0, 208),                                    # south passage t
-             (X, 1152, -160, 400, 640, 920),                                   # heli air window (roof)
-             (Y, -1152, -384, 384, 0, 224)],                                   # harbor steps arch
+             *([] if os.environ.get('NOWIN') else [(X, 1152, -160, 400, 640, 920)]),  # heli air window (roof)
+             (Y, -1152, -384, 384, 0, 136)],                                   # harbor steps arch (low: cuts the Q-e-P sight line)
       out={(X, 1152): PLAST})
     b.D(box((-160, -224, 0), (160, 96, 96), CONC))                   # monument plinth (blockout)
 
@@ -1260,9 +1418,9 @@ def build(mock=False, mock_scale=1.0) -> Map:
     Z('e', [(-384, -1584, 384, -1168)], -128, 640, CRACK, FAC, rl=320,
       holes=[sk(Y, -1168, h0=0), sk(Y, -1584)])
     b.W(box((-384, -1232, -128), (384, -1168, 0), CRACK))            # top landing (plaza level)
-    b.W(box((-128, -1520, -128), (128, -1232, 192), CONC))           # memorial block (VIS blocker)
+    b.W(box((-128, -1520, -128), (128, -1232, 448), CONC))           # memorial block (VIS blocker, tall: breaks the Q-e-P axis)
     for xc in (-256, 256):
-        b.W(stairs((xc, -1488, -128), '+y', 256, 128, rise=8, run=16, tex=CRACK, clip=True))
+        b.W(stairs((xc, -1488, -128), '+y', 256, 128, rise=16, run=32, tex=CRACK, clip=True))
 
     # ---------------------------------------------------------------- quay + bridge cabin + canal
     Z('Q', [(-1776, -2560, 1152, -1600)], -128, 768, CONC, FAC, rl=384,
@@ -1273,7 +1431,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(box((912, -1792, -128), (1152, -1600, 0), CONC))             # cabin base
     Z('cab', [(928, -1776, 1136, -1616)], 0, 128, MDARK, CORR, top={'bottom': MDARK, 'all': CORR},
       holes=[(X, 928, -1760, -1664, 0, 112), (Y, -1776, 960, 1120, 48, 112)])
-    b.W(stairs((656, -1712, -128), '+x', 96, 128, rise=8, run=16, tex=CONC, clip=True))
+    b.W(stairs((656, -1712, -128), '+x', 96, 128, rise=16, run=32, tex=CONC, clip=True))
     Z('~', [(1168, -2560, 1328, -1600)], -224, 768, 'vx_rock', CONC, rl=384,
       holes=[sk(X, 1168, h0=-128), sk(X, 1328, h0=-128), sk(Y, -2560, h0=-192)])
     b.W(box((1168, -2560, -224), (1328, -1600, -176), WATER))        # wading water (48 deep)
@@ -1374,6 +1532,8 @@ def build(mock=False, mock_scale=1.0) -> Map:
     dress(b)
     # ============================================================== stage 3: interactivity + story wiring
     wire(b)
+    if not os.environ.get('NOFUN'):
+        fun(b)
 
     # ============================================================== mock detail (perf check only)
     if mock:
@@ -1563,6 +1723,14 @@ def make_sounds(out=SOUND_DIR):
     x = fx.mix((b, 0, 1.0), (cr, 0.0, 0.6), (deb, 0.15, 0.8))
     x = fx.reverb(fx.lp(x, 3500), 2.2, 0.35)
     made.append(('cd_boom.wav', fx.write_wav3(os.path.join(out, 'cd_boom.wav'), x, max_len=3.0)))
+    # --- cd_jet: launch geyser / pad - pressurised hiss + low rumble, slow pulse (1.2 s loop, 11025)
+    sec, rng = 1.2, np.random.default_rng(7107)
+    n = int(sr * sec)
+    t = np.arange(n) / sr
+    x = 0.6 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 2600) / 1800) ** 2))
+    x += 0.5 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 90) / 70) ** 2))
+    x *= 0.75 + 0.25 * np.sin(2 * np.pi * t / sec * 3)
+    made.append(('cd_jet.wav', _write_loop(os.path.join(out, 'cd_jet.wav'), x * 0.8, sr)))
     return made
 
 
