@@ -153,6 +153,10 @@ def custom_resources(map_text: str) -> List[str]:
         if path.lower().startswith(_STOCK_PREFIX) or 'vexmira' not in path.lower():
             continue
         out.append(path)
+    # custom (non-stock) skybox: clients must download the 6 TGAs
+    m = re.search(r'"skyname"\s+"([^"]+)"', map_text)
+    if m and 'vexmira' in m.group(1).lower():
+        out += [f'gfx/env/{m.group(1)}{s}.tga' for s in ('rt', 'lf', 'up', 'dn', 'ft', 'bk')]
     return sorted(set(out))
 
 
@@ -301,7 +305,7 @@ def compile_map(src: Union[str, 'object'], quality: str = 'normal', out_dir: Opt
             resf = os.path.join(out_dir, name + '.res')
             if custom:
                 with open(resf, 'w', newline='\n') as fh:
-                    fh.write(f'// {name} custom resources (textures are embedded, sky is stock)\n')
+                    fh.write(f'// {name} custom resources (textures are embedded)\n')
                     for c in custom:
                         fh.write(c + '\n')
             elif os.path.exists(resf):
