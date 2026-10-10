@@ -1,0 +1,53 @@
+=====================================================================
+  VEXMIRA ZOMBIE v3.5
+=====================================================================
+Senin v3.4 sma / cfg dosyanin uzerine kuruldu (harita senaryosu ve ozel
+gokyuzu ile birlestirildi). Derleme 0 hata / 0 uyari. Gercek ReHLDS
+sunucusunda zm_vex_cordon + 8 bot ile test edildi: 0 calisma hatasi.
+KURULUM: "cstrike" klasorunu sunucuyla birlestir; vexmira.cfg ve dil
+dosyasini YENISIYLE DEGISTIR. Hazir eklenti: plugins/vexmira_zombie.amxx
+FastDL: models/vexmira/cos/ klasorunu de FastDL'e koy.
+
+YENI: 15 KOZMETIK (Vex Coin ile, kalici) - models/vexmira/cos/
+ KANATLAR (sirtta, yavas cirpar)
+  1 Melek Kanadi      500 VC        2 Seytan Kanadi    800 VC
+  3 Siber Kanat      1000 VC        4 Anka Kanadi     1200 VC (VIP)
+  5 Bosluk Kristali  1500 VC (VIP)
+ SAPKALAR (kafanin ustunde)
+  1 Kovboy Sapkasi    150 VC        2 Viking Migferi   300 VC
+  3 Hale (doner)      450 VC        4 Neon Boynuz      600 VC (tas doner)
+  5 Kral Taci        1000 VC (VIP)
+ PETLER (yaninda suzulur, animasyonlu)
+  1 Mini Drone (pervaneler doner)   400 VC
+  2 Hayalet Kedi (kuyruk sallar)    600 VC
+  3 Alevli Kafatasi (cene, alev)    800 VC
+  4 Vex Goz (halka doner)          1000 VC (VIP)
+  5 Yavru Ejderha (kanat cirpar)   1500 VC (VIP)
+ Fiyat / VIP / konum / olcek / animasyon: vexmira.cfg "KOZMETIK MODELLER"
+ (vex_wing / vex_hat / vex_pet satirlari). Model dosyasi yoksa satir
+ menude gizlenir ve indirilmez. Her model 26-56 KB (toplam ~0.6 MB).
+ Kanatlarda seq 0 = yavas cirpma, seq 1 = hizli cirpma.
+ Menu: /kozmetik /kanat /sapka /pet  (ana menu -> Kozmetik)
+
+YENI OZELLIKLER (hepsi cfg'den acilip kapanir)
+- SATIN ALMA ONAYI: kozmetige tiklayinca once "Satin al / Onumde goster /
+  Geri" menusu acilir; yanlislikla VC harcanmaz.
+- VITRIN (vex_cos_preview 10): model 10 sn oyuncunun onunde doner, sadece
+  o gorur, VC harcamaz. 0 = kapali.
+- GUNUN FIRSATI (vex_cos_daily_deal 25): her gun sirayla bir kanat / pet /
+  sapka yuzde 25 indirimli; menude "-25%" yazar. 0 = kapali.
+- KOZMETIK GIZLE (vex_cos_hide 1): /kozmetik menusunde "Diger oyuncularin
+  kanat / pet / sapkasi: acik / gizli" secenegi (dusuk FPS icin), kaydedilir.
+
+HARITA DUZELTMELERI
+- vex_map_pool artik sadece var olan haritalar: zm_vex_cordon
+  zm_vex_laboratory. maps/ klasorunde olmayan harita oylamada otomatik
+  atlanir. Yeni harita: .bsp'yi cstrike/maps/ icine koy, adini listeye ekle.
+- Harita senaryosu (configs/vexmira_maps/zm_vex_cordon.ini) yukleniyor;
+  cvar / dil anahtarlari tam. vex_weather cfg'ye eklendi.
+- Sohbet oneki "^4[VEXMIRA]^1" oldu (Turkce noktali I, CS 1.6 sohbetinde
+  bozuk karakter olarak gorunuyordu).
+
+DIGER
+- Eski test satirlari (Test Wing / Missing / Test Pet / Test Hat) silindi.
+- Surum 3.5.
