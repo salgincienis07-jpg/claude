@@ -158,6 +158,7 @@ class Builder:
         self.zones = {}
         self.ents = []
         self.lad_vis = {}      # area -> ladder visual brushes (one masked func_illusionary per area)
+        self._hints = set()
 
     # ------------------------------------------------------------------ primitives
     def W(self, bl):
@@ -175,7 +176,7 @@ class Builder:
                 self.W(box((x0, y0, z0), (x1, y1, z1), SKY))
 
     def zone(self, key, rects, z0, z1, floor, wall, top=SKY, rl=None, rls=(), holes=(), out=None,
-             top_holes=(), top_sky=(), omit=()):
+             top_holes=(), top_sky=(), omit=(), hint_z=None):
         """Sealed cell. rects: (x0,y0,x1,y1) interior; rl: default roofline (facade below, sky above,
         None = z1); rls: (axis, line, a0, a1, rl) roofline spans; holes: (axis, line, a0, a1, h0, h1)
         absolute (line = interior boundary coordinate); out: {(axis, line): tex} outer face texture."""
@@ -224,6 +225,26 @@ class Builder:
                 zs = _solid(0, 1, z0, z1, [(0, 1, h0, h1) for h0, h1 in col_holes])
                 for _, _, s0, s1 in zs:
                     self.W(box((mn[0], mn[1], s0), (mx[0], mx[1], s1), tin if s1 <= max(rl, z0) else SKY))
+        # VIS: HINT plane in every finite opening (splits the zone exactly at its mouth) ...
+        for h in holes:
+            axis, line, a0, a1, h0, h1 = h
+            if a0 <= -INF or a1 >= INF or h0 <= -INF or h1 >= INF or h1 >= z1:
+                continue
+            seg = next((sg for sg in segs if sg[0] == axis and sg[1] == line and sg[2] <= a0 and sg[3] >= a1), None)
+            if seg is None:
+                continue
+            c0, c1 = _band(axis, line, seg[4])
+            mn = (c0, a0, max(h0, z0)) if axis == 'x' else (a0, c0, max(h0, z0))
+            mx = (c1, a1, min(h1, z1)) if axis == 'x' else (a1, c1, min(h1, z1))
+            key = (mn, mx)
+            if key not in self._hints:
+                self._hints.add(key)
+                self.hint(mn, mx, axis)
+        # ... and an optional horizontal plane at header height (separates the open air above
+        # the headers from the street level, so the leaves people stand in see less)
+        if hint_z is not None:
+            for r in rects:
+                self.hint((r[0], r[1], hint_z), (r[2], r[3], hint_z + 8), 'z')
         return zn
 
     def tunnel(self, axis, a0, a1, b0, b1, z0, z1, wall, floor, ceil):
@@ -576,8 +597,8 @@ def build(mock=False) -> Map:
 # --at checkpoints (spec section 12; eye z = floor + 54)
 CHECKPOINTS = [
     ('A', (-2900, 1700, 54)), ('M1', (-1600, 2016, 54)), ('R', (0, 1950, 54)), ('R T-spawn', (540, 1600, 54)),
-    ('S', (-2600, 200, 54)), ('gantry', (-2160, 0, 214)), ('P centre', (0, -64, 54)), ('P NW', (-1000, 900, 54)),
-    ('T3 pad', (1664, 224, 630)), ('K', (2368, 100, 54)), ('F', (-2560, -1700, -74)), ('e', (0, -1300, -20)),
+    ('S', (-2600, 200, 54)), ('gantry', (-2160, 0, 214)), ('P centre', (0, -400, 54)), ('P NW', (-1000, 900, 54)),
+    ('T3 pad', (1664, 224, 630)), ('K', (2368, 100, 54)), ('F', (-2560, -1700, -74)), ('e', (-256, -1200, 54)),
     ('Q', (0, -2100, -74)), ('C', (2600, -1900, -74)), ('crane', (2650, -2000, 310)),
 ]
 # eye shots: (x, y, z, yaw, pitch), one per district

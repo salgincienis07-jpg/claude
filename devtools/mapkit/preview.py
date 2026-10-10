@@ -63,7 +63,9 @@ class OrthoCam:
     def rays(self, xs, ys):
         a = (xs - self.ox) / self.scale
         b = -(ys - self.oy) / self.scale
-        O = a[..., None] * self.r + b[..., None] * self.u
+        # start the rays far behind the scene: a ray plane through the origin hid everything
+        # in front of it (e.g. all faces above z 0 in the top view)
+        O = a[..., None] * self.r + b[..., None] * self.u - 16384.0 * self.d
         D = np.broadcast_to(self.d, O.shape)
         return O, D
 
