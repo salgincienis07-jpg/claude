@@ -1081,12 +1081,31 @@ def wire(b):
 OBJ = '~vx_objsign'
 
 
-def launch(vh, vz, d):
-    """trigger_push speed + angles for a launch of horizontal speed vh along d=(dx, dy) and vertical vz."""
-    sp = math.hypot(vh, vz)
-    pitch = -math.degrees(math.atan2(vz, vh))
-    yaw = math.degrees(math.atan2(d[1], d[0])) if vh else 0
-    return round(sp), f'{pitch:.1f} {yaw:.1f} 0'
+G_UP = 3200      # one vertical push field for every geyser / trampoline: apex above the pad = H * G_UP / 800
+
+
+def launch(H, apex, vh, d):
+    """trigger_push for a directional launch pad. GoldSrc applies a push field's vertical component as an
+    ACCELERATION (pm_shared PM_AddCorrectGravity adds basevelocity.z * frametime, then clears it) and the
+    horizontal part as a conveyor speed (+ momentum when leaving). A field H high accelerating at a (net of
+    gravity 800) releases the player at v = sqrt(2 a H), apex = H + v^2 / 1600, after t = sqrt(2 H / a),
+    while it carries him vh * t forward: returns (speed, angles, field length along d)."""
+    v = math.sqrt(1600.0 * (apex - H))
+    a = v * v / (2.0 * H)
+    t = math.sqrt(2.0 * H / a)
+    sz = a + 800.0
+    sp = math.hypot(vh, sz)
+    pitch = -math.degrees(math.atan2(sz, vh))
+    yaw = math.degrees(math.atan2(d[1], d[0]))
+    return round(sp), f'{pitch:.1f} {yaw:.1f} 0', vh * t
+
+
+def lane(x, y, z, d, H, L, w=32):
+    """Push field box starting on the pad (x, y) and running L (+w) along d, H high."""
+    L = int(math.ceil(L / 16.0) * 16)
+    x1, y1 = x + d[0] * (L + w), y + d[1] * (L + w)
+    return ((min(x - w, x1 - w * abs(d[1])) if d[0] == 0 else min(x - w * d[0], x1), min(y - w, y1) if d[1] else y - w, z),
+            (max(x + w, x1 + w * abs(d[1])) if d[0] == 0 else max(x - w * d[0], x1), max(y + w, y1) if d[1] else y + w, z + H))
 
 
 def osign(face, line, a, z, row, arrow=None, w=192, h=48):
@@ -1118,6 +1137,11 @@ def fun(b):
         for tgt, dl in seq:
             e[tgt] = dl
         return e
+
+    def cmd(name):
+        if not any(e.props.get('targetname') == name and e.props['classname'] == 'trigger_relay' for e in ents):
+            pt('trigger_relay', name, triggerstate=2, origin=(0, 0, 96))
+        return name
 
     # ------------------------------------------------------------ pads: lit slab, jet beam (env_beam), light, hiss
     nb = [0]
@@ -1154,27 +1178,27 @@ def fun(b):
 
     # S1 Liberation Plaza -> Customs Tower roof, through the medevac air window (apex ~z 780, lands ~x 1530)
     pad(400, 120, 0, 'go', (1, 0))
-    sp, an = launch(540, 1120, (1, 0))
-    push([((368, 88, 0), (432, 152, 40))], sp, an)
+    sp, an, L = launch(200, 900, 320, (1, 0))
+    push([lane(400, 120, 0, (1, 0), 200, L)], sp, an)
     D(osign('w', 1152, 120, 500, 3))                                   # ZIPLA! over the lobby (pad's target)
     # S2 Substation express: supply-alley mouth -> gantry deck z 160 (breaker B)
     pad(-2112, 940, 0, 'go', (0, -1))
-    sp, an = launch(580, 760, (0, -1))
-    push([((-2144, 908, 0), (-2080, 972, 40))], sp, an)
+    sp, an, L = launch(90, 360, 800, (0, -1))
+    push([lane(-2112, 940, 0, (0, -1), 90, L)], sp, an)
     # S3/S4 Quay express (both ways along the quay, low arc: safe landing)
     pad(-1560, -2050, -128, 'go', (1, 0))
     pad(560, -1960, -128, 'go', (-1, 0))
-    sp, an = launch(1250, 560, (1, 0))
-    push([((-1592, -2082, -128), (-1528, -2018, -88))], sp, an)
-    sp, an = launch(1250, 560, (-1, 0))
-    push([((528, -1992, -128), (592, -1928, -88))], sp, an)
+    sp, an, L = launch(60, 200, 1250, (1, 0))
+    push([lane(-1560, -2050, -128, (1, 0), 60, L)], sp, an)
+    sp, an, L = launch(60, 200, 1250, (-1, 0))
+    push([lane(560, -1960, -128, (-1, 0), 60, L)], sp, an)
     D(osign('s', -1600, -1200, -40, 3, (1, 0)))
     D(osign('s', -1600, 760, -40, 3, (-1, 0)))
     # heli-access geysers (zombies): straight up, apex ~ +380, beside the medevac route
     G = [(-300, 600, 0), (-1040, 0, 0), (250, -660, 0), (2060, 170, 576)]
     for x, y, z in G:
         pad(x, y, z, 'z')
-    push([((x - 32, y - 32, z), (x + 32, y + 32, z + 40)) for x, y, z in G], 780, '-90 0 0')
+    ups = [((x - 32, y - 32, z), (x + 32, y + 32, z + 150)) for x, y, z in G]         # measured apex ~ +380
 
     # ------------------------------------------------------------ objective guidance (numbered, colour-coded)
     for args in (
@@ -1192,6 +1216,88 @@ def fun(b):
     ):
         if 'signs' not in SKIPF:
             D(osign(*args))
+
+    # ------------------------------------------------------------ travel moments (owner: one every ~600-900
+    # units of every main route): trigger_multiple (wait = cooldown) -> multi_manager. Sounds are only game
+    # sounds every map already precaches (bspcheck GAME_BASE_SOUNDS) or ours: no new precache slots.
+    def snd(name, p, wav, vol=10, rad='medium'):
+        ents.append(ambient(p, wav, vol, rad, False, True, name))
+
+    def trig(mn, mx, target, wait):
+        E(Entity('trigger_multiple', box(mn, mx, 'AAATRIGGER'), target=target, wait=wait))
+
+    def puff(name, p):                      # dust puff: env_explosion smoke only (no fireball / damage / decal)
+        pt('env_explosion', name, origin=p, iMagnitude=40, spawnflags=1 + 2 + 4 + 16)
+
+    def jolt(name, p, amp=5, rad=500):
+        pt('env_shake', name, origin=p, amplitude=amp, duration=0.8, radius=rad, frequency=60)
+
+    # M1 market: something bangs on the pharmacy shutter from inside (dust + shake)
+    snd('cd_s_bang1', (-1660, 2236, 64), 'debris/wood1.wav')
+    snd('cd_s_bang2', (-1660, 2236, 64), 'debris/wood2.wav')
+    snd('cd_s_bang3', (-1660, 2236, 64), 'common/bodysplat.wav')
+    puff('cd_s_bpuff', (-1664, 2232, 100))
+    jolt('cd_s_bshk', (-1664, 2200, 64))
+    mm('cd_s_bang_mm', [('cd_s_bang1', 0), ('cd_s_bshk', 0), ('cd_s_bang2', 0.5), ('cd_s_bang3', 1.1),
+                        ('cd_s_bpuff', 1.1), ('cd_s_bang1#2', 1.9)])
+    trig((-1840, 1900, 0), (-1700, 2150, 72), 'cd_s_bang_mm', 25)
+    # command post: the lights flicker and die, come back 3 s later (+ sparks)
+    lt = light((-2752, 1216, 160), (255, 200, 140), 160, targetname='cd_lt_cpflk')
+    ents.append(lt)
+    snd('cd_s_spark', (-2752, 1216, 150), 'buttons/spark5.wav', 8)
+    mm('cd_s_flk_mm', [('cd_lt_cpflk', 0), ('cd_s_spark', 0), ('cd_lt_cpflk#2', 0.15), ('cd_lt_cpflk#3', 0.3),
+                       ('cd_lt_cpflk#4', 0.55), ('cd_lt_cpflk#5', 0.7), ('cd_lt_cpflk#6', 3.2)])
+    trig((-2900, 1120, 0), (-2600, 1320, 72), 'cd_s_flk_mm', 20)
+    # lantern lane: a silhouette crosses the far end of the Z-bend and vanishes behind the corner
+    sil = box((-1552, -42, 0), (-1548, 2, 80), {'all': NULL, 'e': '{vx_shadow', 'w': '{vx_shadow'})
+    sil[0].fit_faces(('e', 'w'))
+    E(Entity('func_train', sil, targetname='cd_shadow', target='cd_shp0', speed=220, spawnflags=8,
+             rendermode=4, renderamt=255, dmg=0))
+    pt('path_corner', 'cd_shp0', origin=(-1550, 60, 40), target='cd_shp1', spawnflags=1)
+    pt('path_corner', 'cd_shp1', origin=(-1550, -420, 40), target='cd_shp0', spawnflags=1)
+    snd('cd_s_step', (-1550, -150, 40), 'common/npc_step2.wav', 8)
+    mm('cd_s_shadow_mm', [('cd_shadow', 0), ('cd_s_step', 0.4), ('cd_s_step#2', 1.0)])
+    trig((-1960, -180, 0), (-1880, 90, 72), 'cd_s_shadow_mm', 30)
+    # fish market: the skylight bursts and glass rains down
+    sky = E(glass(box((-2990, -1790, 236), (-2710, -1610, 240), 'vx_glass'), health=20))
+    sky['targetname'], sky['spawnflags'] = 'cd_skylight', 1
+    jolt('cd_s_skshk', (-2850, -1700, -100), 4)
+    mm('cd_s_sky_mm', [('cd_skylight', 0), ('cd_s_skshk', 0)])
+    trig((-2990, -1790, -128), (-2710, -1610, -56), 'cd_s_sky_mm', 5)
+    # field hospital: the ward's side door bursts open as you pass (stays open for the round)
+    dd = box((2240, 1900, 0), (2368, 1908, 128), 'vx_door_metal')
+    dd[0].fit_faces(('n', 's'))
+    E(Entity('func_door_rotating', dd + box((2240, 1900, 60), (2248, 1908, 68), 'ORIGIN'), targetname='cd_burst',
+             distance=100, speed=400, wait=-1, dmg=0, lip=0, movesnd=0, stopsnd=0, spawnflags=2, _minlight=0.2))
+    snd('cd_s_door1', (2304, 1904, 64), 'common/bodysplat.wav')
+    snd('cd_s_door2', (2304, 1904, 64), 'debris/wood3.wav')
+    puff('cd_s_dpuff', (2304, 1880, 60))
+    jolt('cd_s_dshk', (2304, 1880, 60), 6)
+    mm('cd_s_door_mm', [('cd_s_door2', 0), ('cd_s_dshk', 0), ('cd_s_door2#2', 0.7), ('cd_burst', 1.3),
+                        ('cd_s_door1', 1.3), ('cd_s_dpuff', 1.3)])
+    trig((2180, 1620, 0), (2440, 1840, 72), 'cd_s_door_mm', 30)
+
+    # fun: shootable hazard barrels (smoke burst + a little ammo, once per round each)
+    for i, (x, y, z) in enumerate(((-900, -240, 0), (2050, -1620, -128))):
+        e = E(Entity('func_breakable', box((x - 16, y - 16, z), (x + 16, y + 16, z + 44),
+                                           {'top': MDARK, 'all': HAZ}), material=0, health=40,
+                     target=f'cd_barrel{i}_mm', _minlight=0.2))
+        pt('env_explosion', f'cd_barrel{i}_fx', origin=(x, y, z + 30), iMagnitude=35, spawnflags=1 + 2 + 16)
+        mm(f'cd_barrel{i}_mm', [(f'cd_barrel{i}_fx', 0), (cmd(f'vexcmd_reward_h_{i + 1}'), 0.2)])
+    # fun: trampolines (one entity): station -> train car 2 roof, terminal -> container stack, Kade -> balcony
+    tramp = [(200, 2104, 0), (2050, -1690, -128), (2330, -60, 0)]
+    for x, y, z in tramp:
+        D(box((x - 28, y - 28, z), (x + 28, y + 28, z + 2), {'top': CHEV, 'bottom': NULL, 'all': HAZ}))
+    ups += [((x - 24, y - 24, z), (x + 24, y + 24, z + 75)) for x, y, z in tramp]      # measured apex ~ +170
+    push(ups, G_UP, '-90 0 0')
+    # fun: lobby vending machine (use it: clunk + a little ammo, 30 s cooldown)
+    D(P((2096, 200, 0), (2160, 280, 104), 'vx_cont_red', hide=('bottom', 'e')))
+    D(wall_plate('w', 2096, 210, 270, 70, 98, '~vx_light_w', depth=2))
+    E(Entity('func_button', box((2092, 226, 40), (2096, 254, 60), HAZ), target='cd_vend_mm', wait=30, speed=50,
+             lip=2, angles=(0, 0, 0), sounds=0, _minlight=0.5))
+    snd('cd_s_vend', (2090, 240, 30), 'items/gunpickup2.wav', 8, 'small')
+    snd('cd_s_vend2', (2090, 240, 30), 'common/bodydrop3.wav', 8, 'small')
+    mm('cd_vend_mm', [('cd_s_vend2', 0.3), ('cd_s_vend', 0.6), (cmd('vexcmd_reward_h_3'), 0.6)])
 
     # ------------------------------------------------------------ moving things (always on, no reset needed)
     ORG = 'ORIGIN'

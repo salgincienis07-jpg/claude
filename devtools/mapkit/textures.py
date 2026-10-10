@@ -1895,6 +1895,20 @@ def t_chev(rng, w, h):
     return frames
 
 
+@tex('{vx_shadow', 64, 128, 'decal', desc='masked shambling zombie silhouette (dark, ragged edge), for a passing figure')
+def t_shadow(rng, w, h):
+    cv = Canvas(h, w)
+    cv.poly([(27, 10), (37, 9), (40, 20), (36, 27), (46, 34), (55, 58), (50, 60), (43, 42), (42, 70),
+             (47, 98), (49, 124), (41, 124), (35, 96), (31, 80), (26, 98), (21, 124), (13, 124), (17, 95),
+             (21, 70), (20, 44), (8, 52), (4, 48), (17, 32), (25, 27), (23, 19)])
+    m = cv.mask()
+    m = np.clip(m + (value_noise(h, w, 8, 16, rng) > 0.8) * blur(m, 2.0) * 0.8, 0, 1)
+    img = np.zeros((h, w, 4), F)
+    img[..., :3] = fill(h, w, (12, 10, 12)) + value_noise(h, w, 4, 8, rng)[..., None] * 0.05
+    img[..., 3] = (m > 0.5).astype(F)
+    return img
+
+
 @tex('{vx_scorch', 128, 128, 'decal', desc='burn / blast scorch decal (masked)')
 def t_scorch(rng, w, h):
     ys, xs = np.mgrid[0:h, 0:w].astype(F)
