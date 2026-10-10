@@ -57,6 +57,8 @@ Olaylar: round_start freeze_end infection boss boss_dead nemesis assassin surviv
   Satir icinde " ;" yorum baslatir. Eksik dil diger dilden doldurulur.
 - Hikaye/gorev kapatma ve test: cvar'lar vex_map_story / vex_map_objectives / vex_map_markers /
   vex_map_rewards / vex_map_events / vex_map_debug (vexmira.cfg), sunucu komutu vex_map_status.
+- Test (devtools/server): vexmira.cfg ~13 sn sonra yeniden yuklenir, vex_map_debug 2 komutunu ondan sonra ver;
+  botlar sohbet komutu kullanamaz: hikaye icin `vexprobe_call #1 cmd_MsStory`; relay icin `vexprobe_fire vexcmd_...`.
 
 ## Round sifirlama
 trigger_once kalici olarak silinir. Her round calismasi gereken set piece'ler icin func_button / trigger_multiple /
