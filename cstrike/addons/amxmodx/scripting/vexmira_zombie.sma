@@ -4748,6 +4748,17 @@ PickSky()
     if (mode <= 0)
         return;
 
+    // Haritanin kendine ozel (stok olmayan) gokyuzu varsa ona dokunma: worldspawn skyname,
+    // plugin_precache aninda sv_skyname'e yazilmis olur (orn. zm_vex_cordon -> vexmira_night).
+    new own[32];
+    get_cvar_string("sv_skyname", own, charsmax(own));
+    if (own[0] && !IsStockSky(own) && SkyExists(own))
+    {
+        copy(g_szSky, charsmax(g_szSky), own);
+        log_amx("[Vexmira] haritanin ozel gokyuzu korunuyor: %s", own);
+        return;
+    }
+
     new list[256], names[16][32], n, pos, tmp[32];
     copy(list, charsmax(list), GetResString("SKY_LIST", ""));
     while (n < sizeof names && (pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
@@ -4772,6 +4783,23 @@ PickSky()
         formatex(path, charsmax(path), "gfx/env/%s%s.tga", g_szSky, SIDE[i]);
         PcGeneric(path);
     }
+}
+
+// Oyunla gelen (CS 1.6 / HL) gokyuzleri; bunlarin disindakiler haritaya ozel sayilir
+bool:IsStockSky(const name[])
+{
+    static const STOCK[][] =
+    {
+        "desert", "city", "night", "space", "cx", "office", "de_storm", "backalley", "morning", "green",
+        "snow", "tornsky", "trainyard", "2desert", "cliff", "hav", "dusk", "neb6", "xen9", "alien1",
+        "alien2", "alien3", "black", "blue", "grnplsnt"
+    };
+    for (new i = 0; i < sizeof STOCK; i++)
+    {
+        if (equali(name, STOCK[i]))
+            return true;
+    }
+    return false;
 }
 
 // 6 yuzun hepsi sunucuda olmali (eksik dosya oyuncuyu "failed to transmit" ile atar)

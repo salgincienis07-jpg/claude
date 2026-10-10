@@ -170,7 +170,7 @@ class Zone:
 
 class Builder:
     def __init__(self, mock=False):
-        self.m = Map(NAME + ('_mock' if mock else ''), sky='night', tex_scale=TEX_SCALE)
+        self.m = Map(NAME + ('_mock' if mock else ''), sky='vexmira_night', tex_scale=TEX_SCALE)
         self.mock = mock
         self.det = []          # func_detail
         self.zones = {}
@@ -1003,6 +1003,31 @@ def wire(b):
         box((-550, -3204, 464), (-350, -3196, 476), '~vx_light_w') + \
         box((-604, -3204, 466), (-596, -3196, 474), ORG)
     E(Entity('func_rotating', beam, speed=30, spawnflags=1, rendermode=5, renderamt=50, _minlight=1))
+
+    # ------------------------------------------------------------ sky effects (vexmira_night sky, always on)
+    # Military searchlights in the no-man's land vista: vertical additive beams swinging east-west
+    # (func_pendulum, pitch axis 128 + start on 1 + passable 8), seen over the quarantine wall from Gate 7.
+    # They never stop, so the round reset needs nothing.
+    for x, spd, dist in ((-2900, 14, 22), (-2350, 11, 24)):
+        sb = box((x - 10, 2890, 140), (x + 10, 2910, 980), {'top': NULL, 'bottom': NULL, 'all': '~vx_light_w'}) + \
+            box((x - 4, 2896, 116), (x + 4, 2904, 124), ORG)
+        E(Entity('func_pendulum', sb, speed=spd, distance=dist, damp=0, spawnflags=1 + 8 + 128,
+                 rendermode=5, renderamt=55, rendercolor='200 215 255', _minlight=1))
+    # Distant lightning: env_beam random strikes (start on 1 + random 4) between random start/end
+    # info_targets of the same name, every 0..StrikeTime s, in the north vista and over the bay.
+    for tag, starts, ends, col in (
+            ('v', ((-3150, 3120, 1100), (-2250, 3150, 1090), (-2700, 3100, 1110)),
+             ((-2950, 3170, 380), (-2550, 3180, 440), (-2100, 3150, 320)), '200 170 255'),
+            ('b', ((-1800, -3350, 1100), (300, -3300, 1110), (2600, -3350, 1090)),
+             ((-1200, -3420, -150), (900, -3420, -150), (2200, -3400, -150)), '170 200 255')):
+        for p in starts:
+            pt('info_target', f'cd_bolt_{tag}0', origin=p)
+        for p in ends:
+            pt('info_target', f'cd_bolt_{tag}1', origin=p)
+        pt('env_beam', LightningStart=f'cd_bolt_{tag}0', LightningEnd=f'cd_bolt_{tag}1', spawnflags=1 + 4,
+           life=0.3, StrikeTime=9, NoiseAmplitude=120, BoltWidth=28, texture='sprites/laserbeam.spr',
+           rendercolor=col, renderamt=230, TextureScroll=35, damage=0, Radius=256,
+           origin=starts[0])
 
     # ------------------------------------------------------------ round reset (vex_round_start, idempotent)
     reset = [(rel(g, 0), 0) for g in GRP] + [(rel(s, 0), 0) for s in LOOPS]

@@ -37,6 +37,8 @@ SKY = 'sky'
 BEVEL = 'BEVEL'
 
 # Stock skies shipped with every CS 1.6 install (gfx/env/<name>{bk,dn,ft,lf,rt,up}.tga)
+# our own skies shipped in cstrike/gfx/env (6 TGAs each, listed in the map's .res; bspcheck verifies the files)
+CUSTOM_SKIES = ('vexmira_night',)
 STOCK_SKIES = ('desert', 'city', 'night', 'space', 'cx', 'office', 'de_storm', 'backalley',
                'morning', 'green', 'snow', 'tornsky', 'trainyard', '2desert', 'cliff', 'hav',
                'dusk', 'neb6', 'xen9', 'alien1', 'alien2', 'alien3', 'black', 'blue', 'grnplsnt')
@@ -386,8 +388,8 @@ class Map:
 
     def __init__(self, name: str, sky: str = 'night', wads: Sequence[str] = (), message: str = '',
                  extra: Optional[dict] = None, tex_scale: Optional[Dict[str, float]] = None):
-        if sky not in STOCK_SKIES:
-            raise ValueError(f'sky {sky!r} is not a stock CS sky {STOCK_SKIES}')
+        if sky not in STOCK_SKIES and sky not in CUSTOM_SKIES:
+            raise ValueError(f'sky {sky!r} is neither a stock CS sky {STOCK_SKIES} nor a shipped custom sky {CUSTOM_SKIES}')
         self.name = name
         self.world = Entity('worldspawn', mapversion=220, skyname=sky, wad=';'.join(wads),
                             message=message or name, MaxRange=8192)

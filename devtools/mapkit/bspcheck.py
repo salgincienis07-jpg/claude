@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import struct
 import sys
 from typing import Dict, List, Optional, Tuple
@@ -68,6 +69,23 @@ TEX_SPECIAL = 1
 STOCK_SKIES = {'desert', 'city', 'night', 'space', 'cx', 'office', 'de_storm', 'backalley', 'morning', 'green',
                'snow', 'tornsky', 'trainyard', '2desert', 'cliff', 'hav', 'dusk', 'neb6', 'xen9', 'alien1',
                'alien2', 'alien3', 'black', 'blue', 'grnplsnt'}
+# our own skies (6 TGAs under cstrike/gfx/env, shipped + listed in the map .res); --allow-sky adds more
+CUSTOM_SKIES = {'vexmira_night'}
+ALLOW_SKIES = set()
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+
+
+def sky_files(sky):
+    return [os.path.join(REPO_ROOT, 'cstrike', 'gfx', 'env', f'{sky}{s}.tga') for s in ('rt', 'lf', 'up', 'dn', 'ft', 'bk')]
+
+
+def _tga24_ok(path):
+    with open(path, 'rb') as f:
+        h = f.read(18)
+    w, hh = h[12] | h[13] << 8, h[14] | h[15] << 8
+    return len(h) == 18 and h[2] == 2 and h[16] == 24 and w == hh and w <= 512 and os.path.getsize(path) >= 18 + w * hh * 3
+
+
 # static (at compile position) solid brush entities that can trap a spawn
 SOLID_BRUSH_CLASSES = {'func_wall', 'func_breakable', 'func_door', 'func_door_rotating', 'func_pushable',
                        'func_button', 'func_wall_toggle', 'func_conveyor', 'momentary_door'}
@@ -286,7 +304,18 @@ def check(path: str, min_spawns: int = 32, spacing: float = 48.0, perf: bool = T
         errs.append(f'worldspawn wad key not empty: {ws.get("wad")}')
     sky = ws.get('skyname', '')
     if sky.lower() not in STOCK_SKIES:
-        errs.append(f'skyname {sky!r} is not a stock CS sky (clients would need a download)')
+        if sky.lower() in CUSTOM_SKIES or sky.lower() in ALLOW_SKIES:
+            miss = [f for f in sky_files(sky) if not os.path.isfile(f)]
+            if miss:
+                errs.append(f'custom sky {sky!r}: missing {", ".join(os.path.relpath(f, REPO_ROOT) for f in miss)}')
+            else:
+                bad = [os.path.basename(f) for f in sky_files(sky) if not _tga24_ok(f)]
+                if bad:
+                    errs.append(f'custom sky {sky!r}: not 24-bit uncompressed square TGA <= 512: {bad}')
+                warns.append(f'custom sky {sky!r} (6 TGAs shipped in cstrike/gfx/env; list them in the map .res)')
+        else:
+            errs.append(f'skyname {sky!r} is not a stock CS sky (clients would need a download; '
+                        f'ship it under cstrike/gfx/env and add it to CUSTOM_SKIES or pass --allow-sky)')
     info['skyname'] = sky
 
     # ---------------- faces: extents + lightmaps
@@ -1429,6 +1458,8 @@ def main(argv=None):
     ap.add_argument('bsp', nargs='+')
     ap.add_argument('--json', action='store_true', help='print the full report (incl. perf + budget) as JSON')
     ap.add_argument('--min-spawns', type=int, default=32)
+    ap.add_argument('--allow-sky', action='append', default=[], metavar='NAME',
+                    help='accept this non-stock skyname (its 6 TGAs must exist under cstrike/gfx/env)')
     g = ap.add_argument_group('performance / budget')
     g.add_argument('--no-perf', action='store_true', help='skip the rendering-cost analysis')
     g.add_argument('--perf-only', action='store_true', help='print only the perf + budget part')
@@ -1449,6 +1480,7 @@ def main(argv=None):
                    help='also print PVS + view numbers at this eye position (repeatable); with engine angles '
                         '(pitch > 0 = down, as getpos / vexcam_pos) also that exact view')
     a = ap.parse_args(argv)
+    ALLOW_SKIES.update(s.lower() for s in a.allow_sky)
     opts = {'warn_p95': a.perf_warn, 'error_max': a.perf_error, 'metric': a.perf_metric, 'strict': not a.perf_lenient,
             'fov': a.fov, 'aspect': a.aspect, 'yaws': a.yaws, 'spacing': a.spacing, 'max_brush_ents': a.max_brush_ents,
             'max_map_sounds': a.max_map_sounds, 'max_bsp_mb': a.max_bsp_mb}
