@@ -521,10 +521,13 @@ def dress(b):
     L((-3180, 520, 130), RED, 60)
     SPR((-2816, -312, 214), CYAN, 0.5, name='cd_arc', fx=2)                        # transformer arc
     L((-2816, -312, 230), CYAN, 140)
-    SPR((-2976, 884, 92), RED, 0.15, name='cd_brk_a_red')
-    SPR((-2976, 884, 92), (60, 255, 80), 0.15, name='cd_brk_a_grn', on=False)
-    SPR((-2248, -480, 244), RED, 0.15, name='cd_brk_b_red')
-    SPR((-2248, -480, 244), (60, 255, 80), 0.15, name='cd_brk_b_grn', on=False)
+    # indicator lamps sit ON the panel / post face (1-2 units out of it), clear of the button travel
+    D(P((-2980, 886, 96), (-2972, 888, 104), '~vx_light_r', hide=('n',)))
+    SPR((-2976, 885, 100), RED, 0.15, name='cd_brk_a_red')
+    SPR((-2976, 885, 100), (60, 255, 80), 0.15, name='cd_brk_a_grn', on=False)
+    D(P((-2252, -490, 229), (-2244, -488, 235), '~vx_light_r', hide=('s',)))
+    SPR((-2248, -487, 232), RED, 0.15, name='cd_brk_b_red')
+    SPR((-2248, -487, 232), (60, 255, 80), 0.15, name='cd_brk_b_grn', on=False)
     D(lamp_post(-2560, 720, arm=(0, -40)))
     D(lamp_post(-2400, -500, arm=(0, 40)))
     SW((-2560, 680, 196), SODIUM, 220, 'cd_lt_west')
@@ -599,8 +602,9 @@ def dress(b):
     for p in ((-560, 1650, 300), (560, 1650, 300), (-300, 2250, 300), (500, 2250, 300)):
         e = SW(p, RED, 260, 'cd_lt_alarm')
         e['pattern'] = 'aaaazzzz'
-    SPR((-1076, 1984, 380), RED, 0.4, name='cd_alarm_spr', on=False, fx=4)
-    SPR((1076, 1984, 380), RED, 0.4, name='cd_alarm_spr', on=False, fx=4)
+    for x, face in ((-1088, 'e'), (1088, 'w')):                                   # alarm beacons on the side walls
+        D(emer(face, x, 1984, 372))
+        SPR((x + (10 if face == 'e' else -10), 1984, 380), RED, 0.4, name='cd_alarm_spr', on=False, fx=4)
     for x, y in ((1040, 2300), (980, 2200), (880, 2100), (760, 1980), (640, 1880), (520, 1820)):
         DEC((x, y, 1), '{blood1' if x > 800 else '{blood2')                        # trail from the breach
     DEC((1060, 2160, 1), '{scorch1')
@@ -609,7 +613,7 @@ def dress(b):
     D(sign('n', 1408, -400, 220, 2))                                               # CUSTOMS TOWER -> forecourts
     D(sign('n', 1408, 900, 220, 2))
     AMB((0, 1950, 300), 'cd_wind.wav', 5, pitch=80)
-    AMB((0, 1700, 300), 'cd_siren.wav', 7, name='cd_siren_st', silent=True)
+    AMB((0, 1700, 300), 'cd_siren.wav', 4, name='cd_siren_st', silent=True)
     AMB((1000, 2200, 100), 'cd_boom.wav', 10, name='cd_boom_st', silent=True, loop=False)
     # forecourts
     for xm in (-576, 576):
@@ -679,7 +683,7 @@ def dress(b):
     DEC((-200, 200, 1), '{bigblood2')
     DEC((300, -300, 1), '{blood6')
     AMB((0, 0, 300), 'cd_wind.wav', 7)
-    AMB((0, 0, 400), 'cd_siren.wav', 8, name='cd_siren_pz', silent=True)
+    AMB((0, 0, 400), 'cd_siren.wav', 4, name='cd_siren_pz', silent=True)
     AMB((0, 200, 300), 'cd_boom.wav', 10, name='cd_boom_pz', silent=True, loop=False)
 
     # ------------------------------------------------------------ T Customs Tower
@@ -709,9 +713,10 @@ def dress(b):
         SW((x, y, 610), (120, 255, 140), 120, 'cd_lt_pad')
     D(P((1900, 600, 576), (2050, 720, 640), CORR))                                 # AC units
     D(P((1250, -300, 576), (1400, -200, 624), CORR))
-    SPR((1520, 80, 600), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)
-    SPR((1808, 368, 600), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)
-    SPR((1664, -96, 640), RED, 0.25, name='cd_pad_red')
+    SPR((1504, 64, 595), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)    # on the pad corner posts
+    SPR((1824, 384, 595), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)
+    D(P((1660, -80, 606), (1668, -78, 614), '~vx_light_r', hide=('s',)))          # lamp on the beacon console front
+    SPR((1664, -77, 610), RED, 0.25, name='cd_pad_red')
     L((1664, 224, 800), MOON, 140)
     AMB((1664, 224, 700), 'cd_rotor.wav', 10, name='cd_rotor', silent=True)
     AMB((1664, 224, 450), 'cd_hum.wav', 5, 'medium', name='cd_hum', silent=True)
@@ -775,12 +780,14 @@ def dress(b):
     D(floor_arrow(600, -1712, -128, (1, 0)))
     D(floor_arrow(-1650, -2100, -128, (1, 0)))
     D(floor_arrow(0, -1700, -128, (1, 0)))
-    SPR((1104, -1756, 62), RED, 0.15, name='cd_cab_red')
-    SPR((1104, -1756, 62), (60, 255, 80), 0.15, name='cd_cab_grn', on=False)
+    D(P((1100, -1744, 24), (1108, -1742, 32), '~vx_light_r', hide=('s',)))       # lamp on the console front
+    SPR((1104, -1741, 28), RED, 0.15, name='cd_cab_red')
+    SPR((1104, -1741, 28), (60, 255, 80), 0.15, name='cd_cab_grn', on=False)
     L((1032, -1696, 90), (255, 200, 150), 70)
     for y in (-1840, -2256):
         D(P((1136, y - 16, -128), (1168, y + 16, 384), RUST))                       # bridge towers
-        SPR((1152, y, 400), (255, 200, 40), 0.5, name='cd_bridge_spr', on=False, fx=4)
+        D(P((1144, y - 8, 384), (1160, y + 8, 392), LRED, hide=()))      # warning lamp cap
+        SPR((1152, y, 392), (255, 200, 40), 0.5, name='cd_bridge_spr', on=False, fx=4)
     SW((1248, -2048, 200), SODIUM, 160, 'cd_lt_harbor')
     AMB((0, -2100, 0), 'cd_harbor.wav', 7)
     AMB((-800, -2100, 0), 'cd_wind.wav', 4)
@@ -816,7 +823,7 @@ def dress(b):
     for x in (-2900, -2400):
         SW((x, 2700, 200), WHITE, 260, 'cd_lt_flood_out')
     AMB((-2650, 2400, 300), 'cd_boom.wav', 5, 'everywhere', name='cd_boom_far', silent=True, loop=False)
-    AMB((-2650, 1984, 300), 'cd_siren.wav', 6, 'everywhere', name='cd_siren_all', silent=True)
+    AMB((-2650, 1984, 300), 'cd_siren.wav', 3, 'everywhere', name='cd_siren_all', silent=True)
 
     # ------------------------------------------------------------ hidden hangar (lit for the helicopter body)
     L((3776, 3008, 300), MOON, 200)
@@ -955,7 +962,7 @@ def wire(b):
     boomfx('cd_breach_fx', (832, 2090, 48), 60)
     shake('cd_shake_st', (500, 2000, 64), 10, 1.5, 1600)
     mm('vex_infection', [('cd_train_door', 0), ('cd_breach_fx', 0), ('cd_shake_st', 0), ('cd_boom_st', 0),
-                         (rel('cd_lt_alarm', 1), 0.3), (rel('cd_alarm_spr', 1), 0.3), (rel('cd_siren_st', 1), 1),
+                         (rel('cd_lt_alarm', 1), 0.3), (rel('cd_alarm_spr', 1), 0.3), (rel('cd_siren_st', 1), 1), (rel('cd_siren_st', 0), 9),
                          (cmd('vexcmd_msg_breach'), 1.5)])
     rel('cd_siren_st', 0)                                                              # ini: infection 30
 
@@ -966,7 +973,7 @@ def wire(b):
     rotdoor(bb, (-640, -868, 172), 'cd_billboard', 85, 64, 140)                        # roll: falls south
     boomfx('cd_billboard_fx', (-640, -900, 200), 50)
     shake('cd_shake_pz', (0, 0, 64), 8, 2, 2000)
-    mm('vex_boss', [(rel('cd_lt_plaza', 0), 0), (rel('cd_lt_plazared', 1), 0), (rel('cd_siren_pz', 1), 0),
+    mm('vex_boss', [(rel('cd_lt_plaza', 0), 0), (rel('cd_lt_plazared', 1), 0), (rel('cd_siren_pz', 1), 0), (rel('cd_siren_pz', 0), 8),
                     ('cd_shake_pz', 0), ('cd_boom_pz', 0), (cmd('vexcmd_msg_boss'), 1)])
     mm('cd_billboard_mm', [('cd_billboard', 0), ('cd_boom_pz', 0.7), ('cd_shake_pz', 0.7), ('cd_billboard_fx', 0.7)])
     pt('game_counter', 'cd_plaza_gate', target=rel('cd_lt_plaza', 1), master='cd_ms_power', frags=0, health=1,
@@ -994,9 +1001,10 @@ def wire(b):
                           (cmd('vexcmd_msg_blackout'), 1)])
     for nm in ('vex_nemesis', 'vex_assassin'):
         pt('trigger_relay', nm, target='cd_blackout_mm', triggerstate=2, origin=(0, 0, 112))
-    mm('vex_lasthuman', [('cd_blackout_mm', 0), (rel('cd_siren_all', 1), 1), (rel('cd_lt_plazared', 1), 1)])
+    mm('vex_lasthuman', [('cd_blackout_mm', 0), (rel('cd_siren_all', 1), 1), (rel('cd_siren_all', 0), 8),
+                         (rel('cd_lt_plazared', 1), 1)])
     mm('vex_win_zombies', [('cd_blackout_mm', 0), (rel('cd_lt_alarm', 1), 0), (rel('cd_lt_plazared', 1), 0),
-                           (rel('cd_siren_all', 1), 0)])
+                           (rel('cd_siren_all', 1), 0), (rel('cd_siren_all', 0), 6)])
 
     # ------------------------------------------------------------ lighthouse beam (always turning)
     beam = box((-850, -3204, 464), (-650, -3196, 476), '~vx_light_w') + \
