@@ -4,7 +4,8 @@ quarantine wall (flagship map). Build spec: maps/zm_vex_cordon_SPEC.md (binding)
     cd devtools && python3 -m mapkit.maps.zm_vex_cordon [--quality draft|normal|final] [--preview DIR]
                                                         [--mock] [--dry]
 
-STAGE 1 (this file so far): blockout at final scale + VIS structure + spawns.
+STAGE 1 + 2 (this file so far): blockout + VIS + spawns; detail, textures, lighting, sprites, ambience, sounds
+(`--sounds` resynthesises cstrike/sound/vexmira/map/cd_*.wav). Stage 3 wires the set-piece chains.
 Every district is a sealed, sky-capped cell (outdoor) or a ceilinged room (indoor); districts are
 joined only by low openings (headers <= 256) placed off-axis, by short tunnels or dog-legs, so VIS
 keeps every view small. Levels: city z 0, harbor z -128, tower floors 0/192/384, roof 576.
@@ -32,8 +33,14 @@ import os
 import random
 import sys
 
-from ..mapwriter import (CLIP, NULL, Brush, Entity, Map, box, door, glass, ladder, light, light_environment,
-                         masked_entity, spawn_grid, stairs, wedge)
+import math
+import struct
+
+import numpy as np
+
+from ..mapwriter import (CLIP, NULL, Brush, Entity, Map, ambient, box, crate, door, env_sprite, glass, ladder, light,
+                         light_environment, light_spot, masked_entity, prism, readable_axes, spawn_grid, stairs,
+                         wedge)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
@@ -44,8 +51,18 @@ INF = 100000
 SKY = 'sky'
 HINT, SKIP = 'HINT', 'SKIP'
 
-# stand-in palette (stage 2 swaps in vx_facade / vx_quar_wall / vx_shopfront / vx_tarp / vx_bay ...)
-FAC = 'vx_brick_dark'
+# palette (spec section 11): wet night city under quarantine
+FAC = 'vx_facade'
+BRICK = 'vx_brick_dark'
+QUAR = 'vx_quar_wall'
+SHOP = 'vx_shopfront'
+TARP = 'vx_tarp'
+SIGNS = 'vx_signs'
+ARROW = '~vx_arrow'
+HAZ = 'vx_trim_hazard'
+MIL = 'vx_crate_mil'
+LRED = '~vx_light_r'
+BAY = 'vx_bay'
 CONC = 'vx_conc_stain'
 CRACK = 'vx_conc_crack'
 ASPH = 'vx_asphalt'
@@ -57,7 +74,8 @@ CORR = 'vx_metal_corr'
 BUNK = 'vx_bunker'
 WATER = '!vx_water_dk'
 
-TEX_SCALE = {ASPH: 2, CRACK: 2, CONC: 2, FAC: 2, 'vx_dirt': 2}
+TEX_SCALE = {ASPH: 2, CRACK: 2, CONC: 2, FAC: 2, QUAR: 2, BAY: 4, BRICK: 1.5, TARP: 2, CORR: 2, PLAST: 1.5,
+             'vx_dirt': 2, 'vx_rock': 2}
 
 
 # ==============================================================================================
@@ -276,6 +294,539 @@ class Builder:
 
 
 # ==============================================================================================
+# STAGE 2: dressing (func_detail props, signage, decals), lighting, sprites, ambience
+# ----------------------------------------------------------------------------------------------
+def P(mn, mx, tex, hide=('bottom',)):
+    """Prop box; faces in `hide` (resting on the floor / against a wall) are NULL (never drawn)."""
+    spec = {'all': tex}
+    for h in hide:
+        spec[h] = NULL
+    return box(mn, mx, spec)
+
+
+def _fit(f, mn, mx, u, v, tw, th, rows=1, row=0):
+    """Map one texture (or one row of an atlas) exactly across the face of box (mn, mx)."""
+    u, v = np.array(u, float), np.array(v, float)
+    cs = [np.array((x, y, z), float) for x in (mn[0], mx[0]) for y in (mn[1], mx[1]) for z in (mn[2], mx[2])]
+    pu, pv = [float(np.dot(c, u)) for c in cs], [float(np.dot(c, v)) for c in cs]
+    su, sv = (max(pu) - min(pu)) / tw, (max(pv) - min(pv)) / (th / rows)
+    f.set_axes(u, v, su, sv, (-min(pu) / su) % tw, (row * th / rows - min(pv) / sv) % th)
+
+
+_NORM = {'n': (0, 1, 0), 's': (0, -1, 0), 'e': (1, 0, 0), 'w': (-1, 0, 0), 'top': (0, 0, 1)}
+_OPP = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e', 'top': 'bottom'}
+
+
+def plate(face, mn, mx, tex, edge=MDARK, row=None, arrow=None):
+    """Thin plate (sign / arrow / shopfront) showing `face`; its back is NULL. row = vx_signs atlas
+    row (text stays readable, the printed arrow points to the viewer's right); arrow = world
+    direction (dx, dy, 0) for ~vx_arrow (symmetric, so u can follow the direction freely)."""
+    br = box(mn, mx, {face: tex, _OPP[face]: NULL, 'all': edge})[0]
+    f = br.face(face)
+    from ..mapwriter import tex_size
+    tw, th = tex_size(tex)
+    n = np.array(_NORM[face], float)
+    if arrow is not None:
+        u = np.array(arrow, float)
+        v = np.cross(n, u) if face == 'top' else np.array((0, 0, -1.0))
+        _fit(f, mn, mx, u, v, tw, th)
+    elif row is not None:
+        u, v = readable_axes(n)
+        _fit(f, mn, mx, u, v, tw, th, rows=4, row=row)
+    else:
+        u, v = readable_axes(n)
+        _fit(f, mn, mx, u, v, tw, th)
+    return [br]
+
+
+def wall_plate(face, line, a0, a1, z0, z1, tex, depth=4, **kw):
+    """Plate on a wall: `face` = direction it faces (into the room), line = wall surface coordinate."""
+    if face in ('e', 'w'):
+        x0, x1 = (line, line + depth) if face == 'e' else (line - depth, line)
+        return plate(face, (x0, a0, z0), (x1, a1, z1), tex, **kw)
+    y0, y1 = (line, line + depth) if face == 'n' else (line - depth, line)
+    return plate(face, (a0, y0, z0), (a1, y1, z1), tex, **kw)
+
+
+def sign(face, line, a, z, row, depth=4):
+    """District sign 128 x 32 (vx_signs row); `a` = left edge along the wall as the viewer sees it."""
+    u, _ = readable_axes(np.array(_NORM[face], float))
+    a0 = a if (u[0] + u[1]) > 0 else a - 128
+    return wall_plate(face, line, a0, a0 + 128, z, z + 32, SIGNS, depth, row=row)
+
+
+def floor_arrow(x, y, z, d, size=48):
+    """Green EVAC arrow on the floor, pointing along world direction d = (dx, dy)."""
+    h = size / 2
+    return plate('top', (x - h, y - h, z), (x + h, y + h, z + 2), ARROW, edge=MDARK, arrow=(d[0], d[1], 0))
+
+
+def car(cx, cy, axis, tex=RUST, z=0, burnt=False):
+    """Wrecked car (2 boxes, ~9 drawn faces). axis 'x' or 'y' = long axis."""
+    L, W = 104, 52
+    hx, hy = (L / 2, W / 2) if axis == 'x' else (W / 2, L / 2)
+    out = P((cx - hx, cy - hy, z), (cx + hx, cy + hy, z + 34), tex)
+    cxo, cyo = (cx - 6, cy) if axis == 'x' else (cx, cy - 6)
+    kx, ky = (hx * 0.5, hy - 4) if axis == 'x' else (hx - 4, hy * 0.5)
+    out += P((cxo - kx, cyo - ky, z + 34), (cxo + kx, cyo + ky, z + 58), MDARK if not burnt else RUST)
+    return out
+
+
+def jersey(axis, a0, a1, c, z=0):
+    """Concrete jersey barrier (trapezoid section, 32 high) along `axis` from a0 to a1 at cross coord c."""
+    pts = []
+    for a in (a0, a1):
+        for off, zz in ((-14, 0), (14, 0), (-5, 32), (5, 32)):
+            pts.append((a, c + off, z + zz) if axis == 'x' else (c + off, a, z + zz))
+    b = Brush.from_points(pts, {'bottom': NULL, 'all': BUNK})
+    return [b]
+
+
+def tent(x0, y0, x1, y1, h=96, axis='x'):
+    """Ridge tent (triangular prism, olive canvas with red cross)."""
+    if axis == 'x':
+        ym = (y0 + y1) / 2
+        pts = [(x0, y0, 0), (x0, y1, 0), (x0, ym, h), (x1, y0, 0), (x1, y1, 0), (x1, ym, h)]
+    else:
+        xm = (x0 + x1) / 2
+        pts = [(x0, y0, 0), (x1, y0, 0), (xm, y0, h), (x0, y1, 0), (x1, y1, 0), (xm, y1, h)]
+    return [Brush.from_points(pts, {'bottom': NULL, 'all': TARP})]
+
+
+def lamp_post(x, y, z=0, h=208, arm=(0, 0)):
+    """Street lamp: pole + head (head bottom is an unlit fixture; the light entity does the work)."""
+    out = P((x - 4, y - 4, z), (x + 4, y + 4, z + h), MDARK)
+    hx, hy = x + arm[0], y + arm[1]
+    if arm != (0, 0):
+        out += P((min(x, hx) - 3, min(y, hy) - 3, z + h - 8), (max(x, hx) + 3, max(y, hy) + 3, z + h), MDARK, hide=())
+    out += P((hx - 12, hy - 8, z + h - 14), (hx + 12, hy + 8, z + h - 4), MDARK, hide=())
+    return out
+
+
+def emer(face, line, a, z):
+    """Red emergency cage lamp on a wall (texlight 16x16)."""
+    return wall_plate(face, line, a - 8, a + 8, z, z + 16, LRED, depth=8)
+
+
+def dress(b):
+    D, W, E = b.D, b.W, b.ent
+    ents = b.ents
+
+    def L(p, col, br, **kw):
+        e = light(p, col, br, **kw)
+        ents.append(e)
+        return e
+
+    def SW(p, col, br, name, fade=None):
+        """Switchable light (starts dark; styles 32+ assigned by RAD per targetname)."""
+        e = light(p, col, br, targetname=name, fade=fade)
+        e['spawnflags'] = 1
+        ents.append(e)
+        return e
+
+    def SPR(p, col, scale=0.35, name=None, on=True, fx=0, amt=200, model='sprites/glow01.spr', fr=10):
+        e = env_sprite(p, model, scale, col, amt, 5 if 'glow' in model else 5, fr, on, name)
+        if fx:
+            e['renderfx'] = fx
+        ents.append(e)
+        return e
+
+    def AMB(p, snd, vol=6, rad='large', name=None, silent=False, pitch=100, loop=True):
+        ents.append(ambient(p, 'vexmira/map/' + snd, vol, rad, loop, silent, name, pitch))
+
+    def DEC(p, name):
+        ents.append(Entity('infodecal', origin=f'{p[0]} {p[1]} {p[2]}', texture=name))
+
+    SODIUM, MOON, FIRE, COLD, RED = (255, 170, 80), (150, 170, 220), (255, 120, 40), (170, 190, 230), (255, 40, 30)
+    CYAN, WHITE = (60, 220, 255), (235, 240, 255)
+
+    # ------------------------------------------------------------ A  Gate 7 checkpoint (CT spawn)
+    D(P((-2480, 2400, 0), (-2384, 2496, 112), BUNK))                              # guard booth
+    D(P((-2488, 2392, 112), (-2376, 2504, 120), MDARK, hide=()))                   # booth roof
+    D(wall_plate('s', 2400, -2464, -2400, 48, 72, 'vx_glass', depth=2))            # booth window
+    for a0, a1 in ((-2960, -2800), (-2480, -2320)):
+        D(jersey('x', a0, a1, 2300))                                               # funnel to the gate
+    D(jersey('y', 2000, 2192, -2100))
+    for x0, y0 in ((-3296, 2000), (-3296, 2232)):
+        D(tent(x0, y0, x0 + 176, y0 + 160, 104))                                   # field tents (W wall)
+    for x, y, z, sz in ((-2360, 1460, 0, 64), (-2296, 1460, 0, 64), (-2328, 1460, 64, 56),
+                        (-2160, 1452, 0, 48), (-2112, 1452, 0, 48)):
+        D(crate((x, y, z), sz, MIL))
+    D(P((-2216, 2396, 0), (-2120, 2480, 64), MDARK))                               # generator
+    D(P((-2208, 2404, 64), (-2184, 2420, 104), MDARK))                             # exhaust
+    for x in (-2944, -2176):
+        D(P((x - 6, 2484, 0), (x + 6, 2496, 352), MDARK))                          # flood masts
+        D(P((x - 24, 2464, 336), (x + 24, 2496, 360), MDARK, hide=()))
+        D(wall_plate('s', 2464, x - 20, x + 20, 340, 356, '~vx_light_w', depth=1))
+        SPR((x, 2460, 348), WHITE, 0.6, amt=170)                                   # Gate 7 flood glows (x2)
+        ents.append(light_spot((x, 2440, 330), -55, 270, WHITE, 900, 40, 70))
+    L((-2440, 2448, 132), RED, 70)                                                  # booth red beacon
+    SPR((-2440, 2448, 128), RED, 0.25, fx=4)
+    for y in (1700, 2000):
+        L((-2650, y, 280), MOON, 110)                                               # moon fill (yard)
+    L((-2200, 1500, 90), SODIUM, 70)
+    AMB((-2650, 1984, 200), 'cd_wind.wav', 7)
+    AMB((-2168, 2440, 40), 'cd_hum.wav', 5, 'medium', pitch=70)                    # generator (always on)
+    # guidance: sally port + alley mouths (CT spawn view)
+    D(wall_plate('w', -1984, 1820, 1876, 72, 128, ARROW, arrow=(0, 1, 0)))        # -> sally port
+    D(wall_plate('w', -1984, 2156, 2212, 72, 128, ARROW, arrow=(0, -1, 0)))
+    D(floor_arrow(-2240, 1500, 0, (0, -1)))                                        # -> supply alley
+    D(sign('n', 1408, -2100, 200, 0))                                              # SUBSTATION over the alley
+    DEC((-2600, 2100, 1), '{scorch1')
+    DEC((-2380, 2300, 1), '{scorch2')
+
+    # ------------------------------------------------------------ c command post / a supply alley
+    D(P((-2960, 1272, 0), (-2832, 1336, 36), MDARK))                               # map table
+    D(plate('top', (-2952, 1280, 36), (-2840, 1328, 37), 'vx_signs', row=3))      # route chart on it
+    for x in (-3056, -2496):
+        D(P((x, 1060, 0), (x + 48, 1100, 72), MIL))
+    D(emer('s', 1392, -2900, 140))
+    L((-2900, 1360, 140), RED, 70)
+    L((-2896, 1300, 90), (255, 200, 140), 70)                                       # desk lamp
+    SW((-2752, 1216, 150), SODIUM, 80, 'cd_lt_west')
+    AMB((-2752, 1216, 100), 'cd_wind.wav', 4, 'medium', pitch=85)
+    D(P((-2296, 1048, 0), (-2216, 1112, 40), TARP))                                # sandbags (alley)
+    D(P((-2112, 1304, 0), (-2064, 1384, 48), MIL))
+    SW((-2176, 1216, 260), SODIUM, 110, 'cd_lt_west')
+    L((-2176, 1216, 200), MOON, 50)
+    DEC((-2150, 1150, 1), '{blood3')
+
+    # ------------------------------------------------------------ S substation + h switch house + gantry
+    for i in range(3):
+        x = -3168 + i * 352
+        for j, xo in enumerate((48, 112, 176)):                                    # insulators on the 3 transformers
+            D(P((x + xo - 6, -318, 192), (x + xo + 6, -306, 232), 'vx_metal_dark'))
+        D(P((x - 8, -392, 0), (x, -232, 160), CORR, hide=('bottom', 'e')))         # cooling fins
+        D(P((x + 224, -392, 0), (x + 232, -232, 160), CORR, hide=('bottom', 'w')))
+        DEC((x + 112, -440, 1), '{scorch2' if i == 1 else '{scorch1')
+    cages = []
+    for i in range(3):                                                             # fence cages (one masked entity)
+        x = -3168 + i * 352
+        x0, x1, y0, y1 = x - 48, x + 272, -464, -160
+        cages += box((x0, y1 - 2, 0), (x1, y1, 160), '{vx_fence')
+        cages += box((x0, y0, 0), (x0 + 2, y1 - 2, 160), '{vx_fence')
+        cages += box((x1 - 2, y0, 0), (x1, y1 - 2, 160), '{vx_fence')
+    E(masked_entity(cages, solid=True))
+    D(wall_plate('n', -640, -2896, -2832, 0, 128, 'vx_door_metal', depth=2))       # dummy service door
+    D(wall_plate('n', -160, -2770, -2642, 120, 152, SIGNS, row=0))                 # SUBSTATION plate on cage
+    D(sign('n', -640, -2800, 160, 1))                                              # HARBOR -> stair lane (W)
+    D(sign('w', -1984, 230, 232, 2))                                               # CUSTOMS TOWER -> lantern lane
+    D(floor_arrow(-2100, -48, 0, (1, 0)))
+    D(floor_arrow(-3072, -560, 0, (0, -1)))
+    D(wall_plate('e', -2736, 752, 816, 48, 80, HAZ, depth=2))            # switch house hazard plate
+    D(wall_plate('s', 896, -3040, -2912, 150, 166, '~vx_light_c', depth=6))  # cyan panel strip (inside h)
+    # gantry rails (masked, part of the cage entity would cross zones; use detail posts + rail texture plates)
+    L((-2992, 640, 140), CYAN, 90)                                                  # breaker room cyan panel
+    D(emer('e', -3200, 520, 130))
+    L((-3180, 520, 130), RED, 60)
+    SPR((-2816, -312, 214), CYAN, 0.5, name='cd_arc', fx=2)                        # transformer arc
+    L((-2816, -312, 230), CYAN, 140)
+    SPR((-2976, 884, 92), RED, 0.15, name='cd_brk_a_red')
+    SPR((-2976, 884, 92), (60, 255, 80), 0.15, name='cd_brk_a_grn', on=False)
+    SPR((-2160, -466, 232), RED, 0.15, name='cd_brk_b_red')
+    SPR((-2160, -466, 232), (60, 255, 80), 0.15, name='cd_brk_b_grn', on=False)
+    D(lamp_post(-2560, 720, arm=(0, -40)))
+    D(lamp_post(-2400, -500, arm=(0, 40)))
+    SW((-2560, 680, 196), SODIUM, 220, 'cd_lt_west')
+    SW((-2400, -460, 196), SODIUM, 220, 'cd_lt_west')
+    for p in ((-2650, 300, 300), (-3000, -300, 260), (-2300, 700, 260)):
+        L(p, MOON, 120)
+    AMB((-2656, 200, 220), 'cd_wind.wav', 7)
+    AMB((-2816, -312, 120), 'cd_hum.wav', 7, 'medium', name='cd_hum', silent=True)
+
+    # ------------------------------------------------------------ L lantern lane (the only flicker)
+    D(lamp_post(-1552, -64, arm=(0, -40)))
+    L((-1552, -104, 196), SODIUM, 160, style=10)
+    SPR((-1552, -104, 200), SODIUM, 0.3, amt=150)
+    L((-1824, -48, 200), MOON, 60)
+    L((-1296, -432, 200), MOON, 60)
+    for x, y in ((-1940, 40), (-1676, -548), (-1196, -560)):
+        D(P((x - 0, y, 0), (x + 24, y + 32, 40), RUST))                            # bins
+    D(car(-1550, -400, 'y', MDARK))
+    D(floor_arrow(-1820, -40, 0, (1, 0)))
+    D(floor_arrow(-1300, -430, 0, (1, 0)))
+    DEC((-1500, -300, 1), '{blood4')
+
+    # ------------------------------------------------------------ M market street + pharmacy
+    D(wall_plate('s', 2240, -1536, -1280, 0, 128, SHOP))                          # shopfronts M1 N wall
+    D(wall_plate('n', 1792, -1888, -1632, 0, 128, SHOP))                          # M1 S wall (west of M2)
+    D(wall_plate('e', -1600, 1200, 1456, 0, 128, SHOP))                           # M2 W wall
+    D(wall_plate('w', -1216, 1300, 1556, 0, 128, SHOP))                           # M2 E wall
+    D(car(-1440, 1960, 'x', RUST, burnt=True))                                     # burning car (static fire)
+    D(car(-1340, 1200, 'y', MDARK))
+    D(jersey('x', -1584, -1424, 1660))
+    DEC((-1440, 1960, 1), '{scorch1')
+    L((-1440, 1960, 70), FIRE, 160)
+    L((-1440, 1960, 20), FIRE, 60)
+    for p, arm in (((-1800, 1808), (0, 40)), ((-1240, 2224), (0, -40)), ((-1584, 1400), (40, 0)), ((-1232, 1000), (-40, 0))):
+        D(lamp_post(p[0], p[1], arm=arm))
+        SW((p[0] + arm[0], p[1] + arm[1], 196), SODIUM, 200, 'cd_lt_west')
+    for p in ((-1544, 2016, 300), (-1408, 1400, 300), (-1408, 900, 260)):
+        L(p, MOON, 90)
+    for x, y in ((-1840, 2210), (-1780, 2180), (-1720, 2150)):
+        DEC((x, y, 1), '{blood1')                                                   # drag marks into the pharmacy
+    D(floor_arrow(-1760, 2016, 0, (1, 0)))
+    D(floor_arrow(-1408, 1840, 0, (0, -1)))
+    D(floor_arrow(-1408, 1000, 0, (0, -1)))
+    D(floor_arrow(-1280, 848, 0, (1, 0)))
+    D(sign('w', -1216, 1024, 200, 2))                                              # CUSTOMS TOWER -> arcade (S)
+    AMB((-1544, 2016, 200), 'cd_wind.wav', 6)
+    # pharmacy
+    D(P((-1888, 2400, 0), (-1600, 2464, 64), MDARK, hide=('bottom', 'n')))        # counter
+    for x in (-1880, -1800, -1720):
+        D(P((x, 2464, 0), (x + 64, 2480, 128), MIL, hide=('bottom', 'n')))        # shelves
+    L((-1744, 2368, 120), COLD, 70)
+    DEC((-1700, 2330, 1), '{blood2')
+
+    # ------------------------------------------------------------ R terminus station (T spawn)
+    for x in (-896, -512, 512, 896):
+        D(P((x - 16, 1840, 0), (x + 16, 1872, 448), MDARK, hide=('bottom', 'top')))  # roof columns
+    for y in (1760, 2176):
+        D(P((-1088, y - 8, 400), (1088, y + 8, 432), MDARK, hide=('e', 'w')))      # main trusses
+    D(P((-1088, 2032, 0), (-896, 2048, 1), HAZ, hide=('bottom',)))
+    D(P((-896, 2032, 0), (1088, 2048, 1), HAZ, hide=('bottom',)))                  # platform edge stripe
+    for x in (-800, -416, 32):
+        D(P((x, 1880, 0), (x + 96, 1904, 18), MDARK))                              # benches
+    for x, y in ((-1040, 1440), (-976, 1440), (-1040, 1504)):
+        D(crate((x, y, 0), 56, MIL))
+    D(car(-640, 1520, 'x', MDARK))                                                  # baggage cart
+    for x, face, line in ((-1088, 'e', -1088), (1088, 'w', 1088)):
+        for y in (1600, 2240):
+            D(emer(face, line, y, 300))
+            L((x + (24 if face == 'e' else -24), y, 300), RED, 60)
+    for p in ((-600, 1650, 200), (600, 1650, 200), (0, 2250, 260), (-600, 2250, 200), (600, 2200, 200)):
+        L(p, COLD, 90)
+    for p in ((-560, 1650, 300), (560, 1650, 300), (-300, 2250, 300), (500, 2250, 300)):
+        e = SW(p, RED, 260, 'cd_lt_alarm')
+        e['pattern'] = 'aaaazzzz'
+    SPR((-1076, 1984, 380), RED, 0.4, name='cd_alarm_spr', on=False, fx=4)
+    SPR((1076, 1984, 380), RED, 0.4, name='cd_alarm_spr', on=False, fx=4)
+    for x, y in ((1040, 2300), (980, 2200), (880, 2100), (760, 1980), (640, 1880), (520, 1820)):
+        DEC((x, y, 1), '{blood1' if x > 800 else '{blood2')                        # trail from the breach
+    DEC((1060, 2160, 1), '{scorch1')
+    D(floor_arrow(672, 1440, 0, (0, -1)))
+    D(floor_arrow(-672, 1440, 0, (0, -1)))
+    D(sign('n', 1408, -400, 220, 2))                                               # CUSTOMS TOWER -> forecourts
+    D(sign('n', 1408, 900, 220, 2))
+    AMB((0, 1950, 300), 'cd_wind.wav', 5, pitch=80)
+    AMB((0, 1700, 300), 'cd_siren.wav', 7, name='cd_siren_st', silent=True)
+    AMB((1000, 2200, 100), 'cd_boom.wav', 10, name='cd_boom_st', silent=True, loop=False)
+    # forecourts
+    for xm in (-576, 576):
+        D(jersey('y', 1080, 1150, xm - 150))
+        L((xm, 1300, 200), MOON, 60)
+        SW((xm, 1100, 200), SODIUM, 120, 'cd_lt_west' if xm < 0 else 'cd_lt_east')
+        DEC((xm + 40, 1300, 1), '{blood5')
+
+    # ------------------------------------------------------------ H field hospital + w ward
+    D(tent(1200, 1500, 1456, 1660, 112))
+    D(tent(1200, 1760, 1456, 1920, 112))
+    D(tent(1600, 1420, 1760, 1676, 112, axis='y'))
+    D(P((2040, 1440, 0), (2232, 1520, 64), MDARK))                                 # army truck chassis
+    D(P((2232, 1440, 0), (2296, 1520, 80), MDARK))                                 # cab
+    D(P((2040, 1440, 64), (2232, 1520, 128), TARP, hide=()))                       # cargo cover
+    for x, y in ((1560, 2100), (1700, 2200), (1500, 2300)):
+        D(P((x, y, 0), (x + 72, y + 32, 20), MDARK))                               # stretchers / beds
+        DEC((x + 30, y + 40, 1), '{blood2')
+    D(wall_plate('w', 1840, 2200, 2264, 100, 164, TARP, depth=2))                  # red-cross banner on the ward
+    SPR((1846, 2232, 216), RED, 0.4)                                               # hospital red cross lamp
+    L((1820, 2232, 200), RED, 120)
+    for p in ((1800, 1700, 300), (1350, 2100, 260), (2300, 1800, 260)):
+        L(p, MOON, 100)
+    L((1328, 1580, 80), (255, 190, 120), 80)                                         # lantern inside the tent
+    SW((2400, 1600, 200), SODIUM, 160, 'cd_lt_east')
+    for x in (1900, 2080, 2260, 2440):                                              # ward beds
+        D(P((x, 2400, 0), (x + 40, 2472, 24), MDARK, hide=('bottom', 'n')))
+    W(box((2136, 2160, 168), (2264, 2224, 176), {'bottom': '~vx_light_w', 'top': NULL, 'all': MDARK}))
+    L((2200, 2192, 150), (230, 240, 255), 110)
+    DEC((2000, 2100, 1), '{bigblood1')
+    D(sign('w', 2560, 1600, 160, 1))                                               # HARBOR -> checkpoint B arch (south)
+    D(floor_arrow(2368, 1420, 0, (0, -1)))
+    AMB((1800, 1900, 200), 'cd_wind.wav', 6)
+
+    # ------------------------------------------------------------ P Liberation Plaza (boss arena)
+    D(prism((0, -64), 28, 8, 96, 304, CONC))                                      # memorial column
+    D(P((-48, -112, 304), (48, -16, 336), CONC, hide=()))
+    D(P((-704, -656, 0), (-384, -560, 112), RUST))                                 # burnt-out bus
+    DEC((-544, -608, 1), '{scorch2')
+    D(car(520, 420, 'x', RUST, burnt=True))                                        # burning car (fire sprite)
+    D(car(-640, 360, 'y', MDARK))
+    D(car(760, -820, 'x', MDARK))
+    DEC((520, 420, 1), '{scorch1')
+    SPR((520, 420, 80), (255, 255, 255), 1.5, model='sprites/vexmira/fire.spr', amt=255, fr=10)
+    L((520, 420, 90), FIRE, 260)
+    L((520, 420, 30), FIRE, 90)
+    for a0, a1, c in ((-560, -400, 900), (400, 560, 900)):
+        D(jersey('x', a0, a1, c))                                                  # forecourt mouth cover
+    D(jersey('y', 40, 240, 960))
+    D(jersey('y', -340, -140, 960))
+    D(wall_plate('s', 1024, -320, -64, 0, 128, SHOP))
+    D(wall_plate('s', 1024, 64, 320, 0, 128, SHOP))
+    D(wall_plate('w', 1152, 512, 768, 1000, 1064, '~vx_neon_vex', depth=4))       # crown neon (landmark)
+    SPR((1300, 640, 1168), RED, 0.5, fx=4)                                         # aircraft warning light
+    L((1100, 640, 1030), (200, 110, 255), 160)
+    D(sign('w', 1152, 380, 150, 2))                                                # CUSTOMS TOWER at the lobby doors
+    D(sign('n', -1152, 400, 240, 1))                                               # HARBOR -> steps arch
+    for x, y, d in ((-480, 820, (1, 0)), (480, 820, (1, 0)), (-900, 848, (1, 0)), (-900, -432, (1, 0)),
+                    (800, 224, (1, 0))):
+        D(floor_arrow(x, y, 0, d))
+    for p in ((-700, 600), (700, 600), (-700, -800), (700, -800), (0, 700), (0, -1000)):
+        D(lamp_post(p[0], p[1], h=320))
+        SW((p[0], p[1], 300), WHITE, 300, 'cd_lt_plaza')
+        SW((p[0] + 20, p[1], 290), RED, 260, 'cd_lt_plazared')
+    for p in ((-600, 0, 420), (600, 0, 420), (0, 600, 420), (0, -700, 420)):
+        L(p, MOON, 130)
+    DEC((-200, 200, 1), '{bigblood2')
+    DEC((300, -300, 1), '{blood6')
+    AMB((0, 0, 300), 'cd_wind.wav', 7)
+    AMB((0, 0, 400), 'cd_siren.wav', 8, name='cd_siren_pz', silent=True)
+    AMB((0, 200, 300), 'cd_boom.wav', 10, name='cd_boom_pz', silent=True, loop=False)
+
+    # ------------------------------------------------------------ T Customs Tower
+    D(P((1600, 400, 0), (1824, 448, 44), MDARK))                                   # lobby reception desk
+    D(P((1600, 448, 0), (1640, 560, 44), MDARK))
+    for x in (1300, 1500, 1700, 1900):                                             # office desks T1
+        for y in (-200, 300):
+            D(P((x, y, 192), (x + 96, y + 48, 222), MDARK))
+    for x in (1300, 1600, 1900):                                                   # plant T2 machinery + ducts
+        D(P((x, 300, 384), (x + 128, 400, 480), MDARK))
+    D(P((1168, 40, 528), (2160, 88, 560), CORR, hide=('e', 'w', 'top')))            # duct run
+    for key, rc in (('nw', (1184, 464, 1440, 816)), ('se', (1888, -368, 2144, -16))):
+        for z in (100, 292, 484):
+            D(emer('s' if key == 'nw' else 'n', rc[3] if key == 'nw' else rc[1], rc[0] + 64, z))
+        L(((rc[0] + rc[2]) / 2, (rc[1] + rc[3]) / 2, 300), RED, 120)
+        L(((rc[0] + rc[2]) / 2, (rc[1] + rc[3]) / 2, 600), RED, 80)
+    for z in (150, 340, 530):
+        for x, y in ((1450, 100), (1880, 400), (1700, -250)):
+            SW((x, y, z), (230, 240, 255), 160, 'cd_lt_east')
+        L((1664, 224, z - 40), COLD, 60)
+    # roof deck: pad ring + lamps + AC units
+    for mn, mx in (((1504, 64, 576), (1824, 80, 577)), ((1504, 368, 576), (1824, 384, 577)),
+                   ((1504, 80, 576), (1520, 368, 577)), ((1808, 80, 576), (1824, 368, 577))):
+        D(P(mn, mx, HAZ))
+    for x, y in ((1504, 64), (1824, 64), (1504, 384), (1824, 384)):
+        D(P((x - 6, y - 6, 576), (x + 6, y + 6, 592), MDARK))
+        SW((x, y, 610), (120, 255, 140), 120, 'cd_lt_pad')
+    D(P((1900, 600, 576), (2050, 720, 640), CORR))                                 # AC units
+    D(P((1250, -300, 576), (1400, -200, 624), CORR))
+    SPR((1520, 80, 600), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)
+    SPR((1808, 368, 600), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)
+    SPR((1664, -96, 640), RED, 0.25, name='cd_pad_red')
+    L((1664, 224, 800), MOON, 140)
+    AMB((1664, 224, 700), 'cd_rotor.wav', 10, name='cd_rotor', silent=True)
+    AMB((1664, 224, 450), 'cd_hum.wav', 5, 'medium', name='cd_hum', silent=True)
+    # south passage t
+    L((1664, -480, 200), MOON, 70)
+    SW((1400, -480, 200), SODIUM, 120, 'cd_lt_east')
+    D(floor_arrow(1300, -480, 0, (1, 0)))
+    D(floor_arrow(1984, -448, 0, (0, 1)))
+
+    # ------------------------------------------------------------ K Kade harbor road
+    for x, y in ((2496, 1200), (2496, 1140), (2440, 1200)):
+        D(crate((x, y, 0), 56, MIL))
+    D(car(2260, 300, 'y', MDARK))
+    D(jersey('x', 2200, 2400, -150))
+    for y in (1000, 160, -600):
+        D(lamp_post(2540, y, arm=(-40, 0)))
+        SW((2500, y, 196), SODIUM, 220, 'cd_lt_east')
+        L((2368, y, 300), MOON, 90)
+    D(sign('w', 2560, 900, 160, 1))                                                # HARBOR (south)
+    D(sign('e', 2176, -200, 160, 3))                                              # EVAC -> balcony / roof? (north)
+    D(floor_arrow(2368, -700, 0, (0, 1)))
+    AMB((2368, 100, 200), 'cd_harbor.wav', 6)
+
+    # ------------------------------------------------------------ n stair lane + F fish market
+    L((-3072, -864, 150), MOON, 80)
+    D(floor_arrow(-3136, -720, 0, (0, -1)))
+    for i, x in enumerate((-3200, -2944, -2688, -2432, -2176)):                     # fish stalls
+        D(P((x, -1900, -128), (x + 128, -1840, -88), RUST))
+        if i % 2 == 0:
+            DEC((x + 60, -1820, -127), '{blood3')
+    for x in (-3200, -2600, -2000):
+        D(P((x, -2290, -128), (x + 96, -2240, -80), MIL, hide=('bottom', 's')))   # ice boxes
+    for x in (-3000, -2400):
+        D(emer('n', -2304, x, 60))
+        L((x, -2280, 60), RED, 120)
+    for p in ((-2850, -1700, 160), (-2250, -1700, 160)):
+        L(p, MOON, 110)
+    SW((-2560, -1500, 200), SODIUM, 160, 'cd_lt_harbor')
+    D(wall_plate('w', -1792, -1980, -1924, 0, 56, ARROW, arrow=(0, -1, 0)))       # -> net alley shutter
+    AMB((-2560, -1700, 100), 'cd_harbor.wav', 5, pitch=85)
+
+    # ------------------------------------------------------------ e harbor steps
+    D(wall_plate('n', -1232, -96, 96, 96, 160, 'vx_sign_vex', depth=4))            # memorial plaque
+    L((0, -1376, 220), MOON, 90)
+    SW((-300, -1400, 200), SODIUM, 120, 'cd_lt_harbor')
+    SW((300, -1400, 200), SODIUM, 120, 'cd_lt_harbor')
+    DEC((-200, -1300, 1), '{blood4')
+
+    # ------------------------------------------------------------ Q quay + cabin + canal
+    for x in range(-1700, 1100, 256):
+        D(P((x, -2552, -128), (x + 20, -2532, -104), MDARK))                       # bollards
+    for x, y in ((-1700, -1660), (-1640, -1660), (-1700, -1720), (-300, -2400), (-244, -2400)):
+        D(crate((x, y, -128), 56, MIL))
+    D(car(-900, -2100, 'x', MDARK, z=-128))
+    D(P((200, -2300, -128), (328, -2236, -96), TARP))                              # net pile
+    for x in (-1200, -200, 700):
+        D(lamp_post(x, -2520, z=-128, arm=(0, 40)))
+        SW((x, -2480, 70), SODIUM, 220, 'cd_lt_harbor')
+    for p in ((-300, -2080, 120), (-1300, -2000, 120), (700, -2000, 120)):
+        L(p, MOON, 110)
+    D(floor_arrow(600, -1712, -128, (1, 0)))
+    D(floor_arrow(-1650, -2100, -128, (1, 0)))
+    D(floor_arrow(0, -1700, -128, (1, 0)))
+    SPR((1104, -1712, 60), RED, 0.15, name='cd_cab_red')
+    SPR((1104, -1712, 60), (60, 255, 80), 0.15, name='cd_cab_grn', on=False)
+    L((1032, -1696, 90), (255, 200, 150), 70)
+    for y in (-1840, -2256):
+        D(P((1136, y - 16, -128), (1168, y + 16, 384), RUST))                       # bridge towers
+        SPR((1152, y, 400), (255, 200, 40), 0.5, name='cd_bridge_spr', on=False, fx=4)
+    SW((1248, -2048, 200), SODIUM, 160, 'cd_lt_harbor')
+    AMB((0, -2100, 0), 'cd_harbor.wav', 7)
+    AMB((-800, -2100, 0), 'cd_wind.wav', 4)
+
+    # ------------------------------------------------------------ C container terminal + crane
+    for y in (-2096, -1904):
+        D(P((2400, y - 8, 448), (2912, y + 8, 480), RUST, hide=()))               # crane boom girders
+    D(P((2528, -2096, 256), (2560, -2064, 448), RUST, hide=('bottom', 'top')))
+    D(P((2752, -1936, 256), (2784, -1904, 448), RUST, hide=('bottom', 'top')))
+    D(P((2704, -2096, 256), (2784, -2016, 320), CORR, hide=('bottom',)))          # crane cab (deck corner)
+    for x in (1500, 2500, 3100):
+        D(lamp_post(x, -1110, z=-128, h=320, arm=(0, -40)))
+        SW((x, -1150, 180), SODIUM, 260, 'cd_lt_harbor')
+    for p in ((2336, -1824, 200), (2900, -2300, 200), (1800, -2450, 200), (3100, -1700, 200)):
+        L(p, MOON, 120)
+    D(floor_arrow(2368, -1300, -128, (0, 1)))
+    D(sign('s', -1088, 2000, 40, 2))                                               # CUSTOMS TOWER -> ramp up (W)
+    AMB((2600, -1900, 100), 'cd_harbor.wav', 7)
+
+    # ------------------------------------------------------------ B bay vista: freighter fire, lighthouse
+    SPR((1500, -2800, 180), (255, 255, 255), 2.5, model='sprites/vexmira/fire.spr', amt=255, fr=10)
+    L((1500, -2760, 200), FIRE, 500)
+    D(P((-640, -3240, 448), (-560, -3160, 480), MDARK, hide=()))
+    SPR((-600, -3200, 470), (255, 230, 170), 1.0, fx=0)
+    L((-600, -3150, 470), (255, 230, 170), 300)
+    L((0, -2900, 200), MOON, 120)
+
+    # ------------------------------------------------------------ v vista: artillery glow + shell flashes
+    SPR((-2650, 3100, 120), (255, 255, 255), 2.0, model='sprites/vexmira/fire.spr', amt=255, fr=8)
+    L((-2650, 3050, 160), FIRE, 260)
+    for x in (-3100, -2650, -2200):
+        SW((x, 2900, 400), (255, 200, 140), 500, 'cd_lt_flash')
+    for x in (-2900, -2400):
+        SW((x, 2700, 200), WHITE, 260, 'cd_lt_flood_out')
+    AMB((-2650, 2400, 300), 'cd_boom.wav', 5, 'everywhere', name='cd_boom_far', silent=True, loop=False)
+    AMB((-2650, 1984, 300), 'cd_siren.wav', 6, 'everywhere', name='cd_siren_all', silent=True)
+
+    # ------------------------------------------------------------ hidden hangar (lit for the helicopter body)
+    L((3776, 3008, 300), MOON, 200)
+    L((3776, 3008, 60), MOON, 120)
+
+    # moon
+    ents.append(light_environment(-58, 135, (150, 165, 215), 70, diffuse=(55, 65, 100, 35), origin=(0, 0, 800)))
+
+
+# ==============================================================================================
 def build(mock=False, mock_scale=1.0) -> Map:
     b = Builder(mock)
     Z = b.zone
@@ -287,7 +838,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     Z('v', [(-3328, 2576, -1984, 3200)], 0, 1152, 'vx_dirt', CONC, rl=0,
       holes=[sk(Y, 2576, h1=784)])
     # A  Gate 7 checkpoint (CT spawn yard 1344 x 1152)
-    Z('A', [(-3328, 1408, -1984, 2560)], 0, 768, CRACK, CONC, rl=448,
+    Z('A', [(-3328, 1408, -1984, 2560)], 0, 768, CRACK, QUAR, rl=448,
       rls=[(X, -3328, -INF, INF, 512)],
       holes=[(Y, 2560, -3328, -1984, 448, 768),          # over the quarantine wall into the vista
              (Y, 2560, -2768, -2512, 0, 320),            # Gate 7 (cd_gate7)
@@ -328,7 +879,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
 
     # ---------------------------------------------------------------- lantern lane (Z-bend)
     Z('L', [(-1968, -192, -1680, 96), (-1680, -576, -1424, 96), (-1424, -576, -1168, -288)], 0, 640,
-      ASPH, FAC, rl=352, rls=[(X, -1424, -INF, INF, 320), (X, -1680, -INF, INF, 384)],
+      ASPH, BRICK, rl=352, rls=[(X, -1424, -INF, INF, 320), (X, -1680, -INF, INF, 384)],
       holes=[sk(X, -1968), sk(X, -1168)])
 
     # ---------------------------------------------------------------- market street + pharmacy + arcade
@@ -347,7 +898,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
 
     # ---------------------------------------------------------------- terminus station (T spawn)
     sky_strips = [(-1024, y, 1024, y + 64) for y in (1600, 1952, 2272)]
-    R = Z('R', [(-1088, 1408, 1088, 2496)], -32, 448, TILE, FAC, top=MDARK, top_sky=sky_strips,
+    R = Z('R', [(-1088, 1408, 1088, 2496)], -32, 448, 'vx_dirt', BRICK, top=CORR, top_sky=sky_strips,
           holes=[(X, -1088, 1920, 2112, 0, 160),         # side gate
                  (Y, 1408, -768, -576, 0, 192),          # -> forecourt W
                  (Y, 1408, 576, 768, 0, 192),            # -> forecourt E
@@ -355,7 +906,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
           out={(Y, 1408): FAC, (X, 1088): FAC})
     pit = (-896, 2048, 1088, 2400)                                    # track bed -32 (terminus buffers W)
     for r in rect_minus((-1088, 1408, 1088, 2496), [pit]):
-        b.W(box((r[0], r[1], -32), (r[2], r[3], 0), TILE))
+        b.W(box((r[0], r[1], -32), (r[2], r[3], 0), CRACK))
     b.W(box((-128, 1408, -32), (128, 1856, 448), CONC))               # ticket block (VIS splitter)
     # derailed train: car 1 (duck-jump roof 104), car 2 (camp C2 roof 128, ladder), car 3 in the breach
     b.D(box((-880, 2112, -32), (-400, 2240, 104), RUST))
@@ -397,7 +948,8 @@ def build(mock=False, mock_scale=1.0) -> Map:
     nw_fl, se_fl = (1184, 592, 1440, 816), (1888, -240, 2144, -16)    # stair flights + N landings
     tower = [(1168, -384, 2160, 832)]
     for key, z0, z1 in (('T0', 0, 176), ('T1', 192, 368), ('T2', 384, 560)):
-        Z(key, tower, z0, z1, CRACK if key != 'T0' else TILE, PLAST, top=PLAST, top_holes=[nw_fl, se_fl],
+        Z(key, tower, z0, z1, CRACK if key != 'T0' else TILE, PLAST,
+          top={'bottom': CONC, 'all': {'T0': TILE, 'T1': CRACK, 'T2': CRACK}[key]}, top_holes=[nw_fl, se_fl],
           holes=[sk(X, 1168), sk(X, 2160)] + ([(Y, -384, 1920, 2048, 0, 112)] if key == 'T0' else []),
           out={(Y, 832): FAC, (Y, -384): FAC}, omit=('bottom',) if key != 'T0' else ())
     Z('T3', tower, 576, 1536, CRACK, CONC, rl=640, omit=('bottom',),
@@ -424,13 +976,13 @@ def build(mock=False, mock_scale=1.0) -> Map:
     # ---------------------------------------------------------------- Kade (3 cells split by gate arches)
     arch = lambda line: (Y, line, 2240, 2496, 0, 224)
     kw = {(X, 2176): PLAST}
-    Z('Kn', [(2176, 656, 2560, 1328)], 0, 704, ASPH, FAC, rl=448, rls=[(X, 2176, -INF, INF, 640)],
+    Z('Kn', [(2176, 656, 2560, 1328)], 0, 704, ASPH, BRICK, rl=448, rls=[(X, 2176, -INF, INF, 640)],
       holes=[sk(Y, 1328, h1=656), arch(656)], out=kw)
-    Z('Km', [(2176, -304, 2560, 624)], 0, 704, ASPH, FAC, rl=448, rls=[(X, 2176, -INF, INF, 640)],
+    Z('Km', [(2176, -304, 2560, 624)], 0, 704, ASPH, BRICK, rl=448, rls=[(X, 2176, -INF, INF, 640)],
       holes=[arch(624), arch(-304),
              (X, 2176, 48, 144, 192, 304),               # fire-escape balcony door into T1
              (X, 2176, 32, 96, 576, 704)], out=kw)       # roof hatch (parapet) into T3
-    Z('Ks', [(2176, -1072, 2560, -336)], -128, 704, ASPH, FAC, rl=448, rls=[(X, 2176, -INF, INF, 640)],
+    Z('Ks', [(2176, -1072, 2560, -336)], -128, 704, ASPH, BRICK, rl=448, rls=[(X, 2176, -INF, INF, 640)],
       holes=[arch(-336), (X, 2176, -560, -400, 0, 208), sk(Y, -1072)], out=kw)
     for r in rect_minus((2176, -1072, 2560, -336), [(2176, -1072, 2560, -800)]):
         b.W(box((r[0], r[1], -128), (r[2], r[3], 0), CRACK))
@@ -447,7 +999,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(box((-3200, -800, -128), (-3072, -656, 0), CRACK))           # west half: landing z 0
     b.W(stairs((-3136, -1056, -128), '+y', 128, 128, rise=16, run=32, tex=CRACK, clip=True))
     b.W(box((-3072, -1072, -128), (-2944, -656, 0), CRACK))          # east half: level walkway to the loft
-    Z('F', [(-3328, -2304, -1792, -1088)], -128, 256, TILE, FAC, top=RUST,
+    Z('F', [(-3328, -2304, -1792, -1088)], -128, 256, CONC, TILE, top=RUST,
       top_sky=[(-3000, -1800, -2700, -1600), (-2400, -1800, -2100, -1600)],
       holes=[(X, -1792, -2240, -1984, -128, 96),         # net alley -> quay (roller shutter)
              (Y, -1088, -3200, -3072, -128, -16),        # under the loft from the stair lane
@@ -482,7 +1034,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(stairs((1232, -1888, -224), '+x', 64, 96, rise=16, run=16, tex=CONC))   # exit steps E bank
 
     # ---------------------------------------------------------------- container terminal
-    Z('C', [(1344, -2560, 3328, -1088)], -128, 896, CONC, 'vx_cont_blue', rl=448,
+    Z('C', [(1344, -2560, 3328, -1088)], -128, 896, CONC, BRICK, rl=448,
       holes=[(Y, -1088, 2176, 2560, -128, 256), (X, 1344, -2240, -1856, -128, 384), sk(Y, -2560)])
     stacks = [(1408, -2272, 1536, -1824, 2),             # blocks the bridge-gap view into the terminal
               (1664, -1472, 2240, -1344, 2), (2624, -1472, 3200, -1344, 2),
@@ -505,7 +1057,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
         b.D(box((x - 24, -1904 + 8, -128), (x + 24, -1904 + 56, -128 + h), 'vx_crate_mil'))
 
     # ---------------------------------------------------------------- bay vista (unreachable)
-    Z('B', [(-3456, -3456, 3456, -2576)], -192, 1152, ASPH, SKY, rl=-192,
+    Z('B', [(-3456, -3456, 3456, -2576)], -192, 1152, BAY, SKY, rl=-192,
       rls=[(Y, -2576, -INF, INF, -96)],
       holes=[(Y, -2576, -1776, 1152, -96, 768), (Y, -2576, 1168, 1328, -96, 768),
              (Y, -2576, 1344, 3328, -96, 896)], out={(Y, -2576): CONC})
@@ -513,6 +1065,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(box((1168, -2576, -96), (1328, -2560, 768), CLIP))
     b.W(box((1344, -2576, -96), (3328, -2560, 896), CLIP))
     b.W(box((700, -2900, -192), (2300, -2700, 128), RUST))          # freighter hull (VIS blocker Q|C)
+    b.W(box((-3456, -3456, -192), (3456, -2576, 1152), CLIP))         # the bay is never walkable (vista only)
     b.W(box((-664, -3264, -192), (-536, -3136, 448), CONC))         # lighthouse (blockout)
 
     # ---------------------------------------------------------------- hidden helicopter hangar
@@ -569,23 +1122,8 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.ents += spawn_grid('ct', (-3200, 1536), (-2560, 1880), 0, 32, spacing=72, yaw=0)
     b.ents += spawn_grid('t', (224, 1488), (1072, 1784), 0, 32, spacing=72, yaw=90)
 
-    # ============================================================== light (stage 1 fill, readable previews)
-    b.ents.append(light_environment(-58, 135, (150, 165, 215), 70, diffuse=(55, 65, 100, 35), origin=(0, 0, 800)))
-    fills = [((-2656, 1984, 256), 260), ((-2752, 1216, 120), 160), ((-2176, 1216, 200), 140),
-             ((-1544, 2016, 256), 240), ((-1408, 1250, 256), 220), ((-1744, 2368, 110), 130),
-             ((-600, 1650, 300), 260), ((600, 1650, 300), 260), ((0, 2250, 300), 260),
-             ((-576, 1216, 200), 150), ((576, 1216, 200), 150), ((1800, 1700, 256), 240),
-             ((2200, 2190, 120), 140), ((-2656, 192, 300), 280), ((-2976, 640, 120), 140),
-             ((-1552, -100, 220), 200), ((-500, 500, 400), 320), ((500, -600, 400), 320),
-             ((1664, 224, 120), 180), ((1664, 224, 300), 180), ((1664, 224, 480), 160), ((1664, 224, 700), 220),
-             ((1312, 640, 300), 140), ((2016, -192, 300), 140), ((1664, -480, 200), 150),
-             ((2368, 990, 256), 200), ((2368, 160, 256), 200), ((2368, -700, 200), 200),
-             ((-3072, -864, 150), 150), ((-2560, -1700, 150), 240), ((-2560, -1200, 100), 150),
-             ((0, -1376, 150), 180), ((-300, -2080, 150), 260), ((900, -2080, 150), 200),
-             ((1032, -1696, 80), 120), ((1248, -2080, 100), 160), ((2336, -1824, 200), 280),
-             ((2336, -1300, 150), 200), ((2900, -2300, 150), 200), ((3776, 3008, 300), 200)]
-    for p, br in fills:
-        b.ents.append(light(p, (255, 214, 170), br))
+    # ============================================================== stage 2: detail, light, atmosphere
+    dress(b)
 
     # ============================================================== mock detail (perf check only)
     if mock:
@@ -644,6 +1182,140 @@ EYES = [
 ]
 
 
+# ==============================================================================================
+# sounds (spec section 13): seamless loops with a cue chunk + one one-shot, fixed seeds
+SOUND_DIR = os.path.join(REPO, 'cstrike', 'sound', 'vexmira', 'map')
+
+
+def _write_loop(path, x, sr):
+    """16-bit mono loop with cue point 0 (GoldSrc loops ambient_generic on cue)."""
+    x = x - x.mean()
+    x = x / (np.abs(x).max() + 1e-9) * 0.72
+    pcm = np.clip(np.round(x * 32767), -32767, 32767).astype('<i2').tobytes()
+    fmt = struct.pack('<HHIIHH', 1, 1, sr, sr * 2, 2, 16)
+    cue = struct.pack('<I', 1) + struct.pack('<II4sIII', 1, 0, b'data', 0, 0, 0)
+    body = (b'WAVE' + b'fmt ' + struct.pack('<I', len(fmt)) + fmt + b'cue ' + struct.pack('<I', len(cue)) + cue
+            + b'data' + struct.pack('<I', len(pcm)) + pcm)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'wb') as fh:
+        fh.write(b'RIFF' + struct.pack('<I', len(body)) + body)
+    return len(x) / sr
+
+
+def _cnoise(n, sr, rng, shape):
+    """Circular (perfectly periodic) filtered noise: shape(freqs) -> gain."""
+    spec = np.fft.rfft(rng.standard_normal(n))
+    spec *= shape(np.fft.rfftfreq(n, 1 / sr))
+    y = np.fft.irfft(spec, n)
+    return y / (np.abs(y).max() + 1e-9)
+
+
+def _place(x, ev, pos):
+    idx = (pos + np.arange(len(ev))) % len(x)
+    x[idx] += ev
+
+
+def _creverb(x, sr, rng, decay=1.2, mix=0.3):
+    """Circular reverb (FFT convolution wraps around, so the loop stays seamless)."""
+    n = len(x)
+    L = min(n, int(sr * decay))
+    ir = rng.standard_normal(L) * np.exp(-np.arange(L) / sr * 6.0 / decay)
+    h = np.zeros(n)
+    h[:L] = ir
+    wet = np.fft.irfft(np.fft.rfft(x) * np.fft.rfft(h), n)
+    wet /= np.abs(wet).max() + 1e-9
+    return x * (1 - mix) + wet * mix * np.abs(x).max()
+
+
+def make_sounds(out=SOUND_DIR):
+    import sys as _s
+    _s.path.insert(0, os.path.join(REPO, 'devtools', 'sfx'))
+    import sfx_lib as fx
+    made = []
+    # --- cd_wind: gusting wind + far air-raid wail + one far metal clank (6 s, 11025)
+    sr, sec = 11025, 6.0
+    n = int(sr * sec)
+    t = np.arange(n) / sr
+    rng = np.random.default_rng(7101)
+    f = lambda hz: round(hz * sec) / sec
+    wind = _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 260) / 220) ** 2) + 0.4 * np.exp(-((fr - 700) / 300) ** 2))
+    swell = 0.55 + 0.3 * np.sin(2 * np.pi * f(1 / 6) * t) + 0.15 * np.sin(2 * np.pi * f(0.5) * t + 1.3)
+    whistle = _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 1150) / 40) ** 2)) * 0.18 * (0.5 + 0.5 * np.sin(2 * np.pi * f(1 / 3) * t))
+    wf = 420 + 120 * np.sin(2 * np.pi * f(1 / 6) * t - np.pi / 2)
+    ph = np.cumsum(wf) / sr
+    ph *= round(ph[-1]) / ph[-1]
+    wail = (np.sin(2 * np.pi * ph) + 0.35 * np.sin(4 * np.pi * ph)) * 0.07
+    x = wind * swell + whistle + wail
+    L = int(0.9 * sr)
+    tt = np.arange(L) / sr
+    clank = sum(np.sin(2 * np.pi * fq * tt) * a for fq, a in ((523, 1), (1187, 0.6), (1931, 0.35))) * np.exp(-tt * 6) * 0.12
+    _place(x, clank, int(3.7 * sr))
+    made.append(('cd_wind.wav', _write_loop(os.path.join(out, 'cd_wind.wav'), _creverb(x, sr, rng, 1.0, 0.25), sr)))
+    # --- cd_harbor: water lapping, mooring creak, distant foghorn (6 s, 11025)
+    rng = np.random.default_rng(7102)
+    water = _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 550) / 380) ** 2) + 0.3 * np.exp(-((fr - 1800) / 600) ** 2))
+    env = np.zeros(n)
+    for k in range(9):
+        c, w = rng.uniform(0, n), rng.uniform(0.25, 0.6) * sr
+        d = np.minimum(np.abs(np.arange(n) - c), n - np.abs(np.arange(n) - c))
+        env += np.exp(-(d / w) ** 2) * rng.uniform(0.5, 1.0)
+    x = water * (0.2 + env / env.max()) * 0.8
+    for k in range(3):
+        Lc = int(0.45 * sr)
+        tc = np.arange(Lc) / sr
+        fq = 140 + 40 * k
+        cr = np.sign(np.sin(2 * np.pi * (fq + 30 * np.sin(2 * np.pi * 3 * tc)) * tc)) * np.sin(np.pi * tc / tc[-1]) ** 2
+        cr = np.convolve(cr, np.ones(4) / 4, 'same') * 0.06
+        _place(x, cr, int(rng.uniform(0, n)))
+    Lh = int(2.2 * sr)
+    th = np.arange(Lh) / sr
+    horn_env = np.minimum(1, th / 0.25) * np.exp(-np.maximum(0, th - 1.6) * 5)
+    horn = (np.sin(2 * np.pi * 110 * th) + 0.5 * np.sin(2 * np.pi * 220 * th) + 0.15 * np.sin(2 * np.pi * 330 * th)) * horn_env * 0.16
+    _place(x, horn, int(1.2 * sr))
+    made.append(('cd_harbor.wav', _write_loop(os.path.join(out, 'cd_harbor.wav'), _creverb(x, sr, rng, 1.4, 0.3), sr)))
+    # --- cd_hum: transformer hum 50/100/150 Hz + faint 2.4 kHz buzz (3 s, 11025)
+    sec, rng = 3.0, np.random.default_rng(7103)
+    n = int(sr * sec)
+    t = np.arange(n) / sr
+    x = 0.5 * np.sin(2 * np.pi * 100 * t) + 0.35 * np.sin(2 * np.pi * 50 * t) + 0.22 * np.sin(2 * np.pi * 150 * t + 0.7)
+    x += 0.08 * np.sin(2 * np.pi * 200 * t) + 0.03 * np.sign(np.sin(2 * np.pi * 2400 * t)) * (0.6 + 0.4 * np.sin(2 * np.pi * 1 * t))
+    x *= 0.92 + 0.08 * np.sin(2 * np.pi * (2 / 3) * t)
+    x += 0.04 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 3000) / 900) ** 2))
+    made.append(('cd_hum.wav', _write_loop(os.path.join(out, 'cd_hum.wav'), x, sr)))
+    # --- cd_siren: air-raid siren, one rise + fall per loop, mild drive + space (4 s, 11025)
+    sec, rng = 4.0, np.random.default_rng(7104)
+    n = int(sr * sec)
+    t = np.arange(n) / sr
+    prof = 0.5 - 0.5 * np.cos(2 * np.pi * t / sec)
+    sf = 330 + 420 * prof ** 0.8
+    ph = np.cumsum(sf) / sr
+    ph *= round(ph[-1]) / ph[-1]
+    x = np.sin(2 * np.pi * ph) + 0.45 * np.sin(4 * np.pi * ph) + 0.2 * np.sin(6 * np.pi * ph)
+    x = np.tanh(x * 1.8) * (0.45 + 0.55 * prof)
+    made.append(('cd_siren.wav', _write_loop(os.path.join(out, 'cd_siren.wav'), _creverb(x, sr, rng, 1.6, 0.35), sr)))
+    # --- cd_rotor: helicopter, 5 Hz blade slap (8 per loop), turbine whine, wash (1.6 s, 11025)
+    sec, rng = 1.6, np.random.default_rng(7105)
+    n = int(sr * sec)
+    t = np.arange(n) / sr
+    x = 0.25 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 400) / 500) ** 2))
+    Ls = int(0.09 * sr)
+    ts = np.arange(Ls) / sr
+    slap = (np.sin(2 * np.pi * 70 * ts) * 0.9 + rng.standard_normal(Ls) * 0.5) * np.exp(-ts * 40)
+    for k in range(8):
+        _place(x, slap, int(k * n / 8))
+    x += 0.07 * np.sin(2 * np.pi * 1200 * t) + 0.04 * np.sin(2 * np.pi * 2400 * t + 0.3)
+    made.append(('cd_rotor.wav', _write_loop(os.path.join(out, 'cd_rotor.wav'), x, sr)))
+    # --- cd_boom: distant heavy impact one-shot (22050, no cue)
+    fx.rng = np.random.default_rng(7106)
+    b = fx.boom(2.8, 90, 28, 0.55, 1.0)
+    cr = fx.crack(0.3, 900, 6000) * 0.5
+    deb = fx.lp(fx.noise(2.0, 'pink'), 2500) * fx.env_lin([(0, 0), (0.1, 0.5), (1, 0)], 2.0) * 0.25
+    x = fx.mix((b, 0, 1.0), (cr, 0.0, 0.6), (deb, 0.15, 0.8))
+    x = fx.reverb(fx.lp(x, 3500), 2.2, 0.35)
+    made.append(('cd_boom.wav', fx.write_wav3(os.path.join(out, 'cd_boom.wav'), x, max_len=3.0)))
+    return made
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--quality', default='normal')
@@ -652,7 +1324,11 @@ def main(argv=None):
     ap.add_argument('--mock', action='store_true', help='add mock detail at the spec face budgets (perf test)')
     ap.add_argument('--mock-scale', type=float, default=1.0, help='mock density as a fraction of the budgets')
     ap.add_argument('--dry', action='store_true')
+    ap.add_argument('--sounds', action='store_true', help='(re)synthesise the map sounds into cstrike/sound/vexmira/map')
     a = ap.parse_args(argv)
+    if a.sounds:
+        for nm, sec in make_sounds():
+            print(f'  sound {nm}: {sec:.2f} s')
     m = build(mock=a.mock, mock_scale=a.mock_scale)
     probs = m.spawn_problems()
     print('pre-compile spawn check:', probs or 'OK', m.stats())

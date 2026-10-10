@@ -1665,6 +1665,224 @@ def t_door_wood(rng, w, h):
 
 
 # =====================================================================
+# CORDON 7 (zm_vex_cordon): wet night harbor city under military quarantine
+# =====================================================================
+def _wet(img, rng, amount=0.35):
+    """Rain darkening + faint sheen streaks (outdoor surfaces)."""
+    h, w = img.shape[:2]
+    wet = np.clip((fbm(h, w, 3, rng, 5, 0.6) - 0.35) * 2.2, 0, 1) * amount
+    img = img * (1 - 0.35 * wet)[..., None]
+    sh = np.clip((fbm(h, w, 12, rng, 3) - 0.72) * 4, 0, 1) * wet
+    return np.clip(img + sh[..., None] * 0.08, 0, 1)
+
+
+def _stencil(cv_mask, rng, h, w):
+    """Spray-paint stencil: broken coverage + overspray."""
+    cover = np.clip(fbm(h, w, 12, rng, 3) * 1.9 - 0.15, 0, 1)
+    return np.clip(cv_mask * cover + blur(cv_mask, 1.6) * 0.18, 0, 1)
+
+
+def _bullets(h, w, rng, n):
+    hgt = np.zeros((h, w), F)
+    cv = Canvas(h, w)
+    for _ in range(n):
+        x, y = rng.uniform(4, w - 4), rng.uniform(4, h - 4)
+        r = rng.uniform(1.6, 3.2)
+        cv.ellipse(x, y, r, r)
+    m = cv.mask()
+    ring = np.clip(blur(m, 2.2) * 2.4 - m, 0, 1)
+    return m, ring
+
+
+@tex('vx_facade', 256, 256, 'cordon', desc='Cordon 7 tenement facade: 2x2 window bays (dark/broken/boarded), rain streaks')
+def t_facade(rng, w, h):
+    img, hgt = concrete(h, w, rng, (128, 118, 104), 0.2)
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    # storey band + cornice line
+    band = ((ys % 128) < 10).astype(F)
+    img = mix(img, img * 0.78, band)
+    hgt = hgt + band * 0.6
+    kinds = ['dark', 'broken', 'boarded', 'dark']
+    rng.shuffle(kinds)
+    winm = np.zeros((h, w), F)
+    for k, (cx, cy) in enumerate(((64, 64), (192, 64), (64, 192), (192, 192))):
+        x0, x1, y0, y1 = cx - 30, cx + 30, cy - 36, cy + 40
+        m = ((xs >= x0) & (xs < x1) & (ys >= y0) & (ys < y1)).astype(F)
+        frm = ((xs >= x0 - 5) & (xs < x1 + 5) & (ys >= y0 - 5) & (ys < y1 + 9)).astype(F) - m
+        sill = ((xs >= x0 - 8) & (xs < x1 + 8) & (ys >= y1 + 4) & (ys < y1 + 10)).astype(F)
+        hgt = hgt + frm * 0.5 + sill * 0.9 - m * 0.8
+        img = mix(img, fill(h, w, (150, 144, 132)), sill * 0.6)
+        glass = ramp(fbm(h, w, 6, rng, 3), [(0, (8, 10, 14)), (1, (28, 34, 44))])
+        mull = ((np.abs(xs - cx) < 1.5) | (np.abs(ys - (cy - 6)) < 1.5)).astype(F) * m
+        if kinds[k] == 'broken':
+            shard = cracks(h, w, rng, 8, 1.0, 0.6) * m
+            glass = mix(fill(h, w, (4, 4, 6)), glass, np.clip(shard * 3, 0, 1))
+        if kinds[k] == 'boarded':
+            pl = (((ys - y0) % 18) < 14).astype(F) * m
+            wood, _ = wood_grain(h, w, rng, (110, 84, 56), (60, 42, 26), 'x', 14)
+            glass = mix(fill(h, w, (6, 6, 8)), wood * 0.85, pl)
+        img = mix(img, glass, m)
+        img = mix(img, fill(h, w, (60, 56, 50)), mull * (kinds[k] != 'boarded'))
+        winm = winm + m
+        # soot / rain streak below each window
+        st = np.clip(1 - np.abs(xs - cx) / 34, 0, 1) * ((ys > y1 + 10) & (ys < y1 + 70)).astype(F)
+        st = st * np.exp(-(ys - y1 - 10) / 40) * fbm(h, w, 16, rng, 2, aspect=(0.2, 3))
+        img = img * (1 - 0.45 * st)[..., None]
+    img = apply_shade(img, shade(hgt, 2.4)) * ao(hgt, 2.5, 0.4)[..., None]
+    img = mix(img, img * 0.62, streaks(h, w, rng, 40, 0.5) * 0.55 * (1 - winm))
+    img = grime(img, rng, 0.35, 3, (34, 30, 26))
+    img = _wet(img, rng, 0.25)
+    return grain(img, rng, 0.025)
+
+
+@tex('vx_shopfront', 256, 128, 'cordon', desc='closed shop: grimy sign band over a dented roller shutter')
+def t_shopfront(rng, w, h):
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    img = steel(h, w, rng, (112, 116, 112), brushed=False)
+    slat = np.sin(ys / 4.0 * math.pi) * 0.5 + 0.5
+    img = apply_shade(img, shade(slat * 0.8, 1.6))
+    img, _ = rust_layer(h, w, rng, img, 0.22, 5)
+    band = (ys < 30).astype(F)
+    sb = steel(h, w, rng, (52, 70, 62), brushed=True)
+    cv = Canvas(h, w)
+    cv.text('ECZANE - APOTEK', 22, 9, 12, 2.0, spacing=1.3)
+    sb = mix(sb, fill(h, w, (200, 196, 170)), cv.mask() * np.clip(fbm(h, w, 12, rng, 3) * 1.8, 0, 1))
+    img = mix(img, sb, band)
+    edge = (np.abs(ys - 30) < 2).astype(F)
+    img = mix(img, fill(h, w, (20, 20, 20)), edge)
+    # graffiti tag: red X + "ENFEKTE" stencil
+    cv = Canvas(h, w)
+    cv.line([(150, 50), (220, 110)], 4)
+    cv.line([(220, 50), (150, 110)], 4)
+    cv.text('ENFEKTE', 30, 70, 12, 2.4, spacing=1.3)
+    img = mix(img, fill(h, w, (150, 18, 14)), _stencil(cv.mask(), rng, h, w) * 0.85)
+    img = grime(img, rng, 0.35, 3)
+    return grain(img, rng, 0.025)
+
+
+@tex('vx_quar_wall', 256, 128, 'cordon', desc='military quarantine wall: concrete T-wall, yellow/black band, stencil, bullet scars')
+def t_quar_wall(rng, w, h):
+    img, hgt = concrete(h, w, rng, (138, 136, 126), 0.18)
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    seam = (np.abs(xs - 128) < 1.5) | (xs < 1.5) | (xs > w - 2)
+    hgt = hgt - seam.astype(F) * 0.8
+    stripe = (ys >= 96) & (ys < 116)
+    hz = (((xs + ys) % 32) < 16).astype(F)
+    hzc = mix(fill(h, w, (210, 168, 30)), fill(h, w, (22, 22, 20)), hz)
+    img = mix(img, hzc, stripe.astype(F) * np.clip(fbm(h, w, 10, rng, 3) * 1.7, 0, 1))
+    cv = Canvas(h, w)
+    cv.text('QUARANTINE', 18, 16, 16, 2.6, spacing=1.3)
+    cv.text('KARANTINA - CORDON 7', 20, 46, 9, 1.6, spacing=1.3)
+    cv.text('ATES SERBEST BOLGE', 20, 66, 7, 1.3, spacing=1.3)
+    img = mix(img, fill(h, w, (20, 20, 18)), _stencil(cv.mask(), rng, h, w) * 0.9)
+    m, ring = _bullets(h, w, rng, 16)
+    hgt = hgt - m * 1.2 + ring * 0.3
+    img = apply_shade(img, shade(hgt, 2.4))
+    img = mix(img, fill(h, w, (60, 58, 54)), m * 0.8)
+    img = mix(img, img * 0.7, streaks(h, w, rng, 40) * 0.5)
+    img = grime(img, rng, 0.3, 3)
+    img = _wet(img, rng, 0.3)
+    return grain(img, rng, 0.025)
+
+
+@tex('~vx_arrow', 64, 64, 'cordon', light=(120, 255, 140, 150), desc='green EVAC arrow plate (texlight), arrow points to +u (texture right)')
+def t_arrow(rng, w, h):
+    img = steel(h, w, rng, (34, 40, 36), brushed=False)
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    cv = Canvas(h, w)
+    cv.poly([(8, 26), (34, 26), (34, 14), (56, 32), (34, 50), (34, 38), (8, 38)])
+    m = cv.mask()
+    img = img + glow(m, 4, (80, 255, 120), 0.7)
+    img = mix(img, fill(h, w, (170, 255, 180)), m)
+    frame = ((xs < 2) | (xs >= w - 2) | (ys < 2) | (ys >= h - 2)).astype(F)
+    img = mix(img, fill(h, w, (16, 18, 16)), frame)
+    return grain(np.clip(img, 0, 1), rng, 0.02)
+
+
+@tex('vx_signs', 128, 128, 'cordon', desc='district sign atlas: 4 rows of 128x32 (SUBSTATION, HARBOR, CUSTOMS TOWER, EVAC PAD)')
+def t_signs(rng, w, h):
+    rows = [('SUBSTATION', 'TRAFO', (28, 70, 110)), ('HARBOR', 'LIMAN', (24, 80, 60)),
+            ('CUSTOMS TOWER', 'GUMRUK KULESI', (90, 70, 24)), ('EVAC PAD', 'TAHLIYE', (30, 100, 40))]
+    img = np.zeros((h, w, 3), F)
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    for i, (en, tr, col) in enumerate(rows):
+        y0 = i * 32
+        sub = steel(32, w, rng, col, brushed=True)
+        sub = grime(sub, rng, 0.3, 3)
+        cv = Canvas(32, w)
+        th = min(10.0, 92 / max(1e-3, text_width(en, 1.0, 1.1)))
+        cv.text(en, 5, 4, th, max(1.2, th * 0.17), spacing=1.1)
+        tt = min(7.0, 92 / max(1e-3, text_width(tr, 1.0, 1.1)))
+        cv.text(tr, 5, 19, tt, max(1.0, tt * 0.18), spacing=1.1)
+        cv.poly([(104, 11), (113, 11), (113, 6), (123, 16), (113, 26), (113, 21), (104, 21)])
+        sub = mix(sub, fill(32, w, (236, 236, 226)), cv.mask())
+        yy, xx = np.mgrid[0:32, 0:w].astype(F)
+        fr = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= 30)).astype(F)
+        sub = mix(sub, fill(32, w, (200, 200, 190)), fr * 0.7)
+        img[y0:y0 + 32] = sub
+    img = mix(img, img * 0.7, streaks(h, w, rng, 30) * 0.4)
+    return grain(img, rng, 0.02)
+
+
+@tex('{vx_scorch', 128, 128, 'decal', desc='burn / blast scorch decal (masked)')
+def t_scorch(rng, w, h):
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    r = np.hypot(xs - 64, ys - 64) / 60
+    n = fbm(h, w, 6, rng, 5, 0.6)
+    a = np.clip(1.25 - r - (n - 0.5) * 0.9, 0, 1)
+    img = ramp(np.clip(1 - a + n * 0.3, 0, 1), [(0, (8, 7, 6)), (0.55, (26, 22, 18)), (1, (60, 50, 40))])
+    rays = np.clip((np.cos(np.arctan2(ys - 64, xs - 64) * 13 + n * 6) - 0.4), 0, 1) * np.clip(1.1 - r, 0, 1)
+    img = img * (1 - 0.3 * rays)[..., None]
+    alpha = ((a + rays * 0.3) > 0.35).astype(F)
+    return np.concatenate([img, alpha[..., None]], -1)
+
+
+@tex('vx_tarp', 128, 128, 'cordon', desc='olive military canvas; red cross in the upper-left 64x64 cell (fit for hospital tents)')
+def t_tarp(rng, w, h):
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    weave = (np.sin(xs * 1.6) * np.sin(ys * 1.6)) * 0.5 + 0.5
+    base = fill(h, w, (92, 98, 66)) * (0.85 + 0.25 * fbm(h, w, 4, rng, 5))[..., None]
+    img = base * (0.94 + 0.06 * weave)[..., None]
+    fold = fbm(h, w, 3, rng, 4, aspect=(1, 4))
+    img = apply_shade(img, shade(fold * 1.4, 2.0))
+    cross = (((np.abs(xs - 32) < 6) & (np.abs(ys - 32) < 20)) | ((np.abs(ys - 32) < 6) & (np.abs(xs - 32) < 20))).astype(F)
+    disc = (np.hypot(xs - 32, ys - 32) < 27).astype(F)
+    img = mix(img, fill(h, w, (196, 190, 172)), disc * 0.85)
+    img = mix(img, fill(h, w, (150, 22, 18)), cross)
+    img = grime(img, rng, 0.35, 4, (40, 34, 22))
+    img = mix(img, img * 0.7, streaks(h, w, rng, 30) * 0.4)
+    return grain(img, rng, 0.03)
+
+
+@tex('vx_bay', 256, 256, 'cordon', desc='static night sea with moon glints (unreachable vista water, no liquid contents)')
+def t_bay(rng, w, h):
+    n = fbm(h, w, 4, rng, 5, aspect=(1, 3))
+    img = ramp(n, [(0, (4, 10, 16)), (0.6, (10, 24, 34)), (1, (24, 44, 58))])
+    waves = fbm(h, w, 16, rng, 3, aspect=(1, 5))
+    gl = np.clip((waves - 0.68) * 6, 0, 1) * np.clip(fbm(h, w, 3, rng, 3) * 1.6 - 0.3, 0, 1)
+    img = mix(img, fill(h, w, (120, 140, 160)), gl * 0.45)
+    return grain(img, rng, 0.012)
+
+
+@tex('vx_heli', 128, 128, 'cordon', desc='olive medevac hull with rivets + CORDON-7 MEDEVAC (rows 0-95), rotor blur strip (rows 96-127)')
+def t_heli(rng, w, h):
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    img = steel(h, w, rng, (78, 86, 58), brushed=False)
+    pan = (((xs % 32) < 1) | ((ys % 24) < 1)).astype(F)
+    rv = bolts(h, w, [(x + 3, y + 3) for x in range(0, w, 8) for y in range(0, 96, 24)], 1.2)
+    img = apply_shade(img, shade(rv - pan * 0.5, 2.0))
+    cv = Canvas(h, w)
+    cv.text('CORDON-7', 10, 30, 12, 2.0, spacing=1.2)
+    cv.text('MEDEVAC', 10, 54, 10, 1.8, spacing=1.2)
+    img = mix(img, fill(h, w, (220, 220, 210)), cv.mask())
+    img = grime(img, rng, 0.3, 3)
+    blur_strip = ys >= 96
+    rot = fill(h, w, (40, 42, 40)) * (0.6 + 0.4 * fbm(h, w, 2, rng, 3, aspect=(8, 1)))[..., None]
+    img = np.where(blur_strip[..., None], rot, img)
+    return grain(img, rng, 0.02)
+
+
+# =====================================================================
 # public API
 # =====================================================================
 def names(cat: Optional[str] = None) -> List[str]:
