@@ -27208,7 +27208,7 @@ public plugin_init()
 
     // v2.0
     g_pPrefix        = register_cvar("vex_chat_prefix", "^4[VEX]^1");
-    g_pHostname      = register_cvar("vex_hostname", "EN-TR 2X Jump Zombie | Vexmira | CSO,Boss,Plague,Events");
+    g_pHostname      = register_cvar("vex_hostname", "VEXMIRA ZOMBIE [TR/EN] | CSO BOSS + 2X JUMP + EVENTS");
     g_pHostDyn       = register_cvar("vex_hostname_dynamic", "1");
     g_pEnv           = register_cvar("vex_env", "1");
     g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
