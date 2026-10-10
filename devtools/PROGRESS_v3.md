@@ -136,3 +136,7 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   Bitince: paket + gonder + push.
 - 2026-10-10 07:40: ek istek: texture'lar ambiyansla uyumlu, gercekci, uygun olsun (OWNER REQUIREMENTS 2b). Run yeniden
   baslatildi: YENI run wf_72ed255d-1ec -> yarim kaldiysa Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_72ed255d-1ec"}).
+- 2026-10-10 07:55: sahip "kullanim %60, hizlandir" dedi -> YALIN akis (flagship.js yalin surum; tam surum $SP/wf/flagship.full.js):
+  1 ajan tasarim+SPEC (Aci B karantina bolgesi + diger acilardan en iyi fikirler) -> harita 3 asama || eklenti hikaye destegi
+  -> entegrasyon -> 1 birlesik inceleme + 1 duzeltme. ~7 ajan (onceden ~17). YENI run wf_8f0bb905-afd ->
+  yarim kaldiysa Workflow({scriptPath: "$SP/wf/flagship.js", resumeFromRunId: "wf_8f0bb905-afd"}).
