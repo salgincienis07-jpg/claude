@@ -50,8 +50,9 @@
 
 #pragma dynamic 32768
 
+
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "3.5"
+#define VERSION  "3.7-Arsenal8.1"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -70,7 +71,7 @@
 #define NUM_BOSSES    9
 #define NUM_JOBS      26
 #define NUM_ITEMS     28
-#define NUM_SPECIAL   16
+#define NUM_SPECIAL   8
 enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SWE_EXPLOSIVE };
 #define NUM_PERKS     6
 #define PERK_MAX      5
@@ -256,11 +257,8 @@ new const SOUND_KEYS[][] =
     "STREAK_5", "STREAK_10", "STREAK_15",
     "NADE_FIRE", "NADE_FROST", "NADE_INFECT", "FREEZE", "BURN", "ANTIDOTE", "MADNESS",
     "SW_FIRE", "SW0_FIRE", "SW1_FIRE", "SW2_FIRE", "SW3_FIRE", "SW4_FIRE", "SW5_FIRE", "SW6_FIRE", "SW7_FIRE",
-    "SW8_FIRE", "SW9_FIRE", "SW10_FIRE", "SW11_FIRE", "SW12_FIRE", "SW13_FIRE", "SW14_FIRE", "SW15_FIRE",
     "SW0_DRAW", "SW1_DRAW", "SW2_DRAW", "SW3_DRAW", "SW4_DRAW", "SW5_DRAW", "SW6_DRAW", "SW7_DRAW",
-    "SW8_DRAW", "SW9_DRAW", "SW10_DRAW", "SW11_DRAW", "SW12_DRAW", "SW13_DRAW", "SW14_DRAW", "SW15_DRAW",
     "SW0_RELOAD", "SW1_RELOAD", "SW2_RELOAD", "SW3_RELOAD", "SW4_RELOAD", "SW5_RELOAD", "SW6_RELOAD", "SW7_RELOAD",
-    "SW8_RELOAD", "SW9_RELOAD", "SW10_RELOAD", "SW11_RELOAD", "SW12_RELOAD", "SW13_RELOAD", "SW14_RELOAD", "SW15_RELOAD",
     "ZAP", "MVP", "VIP_JOIN", "BOSS_WARN", "BOSS_ROAR", "BOSS_ABILITY",
     "ZOMBIE_IDLE", "ZOMBIE_SLASH", "ZOMBIE_HITWALL", "ZOMBIE_HIT", "ZOMBIE_STAB", "ZOMBIE_ACID", "ZOMBIE_HEAL", "ZOMBIE_BLINK", "ZOMBIE_SHOCK",
     "WELCOME", "PLAYER_JOIN", "PLAYER_LEAVE", "BOSS_SOON", "BOSS_INTRO", "BOSS_STEP", "BOSS_PHASE", "BOSS_ENRAGE",
@@ -352,36 +350,38 @@ new ITEM_VAL[NUM_ITEMS]   = { 100, 200, 1, 1, 1, 1, 55, 12, 0, 20, 0, 0, 5, 3, 1
 new const ITEM_ANNOUNCE[NUM_ITEMS] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1 };
 
 // Ozel silahlar
+
+/* Vexmira Arsenal 8: one retained rifle + seven original alternate-mode rifles. */
+#define VX_TAG 7800
+#define VX_MAX_PROJECTILES 24
+new const VX_FOLDER[8][] = {"vxr7", "helios", "atlas", "drakon", "boreal", "tesla", "singularity", "railguard"};
+new const VX_SOUND[7][] = {"fire", "magout", "magin", "bolt", "switch", "alt", "impact"};
+new const VX_ALT_COST[8] = {0,3,8,8,6,5,8,6};
+new const Float:VX_ALT_WAIT[8] = {0.0,0.65,2.2,3.0,2.5,1.3,3.2,1.4};
+new bool:g_bVxReady[8], bool:g_bVxGiving[33], bool:g_bVxAltHandled[33], bool:g_bVxRightHeld[33];
+new g_iVxClip[33], g_iVxAttack[33], g_iVxShots[33], g_iVxEvent;
+new g_szVxWorld[8][96], g_iVxProjectiles[VX_MAX_PROJECTILES];
+new Float:g_fVxStart[33][3], Float:g_fVxEnd[33][3];
+new g_iVxOrbModel, g_iVxDragonModel;
+new const VX_ORB[] = "models/vexmira/weapons/arsenal/orb.mdl";
+new const VX_DRAGON[] = "models/vexmira/weapons/arsenal/dragon.mdl";
+
+
 new const SW_BASE_ENT[NUM_SPECIAL][] =
-{
-    "weapon_elite", "weapon_ak47", "weapon_awp", "weapon_xm1014",
-    "weapon_deagle", "weapon_p90", "weapon_ak47", "weapon_sg550",
-    "weapon_m4a1", "weapon_m249", "weapon_awp", "weapon_xm1014",
-    "weapon_deagle", "weapon_p90", "weapon_ak47", "weapon_sg550"
-};
+{"weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47"};
 new const WeaponIdType:SW_BASE_ID[NUM_SPECIAL] =
-{
-    WEAPON_ELITE, WEAPON_AK47, WEAPON_AWP, WEAPON_XM1014,
-    WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550,
-    WEAPON_M4A1, WEAPON_M249, WEAPON_AWP, WEAPON_XM1014,
-    WEAPON_DEAGLE, WEAPON_P90, WEAPON_AK47, WEAPON_SG550
-};
-new Float:SW_MULT[NUM_SPECIAL] = { 1.35, 1.2, 1.9, 1.3, 1.5, 1.25, 1.35, 1.6, 1.3, 1.2, 1.7, 1.25, 1.4, 1.2, 1.3, 1.45 };
-new SW_COST[NUM_SPECIAL]       = { 80, 100, 120, 85, 70, 95, 105, 135, 90, 115, 140, 100, 75, 110, 120, 150 };
-new SW_LVL[NUM_SPECIAL]        = { 3, 8, 12, 5, 4, 10, 15, 20, 6, 11, 16, 8, 7, 13, 19, 24 };
-new SW_BPAMMO[NUM_SPECIAL]     = { 180, 300, 60, 64, 70, 200, 180, 180, 180, 300, 60, 64, 70, 200, 180, 180 };
-new SW_CLIP[NUM_SPECIAL]       = { 30, 100, 10, 7, 7, 50, 30, 30, 30, 100, 10, 7, 7, 50, 30, 30 };
-new SW_CHAIN_DMG[NUM_SPECIAL]  = { 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0 };
-new Float:SW_RATE[NUM_SPECIAL] = { 0.10, 0.08, 1.5, 0.25, 0.23, 0.07, 0.10, 0.20, 0.10, 0.08, 1.5, 0.25, 0.23, 0.07, 0.10, 0.20 };
-new Float:SW_RECOIL[NUM_SPECIAL] = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
-new SW_EFFECT[NUM_SPECIAL] = { 0, 1, 2, 3, 0, 1, 4, 5, 0, 1, 2, 3, 0, 1, 4, 5 };
+{WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47};
+new Float:SW_MULT[NUM_SPECIAL] = {1.38, 1.25, 1.3, 1.4, 1.22, 1.28, 1.32, 1.5};
+new SW_COST[NUM_SPECIAL]       = {140, 155, 185, 195, 170, 180, 220, 190};
+new SW_LVL[NUM_SPECIAL]        = {12, 13, 16, 18, 15, 17, 22, 19};
+new SW_BPAMMO[NUM_SPECIAL]     = {180, 180, 192, 180, 168, 216, 192, 144};
+new SW_CLIP[NUM_SPECIAL]       = {30, 30, 32, 30, 28, 36, 32, 24};
+new SW_CHAIN_DMG[NUM_SPECIAL]  = {0,0,0,0,0,0,0,0};
+new Float:SW_RATE[NUM_SPECIAL] = {0.12, 0.12, 0.14, 0.15, 0.12, 0.13, 0.15, 0.18};
+new Float:SW_RECOIL[NUM_SPECIAL] = {0.85, 0.8, 0.9, 0.9, 0.8, 0.85, 0.95, 1.0};
+new SW_EFFECT[NUM_SPECIAL] = {0,0,0,0,0,0,0,0};
 new SW_RGB[NUM_SPECIAL][3]     =
-{
-    {0, 220, 255}, {255, 110, 0}, {200, 220, 255}, {120, 220, 255},
-    {255, 210, 0}, {255, 60, 0}, {170, 0, 255}, {90, 0, 160},
-    {60, 255, 240}, {255, 80, 30}, {130, 200, 255}, {80, 190, 255},
-    {255, 180, 40}, {255, 35, 20}, {180, 50, 255}, {120, 30, 200}
-};
+{{165,85,235},{255,175,65},{90,175,255},{255,85,40},{90,230,255},{165,135,255},{185,70,245},{115,255,155}};
 new g_szSWName[2][NUM_SPECIAL][48], g_szSWDesc[2][NUM_SPECIAL][80];
 
 // Perk maliyeti: (seviye + 1) * vex_perk_cost_step VC
@@ -7646,6 +7646,12 @@ public menu_special_handler(id, menu, item)
         return PLUGIN_HANDLED;
     }
 
+    if (!g_bVxReady[i])
+    {
+        Chat(id, "SHOP_UNAVAIL");
+        return PLUGIN_HANDLED;
+    }
+
     // Ayni slottaki diger ozel silahi kaldir
     new bool:pistol = (SW_BASE_ID[i] == WEAPON_DEAGLE) ? true : false;
     for (new s = 0; s < NUM_SPECIAL; s++)
@@ -7655,7 +7661,13 @@ public menu_special_handler(id, menu, item)
     }
 
     g_iSpecW[id] |= (1 << i);
-    new weapon = rg_give_item(id, SW_BASE_ENT[i], GT_REPLACE);
+    new weapon = VxGive(id, i);
+    if (is_nullent(weapon))
+    {
+        g_iSpecW[id] &= ~(1 << i);
+        Chat(id, "SHOP_UNAVAIL");
+        return PLUGIN_HANDLED;
+    }
     if (!is_nullent(weapon))
         set_member(weapon, m_Weapon_iClip, SW_CLIP[i]);
     rg_set_user_bpammo(id, SW_BASE_ID[i], SW_BPAMMO[i]);
@@ -9386,6 +9398,348 @@ GiveModeWeapons(id, mm)
     }
 }
 
+VxDefaults()
+{
+    new key[24], path[128];
+    for (new sw; sw < NUM_SPECIAL; sw++)
+    {
+        formatex(key,charsmax(key),"SW%d_VMODEL",sw);
+        formatex(path,charsmax(path),"models/vexmira/weapons/%s/v_%s.mdl",VX_FOLDER[sw],VX_FOLDER[sw]);
+        TrieSetString(g_tRes,key,path);
+        formatex(key,charsmax(key),"SW%d_PMODEL",sw);
+        formatex(path,charsmax(path),"models/vexmira/weapons/%s/p_%s.mdl",VX_FOLDER[sw],VX_FOLDER[sw]);
+        TrieSetString(g_tRes,key,path);
+        formatex(key,charsmax(key),"SW%d_WMODEL",sw);
+        formatex(path,charsmax(path),"models/vexmira/weapons/%s/w_%s.mdl",VX_FOLDER[sw],VX_FOLDER[sw]);
+        TrieSetString(g_tRes,key,path);
+        formatex(key,charsmax(key),"SW%d_FIRE",sw);
+        formatex(path,charsmax(path),"vexmira/weapons/%s/fire.wav",VX_FOLDER[sw]);
+        TrieSetString(g_tRes,key,path);
+    }
+}
+
+VxPrecache()
+{
+    new key[24], path[128], full[160];
+    if(file_exists(VX_ORB)) g_iVxOrbModel=PcModel(VX_ORB);
+    if(file_exists(VX_DRAGON)) g_iVxDragonModel=PcModel(VX_DRAGON);
+    for(new sw;sw<NUM_SPECIAL;sw++)
+    {
+        formatex(key,charsmax(key),"SW%d_VMODEL",sw);GetFileModel(key,g_szSWView[sw],charsmax(g_szSWView[]));
+        formatex(key,charsmax(key),"SW%d_PMODEL",sw);GetFileModel(key,g_szSWPlayer[sw],charsmax(g_szSWPlayer[]));
+        formatex(key,charsmax(key),"SW%d_WMODEL",sw);GetFileModel(key,g_szVxWorld[sw],charsmax(g_szVxWorld[]));
+        g_bVxReady[sw]=bool:(g_szSWView[sw][0]&&g_szSWPlayer[sw][0]&&g_szVxWorld[sw][0]);
+        new count=sw?7:4;
+        for(new j;j<count;j++)
+        {
+            formatex(path,charsmax(path),"vexmira/weapons/%s/%s.wav",VX_FOLDER[sw],VX_SOUND[j]);
+            formatex(full,charsmax(full),"sound/%s",path);
+            if(!file_exists(full) || !PcSound(path))g_bVxReady[sw]=false;
+        }
+        if((sw==2||sw==4||sw==6)&&!g_iVxOrbModel)g_bVxReady[sw]=false;
+        if(sw==3&&!g_iVxDragonModel)g_bVxReady[sw]=false;
+        formatex(key,charsmax(key),"SW%d_FIRE",sw);PrecacheSoundKeyEx(key,false);
+        log_amx("[Arsenal8] slot=%d ready=%d",sw,g_bVxReady[sw]);
+    }
+    g_iVxEvent=engfunc(EngFunc_PrecacheEvent,1,"events/ak47.sc");
+}
+
+VxIndex(weapon)
+{
+    if(is_nullent(weapon))return -1;
+    new sw=get_entvar(weapon,var_impulse)-VX_TAG;
+    return (0<=sw<NUM_SPECIAL&&get_member(weapon,m_iId)==WEAPON_AK47)?sw:-1;
+}
+VxActive(id)
+{
+    if(!(1<=id<=g_iMax)||!is_user_alive(id)||g_bZombie[id]||ModeOf(id)>=0)return -1;
+    new sw=VxIndex(get_member(id,m_pActiveItem));
+    return(sw>=0&&g_bVxReady[sw]&&(g_iSpecW[id]&(1<<sw)))?sw:-1;
+}
+VxTag(weapon,id,sw)
+{
+    if(is_nullent(weapon))return;
+    set_entvar(weapon,var_impulse,VX_TAG+sw);g_iSpecW[id]=(1<<sw);
+    rg_set_iteminfo(weapon,ItemInfo_iMaxClip,SW_CLIP[sw]);g_iVxShots[id]=0;
+}
+VxGive(id,sw)
+{
+    if(!(0<=sw<NUM_SPECIAL)||!g_bVxReady[sw])return 0;
+    g_bVxGiving[id]=true;g_iSpecW[id]=(1<<sw);
+    new weapon=rg_give_item(id,"weapon_ak47",GT_REPLACE);g_bVxGiving[id]=false;
+    if(is_nullent(weapon)){g_iSpecW[id]=0;return 0;}
+    VxTag(weapon,id,sw);set_entvar(weapon,var_iuser2,0);set_entvar(weapon,var_body,0);
+    set_member(weapon,m_Weapon_iClip,SW_CLIP[sw]);rg_set_user_bpammo(id,WEAPON_AK47,SW_BPAMMO[sw]);
+    engclient_cmd(id,"weapon_ak47");ExecuteHamB(Ham_Item_Deploy,weapon);return weapon;
+}
+public VxAddToPlayerPost(weapon,id)
+{
+    if(!(1<=id<=g_iMax)||!is_user_connected(id))return HAM_IGNORED;
+    new sw=VxIndex(weapon);
+    if(sw>=0&&!g_bZombie[id])VxTag(weapon,id,sw);
+    else if(!g_bVxGiving[id])g_iSpecW[id]=0;
+    return HAM_IGNORED;
+}
+VxAnim(id,weapon,anim)
+{
+    set_entvar(id,var_weaponanim,anim);
+    if(!is_user_bot(id))
+    {
+        message_begin(MSG_ONE,SVC_WEAPONANIM,_,id);
+        write_byte(anim);write_byte(get_entvar(weapon,var_body));message_end();
+    }
+}
+VxSound(id,sw,sound,channel=CHAN_WEAPON)
+{
+    new path[128];formatex(path,charsmax(path),"vexmira/weapons/%s/%s.wav",VX_FOLDER[sw],VX_SOUND[sound]);
+    EmitSafe(id,channel,path,0.8,ATTN_NORM,0,PITCH_NORM);
+}
+VxCommand(id,uc)
+{
+    new sw=VxActive(id),buttons=get_uc(uc,UC_Buttons);
+    if(sw<1){g_bVxRightHeld[id]=false;return;}
+    new bool:held=bool:(buttons&IN_ATTACK2);
+    set_uc(uc,UC_Buttons,buttons&~IN_ATTACK2);
+    if(held&&!g_bVxRightHeld[id])
+    {
+        new w=get_member(id,m_pActiveItem);
+        if(!get_member(w,m_Weapon_fInReload)&&Float:get_member(w,m_Weapon_flNextSecondaryAttack)<=0.0
+            &&Float:get_member(id,m_flNextAttack)<=0.0)
+        {
+            new mode=1-get_entvar(w,var_iuser2);set_entvar(w,var_iuser2,mode);set_entvar(w,var_body,mode);
+            set_member(w,m_Weapon_flNextPrimaryAttack,floatmax(0.6,Float:get_member(w,m_Weapon_flNextPrimaryAttack)));
+            set_member(w,m_Weapon_flNextSecondaryAttack,0.6);set_member(w,m_Weapon_flTimeWeaponIdle,0.65);
+            VxAnim(id,w,6);VxSound(id,sw,4);
+            new key[24],modeName[64];formatex(key,charsmax(key),mode?"VX_ALT_%d":"VX_PRIMARY",sw);
+            formatex(modeName,charsmax(modeName),"%L",id,key);Chat(id,"VX_MODE",modeName);
+        }
+    }
+    g_bVxRightHeld[id]=held;
+}
+public VxAttackPre(weapon)
+{
+    new id=get_member(weapon,m_pPlayer);if(!(1<=id<=g_iMax))return HAM_IGNORED;
+    g_iVxAttack[id]=0;g_bVxAltHandled[id]=false;new sw=VxActive(id);if(sw<0)return HAM_IGNORED;
+    if(sw>0&&get_entvar(weapon,var_iuser2))
+    {
+        g_bVxAltHandled[id]=true;VxAlt(id,weapon,sw);return HAM_SUPERCEDE;
+    }
+    g_iVxClip[id]=get_member(weapon,m_Weapon_iClip);g_iVxAttack[id]=weapon;return HAM_IGNORED;
+}
+public VxPlaybackEvent(flags,invoker,eventindex,Float:delay,Float:origin[3],Float:angles[3],Float:spreadX,Float:spreadY,punchX,punchY,b1,b2)
+{
+    if(eventindex!=g_iVxEvent||VxActive(invoker)<0)return FMRES_IGNORED;
+    if((g_iVxShots[invoker]+1)%3==0)
+    {
+        new Float:a[3],Float:ofs[3],Float:ang[3],Float:f[3],Float:r[3],Float:u[3],Float:b[3];
+        get_entvar(invoker,var_origin,a);get_entvar(invoker,var_view_ofs,ofs);get_entvar(invoker,var_v_angle,ang);
+        ang[0]+=float(punchX)/100.0;ang[1]+=float(punchY)/100.0;engfunc(EngFunc_MakeVectors,ang);
+        global_get(glb_v_forward,f);global_get(glb_v_right,r);global_get(glb_v_up,u);
+        for(new j;j<3;j++){a[j]+=ofs[j];b[j]=a[j]+(f[j]+r[j]*spreadX+u[j]*spreadY)*8192.0;g_fVxStart[invoker][j]=a[j]+f[j]*18.0;}
+        engfunc(EngFunc_TraceLine,a,b,DONT_IGNORE_MONSTERS,invoker,0);get_tr2(0,TR_vecEndPos,g_fVxEnd[invoker]);g_fVxStart[invoker][2]-=4.0;
+    }
+    return FMRES_SUPERCEDE;
+}
+public VxSendAnim(weapon,anim,skiplocal)
+{
+    if(VxIndex(weapon)>=0)SetHookChainArg(3,ATYPE_INTEGER,0);return HC_CONTINUE;
+}
+public VxClientDataPost(id,sendweapons,cd)
+{
+    if(VxActive(id)>=0)set_cd(cd,CD_flNextAttack,get_gametime()+0.001);return FMRES_IGNORED;
+}
+VxShot(id,sw)
+{
+    new weapon=get_member(id,m_pActiveItem);g_iVxShots[id]++;VxAnim(id,weapon,3+(g_iVxShots[id]%3));EmitSpecialFire(id,sw);
+    if(g_iVxShots[id]%3)return;
+    FxBeamEx(g_fVxStart[id],g_fVxEnd[id],g_sprBeam,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],3,0,1,150);
+}
+VxAim(id,Float:a[3],Float:f[3],Float:b[3],Float:angle[3])
+{
+    new Float:ofs[3];get_entvar(id,var_origin,a);get_entvar(id,var_view_ofs,ofs);get_entvar(id,var_v_angle,angle);
+    for(new j;j<3;j++)a[j]+=ofs[j];engfunc(EngFunc_MakeVectors,angle);global_get(glb_v_forward,f);
+    for(new j;j<3;j++)b[j]=a[j]+f[j]*4096.0;
+}
+bool:VxLOS(const Float:a[3],victim,ignore)
+{
+    new Float:b[3];get_entvar(victim,var_origin,b);b[2]+=18.0;
+    new tr=create_tr2();engfunc(EngFunc_TraceLine,a,b,DONT_IGNORE_MONSTERS,ignore,tr);
+    new bool:ok=bool:(get_tr2(tr,TR_pHit)==victim||Float:get_tr2(tr,TR_flFraction)>=0.98);free_tr2(tr);return ok;
+}
+VxDamage(victim,attacker,inflictor,Float:damage)
+{
+    if(!(1<=victim<=g_iMax)||!is_user_alive(victim)||!g_bZombie[victim])return;
+    if(!(1<=attacker<=g_iMax)||!is_user_alive(attacker)||g_bZombie[attacker]||ModeOf(attacker)>=0)return;
+    ExecuteHamB(Ham_TakeDamage,victim,inflictor,attacker,damage,DMG_ENERGYBEAM);
+}
+VxRadius(const Float:o[3],id,ent,sw,Float:radius,Float:damage)
+{
+    new Float:p[3];
+    for(new v=1;v<=g_iMax;v++)
+    {
+        if(!is_user_alive(v)||!g_bZombie[v])continue;get_entvar(v,var_origin,p);
+        new Float:dist=get_distance_f(o,p);if(dist>radius||!VxLOS(o,v,ent))continue;
+        VxDamage(v,id,ent,damage*(1.0-0.45*dist/radius));
+        if(!is_user_alive(v))continue;
+        if(sw==4)Freeze(v,0.8);
+        if(sw==6&&!g_bBoss[v]&&!g_bNemesis[v]&&!g_bAssassin[v])
+        {
+            new Float:vel[3];for(new j;j<3;j++)vel[j]=(o[j]-p[j])*1.6;
+            vel[2]=floatclamp(vel[2],-80.0,80.0);set_entvar(v,var_velocity,vel);
+            g_fSlow[v]=floatmax(g_fSlow[v],get_gametime()+0.3);rg_reset_maxspeed(v);
+        }
+    }
+}
+VxRay(id,sw,const Float:a[3],const Float:f[3],const Float:b[3])
+{
+    new Float:start[3],Float:end[3];start=a;
+    new tr=create_tr2(),ignore=id,limit=sw==7?3:1;new hitFirst;
+    for(new n;n<limit;n++)
+    {
+        engfunc(EngFunc_TraceLine,start,b,DONT_IGNORE_MONSTERS,ignore,tr);get_tr2(tr,TR_vecEndPos,end);
+        new victim=get_tr2(tr,TR_pHit);if(n==0)hitFirst=victim;
+        if(!(1<=victim<=g_iMax)||!is_user_alive(victim)||!g_bZombie[victim])break;
+        VxDamage(victim,id,id,(sw==1?135.0:(sw==5?110.0:180.0))*(1.0-0.2*float(n)));
+        ignore=victim;for(new j;j<3;j++)start[j]=end[j]+f[j]*0.5;
+    }
+    free_tr2(tr);FxBeamEx(a,end,sw==5?g_sprLightning:g_sprBeam,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],sw==7?10:7,sw==5?10:0,2,220);FxSparks(end);
+    if(sw==5&&1<=hitFirst<=g_iMax)
+    {
+        new Float:p[3],Float:q[3];get_entvar(hitFirst,var_origin,p);new count;
+        for(new v=1;v<=g_iMax&&count<2;v++)
+        {
+            if(v==hitFirst||!is_user_alive(v)||!g_bZombie[v])continue;get_entvar(v,var_origin,q);
+            if(get_distance_f(p,q)>230.0||!VxLOS(p,v,hitFirst))continue;
+            FxBeamEx(p,q,g_sprLightning,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],8,12,2,220);VxDamage(v,id,id,60.0);count++;
+        }
+    }
+}
+bool:VxOwnedEntity(ent)
+{
+    if(is_nullent(ent))return false;
+    new classname[32];get_entvar(ent,var_classname,classname,charsmax(classname));
+    return bool:equal(classname,"vx_arsenal_projectile");
+}
+VxFreeSlot(id)
+{
+    new count,slot=-1;
+    for(new i;i<VX_MAX_PROJECTILES;i++)
+    {
+        new e=g_iVxProjectiles[i];if(!VxOwnedEntity(e)){g_iVxProjectiles[i]=0;if(slot<0)slot=i;continue;}
+        if(get_entvar(e,var_owner)==id)count++;
+    }
+    return count>=2?-1:slot;
+}
+VxRemove(ent)
+{
+    for(new i;i<VX_MAX_PROJECTILES;i++)if(g_iVxProjectiles[i]==ent)g_iVxProjectiles[i]=0;
+    if(VxOwnedEntity(ent))engfunc(EngFunc_RemoveEntity,ent);
+}
+VxClear(owner=0)
+{
+    for(new i;i<VX_MAX_PROJECTILES;i++)
+    {
+        new e=g_iVxProjectiles[i];if(!VxOwnedEntity(e)){g_iVxProjectiles[i]=0;continue;}
+        if(!owner||get_entvar(e,var_owner)==owner)VxRemove(e);
+    }
+}
+bool:VxSpawn(id,sw,const Float:a[3],const Float:f[3],const Float:angle[3])
+{
+    new slot=VxFreeSlot(id);if(slot<0)return false;
+    new ent=engfunc(EngFunc_CreateNamedEntity,engfunc(EngFunc_AllocString,"info_target"));if(is_nullent(ent))return false;
+    g_iVxProjectiles[slot]=ent;set_entvar(ent,var_classname,"vx_arsenal_projectile");set_entvar(ent,var_owner,id);
+    set_entvar(ent,var_iuser1,sw);set_entvar(ent,var_iuser3,get_user_userid(id));set_entvar(ent,var_iuser4,slot+1);
+    set_entvar(ent,var_fuser1,get_gametime()+(sw==3?0.7:3.0));set_entvar(ent,var_fuser3,get_gametime());set_entvar(ent,var_angles,angle);
+    engfunc(EngFunc_SetModel,ent,sw==3?VX_DRAGON:VX_ORB);set_entvar(ent,var_skin,sw==4?1:(sw==6?2:0));
+    new Float:start[3],Float:vel[3];for(new j;j<3;j++){start[j]=a[j]+f[j]*32.0;vel[j]=f[j]*(sw==2?680.0:750.0);}
+    if(sw==3)
+    {
+        // The echo sits at the muzzle and animates its jaw; it has no collision or damage touch.
+        start[2]-=8.0;set_entvar(ent,var_movetype,MOVETYPE_NONE);set_entvar(ent,var_solid,SOLID_NOT);
+        set_entvar(ent,var_sequence,0);set_entvar(ent,var_animtime,get_gametime());set_entvar(ent,var_framerate,1.0);
+    }
+    else
+    {
+        // Spawn at the eye position to avoid starting a solid projectile inside a nearby wall.
+        start=a;set_entvar(ent,var_movetype,MOVETYPE_FLY);set_entvar(ent,var_solid,SOLID_BBOX);
+        engfunc(EngFunc_SetSize,ent,Float:{-3.0,-3.0,-3.0},Float:{3.0,3.0,3.0});
+        set_entvar(ent,var_velocity,vel);set_entvar(ent,var_avelocity,Float:{20.0,140.0,30.0});
+    }
+    engfunc(EngFunc_SetOrigin,ent,start);set_entvar(ent,var_nextthink,get_gametime()+0.1);return true;
+}
+public VxProjectileTouch(ent,other)
+{
+    if(!VxOwnedEntity(ent))return FMRES_IGNORED;
+    new slot=get_entvar(ent,var_iuser4)-1;
+    if(!(0<=slot<VX_MAX_PROJECTILES)||g_iVxProjectiles[slot]!=ent)return FMRES_IGNORED;
+    new sw=get_entvar(ent,var_iuser1),owner=get_entvar(ent,var_owner);if(sw==3||other==owner)return FMRES_IGNORED;
+    new Float:o[3];get_entvar(ent,var_origin,o);
+    if(!(1<=owner<=g_iMax)||!is_user_alive(owner)||g_bZombie[owner]||ModeOf(owner)>=0||get_user_userid(owner)!=get_entvar(ent,var_iuser3)){VxRemove(ent);return FMRES_IGNORED;}
+    VxSound(ent,sw,6,CHAN_BODY);FxRingEx(o,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],sw==2?185:155,12,4);
+    if(sw==6)
+    {
+        set_entvar(ent,var_solid,SOLID_NOT);set_entvar(ent,var_movetype,MOVETYPE_NONE);set_entvar(ent,var_velocity,Float:{0.0,0.0,0.0});
+        set_entvar(ent,var_fuser1,get_gametime()+0.85);set_entvar(ent,var_fuser2,get_gametime());set_entvar(ent,var_nextthink,get_gametime()+0.05);
+        VxRadius(o,owner,ent,sw,160.0,20.0);FxImplosion(o,120,12,4);return FMRES_IGNORED;
+    }
+    VxRadius(o,owner,ent,sw,sw==2?185.0:155.0,sw==2?220.0:105.0);FxParticles(o,90,sw==2?112:96,3);VxRemove(ent);return FMRES_IGNORED;
+}
+public VxProjectileThink(ent)
+{
+    if(!VxOwnedEntity(ent))return FMRES_IGNORED;new slot=get_entvar(ent,var_iuser4)-1;
+    if(!(0<=slot<VX_MAX_PROJECTILES)||g_iVxProjectiles[slot]!=ent)return FMRES_IGNORED;
+    new owner=get_entvar(ent,var_owner),sw=get_entvar(ent,var_iuser1);new Float:now=get_gametime();
+    if(!(1<=owner<=g_iMax)||!is_user_alive(owner)||g_bZombie[owner]||ModeOf(owner)>=0||get_user_userid(owner)!=get_entvar(ent,var_iuser3)
+        ||g_bRoundEnded||now>=Float:get_entvar(ent,var_fuser1)){VxRemove(ent);return FMRES_IGNORED;}
+    if(sw==6&&get_entvar(ent,var_solid)==SOLID_NOT&&now>=Float:get_entvar(ent,var_fuser2))
+    {
+        new Float:o[3];get_entvar(ent,var_origin,o);VxRadius(o,owner,ent,sw,160.0,20.0);
+        set_entvar(ent,var_fuser2,now+0.2);
+    }
+    if(sw==3) { set_entvar(ent,var_frame,floatclamp((now-Float:get_entvar(ent,var_fuser3))*30.0,0.0,21.0)); set_entvar(ent,var_animtime,now); }
+    set_entvar(ent,var_nextthink,now+0.1);return FMRES_IGNORED;
+}
+VxRoar(id,const Float:a[3],const Float:f[3])
+{
+    new Float:p[3],Float:delta[3],Float:end[3];for(new j;j<3;j++)end[j]=a[j]+f[j]*440.0;
+    new tr=create_tr2();engfunc(EngFunc_TraceLine,a,end,IGNORE_MONSTERS,id,tr);get_tr2(tr,TR_vecEndPos,end);free_tr2(tr);
+    FxBeamEx(a,end,g_sprBeam,255,100,35,25,7,3,210);FxRingEx(end,255,85,35,110,8,3);
+    for(new v=1;v<=g_iMax;v++)
+    {
+        if(!is_user_alive(v)||!g_bZombie[v])continue;get_entvar(v,var_origin,p);p[2]+=16.0;
+        new Float:dist=get_distance_f(a,p);if(dist>440.0||dist<1.0)continue;
+        for(new j;j<3;j++)delta[j]=(p[j]-a[j])/dist;
+        new Float:dot=delta[0]*f[0]+delta[1]*f[1]+delta[2]*f[2];if(dot<0.78||!VxLOS(a,v,id))continue;
+        VxDamage(v,id,id,150.0);if(is_user_alive(v))Ignite(v,id,3);
+    }
+}
+VxAlt(id,weapon,sw)
+{
+    new clip=get_member(weapon,m_Weapon_iClip);
+    if(get_member(weapon,m_Weapon_fInReload)||Float:get_member(id,m_flNextAttack)>0.0)return;
+    if(clip<VX_ALT_COST[sw])
+    {
+        set_member(weapon,m_Weapon_flNextPrimaryAttack,0.4);Chat(id,"VX_NOAMMO",VX_ALT_COST[sw]);return;
+    }
+    new Float:a[3],Float:f[3],Float:b[3],Float:angle[3];VxAim(id,a,f,b,angle);
+    if(sw==2||sw==3||sw==4||sw==6)
+        if(!VxSpawn(id,sw,a,f,angle)){set_member(weapon,m_Weapon_flNextPrimaryAttack,0.4);Chat(id,"VX_BUSY");return;}
+    if(!g_bUnlClip[id])set_member(weapon,m_Weapon_iClip,clip-VX_ALT_COST[sw]);
+    set_member(weapon,m_Weapon_flNextPrimaryAttack,VX_ALT_WAIT[sw]);
+    set_member(weapon,m_Weapon_flNextSecondaryAttack,VX_ALT_WAIT[sw]);set_member(weapon,m_Weapon_flTimeWeaponIdle,floatmax(0.75,VX_ALT_WAIT[sw]));
+    VxAnim(id,weapon,7);VxSound(id,sw,5);set_entvar(id,var_effects,get_entvar(id,var_effects)|EF_MUZZLEFLASH);
+    if(sw==1||sw==5||sw==7)VxRay(id,sw,a,f,b);
+    else if(sw==3)VxRoar(id,a,f);
+}
+public cmd_ArsenalGive(id,level,cid)
+{
+    if(!cmd_access(id,level,cid,3))return PLUGIN_HANDLED;
+    new arg[32],idx[8];read_argv(1,arg,charsmax(arg));read_argv(2,idx,charsmax(idx));new sw=str_to_num(idx);
+    new target=cmd_target(id,arg,CMDTARGET_ALLOW_SELF|CMDTARGET_ONLY_ALIVE);if(!target)return PLUGIN_HANDLED;
+    if(!(0<=sw<NUM_SPECIAL)||g_bZombie[target]||ModeOf(target)>=0){console_print(id,"[Arsenal8] Living normal human, slot 0..7 required.");return PLUGIN_HANDLED;}
+    console_print(id,"[Arsenal8] slot=%d give=%s",sw,VxGive(target,sw)?"OK":"FAILED");return PLUGIN_HANDLED;
+}
+
 SpecialIndex(id, WeaponIdType:wid)
 {
     if (!g_iSpecW[id])
@@ -9565,9 +9919,20 @@ public fw_PrimaryAttackPost(weapon)
 
     new WeaponIdType:wid = get_member(weapon, m_iId);
 
+    new bool:arsenalShot = false;
+    new arsenal = VxIndex(weapon);
+    if (arsenal >= 0)
+    {
+        if (g_bVxAltHandled[id]) { g_bVxAltHandled[id] = false; return HAM_IGNORED; }
+        arsenalShot = bool:(g_iVxAttack[id] == weapon && g_iVxClip[id] > 0
+            && get_member(weapon, m_Weapon_iClip) < g_iVxClip[id]);
+        g_iVxAttack[id] = 0;
+        if (!arsenalShot) return HAM_IGNORED;
+    }
+
     if (g_bUnlClip[id])
     {
-        new clip = rg_get_weapon_info(wid, WI_GUN_CLIP_SIZE);
+        new clip = (arsenal >= 0) ? SW_CLIP[arsenal] : rg_get_weapon_info(wid, WI_GUN_CLIP_SIZE);
         if (clip > 0)
             set_member(weapon, m_Weapon_iClip, clip);
     }
@@ -9603,6 +9968,12 @@ public fw_PrimaryAttackPost(weapon)
         punch[1] *= SW_RECOIL[sw];
         punch[2] *= SW_RECOIL[sw];
         set_entvar(id, var_punchangle, punch);
+    }
+
+    if (arsenal >= 0)
+    {
+        if (arsenalShot) VxShot(id, arsenal);
+        return HAM_IGNORED;
     }
 
     // Hizli silahlarda her atista iz cizme (performans)
@@ -10139,7 +10510,7 @@ public srv_DbgSwTest()
     for (new i = 0; i < NUM_SPECIAL; i++)
     {
         g_iSpecW[id] = (1 << i);
-        new weapon = rg_give_item(id, SW_BASE_ENT[i], GT_REPLACE);
+        new weapon = VxGive(id, i);
         if (is_nullent(weapon)) { log_amx("[Vexmira] SWTEST slot=%d give FAILED", i); bad++; continue; }
         set_member(weapon, m_Weapon_iClip, SW_CLIP[i]);
         rg_set_user_bpammo(id, SW_BASE_ID[i], SW_BPAMMO[i]);
@@ -10153,6 +10524,7 @@ public srv_DbgSwTest()
         log_amx("[Vexmira] SWTEST slot=%d ent=%s idx=%d clip=%d/%d bp=%d next=%.2f %s", i, SW_BASE_ENT[i], si, clip, SW_CLIP[i], bp, na, ok ? "OK" : "BAD");
     }
     g_iSpecW[id] = 0;
+    g_bVxGiving[id] = false; g_iVxAttack[id] = 0; g_iVxClip[id] = 0; g_iVxShots[id] = 0; g_bVxRightHeld[id] = false; g_bVxAltHandled[id] = false;
     log_amx("[Vexmira] SWTEST done player=%d bad=%d", id, bad);
     return PLUGIN_HANDLED;
 }
@@ -12405,8 +12777,9 @@ AirdropLoot(id, const name[])
     else if (roll <= 98)
     {
         new sw = random(NUM_SPECIAL);
+        for (new tries; tries < NUM_SPECIAL && !g_bVxReady[sw]; tries++) sw = (sw + 1) % NUM_SPECIAL;
         g_iSpecW[id] |= (1 << sw);
-        rg_give_item(id, SW_BASE_ENT[sw], GT_REPLACE);
+        VxGive(id, sw);
         rg_set_user_bpammo(id, SW_BASE_ID[sw], SW_BPAMMO[sw]);
         engclient_cmd(id, SW_BASE_ENT[sw]);
         copy(key, charsmax(key), "LOOT_SW");
@@ -12518,6 +12891,23 @@ public fw_SetModelPost(ent, const model[])
 {
     if (ent <= g_iMax || model[0] != 'm' || is_nullent(ent))
         return FMRES_IGNORED;
+    if (equal(model, "models/w_ak47.mdl"))
+    {
+        new cls[16]; get_entvar(ent, var_classname, cls, charsmax(cls));
+        if (equal(cls, "weaponbox"))
+        {
+            new weapon = get_member(ent, m_WeaponBox_rgpPlayerItems, 1), sw = VxIndex(weapon);
+            if (sw >= 0 && g_bVxReady[sw])
+            {
+                new Float:mins[3], Float:maxs[3];
+                get_entvar(ent, var_mins, mins); get_entvar(ent, var_maxs, maxs);
+                engfunc(EngFunc_SetModel, ent, g_szVxWorld[sw]);
+                set_entvar(ent, var_body, get_entvar(weapon, var_iuser2));
+                engfunc(EngFunc_SetSize, ent, mins, maxs);
+            }
+        }
+        return FMRES_IGNORED;
+    }
     // Sadece "models/w_hegrenade.mdl" / w_smokegrenade / w_flashbang
     if (!equal(model, "models/w_", 9))
         return FMRES_IGNORED;
@@ -12703,7 +13093,8 @@ MakeSurvivor(id, bool:sniper)
     ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
-    g_iSpecW[id] = 0; // Loadout weapons are mode-owned, not retained shop weapon modifiers.
+    g_iSpecW[id] = 0;
+    g_bVxGiving[id] = false; g_iVxAttack[id] = 0; g_iVxClip[id] = 0; g_iVxShots[id] = 0; g_bVxRightHeld[id] = false; g_bVxAltHandled[id] = false; // Loadout weapons are mode-owned, not retained shop weapon modifiers.
     if (sniper)
         g_bSniper[id] = 1;
     else
@@ -13014,6 +13405,7 @@ Infect(victim, attacker)
 
 public fw_CmdStart(id, uc_handle, seed)
 {
+    if (is_user_alive(id) && !g_bZombie[id]) VxCommand(id, uc_handle);
     if (!is_user_alive(id))
         return FMRES_IGNORED;
 
@@ -19151,6 +19543,7 @@ public rg_MakeBomber(id)
 
 public rg_RestartRound()
 {
+    VxClear();
     // v3.3: harita senaryosu (vex_round_start harita geri yuklendikten sonra tetiklenir)
     MsRoundRestart();
     // v3.2 (B): CSO ekran bildirimi: aktif gorseller kalkar, kuyruk bosalir
@@ -19566,6 +19959,7 @@ public rg_RoundEnd(WinStatus:status, ScenarioEventEndRound:event, Float:tmDelay)
 // tek sefer calisir (MVP artik her durumda gorunur).
 OnRoundEnd(WinStatus:status)
 {
+    VxClear();
     if (g_bRoundEnded)
         return;
 
@@ -21213,6 +21607,7 @@ public task_JoinAnnounce(tid)
 
 public client_disconnected(id, bool:drop, message[], maxlen)
 {
+    VxClear(id); g_bVxRightHeld[id] = false;
     for (new c = 0; c < CM_CATS; c++)
         CmRemove(id, c);
     CmPrevRemove(id);
@@ -27087,6 +27482,7 @@ public plugin_precache()
     g_tSnd3D = TrieCreate();
     g_tMdlDone = TrieCreate();
     SetDefaultResources();
+    VxDefaults();
     // Eski surum uyumlulugu: vexmira_resources.ini varsa once o okunur,
     // sonra TEK AYAR DOSYASI vexmira.cfg icindeki "vex_res" satirlari ustune yazar.
     LoadResourceIni();
@@ -27105,6 +27501,7 @@ public plugin_precache()
     // v3.0 (C): kullanilmayan stok sesleri engelle (oyun DLL'i precache'i bu fonksiyondan SONRA yapar)
     SetupStockSoundBlock();
     g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
+    VxPrecache();
 
     // Bu haritanin boss plani: sadece bu bosslarin modeli / pencesi / sesleri yuklenir
     PlanBossLoad();
@@ -27474,6 +27871,14 @@ public plugin_precache()
 
 public plugin_init()
 {
+    RegisterHam(Ham_Weapon_PrimaryAttack, "weapon_ak47", "VxAttackPre", 0);
+    RegisterHam(Ham_Item_AddToPlayer, "weapon_ak47", "VxAddToPlayerPost", 1);
+    RegisterHookChain(RG_CBasePlayerWeapon_SendWeaponAnim, "VxSendAnim", false);
+    register_forward(FM_PlaybackEvent, "VxPlaybackEvent", 0);
+    register_forward(FM_UpdateClientData, "VxClientDataPost", 1);
+    register_forward(FM_Think, "VxProjectileThink");
+    register_forward(FM_Touch, "VxProjectileTouch");
+    register_concmd("amx_arsenal", "cmd_ArsenalGive", ADMIN_RCON, "<name/#userid> <0..7> - give Arsenal rifle");
     register_plugin(PLUGIN, VERSION, AUTHOR);
     register_dictionary("vexmira_zombie.txt");
 
