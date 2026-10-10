@@ -48,7 +48,7 @@ NAME = 'zm_vex_cordon'
 
 T = 16
 INF = 100000
-CORNICE = True
+CORNICE = False      # roof-cap cornices: +130 view wpoly (p95 1021) - over budget, kept off
 SKY = 'sky'
 HINT, SKIP = 'HINT', 'SKIP'
 
@@ -731,7 +731,7 @@ def dress(b):
     D(P((1660, -80, 606), (1668, -78, 614), '~vx_light_r', hide=('s',)))          # lamp on the beacon console front
     SPR((1664, -77, 610), RED, 0.25, name='cd_pad_red')
     L((1664, 224, 800), MOON, 140)
-    AMB((1664, 224, 700), 'cd_rotor.wav', 10, name='cd_rotor', silent=True)
+    AMB((1500, 150, 760), 'cd_rotor.wav', 5, name='cd_rotor', silent=True)
     AMB((1664, 224, 450), 'cd_hum.wav', 5, 'medium', name='cd_hum', silent=True)
     # south passage t
     L((1664, -480, 200), MOON, 70)
@@ -974,14 +974,20 @@ def wire(b):
              ((1664, 224, 720), 0, 120, 0, 'cd_heli_up_mm'),                          # hp4 lift-off
              # ---- loop hp5..hp14 (hp14 -> hp5) ----
              ((850, 200, 720), 0, 110, 0, None),                                       # hp5 through the air window
-             ((650, 400, 270), 0, 120, 0, None),                                       # hp6 down into the plaza
-             ((-760, 400, 260), 0, 120, 0, None),                                      # hp7 north lane (geyser G1)
-             ((-760, -420, 260), 0, 120, 0, None),                                     # hp8 west lane (G2)
-             ((650, -440, 270), 0, 110, 0, None),                                      # hp9 south lane (G3)
+             ((700, 320, 420), 0, 110, 0, None),                                       # hp6 down into the plaza
+             ((520, 400, 270), 0, 110, 0, None),
+             ((-600, 400, 260), 0, 110, 0, None),                                      # hp7 north lane (geyser G1)
+             ((-760, 250, 260), 0, 110, 0, None),                                      #     (corners chamfered: curved turns)
+             ((-760, -280, 260), 0, 110, 0, None),                                     # hp8 west lane (G2)
+             ((-600, -430, 260), 0, 110, 0, None),
+             ((520, -440, 270), 0, 110, 0, None),                                      # hp9 south lane (G3)
+             ((700, -300, 400), 0, 110, 0, None),
              ((850, 0, 720), 0, 120, 0, None),                                         # hp10 climb to the window
              ((1400, 0, 720), 0, 110, 0, None),                                        # hp11 over the roof
-             ((1820, -180, 800), 0, 110, 0, None),                                     # hp12 roof SE
-             ((1820, 520, 800), 0, 110, 0, None),                                      # hp13 roof NE (geyser G4)
+             ((1700, -150, 780), 0, 110, 0, None),                                     # hp12 roof SE
+             ((1820, 0, 800), 0, 110, 0, None),
+             ((1820, 400, 800), 0, 110, 0, None),                                      # hp13 roof NE (geyser G4)
+             ((1680, 500, 780), 0, 110, 0, None),
              ((1400, 200, 720), 0, 110, 0, None)]                                      # hp14 -> hp5
     n = len(route)
     for i, (p, fl, spd, wt, msg) in enumerate(route):
@@ -993,8 +999,10 @@ def wire(b):
             e['wait'] = wt
         if msg:
             e['message'] = msg
-    mm('cd_heli_land_mm', [(cmd('vexcmd_reward_h_15'), 0), (cmd('vexcmd_msg_heli'), 0), ('cd_shake_roof', 0)])
-    mm('cd_heli_up_mm', [(cmd('vexcmd_msg_heli_go'), 0), ('cd_shake_roof', 0)])
+    ents.append(ambient((1664, 224, 700), 'radio/com_go.wav', 10, 'everywhere', False, True, 'cd_radio_go'))
+    mm('cd_heli_land_mm', [(cmd('vexcmd_reward_h_15'), 0), (cmd('vexcmd_msg_heli'), 0), ('cd_shake_roof', 0),
+                           ('cd_radio_go', 0.5)])
+    mm('cd_heli_up_mm', [(cmd('vexcmd_msg_heli_go'), 0), ('cd_shake_roof', 0), ('cd_radio_go', 0.2)])
     shake('cd_shake_roof', (1664, 224, 640), 4, 2, 600, freq=60)
 
     # ------------------------------------------------------------ SP4 train breach (vex_infection)
@@ -1198,7 +1206,6 @@ def fun(b):
            texture='sprites/laserbeam.spr', rendercolor=col, renderamt=110, TextureScroll=60, damage=0,
            Radius=64, StrikeTime=0, origin=(x, y, z + 6))
         ents.append(light((x, y, z + 48), col, 110))
-        ents.append(ambient((x, y, z + 24), 'vexmira/map/cd_jet.wav', 4, 'small'))
 
     def push(boxes, speed, angles):
         tb = []
@@ -1268,7 +1275,20 @@ def fun(b):
                  ('s', 1024, 800, 260, 6), ('w', 1152, 640, 300, 7), ('e', -1152, 300, 260, 1)):
         D(isign(*args))
     # CT spawn mission board (neon panel with the route on a mini map), facing the spawn
-    D(wall_plate('w', -1984, 1500, 1820, 70, 230, '~vx_objboard', depth=2))
+    D(wall_plate('w', -1984, 1672, 1864, 60, 252, '~vx_board1', depth=2))    # (readable: 'w' face, u = -y)
+    D(wall_plate('w', -1984, 1480, 1672, 60, 252, '~vx_board2', depth=2))
+    L_b = light((-2040, 1672, 160), (220, 225, 255), 120)
+    ents.append(L_b)
+    # landmark: Vexmira hero statue on the memorial column + VEXMIRA banners on the plaza facades
+    for mn, mx in (((-14, -78, 336), (14, -50, 392)), ((-20, -82, 392), (20, -46, 440)),          # legs, torso
+                   ((-10, -74, 440), (10, -54, 462)), ((20, -70, 420), (60, -60, 432)),           # head, arm
+                   ((56, -72, 432), (64, -58, 520)), ((-40, -70, 404), (-20, -60, 436))):        # raised torch, arm
+        D(box(mn, mx, {'bottom': NULL, 'all': 'vx_metal_dark'}))
+    D(box((54, -74, 520), (66, -56, 532), {'all': '~vx_light_y'}))
+    ents.append(light((60, -65, 560), (255, 200, 120), 160))
+    for args in (('s', 1024, -800, 280, 440), ('e', -1152, -900, 280, 440)):
+        face, line, a, z0, z1 = args
+        D(wall_plate(face, line, a - 64, a + 64, z0, z1, 'vx_sign_vex', depth=2))
 
     # ------------------------------------------------------------ travel moments (owner: one every ~600-900
     # units of every main route): trigger_multiple (wait = cooldown) -> multi_manager. Sounds are only game
@@ -1343,6 +1363,17 @@ def fun(b):
     mm('cd_s_door_mm', [('cd_s_door2', 0), ('cd_s_dshk', 0), ('cd_s_door2#2', 0.7), ('cd_burst', 1.3),
                         ('cd_s_door1', 1.3), ('cd_s_dpuff', 1.3)])
     trig((2180, 1620, 0), (2440, 1840, 72), 'cd_s_door_mm', 30)
+
+    # every scare: a shriek (cd_scream), a red screen flash for whoever set it off and a jolt
+    for tag, mmname, p, dl in (('bang', 'cd_s_bang_mm', (-1660, 2200, 64), 1.0), ('flk', 'cd_s_flk_mm', (-2752, 1216, 100), 0.7),
+                               ('sh1', 'cd_shadow_mm', (-1550, -100, 60), 0.3), ('sh2', 'cd_shadow2_mm', (-1408, 1850, 60), 0.3),
+                               ('sky', 'cd_s_sky_mm', (-2850, -1700, 0), 0.1), ('door', 'cd_s_door_mm', (2304, 1880, 64), 1.3)):
+        snd(f'cd_s_{tag}_scr', p, 'vexmira/map/cd_scream.wav', 10, 'medium')
+        pt('env_fade', f'cd_s_{tag}_fade', origin=p, duration=0.6, holdtime=0.15, renderamt=110,
+           rendercolor='140 0 0', spawnflags=1 + 4)
+        jolt(f'cd_s_{tag}_jolt', p, 7, 600)
+        e = next(x for x in ents if x.props.get('targetname') == mmname and x.props['classname'] == 'multi_manager')
+        e[f'cd_s_{tag}_scr'], e[f'cd_s_{tag}_fade'], e[f'cd_s_{tag}_jolt'] = dl, dl, dl
 
     # fun: shootable hazard barrels (smoke burst + a little ammo, once per round each)
     for i, (x, y, z) in enumerate(((-900, -240, 0), (2050, -1620, -128))):
@@ -1679,7 +1710,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     E = b.ent
     gate = E(door(box((-2768, 2560, 0), (-2512, 2576, 320), RUST), 'up', speed=60, wait=-1, lip=0,
                   targetname='cd_gate7'))
-    gate['movesnd'] = 2
+    gate['movesnd'] = 0          # (sound slot freed for the radio line)
     E(door(box((-1136, 1920, 0), (-1120, 2112, 160), CORR), 'up', speed=120, wait=4, lip=8))     # side gate
     E(door(box((-1792, -2240, -128), (-1776, -1984, 96), CORR), 'up', speed=120, wait=4, lip=8))  # net alley
     E(door(box((-2816, 1024, 0), (-2688, 1040, 128), 'vx_door_metal'), '+x', speed=160, wait=4))  # CP south
@@ -1691,7 +1722,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
         g['rendermode'], g['renderamt'] = 2, 90
     br = E(door(box((1152, -2176, 240), (1344, -1920, 256), RUST), 'down', speed=48, wait=-1, lip=-368,
                 targetname='cd_bridge'))                               # lowers 384 to the quay level z -128
-    br['movesnd'], br['_minlight'] = 2, 0.2
+    br['movesnd'], br['_minlight'] = 0, 0.2
     for mn, mx, hp in (((-1728, 2240, 48), (-1600, 2256, 144), 80),    # pharmacy window
                        ((1152, -288, 240), (1168, -128, 320), 80),    # office glass W
                        ((1152, 176, 240), (1168, 336, 320), 80),      # office glass E
@@ -1886,10 +1917,10 @@ def make_sounds(out=SOUND_DIR):
     x = 0.25 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 400) / 500) ** 2))
     Ls = int(0.09 * sr)
     ts = np.arange(Ls) / sr
-    slap = (np.sin(2 * np.pi * 70 * ts) * 0.9 + rng.standard_normal(Ls) * 0.5) * np.exp(-ts * 40)
+    slap = (np.sin(2 * np.pi * 55 * ts) * 0.9 + rng.standard_normal(Ls) * 0.2) * np.exp(-ts * 30)
     for k in range(8):
         _place(x, slap, int(k * n / 8))
-    x += 0.07 * np.sin(2 * np.pi * 1200 * t) + 0.04 * np.sin(2 * np.pi * 2400 * t + 0.3)
+    x = np.fft.irfft(np.fft.rfft(x) * (1 / (1 + (np.fft.rfftfreq(n, 1 / sr) / 300.0) ** 4)), n)   # soft, deep wash
     made.append(('cd_rotor.wav', _write_loop(os.path.join(out, 'cd_rotor.wav'), x, sr)))
     # --- cd_boom: distant heavy impact one-shot (22050, no cue)
     fx.rng = np.random.default_rng(7106)
@@ -1899,14 +1930,26 @@ def make_sounds(out=SOUND_DIR):
     x = fx.mix((b, 0, 1.0), (cr, 0.0, 0.6), (deb, 0.15, 0.8))
     x = fx.reverb(fx.lp(x, 3500), 2.2, 0.35)
     made.append(('cd_boom.wav', fx.write_wav3(os.path.join(out, 'cd_boom.wav'), x, max_len=3.0)))
-    # --- cd_jet: launch geyser / pad - pressurised hiss + low rumble, slow pulse (1.2 s loop, 11025)
-    sec, rng = 1.2, np.random.default_rng(7107)
-    n = int(sr * sec)
-    t = np.arange(n) / sr
-    x = 0.6 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 2600) / 1800) ** 2))
-    x += 0.5 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 90) / 70) ** 2))
-    x *= 0.75 + 0.25 * np.sin(2 * np.pi * t / sec * 3)
-    made.append(('cd_jet.wav', _write_loop(os.path.join(out, 'cd_jet.wav'), x * 0.8, sr)))
+    # --- cd_scream: jump-scare shriek (one-shot, no cue): rising formant howl + rasp + impact, 1.6 s
+    sr2 = 22050
+    rng = np.random.default_rng(7108)
+    n = int(sr2 * 1.6)
+    t = np.arange(n) / sr2
+    f0 = 260 + 520 * np.clip(t / 0.35, 0, 1) - 180 * np.clip((t - 0.6) / 1.0, 0, 1)
+    ph = 2 * np.pi * np.cumsum(f0) / sr2
+    voice = sum(np.sin(k * ph) / k for k in range(1, 9)) + 0.6 * rng.standard_normal(n)
+    env = np.clip(t / 0.04, 0, 1) * np.exp(-np.clip(t - 0.5, 0, None) * 3.0)
+    x = voice * env * (1 + 0.4 * np.sin(2 * np.pi * 31 * t))
+    x = np.tanh(x * 1.8)
+    hit = rng.standard_normal(n) * np.exp(-t * 25) * 1.2
+    x = x + hit
+    x = x / (np.abs(x).max() + 1e-9) * 0.9
+    pcm = np.clip(np.round(x * 32767), -32767, 32767).astype('<i2').tobytes()
+    fmt = struct.pack('<HHIIHH', 1, 1, sr2, sr2 * 2, 2, 16)
+    body = b'WAVE' + b'fmt ' + struct.pack('<I', len(fmt)) + fmt + b'data' + struct.pack('<I', len(pcm)) + pcm
+    with open(os.path.join(out, 'cd_scream.wav'), 'wb') as fh:
+        fh.write(b'RIFF' + struct.pack('<I', len(body)) + body)
+    made.append(('cd_scream.wav', 1.6))
     return made
 
 

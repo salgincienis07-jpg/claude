@@ -1893,41 +1893,98 @@ def t_infosign(rng, w, h):
     return grain(img, rng, 0.01)
 
 
-@tex('~vx_objboard', 256, 128, 'cordon', light=(230, 235, 255, 160), desc='CT spawn mission board: '
-     '1 TRAFO -> 2 KOPRU -> 3 CATI with a mini map of the route')
-def t_objboard(rng, w, h):
+def _icon(cv, kind, cx, cy, s):
+    """Simple line icons for the mission board: breaker lever, bridge, helicopter."""
+    if kind == 'breaker':
+        cv.line([(cx - s, cy - s), (cx + s, cy - s), (cx + s, cy + s), (cx - s, cy + s), (cx - s, cy - s)], 2.0)
+        cv.line([(cx, cy + s * 0.6), (cx + s * 0.6, cy - s * 0.7)], 2.4)
+        cv.line([(cx - s * 0.5, cy + s * 0.6), (cx + s * 0.5, cy + s * 0.6)], 2.0)
+        cv.line([(cx - s * 0.3, cy - s * 0.2), (cx - s * 0.05, cy + s * 0.15), (cx - s * 0.35, cy + s * 0.15), (cx - s * 0.1, cy + s * 0.5)], 1.6)
+    elif kind == 'bridge':
+        cv.line([(cx - s * 1.3, cy + s * 0.5), (cx + s * 1.3, cy + s * 0.5)], 2.2)
+        cv.line([(cx - s, cy + s * 0.5), (cx - s, cy - s)], 2.0)
+        cv.line([(cx + s, cy + s * 0.5), (cx + s, cy - s)], 2.0)
+        cv.line([(cx - s, cy - s), (cx, cy - s * 0.1), (cx + s, cy - s)], 1.6)
+        cv.line([(cx - s * 1.2, cy + s), (cx - s * 0.6, cy + s * 0.8), (cx, cy + s), (cx + s * 0.6, cy + s * 0.8), (cx + s * 1.2, cy + s)], 1.4)
+    else:  # helicopter
+        cv.line([(cx - s * 1.3, cy - s * 0.8), (cx + s * 1.3, cy - s * 0.8)], 2.0)
+        cv.line([(cx, cy - s * 0.8), (cx, cy - s * 0.4)], 1.8)
+        cv.line([(cx - s * 0.7, cy - s * 0.4), (cx + s * 0.5, cy - s * 0.4), (cx + s * 0.8, cy + s * 0.1),
+                 (cx + s * 0.5, cy + s * 0.5), (cx - s * 0.7, cy + s * 0.5), (cx - s * 0.7, cy - s * 0.4)], 2.0)
+        cv.line([(cx - s * 0.7, cy), (cx - s * 1.5, cy - s * 0.1), (cx - s * 1.6, cy - s * 0.5)], 1.8)
+        cv.line([(cx - s * 0.6, cy + s * 0.8), (cx + s * 0.6, cy + s * 0.8)], 1.6)
+
+
+BOARD_STEPS = [('1', 'breaker', (255, 170, 30), 'TRAFO / SUBSTATION', 'IKI SALTERI INDIR', 'THROW BOTH BREAKERS'),
+               ('2', 'bridge', (40, 200, 255), 'KOPRU / BRIDGE', 'KABINDE DUGMEYE BAS', 'PRESS THE CABIN BUTTON'),
+               ('3', 'heli', (70, 255, 110), 'CATI / ROOF EVAC', 'ISARETI YAK, HELIYE BIN', 'LIGHT BEACON, BOARD HELI')]
+
+
+def _board_text(cv, txt, x, y, hgt, wid=1.4, right=252):
+    hgt = min(hgt, (right - x) / max(1e-3, text_width(txt, 1.0, 1.08)))
+    cv.text(txt, x, y, hgt, min(wid, max(1.0, hgt * 0.17)), spacing=1.08)
+
+
+@tex('~vx_board1', 256, 256, 'cordon', light=(230, 235, 255, 150), desc='CT spawn mission board, left tile: '
+     'GOREV / MISSION + the 3 steps with icons and short TR + EN instructions')
+def t_board1(rng, w, h):
     img = fill(h, w, (12, 13, 18)).copy()
     yy, xx = np.mgrid[0:h, 0:w].astype(F)
     cv = Canvas(h, w)
-    cv.text('GOREV / MISSION', 8, 5, 11, 1.8, spacing=1.12)
-    img = _neon_tube(h, w, cv.mask(), (235, 235, 255), rng) * 1.0
-    steps = [('1', 'TRAFO / SUBSTATION', (255, 170, 30)), ('2', 'KOPRU / BRIDGE', (40, 200, 255)),
-             ('3', 'CATI / ROOF EVAC', (70, 255, 110))]
-    for k, (n, word, col) in enumerate(steps):
+    _board_text(cv, 'GOREV / MISSION', 10, 8, 16, 2.2)
+    img = img + _neon_tube(h, w, cv.mask(), (240, 240, 255), rng) - fill(h, w, (14, 14, 18))
+    for k, (n, icon, col, title, tr, en) in enumerate(BOARD_STEPS):
+        y0 = 36 + k * 72
         cv = Canvas(h, w)
-        y = 26 + k * 32
-        ring = (np.abs(np.hypot(xx - 16, yy - (y + 10)) - 9) < 1.2).astype(F)
-        cv.text(n, 13, y + 5, 10, 1.8, spacing=1.0)
-        cv.text(word, 30, y + 6, 7.5, 1.3, spacing=1.05)
+        ring = (np.abs(np.hypot(xx - 22, yy - (y0 + 22)) - 15) < 1.5).astype(F)
+        cv.text(n, 16, y0 + 13, 18, 2.6, spacing=1.0)
+        _icon(cv, icon, 62, y0 + 22, 12)
+        _board_text(cv, title, 88, y0 + 4, 11, 1.7)
+        _board_text(cv, tr, 88, y0 + 24, 9, 1.4)
+        _board_text(cv, en, 88, y0 + 38, 9, 1.4)
         if k < 2:
-            cv.line([(16, y + 22), (16, y + 30)], 1.6)
-            cv.line([(12, y + 26), (16, y + 30), (20, y + 26)], 1.6)
+            cv.line([(22, y0 + 44), (22, y0 + 64)], 2.0)
+            cv.line([(16, y0 + 58), (22, y0 + 65), (28, y0 + 58)], 2.0)
         img = img + _neon_tube(h, w, np.clip(cv.mask() + ring, 0, 1), col, rng) - fill(h, w, (14, 14, 18))
-    # mini map (right part): north up, CT spawn NW, substation W, bridge S, tower E
-    ox, oy = 186, 20
+    fr = ((xx < 2) | (yy < 2) | (yy >= h - 2)).astype(F)
+    return np.clip(mix(img, fill(h, w, (70, 70, 84)), fr), 0, 1)
+
+
+@tex('~vx_board2', 256, 256, 'cordon', light=(230, 235, 255, 150), desc='CT spawn mission board, right tile: '
+     'mini map of Cordon 7 with the colour-coded route 1 -> 2 -> 3 and the jump pads')
+def t_board2(rng, w, h):
+    img = fill(h, w, (12, 13, 18)).copy()
+    yy, xx = np.mgrid[0:h, 0:w].astype(F)
+    # map: x -3328..3328 -> 16..240, y 2560..-2560 -> 40..236
+    def P(x, y):
+        return (16 + (x + 3328) / 6656 * 224, 40 + (2560 - y) / 5120 * 196)
     cv = Canvas(h, w)
-    cv.line([(ox, oy), (ox + 62, oy), (ox + 62, oy + 100), (ox, oy + 100), (ox, oy)], 1.0)
-    img = img + _neon_tube(h, w, cv.mask(), (120, 120, 150), rng) - fill(h, w, (14, 14, 18))
-    pts = {'A': (ox + 8, oy + 14), '1': (ox + 9, oy + 48), '2': (ox + 34, oy + 90), '3': (ox + 52, oy + 50)}
-    for a, b, col in (('A', '1', (255, 170, 30)), ('1', '2', (40, 200, 255)), ('2', '3', (70, 255, 110))):
+    _board_text(cv, 'HARITA / MAP', 14, 10, 14, 2.0)
+    for r in ((-3328, 1408, -1984, 2560), (-3328, -640, -1984, 1024), (-1152, -1152, 1152, 1024),
+              (1168, -384, 2160, 832), (-1776, -2560, 1152, -1600), (1344, -2560, 3328, -1088),
+              (-1088, 1408, 1088, 2496), (2176, -1072, 2560, 1328), (-1920, 704, -1168, 2240)):
+        a, b = P(r[0], r[3]), P(r[2], r[1])
+        cv.line([a, (b[0], a[1]), b, (a[0], b[1]), a], 1.0)
+    img = img + _neon_tube(h, w, cv.mask(), (110, 110, 140), rng) - fill(h, w, (14, 14, 18))
+    legs = [([(-2900, 1700), (-2240, 1700), (-2240, 1200), (-2600, 640)], (255, 170, 30)),
+            ([(-2600, 640), (-1550, -50), (-900, -430), (-256, -1200), (-256, -1712), (900, -1712)], (40, 200, 255)),
+            ([(900, -1712), (1600, -2050), (2368, -1600), (2368, 0), (1664, 224)], (70, 255, 110))]
+    for pts, col in legs:
         cv = Canvas(h, w)
-        cv.line([pts[a], pts[b]], 1.6)
+        cv.line([P(*q) for q in pts], 2.0)
         img = img + _neon_tube(h, w, cv.mask(), col, rng) - fill(h, w, (14, 14, 18))
-    for key, col in (('A', (90, 140, 255)), ('1', (255, 170, 30)), ('2', (40, 200, 255)), ('3', (70, 255, 110))):
-        d = (np.hypot(xx - pts[key][0], yy - pts[key][1]) < 4).astype(F)
-        img = mix(img, fill(h, w, col), d)
-    fr = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= h - 2)).astype(F)
-    return np.clip(mix(img, fill(h, w, (60, 60, 70)), fr), 0, 1)
+    for (x, y), col, lab in (((-2900, 1700), (90, 140, 255), 'CT'), ((-2600, 640), (255, 170, 30), '1'),
+                             ((900, -1712), (40, 200, 255), '2'), ((1664, 224), (70, 255, 110), '3')):
+        px, py = P(x, y)
+        img = mix(img, fill(h, w, col), (np.hypot(xx - px, yy - py) < 5).astype(F))
+        cv = Canvas(h, w)
+        cv.text(lab, px + 6, py - 12, 9, 1.4, spacing=1.0)
+        img = img + _neon_tube(h, w, cv.mask(), (240, 240, 250), rng) - fill(h, w, (14, 14, 18))
+    for x, y in ((1088, -50), (-2112, 940), (-1560, -2050), (560, -1960)):      # jump pads
+        px, py = P(x, y)
+        img = mix(img, fill(h, w, (255, 70, 230)), (np.abs(np.hypot(xx - px, yy - py) - 3.5) < 1.0).astype(F))
+    fr = ((xx >= w - 2) | (yy < 2) | (yy >= h - 2)).astype(F)
+    return np.clip(mix(img, fill(h, w, (70, 70, 84)), fr), 0, 1)
 
 
 def _chev_frames(rng, w, h, col):
