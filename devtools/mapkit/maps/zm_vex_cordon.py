@@ -1100,9 +1100,9 @@ def launch(H, apex, vh, d):
     return round(sp), f'{pitch:.1f} {yaw:.1f} 0', vh * t
 
 
-def lane(x, y, z, d, H, L, w=32):
+def lane(x, y, z, d, H, L, w=56):
     """Push field box starting on the pad (x, y) and running L (+w) along d, H high."""
-    L = int(math.ceil(L / 16.0) * 16)
+    L = int(math.ceil(L / 16.0) * 16) + 128          # + slack: runners entering fast stay inside until the top
     x1, y1 = x + d[0] * (L + w), y + d[1] * (L + w)
     return ((min(x - w, x1 - w * abs(d[1])) if d[0] == 0 else min(x - w * d[0], x1), min(y - w, y1) if d[1] else y - w, z),
             (max(x + w, x1 + w * abs(d[1])) if d[0] == 0 else max(x - w * d[0], x1), max(y + w, y1) if d[1] else y + w, z + H))
@@ -1146,12 +1146,9 @@ def fun(b):
     # ------------------------------------------------------------ pads: lit slab, jet beam (env_beam), light, hiss
     nb = [0]
 
-    SKIPF = os.environ.get('FUNSKIP', '')
-
-    def pad(x, y, z, kind, d=None, r=40):
+    def pad(x, y, z, kind, d=None, r=None):
+        r = r or (56 if kind == 'go' else 40)
         nb[0] += 1
-        if 'pads' in SKIPF:
-            return
         col = (60, 220, 255) if kind == 'go' else (255, 50, 40)
         # one lit slab: cyan light panel = shortcut launch pad, red = zombie heli-access geyser (zombies take
         # no fall damage in this mod; a human who rides a red geyser lands back with ~40 damage)
@@ -1188,9 +1185,9 @@ def fun(b):
     # S3/S4 Quay express (both ways along the quay, low arc: safe landing)
     pad(-1560, -2050, -128, 'go', (1, 0))
     pad(560, -1960, -128, 'go', (-1, 0))
-    sp, an, L = launch(60, 200, 1250, (1, 0))
+    sp, an, L = launch(60, 200, 1000, (1, 0))
     push([lane(-1560, -2050, -128, (1, 0), 60, L)], sp, an)
-    sp, an, L = launch(60, 200, 1250, (-1, 0))
+    sp, an, L = launch(60, 200, 1000, (-1, 0))
     push([lane(560, -1960, -128, (-1, 0), 60, L)], sp, an)
     D(osign('s', -1600, -1200, -40, 3, (1, 0)))
     D(osign('s', -1600, 760, -40, 3, (-1, 0)))
@@ -1214,8 +1211,7 @@ def fun(b):
             ('e', 2176, 330, 130, 2, (0, -1)),         # Km: 3 CATI -> fire escape
             ('w', 2560, -500, 140, 2, (0, 1)),         # Ks: 3 CATI -> north
     ):
-        if 'signs' not in SKIPF:
-            D(osign(*args))
+        D(osign(*args))
 
     # ------------------------------------------------------------ travel moments (owner: one every ~600-900
     # units of every main route): trigger_multiple (wait = cooldown) -> multi_manager. Sounds are only game
@@ -1301,8 +1297,6 @@ def fun(b):
 
     # ------------------------------------------------------------ moving things (always on, no reset needed)
     ORG = 'ORIGIN'
-    if 'moving' in SKIPF:
-        return
     dish = box((1300, 600, 1160), (1324, 680, 1216), MDARK) + box((1306, 636, 1152), (1318, 644, 1160), MDARK) + \
         box((1308, 636, 1180), (1316, 644, 1188), ORG)
     E(Entity('func_rotating', dish, speed=40, spawnflags=1, _minlight=0.3))   # radar dish on the crown
@@ -1455,7 +1449,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
              (X, 1152, 96, 352, 0, 128),                                       # lobby glass doors
              (X, 1152, -288, -128, 240, 320), (X, 1152, 176, 336, 240, 320),   # office windows (T1)
              (X, 1152, -560, -400, 0, 208),                                    # south passage t
-             *([] if os.environ.get('NOWIN') else [(X, 1152, -160, 400, 640, 920)]),  # heli air window (roof)
+             (X, 1152, -160, 400, 640, 920),                                   # heli air window (roof)
              (Y, -1152, -384, 384, 0, 136)],                                   # harbor steps arch (low: cuts the Q-e-P sight line)
       out={(X, 1152): PLAST})
     b.D(box((-160, -224, 0), (160, 96, 96), CONC))                   # monument plinth (blockout)
@@ -1644,8 +1638,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     dress(b)
     # ============================================================== stage 3: interactivity + story wiring
     wire(b)
-    if not os.environ.get('NOFUN'):
-        fun(b)
+    fun(b)
 
     # ============================================================== mock detail (perf check only)
     if mock:
