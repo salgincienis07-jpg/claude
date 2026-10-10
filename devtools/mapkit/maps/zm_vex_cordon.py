@@ -59,6 +59,7 @@ SHOP = 'vx_shopfront'
 TARP = 'vx_tarp'
 SIGNS = 'vx_signs'
 ARROW = '~vx_arrow'
+CHEV = '+0vx_chev'          # animated neon chevrons (chasing light toward the arrow direction)
 HAZ = 'vx_trim_hazard'
 MIL = 'vx_crate_mil'
 LRED = '~vx_light_r'
@@ -317,10 +318,12 @@ _NORM = {'n': (0, 1, 0), 's': (0, -1, 0), 'e': (1, 0, 0), 'w': (-1, 0, 0), 'top'
 _OPP = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e', 'top': 'bottom'}
 
 
-def plate(face, mn, mx, tex, edge=MDARK, row=None, arrow=None):
+def plate(face, mn, mx, tex, edge=MDARK, row=None, arrow=None, rows=4):
     """Thin plate (sign / arrow / shopfront) showing `face`; its back is NULL. row = vx_signs atlas
     row (text stays readable, the printed arrow points to the viewer's right); arrow = world
     direction (dx, dy, 0) for ~vx_arrow (symmetric, so u can follow the direction freely)."""
+    if min(abs(b - a) for a, b in zip(mn, mx)) <= 4:
+        edge = NULL       # thin plate: its 1-4 unit rims are never noticed -> do not draw them (r_speeds)
     br = box(mn, mx, {face: tex, _OPP[face]: NULL, 'all': edge})[0]
     f = br.face(face)
     from ..mapwriter import tex_size
@@ -332,7 +335,7 @@ def plate(face, mn, mx, tex, edge=MDARK, row=None, arrow=None):
         _fit(f, mn, mx, u, v, tw, th)
     elif row is not None:
         u, v = readable_axes(n)
-        _fit(f, mn, mx, u, v, tw, th, rows=4, row=row)
+        _fit(f, mn, mx, u, v, tw, th, rows=rows, row=row)
     else:
         u, v = readable_axes(n)
         _fit(f, mn, mx, u, v, tw, th)
@@ -358,7 +361,7 @@ def sign(face, line, a, z, row, depth=4):
 def floor_arrow(x, y, z, d, size=48):
     """Green EVAC arrow on the floor, pointing along world direction d = (dx, dy)."""
     h = size / 2
-    return plate('top', (x - h, y - h, z), (x + h, y + h, z + 2), ARROW, edge=MDARK, arrow=(d[0], d[1], 0))
+    return plate('top', (x - h, y - h, z), (x + h, y + h, z + 1), CHEV, arrow=(d[0], d[1], 0))
 
 
 def car(cx, cy, axis, tex=RUST, z=0, burnt=False):
@@ -1087,14 +1090,17 @@ def launch(vh, vz, d):
 
 
 def osign(face, line, a, z, row, arrow=None, w=192, h=48):
-    """Objective sign (~vx_objsign row 0-3, 192x48) centred at `a` along the wall, with an optional
-    green arrow plate on the side the world direction `arrow` points to."""
-    out = wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, OBJ, depth=4, row=row)
-    if arrow is not None:
-        along = arrow[0] if face in ('n', 's') else arrow[1]
-        b0 = a + w / 2 + 8 if along > 0 else a - w / 2 - 8 - h
-        out += wall_plate(face, line, b0, b0 + h, z, z + h, ARROW, depth=4, arrow=(arrow[0], arrow[1], 0))
-    return out
+    """Neon objective sign (~vx_objsign, 192x48, ONE drawn face) centred at `a` along the wall.
+    row: 0 = 1 TRAFO, 1 = 2 KOPRU, 2 = 3 CATI, 3 = ZIPLA! (launch pad), 4 = HELI (zombie geyser);
+    the printed chevrons point along the world direction `arrow` (picks the > or < atlas row)."""
+    if row < 3:
+        n = np.array(_NORM[face], float)
+        u, _ = readable_axes(n)
+        right = arrow is None or float(np.dot(u, (arrow[0], arrow[1], 0))) >= 0
+        r = row * 2 + (0 if right else 1)
+    else:
+        r = 3 + row
+    return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, OBJ, depth=2, row=r, rows=8)
 
 
 def fun(b):

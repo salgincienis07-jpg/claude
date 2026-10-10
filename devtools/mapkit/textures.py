@@ -1824,32 +1824,75 @@ def t_signs(rng, w, h):
     return grain(img, rng, 0.02)
 
 
-@tex('~vx_objsign', 128, 128, 'cordon', light=(255, 235, 200, 260), desc='objective route signs (lit), 4 rows of 128x32: 1 TRAFO (amber), 2 KOPRU (cyan), 3 CATI (green), ZIPLA! launch pad (magenta)')
+def _neon_tube(h, w, mask, col, rng, core=0.55):
+    """Neon tube look on a dark backplate: coloured halo (blurred mask) + bright tinted core."""
+    c = np.array(col, F) / 255.0
+    halo = blur(mask, 2.2)
+    halo = halo / (halo.max() + 1e-6)
+    img = fill(h, w, (14, 14, 18)) + halo[..., None] * c[None, None, :] * 0.85
+    corecol = c * (1 - core) + core
+    img = mix(img, np.broadcast_to(corecol, (h, w, 3)).copy(), np.clip(mask, 0, 1))
+    return img
+
+
+NEON_ROWS = [('1', 'TRAFO', 1, (255, 170, 30)), ('1', 'TRAFO', -1, (255, 170, 30)),
+             ('2', 'KOPRU', 1, (40, 200, 255)), ('2', 'KOPRU', -1, (40, 200, 255)),
+             ('3', 'CATI', 1, (70, 255, 110)), ('3', 'CATI', -1, (70, 255, 110)),
+             ('^', 'ZIPLA!', 0, (255, 70, 230)), ('^', 'HELI', 0, (255, 50, 40))]
+
+
+@tex('~vx_objsign', 128, 256, 'cordon', light=(255, 235, 220, 140), desc='neon objective signs, 8 rows of 128x32: '
+     '1 TRAFO > / < 1 TRAFO (amber), 2 KOPRU (cyan), 3 CATI (green), ZIPLA! launch pad (magenta), HELI zombie geyser (red)')
 def t_objsign(rng, w, h):
-    rows = [('1', 'TRAFO', (150, 95, 10)), ('2', 'KOPRU', (10, 95, 135)), ('3', 'CATI', (20, 120, 40)),
-            ('^', 'ZIPLA!', (125, 25, 115))]
     img = np.zeros((h, w, 3), F)
-    for i, (num, word, col) in enumerate(rows):
-        sub = steel(32, w, rng, col, brushed=True)
-        yy, xx = np.mgrid[0:32, 0:w].astype(F)
-        disc = (np.hypot(xx - 16, yy - 16) < 13).astype(F)
-        sub = mix(sub, fill(32, w, (245, 240, 225)), disc)
+    for i, (num, word, ar, col) in enumerate(NEON_ROWS):
         cv = Canvas(32, w)
+        x0 = 22 if ar < 0 else 4
+        # number in a tube ring
+        cx = x0 + 12
+        yy, xx = np.mgrid[0:32, 0:w].astype(F)
+        ring = (np.abs(np.hypot(xx - cx, yy - 16) - 10.5) < 1.3).astype(F)
         if num == '^':
-            cv.poly([(16, 6), (25, 18), (19, 18), (19, 26), (13, 26), (13, 18), (7, 18)])
+            cv.poly([(cx, 9), (cx + 6, 17), (cx + 2, 17), (cx + 2, 23), (cx - 2, 23), (cx - 2, 17), (cx - 6, 17)])
         else:
-            cv.text(num, 12, 7, 18, 3.2, spacing=1.0)
-        sub = mix(sub, fill(32, w, col) * 0.6, cv.mask())
-        cv2 = Canvas(32, w)
-        th = min(18.0, 88 / max(1e-3, text_width(word, 1.0, 1.1)))
-        cv2.text(word, 34, (32 - th) / 2, th, max(2.0, th * 0.18), spacing=1.1)
-        m = cv2.mask()
-        sub = sub + glow(m, 2, (255, 255, 230), 0.35)
-        sub = mix(sub, fill(32, w, (255, 252, 235)), m)
-        fr = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= 30)).astype(F)
-        sub = mix(sub, fill(32, w, (240, 240, 230)), fr * 0.8)
+            cv.text(num, cx - 4, 10, 12, 2.0, spacing=1.0)
+        tx = x0 + 28
+        avail = (w - 26 if ar > 0 else w - 4) - tx
+        th = min(14.0, avail / max(1e-3, text_width(word, 1.0, 1.15)))
+        cv.text(word, tx, (32 - th) / 2, th, max(1.6, th * 0.15), spacing=1.15)
+        if ar > 0:
+            for k in (0, 7):
+                cv.line([(w - 20 + k, 9), (w - 13 + k, 16), (w - 20 + k, 23)], 2.0)
+        elif ar < 0:
+            for k in (0, 7):
+                cv.line([(19 - k, 9), (12 - k, 16), (19 - k, 23)], 2.0)
+        m = np.clip(cv.mask() + ring, 0, 1)
+        sub = _neon_tube(32, w, m, col, rng)
+        fr = ((xx < 1) | (xx >= w - 1) | (yy < 1) | (yy >= 31)).astype(F)
+        sub = mix(sub, fill(32, w, (40, 40, 46)), fr)
         img[i * 32:(i + 1) * 32] = np.clip(sub, 0, 1)
-    return grain(img, rng, 0.015)
+    return grain(img, rng, 0.01)
+
+
+@tex('vx_chev', 64, 64, 'cordon', light=(90, 255, 150, 70), frames=8,
+     desc='animated neon floor chevrons (+0..+7): a light wave chases along +u (texture right), 0.8 s loop')
+def t_chev(rng, w, h):
+    frames = []
+    yy, xx = np.mgrid[0:h, 0:w].astype(F)
+    base = steel(h, w, rng, (22, 26, 24), brushed=False)
+    frame = ((xx < 2) | (xx >= w - 2) | (yy < 2) | (yy >= h - 2)).astype(F)
+    for f in range(8):
+        img = mix(base, fill(h, w, (10, 12, 11)), frame)
+        for k, cx in enumerate((14, 30, 46)):
+            cv = Canvas(h, w)
+            cv.line([(cx - 6, 14), (cx + 6, 32), (cx - 6, 50)], 4.0)
+            m = cv.mask()
+            phase = (f / 8.0 - k / 3.0) % 1.0          # wave travels toward +u
+            lvl = 0.25 + 0.75 * max(0.0, math.cos(phase * 2 * math.pi)) ** 2
+            img = img + glow(m, 3, (60, 255, 130), 0.5 * lvl)
+            img = mix(img, fill(h, w, (150, 255, 180)) * lvl + fill(h, w, (20, 60, 30)) * (1 - lvl), m)
+        frames.append(np.clip(img, 0, 1))
+    return frames
 
 
 @tex('{vx_scorch', 128, 128, 'decal', desc='burn / blast scorch decal (masked)')
