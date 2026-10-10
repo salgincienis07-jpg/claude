@@ -21,6 +21,7 @@ cstrike/addons/amxmodx/configs/vexmira_maps/<harita>.ini (latin-1/ASCII, Turkce 
 [info]
 name_en = ...
 name_tr = ...
+roundtime = 6       ; istege bagli: bu haritada mp_roundtime (dakika, ondalik olabilir)
 [story_en]          ; en fazla 6 "line = ..." (ilk dogusta bir kez daktilo efektiyle, /story ile tekrar)
 line = ...
 [story_tr]
@@ -62,6 +63,9 @@ Olaylar: round_start freeze_end infection boss boss_dead nemesis assassin surviv
   [locks] bolumu varsa (ya da [info] `sequential = 1`) gorevler SIRALIDIR: sadece ilk acik gorevin isareti
   gorunur (1 bitince 2 cikar...), freeze sonu listesinde bitenler [OK], simdiki "> n/N", sonrakiler (kilitli).
   `sequential = 0` ile kapatilir. [locks] yoksa eski davranis (tum acik gorevlerin isareti).
+- [info] `roundtime = <dk>`: harita yuklenince (ve cfg her yeniden yuklendiginde) mp_roundtime bu degere
+  ayarlanir; satiri olmayan haritada vexmira.cfg degeri (veya vex_roundtime > 0 ise o) gecerlidir, ezilen
+  deger sonraki haritada geri yuklenir. 0 / yok = dokunma. Buyuk haritada gorevlerin bitebilecegi sure ver.
 - [hints]: gorev n acikken o gorevin [hints] butonlarindan round icinde ILK basilanda tum insanlara mesaj
   (or. iki salterden biri: "1/2 - digerini indir"). Butonlar ve anahtarlar harita basinda cozulur; bulunamayan
   satir log'a yazilip yok sayilir. En fazla 8 [locks]+[hints] satiri.

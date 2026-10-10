@@ -5871,6 +5871,7 @@ ApplyConfigNow()
     // v3.0 (C): oylamayla uzatilan harita, cfg yeniden yuklenince kisalmasin
     if (g_iMapExtendTo > get_cvar_num("mp_maxrounds"))
         set_cvar_num("mp_maxrounds", g_iMapExtendTo);
+    MsApplyRoundTime();
 }
 
 // "^1" "^3" "^4" -> chat renk karakterleri
@@ -9009,6 +9010,17 @@ public srv_CosGive()
 // Test: vex_cos_dump -> kozmetik varliklarinin konumu (hizalama kontrolu)
 public srv_CosDump()
 {
+    // vex_cos_dump <oyuncu modeli>: o model icin hesaplanan kafa yuksekligi + sapka / kanat / pet yuksekligi
+    new mdl[32];
+    read_argv(1, mdl, charsmax(mdl));
+    if (mdl[0])
+    {
+        new Float:st, Float:du;
+        MdlHeadTops(mdl, st, du);
+        server_print("[Vexmira] cos model %s: top stand %.1f duck %.1f -> hat %.1f wing %.1f pet %.1f (oyuncu merkezine gore)",
+            mdl, st, du, st, st - 18.0, st - 10.0);
+        return PLUGIN_HANDLED;
+    }
     for (new id = 1; id <= g_iMax; id++)
     {
         for (new c = 0; c < CM_CATS; c++)
@@ -9019,9 +9031,12 @@ public srv_CosDump()
             new Float:o[3], Float:po[3];
             get_entvar(ent, var_origin, o);
             get_entvar(id, var_origin, po);
-            server_print("[Vexmira] cos #%d %s ent=%d mt=%d aim=%d d=(%.0f %.0f %.0f) alive=%d z=%d", id, CM_TABLE[c], ent,
-                get_entvar(ent, var_movetype), get_entvar(ent, var_aiment), o[0] - po[0], o[1] - po[1], o[2] - po[2],
-                is_user_alive(id), g_bZombie[id]);
+            // v3.6: konum istemcide (FOLLOW: oyuncu konumu + kontrolcu ofseti), burada kontrolculerden cozulur
+            new k0 = pev(ent, pev_controller_0), k1 = pev(ent, pev_controller_1), k2 = pev(ent, pev_controller_2);
+            server_print("[Vexmira] cos #%d %s ent=%d mt=%d aim=%d d=(%.0f %.0f %.0f) ctl=%d/%d/%d ofs=(fwd %.1f right %.1f up %.1f) top=%.1f/%.1f mdl=%s alive=%d z=%d",
+                id, CM_TABLE[c], ent, get_entvar(ent, var_movetype), get_entvar(ent, var_aiment), o[0] - po[0], o[1] - po[1], o[2] - po[2],
+                k0, k1, k2, CM_CTL_X0 + (CM_CTL_X1 - CM_CTL_X0) * float(k0) / 255.0, -(CM_CTL_Y0 + (CM_CTL_Y1 - CM_CTL_Y0) * float(k1) / 255.0),
+                CM_CTL_Z0 + (CM_CTL_Z1 - CM_CTL_Z0) * float(k2) / 255.0, g_fOvhStand[id], g_fOvhDuck[id], g_szOvhMdl[id], is_user_alive(id), g_bZombie[id]);
         }
     }
     new n, e = -1;
@@ -25395,6 +25410,7 @@ new g_szMsSndLine[96], g_szMsSndMsg[96], g_szMsSndObj[96];
 #define MS_MAXLK 8
 new g_szMsLkTn[MS_MAXLK][32], g_szMsLkKey[MS_MAXLK][24], g_iMsLkObj[MS_MAXLK], bool:g_bMsLkHint[MS_MAXLK];
 new g_iMsLkMsg[MS_MAXLK], g_iMsLkRound[MS_MAXLK], g_iMsLkN, bool:g_bMsSeq;
+new Float:g_fMsRoundTime, g_pMsRoundTime;                      // v3.6 [info] roundtime (dk) / vex_roundtime
 new g_iMsLockOf[OVH_MAXENT];   // varlik -> kilit + 1
 new Float:g_fMsLkNext[33];
 
@@ -25412,6 +25428,7 @@ MsInit()
     g_pMsRewards = register_cvar("vex_map_rewards", "1");
     g_pMsEvents  = register_cvar("vex_map_events", "1");
     g_pMsDebug   = register_cvar("vex_map_debug", "0");
+    g_pMsRoundTime = register_cvar("vex_roundtime", "0");
     RegisterSay("story", "hikaye", "cmd_MsStory");
     register_srvcmd("vex_map_status", "srv_MsStatus");
 
@@ -25608,6 +25625,38 @@ MsParseCmd(ent, const tn[])
     g_iMsCmdOf[ent] = g_iMsCmdN;
 }
 
+/* ---------------- v3.6 haritaya ozel round suresi ---------------- */
+// Oncelik: harita ini [info] roundtime > vex_roundtime (vexmira.cfg) > cfg'deki mp_roundtime.
+// Ezilmeden onceki deger localinfo'da tutulur; ayari olmayan sonraki haritada geri yuklenir
+// (cfg mp_roundtime satiri olmasa bile bir haritanin suresi digerine tasinmaz).
+MsApplyRoundTime()
+{
+    new Float:rt = g_fMsRoundTime;
+    if (rt <= 0.0 && g_pMsRoundTime)
+        rt = floatclamp(get_pcvar_float(g_pMsRoundTime), 0.0, 60.0);
+    new base[16];
+    get_localinfo("vex_rt_base", base, charsmax(base));
+    if (rt > 0.0)
+    {
+        if (!base[0])
+        {
+            formatex(base, charsmax(base), "%.2f", get_cvar_float("mp_roundtime"));
+            set_localinfo("vex_rt_base", base);
+        }
+        if (floatabs(get_cvar_float("mp_roundtime") - rt) > 0.001)
+        {
+            set_cvar_float("mp_roundtime", rt);
+            log_amx("[Vexmira] mp_roundtime %.2f (%s)", rt, g_fMsRoundTime > 0.0 ? "harita ini" : "vex_roundtime");
+        }
+    }
+    else if (base[0])
+    {
+        set_cvar_float("mp_roundtime", str_to_float(base));
+        set_localinfo("vex_rt_base", "");
+        log_amx("[Vexmira] mp_roundtime %s (geri yuklendi)", base);
+    }
+}
+
 /* ---------------- senaryo dosyasi ---------------- */
 #define MSS_NONE  0
 #define MSS_INFO  1
@@ -25696,6 +25745,7 @@ MsLoadIni()
                 if (equali(key, "name_en"))      copy(g_szMsName[0], charsmax(g_szMsName[]), val);
                 else if (equali(key, "name_tr")) copy(g_szMsName[1], charsmax(g_szMsName[]), val);
                 else if (equali(key, "sequential")) g_bMsSeq = str_to_num(val) != 0;
+                else if (equali(key, "roundtime"))  g_fMsRoundTime = floatclamp(str_to_float(val), 0.0, 60.0);
                 else MsBad(path, ln, line, bad);
             }
             case MSS_STORY:

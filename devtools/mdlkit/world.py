@@ -244,6 +244,8 @@ def build_world_model(name, parts, sequences=None, out=None, bones=None, bodygro
     q.write(os.path.join(wd, name + '.qc'))
     run_studiomdl(wd, name + '.qc', out, extra_args=['-p'])
     dedupe_animations(out)
+    if controllers:
+        _grow_seq_bbox(out, controllers)
     rep = validate_world(out, [s['name'] for s in seqs], budget=budget,
                          groups=[('body', 1)] * len(body_parts) + [(g, len(v)) for g, v in groups])
     rep['textures'] = texnames
@@ -256,6 +258,30 @@ def build_world_model(name, parts, sequences=None, out=None, bones=None, bodygro
     if rep['errors']:
         raise RuntimeError('validation failed for %s:\n  %s' % (name, '\n  '.join(rep['errors'])))
     return rep
+
+
+def _grow_seq_bbox(path, controllers):
+    """Translation controllers move the model away from the entity origin at run time; the client culls
+    studio models by the sequence bbox at the origin, so grow every sequence bbox by the controller range."""
+    import struct
+    lo, hi = [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]
+    for _ci, _bn, typ, c0, c1 in controllers:
+        if typ in ('X', 'Y', 'Z'):
+            k = 'XYZ'.index(typ)
+            lo[k] = min(lo[k], c0, c1)
+            hi[k] = max(hi[k], c0, c1)
+    with open(path, 'r+b') as f:
+        data = bytearray(f.read())
+        numseq, seqidx = struct.unpack_from('<ii', data, 164)
+        for i in range(numseq):
+            o = seqidx + i * 176 + 96            # mstudioseqdesc_t.bbmin[3], bbmax[3]
+            v = list(struct.unpack_from('<6f', data, o))
+            for k in range(3):
+                v[k] += lo[k]
+                v[3 + k] += hi[k]
+            struct.pack_into('<6f', data, o, *v)
+        f.seek(0)
+        f.write(data)
 
 
 def validate_world(path, seq_names=None, budget=0.25e6, groups=None):
