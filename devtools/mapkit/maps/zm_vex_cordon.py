@@ -48,7 +48,9 @@ NAME = 'zm_vex_cordon'
 
 T = 16
 INF = 100000
-CORNICE = False      # roof-cap cornices: +130 view wpoly (p95 1021) - over budget, kept off
+PAR = 24             # parapet height above a facade's roof line (v3.7 thick-wall pass)
+EXT_MAX, EXT_MIN = 288, 64   # depth of the roof slab behind a facade (outside the zone, where the space is free)
+HELI_ORIGIN_DZ = 32  # medevac train origin above the deck top (= mdlkit content/cordon.py HELI_DECK_Z = -32)
 SKY = 'sky'
 HINT, SKIP = 'HINT', 'SKIP'
 
@@ -179,6 +181,7 @@ class Builder:
         self.ents = []
         self.lad_vis = {}      # area -> ladder visual brushes (one masked func_illusionary per area)
         self._hints = set()
+        self.cols = []         # convex corner columns (emitted by finish_roofs)
 
     # ------------------------------------------------------------------ primitives
     def W(self, bl):
@@ -202,6 +205,7 @@ class Builder:
         absolute (line = interior boundary coordinate); out: {(axis, line): tex} outer face texture."""
         zn = Zone(key, rects, z0, z1)
         self.zones[key] = zn
+        zn.b0 = len(self.m.world.brushes)
         rl = z1 if rl is None else rl
         out = out or {}
         ext = lambda r: (r[0] - T, r[1] - T, r[2] + T, r[3] + T)
@@ -213,47 +217,44 @@ class Builder:
                 self.slab(ext(r), z1, z1 + T, top if top != SKY else SKY, holes=th,
                           sky=top_sky if top != SKY else ())
         segs, inside = _boundary(rects)
-        cols = set()
+        zn.segs = []
         for axis, line, a0, a1, sgn in segs:
             hl = [(h[2], h[3], h[4], h[5]) for h in holes if h[0] == axis and h[1] == line]
             spans = [(s[2], s[3], s[4]) for s in rls if s[0] == axis and s[1] == line]
             bps = sorted({a0, a1} | {v for sp in spans for v in sp[:2] if a0 < v < a1})
             tin = wall
             tout = out.get((axis, line), wall)
+            rec = dict(axis=axis, line=line, sgn=sgn, a0=a0, a1=a1, hl=hl, tin=tin, pieces=[], walls=[], ext=0,
+                       cols=[])
             for p, q in zip(bps, bps[1:]):
                 mid = (p + q) / 2
                 r = next((sp[2] for sp in spans if sp[0] <= mid <= sp[1]), rl)
                 r = max(z0, min(r, z1))
-                for b0, b1, s0, s1 in _solid(p, q, z0, r, hl):
-                    self.W(_wall_box(axis, line, sgn, b0, b1, s0, s1, tin, tout))
-                for b0, b1, s0, s1 in _solid(p, q, r, z1, hl):
-                    self.W(_wall_box(axis, line, sgn, b0, b1, s0, s1, SKY, SKY))
-                if CORNICE and z0 + 96 < r < z1 and q - p >= 32:
-                    # roof cap / cornice: a 16-deep, 24-high stone band on top of the facade (visible wall
-                    # thickness; the building no longer ends in a paper-thin edge against the sky)
-                    i0, i1 = (line - 16, line) if sgn > 0 else (line, line + 16)
-                    face_in = {'x': ('w' if sgn > 0 else 'e'), 'y': ('s' if sgn > 0 else 'n')}[axis]
-                    spec = {'all': NULL, face_in: CONC, 'bottom': CONC, 'top': CONC}
-                    mn = (i0, p, r - 16) if axis == 'x' else (p, i0, r - 16)
-                    mx = (i1, q, r + 8) if axis == 'x' else (q, i1, r + 8)
-                    self.det += box(mn, mx, spec)
-            # corner columns (convex corners only)
+                # v3.7 (owner: "walls look like paper from the rooftops"): every street facade under open sky
+                # ends in a PARAPET 24 above its roof line (top = concrete coping); finish_roofs() then puts a
+                # real roof slab behind it wherever the space outside the zone is free
+                rp = min(r + PAR, z1) if (top == SKY and z0 + 160 <= r < z1) else r
+                for b0, b1, s0, s1 in _solid(p, q, z0, rp, hl):
+                    bl = _wall_box(axis, line, sgn, b0, b1, s0, s1, tin, tout)
+                    if s1 > r:
+                        bl[0].face('top').tex = CONC
+                        rec['walls'].append((bl[0], s1))
+                    self.W(bl)
+                rec['pieces'].append((p, q, r, rp))
+            # corner columns (convex corners only): solid up to the parapet now, sky above in finish_roofs()
             c0, c1 = _band(axis, line, sgn)
-            for e0, e1 in ((a0 - T, a0), (a1, a1 + T)):
+            for e0, e1, pc in ((a0 - T, a0, rec['pieces'][0]), (a1, a1 + T, rec['pieces'][-1])):
                 cx, cy = ((c0 + c1) / 2, (e0 + e1) / 2) if axis == 'x' else ((e0 + e1) / 2, (c0 + c1) / 2)
                 if inside(cx, cy):
                     continue
-                k = (axis, c0, c1, e0, e1)
-                if k in cols:
-                    continue
-                cols.add(k)
                 mn = (c0, e0) if axis == 'x' else (e0, c0)
                 mx = (c1, e1) if axis == 'x' else (e1, c1)
                 # skip columns fully inside a skip-hole of this edge (owned by the neighbour)
                 col_holes = [(h0, h1) for b0, b1, h0, h1 in hl if b0 <= e0 and b1 >= e1]
-                zs = _solid(0, 1, z0, z1, [(0, 1, h0, h1) for h0, h1 in col_holes])
-                for _, _, s0, s1 in zs:
-                    self.W(box((mn[0], mn[1], s0), (mx[0], mx[1], s1), tin if s1 <= max(rl, z0) else SKY))
+                self.cols.append(dict(zone=key, sq=(mn[0], mn[1], mx[0], mx[1]), holes=col_holes, rp=pc[3], z0=z0,
+                                      z1=z1, tin=tin))
+            zn.segs.append(rec)
+        zn.top = top
         # VIS: HINT plane in every finite opening (splits the zone exactly at its mouth) ...
         for h in holes:
             axis, line, a0, a1, h0, h1 = h
@@ -274,7 +275,222 @@ class Builder:
         if hint_z is not None:
             for r in rects:
                 self.hint((r[0], r[1], hint_z), (r[2], r[3], hint_z + 8), 'z')
+        zn.b1 = len(self.m.world.brushes)
         return zn
+
+    # ------------------------------------------------------------------ v3.7 roofs behind the facades
+    def finish_roofs(self, order=(), roof_tex=None, only=None):
+        """Owner feedback 2026-10-10: seen from the tower roof / the medevac the facades were single 16-unit
+        slabs ending against the sky ("paper walls"). Every open-sky facade already got a 24-unit parapet in
+        zone(); here each wall segment of a single-rect outdoor zone gets a ROOF SLAB behind its parapet,
+        outside the zone, as deep as the free space allows (EXT_MIN..EXT_MAX, checked against every other
+        zone, its walls, tunnels and the roofs already placed), the zone's sky shell is moved out around it
+        (sky walls on the new boundary, sky lid over it) and both convex corners wrap round (corner column +
+        diagonal roof block). From the street nothing changes (the parapet hides the roof, its faces are
+        back-face culled); from above every building has a thick wall, coping and a roof. Walls that cannot
+        get a roof (shared walls between two zones, multi-rect zones) keep the parapet with a coping top.
+        Then every remaining sky band / corner column is emitted."""
+        roof_tex = roof_tex or {}
+        W = self.m.world.brushes
+        info = []
+        for i, b in enumerate(W):
+            if {f.tex for f in b.faces} <= {HINT, SKIP}:
+                continue
+            mn, mx = b.bbox()
+            info.append((i, mn, mx))
+        boxes = []                       # (mn, mx, owner zone): zone interiors (+ walls) and claimed roofs
+        for k, z in self.zones.items():
+            for r in z.rects:
+                boxes.append(((r[0] - T, r[1] - T, z.z0 - T), (r[2] + T, r[3] + T, z.z1 + T), k))
+        keys = list(order)                # only these zones get roofs (the ones players can look over)
+        only = only or {}
+        self.roof_stats = []
+
+        def overlaps(mn, mx, cmn, cmx):
+            return not (mx[0] <= cmn[0] or mn[0] >= cmx[0] or mx[1] <= cmn[1] or mn[1] >= cmx[1]
+                        or mx[2] <= cmn[2] or mn[2] >= cmx[2])
+
+        def runs_for(key, rec, ua, aa, sgn, u0, zlo, zhi, lo, hi):
+            """Free depth profile along the wall -> [(s0, s1, D)] runs (a-range incl. corner columns)."""
+            a_lo, a_hi = rec['a0'] - T, rec['a1'] + T
+            obs = []
+            cands = [(mn, mx) for i, mn, mx in info if not (lo <= i < hi)] + [(mn, mx) for mn, mx, k in boxes if k != key]
+            for mn, mx in cands:
+                if mx[aa] <= a_lo - T or mn[aa] >= a_hi + T or mx[2] <= zlo or mn[2] >= zhi:
+                    continue
+                if sgn > 0:
+                    if mx[ua] <= u0:
+                        continue
+                    dist = mn[ua] - u0
+                else:
+                    if mn[ua] >= u0:
+                        continue
+                    dist = u0 - mx[ua]
+                obs.append((mn[aa], mx[aa], dist))
+            lim = 4000 - abs(u0) - T
+            bps = sorted({a_lo, a_hi} | {v for o in obs for v in (o[0] - T, o[1] + T) if a_lo < v < a_hi})
+            out = []
+            for t0, t1 in zip(bps, bps[1:]):
+                D = min([EXT_MAX, lim] + [o[2] - T for o in obs if o[0] < t1 + T and o[1] > t0 - T])
+                D = int(D // 32 * 32) if D >= EXT_MIN else 0
+                if out and out[-1][2] == D and out[-1][1] == t0:
+                    out[-1] = (out[-1][0], t1, D)
+                else:
+                    out.append((t0, t1, D))
+            return [(t0, t1, D) for t0, t1, D in out if D and t1 - t0 >= 48]
+
+        for key in keys:
+            zn = self.zones[key]
+            if getattr(zn, 'top', None) != SKY or len(zn.rects) != 1 or key in ('v', 'B', 'hangar'):
+                continue
+            rect = zn.rects[0]
+            shell = [rect]
+            rt = roof_tex.get(key, CRACK)
+            # one roof bottom for the whole zone: slabs of different roof heights are solid down to it, so
+            # the space under a higher roof never opens into the air above a lower one (leak-proof steps)
+            zbs = [min(r for p, q, r, rp in rc['pieces'] if rp > r) - T for rc in zn.segs
+                   if any(rp > r for p, q, r, rp in rc['pieces'])]
+            if not zbs:
+                continue
+            zlo = min(zbs)
+            for rec in zn.segs:
+                rec['runs'] = []
+                pcs = rec['pieces']
+                if not any(rp > r for p, q, r, rp in pcs):
+                    continue
+                if key in only and (rec['axis'], rec['line']) not in only[key]:
+                    continue
+                ua = 0 if rec['axis'] == 'x' else 1
+                aa = 1 - ua
+                line, sgn = rec['line'], rec['sgn']
+                u0 = line + T * sgn
+                zb = zlo
+                # pieces without a parapet (no open sky above them / too low) are never roofed over
+                bad = [(p - (T if p == rec['a0'] else 0), q + (T if q == rec['a1'] else 0)) for p, q, r, rp in pcs
+                       if not (rp > r or r >= zn.z1)]
+                runs = []
+                for s0, s1, D in runs_for(key, rec, ua, aa, sgn, u0, zb - 8, zn.z1 + T, zn.b0, zn.b1):
+                    for c0, c1 in bad:
+                        if c0 < s1 and c1 > s0:
+                            break
+                    else:
+                        runs.append((s0, s1, D))
+                rec['runs'], rec['zb'] = runs, zb
+                rec['ext'] = max([D for _, _, D in runs] + [0])
+                self.roof_stats.append((key, rec['axis'], line, [(s0, s1, D) for s0, s1, D in runs]))
+                if not runs:
+                    continue
+                outer = {('x', 1): 'e', ('x', -1): 'w', ('y', 1): 'n', ('y', -1): 's'}[(rec['axis'], sgn)]
+                for bl, s1_ in rec['walls']:
+                    bl.face(outer).tex = CONC          # the parapet's back is seen from the roof: coping
+                for s0, s1, D in runs:
+                    mn, mx = [0, 0, zb - 8], [0, 0, zn.z1 + T]
+                    mn[ua], mx[ua] = sorted((line, u0 + sgn * (D + T)))
+                    mn[aa], mx[aa] = s0 - T, s1 + T
+                    boxes.append((tuple(mn), tuple(mx), key))
+                    pr = [0, 0, 0, 0]
+                    pr[ua], pr[ua + 2] = sorted((line, u0 + sgn * D))
+                    pr[aa], pr[aa + 2] = s0, s1
+                    shell.append(tuple(pr))
+                    for p, q, r, rp in pcs:              # roof slabs (one per roof-line piece)
+                        p2 = max(s0, p - T if p == rec['a0'] else p)
+                        q2 = min(s1, q + T if q == rec['a1'] else q)
+                        if q2 <= p2:
+                            continue
+                        bmn, bmx = [0, 0, zb], [0, 0, min(r, zn.z1)]
+                        bmn[ua], bmx[ua] = sorted((u0, u0 + sgn * D))
+                        bmn[aa], bmx[aa] = p2, q2
+                        if bmx[2] > bmn[2]:
+                            self.W(box(tuple(bmn), tuple(bmx), {'top': rt, 'bottom': NULL, 'all': rec['tin']}))
+            # diagonal corner blocks where the roofs of both walls of a convex corner reach the corner
+            ext = [rc for rc in zn.segs if rc.get('runs')]
+            for rx in ext:
+                for ry in ext:
+                    if rx['axis'] != 'x' or ry['axis'] != 'y':
+                        continue
+                    ex = rect[0] if rx['line'] == rect[0] else (rect[2] if rx['line'] == rect[2] else None)
+                    ey = rect[1] if ry['line'] == rect[1] else (rect[3] if ry['line'] == rect[3] else None)
+                    if ex is None or ey is None:
+                        continue
+                    # run of the x-wall touching y = ey, run of the y-wall touching x = ex
+                    rnx = next((r_ for r_ in rx['runs'] if (r_[0] <= ey - T + 1 and ey == rect[1]) or (r_[1] >= ey + T - 1 and ey == rect[3])), None)
+                    rny = next((r_ for r_ in ry['runs'] if (r_[0] <= ex - T + 1 and ex == rect[0]) or (r_[1] >= ex + T - 1 and ex == rect[2])), None)
+                    if not rnx or not rny:
+                        continue
+                    xs = sorted((rx['line'] + T * rx['sgn'], rx['line'] + rx['sgn'] * (T + rnx[2])))
+                    ys = sorted((ry['line'] + T * ry['sgn'], ry['line'] + ry['sgn'] * (T + rny[2])))
+                    zb = min(rx['zb'], ry['zb'])
+                    rx_end = rx['pieces'][0] if ey == rect[1] else rx['pieces'][-1]
+                    ry_end = ry['pieces'][0] if ex == rect[0] else ry['pieces'][-1]
+                    zt = min(rx_end[2], ry_end[2], zn.z1)
+                    cmn, cmx = (xs[0] - T, ys[0] - T, zb - 8), (xs[1] + T, ys[1] + T, zn.z1 + T)
+                    if any(overlaps(mn, mx, cmn, cmx) for i, mn, mx in info if not (zn.b0 <= i < zn.b1)) or \
+                            any(k != key and overlaps(mn, mx, cmn, cmx) for mn, mx, k in boxes):
+                        continue
+                    if zt > zb:
+                        self.W(box((xs[0], ys[0], zb), (xs[1], ys[1], zt), {'top': rt, 'bottom': NULL, 'all': rx['tin']}))
+                    shell.append((xs[0], ys[0], xs[1], ys[1]))
+                    boxes.append((cmn, cmx, key))
+            if len(shell) == 1:
+                continue
+            zn.shell = shell
+            # player clip over every roof + parapet: nobody stands on (or camps) the roofs, the bot nav and the
+            # r_speeds sampler never treat them as floors (bullets / VIS unaffected: CLIP is hull 1-3 only)
+            for r in shell[1:]:
+                self.W(box((r[0], r[1], zlo), (r[2], r[3], zn.z1), CLIP))
+
+            ir = (rect[0] - T, rect[1] - T, rect[2] + T, rect[3] + T)
+            in_r = lambda r, x, y: r[0] < x < r[2] and r[1] < y < r[3]
+            segs2, inside2 = _boundary(shell)
+            done = set()
+            for axis, L, s0, s1, sg in segs2:
+                cuts = sorted({s0, s1} | {v for r in shell for v in ((r[1], r[3]) if axis == 'x' else (r[0], r[2]))
+                                          if s0 < v < s1} | {v for v in ((ir[1], ir[3], rect[1], rect[3]) if axis == 'x'
+                                                                         else (ir[0], ir[2], rect[0], rect[2])) if s0 < v < s1})
+                band = (L, L + T) if sg > 0 else (L - T, L)
+                for t0, t1 in zip(cuts, cuts[1:]):
+                    m = (t0 + t1) / 2
+                    pin = (L - sg, m) if axis == 'x' else (m, L - sg)
+                    pout = (L + sg * T / 2, m) if axis == 'x' else (m, L + sg * T / 2)
+                    if in_r(rect, *pin) or in_r(ir, *pout):
+                        continue
+                    for e0, e1 in ((t0, t1), (t0 - T, t0), (t1, t1 + T)):
+                        cm = (e0 + e1) / 2
+                        cpt = ((band[0] + band[1]) / 2, cm) if axis == 'x' else (cm, (band[0] + band[1]) / 2)
+                        if (e0, e1) != (t0, t1) and (inside2(*cpt) or in_r(ir, *cpt)):
+                            continue
+                        mn = (band[0], e0) if axis == 'x' else (e0, band[0])
+                        mx = (band[1], e1) if axis == 'x' else (e1, band[1])
+                        k = (mn, mx)
+                        if k in done:
+                            continue
+                        done.add(k)
+                        self.W(box((mn[0], mn[1], zlo), (mx[0], mx[1], zn.z1), SKY))
+            for r in shell[1:]:
+                self.W(box((r[0] - T, r[1] - T, zn.z1), (r[2] + T, r[3] + T, zn.z1 + T), SKY))
+
+        # sky bands of every facade without a roof behind it, from the parapet up
+        for key, zn in self.zones.items():
+            for rec in getattr(zn, 'segs', []):
+                runs = rec.get('runs') or []
+                for p, q, r, rp in rec['pieces']:
+                    for b0, b1, s0, s1 in _solid(p, q, rp, zn.z1, rec['hl'] + [(r0, r1, -INF, INF) for r0, r1, _ in runs]):
+                        self.W(_wall_box(rec['axis'], rec['line'], rec['sgn'], b0, b1, s0, s1, SKY, SKY))
+        # convex corner columns: facade up to the parapet; sky above unless a roof wraps the corner
+        cols = {}
+        for c in self.cols:
+            k = (c['zone'], c['sq'])
+            if k not in cols or c['rp'] > cols[k]['rp']:
+                cols[k] = c
+        for (key, sq), c in cols.items():
+            zn = self.zones[key]
+            cx, cy = (sq[0] + sq[2]) / 2, (sq[1] + sq[3]) / 2
+            covered = any(r[0] < cx < r[2] and r[1] < cy < r[3] for r in getattr(zn, 'shell', [])[1:])
+            for _, _, s0, s1 in _solid(0, 1, c['z0'], c['z1'], [(0, 1, h0, h1) for h0, h1 in c['holes']]):
+                if min(s1, c['rp']) > s0:
+                    self.W(box((sq[0], sq[1], s0), (sq[2], sq[3], min(s1, c['rp'])), {'top': CONC, 'all': c['tin']}))
+                if not covered and s1 > max(s0, c['rp']):
+                    self.W(box((sq[0], sq[1], max(s0, c['rp'])), (sq[2], sq[3], s1), SKY))
 
     def tunnel(self, axis, a0, a1, b0, b1, z0, z1, wall, floor, ceil):
         """Passage between two zone walls: along `axis` from a0 to a1, cross-section b0..b1 x z0..z1."""
@@ -731,7 +947,6 @@ def dress(b):
     D(P((1660, -80, 606), (1668, -78, 614), '~vx_light_r', hide=('s',)))          # lamp on the beacon console front
     SPR((1664, -77, 610), RED, 0.25, name='cd_pad_red')
     L((1664, 224, 800), MOON, 140)
-    AMB((1500, 150, 760), 'cd_rotor.wav', 5, name='cd_rotor', silent=True)
     AMB((1664, 224, 450), 'cd_hum.wav', 5, 'medium', name='cd_hum', silent=True)
     # south passage t
     L((1664, -480, 200), MOON, 70)
@@ -908,7 +1123,7 @@ def wire(b):
 
     GRP = ('cd_lt_west', 'cd_lt_plaza', 'cd_lt_plazared', 'cd_lt_east', 'cd_lt_harbor', 'cd_lt_pad',
            'cd_lt_alarm', 'cd_lt_flash', 'cd_lt_flood_out')
-    LOOPS = ('cd_hum', 'cd_siren_st', 'cd_siren_pz', 'cd_siren_all', 'cd_rotor')
+    LOOPS = ('cd_hum', 'cd_siren_st', 'cd_siren_pz', 'cd_siren_all')
     SPR_ON = ('cd_brk_a_red', 'cd_brk_b_red', 'cd_cab_red', 'cd_pad_red')
     SPR_OFF = ('cd_brk_a_grn', 'cd_brk_b_grn', 'cd_cab_grn', 'cd_pad_grn', 'cd_bridge_spr', 'cd_alarm_spr')
 
@@ -942,34 +1157,44 @@ def wire(b):
     # Not passable (riders stand on it), dmg ~0 (blocked = it just waits, never reverses).
     D(P((1648, -112, 576), (1680, -80, 624), MDARK))                                   # beacon console
     button((1656, -104, 624), (1672, -88, 632), 'cd_beacon_btn', 'cd_beacon_mm', master='cd_ms_bridge')
+    # beacon: pad lights + objective at once; the plugin lights road flares / signal smoke on the pad
+    # (vexcmd_fx_heli_in, [fx] in the ini) and plays the pilot's call (vexcmd_radio_heli_in); the medevac
+    # leaves the hidden hangar at +12 s. (v3.7: no rotor loop any more - owner request)
     mm('cd_beacon_mm', [(rel('cd_lt_pad', 1), 0), (rel('cd_pad_red', 0), 0), (rel('cd_pad_grn', 1), 0),
-                        (cmd('vexcmd_obj_3_done'), 0.5), (cmd('vexcmd_msg_beacon'), 0.5), (rel('cd_rotor', 1), 10),
-                        ('cd_heli', 12)])
-    parts = [((-128, -96, -8), (128, 96, 0), {'top': 'vx_metal_floor', 'all': MDARK}),        # open deck
-             ((-112, -80, -15), (112, -72, -8), MDARK), ((-112, 72, -15), (112, 80, -8), MDARK),  # skids
-             ((-176, -64, 0), (-128, 64, 40), MDARK),                                         # cockpit lower
-             ((-176, -64, 40), (-136, 64, 96), 'vx_glass'),                                   # windscreen
-             ((-208, -48, 0), (-176, 48, 56), MDARK),                                         # nose
-             ((-176, -64, 96), (-128, 64, 104), HAZ),                                         # cabin roof
-             ((124, -96, 0), (128, 96, 40), HAZ),                                             # rear rail
-             ((-128, -96, 0), (-64, -92, 40), HAZ), ((64, -96, 0), (124, -92, 40), HAZ),       # side rails
-             ((-128, 92, 0), (-64, 96, 40), HAZ), ((64, 92, 0), (124, 96, 40), HAZ),           # (gaps = doors)
-             ((-158, -6, 104), (-146, 6, 164), MDARK),                                        # rotor mast
-             ((-302, -8, 164), (-2, 8, 168), MDARK), ((-160, -150, 164), (-144, 150, 168), MDARK),  # blades
-             ((128, -8, 24), (304, 8, 44), MDARK),                                            # tail boom
-             ((288, -4, 44), (304, 4, 104), HAZ), ((296, 4, 56), (300, 40, 96), MDARK)]        # fin + tail rotor
-    HG = np.array([3744, 3008, 100])                       # built in the sealed hangar (lit), deck top z 100
+                        (cmd('vexcmd_obj_3_done'), 0.5), (cmd('vexcmd_msg_beacon'), 0.5), (cmd('vexcmd_fx_heli_in'), 0.5),
+                        (cmd('vexcmd_radio_heli_in'), 6), ('cd_heli', 12)])
+    # Medevac = brush func_train (walkable deck + invisible NULL collision rails / cockpit bulkhead, ORIGIN
+    # brush in the bbox centre so the train origin IS the path point) + the plugin's studio model
+    # models/vexmira/world/cd_heli.mdl following it (MOVETYPE_FOLLOW, [models] in the ini; the model is
+    # built around this exact deck: devtools/mdlkit/content/cordon.py HELI_*).
+    # Landing (owner bug 2026-10-10: players under the descending deck got stuck): the heli HOVERS 3 s
+    # over the pad (hp2, deck bottom 168 above the roof) while the plugin clears the landing box
+    # (vexcmd_fx_heli_clear: everyone under / beside the deck footprint who is not riding it is moved to the
+    # nearest free safe spot around the pad, repeated every 0.3 s through the 6.4 s hover + descent) and the
+    # pilot calls "clear the pad"; it then settles with the deck top 16 above the roof (step-on height,
+    # skids of the model touch the roof) and an unstuck pass runs at touchdown and lift-off.
+    # Not passable, dmg ~0: when blocked it just waits (never reverses, never crushes).
+    deck = {'top': 'vx_metal_floor', 'all': NULL}
+    parts = [((-128, -96, -8), (128, 96, 0), deck),                                                 # deck
+             ((-128, -96, 0), (-120, 96, 72), NULL),                                               # cockpit bulkhead
+             ((124, -96, 0), (128, 96, 40), NULL),                                                 # rear rail
+             ((-120, -96, 0), (-64, -92, 40), NULL), ((64, -96, 0), (124, -92, 40), NULL),        # side rails
+             ((-120, 92, 0), (-64, 96, 40), NULL), ((64, 92, 0), (124, 96, 40), NULL)]            # (gaps = doors)
+    HG = np.array([3744, 3008, 100])                       # built in the sealed hangar, deck top z 100
     lmn = np.min([p[0] for p in parts], axis=0)
     lmx = np.max([p[1] for p in parts], axis=0)
-    cen = (lmn + lmx) / 2.0                                 # func_train puts its bbox centre on the path_corner
+    cen = (lmn + lmx) / 2.0                                 # = HELI_ORIGIN_DZ (32) above the deck top
+    assert tuple(cen) == (0, 0, HELI_ORIGIN_DZ), cen
     body = []
     for mn, mx, tx in parts:
         body += box(tuple(HG + mn), tuple(HG + mx), tx)
+    c = HG + cen
+    body += box(tuple(c - 4), tuple(c + 4), ORG)
     E(Entity('func_train', body, targetname='cd_heli', target='cd_hp0', speed=200, dmg=0.001, _minlight=0.3))
     # (deck centre x, y, deck top z, flags, speed for the next leg, wait, message)
     route = [((3744, 3008, 100), 0, 0, 0, None),                                       # hp0 hangar (hidden)
-             ((2000, 600, 1200), 2, 200, 0, None),                                     # hp1 appears high NE
-             ((1664, 224, 760), 0, 70, 0, None),                                       # hp2 over the pad
+             ((2000, 600, 1200), 2, 200, 0, 'cd_heli_app_mm'),                         # hp1 appears high NE
+             ((1664, 224, 760), 0, 50, 3, 'cd_heli_clear_mm'),                         # hp2 hover over the pad 3 s
              ((1664, 224, 592), 0, 50, 15, 'cd_heli_land_mm'),                        # hp3 landed: board!
              ((1664, 224, 720), 0, 120, 0, 'cd_heli_up_mm'),                          # hp4 lift-off
              # ---- loop hp5..hp14 (hp14 -> hp5) ----
@@ -999,10 +1224,11 @@ def wire(b):
             e['wait'] = wt
         if msg:
             e['message'] = msg
-    ents.append(ambient((1664, 224, 700), 'radio/com_go.wav', 10, 'everywhere', False, True, 'cd_radio_go'))
+    mm('cd_heli_app_mm', [(cmd('vexcmd_fx_heli_app'), 0)])
+    mm('cd_heli_clear_mm', [(cmd('vexcmd_fx_heli_clear'), 0), (cmd('vexcmd_radio_heli_clear'), 0)])
     mm('cd_heli_land_mm', [(cmd('vexcmd_reward_h_15'), 0), (cmd('vexcmd_msg_heli'), 0), ('cd_shake_roof', 0),
-                           ('cd_radio_go', 0.5)])
-    mm('cd_heli_up_mm', [(cmd('vexcmd_msg_heli_go'), 0), ('cd_shake_roof', 0), ('cd_radio_go', 0.2)])
+                           (cmd('vexcmd_fx_heli_land'), 0)])
+    mm('cd_heli_up_mm', [(cmd('vexcmd_msg_heli_go'), 0), ('cd_shake_roof', 0), (cmd('vexcmd_fx_heli_up'), 0)])
     shake('cd_shake_roof', (1664, 224, 640), 4, 2, 600, freq=60)
 
     # ------------------------------------------------------------ SP4 train breach (vex_infection)
@@ -1374,6 +1600,7 @@ def fun(b):
         jolt(f'cd_s_{tag}_jolt', p, 7, 600)
         e = next(x for x in ents if x.props.get('targetname') == mmname and x.props['classname'] == 'multi_manager')
         e[f'cd_s_{tag}_scr'], e[f'cd_s_{tag}_fade'], e[f'cd_s_{tag}_jolt'] = dl, dl, dl
+        e[cmd('vexcmd_radio_scare')] = dl + 1.6           # field radio: "what was that?" (plugin, low priority)
 
     # fun: shootable hazard barrels (smoke burst + a little ammo, once per round each)
     for i, (x, y, z) in enumerate(((-900, -240, 0), (2050, -1620, -128))):
@@ -1381,7 +1608,8 @@ def fun(b):
                                            {'top': MDARK, 'all': HAZ}), material=0, health=40,
                      target=f'cd_barrel{i}_mm', _minlight=0.2))
         pt('env_explosion', f'cd_barrel{i}_fx', origin=(x, y, z + 30), iMagnitude=35, spawnflags=1 + 2 + 16)
-        mm(f'cd_barrel{i}_mm', [(f'cd_barrel{i}_fx', 0), (cmd(f'vexcmd_reward_h_{i + 1}'), 0.2)])
+        mm(f'cd_barrel{i}_mm', [(f'cd_barrel{i}_fx', 0), (cmd(f'vexcmd_reward_h_{i + 1}'), 0.2),
+                                (cmd('vexcmd_radio_supply'), 0.8)])
     # fun: trampolines (one entity): station -> train car 2 roof, terminal -> container stack, Kade -> balcony
     tramp = [(200, 2104, 0), (2050, -1690, -128), (2330, -60, 0)]
     for x, y, z in tramp:
@@ -1396,7 +1624,8 @@ def fun(b):
              lip=2, angles=(0, 0, 0), sounds=0, _minlight=0.5))
     snd('cd_s_vend', (2090, 240, 30), 'items/gunpickup2.wav', 8, 'small')
     snd('cd_s_vend2', (2090, 240, 30), 'common/bodydrop3.wav', 8, 'small')
-    mm('cd_vend_mm', [('cd_s_vend2', 0.3), ('cd_s_vend', 0.6), (cmd('vexcmd_reward_h_3'), 0.6)])
+    mm('cd_vend_mm', [('cd_s_vend2', 0.3), ('cd_s_vend', 0.6), (cmd('vexcmd_reward_h_3'), 0.6),
+                      (cmd('vexcmd_radio_supply'), 1.0)])
 
     # ------------------------------------------------------------ moving things (always on, no reset needed)
     ORG = 'ORIGIN'
@@ -1522,9 +1751,9 @@ def build(mock=False, mock_scale=1.0) -> Map:
         b.W(box((r[0], r[1], -32), (r[2], r[3], 0), CRACK))
     b.W(box((-128, 1408, -32), (128, 1856, 448), CONC))               # ticket block (VIS splitter)
     # derailed train: car 1 (duck-jump roof 104), car 2 (camp C2 roof 128, ladder), car 3 in the breach
-    b.D(box((-880, 2112, -32), (-400, 2240, 104), RUST))
-    b.D(box((-320, 2160, -32), (352, 2288, 128), RUST))
-    b.D(box((640, 2112, -32), (1072, 2240, 112), RUST))
+    b.W(box((-880, 2112, -32), (-400, 2240, 104), RUST))
+    b.W(box((-320, 2160, -32), (352, 2288, 128), RUST))
+    b.W(box((640, 2112, -32), (1072, 2240, 112), RUST))
     b.D(box((-472, 2056, 0), (-424, 2104, 56), 'vx_crate_mil'))      # duck-jump crate -> car 1
     b.W(box((-48, 2156, -32), (48, 2160, 128), NULL))                # ladder face (inside car 2 skin)
     b.ladder('R', (0, 2160, -32), '+y', 164)
@@ -1605,7 +1834,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     b.W(box((2176, 0, 176), (2272, 192, 192), MDARK))
     b.W(box((2256, 64, 0), (2272, 128, 176), MDARK))
     b.ladder('K', (2272, 96, 0), '-x', 196)
-    b.ladder('K', (2176, 64, 192), '-x', 388)
+    b.ladder('K', (2176, 64, 192), '-x', 432)       # top 48 above the hatch sill: grab it from the doorway (bots)
 
     # ---------------------------------------------------------------- stair lane + fish market
     Z('n', [(-3200, -1072, -2944, -656)], -128, 512, CRACK, FAC, rl=256,
@@ -1702,9 +1931,22 @@ def build(mock=False, mock_scale=1.0) -> Map:
     vplane(Y, 0, -1152, 1152, 0, 640)                  # plaza centre line
     vplane(X, -1680, -192, 96, 0, 640)                 # lantern lane Z-bend joints
     vplane(X, -1424, -576, -288, 0, 640)
-    for key, zh in (('P', 232), ('Q', 72), ('R', 200), ('S', 232), ('C', 264), ('A', 216), ('H', 264)):
+    vplane(Y, 1952, -3328, -1984, 0, 216)              # Gate 7 yard: N/S halves (v3.7: leaf shapes stay stable)
+    vplane(X, -2656, 1408, 2560, 0, 216)
+    for key, zh in (('P', 232), ('Q', 72), ('R', 200), ('S', 232), ('C', 264), ('A', 216), ('H', 264),
+                    ('M', 232), ('L', 232), ('Kn', 232), ('Km', 232), ('Ks', 232), ('t', 232), ('f1', 232), ('f2', 232)):
         for r in b.zones[key].rects:
             b.hint((r[0], r[1], zh), (r[2], r[3], zh + 8), 'z')
+
+    # ============================================================== v3.7: roofs behind every free facade
+    # Only the facades players can look over get roofs: the plaza (heli ride, tower roof), the Kade cells,
+    # the hospital yard and the south passage (seen from the tower roof) and the terminal's north wall
+    # (seen across from the tower roof). Elsewhere every viewpoint is below the parapets (the gantry 214,
+    # crane 310, train roofs 182, balcony 246 eye heights vs. 384-640 rooflines): a roof there would only
+    # cost VIS / r_speeds. Those facades keep the parapet + coping.
+    b.finish_roofs(order=('P', 'Km', 'Kn', 'Ks', 'H', 't', 'C'), roof_tex={'C': CORR},
+                   only={'C': [('y', -1088)]})
+    b.m._roof_stats = b.roof_stats
 
     # ============================================================== brush entities (structural set)
     E = b.ent
@@ -1953,6 +2195,41 @@ def make_sounds(out=SOUND_DIR):
     return made
 
 
+INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', NAME + '.ini')
+
+
+def ini_resources(ini=INI):
+    """Files the plugin loads for this map from its ini ([models] models, [radio]/[chatter] wavs): listed
+    in maps/<map>.res too, so a client downloads them even when the plugin is off / precaches differ."""
+    out, sec = [], None
+    with open(ini, encoding='latin-1') as fh:
+        for ln in fh:
+            ln = ln.split(' ;')[0].strip()
+            if not ln or ln.startswith(';'):
+                continue
+            if ln.startswith('['):
+                sec = ln.lower()
+                continue
+            if '=' not in ln:
+                continue
+            val = ln.split('=', 1)[1].split()
+            if sec == '[models]' and val:
+                out.append(val[0])
+            elif sec in ('[radio]', '[chatter]') and len(val) >= 3:
+                out += ['sound/vexmira/radio/' + val[1], 'sound/vexmira/radio/' + val[2]]
+    return list(dict.fromkeys(out))
+
+
+def write_res_extra(res_path):
+    have = open(res_path).read().split('\n') if os.path.exists(res_path) else ['// %s custom resources' % NAME]
+    extra = [p for p in ini_resources() if p not in have]
+    missing = [p for p in extra if not os.path.exists(os.path.join(REPO, 'cstrike', p))]
+    assert not missing, missing
+    with open(res_path, 'w', newline='\n') as fh:
+        fh.write('\n'.join([h for h in have if h] + extra) + '\n')
+    return extra
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--quality', default='normal')
@@ -1974,6 +2251,8 @@ def main(argv=None):
     from ..compile import compile_map
     r = compile_map(m, a.quality, None if a.mock else a.out)
     print(r.summary())
+    if r.bsp and os.path.exists(r.bsp) and not a.mock:
+        print('  res + plugin files:', len(write_res_extra(os.path.join(a.out, NAME + '.res'))))
     if r.bsp and os.path.exists(r.bsp):
         from ..bspcheck import perf_at
         try:

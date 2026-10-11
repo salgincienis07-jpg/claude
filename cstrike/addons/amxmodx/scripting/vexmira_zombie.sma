@@ -25787,6 +25787,8 @@ new const ME_NAME[ME_NUM][] = { "round_start", "freeze_end", "infection", "boss"
 #define MC_RH  2
 #define MC_RZ  3
 #define MC_OBJ 4
+#define MC_RADIO 5
+#define MC_FX  6
 
 new g_pMsStory, g_pMsObj, g_pMsMarkers, g_pMsRewards, g_pMsEvents, g_pMsDebug;
 new g_iMeEnt[ME_MAXENT], g_iMeTn[ME_MAXENT], g_iMeN, g_iMeFirst[ME_NUM], g_iMeCnt[ME_NUM];
@@ -25808,6 +25810,43 @@ new g_iMsLkMsg[MS_MAXLK], g_iMsLkRound[MS_MAXLK], g_iMsLkN, bool:g_bMsSeq;
 new Float:g_fMsRoundTime, g_pMsRoundTime;                      // v3.6 [info] roundtime (dk) / vex_roundtime
 new g_iMsLockOf[OVH_MAXENT];   // varlik -> kilit + 1
 new Float:g_fMsLkNext[33];
+// v3.7 telsiz / efekt / dekor modeli (asagida, MsPrecacheIni)
+#define MS_MAXRADIO   32
+#define MS_MAXMODEL   48
+#define MS_MAXFX      64
+#define MS_MAXFXKEY   20
+#define TASK_MSFX     42300   // +satir (0..63)
+#define TASK_MSRADIO  42400
+
+#define MFX_FLARE   1
+#define MFX_SMOKE   2
+#define MFX_SPARKS  3
+#define MFX_DUST    4
+#define MFX_RING    5
+#define MFX_LIGHT   6
+#define MFX_SPOT    7
+#define MFX_BOOM    8
+#define MFX_SHAKE   9
+#define MFX_CLEAR   10
+#define MFX_SAFE    11
+#define MFX_UNSTUCK 12
+
+new const MFX_NAME[][] = { "", "flare", "smoke", "sparks", "dust", "ring", "light", "spot", "boom", "shake",
+    "clear", "safe", "unstuck" };
+
+new g_szRdKey[MS_MAXRADIO][24], g_szRdFile[MS_MAXRADIO][2][48], g_szRdSub[MS_MAXRADIO][2][MS_LEN];
+new Float:g_fRdLen[MS_MAXRADIO], bool:g_bRdChat[MS_MAXRADIO], bool:g_bRdLow[MS_MAXRADIO], Float:g_fRdNext[MS_MAXRADIO], g_iRdN, g_iRdChatN;
+new Float:g_fRdBusy, g_iRdPending = -1, g_iRdLastChat = -1, g_iRdChatIn, g_iRdLock = -1;
+new g_iMsMsgRadio[MS_MAXMSG], g_iMeRadio[ME_NUM], g_pMsRadio, g_pMsChatter;
+
+new g_szMmPath[MS_MAXMODEL][64], Float:g_fMmPos[MS_MAXMODEL][4], g_szMmFollow[MS_MAXMODEL][32], g_szMmName[MS_MAXMODEL][32];
+new g_iMmSeq[MS_MAXMODEL], Float:g_fMmFr[MS_MAXMODEL], g_iMmRm[MS_MAXMODEL], g_iMmRa[MS_MAXMODEL], g_iMmFx[MS_MAXMODEL];
+new g_iMmCol[MS_MAXMODEL], g_iMmBody[MS_MAXMODEL], g_iMmSkin[MS_MAXMODEL], Float:g_fMmScale[MS_MAXMODEL], g_iMmEnt[MS_MAXMODEL], g_iMmN;
+
+new g_szFxKey[MS_MAXFXKEY][24], g_iFxKeyN;
+new g_iFxKeyOf[MS_MAXFX], g_iFxType[MS_MAXFX], Float:g_fFxPos[MS_MAXFX][3], g_iFxEnt[MS_MAXFX], Float:g_fFxP[MS_MAXFX][6];
+new Float:g_fFxDelay[MS_MAXFX], g_iFxRep[MS_MAXFX], Float:g_fFxDt[MS_MAXFX], g_iFxCol[MS_MAXFX], g_iFxLeft[MS_MAXFX], g_iFxN;
+
 
 stock MsLang(id)
 {
@@ -25824,6 +25863,8 @@ MsInit()
     g_pMsEvents  = register_cvar("vex_map_events", "1");
     g_pMsDebug   = register_cvar("vex_map_debug", "0");
     g_pMsRoundTime = register_cvar("vex_roundtime", "0");
+    g_pMsRadio   = register_cvar("vex_map_radio", "1");
+    g_pMsChatter = register_cvar("vex_map_chatter", "70");
     RegisterSay("story", "hikaye", "cmd_MsStory");
     register_srvcmd("vex_map_status", "srv_MsStatus");
 
@@ -25831,7 +25872,9 @@ MsInit()
     TrieGetString(g_tRes, "ZONE_WARN", g_szMsSndMsg, charsmax(g_szMsSndMsg));
     TrieGetString(g_tRes, "QUEST_DONE", g_szMsSndObj, charsmax(g_szMsSndObj));
 
+    MsModelsSpawn();
     MsLoadIni();
+    MsRadioLink();
 
     // vex_* olay hedefleri (harita varliklari plugin_init'te hazir)
     new name[32];
@@ -25924,6 +25967,7 @@ public fw_MsButtonUse(ent, caller, activator, type, Float:value)
             HudText(id, SL_ANN, CLR_WARN, 4.0, g_szMsMsg[msg][MsLang(id)]);
             client_print(id, print_console, "%s", g_szMsMsg[msg][MsLang(id)]);
         }
+        MsRadio(g_iMsMsgRadio[msg], 0.3);
         return HAM_IGNORED;
     }
     // kilit: gorev tamamlanmadi -> basan oyuncuya kisa uyari (2 sn'de bir)
@@ -25937,6 +25981,7 @@ public fw_MsButtonUse(ent, caller, activator, type, Float:value)
     {
         HudText(activator, SL_ALERT, CLR_WARN, 2.5, g_szMsMsg[msg][MsLang(activator)]);
         client_print(activator, print_console, "%s", g_szMsMsg[msg][MsLang(activator)]);
+        MsRadioTo(g_iRdLock, activator);
     }
     return HAM_IGNORED;
 }
@@ -26008,6 +26053,20 @@ MsParseCmd(ent, const tn[])
         type = MC_OBJ;
         arg = tn[11] - '1';
     }
+    else if (equal(tn[7], "radio_", 6))
+    {
+        type = MC_RADIO;
+        arg = MsRadioFind(tn[13]);
+    }
+    else if (equal(tn[7], "fx_", 3))
+    {
+        type = MC_FX;
+        for (new k = 0; k < g_iFxKeyN; k++)
+        {
+            if (equali(tn[10], g_szFxKey[k]))
+                arg = k;
+        }
+    }
     if (!type || arg < 0)
     {
         log_amx("[Vexmira] Harita senaryosu: tanimsiz vexcmd '%s' (varlik %d) yok sayildi", tn, ent);
@@ -26062,6 +26121,8 @@ MsApplyRoundTime()
 #define MSS_MK    6
 #define MSS_LOCK  7
 #define MSS_HINT  8
+#define MSS_FX    9
+#define MSS_SKIP  10
 
 MsLoadIni()
 {
@@ -26074,7 +26135,7 @@ MsLoadIni()
         return;
     g_bMsIni = true;
 
-    new line[256], sec = MSS_NONE, lang, ln, bad, objN[2];
+    new line[512], sec = MSS_NONE, lang, ln, bad, objN[2];
     new key[64], val[192], a[MS_LEN], b[MS_LEN];
     while (!feof(fp))
     {
@@ -26101,6 +26162,9 @@ MsLoadIni()
             else if (equali(line, "[markers]"))      sec = MSS_MK;
             else if (equali(line, "[locks]"))        { sec = MSS_LOCK; g_bMsSeq = true; }
             else if (equali(line, "[hints]"))        sec = MSS_HINT;
+            else if (equali(line, "[fx]"))           sec = MSS_FX;
+            else if (equali(line, "[radio]") || equali(line, "[chatter]") || equali(line, "[models]"))
+                sec = MSS_SKIP;     // plugin_precache'te okundu (MsPrecacheIni)
             else
             {
                 sec = MSS_NONE;
@@ -26115,6 +26179,8 @@ MsLoadIni()
                 MsBad(path, ln, line, bad);
             continue;
         }
+        if (sec == MSS_SKIP)
+            continue;
 
         // anahtar = deger
         new eq = contain(line, "=");
@@ -26170,6 +26236,11 @@ MsLoadIni()
                 formatex(g_szMsMsg[g_iMsMsgN][0], MS_LEN - 1, "-=[  %s  ]=-", a);
                 formatex(g_szMsMsg[g_iMsMsgN][1], MS_LEN - 1, "-=[  %s  ]=-", b);
                 g_iMsMsgN++;
+            }
+            case MSS_FX:
+            {
+                if (!MsParseFx(key, val))
+                    MsBad(path, ln, line, bad);
             }
             case MSS_LOCK, MSS_HINT:
             {
@@ -26413,6 +26484,8 @@ MsEvent(ev)
         else
             set_task(g_fMsExDelay[x], "task_MsExtra", TASK_MSEX + x);
     }
+    if (g_iMeRadio[ev] >= 0)
+        MsRadio(g_iMeRadio[ev], 0.6);
     if (get_pcvar_num(g_pMsDebug))
         log_amx("[Vexmira] map olay: vex_%s (%d hedef)", ME_NAME[ev], g_iMeCnt[ev]);
 }
@@ -26438,6 +26511,12 @@ MsRoundRestart()
         g_bMsObjDone[k] = false;
     for (new x = 0; x < g_iMsExN; x++)
         remove_task(TASK_MSEX + x);
+    for (new x = 0; x < g_iFxN; x++)
+        remove_task(TASK_MSFX + x);
+    remove_task(TASK_MSRADIO);
+    g_iRdPending = -1;
+    g_fRdBusy = 0.0;
+    g_iRdChatIn = 0;
     remove_task(TASK_MSRS);
     set_task(0.2, "task_MsRoundStart", TASK_MSRS);
 }
@@ -26496,6 +26575,720 @@ MsTick()
 {
     if (g_bMsLive && ++g_iMsSec % 60 == 0)
         MsEvent(ME_MINUTE);
+    MsChatterTick();
+}
+
+/* ---------------- v3.7 harita: telsiz, efektler, dekor modelleri ---------------- */
+/*  [radio]   <anahtar> = <sn> <EN wav> <TR wav> <EN altyazi> | <TR altyazi>        */
+/*            anahtar = [messages] anahtari (mesajla birlikte), ev_<olay>, lock     */
+/*            (kilitli buton, basan oyuncuya) veya vexcmd_radio_<anahtar> relay'i  */
+/*  [chatter] ayni bicim: round icinde rastgele telsiz konusmasi (vex_map_chatter) */
+/*  [fx]      <anahtar> = <efekt> <konum> [sayilar] [t:gecikme rep:n dt:sn col:r,g,b] */
+/*            konum = "x y z" ya da "@targetname dx dy dz" (varligi izler);       */
+/*            vexcmd_fx_<anahtar> relay'i ayni anahtarli tum satirlari calistirir  */
+/*  [models]  model = <yol.mdl> <x y z yaw | @targetname> [seq: fr: rm: ra: fx:    */
+/*            col:r,g,b body: skin: scale: name:]  (eklenti olusturur, kati degil) */
+/*  Ses dosyalari precache_generic ile indirilir, "spk" ile calinir: ses yuvasi    */
+/*  harcamaz. Modeller sadece bu haritada precache edilir. Kare basina is yok.     */
+// "a b c" kelime kelime (bosluk ayrimli); kalan metni geri verir
+stock MsTok(src[], tok[], tlen)
+{
+    new rest[384];
+    tok[0] = 0;
+    trim(src);
+    if (!src[0])
+        return 0;
+    argbreak(src, tok, tlen, rest, charsmax(rest));
+    copy(src, 383, rest);
+    return tok[0] != 0;
+}
+
+stock MsPackCol(const s[])
+{
+    new a[8], b[8], c[8], t[32];
+    copy(t, charsmax(t), s);
+    replace_all(t, charsmax(t), ",", " ");
+    parse(t, a, charsmax(a), b, charsmax(b), c, charsmax(c));
+    return (clamp(str_to_num(a), 0, 255) << 16) | (clamp(str_to_num(b), 0, 255) << 8) | clamp(str_to_num(c), 0, 255);
+}
+
+// plugin_precache: [radio] / [chatter] dosyalari indirilir, [models] modelleri precache edilir
+MsPrecacheIni()
+{
+    new map[32], path[160];
+    get_mapname(map, charsmax(map));
+    get_configsdir(path, charsmax(path));
+    format(path, charsmax(path), "%s/vexmira_maps/%s.ini", path, map);
+    new fp = fopen(path, "rt");
+    if (!fp)
+        return;
+    new line[512], sec, key[32], val[480], tok[64], full[96], c;
+    while (!feof(fp))
+    {
+        fgets(fp, line, charsmax(line));
+        c = contain(line, " ;");
+        if (c != -1)
+            line[c] = 0;
+        trim(line);
+        if (!line[0] || line[0] == ';' || line[0] == '#')
+            continue;
+        if (line[0] == '[')
+        {
+            sec = equali(line, "[radio]") ? 1 : (equali(line, "[chatter]") ? 2 : (equali(line, "[models]") ? 3 : 0));
+            continue;
+        }
+        if (!sec)
+            continue;
+        c = contain(line, "=");
+        if (c < 1)
+            continue;
+        copy(key, min(c, charsmax(key)), line);
+        trim(key);
+        copy(val, charsmax(val), line[c + 1]);
+        if (sec == 3)
+        {
+            if (g_iMmN >= MS_MAXMODEL || !MsTok(val, tok, charsmax(tok)))
+                continue;
+            if (!file_exists(tok))
+            {
+                log_amx("[Vexmira] map model yok: %s", tok);
+                continue;
+            }
+            new m = g_iMmN;
+            copy(g_szMmPath[m], charsmax(g_szMmPath[]), tok);
+            g_fMmFr[m] = 1.0;
+            g_iMmRa[m] = 255;
+            g_fMmScale[m] = 1.0;
+            g_iMmCol[m] = 0xFFFFFF;
+            new n;
+            while (MsTok(val, tok, charsmax(tok)))
+            {
+                if (tok[0] == '@' && !n)
+                {
+                    copy(g_szMmFollow[m], charsmax(g_szMmFollow[]), tok[1]);
+                    n = 4;
+                }
+                else if (contain(tok, ":") > 0)
+                {
+                    new k = contain(tok, ":"), Float:f = str_to_float(tok[k + 1]), v = str_to_num(tok[k + 1]);
+                    if (equal(tok, "seq:", 4))        g_iMmSeq[m] = v;
+                    else if (equal(tok, "fr:", 3))    g_fMmFr[m] = f;
+                    else if (equal(tok, "rm:", 3))    g_iMmRm[m] = v;
+                    else if (equal(tok, "ra:", 3))    g_iMmRa[m] = v;
+                    else if (equal(tok, "fx:", 3))    g_iMmFx[m] = v;
+                    else if (equal(tok, "col:", 4))   g_iMmCol[m] = MsPackCol(tok[4]);
+                    else if (equal(tok, "body:", 5))  g_iMmBody[m] = v;
+                    else if (equal(tok, "skin:", 5))  g_iMmSkin[m] = v;
+                    else if (equal(tok, "scale:", 6)) g_fMmScale[m] = f;
+                    else if (equal(tok, "name:", 5))  copy(g_szMmName[m], charsmax(g_szMmName[]), tok[5]);
+                }
+                else if (n < 4)
+                    g_fMmPos[m][n++] = str_to_float(tok);
+            }
+            if (n < 3)
+                continue;
+            PcModel(g_szMmPath[m], false);
+            g_iMmN++;
+            continue;
+        }
+        // [radio] / [chatter]: <sn> <EN wav> <TR wav> <EN> | <TR>
+        if (g_iRdN >= MS_MAXRADIO || strlen(key) > 23)
+            continue;
+        new r = g_iRdN, a[MS_LEN], b[MS_LEN];
+        MsTok(val, tok, charsmax(tok));
+        // eksi sure = dusuk oncelik (hat mesgulse atlanir, ayni satir 20 sn'de bir)
+        g_bRdLow[r] = tok[0] == '-';
+        g_fRdLen[r] = floatclamp(floatabs(str_to_float(tok)), 0.5, 15.0);
+        for (new l = 0; l < 2; l++)
+        {
+            MsTok(val, tok, charsmax(tok));
+            formatex(full, charsmax(full), "sound/vexmira/radio/%s", tok);
+            if (tok[0] && file_exists(full))
+            {
+                copy(g_szRdFile[r][l], charsmax(g_szRdFile[][]), tok);
+                PcGeneric(full);
+            }
+        }
+        if (!g_szRdFile[r][0][0])
+            copy(g_szRdFile[r][0], charsmax(g_szRdFile[][]), g_szRdFile[r][1]);
+        if (!g_szRdFile[r][1][0])
+            copy(g_szRdFile[r][1], charsmax(g_szRdFile[][]), g_szRdFile[r][0]);
+        MsSplitPipe(val, a, b);
+        copy(g_szRdSub[r][0], MS_LEN - 1, a);
+        copy(g_szRdSub[r][1], MS_LEN - 1, b);
+        copy(g_szRdKey[r], charsmax(g_szRdKey[]), key);
+        g_bRdChat[r] = sec == 2;
+        if (sec == 2)
+            g_iRdChatN++;
+        g_iRdN++;
+    }
+    fclose(fp);
+    if (g_iRdN || g_iMmN)
+        log_amx("[Vexmira] harita v3.7: telsiz satiri %d (sohbet %d), dekor modeli %d", g_iRdN, g_iRdChatN, g_iMmN);
+}
+
+MsRadioFind(const key[])
+{
+    for (new r = 0; r < g_iRdN; r++)
+    {
+        if (!g_bRdChat[r] && equali(g_szRdKey[r], key))
+            return r;
+    }
+    return -1;
+}
+
+// plugin_init (MsLoadIni'den sonra): mesaj / olay / kilit -> telsiz satiri
+MsRadioLink()
+{
+    new k[32];
+    for (new i = 0; i < MS_MAXMSG; i++)
+        g_iMsMsgRadio[i] = i < g_iMsMsgN ? MsRadioFind(g_szMsMsgKey[i]) : -1;
+    for (new e = 0; e < ME_NUM; e++)
+    {
+        formatex(k, charsmax(k), "ev_%s", ME_NAME[e]);
+        g_iMeRadio[e] = MsRadioFind(k);
+    }
+    g_iRdLock = MsRadioFind("lock");
+}
+
+MsRadioSend(r, id)
+{
+    new l = MsLang(id);
+    if (g_szRdFile[r][l][0])
+        client_cmd(id, "spk ^"vexmira/radio/%s^"", g_szRdFile[r][l]);
+    if (g_szRdSub[r][l][0])
+        client_print_color(id, print_team_grey, "^4[%s]^1 %s", l ? "TELSIZ" : "RADIO", g_szRdSub[r][l]);
+}
+
+MsRadioPlay(r)
+{
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (is_user_connected(id) && !is_user_bot(id))
+            MsRadioSend(r, id);
+    }
+    g_fRdBusy = get_gametime() + g_fRdLen[r] + 0.4;
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map telsiz '%s' (%.1f sn)", g_szRdKey[r], g_fRdLen[r]);
+}
+
+// Telsiz: sohbet satiri hat mesgulse atlanir; olay satiri sirada bekler (tek yer, en yenisi)
+MsRadio(r, Float:delay = 0.0)
+{
+    if (r < 0 || r >= g_iRdN || !get_pcvar_num(g_pMsRadio))
+        return;
+    new Float:now = get_gametime();
+    if (g_bRdChat[r] || g_bRdLow[r])
+    {
+        if (now >= g_fRdBusy && now >= g_fRdNext[r])
+        {
+            g_fRdNext[r] = now + 20.0;
+            MsRadioPlay(r);
+        }
+        return;
+    }
+    new Float:at = floatmax(now + delay, g_fRdBusy);
+    if (at <= now + 0.01)
+    {
+        MsRadioPlay(r);
+        return;
+    }
+    g_iRdPending = r;
+    remove_task(TASK_MSRADIO);
+    set_task(at - now + 0.05, "task_MsRadioNext", TASK_MSRADIO);
+    g_fRdBusy = floatmax(g_fRdBusy, at);
+}
+
+public task_MsRadioNext()
+{
+    new r = g_iRdPending;
+    g_iRdPending = -1;
+    if (r >= 0)
+        MsRadioPlay(r);
+}
+
+// Kilitli butona basan oyuncuya (hat mesgul degilse)
+MsRadioTo(r, id)
+{
+    if (r < 0 || !get_pcvar_num(g_pMsRadio) || get_gametime() < g_fRdBusy || is_user_bot(id))
+        return;
+    MsRadioSend(r, id);
+}
+
+// MsTick (1 sn): rastgele telsiz konusmasi
+MsChatterTick()
+{
+    new avg = get_pcvar_num(g_pMsChatter);
+    if (!g_bMsLive || !g_iRdChatN || avg <= 0)
+        return;
+    if (g_iRdChatIn <= 0)
+    {
+        g_iRdChatIn = random_num(avg / 2, avg);
+        return;
+    }
+    if (--g_iRdChatIn > 0)
+        return;
+    g_iRdChatIn = random_num(avg * 6 / 10, avg * 14 / 10);
+    new pick = -1, n;
+    for (new tries = 0; tries < 8 && pick < 0; tries++)
+    {
+        n = random_num(0, g_iRdChatN - 1);
+        for (new r = 0; r < g_iRdN; r++)
+        {
+            if (g_bRdChat[r] && n-- == 0)
+            {
+                if (r != g_iRdLastChat || g_iRdChatN == 1)
+                    pick = r;
+                break;
+            }
+        }
+    }
+    if (pick >= 0)
+    {
+        g_iRdLastChat = pick;
+        MsRadio(pick);
+    }
+}
+
+/* ---------------- dekor modelleri ---------------- */
+MsModelsSpawn()
+{
+    new Float:o[3], Float:ang[3], Float:col[3], tgt;
+    for (new m = 0; m < g_iMmN; m++)
+    {
+        tgt = 0;
+        if (g_szMmFollow[m][0])
+        {
+            tgt = engfunc(EngFunc_FindEntityByString, -1, "targetname", g_szMmFollow[m]);
+            if (tgt <= 0)
+            {
+                log_amx("[Vexmira] map model %s: izlenecek varlik '%s' yok", g_szMmPath[m], g_szMmFollow[m]);
+                continue;
+            }
+        }
+        new e = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target"));
+        if (!pev_valid(e))
+            continue;
+        set_pev(e, pev_classname, "vex_mapmodel");
+        engfunc(EngFunc_SetModel, e, g_szMmPath[m]);
+        if (g_szMmName[m][0])
+            set_pev(e, pev_targetname, g_szMmName[m]);
+        set_pev(e, pev_solid, SOLID_NOT);
+        if (tgt)
+        {
+            pev(tgt, pev_origin, o);
+            set_pev(e, pev_movetype, MOVETYPE_FOLLOW);
+            set_pev(e, pev_aiment, tgt);
+            set_pev(e, pev_v_angle, Float:{0.0, 0.0, 0.0});
+        }
+        else
+        {
+            o[0] = g_fMmPos[m][0];
+            o[1] = g_fMmPos[m][1];
+            o[2] = g_fMmPos[m][2];
+            ang[1] = g_fMmPos[m][3];
+            set_pev(e, pev_angles, ang);
+            set_pev(e, pev_movetype, MOVETYPE_NONE);
+        }
+        engfunc(EngFunc_SetOrigin, e, o);
+        set_pev(e, pev_sequence, g_iMmSeq[m]);
+        set_pev(e, pev_framerate, g_fMmFr[m]);
+        set_pev(e, pev_animtime, get_gametime());
+        set_pev(e, pev_frame, 0.0);
+        set_pev(e, pev_body, g_iMmBody[m]);
+        set_pev(e, pev_skin, g_iMmSkin[m]);
+        set_pev(e, pev_scale, g_fMmScale[m]);
+        if (g_iMmRm[m] || g_iMmFx[m])
+        {
+            col[0] = float((g_iMmCol[m] >> 16) & 255);
+            col[1] = float((g_iMmCol[m] >> 8) & 255);
+            col[2] = float(g_iMmCol[m] & 255);
+            set_pev(e, pev_rendermode, g_iMmRm[m]);
+            set_pev(e, pev_renderamt, float(g_iMmRa[m]));
+            set_pev(e, pev_renderfx, g_iMmFx[m]);
+            set_pev(e, pev_rendercolor, col);
+        }
+        g_iMmEnt[m] = e;
+    }
+}
+
+/* ---------------- efektler (gecici varliklar, sadece tetiklenince) ---------------- */
+// [fx] satiri (plugin_init): "<efekt> <konum> [sayilar] [secenekler]"
+MsParseFx(const key[], const val[])
+{
+    if (g_iFxN >= MS_MAXFX)
+        return 0;
+    new src[384], tok[64], i = g_iFxN, type, n, np;
+    copy(src, charsmax(src), val);
+    if (!MsTok(src, tok, charsmax(tok)))
+        return 0;
+    for (new t = 1; t < sizeof MFX_NAME; t++)
+    {
+        if (equali(tok, MFX_NAME[t]))
+            type = t;
+    }
+    if (!type)
+        return 0;
+    g_iFxEnt[i] = 0;
+    g_iFxRep[i] = 1;
+    g_fFxDt[i] = 0.5;
+    g_fFxDelay[i] = 0.0;
+    g_iFxCol[i] = 0xFFFFFF;
+    for (new k = 0; k < 6; k++)
+        g_fFxP[i][k] = -1.0;
+    while (MsTok(src, tok, charsmax(tok)))
+    {
+        new c = contain(tok, ":");
+        if (tok[0] == '@' && !n)
+        {
+            g_iFxEnt[i] = engfunc(EngFunc_FindEntityByString, -1, "targetname", tok[1]);
+            if (g_iFxEnt[i] <= 0)
+            {
+                log_amx("[Vexmira] map [fx] %s: varlik '%s' yok", key, tok[1]);
+                return 0;
+            }
+        }
+        else if (c > 0)
+        {
+            if (equal(tok, "t:", 2))        g_fFxDelay[i] = floatclamp(str_to_float(tok[2]), 0.0, 120.0);
+            else if (equal(tok, "rep:", 4)) g_iFxRep[i] = clamp(str_to_num(tok[4]), 1, 200);
+            else if (equal(tok, "dt:", 3))  g_fFxDt[i] = floatclamp(str_to_float(tok[3]), 0.1, 30.0);
+            else if (equal(tok, "col:", 4)) g_iFxCol[i] = MsPackCol(tok[4]);
+        }
+        else if (n < 3)
+            g_fFxPos[i][n++] = str_to_float(tok);
+        else if (np < 6)
+            g_fFxP[i][np++] = str_to_float(tok);
+    }
+    if (n < 3)
+        return 0;
+    new kx = -1;
+    for (new k = 0; k < g_iFxKeyN; k++)
+    {
+        if (equali(g_szFxKey[k], key))
+            kx = k;
+    }
+    if (kx < 0)
+    {
+        if (g_iFxKeyN >= MS_MAXFXKEY || strlen(key) > 23)
+            return 0;
+        kx = g_iFxKeyN++;
+        copy(g_szFxKey[kx], charsmax(g_szFxKey[]), key);
+    }
+    g_iFxKeyOf[i] = kx;
+    g_iFxType[i] = type;
+    g_iFxN++;
+    return 1;
+}
+
+stock Float:MsFxP(i, k, Float:def)
+{
+    return g_fFxP[i][k] < 0.0 ? def : g_fFxP[i][k];
+}
+
+// Satirin o anki konumu (varligi izliyorsa varlik + ofset)
+MsFxOrigin(i, Float:o[3])
+{
+    o[0] = g_fFxPos[i][0];
+    o[1] = g_fFxPos[i][1];
+    o[2] = g_fFxPos[i][2];
+    new e = g_iFxEnt[i];
+    if (e > 0 && pev_valid(e))
+    {
+        new Float:eo[3];
+        pev(e, pev_origin, eo);
+        o[0] += eo[0];
+        o[1] += eo[1];
+        o[2] += eo[2];
+    }
+}
+
+MsFxFire(kx)
+{
+    for (new i = 0; i < g_iFxN; i++)
+    {
+        if (g_iFxKeyOf[i] != kx || g_iFxType[i] == MFX_SAFE)
+            continue;
+        remove_task(TASK_MSFX + i);
+        g_iFxLeft[i] = g_iFxRep[i];
+        if (g_fFxDelay[i] > 0.0)
+            set_task(g_fFxDelay[i], "task_MsFx", TASK_MSFX + i);
+        else
+            task_MsFx(TASK_MSFX + i);
+    }
+    if (get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map efekt '%s'", g_szFxKey[kx]);
+}
+
+public task_MsFx(tid)
+{
+    new i = tid - TASK_MSFX;
+    if (i < 0 || i >= g_iFxN)
+        return;
+    MsFxRun(i);
+    if (--g_iFxLeft[i] > 0)
+        set_task(g_fFxDt[i], "task_MsFx", tid);
+}
+
+MsFxRun(i)
+{
+    new Float:o[3], Float:q[3], r = (g_iFxCol[i] >> 16) & 255, g = (g_iFxCol[i] >> 8) & 255, b = g_iFxCol[i] & 255;
+    MsFxOrigin(i, o);
+    switch (g_iFxType[i])
+    {
+        case MFX_CLEAR, MFX_UNSTUCK:
+        {
+            q[0] = MsFxP(i, 0, 0.0) - g_fFxPos[i][0] + o[0];
+            q[1] = MsFxP(i, 1, 0.0) - g_fFxPos[i][1] + o[1];
+            q[2] = MsFxP(i, 2, 0.0) - g_fFxPos[i][2] + o[2];
+            MsFxClear(i, o, q, g_iFxType[i] == MFX_UNSTUCK);
+            return;
+        }
+        case MFX_SHAKE:
+        {
+            new Float:rad = MsFxP(i, 0, 600.0), Float:po[3];
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (!is_user_alive(p) || is_user_bot(p))
+                    continue;
+                pev(p, pev_origin, po);
+                if (get_distance_f(o, po) > rad)
+                    continue;
+                message_begin(MSG_ONE_UNRELIABLE, g_msgShake, _, p);
+                write_short(floatround(MsFxP(i, 1, 6.0) * 4096.0));
+                write_short(floatround(MsFxP(i, 2, 1.5) * 4096.0));
+                write_short(floatround(160.0 * 256.0));
+                message_end();
+            }
+            return;
+        }
+    }
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!FxWants(p, o))
+            continue;
+        switch (g_iFxType[i])
+        {
+            case MFX_FLARE:
+            {
+                FxBegin(o, p);
+                write_byte(TE_SPRITE);
+                engfunc(EngFunc_WriteCoord, o[0]);
+                engfunc(EngFunc_WriteCoord, o[1]);
+                engfunc(EngFunc_WriteCoord, o[2]);
+                write_short(g_sprFlare);
+                write_byte(clamp(floatround(MsFxP(i, 0, 1.0) * 10.0), 1, 255));
+                write_byte(255);
+                message_end();
+                FxBegin(o, p);
+                write_byte(TE_DLIGHT);
+                engfunc(EngFunc_WriteCoord, o[0]);
+                engfunc(EngFunc_WriteCoord, o[1]);
+                engfunc(EngFunc_WriteCoord, o[2]);
+                write_byte(clamp(floatround(MsFxP(i, 1, 20.0)), 1, 255));
+                write_byte(r);
+                write_byte(g);
+                write_byte(b);
+                write_byte(clamp(floatround(MsFxP(i, 2, 1.0) * 10.0), 1, 255));
+                write_byte(10);
+                message_end();
+            }
+            case MFX_SMOKE:
+            {
+                FxBegin(o, p);
+                write_byte(TE_SMOKE);
+                engfunc(EngFunc_WriteCoord, o[0] + random_float(-8.0, 8.0));
+                engfunc(EngFunc_WriteCoord, o[1] + random_float(-8.0, 8.0));
+                engfunc(EngFunc_WriteCoord, o[2]);
+                write_short(g_sprSmoke);
+                write_byte(clamp(floatround(MsFxP(i, 0, 3.0) * 10.0), 1, 255));
+                write_byte(clamp(floatround(MsFxP(i, 1, 10.0)), 1, 255));
+                message_end();
+            }
+            case MFX_SPARKS:
+            {
+                for (new k = 0, nk = clamp(floatround(MsFxP(i, 0, 2.0)), 1, 6); k < nk; k++)
+                {
+                    FxBegin(o, p);
+                    write_byte(TE_SPARKS);
+                    engfunc(EngFunc_WriteCoord, o[0] + random_float(-24.0, 24.0));
+                    engfunc(EngFunc_WriteCoord, o[1] + random_float(-24.0, 24.0));
+                    engfunc(EngFunc_WriteCoord, o[2]);
+                    message_end();
+                }
+            }
+            case MFX_DUST, MFX_RING:
+            {
+                new Float:rad = MsFxP(i, 0, 180.0);
+                FxBegin(o, p);
+                write_byte(TE_BEAMCYLINDER);
+                engfunc(EngFunc_WriteCoord, o[0]);
+                engfunc(EngFunc_WriteCoord, o[1]);
+                engfunc(EngFunc_WriteCoord, o[2]);
+                engfunc(EngFunc_WriteCoord, o[0]);
+                engfunc(EngFunc_WriteCoord, o[1]);
+                engfunc(EngFunc_WriteCoord, o[2] + rad);
+                write_short(g_sprRing);
+                write_byte(0);
+                write_byte(0);
+                write_byte(clamp(floatround(MsFxP(i, 1, 0.6) * 10.0), 1, 255));
+                write_byte(g_iFxType[i] == MFX_DUST ? 60 : 16);
+                write_byte(0);
+                write_byte(g_iFxType[i] == MFX_DUST ? 120 : r);
+                write_byte(g_iFxType[i] == MFX_DUST ? 110 : g);
+                write_byte(g_iFxType[i] == MFX_DUST ? 95 : b);
+                write_byte(g_iFxType[i] == MFX_DUST ? 90 : 200);
+                write_byte(0);
+                message_end();
+                if (g_iFxType[i] != MFX_DUST)
+                    continue;
+                for (new k = 0; k < 6; k++)
+                {
+                    new Float:a = float(k) * 60.0 + random_float(0.0, 30.0);
+                    FxBegin(o, p);
+                    write_byte(TE_SMOKE);
+                    engfunc(EngFunc_WriteCoord, o[0] + floatcos(a, degrees) * rad * 0.6);
+                    engfunc(EngFunc_WriteCoord, o[1] + floatsin(a, degrees) * rad * 0.6);
+                    engfunc(EngFunc_WriteCoord, o[2]);
+                    write_short(g_sprSmoke);
+                    write_byte(25);
+                    write_byte(14);
+                    message_end();
+                }
+            }
+            case MFX_LIGHT:
+            {
+                FxBegin(o, p);
+                write_byte(TE_DLIGHT);
+                engfunc(EngFunc_WriteCoord, o[0]);
+                engfunc(EngFunc_WriteCoord, o[1]);
+                engfunc(EngFunc_WriteCoord, o[2]);
+                write_byte(clamp(floatround(MsFxP(i, 0, 24.0)), 1, 255));
+                write_byte(r);
+                write_byte(g);
+                write_byte(b);
+                write_byte(clamp(floatround(MsFxP(i, 1, 0.5) * 10.0), 1, 255));
+                write_byte(clamp(floatround(MsFxP(i, 2, 20.0)), 0, 255));
+                message_end();
+            }
+            case MFX_SPOT:
+            {
+                // varliktan (studyo modelse ek noktasi 1) asagi isik huzmesi: bas istemcide varligi izler
+                new e = g_iFxEnt[i];
+                if (e <= 0 || !pev_valid(e))
+                    continue;
+                q[0] = o[0] + MsFxP(i, 0, 0.0);
+                q[1] = o[1] + MsFxP(i, 1, 0.0);
+                q[2] = o[2] - MsFxP(i, 2, 300.0);
+                FxBegin(o, p);
+                write_byte(TE_BEAMENTPOINT);
+                write_short(e | (MsFxP(i, 5, 0.0) > 0.0 ? (1 << 12) : 0));
+                engfunc(EngFunc_WriteCoord, q[0]);
+                engfunc(EngFunc_WriteCoord, q[1]);
+                engfunc(EngFunc_WriteCoord, q[2]);
+                write_short(g_sprBeam);
+                write_byte(0);
+                write_byte(0);
+                write_byte(clamp(floatround(MsFxP(i, 4, 0.6) * 10.0), 1, 255));
+                write_byte(clamp(floatround(MsFxP(i, 3, 40.0)), 1, 255));
+                write_byte(0);
+                write_byte(r);
+                write_byte(g);
+                write_byte(b);
+                write_byte(70);
+                write_byte(0);
+                message_end();
+            }
+            case MFX_BOOM:
+            {
+                FxBegin(o, p);
+                write_byte(TE_EXPLOSION);
+                engfunc(EngFunc_WriteCoord, o[0]);
+                engfunc(EngFunc_WriteCoord, o[1]);
+                engfunc(EngFunc_WriteCoord, o[2]);
+                write_short(g_sprExplode);
+                write_byte(clamp(floatround(MsFxP(i, 0, 20.0)), 1, 255));
+                write_byte(15);
+                write_byte(TE_EXPLFLAG_NOSOUND);
+                message_end();
+            }
+        }
+    }
+}
+
+stock bool:MsFxHullFree(const Float:o[3], ignore)
+{
+    new tr = create_tr2();
+    engfunc(EngFunc_TraceHull, o, o, 0, HULL_HUMAN, ignore, tr);
+    new bool:ok = !get_tr2(tr, TR_StartSolid) && !get_tr2(tr, TR_AllSolid);
+    free_tr2(tr);
+    return ok;
+}
+
+// Inis alani: kutudaki (varligin ustunde durmayan) oyunculari en yakin bos guvenli noktaya ([fx] safe
+// satirlari, hangi anahtarda olursa olsun) tasir.
+// unstuck: sadece kati icinde kalanlar (once varligin ustune, olmazsa guvenli noktaya).
+MsFxClear(i, const Float:mn[3], const Float:mx[3], bool:onlyStuck)
+{
+    new Float:po[3], Float:best[3], Float:d, Float:bd, Float:s[3], e = g_iFxEnt[i], moved;
+    for (new p = 1; p <= g_iMax; p++)
+    {
+        if (!is_user_alive(p))
+            continue;
+        pev(p, pev_origin, po);
+        if (po[0] < mn[0] || po[0] > mx[0] || po[1] < mn[1] || po[1] > mx[1] || po[2] < mn[2] || po[2] > mx[2])
+            continue;
+        if (onlyStuck)
+        {
+            if (MsFxHullFree(po, p))
+                continue;
+            if (e > 0 && pev_valid(e))
+            {
+                new Float:emx[3];
+                pev(e, pev_absmax, emx);
+                s = po;
+                s[2] = emx[2] + 37.0;
+                if (MsFxHullFree(s, p))
+                {
+                    engfunc(EngFunc_SetOrigin, p, s);
+                    moved++;
+                    continue;
+                }
+            }
+        }
+        else if (e > 0 && pev_valid(e))
+        {
+            // binmis yolcu ya da guvertenin ustunde (zipliyor): dokunma
+            new Float:emn[3];
+            pev(e, pev_absmin, emn);
+            if (pev(p, pev_groundentity) == e || po[2] > emn[2] + 30.0)
+                continue;
+        }
+        bd = 999999.0;
+        new found;
+        for (new k = 0; k < g_iFxN; k++)
+        {
+            if (g_iFxType[k] != MFX_SAFE)
+                continue;
+            s = g_fFxPos[k];
+            d = get_distance_f(po, s);
+            if (d < bd && MsFxHullFree(s, p))
+            {
+                bd = d;
+                best = s;
+                found = 1;
+            }
+        }
+        if (!found)
+            continue;
+        engfunc(EngFunc_SetOrigin, p, best);
+        set_pev(p, pev_velocity, Float:{0.0, 0.0, 0.0});
+        moved++;
+        if (!is_user_bot(p))
+            client_print(p, print_center, "%s", MsLang(p) ? "Inis alani - geri cekildin" : "Landing zone - you were moved clear");
+    }
+    if (moved && get_pcvar_num(g_pMsDebug))
+        log_amx("[Vexmira] map efekt %s: %d oyuncu tasindi (%s)", MFX_NAME[g_iFxType[i]], moved, g_szFxKey[g_iFxKeyOf[i]]);
 }
 
 /* ---------------- komutlar: harita -> eklenti ---------------- */
@@ -26528,9 +27321,16 @@ MsCommand(c)
                 HudText(id, SL_ANN, CLR_WARN, 4.0, g_szMsMsg[arg][l]);
                 client_print(id, print_console, "%s", g_szMsMsg[arg][l]);
             }
-            if (g_szMsSndMsg[0])
+            // v3.7: mesajin telsiz satiri varsa (hedef jingle'i bitince) o calar, yoksa uyari sesi
+            if (g_iMsMsgRadio[arg] >= 0)
+                MsRadio(g_iMsMsgRadio[arg], 1.2);
+            else if (g_szMsSndMsg[0])
                 client_cmd(0, "spk ^"%s^"", g_szMsSndMsg);
         }
+        case MC_RADIO:
+            MsRadio(arg, 0.2);
+        case MC_FX:
+            MsFxFire(arg);
         case MC_RH, MC_RZ:
         {
             if (!get_pcvar_num(g_pMsRewards) || g_bRoundEnded || g_iMsCmdRound[c] == g_iMsRound)
@@ -27852,6 +28652,9 @@ public plugin_precache()
             PrecacheSoundKeyEx(key, false);
         }
     }
+
+    // v3.7: harita senaryosundaki telsiz sesleri (indirme) + dekor modelleri
+    MsPrecacheIni();
 
     PickSky();
 
