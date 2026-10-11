@@ -3749,6 +3749,8 @@ stock ChatColorFor(const key[])
 
 stock Chat(id, const key[], any:...)
 {
+    if (is_user_connected(id) && is_user_bot(id) && equal(key, "SHOP_", 5))
+        log_amx("[chat-bot] #%d %s", id, key);   // v4.1: test server (bots drive the shop through vexprobe)
     if (!is_user_connected(id) || is_user_bot(id))
         return;
 
