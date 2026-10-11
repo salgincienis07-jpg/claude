@@ -1,4 +1,4 @@
-"""zm_vex_cordon map props (owner feedback 2026-10-10, item 6): medevac helicopter, hero statue,
+"""zm_vexmire_cordon map props (owner feedback 2026-10-10, item 6): medevac helicopter, hero statue,
 Vexmira flags, plaza fountain water, string lights. All spawned by the plugin from the map ini [models]
 section (info_target, not solid, client-side animation: framerate 1 + animtime).
 
@@ -6,7 +6,7 @@ section (info_target, not solid, client-side animation: framerate 1 + animtime).
     python3 -m mdlkit build mdlkit.content.cordon:all
     python3 -m mdlkit build mdlkit.content.cordon:heli
 
-Contracts with devtools/mapkit/maps/zm_vex_cordon.py:
+Contracts with devtools/mapkit/maps/zm_vexmire_cordon.py:
   heli   origin = the func_train origin (ORIGIN brush in the bbox centre of the collision brushes), so the
          brush deck top is at z = HELI_DECK_Z (-32) in model space, deck
          x -128..128 (nose toward -X), y -96..96; side door gaps x -64..64; skids touch z = -32 (the

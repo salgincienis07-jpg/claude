@@ -1,7 +1,7 @@
-"""zm_vex_cordon - "Cordon 7": a night harbor district of Vexmira sealed behind a military
-quarantine wall (flagship map). Build spec: maps/zm_vex_cordon_SPEC.md (binding).
+"""zm_vexmire_cordon - "Cordon 7": a night harbor district of Vexmira sealed behind a military
+quarantine wall (flagship map). Build spec: maps/zm_vexmire_cordon_SPEC.md (binding).
 
-    cd devtools && python3 -m mapkit.maps.zm_vex_cordon [--quality draft|normal|final] [--preview DIR]
+    cd devtools && python3 -m mapkit.maps.zm_vexmire_cordon [--quality draft|normal|final] [--preview DIR]
                                                         [--mock] [--dry]
 
 STAGE 1 + 2 (this file so far): blockout + VIS + spawns; detail, textures, lighting, sprites, ambience, sounds
@@ -44,7 +44,7 @@ from ..mapwriter import (CLIP, NULL, Brush, Entity, Map, ambient, box, crate, do
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vex_cordon'
+NAME = 'zm_vexmire_cordon'
 
 T = 16
 INF = 100000
@@ -1453,7 +1453,7 @@ def fun(b):
     # it (basevelocity.z * frametime) and is lost while standing on the ground, so every pad is a JUMP pad
     # (signs: ZIPLA! / JUMP!); the horizontal part is a conveyor + exit momentum. Arcs verified with a
     # frame-step simulation of that model (gravity 800, jump 268 u/s, entry speed 0 and 250) and on the
-    # test server (vexprobe): see zm_vex_cordon_TEST.md.
+    # test server (vexprobe): see zm_vexmire_cordon_TEST.md.
     # S1 Liberation Plaza -> Customs Tower roof: a vertical updraft against the tower facade right under the
     # medevac air window (shared G_UP field, H 200 -> apex ~+780); hold forward: you slide up the wall,
     # pass the parapet (640) and drop ~200 onto the roof (no fall damage)

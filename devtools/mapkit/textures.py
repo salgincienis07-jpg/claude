@@ -1678,7 +1678,7 @@ def t_door_wood(rng, w, h):
 
 
 # =====================================================================
-# CORDON 7 (zm_vex_cordon): wet night harbor city under military quarantine
+# CORDON 7 (zm_vexmire_cordon): wet night harbor city under military quarantine
 # =====================================================================
 def _wet(img, rng, amount=0.35):
     """Rain darkening + faint sheen streaks (outdoor surfaces)."""

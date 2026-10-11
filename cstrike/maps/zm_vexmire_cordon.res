@@ -1,4 +1,4 @@
-// zm_vex_cordon custom resources (textures are embedded)
+// zm_vexmire_cordon custom resources (textures are embedded)
 gfx/env/vexmira_nightbk.tga
 gfx/env/vexmira_nightdn.tga
 gfx/env/vexmira_nightft.tga
