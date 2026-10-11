@@ -173,3 +173,11 @@ KALAN: (1) bspcheck p95 904 > 900 -> ~5 wpoly kirp (crown FAC->CONC dene veya ta
 (2) nav yeniden (run_test --export-nav) + kisa vexprobe testi (stuck=0); (3) onizleme PNG'leri SP/map3_preview/
 (heli pisti, isik zincirleri, biotech tabela, lokomotif, neon); (4) v3.8 zip (sadece degisenler + Turkce OKU:
 eski zm_vexmire_cordon / zm_vex_cordon dosyalarini sil, sunucu kokune ac).
+
+## zm_vexmira_ice (2026-10-11)
+YAPILDI: klasik ice_attack tarzi kucuk karli avlu (devtools/mapkit/maps/zm_vexmira_ice.py): CT guney, T garaj (kepenk
+freeze sonu acilir), 5 kamp (bunker+balkon merdiveni/buz duvar, depo catisi, kule, L koridor, tunel + gizli oda), 2 ped,
+alarm dugmesi, buz bloklari, kamp atesi, animasyonlu neon (+0vx_neonice), env_snow, 3 ses (sfx/make_ice_sounds.py),
+13 prop modeli (mdlkit/content/ice.py -> models/vexmira/ice/, ini [models] + CLIP). bsp 1.1 MB, view p95 627 / max 657,
+17 brush ent; nav OK; vexprobe 240 sn 12 bot: stuck=4 (kamp/merdiven ustu bot davranisi), runtime hata 0.
+Zip: $SP/Vexmira_zm_vexmira_ice.zip. KALAN: stuck 0'a inmedi (bot merdiven inisi), p95 600 hedefinin 27 ustunde.
