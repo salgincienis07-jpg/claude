@@ -149,6 +149,8 @@ CommunityCosOrigin(ent,id,c,i)
     if (c==2) { o[2] += floatsin(t*2.0)*0.5; if (i==2) a[1] += t*30.0; }
     if (c==0 && i<3) a[2] += floatsin(t*1.5)*1.5;
     engfunc(EngFunc_SetOrigin,ent,o); set_entvar(ent,var_angles,a);
+    // v4.1: move with the player between the 0.1 s updates (smooth for other clients, no rubber band)
+    new Float:v[3]; get_entvar(id,var_velocity,v); set_entvar(ent,var_velocity,v);
 }
 
 public CommunityNativeJetpack(plugin, params) { new id=get_param(1); return id>=1 && id<=32 ? CommunityCall("vex_jetpack.amxx","vex_has",id):0; }

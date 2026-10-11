@@ -913,6 +913,7 @@ new g_szCmEn[CM_CATS][CM_MAX][32], g_szCmTr[CM_CATS][CM_MAX][32], g_szCmMdl[CM_C
 new g_iCmPrice[CM_CATS][CM_MAX], g_iCmVip[CM_CATS][CM_MAX], g_iCmAtt[CM_CATS][CM_MAX], g_iCmSeq[CM_CATS][CM_MAX];
 new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Float:g_fCmScale[CM_CATS][CM_MAX], Float:g_fCmFps[CM_CATS][CM_MAX];
 new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
+new bool:g_bCmCtl[CM_CATS][CM_MAX];   // v4.1: model has the 3 Vexmira offset controllers (cos_*.mdl, devtools/mdlkit)
 new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];   // sahiplik: bit (kat*8 + no); secim: 4 bit / kat
 new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no; 100+ = on izleme)
 new g_iCmPrev[33], g_iCmPrevInfo[33], Float:g_fCmPrevEnd[33];  // v3.5 on izleme (vitrin) varligi / (kat*16 + no) / bitis
@@ -8483,10 +8484,34 @@ CmPrecache()
         for (new i = 0; i < CM_MAX; i++)
         {
             g_bCmOk[c][i] = (g_szCmMdl[c][i][0] && PcModel(g_szCmMdl[c][i])) ? true : false;
+            g_bCmCtl[c][i] = g_bCmOk[c][i] && CmModelControllers(g_szCmMdl[c][i]) >= 3;
             if (g_bCmOk[c][i])
                 g_iCmN[c]++;
         }
     }
+}
+
+// v4.1: number of bone controllers in a studio model (studiohdr_t.numbonecontrollers, offset 148)
+CmModelControllers(const path[])
+{
+    new fp = fopen(path, "rb", true);
+    if (!fp)
+        return 0;
+    new n;
+    fseek(fp, 148, SEEK_SET);
+    fread(fp, n, BLOCK_INT);
+    fclose(fp);
+    return clamp(n, 0, 8);
+}
+
+// v4.1: how a cosmetic is attached
+//   bone type (community wings / hats rigged on the player skeleton) and Vexmira cos_*.mdl (offset
+//   controllers on the root bone): MOVETYPE_FOLLOW + aiment = drawn by the client on the player every
+//   frame (bone merge / controller offset), never crooked, never lagging.
+//   other models (community pets / props without controllers): free entity placed next to the player.
+bool:CmFollows(c, i)
+{
+    return (g_iCmAtt[c][i] == CMA_BONE || g_bCmCtl[c][i]) ? true : false;
 }
 
 CmSel(id, c)
@@ -8718,8 +8743,23 @@ CmSpawn(id, c, i)
     // ayni adli kemikleri de kopyalar, digerlerinde ofset kontrolculerden gelir
     get_entvar(id, var_origin, o);
     engfunc(EngFunc_SetOrigin, ent, o);
-    set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
-    CommunityCosOrigin(ent, id, c, i);
+    engfunc(EngFunc_SetSize, ent, Float:{-4.0, -4.0, -4.0}, Float:{4.0, 4.0, 4.0});
+    set_entvar(ent, var_effects, 0);
+    set_entvar(ent, var_rendermode, kRenderNormal);
+    set_entvar(ent, var_renderamt, 255.0);
+    if (CmFollows(c, i))
+    {
+        set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
+        set_entvar(ent, var_aiment, id);
+        set_entvar(ent, var_angles, Float:{0.0, 0.0, 0.0});
+        if (g_iCmAtt[c][i] != CMA_BONE)
+            CmApplyCtl(ent, id, c, i);
+    }
+    else
+    {
+        set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+        CommunityCosOrigin(ent, id, c, i);
+    }
     g_iCmOwn[ent] = id;
     g_iCmInfo[ent] = c * 16 + i;
     g_iCmEnt[id][c] = ent;
@@ -8756,7 +8796,10 @@ CmTick(Float:now)
             }
             // Model degisirse (sinif / skin) kafa yuksekligi yeniden okunur; konum istemcide (FOLLOW)
             OvhModelTops(id);
-            CommunityCosOrigin(ent, id, c, i);
+            if (!CmFollows(c, i))
+                CommunityCosOrigin(ent, id, c, i);
+            else if (g_iCmAtt[c][i] != CMA_BONE)
+                CmApplyCtl(ent, id, c, i);
         }
     }
 }
@@ -8789,6 +8832,19 @@ CmPack(es, ent, host)
     {
         set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
         return FMRES_IGNORED;
+    }
+    if (att != CMA_BONE && g_bCmCtl[c][i])
+    {
+        // v3.6 (restored in v4.1): offset controllers in the same packet as the player (no lag when
+        // ducking) + upright yaw-only angles (the player's pitch would tilt wings / hats)
+        new ctl[4], Float:pa[3], Float:a[3];
+        CmCtl(id, c, i, (get_entvar(id, var_flags) & FL_DUCKING) ? true : false, ctl);
+        set_es(es, ES_Controller, ctl);
+        get_entvar(id, var_angles, pa);
+        a[0] = g_fCmAng[c][i][0];
+        a[1] = pa[1] + g_fCmAng[c][i][1];
+        a[2] = g_fCmAng[c][i][2];
+        set_es(es, ES_Angles, a);
     }
     return FMRES_IGNORED;
 }
@@ -9361,7 +9417,11 @@ VxLeanResources()
     for (new index; index < TrieSnapshotLength(it); index++)
     {
         TrieSnapshotGetKey(it, index, key, charsmax(key));
-        if (TrieGetString(g_tRes, key, path, charsmax(path)) && containi(path, "vexmira/") != -1)
+        // v4.1: v4.0.2 cleared EVERY built-in "vexmira/" default here (boss sounds / models / skill
+        // effects, HP bar + overhead icon sprites, CSO notification graphics, kill sounds ...), which
+        // silently removed those features. Now only the retired Arsenal-8 (SW*) defaults are cleared;
+        // every other default stays and is loaded only if its file exists (PcSound / PcModel check).
+        if (equal(key, "SW", 2) && TrieGetString(g_tRes, key, path, charsmax(path)) && containi(path, "vexmira/") != -1)
             TrieSetString(g_tRes, key, "");
 
     }
