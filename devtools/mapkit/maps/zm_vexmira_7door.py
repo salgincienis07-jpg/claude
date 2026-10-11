@@ -912,8 +912,6 @@ def dress(b):
     # v3.8 crown (owner: "broken / invisible-looking wall piece" by the neon): a finished tower top - cornice
     # band, roof coping, parapet posts, a mast for the radar dish
     D(P((1160, 440, 1120), (1464, 840, 1136), CONC, hide=()))                       # cornice band
-    D(P((1160, 440, 1152), (1464, 840, 1164), CONC, hide=('bottom',)))              # roof coping
-    D(P((1306, 630, 1164), (1318, 650, 1182), MDARK))                               # dish mast
     D(P((1172, 452, 960), (1180, 828, 968), MDARK, hide=('e',)))                    # sign bracket rail
     SPR((1300, 640, 1168), RED, 0.5, fx=4)                                         # aircraft warning light
     L((1100, 640, 1030), (200, 110, 255), 160)
@@ -961,6 +959,20 @@ def dress(b):
         SW((x, y, 610), (120, 255, 140), 120, 'cd_lt_pad')
     D(P((1900, 600, 576), (2050, 720, 640), CORR))                                 # AC units
     D(P((1250, -300, 576), (1400, -200, 624), CORR))
+    # v3.8 pad dressing: white H, cyan edge strips, two floodlight masts aimed at the pad, supply crates
+    for mn, mx in (((1600, 160, 576), (1616, 288, 577)), ((1712, 160, 576), (1728, 288, 577)),
+                   ((1616, 216, 576), (1712, 232, 577))):
+        D(P(mn, mx, 'vx_tile_lab'))
+    for mn, mx in (((1632, 70, 577), (1696, 74, 578)), ((1632, 370, 577), (1696, 374, 578)),
+                   ((1508, 192, 577), (1512, 256, 578)), ((1816, 192, 577), (1820, 256, 578))):
+        D(P(mn, mx, '~vx_light_c'))
+    for (x, y), (dx, dy) in (((1440, 24), (1, 1)), ((1888, 424), (-1, -1))):
+        D(P((x - 4, y - 4, 576), (x + 4, y + 4, 728), MDARK))                       # mast
+        hx, hy = x + 10 * dx, y + 10 * dy
+        D(P((min(x, hx) - 8, min(y, hy) - 8, 728), (max(x, hx) + 8, max(y, hy) + 8, 744), '~vx_light_w', hide=()))
+        L((x + 60 * dx, y + 60 * dy, 700), (240, 245, 255), 160)
+    for mn, mx in (((1960, 140, 576), (2008, 188, 624)), ((1330, 120, 576), (1378, 168, 624))):
+        D(P(mn, mx, 'vx_crate_mil'))
     SPR((1504, 64, 595), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)    # on the pad corner posts
     SPR((1824, 384, 595), (60, 255, 80), 0.3, name='cd_pad_grn', on=False, fx=4)
     D(P((1660, -80, 606), (1668, -78, 614), '~vx_light_r', hide=('s',)))          # lamp on the beacon console front

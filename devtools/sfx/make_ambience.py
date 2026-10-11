@@ -144,6 +144,17 @@ def whistle(rng):
     return verb(x, rng, 0.8, 0.3)
 
 
+def spark(rng):
+    n = int(SR * 1.0)
+    x = np.zeros(n)
+    for k in range(rng.integers(5, 9)):
+        m = int(SR * rng.uniform(0.01, 0.04))
+        i = int(rng.uniform(0, 0.75) * SR)
+        x[i:i + m] += hp(rng.standard_normal(m), 2500) * np.exp(-np.arange(m) / (0.006 * SR))
+    hum = np.sin(2 * np.pi * 120 * np.arange(n) / SR) * 0.15 * (np.abs(x) > 0.05)
+    return x + lp(hum, 400)
+
+
 def heli_land(rng):
     n = int(SR * 1.8)
     t = np.arange(n) / SR
@@ -157,7 +168,7 @@ def main():
     rng = np.random.default_rng(3800)
     for name, fn in (('gunfire_far.wav', gunfire), ('dog_far.wav', dog), ('siren_far.wav', siren_far),
                      ('heli_far.wav', heli_far), ('pa_quarantine.wav', pa), ('steam.wav', steam),
-                     ('shell_whistle.wav', whistle), ('heli_land.wav', heli_land)):
+                     ('shell_whistle.wav', whistle), ('heli_land.wav', heli_land), ('spark.wav', spark)):
         write(name, fn(rng))
 
 

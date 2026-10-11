@@ -25813,9 +25813,11 @@ new Float:g_fMsLkNext[33];
 // v3.7 telsiz / efekt / dekor modeli (asagida, MsPrecacheIni)
 #define MS_MAXRADIO   32
 #define MS_MAXMODEL   160
-#define MS_MAXFX      64
-#define MS_MAXFXKEY   20
-#define TASK_MSFX     42300   // +satir (0..63)
+#define MS_MAXFX      192
+#define MS_MAXFXKEY   64
+#define MS_MAXAMB     16
+#define MS_AMBPICK    6
+#define TASK_MSFX     43000   // +satir (0..191)
 #define TASK_MSRADIO  42400
 
 #define MFX_FLARE   1
@@ -25830,9 +25832,10 @@ new Float:g_fMsLkNext[33];
 #define MFX_CLEAR   10
 #define MFX_SAFE    11
 #define MFX_UNSTUCK 12
+#define MFX_SND     13
 
 new const MFX_NAME[][] = { "", "flare", "smoke", "sparks", "dust", "ring", "light", "spot", "boom", "shake",
-    "clear", "safe", "unstuck" };
+    "clear", "safe", "unstuck", "snd" };
 
 new g_szRdKey[MS_MAXRADIO][24], g_szRdFile[MS_MAXRADIO][2][48], g_szRdSub[MS_MAXRADIO][2][MS_LEN];
 new Float:g_fRdLen[MS_MAXRADIO], bool:g_bRdChat[MS_MAXRADIO], bool:g_bRdLow[MS_MAXRADIO], Float:g_fRdNext[MS_MAXRADIO], g_iRdN, g_iRdChatN;
@@ -25846,6 +25849,10 @@ new g_iMmCol[MS_MAXMODEL], g_iMmBody[MS_MAXMODEL], g_iMmSkin[MS_MAXMODEL], Float
 new g_szFxKey[MS_MAXFXKEY][24], g_iFxKeyN;
 new g_iFxKeyOf[MS_MAXFX], g_iFxType[MS_MAXFX], Float:g_fFxPos[MS_MAXFX][3], g_iFxEnt[MS_MAXFX], Float:g_fFxP[MS_MAXFX][6];
 new Float:g_fFxDelay[MS_MAXFX], g_iFxRep[MS_MAXFX], Float:g_fFxDt[MS_MAXFX], g_iFxCol[MS_MAXFX], g_iFxLeft[MS_MAXFX], g_iFxN;
+// v3.8: [fx] snd satirlarinin sesi, mesaj / olay -> efekt anahtari, [ambience] zamanlayicilari
+new g_szFxSnd[MS_MAXFX][48], g_iMsMsgFx[MS_MAXMSG], g_iMeFx[ME_NUM];
+new g_iAmbFx[MS_MAXAMB][MS_AMBPICK], g_iAmbFxN[MS_MAXAMB], g_iAmbMin[MS_MAXAMB], g_iAmbMax[MS_MAXAMB], g_iAmbIn[MS_MAXAMB];
+new g_iAmbLast[MS_MAXAMB], g_iMsAmbN, g_pMsAmb;
 
 
 stock MsLang(id)
@@ -25865,6 +25872,7 @@ MsInit()
     g_pMsRoundTime = register_cvar("vex_roundtime", "0");
     g_pMsRadio   = register_cvar("vex_map_radio", "1");
     g_pMsChatter = register_cvar("vex_map_chatter", "70");
+    g_pMsAmb     = register_cvar("vex_map_ambience", "100");
     RegisterSay("story", "hikaye", "cmd_MsStory");
     register_srvcmd("vex_map_status", "srv_MsStatus");
 
@@ -26123,6 +26131,7 @@ MsApplyRoundTime()
 #define MSS_HINT  8
 #define MSS_FX    9
 #define MSS_SKIP  10
+#define MSS_AMB   11
 
 MsLoadIni()
 {
@@ -26163,6 +26172,7 @@ MsLoadIni()
             else if (equali(line, "[locks]"))        { sec = MSS_LOCK; g_bMsSeq = true; }
             else if (equali(line, "[hints]"))        sec = MSS_HINT;
             else if (equali(line, "[fx]"))           sec = MSS_FX;
+            else if (equali(line, "[ambience]"))     sec = MSS_AMB;
             else if (equali(line, "[radio]") || equali(line, "[chatter]") || equali(line, "[models]"))
                 sec = MSS_SKIP;     // plugin_precache'te okundu (MsPrecacheIni)
             else
@@ -26240,6 +26250,11 @@ MsLoadIni()
             case MSS_FX:
             {
                 if (!MsParseFx(key, val))
+                    MsBad(path, ln, line, bad);
+            }
+            case MSS_AMB:
+            {
+                if (!MsParseAmb(val))
                     MsBad(path, ln, line, bad);
             }
             case MSS_LOCK, MSS_HINT:
@@ -26486,6 +26501,8 @@ MsEvent(ev)
     }
     if (g_iMeRadio[ev] >= 0)
         MsRadio(g_iMeRadio[ev], 0.6);
+    if (g_iMeFx[ev] >= 0)
+        MsFxFire(g_iMeFx[ev]);
     if (get_pcvar_num(g_pMsDebug))
         log_amx("[Vexmira] map olay: vex_%s (%d hedef)", ME_NAME[ev], g_iMeCnt[ev]);
 }
@@ -26513,6 +26530,8 @@ MsRoundRestart()
         remove_task(TASK_MSEX + x);
     for (new x = 0; x < g_iFxN; x++)
         remove_task(TASK_MSFX + x);
+    for (new x = 0; x < g_iMsAmbN; x++)
+        g_iAmbIn[x] = 0;
     remove_task(TASK_MSRADIO);
     g_iRdPending = -1;
     g_fRdBusy = 0.0;
@@ -26576,6 +26595,68 @@ MsTick()
     if (g_bMsLive && ++g_iMsSec % 60 == 0)
         MsEvent(ME_MINUTE);
     MsChatterTick();
+    MsAmbTick();
+}
+
+/*  [ambience] <ad> = <min sn> <max sn> <fx anahtari> [fx anahtari ...]  (en fazla 6)              */
+/*  Round icinde her satir kendi araliginda rastgele bir anahtari calar (uzak silah, kopek, siren,   */
+/*  anons, buhar, kivilcim...). vex_map_ambience: yuzde (100 = ini araliklari, 50 = yari sik, 0 = kapali) */
+MsParseAmb(const val[])
+{
+    if (g_iMsAmbN >= MS_MAXAMB)
+        return 0;
+    new src[384], tok[32], a = g_iMsAmbN, n;
+    copy(src, charsmax(src), val);
+    if (!MsTok(src, tok, charsmax(tok)))
+        return 0;
+    g_iAmbMin[a] = clamp(str_to_num(tok), 5, 3600);
+    if (!MsTok(src, tok, charsmax(tok)))
+        return 0;
+    g_iAmbMax[a] = clamp(str_to_num(tok), g_iAmbMin[a], 3600);
+    g_iAmbFxN[a] = 0;
+    while (MsTok(src, tok, charsmax(tok)) && g_iAmbFxN[a] < MS_AMBPICK)
+    {
+        new kx = -1;
+        for (new k = 0; k < g_iFxKeyN; k++)
+        {
+            if (equali(g_szFxKey[k], tok))
+                kx = k;
+        }
+        if (kx < 0)
+            return 0;
+        g_iAmbFx[a][g_iAmbFxN[a]++] = kx;
+        n++;
+    }
+    if (!n)
+        return 0;
+    g_iAmbIn[a] = 0;
+    g_iAmbLast[a] = -1;
+    g_iMsAmbN++;
+    return 1;
+}
+
+MsAmbTick()
+{
+    new pct = get_pcvar_num(g_pMsAmb);
+    if (!g_bMsLive || pct <= 0 || !get_pcvar_num(g_pMsEvents))
+        return;
+    for (new a = 0; a < g_iMsAmbN; a++)
+    {
+        if (g_iAmbIn[a] <= 0)
+        {
+            // ilk bekleme: tam aralik (round basinda hepsi ayni anda calmasin)
+            g_iAmbIn[a] = max(3, random_num(g_iAmbMin[a], g_iAmbMax[a]) * 100 / pct);
+            continue;
+        }
+        if (--g_iAmbIn[a] > 0)
+            continue;
+        g_iAmbIn[a] = max(3, random_num(g_iAmbMin[a], g_iAmbMax[a]) * 100 / pct);
+        new pick = random_num(0, g_iAmbFxN[a] - 1);
+        if (pick == g_iAmbLast[a] && g_iAmbFxN[a] > 1)
+            pick = (pick + 1) % g_iAmbFxN[a];
+        g_iAmbLast[a] = pick;
+        MsFxFire(g_iAmbFx[a][pick]);
+    }
 }
 
 /* ---------------- v3.7 harita: telsiz, efektler, dekor modelleri ---------------- */
@@ -26634,7 +26715,8 @@ MsPrecacheIni()
             continue;
         if (line[0] == '[')
         {
-            sec = equali(line, "[radio]") ? 1 : (equali(line, "[chatter]") ? 2 : (equali(line, "[models]") ? 3 : 0));
+            sec = equali(line, "[radio]") ? 1 : (equali(line, "[chatter]") ? 2 : (equali(line, "[models]") ? 3
+                : (equali(line, "[fx]") ? 4 : 0)));
             continue;
         }
         if (!sec)
@@ -26645,6 +26727,19 @@ MsPrecacheIni()
         copy(key, min(c, charsmax(key)), line);
         trim(key);
         copy(val, charsmax(val), line[c + 1]);
+        if (sec == 4)
+        {
+            // [fx] snd <ses.wav> ...: 3D ses (precache_sound, bu haritada)
+            if (MsTok(val, tok, charsmax(tok)) && equali(tok, "snd") && MsTok(val, tok, charsmax(tok)))
+            {
+                formatex(full, charsmax(full), "sound/%s", tok);
+                if (file_exists(full))
+                    PcSound(tok);
+                else
+                    log_amx("[Vexmira] map [fx] ses yok: %s", full);
+            }
+            continue;
+        }
         if (sec == 3)
         {
             if (g_iMmN >= MS_MAXMODEL || !MsTok(val, tok, charsmax(tok)))
@@ -26747,8 +26842,22 @@ MsRadioLink()
     {
         formatex(k, charsmax(k), "ev_%s", ME_NAME[e]);
         g_iMeRadio[e] = MsRadioFind(k);
+        g_iMeFx[e] = MsFxFind(k);
     }
+    // v3.8: [messages] anahtariyla ayni adli [fx] anahtari mesajla birlikte calar
+    for (new i = 0; i < MS_MAXMSG; i++)
+        g_iMsMsgFx[i] = i < g_iMsMsgN ? MsFxFind(g_szMsMsgKey[i]) : -1;
     g_iRdLock = MsRadioFind("lock");
+}
+
+MsFxFind(const key[])
+{
+    for (new k = 0; k < g_iFxKeyN; k++)
+    {
+        if (equali(g_szFxKey[k], key))
+            return k;
+    }
+    return -1;
 }
 
 MsRadioSend(r, id)
@@ -26929,6 +27038,13 @@ MsParseFx(const key[], const val[])
     }
     if (!type)
         return 0;
+    g_szFxSnd[i][0] = 0;
+    if (type == MFX_SND)
+    {
+        if (!MsTok(src, tok, charsmax(tok)) || !TrieKeyExists(g_tSnd3D, tok))
+            return 0;
+        copy(g_szFxSnd[i], charsmax(g_szFxSnd[]), tok);
+    }
     g_iFxEnt[i] = 0;
     g_iFxRep[i] = 1;
     g_fFxDt[i] = 0.5;
@@ -27042,6 +27158,14 @@ MsFxRun(i)
             q[1] = MsFxP(i, 1, 0.0) - g_fFxPos[i][1] + o[1];
             q[2] = MsFxP(i, 2, 0.0) - g_fFxPos[i][2] + o[2];
             MsFxClear(i, o, q, g_iFxType[i] == MFX_UNSTUCK);
+            return;
+        }
+        case MFX_SND:
+        {
+            // snd <wav> <konum> [ses 0-1] [zayiflama] [perde]: dunyadan konumlu ses (uzak sesler: zayiflama 0.3-0.5)
+            new pit = floatround(MsFxP(i, 2, 100.0));
+            engfunc(EngFunc_EmitAmbientSound, 0, o, g_szFxSnd[i], floatclamp(MsFxP(i, 0, 1.0), 0.05, 1.0),
+                floatclamp(MsFxP(i, 1, 0.8), 0.0, 4.0), 0, clamp(pit + random_num(-5, 5), 50, 200));
             return;
         }
         case MFX_SHAKE:
@@ -27326,6 +27450,8 @@ MsCommand(c)
                 MsRadio(g_iMsMsgRadio[arg], 1.2);
             else if (g_szMsSndMsg[0])
                 client_cmd(0, "spk ^"%s^"", g_szMsSndMsg);
+            if (g_iMsMsgFx[arg] >= 0)
+                MsFxFire(g_iMsMsgFx[arg]);
         }
         case MC_RADIO:
             MsRadio(arg, 0.2);
