@@ -1,6 +1,7 @@
 #include <vex_community>
 // Adapted for Vexmira Community v4.0. Original author retained. See KAYNAKLAR.md.
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <engine>
 #include <fakemeta>
 #include <fakemeta_util>
@@ -95,6 +96,7 @@ new g_Event_Janus7, g_Msg_WeaponList, g_SmokePuff_SprId, g_RifleShell_Id, g_ham_
 
 public plugin_init()
 {
+    vex_register_component(1);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_forward(FM_UpdateClientData,"fw_UpdateClientData_Post", 1)	
@@ -120,6 +122,7 @@ public plugin_init()
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	engfunc(EngFunc_PrecacheModel, W_MODEL)

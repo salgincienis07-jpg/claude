@@ -21,6 +21,7 @@
 */
 
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <fakemeta>
 #include <hamsandwich>
 #include <fun>
@@ -92,6 +93,7 @@ new bool:g_bCriticalPlayed[33];
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
     static model_path[128];
     formatex(model_path, charsmax(model_path), "models/player/%s/%s.mdl", HEV_MODEL_SHORT, HEV_MODEL_SHORT);
     precache_model(model_path);
@@ -140,6 +142,7 @@ public plugin_precache()
 
 public plugin_init()
 {
+    vex_register_component(11);
     register_plugin("[ZP] HEV Suit Mark IV", "1.1", "sp_half : SAAD~Rubio / LyesMC")
     g_iItemId = -1;
 

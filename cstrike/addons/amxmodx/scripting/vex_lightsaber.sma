@@ -1,6 +1,7 @@
 #include <vex_community>
 // Adapted for Vexmira Community v4.0. Original author retained. See KAYNAKLAR.md.
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <engine>
 #include <fakemeta>
 #include <fakemeta_util>
@@ -102,6 +103,7 @@ new g_MaxPlayers, g_Ham_Bot
 
 public plugin_init() 
 {
+    vex_register_component(9);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_event("CurWeapon", "Event_CurWeapon", "be", "1=1")
@@ -119,6 +121,7 @@ public plugin_init()
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL_ON)
 	engfunc(EngFunc_PrecacheModel, P_MODEL_OFF)

@@ -1,6 +1,7 @@
 #include <vex_community>
 // Adapted for Vexmira Community v4.0. Original author retained. See KAYNAKLAR.md.
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <fakemeta>
 #include <fakemeta_util>
 #include <hamsandwich>
@@ -66,6 +67,7 @@ new g_Muzzleflash_Ent, g_Muzzleflash
 
 public plugin_init()
 {
+    vex_register_component(4);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_event("CurWeapon", "Event_CurWeapon", "be", "1=1")
@@ -97,6 +99,7 @@ public plugin_init()
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	engfunc(EngFunc_PrecacheModel, W_MODEL)

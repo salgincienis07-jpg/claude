@@ -1,6 +1,7 @@
 #include <vex_community>
 // Adapted for Vexmira Community v4.0. Original author retained. See KAYNAKLAR.md.
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <engine>
 #include <fakemeta>
 #include <fakemeta_util>
@@ -69,6 +70,7 @@ new g_IsConnected, g_IsAlive, g_PlayerWeapon[33]
 
 public plugin_init()
 {
+    vex_register_component(5);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	// Your highness!
@@ -102,6 +104,7 @@ public plugin_init()
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
 	precache_model(MODEL_V)
 	precache_model(MODEL_P)
 	precache_model(MODEL_W)

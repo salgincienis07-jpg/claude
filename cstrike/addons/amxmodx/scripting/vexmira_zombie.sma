@@ -40,6 +40,7 @@
 */
 
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <amxmisc>
 #include <fakemeta>
 #include <hamsandwich>
@@ -59,7 +60,7 @@ new g_iSixAttempts, g_iSixEntered, g_iSixAborted, g_iSixShort;
 
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "4.0-Community"
+#define VERSION  "4.0.2-Community"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -5043,6 +5044,8 @@ PcSound(const path[])
             log_amx("[Vexmira] Ses butcesi dolu (SOUND_BUDGET %d), atlandi: %s", g_iSndBudget, path);
         return 0;
     }
+    new full[160]; formatex(full,charsmax(full),"sound/%s",path);
+    if(!file_exists(full,true)) { log_amx("[VexAsset] Sound skipped (missing): %s",full); return 0; }
     new idx = precache_sound(path);
     g_iMySnd++;
     g_iPcSnd = max(g_iPcSnd, idx);
@@ -5058,6 +5061,7 @@ PcGeneric(const path[])
 {
     if (!path[0] || TrieKeyExists(g_tMdlDone, path))
         return;
+    if(!file_exists(path,true)) { log_amx("[VexAsset] Download skipped (missing): %s",path); return; }
     TrieSetCell(g_tMdlDone, path, 1);
     new idx = precache_generic(path);
     g_iMyGen++;
@@ -5078,6 +5082,7 @@ PcModel(const path[], bool:optional = true)
             log_amx("[Vexmira] Model butcesi dolu (MODEL_BUDGET %d), atlandi: %s", g_iMdlBudget, path);
         return 0;
     }
+    if(!file_exists(path,true)) { log_amx("[VexAsset] Model skipped (missing): %s",path); return 0; }
     idx = precache_model(path);
     g_iMyMdl++;
     g_iPcMdl = max(g_iPcMdl, idx);
@@ -9384,42 +9389,6 @@ VxDefaults()
 
 VxPrecache()
 {
-    // Client-side model event sounds also require FastDL delivery.
-    static const MODEL_EVENT_WAV[][] = {
-        "sound/weapons/cs2_ak47/boltpull.wav",
-        "sound/weapons/cs2_ak47/clipin.wav",
-        "sound/weapons/cs2_ak47/clipout.wav",
-        "sound/weapons/cs2_ak47/draw.wav",
-        "sound/weapons/cs2_aug/boltpull.wav",
-        "sound/weapons/cs2_aug/boltrelease.wav",
-        "sound/weapons/cs2_aug/cliphit.wav",
-        "sound/weapons/cs2_aug/clipin.wav",
-        "sound/weapons/cs2_aug/clipout.wav",
-        "sound/weapons/cs2_aug/draw.wav",
-        "sound/weapons/cs2_famas/boltback.wav",
-        "sound/weapons/cs2_famas/boltforward.wav",
-        "sound/weapons/cs2_famas/cliphit.wav",
-        "sound/weapons/cs2_famas/clipin.wav",
-        "sound/weapons/cs2_famas/clipout.wav",
-        "sound/weapons/cs2_famas/draw.wav",
-        "sound/weapons/cs2_m4a1s/boltback.wav",
-        "sound/weapons/cs2_m4a1s/boltforward.wav",
-        "sound/weapons/cs2_m4a1s/cliphit.wav",
-        "sound/weapons/cs2_m4a1s/clipin.wav",
-        "sound/weapons/cs2_m4a1s/clipout.wav",
-        "sound/weapons/cs2_m4a1s/draw.wav",
-        "sound/weapons/cs2_mp5sd/clipin.wav",
-        "sound/weapons/cs2_mp5sd/clipout.wav",
-        "sound/weapons/cs2_mp5sd/draw.wav",
-        "sound/weapons/cs2_mp5sd/slideback.wav",
-        "sound/weapons/cs2_mp5sd/slideforward.wav",
-        "sound/weapons/cs2_sg553/boltback.wav",
-        "sound/weapons/cs2_sg553/boltforward.wav",
-        "sound/weapons/cs2_sg553/clipin.wav",
-        "sound/weapons/cs2_sg553/clipout.wav",
-        "sound/weapons/cs2_sg553/draw.wav"
-    };
-    for (new ev; ev < sizeof MODEL_EVENT_WAV; ev++) PcGeneric(MODEL_EVENT_WAV[ev]);
     new key[24], path[128], full[160];
     if(file_exists(VX_ORB)) g_iVxOrbModel=PcModel(VX_ORB);
     if(file_exists(VX_DRAGON)) g_iVxDragonModel=PcModel(VX_DRAGON);
@@ -21423,7 +21392,7 @@ public cmd_SixStats(id, level, cid)
     if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
     console_print(id, "[Community] This map: attempts=%d entered=%d download-stage exits=%d exits-under-120s=%d", g_iSixAttempts,g_iSixEntered,g_iSixAborted,g_iSixShort);
     console_print(id, "[Community] Log: addons/amxmodx/logs/vexmira_connections.log. Stage labels do not prove the cause.");
-    for (new sw;sw<6;sw++) console_print(id,"[Community] weapon=%s plugin_loaded=%d",COMMUNITY_WN[sw],find_plugin_byfile(COMMUNITY_WP[sw])>=0);
+    for (new sw;sw<6;sw++) console_print(id,"[Community] weapon=%s plugin_loaded=%d",COMMUNITY_WN[sw],CommunityPluginIndex(COMMUNITY_WP[sw])>=0);
     return PLUGIN_HANDLED;
 }
 SixConnect(id)
@@ -28516,6 +28485,7 @@ public task_MapChooserCheck()
 public plugin_natives()
 {
     register_library("vex_community");
+    register_native("vex_register_component", "CommunityRegisterComponent");
     register_native("vex_prepare_jetpack", "CommunityNativePrepareJet");
     register_native("vex_has_jetpack", "CommunityNativeJetpack");
     register_native("vex_is_zombie", "CommunityNativeZombie");
@@ -28536,7 +28506,7 @@ public fw_ModuleFilter(const module[])
 
 public fw_NativeFilter(const name[], index, trap)
 {
-    if (!trap)
+    if (!trap && (equal(name, "geoip_country_ex") || equal(name, "geoip_code2_ex")))
         return PLUGIN_HANDLED;
     return PLUGIN_CONTINUE;
 }
@@ -28548,6 +28518,12 @@ public fw_NativeFilter(const name[], index, trap)
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
+    if (!is_regamedll())
+    {
+        set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx modules");
+        return;
+    }
     CommunityPrecache();
     CommunityNormalPrecache();
     CommunityEventPrecache();
@@ -28561,9 +28537,8 @@ public plugin_precache()
     SetDefaultResources();
     VxDefaults();
     VxLeanResources();
-    // Eski surum uyumlulugu: vexmira_resources.ini varsa once o okunur,
-    // sonra TEK AYAR DOSYASI vexmira.cfg icindeki "vex_res" satirlari ustune yazar.
-    LoadResourceIni();
+    // v4.0.2: avoid inheriting obsolete paths from older installations.
+    // v4.0.2: legacy resource ini is not imported; vexmira.cfg owns the resource table.
     LoadMainConfig(true);
     // v3.2 (B): CSO ekran bildirimi dosyalari (vex_cso_style 0 ise hic indirilmez)
     CsoPrecache();
@@ -28579,7 +28554,7 @@ public plugin_precache()
     // v3.0 (C): kullanilmayan stok sesleri engelle (oyun DLL'i precache'i bu fonksiyondan SONRA yapar)
     SetupStockSoundBlock();
     g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
-    VxPrecache();
+    // v4.0.2: only the downloaded Community weapons are active; no legacy Arsenal precache.
 
     // Bu haritanin boss plani: sadece bu bosslarin modeli / pencesi / sesleri yuklenir
     PlanBossLoad();
@@ -28959,14 +28934,14 @@ public plugin_init()
     register_clcmd("say_team /memes","cmd_SixMemes");
     register_concmd("vex_connection_stats","cmd_SixStats",ADMIN_RCON);
 
-    RegisterHam(Ham_Weapon_PrimaryAttack, "weapon_ak47", "VxAttackPre", 0);
-    RegisterHam(Ham_Item_AddToPlayer, "weapon_ak47", "VxAddToPlayerPost", 1);
-    RegisterHookChain(RG_CBasePlayerWeapon_SendWeaponAnim, "VxSendAnim", false);
-    register_forward(FM_PlaybackEvent, "VxPlaybackEvent", 0);
-    register_forward(FM_UpdateClientData, "VxClientDataPost", 1);
-    register_forward(FM_Think, "VxProjectileThink");
-    register_forward(FM_Touch, "VxProjectileTouch");
-    register_concmd("amx_arsenal", "cmd_ArsenalGive", ADMIN_RCON, "<name/#userid> <0..5> - give Arsenal rifle");
+
+
+
+
+
+
+
+
     register_plugin(PLUGIN, VERSION, AUTHOR);
     register_dictionary("vexmira_zombie.txt");
 

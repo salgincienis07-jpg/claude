@@ -2,6 +2,7 @@
 new Float:fFuelClock[33], Float:fFuelRemainder[33];
 #include <vex_community>
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <hamsandwich>
 #include <fakemeta>
 #include <cstrike>
@@ -53,6 +54,7 @@ const OFFSET_WEAPONOWNER = 41
 const OFFSET_LINUX_WEAPONS = 4
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
     SprTrail = precache_model("sprites/smoke.spr")
     SprExplode = precache_model("sprites/zerogxplode.spr")
     SprRing = precache_model("sprites/shockwave.spr")
@@ -69,6 +71,7 @@ public plugin_precache()
 }
 public plugin_init()
 {
+    vex_register_component(12);
     register_plugin(ItemName, "0.0.1", "wbyokomo") //30.October.2014 04:21PM
     register_event("HLTV", "OnNewRound", "a", "1=0", "2=0")
     RegisterHam(Ham_Killed, "player", "OnKilled")

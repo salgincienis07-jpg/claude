@@ -1,6 +1,30 @@
+new g_CommunityComponents[12]; // Stored as plugin index + 1; zero means unavailable.
+public CommunityRegisterComponent(plugin, params)
+{
+    new component=get_param(1);
+    if(component<1 || component>12) return 0;
+    if(g_CommunityComponents[component-1] && g_CommunityComponents[component-1]!=plugin+1)
+    {
+        log_amx("[Community] Duplicate component %d: disable the older plugin copy",component);
+        return 0;
+    }
+    g_CommunityComponents[component-1]=plugin+1;
+    return 1;
+}
+CommunityPluginIndex(const plugin[])
+{
+    for(new i=0;i<6;i++) if(equal(plugin,COMMUNITY_WP[i])) return g_CommunityComponents[i]-1;
+    for(new i=0;i<4;i++) if(equal(plugin,COMMUNITY_KP[i])) return g_CommunityComponents[i+6]-1;
+    if(equal(plugin,"vex_hev.amxx")) return g_CommunityComponents[10]-1;
+    if(equal(plugin,"vex_jetpack.amxx")) return g_CommunityComponents[11]-1;
+    return -1;
+}
 CommunityCall(const plugin[], const func[], id)
 {
-    if (callfunc_begin(func, plugin) != 1) return 0;
+    new index=CommunityPluginIndex(plugin);
+    if(index<0) return 0;
+    new function=get_func_id(func,index);
+    if(function<0 || callfunc_begin_i(function,index)!=1) return 0;
     callfunc_push_int(id);
     return callfunc_end();
 }
@@ -47,7 +71,7 @@ CommunityBuyWeapon(id,i)
     if(i<0 || i>=6 || !CommunityAlive(id)) { Chat(id,"SHOP_UNAVAIL"); return; }
     if(CommunityCall(COMMUNITY_WP[i],"vex_has",id)) { Chat(id,"SHOP_ALREADY"); return; }
     if(g_iAP[id]<COMMUNITY_COST[i]) { Chat(id,"SHOP_NOAP"); return; }
-    new index=find_plugin_byfile(COMMUNITY_WP[i]);
+    new index=CommunityPluginIndex(COMMUNITY_WP[i]);
     if(index<0 || get_func_id("vex_give",index)<0) { Chat(id,"SHOP_UNAVAIL"); return; }
     // Drop before clearing flags, so upstream SetModel writes its pickup impulse.
     rg_drop_items_by_slot(id, PRIMARY_WEAPON_SLOT);

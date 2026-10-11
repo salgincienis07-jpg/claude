@@ -1,6 +1,7 @@
 #include <vex_community>
 // Adapted for Vexmira Community v4.0. Original author retained. See KAYNAKLAR.md.
 #include <amxmodx>
+#include "include/vex_asset_guard.inc"
 #include <engine>
 #include <fakemeta>
 #include <fakemeta_util>
@@ -72,6 +73,7 @@ new g_Beam_SprId, g_HamBot_Register, g_Event_Thunderbolt
 
 public plugin_init() 
 {
+    vex_register_component(3);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_event("CurWeapon", "Event_CurWeapon", "be", "1=1")
@@ -101,6 +103,7 @@ public plugin_init()
 
 public plugin_precache()
 {
+    if (!VexAssetGuard()) return;
 	precache_model(V_MODEL)
 	precache_model(P_MODEL)
 	precache_model(W_MODEL)
