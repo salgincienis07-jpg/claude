@@ -1385,6 +1385,10 @@ VX_PRIMARY = Primary fire
 VX_MODE = Weapon mode: %s | Use left click.
 VX_NOAMMO = This ability needs %d rounds in the magazine.
 VX_BUSY = Active ability limit reached; wait a moment.
+SHOP_ONLY_HUMAN = ^1Only living normal humans can buy this (not zombie / survivor / sniper / boss).
+SHOP_NOTINST = ^1This item is ^3not installed^1 on the server right now (its plugin is not running or its files are missing). Admins: ^4vex_diagnose
+SHOP_HEV_ROUND = ^1HEV Suit: only once per round.
+MENU_NA = N/A
 
 [tr]
 WELCOME = ^3VEXMIRA^4'ya hos geldin ^3%s^4! Silahini kap, gece uzun.
@@ -2772,3 +2776,7 @@ VX_PRIMARY = Normal atis
 VX_MODE = Silah modu: %s | Sol tik ile kullan.
 VX_NOAMMO = Bu yetenek icin sarjorde %d mermi gerekiyor.
 VX_BUSY = Aktif yetenek siniri dolu; biraz bekle.
+SHOP_ONLY_HUMAN = ^1Bunu sadece canli normal insanlar alabilir (zombi / survivor / sniper / boss alamaz).
+SHOP_NOTINST = ^1Bu esya su an sunucuda ^3yuklu degil^1 (eklentisi calismiyor veya dosyalari eksik). Admin: ^4vex_diagnose
+SHOP_HEV_ROUND = ^1HEV Suit: round basina sadece 1 kez.
+MENU_NA = YOK

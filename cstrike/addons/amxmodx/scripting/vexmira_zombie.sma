@@ -544,7 +544,8 @@ new const COMMUNITY_COST[6] = {35, 30, 45, 30, 35, 35};
 new const COMMUNITY_KP[4][] = {"vex_dragonsword.amxx", "vex_katana.amxx", "vex_lightsaber.amxx", "vex_horseaxe.amxx"};
 new const COMMUNITY_KN[4][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe"};
 new const COMMUNITY_CT[4][] = {"vex_soldier", "vex_gign", "vex_halo", "vex_spetsnaz"};
-new bool:g_bCommunityCtOk[4];   // v4.1: CT skin model present on the server
+new bool:g_bCommunityCtOk[4];
+new g_pPriceJet, g_pPriceHev;   // v4.1: /shop gear prices   // v4.1: CT skin model present on the server
 new const COMMUNITY_CN[4][] = {"CSO Battle Soldier", "CS:GO GIGN", "SP Megumin Halo", "CS:GO Spetsnaz"};
 new const COMMUNITY_COIN[2][4] = {{20,25,35,25},{25,25,30,25}};
 
@@ -7325,6 +7326,22 @@ ShowShopMenu(id)
     if (isZ) VexHead(id, title, charsmax(title), "MENU_SHOP_Z"); else VexHead(id, title, charsmax(title), "MENU_SHOP_H");
     new menu = VexMenuCreate(title, "menu_shop_handler");
 
+    // v4.1: Jetpack + HEV first (they were on the last page and looked missing)
+    if (!isZ)
+    {
+        for (new g = 0; g < 2; g++)
+        {
+            new pr = CommunityGearPrice(g);
+            if (!CommunityAvailable(g ? "vex_hev.amxx" : "vex_jetpack.amxx"))
+                formatex(item, charsmax(item), "\y%s \r[%L]", g ? "HEV Suit Mark IV" : "Jetpack + Bazooka", id, "MENU_NA");
+            else if (g_iAP[id] >= pr)
+                formatex(item, charsmax(item), "\y%s \r[%d AP]", g ? "HEV Suit Mark IV" : "Jetpack + Bazooka", pr);
+            else
+                formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", g ? "HEV Suit Mark IV" : "Jetpack + Bazooka", pr, id, "MENU_LOCKED");
+            MenuAdd(menu, item, 200 + g);
+        }
+    }
+
     for (new i = 0; i < NUM_ITEMS; i++)
     {
         if (ITEM_TEAM[i] != isZ)
@@ -7353,8 +7370,6 @@ ShowShopMenu(id)
     {
         formatex(item, charsmax(item), "\r%L", id, "SHOP_EXCHANGE", max(1, get_pcvar_num(g_pExchange)));
         MenuAdd(menu, item, 100);
-        MenuAdd(menu, "\yJetpack + Bazooka \r[80 AP]", 200);
-        MenuAdd(menu, "\yHEV Suit Mark IV \r[60 AP]", 201);
     }
 
     MenuFinish(id, menu);
@@ -27814,6 +27829,8 @@ MapVoteInit()
     g_pCosPreview     = register_cvar("vex_cos_preview", "10");     // v3.5 vitrin suresi (sn), 0 = kapali
     g_pCosDeal        = register_cvar("vex_cos_daily_deal", "25");  // v3.5 gunun firsati indirimi (yuzde), 0 = kapali
     g_pCosHide        = register_cvar("vex_cos_hide", "1");         // v3.5 /kozmetik: digerlerininkini gizle secenegi
+    g_pPriceJet       = register_cvar("vex_price_jetpack", "80");   // v4.1: /shop Jetpack + Bazooka (AP)
+    g_pPriceHev       = register_cvar("vex_price_hev", "60");       // v4.1: /shop HEV Suit Mark IV (AP)
     g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_icefy zm_vexmira_dust zm_vexmira_7door zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
