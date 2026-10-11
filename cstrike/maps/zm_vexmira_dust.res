@@ -1,0 +1,23 @@
+// zm_vexmira_dust custom resources (textures are embedded)
+gfx/env/vexmira_sandbk.tga
+gfx/env/vexmira_sanddn.tga
+gfx/env/vexmira_sandft.tga
+gfx/env/vexmira_sandlf.tga
+gfx/env/vexmira_sandrt.tga
+gfx/env/vexmira_sandup.tga
+sound/vexmira/map/dust_gong.wav
+sound/vexmira/map/dust_storm.wav
+sound/vexmira/map/ice_wind.wav
+models/vexmira/dust/dust_pickup.mdl
+models/vexmira/dust/dust_sandbag.mdl
+models/vexmira/dust/dust_wreck.mdl
+models/vexmira/dust/dust_cart.mdl
+models/vexmira/dust/dust_stall.mdl
+models/vexmira/dust/dust_palm.mdl
+models/vexmira/dust/dust_tower.mdl
+models/vexmira/dust/dust_barrel.mdl
+models/vexmira/dust/dust_crate.mdl
+models/vexmira/dust/dust_dish.mdl
+models/vexmira/dust/dust_xbarrel.mdl
+models/vexmira/dust/dust_lantern.mdl
+models/vexmira/world/cd_flag.mdl

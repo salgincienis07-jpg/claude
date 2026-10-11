@@ -25833,9 +25833,11 @@ new Float:g_fMsLkNext[33];
 #define MFX_SAFE    11
 #define MFX_UNSTUCK 12
 #define MFX_SND     13
+#define MFX_FOG     14   // v3.9: fog <x y z> <yogunluk x10000> <sn> col:r,g,b (kum firtinasi; sonra ortam sisi geri)
+#define TASK_MSFOG  42700
 
 new const MFX_NAME[][] = { "", "flare", "smoke", "sparks", "dust", "ring", "light", "spot", "boom", "shake",
-    "clear", "safe", "unstuck", "snd" };
+    "clear", "safe", "unstuck", "snd", "fog" };
 
 new g_szRdKey[MS_MAXRADIO][24], g_szRdFile[MS_MAXRADIO][2][48], g_szRdSub[MS_MAXRADIO][2][MS_LEN];
 new Float:g_fRdLen[MS_MAXRADIO], bool:g_bRdChat[MS_MAXRADIO], bool:g_bRdLow[MS_MAXRADIO], Float:g_fRdNext[MS_MAXRADIO], g_iRdN, g_iRdChatN;
@@ -27192,6 +27194,12 @@ public task_MsFx(tid)
         set_task(g_fFxDt[i], "task_MsFx", tid);
 }
 
+public task_MsFogEnd()
+{
+    for (new p = 1; p <= g_iMax; p++)
+        SendFogForEvent(p);
+}
+
 MsFxRun(i)
 {
     new Float:o[3], Float:q[3], r = (g_iFxCol[i] >> 16) & 255, g = (g_iFxCol[i] >> 8) & 255, b = g_iFxCol[i] & 255;
@@ -27212,6 +27220,18 @@ MsFxRun(i)
             new pit = floatround(MsFxP(i, 2, 100.0));
             engfunc(EngFunc_EmitAmbientSound, 0, o, g_szFxSnd[i], floatclamp(MsFxP(i, 0, 1.0), 0.05, 1.0),
                 floatclamp(MsFxP(i, 1, 0.8), 0.0, 4.0), 0, clamp(pit + random_num(-5, 5), 50, 200));
+            return;
+        }
+        case MFX_FOG:
+        {
+            new dens = clamp(floatround(MsFxP(i, 0, 30.0)), 1, 400);
+            for (new p = 1; p <= g_iMax; p++)
+            {
+                if (is_user_connected(p) && !is_user_bot(p) && !(g_iSet[p] & SET_NO_FOG))
+                    SendFogEx(p, r, g, b, dens);
+            }
+            remove_task(TASK_MSFOG);
+            set_task(floatclamp(MsFxP(i, 1, 8.0), 1.0, 60.0), "task_MsFogEnd", TASK_MSFOG);
             return;
         }
         case MFX_SHAKE:
@@ -27688,7 +27708,7 @@ MapVoteInit()
     g_pCosPreview     = register_cvar("vex_cos_preview", "10");     // v3.5 vitrin suresi (sn), 0 = kapali
     g_pCosDeal        = register_cvar("vex_cos_daily_deal", "25");  // v3.5 gunun firsati indirimi (yuzde), 0 = kapali
     g_pCosHide        = register_cvar("vex_cos_hide", "1");         // v3.5 /kozmetik: digerlerininkini gizle secenegi
-    g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_icefy zm_vexmira_7door zm_vex_laboratory");
+    g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_icefy zm_vexmira_dust zm_vexmira_7door zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
     g_pMapVoteExtend  = register_cvar("vex_map_vote_extend", "0");
