@@ -159,3 +159,17 @@ Branch: `claude/zombie-boss-mode-dev-a0m5oq` (her 10 dakikada otomatik commit + 
   isiklari, CS dokulari, korku anlari (zombi siluet jumpscare dahil) - test edilmedi. DEVAM: harita ajanini ayni
   gorevle yeniden baslat (once mevcut durumu bspcheck + kisa test ile dogrula, bitir, sadece degisen dosyalari zip'le
   gonder), sonra ozel gercekci silahlar.
+
+## v3.8 zm_vexmira_7door (durum, 2026-10-11)
+YAPILDI: harita adi zm_vexmira_7door (bsp/nav/res/ini/mapkit/cfg/mapcycle); kule tepesi (crown) duzeltmesi (neon
+yuzeye oturdu, korniz); VEXMIRA BIOTECH HD doku (vx_sign_vexhd) + neon yazilar TrueType ile net; tren yanindaki
+yesil isaret (trambolin z -32) + kara lekeler (decal z -31) duzeltildi; lokomotif modeli cd_loco.mdl (car 3 NULL
+carpisma); ruzgar torbasi cd_windsock.mdl; 44 ek isik zinciri (ini [models], MS_MAXMODEL 160); neon tabelalar
+416x52; heli pisti: beyaz H, camgobegi kenar seritleri, 2 projektor diregi, sandiklar, inis sesi + isik;
+eklenti: [fx] snd tipi (3D konumlu ses), ev_<olay> ve [messages] anahtarli fx, [ambience] bolumu + vex_map_ambience
+cvar (uzak silah, kopek, siren, helikopter, anons, buhar, kivilcim, uzak patlama); topcu: islik + 3. mermi +
+ufuk parlamalari + duman; yeni sesler devtools/sfx/make_ambience.py -> sound/vexmira/amb/ (9 wav).
+KALAN: (1) bspcheck p95 904 > 900 -> ~5 wpoly kirp (crown FAC->CONC dene veya tabela boyutu 384x48);
+(2) nav yeniden (run_test --export-nav) + kisa vexprobe testi (stuck=0); (3) onizleme PNG'leri SP/map3_preview/
+(heli pisti, isik zincirleri, biotech tabela, lokomotif, neon); (4) v3.8 zip (sadece degisenler + Turkce OKU:
+eski zm_vexmire_cordon / zm_vex_cordon dosyalarini sil, sunucu kokune ac).
