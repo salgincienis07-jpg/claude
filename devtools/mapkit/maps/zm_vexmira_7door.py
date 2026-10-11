@@ -836,8 +836,10 @@ def dress(b):
         D(emer(face, x, 1984, 372))
         SPR((x + (10 if face == 'e' else -10), 1984, 380), RED, 0.4, name='cd_alarm_spr', on=False, fx=4)
     for x, y in ((1040, 2300), (980, 2200), (880, 2100), (760, 1980), (640, 1880), (520, 1820)):
-        DEC((x, y, 1), '{blood1' if x > 800 else '{blood2')                        # trail from the breach
-    DEC((1060, 2160, 1), '{scorch1')
+        # v3.8: decals inside the track bed sit on its floor (-32); at z 1 they were projected onto the car
+        # sides as floating black shapes (owner screenshot near the train)
+        DEC((x, y, -31 if y > 2048 else 1), '{blood1' if x > 800 else '{blood2')   # trail from the breach
+    DEC((1060, 2160, -31), '{scorch1')
     D(floor_arrow(672, 1440, 0, (0, -1)))
     D(floor_arrow(-672, 1440, 0, (0, -1)))
     D(sign('n', 1408, -400, 220, 2))                                               # CUSTOMS TOWER -> forecourts
@@ -906,7 +908,13 @@ def dress(b):
     D(jersey('y', -340, -140, 960))
     D(wall_plate('s', 1024, -320, -64, 0, 128, SHOP))
     D(wall_plate('s', 1024, 64, 320, 0, 128, SHOP))
-    D(wall_plate('w', 1152, 512, 768, 1000, 1064, '~vx_neon_vex', depth=4))       # crown neon (landmark)
+    D(wall_plate('w', 1168, 512, 768, 1000, 1064, '~vx_neon_vex', depth=4))       # crown neon, mounted ON the crown face
+    # v3.8 crown (owner: "broken / invisible-looking wall piece" by the neon): a finished tower top - cornice
+    # band, roof coping, parapet posts, a mast for the radar dish
+    D(P((1160, 440, 1120), (1464, 840, 1136), CONC, hide=()))                       # cornice band
+    D(P((1160, 440, 1152), (1464, 840, 1164), CONC, hide=('bottom',)))              # roof coping
+    D(P((1306, 630, 1164), (1318, 650, 1182), MDARK))                               # dish mast
+    D(P((1172, 452, 960), (1180, 828, 968), MDARK, hide=('e',)))                    # sign bracket rail
     SPR((1300, 640, 1168), RED, 0.5, fx=4)                                         # aircraft warning light
     L((1100, 640, 1030), (200, 110, 255), 160)
     D(sign('w', 1152, 380, 150, 2))                                                # CUSTOMS TOWER at the lobby doors
@@ -998,7 +1006,7 @@ def dress(b):
     AMB((-2560, -1700, 100), 'cd_harbor.wav', 5, pitch=85)
 
     # ------------------------------------------------------------ e harbor steps
-    D(wall_plate('n', -1232, -96, 96, 96, 160, 'vx_sign_vex', depth=4))            # memorial plaque
+    D(wall_plate('n', -1232, -128, 128, 96, 224, 'vx_sign_vexhd', depth=4))            # memorial plaque
     L((0, -1376, 220), MOON, 90)
     SW((-300, -1400, 200), SODIUM, 120, 'cd_lt_harbor')
     SW((300, -1400, 200), SODIUM, 120, 'cd_lt_harbor')
@@ -1363,7 +1371,7 @@ def lane(x, y, z, d, H, L, w=56):
             (max(x + w, x1 + w * abs(d[1])) if d[0] == 0 else max(x - w * d[0], x1), max(y + w, y1) if d[1] else y + w, z + H))
 
 
-def osign(face, line, a, z, row, arrow=None, w=320, h=40):
+def osign(face, line, a, z, row, arrow=None, w=416, h=52):
     """Neon objective sign (~vx_objsign, 192x48, ONE drawn face) centred at `a` along the wall.
     row: 0 = 1 TRAFO, 1 = 2 KOPRU, 2 = 3 CATI, 3 = ZIPLA! (launch pad), 4 = HELI (zombie geyser);
     the printed chevrons point along the world direction `arrow` (picks the > or < atlas row)."""
@@ -1377,7 +1385,7 @@ def osign(face, line, a, z, row, arrow=None, w=320, h=40):
     return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, OBJ, depth=2, row=r, rows=8)
 
 
-def isign(face, line, a, z, row, w=320, h=40):
+def isign(face, line, a, z, row, w=416, h=52):
     """Bilingual neon district / warning sign (~vx_infosign row 0-7), one drawn face."""
     return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, '~vx_infosign', depth=2, row=row, rows=8)
 
@@ -1522,9 +1530,9 @@ def fun(b):
     ents.append(light((60, -40, 560), (255, 200, 120), 170))
     ents.append(light((-120, -160, 420), (150, 180, 255), 90))
     # VEXMIRA banners on the plaza facades
-    for args in (('s', 1024, -800, 280, 440), ('e', -1152, -900, 280, 440)):
+    for args in (('s', 1024, -800, 300, 428), ('e', -1152, -900, 300, 428)):
         face, line, a, z0, z1 = args
-        D(wall_plate(face, line, a - 64, a + 64, z0, z1, 'vx_sign_vex', depth=2))
+        D(wall_plate(face, line, a - 128, a + 128, z0, z1, 'vx_sign_vexhd', depth=2))   # v3.8: crisp 256x128 panel
 
     # ------------------------------------------------------------ travel moments (owner: one every ~600-900
     # units of every main route): trigger_multiple (wait = cooldown) -> multi_manager. Sounds are only game
@@ -1621,7 +1629,7 @@ def fun(b):
         mm(f'cd_barrel{i}_mm', [(f'cd_barrel{i}_fx', 0), (cmd(f'vexcmd_reward_h_{i + 1}'), 0.2),
                                 (cmd('vexcmd_radio_supply'), 0.8)])
     # fun: trampolines (one entity): station -> train car 2 roof, terminal -> container stack, Kade -> balcony
-    tramp = [(200, 2104, 0), (2050, -1690, -128), (2330, -60, 0)]
+    tramp = [(200, 2104, -32), (2050, -1690, -128), (2330, -60, 0)]   # (station pad sits on the track bed, v3.8)
     for x, y, z in tramp:
         D(box((x - 28, y - 28, z), (x + 28, y + 28, z + 2), {'top': CHEV, 'bottom': NULL, 'all': HAZ}))
     ups += [((x - 24, y - 24, z), (x + 24, y + 24, z + 75)) for x, y, z in tramp]      # measured apex ~ +170
@@ -1763,7 +1771,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
     # derailed train: car 1 (duck-jump roof 104), car 2 (camp C2 roof 128, ladder), car 3 in the breach
     b.W(box((-880, 2112, -32), (-400, 2240, 104), RUST))
     b.W(box((-320, 2160, -32), (352, 2288, 128), RUST))
-    b.W(box((640, 2112, -32), (1072, 2240, 112), RUST))
+    b.W(box((640, 2112, -32), (1072, 2240, 112), NULL))             # car 3 = collision + VIS block; visual = locomotive model (v3.8)
     b.D(box((-472, 2056, 0), (-424, 2104, 56), 'vx_crate_mil'))      # duck-jump crate -> car 1
     b.W(box((-48, 2156, -32), (48, 2160, 128), NULL))                # ladder face (inside car 2 skin)
     b.ladder('R', (0, 2160, -32), '+y', 164)
@@ -1821,7 +1829,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
             b.W(box((nl[0], nl[1], L + 80), (nl[2], nl[3], L + 96), CRACK))
             b.W(stairs((flB[0], flB[1], L + 96), '-y', 128, 96, rise=12, run=16, tex=CRACK, clip=True))
         b.W(box((flB[0] - 64, flA[1], 0), (flB[0] + 64, flB[1], 96), CONC))   # fill under the first B flight
-    b.W(box((1168, 448, 720), (1456, 832, 1152), CONC))              # crown (landmark seen from the plaza)
+    b.W(box((1168, 448, 720), (1456, 832, 1152), {'top': CONC, 'bottom': CONC, 'all': FAC}))   # crown: windowed tower top
     # tower south passage t (flank P <-> K)
     Z('t', [(1168, -560, 2160, -400)], 0, 512, ASPH, FAC, rl=256,
       holes=[sk(X, 1168), sk(X, 2160), sk(Y, -400)])

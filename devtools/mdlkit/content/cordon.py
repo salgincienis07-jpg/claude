@@ -481,5 +481,95 @@ def fountain_water():
                 materials=WATER_MATS, tex=(128, 128), out=_out('cd_fountain'), preview_area=AREA, budget=0.12e6)
 
 
+# ============================================================================================ locomotive
+LOCO_MATS = {
+    'lo_body': metal((120, 34, 40), seed=1601, paint=(135, 30, 38), panels=32.0, chipping=0.35, edge_wear=0.8,
+                     scratches=0.35, rust=0.15),
+    'lo_stripe': metal((215, 200, 60), seed=1602, scratches=0.3),
+    'lo_dark': metal((36, 36, 40), seed=1603, scratches=0.4, rust=0.2),
+    'lo_steel': metal((120, 122, 126), seed=1604, scratches=0.5, shine=0.5, rust=0.1),
+    'lo_glass': {'type': 'visor', 'color': (40, 60, 80), 'color2': (150, 180, 200)},
+    'lo_lamp': glow((255, 240, 200), (255, 255, 255)),
+    'lo_red': glow((255, 40, 30), (255, 160, 140)),
+}
+
+
+def locomotive():
+    """Derailed diesel locomotive of the evac train (station track, crashed into the breach): 432 x 128 x 144,
+    origin = bottom centre (track bed), nose toward +X. Cab with windows at the front, engine hood with
+    grilles and fans, bogies with wheels, buffers, headlights, Vexmira hazard livery. Static."""
+    L, W_, H = 432.0, 128.0, 144.0
+    P = []
+    x0, x1 = -L / 2, L / 2
+    P.append(slab(x0 + 30, x1 - 30, -50, 50, 18, 34, 'lo_dark', 'frame'))                       # underframe
+    P.append(hull(sect(x0 + 24, 62, 34, 118, 10) + sect(x1 - 120, 62, 34, 118, 10), 'lo_body', 'hood'))
+    P.append(hull(sect(x1 - 122, 64, 34, 140, 8) + sect(x1 - 30, 64, 34, 138, 8) + sect(x1 - 6, 50, 34, 104, 12),
+                  'lo_body', 'cab'))
+    for sy in (1, -1):
+        P.append(slab(x0 + 20, x1 - 10, sy * 64 - 1, sy * 64 + 1, 44, 52, 'lo_stripe', 'stripe') if sy > 0 else
+                 slab(x0 + 20, x1 - 10, -65, -63, 44, 52, 'lo_stripe', 'stripe'))
+        for xw in (x1 - 110, x1 - 70):
+            P.append(slab(xw, xw + 30, sy * 64.5 - 0.6, sy * 64.5 + 0.6, 92, 124, 'lo_glass', 'side_win'))
+        for xg in range(int(x0 + 40), int(x1 - 140), 40):
+            P.append(slab(xg, xg + 28, sy * 62.5 - 0.6, sy * 62.5 + 0.6, 60, 100, 'lo_dark', 'grille'))
+    P.append(hull([(x1 - 6, -46, 100), (x1 - 6, 46, 100), (x1 - 4, -40, 128), (x1 - 4, 40, 128),
+                   (x1 - 2, -46, 100), (x1 - 2, 46, 100)], 'lo_glass', 'windscreen'))
+    for xf in (x0 + 70, x0 + 150, x0 + 230):
+        P.append(rod((xf, 0, 118), (xf, 0, 122), 22, mat='lo_dark', name='fan', segs=12))
+    P.append(rod((x0 + 110, 20, 118), (x0 + 110, 20, 140), 6, mat='lo_dark', name='exhaust', segs=8))
+    for xb in (x0 + 70, x1 - 90):                      # bogies + wheels
+        P.append(slab(xb - 46, xb + 46, -54, 54, 8, 22, 'lo_dark', 'bogie'))
+        for xw in (xb - 28, xb + 28):
+            for sy in (1, -1):
+                P.append(rod((xw, sy * 50, 14), (xw, sy * 60, 14), 15, mat='lo_steel', name='wheel', segs=12))
+    for xe, sg in ((x1, 1), (x0, -1)):                 # buffers + headlights + coupler
+        for sy in (1, -1):
+            P.append(rod((xe, sy * 40, 30), (xe + sg * 10, sy * 40, 30), 6, mat='lo_steel', name='buffer', segs=8))
+        P.append(slab(min(xe, xe + sg * 6), max(xe, xe + sg * 6), -10, 10, 22, 34, 'lo_dark', 'coupler'))
+    for sy in (1, -1):
+        P.append(rod((x1 - 3, sy * 30, 66), (x1 + 1, sy * 30, 66), 6, mat='lo_lamp', name='headlight', segs=10))
+        P.append(rod((x0 + 21, sy * 44, 60), (x0 + 17, sy * 44, 60), 4, mat='lo_red', name='taillight', segs=8))
+    P.append(slab(x1 - 100, x1 - 40, -30, 30, 140, 146, 'lo_dark', 'horn_box'))
+    for m in P:
+        m.detail = 0.12
+    dec = [dict(kind='shape', shape='vex', center=(x0 + 150, sy * 64, 84), u=(1, 0, 0), v=(0, 0, 1), size=16,
+                color=(160, 90, 255), depth=6, soft=0.4, facing=(0, sy, 0)) for sy in (1, -1)]
+    dec.append(dict(kind='sphere', center=(x1 - 60, 40, 30), radius=50, soft=1.0, color=(40, 20, 10), mode='multiply',
+                    alpha=0.6))
+    return dict(kind='world', name='cd_loco', parts=P, sequences=[dict(name='idle', frames=1)], materials=LOCO_MATS,
+                decals=dec, tex=(256, 128), out=_out('cd_loco'), preview_area=AREA, budget=0.12e6)
+
+
+# ============================================================================================ windsock
+def windsock():
+    """Helipad windsock: 140-unit mast with a striped orange/white sock (4 rigid rings on a bone chain)
+    swinging in the wind (sequence 'blow', looped 2 s). Origin = mast foot."""
+    mats = {'ws_pole': metal((150, 152, 158), seed=1701, scratches=0.4), 'ws_or': cloth((235, 110, 20), seed=1702, dirt=0.2),
+            'ws_wh': cloth((230, 230, 225), seed=1703, dirt=0.25), 'ws_red': glow((255, 40, 30))}
+    P = [rod((0, 0, 0), (0, 0, 142), 1.8, mat='ws_pole', name='pole', segs=8),
+         rod((0, 0, 142), (0, 0, 146), 2.6, mat='ws_red', name='lamp', segs=8),
+         rod((0, 0, 132), (6, 0, 132), 1.0, mat='ws_pole', name='arm', segs=6)]
+    bones = [Bone('root')]
+    sock = []
+    for k in range(4):
+        nm = 's%d' % k
+        x = 6 + k * 10
+        bones.append(Bone(nm, 'root' if k == 0 else 's%d' % (k - 1), (x, 0, 132)))
+        r0, r1 = 7.0 - k * 1.2, 6.0 - k * 1.2
+        sock += on(nm, tube([(x, 0, 132), (x + 10, 0, 132)], [r0, r1], segs=10, mat='ws_or' if k % 2 == 0 else 'ws_wh',
+                            cap_start=False, cap_end=False, name='sock'))
+    for m in P + sock:
+        m.detail = 0.4
+
+    def blow(t):
+        out = {}
+        for k in range(4):
+            out['s%d' % k] = dict(rot=(10 * math.sin(2 * math.pi * t - 0.7 * k), -4 * (k + 1) * (0.5 + 0.5 * math.sin(2 * math.pi * t)), 0))
+        return out
+    return dict(kind='world', name='cd_windsock', parts=P + sock, bones=bones,
+                sequences=[dict(name='blow', frames=21, fps=10, loop=True, pose=blow)], materials=mats, tex=(64, 64),
+                out=_out('cd_windsock'), preview_area=AREA, budget=0.03e6)
+
+
 def all():   # noqa: A001
-    return [heli(), statue(), flag(), string_lights(), fountain_water()]
+    return [heli(), statue(), flag(), string_lights(), fountain_water(), locomotive(), windsock()]

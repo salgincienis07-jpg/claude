@@ -25812,7 +25812,7 @@ new g_iMsLockOf[OVH_MAXENT];   // varlik -> kilit + 1
 new Float:g_fMsLkNext[33];
 // v3.7 telsiz / efekt / dekor modeli (asagida, MsPrecacheIni)
 #define MS_MAXRADIO   32
-#define MS_MAXMODEL   48
+#define MS_MAXMODEL   160
 #define MS_MAXFX      64
 #define MS_MAXFXKEY   20
 #define TASK_MSFX     42300   // +satir (0..63)

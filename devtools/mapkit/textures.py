@@ -1626,6 +1626,43 @@ def t_sign_vex(rng, w, h):
     return np.clip(grain(img, rng, 0.02), 0, 1)
 
 
+def _ss_mask(w, h, draw, ss=4):
+    """Supersampled (ss x) antialiased mask drawn with PIL: draw(ImageDraw, scale) -> float mask h x w."""
+    from PIL import Image, ImageDraw
+    im = Image.new('L', (w * ss, h * ss), 0)
+    draw(ImageDraw.Draw(im), ss)
+    return np.asarray(im.resize((w, h), Image.LANCZOS), F) / 255.0
+
+
+def _font(px, bold=True):
+    from PIL import ImageFont
+    return ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf' % ('-Bold' if bold else ''), px)
+
+
+@tex('vx_sign_vexhd', 256, 128, 'sign', desc='Vexmira Biotech corporate panel, crisp (v3.8: antialiased TrueType text + vector logo)')
+def t_sign_vexhd(rng, w, h):
+    img = steel(h, w, rng, (34, 26, 56), brushed=True)
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    frame = ((xs < 4) | (xs >= w - 4) | (ys < 4) | (ys >= h - 4)).astype(F)
+    img = apply_shade(img, shade(frame * 0.9, 2))
+    def logo(d, k):     # V inside a diamond
+        cx, cy, r = 52 * k, 64 * k, 40 * k
+        d.polygon([(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)], outline=255, width=int(5 * k))
+        d.polygon([(cx - 22 * k, cy - 20 * k), (cx - 11 * k, cy - 20 * k), (cx, cy + 10 * k), (cx + 11 * k, cy - 20 * k),
+                   (cx + 22 * k, cy - 20 * k), (cx + 4 * k, cy + 26 * k), (cx - 4 * k, cy + 26 * k)], fill=255)
+    lg = _ss_mask(w, h, logo)
+    img = mix(img, fill(h, w, (0, 225, 255)), lg)
+    img = img + glow(lg, 3, (0, 200, 255), 0.35)
+    def text(d, k):
+        d.text((102 * k, 32 * k), 'VEXMIRA', font=_font(int(27 * k)), fill=255)
+        d.text((104 * k, 70 * k), 'B I O T E C H', font=_font(int(15 * k), bold=False), fill=255)
+        d.rectangle([104 * k, 64 * k, 246 * k, 66 * k], fill=255)
+    tx = _ss_mask(w, h, text)
+    img = mix(img, fill(h, w, (238, 232, 255)), tx)
+    img = img + glow(tx, 2, (170, 110, 255), 0.25)
+    return np.clip(grain(img, rng, 0.01), 0, 1)
+
+
 @tex('vx_door_metal', 64, 128, 'door', desc='steel door with hazard band')
 def t_door_metal(rng, w, h):
     img = steel(h, w, rng, (92, 98, 106))
@@ -1868,15 +1905,18 @@ def _neon_row(rng, w, num, word, ar, col):
         ring = ring * 0
     tx = x0 + (28 if num else 2)
     avail = (w - 28 if ar > 0 else w - 6) - tx
-    th = min(14.0, avail / max(1e-3, text_width(word, 1.0, 1.12)))
-    cv.text(word, tx, (32 - th) / 2, th, max(1.5, th * 0.14), spacing=1.12)
+    # v3.8: the word is set in an antialiased TrueType face (4x supersampled) - crisp at any sign size
+    fpx = 17
+    while fpx > 8 and _font(fpx * 4).getlength(word) / 4 > avail:
+        fpx -= 1
+    wd = _ss_mask(w, 32, lambda d, k: d.text((tx * k, (16 - fpx * 0.62) * k), word, font=_font(fpx * k), fill=255))
     if ar > 0:
         for k in (0, 8):
             cv.line([(w - 22 + k, 9), (w - 15 + k, 16), (w - 22 + k, 23)], 2.2)
     elif ar < 0:
         for k in (0, 8):
             cv.line([(21 - k, 9), (14 - k, 16), (21 - k, 23)], 2.2)
-    m = np.clip(cv.mask() + ring, 0, 1)
+    m = np.clip(cv.mask() + ring + wd, 0, 1)
     sub = _neon_tube(32, w, m, col, rng)
     fr = ((xx < 1) | (xx >= w - 1) | (yy < 1) | (yy >= 31)).astype(F)
     return np.clip(mix(sub, fill(32, w, (44, 44, 50)), fr), 0, 1)
