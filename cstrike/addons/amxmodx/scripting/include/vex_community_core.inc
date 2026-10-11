@@ -131,9 +131,10 @@ public CommunityApplyKnife(taskid)
 CommunityPrecache()
 {
     new path[128];
-    for(new i=0;i<4;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); precache_model(path); }
-    precache_generic("models/player/vex_halo/vex_haloT.mdl");
-    precache_model("models/zombie_plague/v_grenade_infect.mdl");
+    for(new i=0;i<4;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); g_bCommunityCtOk[i]=VexPcModel(path)>0; }
+    if(g_bCommunityCtOk[2]) VexPcGeneric("models/player/vex_halo/vex_haloT.mdl");
+    VexPcModel("models/zombie_plague/v_grenade_infect.mdl");
+    VexPcModel("models/p_fgrenade.mdl");
 }
 CommunityCosOrigin(ent,id,c,i)
 {

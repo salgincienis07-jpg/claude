@@ -54,23 +54,23 @@ const OFFSET_WEAPONOWNER = 41
 const OFFSET_LINUX_WEAPONS = 4
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-    SprTrail = precache_model("sprites/smoke.spr")
-    SprExplode = precache_model("sprites/zerogxplode.spr")
-    SprRing = precache_model("sprites/shockwave.spr")
-    SprFlame = precache_model("sprites/xfireball3.spr")
-    precache_model(ModelRocket)
-    precache_model(ModelJetpack_P)
-    precache_model(ModelJetpack_W)
-    precache_model(ModelJetpack_V)
-    precache_sound(SoundFire)
-    precache_sound(SoundTravel)
-    precache_sound(SoundFly)
-    precache_sound(SoundBlow)
-    precache_sound(SoundPickup)
+    SprTrail = VexPcModel("sprites/smoke.spr")
+    SprExplode = VexPcModel("sprites/zerogxplode.spr")
+    SprRing = VexPcModel("sprites/shockwave.spr")
+    SprFlame = VexPcModel("sprites/xfireball3.spr")
+    VexPcModel(ModelRocket)
+    VexPcModel(ModelJetpack_P)
+    VexPcModel(ModelJetpack_W)
+    VexPcModel(ModelJetpack_V)
+    VexPcSound(SoundFire)
+    VexPcSound(SoundTravel)
+    VexPcSound(SoundFly)
+    VexPcSound(SoundBlow)
+    VexPcSound(SoundPickup)
 }
 public plugin_init()
 {
+    VexAssetInit();
     vex_register_component(12);
     register_plugin(ItemName, "0.0.1", "wbyokomo") //30.October.2014 04:21PM
     register_event("HLTV", "OnNewRound", "a", "1=0", "2=0")

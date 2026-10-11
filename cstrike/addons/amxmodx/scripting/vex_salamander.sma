@@ -70,6 +70,7 @@ new g_IsConnected, g_IsAlive, g_PlayerWeapon[33]
 
 public plugin_init()
 {
+    VexAssetInit();
     vex_register_component(5);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -104,18 +105,17 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	precache_model(MODEL_V)
-	precache_model(MODEL_P)
-	precache_model(MODEL_W)
+	VexPcModel(MODEL_V)
+	VexPcModel(MODEL_P)
+	VexPcModel(MODEL_W)
 	
 	for(new i = 0; i < sizeof(WeaponSounds); i++)
-		precache_sound(WeaponSounds[i])
+		VexPcSound(WeaponSounds[i])
 	for(new i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 2) precache_generic(WeaponResources[i])
-		else if(i == 6) g_SmokePuff_SprID = precache_model(WeaponResources[i])
-		else precache_model(WeaponResources[i])
+		if(i == 2) VexPcGeneric(WeaponResources[i])
+		else if(i == 6) g_SmokePuff_SprID = VexPcModel(WeaponResources[i])
+		else VexPcModel(WeaponResources[i])
 	}
 }
 

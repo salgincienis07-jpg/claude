@@ -544,6 +544,7 @@ new const COMMUNITY_COST[6] = {35, 30, 45, 30, 35, 35};
 new const COMMUNITY_KP[4][] = {"vex_dragonsword.amxx", "vex_katana.amxx", "vex_lightsaber.amxx", "vex_horseaxe.amxx"};
 new const COMMUNITY_KN[4][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe"};
 new const COMMUNITY_CT[4][] = {"vex_soldier", "vex_gign", "vex_halo", "vex_spetsnaz"};
+new bool:g_bCommunityCtOk[4];   // v4.1: CT skin model present on the server
 new const COMMUNITY_CN[4][] = {"CSO Battle Soldier", "CS:GO GIGN", "SP Megumin Halo", "CS:GO Spetsnaz"};
 new const COMMUNITY_COIN[2][4] = {{20,25,35,25},{25,25,30,25}};
 
@@ -9819,8 +9820,11 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
     if (g_bZombie[id])
     {
         if (wid == WEAPON_HEGRENADE) {
-            SetHookChainArg(2, ATYPE_STRING, "models/zombie_plague/v_grenade_infect.mdl");
-            SetHookChainArg(3, ATYPE_STRING, "models/p_fgrenade.mdl");
+            // v4.1: only when the files are on the server (p_ model not precached = Host_Error)
+            if (VexPrecached("models/zombie_plague/v_grenade_infect.mdl"))
+                SetHookChainArg(2, ATYPE_STRING, "models/zombie_plague/v_grenade_infect.mdl");
+            if (VexPrecached("models/p_fgrenade.mdl"))
+                SetHookChainArg(3, ATYPE_STRING, "models/p_fgrenade.mdl");
             return HC_CONTINUE;
         }
         if (wid != WEAPON_KNIFE)
@@ -13161,7 +13165,7 @@ MakeHuman(id)
 ApplyHumanModel(id)
 {
     new v = g_iCommunitySel[id][0];
-    if (v > 0 && v <= 4 && (g_iCommunityOwned[id][0] & (1 << (v-1)))) { rg_set_user_model(id, COMMUNITY_CT[v-1]); return; }
+    if (v > 0 && v <= 4 && g_bCommunityCtOk[v-1] && (g_iCommunityOwned[id][0] & (1 << (v-1)))) { rg_set_user_model(id, COMMUNITY_CT[v-1]); return; }
 
     new flags = get_user_flags(id);
 
@@ -28518,7 +28522,8 @@ public fw_NativeFilter(const name[], index, trap)
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
+    // v4.1: no global asset check any more (one missing file disabled everything). Missing files are
+    // skipped one by one (VexPcModel / PcModel / PcSound log them) - see vex_diagnose for a full list.
     if (!is_regamedll())
     {
         set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx modules");

@@ -114,6 +114,7 @@ new g_SprId_LaserBeam
 
 public plugin_init()
 {
+    VexAssetInit();
     vex_register_component(6);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -142,23 +143,22 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	engfunc(EngFunc_PrecacheModel, V_MODEL)
-	engfunc(EngFunc_PrecacheModel, P_MODEL)
-	engfunc(EngFunc_PrecacheModel, P_MODEL_EMPTY)
-	engfunc(EngFunc_PrecacheModel, W_MODEL)
-	engfunc(EngFunc_PrecacheModel, ARROW_MODEl)
+	VexPcModel(V_MODEL)
+	VexPcModel(P_MODEL)
+	VexPcModel(P_MODEL_EMPTY)
+	VexPcModel(W_MODEL)
+	VexPcModel(ARROW_MODEl)
 	
 	new i
 	for(i = 0; i < sizeof(WeaponSounds); i++)
-		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
+		VexPcSound(WeaponSounds[i])
 	for(i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[i])
-		else engfunc(EngFunc_PrecacheModel, WeaponResources[i])
+		if(i == 0) VexPcGeneric(WeaponResources[i])
+		else VexPcModel(WeaponResources[i])
 	}
 	
-	g_SprId_LaserBeam = engfunc(EngFunc_PrecacheModel, "sprites/laserbeam.spr")
+	g_SprId_LaserBeam = VexPcModel("sprites/laserbeam.spr")
 }
 
 public Get_CompoundBow(id)

@@ -67,6 +67,7 @@ new g_Muzzleflash_Ent, g_Muzzleflash
 
 public plugin_init()
 {
+    VexAssetInit();
     vex_register_component(4);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -99,22 +100,21 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	engfunc(EngFunc_PrecacheModel, V_MODEL)
-	engfunc(EngFunc_PrecacheModel, P_MODEL)
-	engfunc(EngFunc_PrecacheModel, W_MODEL)
+	VexPcModel(V_MODEL)
+	VexPcModel(P_MODEL)
+	VexPcModel(W_MODEL)
 	
 	new i
 	for(i = 0; i < sizeof(Ethereal_Sounds); i++)
-		engfunc(EngFunc_PrecacheSound, Ethereal_Sounds[i])
+		VexPcSound(Ethereal_Sounds[i])
 	for(i = 0; i < sizeof(Ethereal_Resources); i++)
 	{
-		if(i == 0) engfunc(EngFunc_PrecacheGeneric, Ethereal_Resources[i])
-		else engfunc(EngFunc_PrecacheModel, Ethereal_Resources[i])
+		if(i == 0) VexPcGeneric(Ethereal_Resources[i])
+		else VexPcModel(Ethereal_Resources[i])
 	}
 	
-	g_SmokePuff_SprId = engfunc(EngFunc_PrecacheModel, "sprites/wall_puff1.spr")
-	g_Beam_SprID = engfunc(EngFunc_PrecacheModel, "sprites/laserbeam.spr")
+	g_SmokePuff_SprId = VexPcModel("sprites/wall_puff1.spr")
+	g_Beam_SprID = VexPcModel("sprites/laserbeam.spr")
 	
 	
 	register_forward(FM_PrecacheEvent, "fw_PrecacheEvent_Post", 1)
@@ -122,8 +122,7 @@ public plugin_precache()
 	// Muzzleflash
 	g_Muzzleflash_Ent = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target"))
 	
-	precache_model(MUZZLE_FLASH)
-	engfunc(EngFunc_SetModel, g_Muzzleflash_Ent, MUZZLE_FLASH)
+	if (VexPcModel(MUZZLE_FLASH)) engfunc(EngFunc_SetModel, g_Muzzleflash_Ent, MUZZLE_FLASH)
 	set_pev(g_Muzzleflash_Ent, pev_scale, 0.2)
 	
 	set_pev(g_Muzzleflash_Ent, pev_rendermode, kRenderTransTexture)

@@ -96,6 +96,7 @@ new g_Event_Janus7, g_Msg_WeaponList, g_SmokePuff_SprId, g_RifleShell_Id, g_ham_
 
 public plugin_init()
 {
+    VexAssetInit();
     vex_register_component(1);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -122,23 +123,22 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	engfunc(EngFunc_PrecacheModel, V_MODEL)
-	engfunc(EngFunc_PrecacheModel, P_MODEL)
-	engfunc(EngFunc_PrecacheModel, W_MODEL)
+	VexPcModel(V_MODEL)
+	VexPcModel(P_MODEL)
+	VexPcModel(W_MODEL)
 	
 	new i
 	for(i = 0; i < sizeof(Janus7_Sounds); i++)
-		engfunc(EngFunc_PrecacheSound, Janus7_Sounds[i])
+		VexPcSound(Janus7_Sounds[i])
 	for(i = 0; i < sizeof(Janus7_Resources); i++)
 	{
-		if(i == 0) engfunc(EngFunc_PrecacheGeneric, Janus7_Resources[i])
-		else engfunc(EngFunc_PrecacheModel, Janus7_Resources[i])
+		if(i == 0) VexPcGeneric(Janus7_Resources[i])
+		else VexPcModel(Janus7_Resources[i])
 	}
 	
-	g_RifleShell_Id = engfunc(EngFunc_PrecacheModel, "models/rshell.mdl")
-	g_SmokePuff_SprId = engfunc(EngFunc_PrecacheModel, "sprites/wall_puff1.spr")
-	g_SprId = precache_model( "sprites/lgtning.spr" )
+	g_RifleShell_Id = VexPcModel("models/rshell.mdl")
+	g_SmokePuff_SprId = VexPcModel("sprites/wall_puff1.spr")
+	g_SprId = VexPcModel( "sprites/lgtning.spr" )
 	
 	register_forward(FM_PrecacheEvent, "fw_PrecacheEvent_Post", 1)
 }

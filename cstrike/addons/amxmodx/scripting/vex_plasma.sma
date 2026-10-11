@@ -92,6 +92,7 @@ new g_MuzzleFlash_SprId, g_PlasmaExp_SprId, g_weapon_event, g_HamBot, g_MaxPlaye
 
 public plugin_init() 
 {
+    VexAssetInit();
     vex_register_component(2);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 
@@ -124,26 +125,25 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	engfunc(EngFunc_PrecacheModel, V_MODEL)
-	engfunc(EngFunc_PrecacheModel, P_MODEL)
-	engfunc(EngFunc_PrecacheModel, W_MODEL)
+	VexPcModel(V_MODEL)
+	VexPcModel(P_MODEL)
+	VexPcModel(W_MODEL)
 	
 	new i
 	for(i = 0; i < sizeof(WeaponSounds); i++)
-		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
+		VexPcSound(WeaponSounds[i])
 	for(i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[i])
-		else engfunc(EngFunc_PrecacheModel, WeaponResources[i])
+		if(i == 0) VexPcGeneric(WeaponResources[i])
+		else VexPcModel(WeaponResources[i])
 	}
 	for(i = 0; i < sizeof(WeaponFiles); i++)
 	{
-		if(i == 1) g_PlasmaExp_SprId = engfunc(EngFunc_PrecacheModel, WeaponFiles[i])
-		else engfunc(EngFunc_PrecacheModel, WeaponFiles[i])
+		if(i == 1) g_PlasmaExp_SprId = VexPcModel(WeaponFiles[i])
+		else VexPcModel(WeaponFiles[i])
 	}
 		
-	g_MuzzleFlash_SprId = engfunc(EngFunc_PrecacheModel, MuzzleFlash)
+	g_MuzzleFlash_SprId = VexPcModel(MuzzleFlash)
 	register_forward(FM_PrecacheEvent, "fw_PrecacheEvent_Post", 1)
 }
 

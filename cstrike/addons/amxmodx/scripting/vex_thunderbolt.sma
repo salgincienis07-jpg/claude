@@ -73,6 +73,7 @@ new g_Beam_SprId, g_HamBot_Register, g_Event_Thunderbolt
 
 public plugin_init() 
 {
+    VexAssetInit();
     vex_register_component(3);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -103,23 +104,22 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	precache_model(V_MODEL)
-	precache_model(P_MODEL)
-	precache_model(W_MODEL)
+	VexPcModel(V_MODEL)
+	VexPcModel(P_MODEL)
+	VexPcModel(W_MODEL)
 	
-	precache_model(SNIP_MODEL_R)
-	precache_model(SNIP_MODEL_B)
+	VexPcModel(SNIP_MODEL_R)
+	VexPcModel(SNIP_MODEL_B)
 	
 	for(new i = 0; i < sizeof(WeaponSounds); i++) 
-		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
+		VexPcSound(WeaponSounds[i])
 	for(new i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[0])
-		else engfunc(EngFunc_PrecacheModel, WeaponResources[i])
+		if(i == 0) VexPcGeneric(WeaponResources[0])
+		else VexPcModel(WeaponResources[i])
 	}
 	
-	g_Beam_SprId =  engfunc(EngFunc_PrecacheModel, "sprites/laserbeam.spr")
+	g_Beam_SprId =  VexPcModel("sprites/laserbeam.spr")
 }
 
 public client_putinserver(id)

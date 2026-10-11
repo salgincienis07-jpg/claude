@@ -3,401 +3,110 @@
 #endif
 #define _vex_asset_guard_included
 
-// All paths are real custom files in the complete v4.0 distribution, never stock assets.
-new const VEX_REQUIRED_ASSETS[][] = {
-    "models/arrow.mdl",
-    "models/hev_weapons/p_wrench.mdl",
-    "models/hev_weapons/v_ak47.mdl",
-    "models/hev_weapons/v_aug.mdl",
-    "models/hev_weapons/v_awp.mdl",
-    "models/hev_weapons/v_deagle.mdl",
-    "models/hev_weapons/v_famas.mdl",
-    "models/hev_weapons/v_g3sg1.mdl",
-    "models/hev_weapons/v_galil.mdl",
-    "models/hev_weapons/v_glock18.mdl",
-    "models/hev_weapons/v_m249.mdl",
-    "models/hev_weapons/v_m3.mdl",
-    "models/hev_weapons/v_m4a1.mdl",
-    "models/hev_weapons/v_mp5.mdl",
-    "models/hev_weapons/v_p228.mdl",
-    "models/hev_weapons/v_p90.mdl",
-    "models/hev_weapons/v_sg550.mdl",
-    "models/hev_weapons/v_tmp.mdl",
-    "models/hev_weapons/v_ump45.mdl",
-    "models/hev_weapons/v_usp.mdl",
-    "models/hev_weapons/v_wrench.mdl",
-    "models/hev_weapons/v_xm1014.mdl",
-    "models/p_bow.mdl",
-    "models/p_bow_empty.mdl",
-    "models/p_dragonsword.mdl",
-    "models/p_ethereal.mdl",
-    "models/p_fgrenade.mdl",
-    "models/p_horseaxe.mdl",
-    "models/p_janus7.mdl",
-    "models/p_katanad.mdl",
-    "models/p_plasmagun.mdl",
-    "models/p_salamander.mdl",
-    "models/p_sfsniper.mdl",
-    "models/p_sfsword_off.mdl",
-    "models/p_sfsword_on.mdl",
-    "models/player/hev_zombie/hev_zombie.mdl",
-    "models/player/vex_gign/vex_gign.mdl",
-    "models/player/vex_halo/vex_halo.mdl",
-    "models/player/vex_halo/vex_haloT.mdl",
-    "models/player/vex_pyramid/vex_pyramid.mdl",
-    "models/player/vex_soldier/vex_soldier.mdl",
-    "models/player/vex_spetsnaz/vex_spetsnaz.mdl",
-    "models/player/vex_urban/vex_urban.mdl",
-    "models/player/zombie_source/zombie_source.mdl",
-    "models/v_bow.mdl",
-    "models/v_dragonsword2.mdl",
-    "models/v_ethereal2.mdl",
-    "models/v_hev.mdl",
-    "models/v_hev_adrenaline_injector.mdl",
-    "models/v_hev_zombie.mdl",
-    "models/v_horseaxe.mdl",
-    "models/v_janus7.mdl",
-    "models/v_katanad.mdl",
-    "models/v_plasmagun2.mdl",
-    "models/v_salamander.mdl",
-    "models/v_sfsightB.mdl",
-    "models/v_sfsightR.mdl",
-    "models/v_sfsniperF.mdl",
-    "models/v_sfsword.mdl",
-    "models/vexmira/community/cosmetics/angel_wings.mdl",
-    "models/vexmira/community/cosmetics/cat.mdl",
-    "models/vexmira/community/cosmetics/cosmic_wings.mdl",
-    "models/vexmira/community/cosmetics/doctor_hat.mdl",
-    "models/vexmira/community/cosmetics/dragonfly.mdl",
-    "models/vexmira/community/cosmetics/eagle_wings.mdl",
-    "models/vexmira/community/cosmetics/earth_hat.mdl",
-    "models/vexmira/community/cosmetics/mech_wings.mdl",
-    "models/vexmira/community/cosmetics/shoop_hat.mdl",
-    "models/vexmira/community/jetpack/p_jetpack.mdl",
-    "models/vexmira/community/jetpack/rpgrocket.mdl",
-    "models/vexmira/community/jetpack/v_jetpack.mdl",
-    "models/vexmira/community/jetpack/w_jetpack.mdl",
-    "models/vexmira/community/normal/p_ak47.mdl",
-    "models/vexmira/community/normal/p_aug.mdl",
-    "models/vexmira/community/normal/p_awp.mdl",
-    "models/vexmira/community/normal/p_c4.mdl",
-    "models/vexmira/community/normal/p_deagle.mdl",
-    "models/vexmira/community/normal/p_elite.mdl",
-    "models/vexmira/community/normal/p_famas.mdl",
-    "models/vexmira/community/normal/p_fiveseven.mdl",
-    "models/vexmira/community/normal/p_flashbang.mdl",
-    "models/vexmira/community/normal/p_g3sg1.mdl",
-    "models/vexmira/community/normal/p_galil.mdl",
-    "models/vexmira/community/normal/p_glock18.mdl",
-    "models/vexmira/community/normal/p_hegrenade.mdl",
-    "models/vexmira/community/normal/p_knife.mdl",
-    "models/vexmira/community/normal/p_m249.mdl",
-    "models/vexmira/community/normal/p_m3.mdl",
-    "models/vexmira/community/normal/p_m4a1.mdl",
-    "models/vexmira/community/normal/p_mac10.mdl",
-    "models/vexmira/community/normal/p_mp5.mdl",
-    "models/vexmira/community/normal/p_p228.mdl",
-    "models/vexmira/community/normal/p_p90.mdl",
-    "models/vexmira/community/normal/p_scout.mdl",
-    "models/vexmira/community/normal/p_sg550.mdl",
-    "models/vexmira/community/normal/p_sg552.mdl",
-    "models/vexmira/community/normal/p_smokegrenade.mdl",
-    "models/vexmira/community/normal/p_tmp.mdl",
-    "models/vexmira/community/normal/p_ump45.mdl",
-    "models/vexmira/community/normal/p_usp.mdl",
-    "models/vexmira/community/normal/p_xm1014.mdl",
-    "models/vexmira/community/normal/v_ak47.mdl",
-    "models/vexmira/community/normal/v_aug.mdl",
-    "models/vexmira/community/normal/v_awp.mdl",
-    "models/vexmira/community/normal/v_deagle.mdl",
-    "models/vexmira/community/normal/v_galil.mdl",
-    "models/vexmira/community/normal/v_knife.mdl",
-    "models/vexmira/community/normal/v_m249.mdl",
-    "models/vexmira/community/normal/v_m4a1.mdl",
-    "models/vexmira/community/normal/v_mp5.mdl",
-    "models/vexmira/community/normal/v_sg550.mdl",
-    "models/vexmira/community/normal/v_sg552.mdl",
-    "models/vexmira/community/normal/v_xm1014.mdl",
-    "models/vexmira/community/normal/w_ak47.mdl",
-    "models/vexmira/community/normal/w_aug.mdl",
-    "models/vexmira/community/normal/w_awp.mdl",
-    "models/vexmira/community/normal/w_backpack.mdl",
-    "models/vexmira/community/normal/w_c4.mdl",
-    "models/vexmira/community/normal/w_deagle.mdl",
-    "models/vexmira/community/normal/w_elite.mdl",
-    "models/vexmira/community/normal/w_famas.mdl",
-    "models/vexmira/community/normal/w_fiveseven.mdl",
-    "models/vexmira/community/normal/w_flashbang.mdl",
-    "models/vexmira/community/normal/w_g3sg1.mdl",
-    "models/vexmira/community/normal/w_galil.mdl",
-    "models/vexmira/community/normal/w_glock18.mdl",
-    "models/vexmira/community/normal/w_hegrenade.mdl",
-    "models/vexmira/community/normal/w_knife.mdl",
-    "models/vexmira/community/normal/w_m249.mdl",
-    "models/vexmira/community/normal/w_m3.mdl",
-    "models/vexmira/community/normal/w_m4a1.mdl",
-    "models/vexmira/community/normal/w_mac10.mdl",
-    "models/vexmira/community/normal/w_mp5.mdl",
-    "models/vexmira/community/normal/w_p228.mdl",
-    "models/vexmira/community/normal/w_p90.mdl",
-    "models/vexmira/community/normal/w_scout.mdl",
-    "models/vexmira/community/normal/w_sg550.mdl",
-    "models/vexmira/community/normal/w_sg552.mdl",
-    "models/vexmira/community/normal/w_shield.mdl",
-    "models/vexmira/community/normal/w_smokegrenade.mdl",
-    "models/vexmira/community/normal/w_tmp.mdl",
-    "models/vexmira/community/normal/w_ump45.mdl",
-    "models/vexmira/community/normal/w_usp.mdl",
-    "models/vexmira/community/normal/w_xm1014.mdl",
-    "models/vexmira/community/props/lasermine.mdl",
-    "models/vexmira/community/props/supplybox_fixed.mdl",
-    "models/vexmira/community/props/w_goldenEgg.mdl",
-    "models/w_bow.mdl",
-    "models/w_ethereal.mdl",
-    "models/w_fgrenade.mdl",
-    "models/w_janus7.mdl",
-    "models/w_plasmagun.mdl",
-    "models/w_salamander.mdl",
-    "models/w_sfsniper.mdl",
-    "models/zombie_plague/v_grenade_fire.mdl",
-    "models/zombie_plague/v_grenade_flare.mdl",
-    "models/zombie_plague/v_grenade_frost.mdl",
-    "models/zombie_plague/v_grenade_infect.mdl",
-    "models/zombie_plague/v_knife_zombie.mdl",
-    "sound/Zombi/Zombi_Female_Headdown.wav",
-    "sound/Zombi/Zombi_Female_Headup.wav",
-    "sound/Zombi/Zombi_Female_Laugh.wav",
-    "sound/avfrost/frostnova.wav",
-    "sound/avfrost/impalehit.wav",
-    "sound/avfrost/impalelaunch1.wav",
-    "sound/fvox/flatline.wav",
-    "sound/fvox/health_critical.wav",
-    "sound/fvox/hevSuit_get_infected_alert2.wav",
-    "sound/fvox/hev_logon.wav",
-    "sound/fvox/morphine_shot.wav",
-    "sound/fvox/power_restored.wav",
-    "sound/items/cliprelease1.wav",
-    "sound/jb_engine_b1/shop/syringe_hit.wav",
-    "sound/jb_engine_b1/shop/syringe_use.wav",
-    "sound/player/pl_long_jump_1.wav",
-    "sound/vexmira/community/jetpack/blow.wav",
-    "sound/vexmira/community/jetpack/fly.wav",
-    "sound/vexmira/community/jetpack/rocket.wav",
-    "sound/vexmira/community/jetpack/travel.wav",
-    "sound/vexmira/meme/bruh.wav",
-    "sound/vexmira/meme/discord.wav",
-    "sound/vexmira/meme/emotional_damage.wav",
-    "sound/vexmira/meme/error.wav",
-    "sound/vexmira/meme/metal_pipe.wav",
-    "sound/vexmira/meme/vine_boom.wav",
-    "sound/vexmira/meme/weide.wav",
-    "sound/vexmira/meme/wow.wav",
-    "sound/weapons/G_MZC_MP7_CLIPIN.wav",
-    "sound/weapons/G_MZC_MP7_CLIPOUT.wav",
-    "sound/weapons/G_RELOAD_MP7.wav",
-    "sound/weapons/MK23_BBACK.wav",
-    "sound/weapons/MK23_BCBACK.wav",
-    "sound/weapons/MK23_BlowBack.wav",
-    "sound/weapons/MK23_ClipIn.wav",
-    "sound/weapons/MK23_ClipOut.wav",
-    "sound/weapons/MK23_DelBlowBack.wav",
-    "sound/weapons/boltpull1.wav",
-    "sound/weapons/bow_charge_finish1.wav",
-    "sound/weapons/bow_charge_shoot1_empty.wav",
-    "sound/weapons/bow_charge_shoot2.wav",
-    "sound/weapons/bow_charge_start1.wav",
-    "sound/weapons/bow_charge_start2.wav",
-    "sound/weapons/bow_draw.wav",
-    "sound/weapons/bow_shoot1.wav",
-    "sound/weapons/change1_ready.wav",
-    "sound/weapons/clipin1.wav",
-    "sound/weapons/clipout1.wav",
-    "sound/weapons/csgo/deagle/de_deploy.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f009.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f036.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f057.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f081.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f111.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f133.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f166.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f193.wav",
-    "sound/weapons/csgo/deagle/deagle_special_lookat_f228.wav",
-    "sound/weapons/csgo/movement1.wav",
-    "sound/weapons/de_deploy.wav",
-    "sound/weapons/dragonsword_draw.wav",
-    "sound/weapons/dragonsword_hit1.wav",
-    "sound/weapons/dragonsword_hit2.wav",
-    "sound/weapons/dragonsword_idle.wav",
-    "sound/weapons/dragonsword_slash1.wav",
-    "sound/weapons/dragonsword_slash2.wav",
-    "sound/weapons/dragonsword_stab.wav",
-    "sound/weapons/dragonsword_stab_hit.wav",
-    "sound/weapons/dragonsword_wall.wav",
-    "sound/weapons/elite_deploy.wav",
-    "sound/weapons/ethereal-1.wav",
-    "sound/weapons/ethereal_draw.wav",
-    "sound/weapons/ethereal_idle1.wav",
-    "sound/weapons/ethereal_reload.wav",
-    "sound/weapons/ethereal_shoot1.wav",
-    "sound/weapons/exp_nade.wav",
-    "sound/weapons/flamegun-1.wav",
-    "sound/weapons/flamegun_clipin1.wav",
-    "sound/weapons/flamegun_clipin2.wav",
-    "sound/weapons/flamegun_clipout1.wav",
-    "sound/weapons/flamegun_clipout2.wav",
-    "sound/weapons/flamegun_draw.wav",
-    "sound/weapons/g36_boltback.wav",
-    "sound/weapons/g36_boltforward.wav",
-    "sound/weapons/g36_draw.wav",
-    "sound/weapons/g36_magin.wav",
-    "sound/weapons/g36_magout.wav",
-    "sound/weapons/galil_deploy.wav",
-    "sound/weapons/holywater_deploy.wav",
-    "sound/weapons/holywater_explosion.wav",
-    "sound/weapons/holywater_explosion2.wav",
-    "sound/weapons/holywater_pinpul.wav",
-    "sound/weapons/janus7_change1.wav",
-    "sound/weapons/janus7_change2.wav",
-    "sound/weapons/janus7_shoot.wav",
-    "sound/weapons/janus7_shoot2.wav",
-    "sound/weapons/katanad_draw.wav",
-    "sound/weapons/katanad_hit1.wav",
-    "sound/weapons/katanad_hit2.wav",
-    "sound/weapons/katanad_hitwall.wav",
-    "sound/weapons/katanad_slash1.wav",
-    "sound/weapons/katanad_slash2.wav",
-    "sound/weapons/katanad_slash3.wav",
-    "sound/weapons/katanad_stab.wav",
-    "sound/weapons/katanad_stab_miss.wav",
-    "sound/weapons/mg3_clipin.wav",
-    "sound/weapons/mg3_clipout.wav",
-    "sound/weapons/mg3_close.wav",
-    "sound/weapons/mg3_open.wav",
-    "sound/weapons/movement1.wav",
-    "sound/weapons/movement2.wav",
-    "sound/weapons/movement3.wav",
-    "sound/weapons/null.wav",
-    "sound/weapons/p345/p345_magin.wav",
-    "sound/weapons/p345/p345_magout.wav",
-    "sound/weapons/p345/p345_magplace.wav",
-    "sound/weapons/p345/p345_slide.wav",
-    "sound/weapons/plasmagun-1.wav",
-    "sound/weapons/plasmagun_clipin1.wav",
-    "sound/weapons/plasmagun_clipin2.wav",
-    "sound/weapons/plasmagun_clipout.wav",
-    "sound/weapons/plasmagun_draw.wav",
-    "sound/weapons/plasmagun_exp.wav",
-    "sound/weapons/plasmagun_idle.wav",
-    "sound/weapons/saw_reload.wav",
-    "sound/weapons/saw_reload2.wav",
-    "sound/weapons/sfsniper-1.wav",
-    "sound/weapons/sfsniper_draw.wav",
-    "sound/weapons/sfsniper_idle.wav",
-    "sound/weapons/sfsniper_insight1.wav",
-    "sound/weapons/sfsniper_zoom.wav",
-    "sound/weapons/sfsword_draw.wav",
-    "sound/weapons/sfsword_hit1.wav",
-    "sound/weapons/sfsword_hit2.wav",
-    "sound/weapons/sfsword_idle.wav",
-    "sound/weapons/sfsword_midslash1.wav",
-    "sound/weapons/sfsword_midslash2.wav",
-    "sound/weapons/sfsword_midslash3.wav",
-    "sound/weapons/sfsword_off.wav",
-    "sound/weapons/sfsword_off_hit.wav",
-    "sound/weapons/sfsword_off_slash1.wav",
-    "sound/weapons/sfsword_on.wav",
-    "sound/weapons/sfsword_stab.wav",
-    "sound/weapons/sfsword_wall1.wav",
-    "sound/weapons/sfsword_wall2.wav",
-    "sound/weapons/slideback1.wav",
-    "sound/weapons/sniper_boltback.wav",
-    "sound/weapons/sniper_boltdown.wav",
-    "sound/weapons/sniper_boltforward.wav",
-    "sound/weapons/sniper_boltup.wav",
-    "sound/weapons/sniper_deploy.wav",
-    "sound/weapons/sniper_magin.wav",
-    "sound/weapons/sniper_magout.wav",
-    "sound/weapons/sniper_slidestop.wav",
-    "sound/weapons/tomahawk_draw.wav",
-    "sound/weapons/tomahawk_slash1.wav",
-    "sound/weapons/tomahawk_slash1_hit.wav",
-    "sound/weapons/tomahawk_slash2.wav",
-    "sound/weapons/tomahawk_slash2_hit.wav",
-    "sound/weapons/tomahawk_stab_hit.wav",
-    "sound/weapons/tomahawk_stab_miss.wav",
-    "sound/weapons/tomahawk_wall.wav",
-    "sound/weapons/wrench_deploy.wav",
-    "sound/weapons/wrench_hit.wav",
-    "sound/weapons/wrench_hitwall.wav",
-    "sound/weapons/wrench_slash.wav",
-    "sound/weapons/wrench_stab.wav",
-    "sprites/flame_puff01.spr",
-    "sprites/vex_community/bow/640hud12_2.spr",
-    "sprites/vex_community/bow/640hud98_2.spr",
-    "sprites/vex_community/ethereal/640hud74_2.spr",
-    "sprites/vex_community/ethereal/640hud7_2.spr",
-    "sprites/vex_community/ethereal/muzzleflash7.spr",
-    "sprites/vex_community/janus7/640hud12_2.spr",
-    "sprites/vex_community/janus7/640hud7_2.spr",
-    "sprites/vex_community/janus7/640hud99_2.spr",
-    "sprites/vex_community/plasma/640hud3_2.spr",
-    "sprites/vex_community/plasma/640hud91_2.spr",
-    "sprites/vex_community/plasma/muzzleflash27.spr",
-    "sprites/vex_community/plasma/plasmaball.spr",
-    "sprites/vex_community/plasma/plasmabomb.spr",
-    "sprites/vex_community/salamander/640hud59_2.spr",
-    "sprites/vex_community/salamander/640hud60_2.spr",
-    "sprites/vex_community/salamander/640hud7_2.spr",
-    "sprites/vex_community/salamander/flame_burn01.spr",
-    "sprites/vex_community/salamander/flame_puff01.spr",
-    "sprites/vex_community/thunderbolt/640hud10_2.spr",
-    "sprites/vex_community/thunderbolt/640hud2_2.spr",
-    "sprites/vex_community/thunderbolt/640hud81_2.spr",
-    "sprites/weapon_bow.txt",
-    "sprites/weapon_ethereal.txt",
-    "sprites/weapon_flamethrower.txt",
-    "sprites/weapon_janus7.txt",
-    "sprites/weapon_plasmagun.txt",
-    "sprites/weapon_sfsniperF.txt"
-};
+// v4.1 asset guard (per plugin, never global).
+//
+// v4.0.2 checked ~300 files of the WHOLE package in every plugin and called set_fail_state() when a
+// single one was missing (stock Half-Life files such as sound/fvox/*.wav included, which live in
+// valve/ and were not even found because file_exists() ran without the Valve file system). One
+// missing file disabled the main plugin and all 12 item plugins at once -> every purchase said
+// "you can't buy this right now".
+//
+// Now every plugin precaches through these helpers:
+//   VexPcModel()   - model / sprite. Missing or damaged (bad header) -> skipped + logged.
+//                    A missing .mdl marks THIS plugin incomplete (VexAssetInit() disables only it,
+//                    with the file name in the reason: amxx plugins / vex_diagnose show it).
+//                    A missing .spr (HUD/effect sprite) is not fatal: the effect is just not drawn.
+//   VexPcSound()   - sound (path without "sound/"). Missing -> skipped + logged (never fatal).
+//   VexPcGeneric() - download-only file. Missing -> skipped + logged (never fatal).
+// All checks use the Valve file system (cstrike, cstrike_downloads, valve, *.pak).
 
-stock bool:VexAssetGuard()
+new g_szVexMissing[128], g_iVexMissing;
+new Trie:g_tVexPc = Invalid_Trie;
+
+stock bool:VexAssetGuard() { return true; }   // kept for older call sites (no global check any more)
+
+stock bool:VexAssetExists(const path[])
 {
-    new missing, first[128];
-    for(new i;i<sizeof VEX_REQUIRED_ASSETS;i++)
-    {
-        if(!VexAssetValid(VEX_REQUIRED_ASSETS[i]))
-        {
-            if(!missing) copy(first,charsmax(first),VEX_REQUIRED_ASSETS[i]);
-            if(missing<8) log_amx("[VexAsset] MISSING_OR_BAD_HEADER: %s",VEX_REQUIRED_ASSETS[i]);
-            missing++;
-        }
-    }
-    if(missing)
-    {
-        new error[192];
-        formatex(error,charsmax(error),"Missing or damaged %d package files; first: %s. Upload the complete cstrike tree.",missing,first);
-        set_fail_state(error);
-        return false;
-    }
-    return true;
+    return file_exists(path, true) ? true : false;
 }
 
 stock bool:VexAssetValid(const path[])
 {
-    if(!file_exists(path) || file_size(path)<4) return false;
+    if (!VexAssetExists(path)) return false;
     new expected;
-    if(containi(path,".mdl")!=-1) expected=0x54534449; // IDST
-    else if(containi(path,".spr")!=-1) expected=0x50534449; // IDSP
-    else if(containi(path,".wav")!=-1) expected=0x46464952; // RIFF
+    if (containi(path, ".mdl") != -1) expected = 0x54534449;      // IDST
+    else if (containi(path, ".spr") != -1) expected = 0x50534449; // IDSP
+    else if (containi(path, ".wav") != -1) expected = 0x46464952; // RIFF
     else return true;
-    new fp=fopen(path,"rb"); if(!fp) return false;
-    new magic, length; fread(fp,magic,BLOCK_INT);
-    if(magic!=expected) { fclose(fp); return false; }
-    if(expected==0x54534449)
+    new fp = fopen(path, "rb", true);
+    if (!fp) return true;   // exists but the FS refused to open it here: let the engine decide
+    new magic;
+    fread(fp, magic, BLOCK_INT);
+    fclose(fp);
+    return magic == expected;
+}
+
+stock bool:VexPrecached(const path[])
+{
+    return g_tVexPc != Invalid_Trie && TrieKeyExists(g_tVexPc, path);
+}
+
+stock VexPcMark(const path[])
+{
+    if (g_tVexPc == Invalid_Trie) g_tVexPc = TrieCreate();
+    TrieSetCell(g_tVexPc, path, 1);
+}
+
+stock VexPcModel(const path[])
+{
+    if (!path[0]) return 0;
+    if (!VexAssetValid(path))
     {
-        fseek(fp,72,SEEK_SET); fread(fp,length,BLOCK_INT);
-        if(length<244 || length>file_size(path)) { fclose(fp); return false; }
+        new bool:fatal = containi(path, ".mdl") != -1;
+        log_amx("[VexAsset] %s: %s%s", VexAssetExists(path) ? "DAMAGED (bad header, re-upload in binary mode)" : "MISSING",
+            path, fatal ? "" : " (effect only, not fatal)");
+        if (fatal)
+        {
+            if (!g_iVexMissing) copy(g_szVexMissing, charsmax(g_szVexMissing), path);
+            g_iVexMissing++;
+        }
+        return 0;
     }
-    fclose(fp); return true;
+    VexPcMark(path);
+    return precache_model(path);
+}
+
+stock VexPcSound(const path[])
+{
+    if (!path[0]) return 0;
+    new full[160];
+    formatex(full, charsmax(full), "sound/%s", path);
+    if (!VexAssetValid(full))
+    {
+        log_amx("[VexAsset] MISSING sound (skipped, not fatal): %s", full);
+        return 0;
+    }
+    return precache_sound(path);
+}
+
+stock VexPcGeneric(const path[])
+{
+    if (!path[0]) return 0;
+    if (!VexAssetExists(path))
+    {
+        log_amx("[VexAsset] MISSING download file (skipped, not fatal): %s", path);
+        return 0;
+    }
+    VexPcMark(path);
+    return precache_generic(path);
+}
+
+// Call FIRST in plugin_init(): a plugin whose own models are missing disables itself (only itself),
+// before it registers hooks that would set an unprecached model (= server crash).
+stock VexAssetInit()
+{
+    if (!g_iVexMissing) return;
+    new error[192];
+    formatex(error, charsmax(error), "%d model(s) missing or damaged, first: %s - upload it (binary) to cstrike/", g_iVexMissing, g_szVexMissing);
+    set_fail_state(error);
 }

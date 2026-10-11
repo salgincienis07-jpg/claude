@@ -91,6 +91,7 @@ new g_Old_Weapon[33], g_Ham_Bot, g_MaxPlayers
 
 public plugin_init()
 {
+    VexAssetInit();
     vex_register_component(7);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -110,12 +111,11 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard()) return;
-	engfunc(EngFunc_PrecacheModel, V_MODEL)
-	engfunc(EngFunc_PrecacheModel, P_MODEL)
+	VexPcModel(V_MODEL)
+	VexPcModel(P_MODEL)
 	
 	for(new i = 0; i < sizeof(DragonSword_Sound); i++)
-		engfunc(EngFunc_PrecacheSound, DragonSword_Sound[i])
+		VexPcSound(DragonSword_Sound[i])
 }
 
 public get_dragonsword(id)
