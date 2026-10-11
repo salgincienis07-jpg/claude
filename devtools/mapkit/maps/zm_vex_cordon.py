@@ -879,6 +879,16 @@ def dress(b):
 
     # ------------------------------------------------------------ P Liberation Plaza (boss arena)
     D(prism((0, -64), 28, 8, 96, 304, CONC))                                      # memorial column
+    # v3.7 fountain: a 64-wide basin round the monument plinth (rim 16 high = one step, water 10 deep);
+    # the jets / falling water are the plugin's additive studio model cd_fountain.mdl, splash loop below
+    bx0, by0, bx1, by1 = -160 - 64, -224 - 64, 160 + 64, 96 + 64
+    for mn, mx in (((bx0 - 12, by0 - 12), (bx1 + 12, by0)), ((bx0 - 12, by1), (bx1 + 12, by1 + 12)),
+                   ((bx0 - 12, by0), (bx0, by1)), ((bx1, by0), (bx1 + 12, by1))):
+        D(P((mn[0], mn[1], 0), (mx[0], mx[1], 16), CONC))                           # basin rim (coping)
+    for r in rect_minus((bx0, by0, bx1, by1), [(-160, -224, 160, 96)]):
+        W(box((r[0], r[1], 0), (r[2], r[3], 10), {'top': WATER, 'all': WATER}))    # basin water
+    L((0, 0, 40), (120, 170, 255), 70)                                               # underwater glow
+    AMB((0, -64, 60), 'cd_fountain.wav', 5, 'medium')
     D(P((-48, -112, 304), (48, -16, 336), CONC, hide=()))
     D(P((-704, -656, 0), (-384, -560, 112), RUST))                                 # burnt-out bus
     DEC((-544, -608, 1), '{scorch2')
@@ -1494,7 +1504,7 @@ def fun(b):
                     (-300, -950, 0), (-256, -1190, 0), (-256, -1540, -128), (-256, -1720, -128), (640, -1712, -128)], C2))
     D(route_arrows([(820, -1800, -128), (820, -2050, -128), (1600, -2050, -128), (1600, -1600, -128),
                     (2368, -1600, -128), (2368, -1150, -128), (2368, -780, 0), (2368, -150, 0), (2330, -40, 0)], C3))
-    D(route_arrows([(0, -300, 0), (700, -60, 0), (1000, -50, 0)], C3))           # plaza -> roof updraft
+    D(route_arrows([(260, -300, 0), (700, -60, 0), (1000, -50, 0)], C3))         # plaza -> roof updraft (clear of the fountain)
     # district / warning signs (bilingual)
     for args in (('s', 2560, -2200, 330, 0), ('w', 1088, 1700, 260, 1), ('w', 2560, 100, 250, 2),
                  ('s', 2240, -1700, 150, 3), ('e', -1776, -2112, 110, 4), ('n', -1152, 0, 160, 5),
@@ -1505,13 +1515,12 @@ def fun(b):
     D(wall_plate('w', -1984, 1432, 1624, 60, 252, '~vx_board2', depth=2))
     L_b = light((-2040, 1624, 160), (220, 225, 255), 120)
     ents.append(L_b)
-    # landmark: Vexmira hero statue on the memorial column + VEXMIRA banners on the plaza facades
-    for mn, mx in (((-14, -78, 336), (14, -50, 392)), ((-20, -82, 392), (20, -46, 440)),          # legs, torso
-                   ((-10, -74, 440), (10, -54, 462)), ((20, -70, 420), (60, -60, 432)),           # head, arm
-                   ((56, -72, 432), (64, -58, 520)), ((-40, -70, 404), (-20, -60, 436))):        # raised torch, arm
-        D(box(mn, mx, {'bottom': NULL, 'all': 'vx_metal_dark'}))
-    D(box((54, -74, 520), (66, -56, 532), {'all': '~vx_light_y'}))
-    ents.append(light((60, -65, 560), (255, 200, 120), 160))
+    # landmark: the bronze hero statue on the memorial column is a studio model since v3.7
+    # (models/vexmira/world/cd_statue.mdl, spawned by the plugin from the ini [models]); warm key light on it
+    # from the torch side + a cool rim light, so the cap it samples is lit and the bronze reads at night
+    ents.append(light((60, -40, 560), (255, 200, 120), 170))
+    ents.append(light((-120, -160, 420), (150, 180, 255), 90))
+    # VEXMIRA banners on the plaza facades
     for args in (('s', 1024, -800, 280, 440), ('e', -1152, -900, 280, 440)):
         face, line, a, z0, z1 = args
         D(wall_plate(face, line, a - 64, a + 64, z0, z1, 'vx_sign_vex', depth=2))
@@ -2153,6 +2162,21 @@ def make_sounds(out=SOUND_DIR):
     x = np.tanh(x * 1.8) * (0.45 + 0.55 * prof)
     made.append(('cd_siren.wav', _write_loop(os.path.join(out, 'cd_siren.wav'), _creverb(x, sr, rng, 1.6, 0.35), sr)))
     # (v3.7: cd_rotor removed - owner request; no helicopter engine loop any more)
+    # --- cd_fountain: fountain splash loop (v3.7): falling-water hiss + dense droplet patter + low burble (3 s)
+    sec, rng = 3.0, np.random.default_rng(7109)
+    n = int(sr * sec)
+    t = np.arange(n) / sr
+    hiss = _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 2600) / 1500) ** 2) + 0.5 * np.exp(-((fr - 900) / 500) ** 2))
+    hiss *= 0.75 + 0.25 * np.sin(2 * np.pi * (1 / 3) * t + 0.4)
+    x = hiss * 0.5
+    for k in range(260):
+        L = int(sr * rng.uniform(0.006, 0.02))
+        tt = np.arange(L) / sr
+        f0 = rng.uniform(900, 3200)
+        drop = np.sin(2 * np.pi * (f0 + 900 * tt / tt[-1]) * tt) * np.exp(-tt * rng.uniform(120, 260))
+        _place(x, drop * rng.uniform(0.15, 0.45), int(rng.uniform(0, n)))
+    burble = _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 180) / 90) ** 2)) * 0.25
+    made.append(('cd_fountain.wav', _write_loop(os.path.join(out, 'cd_fountain.wav'), _creverb(x + burble, sr, rng, 0.6, 0.2), sr)))
     # --- cd_boom: distant heavy impact one-shot (22050, no cue)
     fx.rng = np.random.default_rng(7106)
     b = fx.boom(2.8, 90, 28, 0.55, 1.0)

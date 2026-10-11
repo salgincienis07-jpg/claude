@@ -215,5 +215,263 @@ def _rot_y(a):
     return np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]])
 
 
+
+
+# ============================================================================================ hero statue
+STATUE_MATS = {
+    'st_bronze': metal((92, 100, 78), seed=1301, edge_wear=0.9, scratches=0.08, shine=0.5),
+    'st_bronze2': metal((120, 96, 60), seed=1302, scratches=0.3, shine=0.6, edge_wear=0.9),
+    'st_stone': metal((150, 146, 138), seed=1303, panels=40.0, scratches=0.1, shine=0.05, edge_wear=0.4),
+    'st_dark': metal((60, 60, 62), seed=1304, scratches=0.2, shine=0.2),
+    'st_flame': glow((255, 150, 40), (255, 240, 170)),
+    'st_plate': metal((180, 150, 70), seed=1305, scratches=0.2, shine=0.7),
+}
+STATUE_SCALE = 1.55
+
+
+def _posed_soldier():
+    """Operator body + gear posed heroically (right arm raises a flare torch, left hand on the slung rifle,
+    head up), baked to static geometry, scaled STATUE_SCALE, feet at z = 0. Returns (meshes, torch tip)."""
+    from ..rig_cs import Rig, RigSpec
+    from ..characters import assemble
+    from ..pose import Pose
+    from ..mathx import axis_angle
+    from ..samples import operator_spec
+    spec = operator_spec(quick=True)
+    rig = Rig(spec['rig'] if not isinstance(spec['rig'], dict) else RigSpec(**spec['rig']))
+    meshes, materials, decals, extra = assemble(rig, spec)
+    p = Pose(rig)
+    rad = math.radians
+    p.rotate_world('Bip01 R UpperArm', axis_angle([1, 0, 0], rad(-150)))       # arm up (right side is -Y)
+    p.rotate_world('Bip01 R UpperArm', axis_angle([0, 1, 0], rad(-15)))
+    p.rotate_world('Bip01 R Forearm', axis_angle([1, 0, 0], rad(-15)))
+    p.rotate_world('Bip01 L UpperArm', axis_angle([1, 0, 0], rad(-14)))
+    p.rotate_world('Bip01 L Forearm', axis_angle([0, 1, 0], rad(-12)))
+    p.rotate_world('Bip01 Head', axis_angle([0, 1, 0], rad(-12)))
+    p.rotate_world('Bip01 L Thigh', axis_angle([0, 1, 0], rad(-22)))           # left foot forward on a rock
+    p.rotate_world('Bip01 L Calf', axis_angle([0, 1, 0], rad(30)))
+    WR, WT = p.world()
+    M = []
+    for i in range(rig.n):
+        R = WR[i] @ rig.rest_rot_world[i].T
+        M.append((R, WT[i] - R @ rig.rest_world[i]))
+    out = []
+    zmin = 1e9
+    for m in meshes:
+        mm = m.copy()
+        v = np.array([M[b][0] @ x + M[b][1] for x, b in zip(m.v, m.bone)])
+        n = np.array([M[b][0] @ x for x, b in zip(m.n, m.bone)])
+        mm.v, mm.n = v, n
+        mm.set_bone(0)
+        mm.mat = 'st_bronze'
+        mm.name = 'statue_' + (m.name or 'part')
+        zmin = min(zmin, v[:, 2].min())
+        out.append(mm)
+    for mm in out:
+        mm.v = (mm.v - np.array([0, 0, zmin])) * STATUE_SCALE
+    # torch grip = centre of the right fist (fingers + thumb)
+    fist = [mm for mm in out if mm.name in ('statue_fingers_R', 'statue_thumb_R', 'statue_hand_R')]
+    hand = np.vstack([mm.v for mm in fist]).mean(0)
+    return out, hand
+
+
+def statue():
+    """Hero statue for the Liberation Plaza memorial column: a quarantine-force soldier in bronze raising a
+    flare torch (glowing flame), standing on a small stone plinth with a bronze plaque. Origin = top centre
+    of the column cap (the plinth base), model faces +X."""
+    body, hand = _posed_soldier()
+    # bronze cast: drop the parts a sculptor would merge into the surface (cheaper, < 150 KB)
+    drop = ('statue_goggle_strap', 'statue_ear', 'statue_helmet_rail', 'statue_helmet_mount', 'statue_buckle',
+            'statue_part')
+    body = [m for m in body if m.name not in drop]
+    P = [hull([(x, y, z) for x in (-30, 30) for y in (-30, 30) for z in (0, 6)], 'st_stone', 'plinth_base'),
+         hull([(x, y, z) for x in (-24, 24) for y in (-24, 24) for z in (6, 20)], 'st_stone', 'plinth'),
+         hull([(x, y, z) for x in (-27, 27) for y in (-27, 27) for z in (20, 24)], 'st_stone', 'plinth_cap'),
+         slab(24, 25, -14, 14, 9, 17, 'st_plate', 'plaque'),
+         hull([(-6, 6, 24), (8, 10, 24), (10, -4, 24), (-4, -8, 24), (0, 2, 30), (6, 2, 31)], 'st_bronze2', 'rock')]
+    for m in body:
+        m.translate((0, 0, 24))
+        m.detail = 0.6
+    tip = hand + np.array([0, 0, 24])
+    P.append(rod(tuple(tip + (0, 0, -10)), tuple(tip + (0, 0, 22)), 2.4, mat='st_dark', name='torch', segs=8))
+    P.append(rod(tuple(tip + (0, 0, 22)), tuple(tip + (0, 0, 26)), 3.6, mat='st_bronze2', name='torch_cup', segs=10))
+    from ..geom import ellipsoid as _e
+    P.append(_e((4.5, 4.5, 9), tuple(tip + (0, 0, 32)), segs=10, rings=6, mat='st_flame'))
+    for m in P:
+        m.detail = 0.25
+    for m in body:
+        m.detail = 0.35
+    return dict(kind='world', name='cd_statue', parts=P + body, sequences=[dict(name='idle', frames=1)],
+                materials=STATUE_MATS, tex=(256, 128), out=_out('cd_statue'), preview_area=AREA, budget=0.15e6)
+
+
+# ============================================================================================ flags
+FLAG_MATS = {
+    'fl_cloth': cloth((70, 30, 120), seed=1401, weave=0.35, dirt=0.25),
+    'fl_pole': metal((150, 152, 158), seed=1402, scratches=0.4, shine=0.6),
+    'fl_gold': metal((200, 165, 60), seed=1403, scratches=0.2, shine=0.8),
+    'fl_dark': metal((40, 42, 46), seed=1404),
+}
+FLAG_N, FLAG_W, FLAG_H, FLAG_TOP = 7, 16.0, 72.0, 282.0
+
+
+def flag():
+    """Vexmira flag on a 290-unit pole (origin = pole foot). Cloth = 7 rigid strips on a bone chain along +X
+    (each strip starts at its bone pivot, so the cloth stays continuous), sequence 'wave' (looped, 1.6 s):
+    a travelling wave with growing amplitude toward the free edge + flutter. Purple cloth, white Vexmira
+    emblem on both sides, cyan hem."""
+    P = [rod((0, 0, 0), (0, 0, 292), 2.2, mat='fl_pole', name='pole', segs=8),
+         rod((0, 0, 0), (0, 0, 10), 6, mat='fl_dark', name='base', segs=8),
+         rod((0, 0, 292), (0, 0, 296), 3.4, mat='fl_gold', name='finial_ring', segs=8)]
+    from ..geom import ellipsoid as _e
+    P.append(_e((3.4, 3.4, 5), (0, 0, 300), segs=8, rings=5, mat='fl_gold'))
+    for z in (FLAG_TOP, FLAG_TOP - FLAG_H):
+        P.append(rod((0, 0, z), (3, 0, z), 1.2, mat='fl_dark', name='clip', segs=6))
+    bones = [Bone('root')]
+    cloth_parts = []
+    for k in range(FLAG_N):
+        nm = 'f%d' % k
+        bones.append(Bone(nm, 'root' if k == 0 else 'f%d' % (k - 1), (2 + k * FLAG_W, 0, FLAG_TOP)))
+        st = bx((FLAG_W, 0.7, FLAG_H), (2 + (k + 0.5) * FLAG_W, 0, FLAG_TOP - FLAG_H / 2), 'fl_cloth', 'cloth%d' % k, 0.0)
+        st.detail = 1.0
+        cloth_parts += on(nm, st)
+
+    def wave(t):
+        out = {}
+        for k in range(FLAG_N):
+            a = (5 + 3.2 * k) * math.sin(2 * math.pi * t - 0.85 * k)
+            r = 3.0 * math.sin(4 * math.pi * t - 1.3 * k)
+            out['f%d' % k] = dict(rot=(a * (0.55 if k else 0.4), 0, r))
+        return out
+    for m in P:
+        m.detail = 0.2
+    cx = 2 + FLAG_N * FLAG_W / 2
+    dec = [dict(kind='shape', shape='vex', center=(cx, 0, FLAG_TOP - FLAG_H / 2 + 2), u=(1, 0, 0), v=(0, 0, 1), size=24,
+                color=(235, 235, 245), depth=3, soft=0.35),
+           dict(kind='band', normal=(0, 0, 1), offset=FLAG_TOP - FLAG_H + 4, width=6, color=(0, 220, 255), soft=0.4,
+                target='fl_cloth'),
+           dict(kind='band', normal=(0, 0, 1), offset=FLAG_TOP - 4, width=6, color=(0, 220, 255), soft=0.4,
+                target='fl_cloth')]
+    return dict(kind='world', name='cd_flag', parts=P + cloth_parts, bones=bones,
+                sequences=[dict(name='wave', frames=25, fps=15, loop=True, pose=wave)],
+                materials=FLAG_MATS, decals=dec, tex=(256, 128), out=_out('cd_flag'), preview_area=AREA, budget=0.06e6)
+
+
+# ============================================================================================ string lights
+BULB_COLS = [(255, 40, 40), (40, 255, 80), (60, 120, 255), (255, 210, 40), (200, 60, 255), (255, 120, 20)]
+LIGHT_MATS = {'li_wire': metal((25, 25, 27), seed=1501, scratches=0.0, shine=0.1),
+              'li_sock': metal((40, 40, 42), seed=1502),
+              'li_halo': {'type': 'flat', 'color': (0, 0, 0)}}
+for _i, _c in enumerate(BULB_COLS):
+    LIGHT_MATS['li_b%d' % _i] = glow(_c, tuple(min(255, int(v * 0.5 + 140)) for v in _c))
+
+
+def _catenary(n, L, sag):
+    return [(L * i / n, 0.0, -sag * (1 - (2.0 * i / n - 1) ** 2)) for i in range(n + 1)]
+
+
+def string_lights():
+    """String of 12 coloured bulbs on a sagging wire, LIGHTS_LEN long along +X (origin = left anchor,
+    sag 26). Bodygroup 'part': 0 = wire + sockets + bulbs (normal render), 1 = soft glow halos (black
+    background: spawn a 2nd entity with body 1, rendermode additive + renderfx strobe = blinking)."""
+    pts = _catenary(16, LIGHTS_LEN, 26)
+    wire = [tube(pts, 0.45, segs=4, mat='li_wire', cap_start=False, cap_end=False, name='wire')]
+    bulbs, halos, decs = [], [], []
+    nb = 12
+    from ..geom import ellipsoid as _e
+    for i in range(nb):
+        x = LIGHTS_LEN * (i + 0.5) / nb
+        z = -26 * (1 - (2.0 * x / LIGHTS_LEN - 1) ** 2)
+        c = i % len(BULB_COLS)
+        wire.append(rod((x, 0, z - 0.4), (x, 0, z - 3.0), 1.1, mat='li_sock', name='sock', segs=6))
+        bulbs.append(_e((1.7, 1.7, 2.4), (x, 0, z - 5.2), segs=6, rings=4, mat='li_b%d' % c))
+        h = bx((12, 0.2, 12), (x, 0, z - 5.2), 'li_halo', 'halo', 0.0)
+        h.detail = 1.4
+        halos.append(h)
+        decs.append(dict(kind='sphere', center=(x, 0, z - 5.2), radius=5.6, soft=1.0, color=BULB_COLS[c], mode='add',
+                         target='li_halo'))
+    for m in wire + bulbs:
+        m.detail = 0.25
+    return dict(kind='world', name='cd_lights', parts=wire, bodygroups=[('part', [bulbs, halos])],
+                sequences=[dict(name='idle', frames=1)], materials=LIGHT_MATS, decals=decs, tex=(256, 128),
+                out=_out('cd_lights'), preview_area=AREA, budget=0.07e6)
+
+
+# ============================================================================================ fountain water
+WATER_MATS = {'wa_jet': glow((120, 190, 255), (235, 250, 255), freq=0.6),
+              'wa_foam': glow((170, 210, 240), (255, 255, 255), freq=1.2)}
+FOUNTAIN_HALF = 160.0      # plinth half size around the fountain origin (map: plinth -160..160 x -224..96)
+FOUNTAIN_SPOUT_Z = 74.0
+FOUNTAIN_WATER_Z = 12.0
+
+
+def _jet(p0, n, reach=52.0, peak=18.0):
+    p0 = np.asarray(p0, float); n = np.asarray(n, float)
+    def at(s):
+        return p0 + n * reach * s + np.array([0, 0, 4 * peak * s * (1 - s) - (p0[2] - FOUNTAIN_WATER_Z) * s * s])
+    def tan(s):
+        d = n * reach + np.array([0, 0, 4 * peak * (1 - 2 * s) - 2 * (p0[2] - FOUNTAIN_WATER_Z) * s])
+        return d / np.linalg.norm(d)
+    return at, tan
+
+
+def _align(z_to):
+    """Rotation taking +Z to the direction z_to."""
+    z = np.array([0, 0, 1.0]); a = np.asarray(z_to, float)
+    v = np.cross(z, a); c = float(np.dot(z, a))
+    if np.linalg.norm(v) < 1e-9:
+        return np.eye(3)
+    vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    return np.eye(3) + vx + vx @ vx * (1.0 / (1.0 + c))
+
+
+def fountain_water():
+    """Water of the Liberation Plaza fountain (render it additive): 8 arcing jets from spouts on the four
+    sides of the monument plinth (2 per side, z 74) into the basin (water z 12); each jet = a chain of stretched
+    droplets (8 per jet) on their own bones that slide along the parabola (sequence 'flow', looped 0.8 s: every drop
+    takes the next one's place = continuous stream), plus foam rings that pulse where the jets land.
+    Origin = plinth centre at floor level."""
+    N = 8
+    bones = [Bone('root')]
+    parts = []
+    jets = []
+    h = FOUNTAIN_HALF
+    for side, n in enumerate(((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0))):
+        for off in (-80, 80):
+            t = np.array((-n[1], n[0], 0))
+            p0 = np.array(n) * (h + 3) + t * off + np.array([0, 0, FOUNTAIN_SPOUT_Z])
+            jets.append(_jet(p0, n))
+    from ..geom import ellipsoid as _e, lathe as _lathe
+    for j, (at, tan) in enumerate(jets):
+        for k in range(N):
+            s0 = k / N
+            nm = 'j%d_%d' % (j, k)
+            c = at(s0)
+            bones.append(Bone(nm, 'root', tuple(c)))
+            m = _e((2.3, 2.3, 7.0), (0, 0, 0), segs=5, rings=3, mat='wa_jet')
+            m.transform(R=_align(tan(s0)), t=c)
+            m.detail = 0.15
+            parts += on(nm, m)
+        # foam ring where the jet lands
+        land = at(1.0)
+        nm = 'f%d' % j
+        bones.append(Bone(nm, 'root', tuple(land)))
+        ring = _lathe([(0, 9), (1.5, 6), (0.5, 3)], axis_start=tuple(land), segs=10, mat='wa_foam', name='foam')
+        ring.detail = 0.1
+        parts += on(nm, ring)
+
+    def flow(t):
+        out = {}
+        for j, (at, tan) in enumerate(jets):
+            for k in range(N):
+                s0, s1 = k / N, (k + t) / N
+                out['j%d_%d' % (j, k)] = dict(pos=tuple(at(s1) - at(s0)), R=_align(tan(s1)) @ _align(tan(s0)).T)
+            out['f%d' % j] = dict(pos=(0, 0, 1.2 * math.sin(2 * math.pi * (t + j * 0.13))))
+        return out
+    return dict(kind='world', name='cd_fountain', parts=parts, bones=bones,
+                sequences=[dict(name='flow', frames=9, fps=10, loop=True, pose=flow)],
+                materials=WATER_MATS, tex=(128, 128), out=_out('cd_fountain'), preview_area=AREA, budget=0.12e6)
+
+
 def all():   # noqa: A001
-    return [heli()]
+    return [heli(), statue(), flag(), string_lights(), fountain_water()]
