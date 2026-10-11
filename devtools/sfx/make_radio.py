@@ -1,4 +1,4 @@
-"""Radio dialogue for zm_vexmire_cordon (owner feedback 2026-10-10, item 5).
+"""Radio dialogue for zm_vexmira_7door (owner feedback 2026-10-10, item 5).
 
     cd devtools && python3 sfx/make_radio.py [--only KEY,..] [--no-ini]
 
@@ -8,7 +8,7 @@ open click, 300-3400 Hz band, compression, light distortion, static bed with cra
 Output: cstrike/sound/vexmira/radio/cd_<key>_en.wav / _tr.wav, mono 22050 Hz 8-bit, ~2-4 s.
 The plugin plays them with "spk" (precache_generic download, no sound precache slot) and prints the
 line as a chat subtitle in the player's language. The [radio] / [chatter] sections of
-configs/vexmira_maps/zm_vexmire_cordon.ini are rewritten from this table (other sections untouched).
+configs/vexmira_maps/zm_vexmira_7door.ini are rewritten from this table (other sections untouched).
 """
 import argparse
 import os
@@ -23,7 +23,7 @@ from scipy import signal
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
 OUT = os.path.join(REPO, 'cstrike', 'sound', 'vexmira', 'radio')
-INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', 'zm_vexmire_cordon.ini')
+INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', 'zm_vexmira_7door.ini')
 SR = 22050
 
 # channel: (EN speaker, TR speaker, EN voice, TR voice, intro tone pattern)

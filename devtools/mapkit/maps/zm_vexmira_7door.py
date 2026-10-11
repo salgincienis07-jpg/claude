@@ -1,7 +1,7 @@
-"""zm_vexmire_cordon - "Cordon 7": a night harbor district of Vexmira sealed behind a military
-quarantine wall (flagship map). Build spec: maps/zm_vexmire_cordon_SPEC.md (binding).
+"""zm_vexmira_7door - "Cordon 7": a night harbor district of Vexmira sealed behind a military
+quarantine wall (flagship map). Build spec: maps/zm_vexmira_7door_SPEC.md (binding).
 
-    cd devtools && python3 -m mapkit.maps.zm_vexmire_cordon [--quality draft|normal|final] [--preview DIR]
+    cd devtools && python3 -m mapkit.maps.zm_vexmira_7door [--quality draft|normal|final] [--preview DIR]
                                                         [--mock] [--dry]
 
 STAGE 1 + 2 (this file so far): blockout + VIS + spawns; detail, textures, lighting, sprites, ambience, sounds
@@ -44,7 +44,7 @@ from ..mapwriter import (CLIP, NULL, Brush, Entity, Map, ambient, box, crate, do
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vexmire_cordon'
+NAME = 'zm_vexmira_7door'
 
 T = 16
 INF = 100000
@@ -174,7 +174,8 @@ class Zone:
 
 class Builder:
     def __init__(self, mock=False):
-        self.m = Map(NAME + ('_mock' if mock else ''), sky='vexmira_night', tex_scale=TEX_SCALE)
+        self.m = Map(NAME + ('_mock' if mock else ''), sky='vexmira_night', tex_scale=TEX_SCALE,
+                     message='Vexmira 7 Door - Cordon 7 Harbor Quarantine')
         self.mock = mock
         self.det = []          # func_detail
         self.zones = {}
@@ -1453,7 +1454,7 @@ def fun(b):
     # it (basevelocity.z * frametime) and is lost while standing on the ground, so every pad is a JUMP pad
     # (signs: ZIPLA! / JUMP!); the horizontal part is a conveyor + exit momentum. Arcs verified with a
     # frame-step simulation of that model (gravity 800, jump 268 u/s, entry speed 0 and 250) and on the
-    # test server (vexprobe): see zm_vexmire_cordon_TEST.md.
+    # test server (vexprobe): see zm_vexmira_7door_TEST.md.
     # S1 Liberation Plaza -> Customs Tower roof: a vertical updraft against the tower facade right under the
     # medevac air window (shared G_UP field, H 200 -> apex ~+780); hold forward: you slide up the wall,
     # pass the parapet (640) and drop ~200 onto the roof (no fall damage)

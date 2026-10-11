@@ -1,4 +1,4 @@
-zm_vexmire_cordon
+zm_vexmira_7door
 zm_vex_laboratory
 zm_vex_harbor
 zm_vex_ruins

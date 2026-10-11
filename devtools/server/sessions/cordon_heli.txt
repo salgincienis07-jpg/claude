@@ -1,4 +1,4 @@
-# zm_vex_cordon SP3 (beacon + medevac helicopter) two-round probe; game time runs slower than wall time on a loaded box
+# zm_vexmira_7door SP3 (beacon + medevac helicopter) two-round probe; game time runs slower than wall time on a loaded box
 2 mp_roundtime 9
 2 mp_freezetime 0
 5 vexprobe_ents @cd_heli*

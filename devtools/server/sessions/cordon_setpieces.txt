@@ -1,4 +1,4 @@
-# zm_vex_cordon set-piece + round-reset probe (stage 3): two rounds, every set piece, state after vex_round_start
+# zm_vexmira_7door set-piece + round-reset probe (stage 3): two rounds, every set piece, state after vex_round_start
 2 mp_roundtime 9
 2 vex_map_debug 2
 5 vexprobe_ents @cd_*

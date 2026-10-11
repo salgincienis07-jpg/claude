@@ -4840,7 +4840,7 @@ PickSky()
         return;
 
     // Haritanin kendine ozel (stok olmayan) gokyuzu varsa ona dokunma: worldspawn skyname,
-    // plugin_precache aninda sv_skyname'e yazilmis olur (orn. zm_vexmire_cordon -> vexmira_night).
+    // plugin_precache aninda sv_skyname'e yazilmis olur (orn. zm_vexmira_7door -> vexmira_night).
     new own[32];
     get_cvar_string("sv_skyname", own, charsmax(own));
     if (own[0] && !IsStockSky(own) && SkyExists(own))
@@ -27516,7 +27516,7 @@ MapVoteInit()
     g_pCosPreview     = register_cvar("vex_cos_preview", "10");     // v3.5 vitrin suresi (sn), 0 = kapali
     g_pCosDeal        = register_cvar("vex_cos_daily_deal", "25");  // v3.5 gunun firsati indirimi (yuzde), 0 = kapali
     g_pCosHide        = register_cvar("vex_cos_hide", "1");         // v3.5 /kozmetik: digerlerininkini gizle secenegi
-    g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmire_cordon zm_vex_laboratory");
+    g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_7door zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
     g_pMapVoteExtend  = register_cvar("vex_map_vote_extend", "0");
