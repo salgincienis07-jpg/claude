@@ -1833,17 +1833,19 @@ def build(mock=False, mock_scale=1.0) -> Map:
     Z('Km', [(2176, -304, 2560, 624)], 0, 704, ASPH, BRICK, rl=448, rls=[(X, 2176, -INF, INF, 640)],
       holes=[arch(624), arch(-304),
              (X, 2176, 48, 144, 192, 304),               # fire-escape balcony door into T1
-             (X, 2176, 32, 96, 576, 704)], out=kw)       # roof hatch (parapet) into T3
+             ], out=kw)    # (v3.7: the roof hatch into T3 is closed - bots got stuck on its ladder top, 2161 63 612)
     Z('Ks', [(2176, -1072, 2560, -336)], -128, 704, ASPH, BRICK, rl=448, rls=[(X, 2176, -INF, INF, 640)],
       holes=[arch(-336), (X, 2176, -560, -400, 0, 208), sk(Y, -1072)], out=kw)
     for r in rect_minus((2176, -1072, 2560, -336), [(2176, -1072, 2560, -800)]):
         b.W(box((r[0], r[1], -128), (r[2], r[3], 0), CRACK))
     b.W(wedge((2368, -1072, -128), '+y', 384, 272, 128, ASPH))     # ramp 0 -> -128 to the terminal
-    # fire escape: balcony z 192 + ladder 1 (K floor -> balcony) + ladder 2 (balcony -> roof hatch)
+    # fire escape: balcony z 192 + ladder (K floor -> balcony) + balcony door into T1. v3.7: the second ladder
+    # (balcony -> roof hatch) and the hatch are gone: bots hung on the ladder top in the hatch for good
+    # (owner report 2161 63 612); the tower roof stays reachable by the two stair cores, the plaza updraft
+    # and (zombies) the roof geyser.
     b.W(box((2176, 0, 176), (2272, 192, 192), MDARK))
     b.W(box((2256, 64, 0), (2272, 128, 176), MDARK))
     b.ladder('K', (2272, 96, 0), '-x', 196)
-    b.ladder('K', (2176, 64, 192), '-x', 432)       # top 48 above the hatch sill: grab it from the doorway (bots)
 
     # ---------------------------------------------------------------- stair lane + fish market
     Z('n', [(-3200, -1072, -2944, -656)], -128, 512, CRACK, FAC, rl=256,

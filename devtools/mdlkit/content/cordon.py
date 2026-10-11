@@ -403,6 +403,9 @@ WATER_MATS = {'wa_jet': glow((120, 190, 255), (235, 250, 255), freq=0.6),
 FOUNTAIN_HALF = 160.0      # plinth half size around the fountain origin (map: plinth -160..160 x -224..96)
 FOUNTAIN_SPOUT_Z = 74.0
 FOUNTAIN_WATER_Z = 12.0
+# The entity origin must sit in open air (studio lighting is sampled at the origin; inside the plinth the
+# additive jets would be lit black = invisible): origin = plinth centre + FOUNTAIN_ORIGIN (above the basin)
+FOUNTAIN_ORIGIN = np.array([192.0, 0.0, 40.0])
 
 
 def _jet(p0, n, reach=52.0, peak=18.0):
@@ -430,7 +433,7 @@ def fountain_water():
     sides of the monument plinth (2 per side, z 74) into the basin (water z 12); each jet = a chain of stretched
     droplets (8 per jet) on their own bones that slide along the parabola (sequence 'flow', looped 0.8 s: every drop
     takes the next one's place = continuous stream), plus foam rings that pulse where the jets land.
-    Origin = plinth centre at floor level."""
+    Origin = plinth centre at floor level + FOUNTAIN_ORIGIN."""
     N = 8
     bones = [Bone('root')]
     parts = []
@@ -459,6 +462,11 @@ def fountain_water():
         ring = _lathe([(0, 9), (1.5, 6), (0.5, 3)], axis_start=tuple(land), segs=10, mat='wa_foam', name='foam')
         ring.detail = 0.1
         parts += on(nm, ring)
+
+    for m in parts:
+        m.translate(tuple(-FOUNTAIN_ORIGIN))
+    for b_ in bones[1:]:
+        b_['pos'] = tuple(np.asarray(b_['pos']) - FOUNTAIN_ORIGIN)
 
     def flow(t):
         out = {}
