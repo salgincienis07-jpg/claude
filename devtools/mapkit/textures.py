@@ -1563,7 +1563,7 @@ def t_neon_vex(rng, w, h):
 
 
 @tex('vx_neonice', 256, 64, 'sign', light=(190, 120, 255, 380), frames=8, dither=True,
-     desc='animated VEXMIRA neon (zm_vexmira_ice): purple tubes, a cyan light pulse runs along the underline, 0.8 s loop')
+     desc='animated VEXMIRA neon (zm_vexmira_icefy): purple tubes, a cyan light pulse runs along the underline, 0.8 s loop')
 def t_neonice(rng, w, h):
     base = _neon(rng, w, h, 'VEXMIRA', (190, 90, 255), under=((0, 120, 150), 0), th=30, italic=0.18)
     th = 30

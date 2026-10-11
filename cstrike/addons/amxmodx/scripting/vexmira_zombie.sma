@@ -25845,6 +25845,7 @@ new g_iMsMsgRadio[MS_MAXMSG], g_iMeRadio[ME_NUM], g_pMsRadio, g_pMsChatter;
 new g_szMmPath[MS_MAXMODEL][64], Float:g_fMmPos[MS_MAXMODEL][4], g_szMmFollow[MS_MAXMODEL][32], g_szMmName[MS_MAXMODEL][32];
 new g_iMmSeq[MS_MAXMODEL], Float:g_fMmFr[MS_MAXMODEL], g_iMmRm[MS_MAXMODEL], g_iMmRa[MS_MAXMODEL], g_iMmFx[MS_MAXMODEL];
 new g_iMmCol[MS_MAXMODEL], g_iMmBody[MS_MAXMODEL], g_iMmSkin[MS_MAXMODEL], Float:g_fMmScale[MS_MAXMODEL], g_iMmEnt[MS_MAXMODEL], g_iMmN;
+new g_iMmTgt[MS_MAXMODEL], bool:g_bMmBrkHook;   // v3.9: izlenen varlik (func_breakable kirilinca model gizlenir)
 
 new g_szFxKey[MS_MAXFXKEY][24], g_iFxKeyN;
 new g_iFxKeyOf[MS_MAXFX], g_iFxType[MS_MAXFX], Float:g_fFxPos[MS_MAXFX][3], g_iFxEnt[MS_MAXFX], Float:g_fFxP[MS_MAXFX][6];
@@ -26542,6 +26543,7 @@ MsRoundRestart()
 
 public task_MsRoundStart()
 {
+    MsModelsReset();
     MsMkRefresh();
     MsEvent(ME_ROUND_START);
 }
@@ -26988,7 +26990,21 @@ MsModelsSpawn()
             pev(tgt, pev_origin, o);
             set_pev(e, pev_movetype, MOVETYPE_FOLLOW);
             set_pev(e, pev_aiment, tgt);
-            set_pev(e, pev_v_angle, Float:{0.0, 0.0, 0.0});
+            // v3.9: origin'i 0 olan firca varligi (ORIGIN fircasiz func_breakable): model kutunun alt ortasina
+            // oturur (MOVETYPE_FOLLOW ofseti = v_angle)
+            new Float:ofs[3], Float:mn[3], Float:mx[3];
+            if (o[0] == 0.0 && o[1] == 0.0 && o[2] == 0.0)
+            {
+                pev(tgt, pev_absmin, mn);
+                pev(tgt, pev_absmax, mx);
+                ofs[0] = (mn[0] + mx[0]) * 0.5;
+                ofs[1] = (mn[1] + mx[1]) * 0.5;
+                ofs[2] = mn[2] + 1.0;
+                o[0] = ofs[0];
+                o[1] = ofs[1];
+                o[2] = ofs[2];
+            }
+            set_pev(e, pev_v_angle, ofs);
         }
         else
         {
@@ -27018,6 +27034,36 @@ MsModelsSpawn()
             set_pev(e, pev_rendercolor, col);
         }
         g_iMmEnt[m] = e;
+        g_iMmTgt[m] = tgt;
+        // v3.9: kirilabilir bir varligi izleyen model (patlayan varil): kirilinca gizle, round basinda geri getir
+        if (tgt && !g_bMmBrkHook)
+        {
+            new cls[32];
+            pev(tgt, pev_classname, cls, charsmax(cls));
+            if (equal(cls, "func_breakable"))
+            {
+                RegisterHam(Ham_Killed, "func_breakable", "fw_MsBrkKilled", 1);
+                g_bMmBrkHook = true;
+            }
+        }
+    }
+}
+
+public fw_MsBrkKilled(ent)
+{
+    for (new m = 0; m < g_iMmN; m++)
+    {
+        if (g_iMmTgt[m] == ent && pev_valid(g_iMmEnt[m]))
+            set_pev(g_iMmEnt[m], pev_effects, pev(g_iMmEnt[m], pev_effects) | EF_NODRAW);
+    }
+}
+
+MsModelsReset()
+{
+    for (new m = 0; m < g_iMmN; m++)
+    {
+        if (g_iMmTgt[m] && pev_valid(g_iMmEnt[m]))
+            set_pev(g_iMmEnt[m], pev_effects, pev(g_iMmEnt[m], pev_effects) & ~EF_NODRAW);
     }
 }
 
@@ -27642,7 +27688,7 @@ MapVoteInit()
     g_pCosPreview     = register_cvar("vex_cos_preview", "10");     // v3.5 vitrin suresi (sn), 0 = kapali
     g_pCosDeal        = register_cvar("vex_cos_daily_deal", "25");  // v3.5 gunun firsati indirimi (yuzde), 0 = kapali
     g_pCosHide        = register_cvar("vex_cos_hide", "1");         // v3.5 /kozmetik: digerlerininkini gizle secenegi
-    g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_ice zm_vexmira_7door zm_vex_laboratory");
+    g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_icefy zm_vexmira_7door zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
     g_pMapVoteExtend  = register_cvar("vex_map_vote_extend", "0");

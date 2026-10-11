@@ -1,18 +1,27 @@
-// zm_vexmira_ice custom resources (textures are embedded)
+// zm_vexmira_icefy custom resources (textures are embedded)
+gfx/env/vexmira_frostbk.tga
+gfx/env/vexmira_frostdn.tga
+gfx/env/vexmira_frostft.tga
+gfx/env/vexmira_frostlf.tga
+gfx/env/vexmira_frostrt.tga
+gfx/env/vexmira_frostup.tga
 sound/vexmira/map/ice_alarm.wav
+sound/vexmira/map/ice_bell.wav
 sound/vexmira/map/ice_fire.wav
 sound/vexmira/map/ice_wind.wav
 sprites/vexmira/fire.spr
 models/vexmira/ice/ice_truck.mdl
 models/vexmira/ice/ice_jeep.mdl
+models/vexmira/ice/ice_cratem.mdl
 models/vexmira/ice/ice_sled.mdl
 models/vexmira/ice/ice_tank.mdl
 models/vexmira/ice/ice_generator.mdl
+models/vexmira/ice/ice_barrel.mdl
 models/vexmira/ice/ice_radar.mdl
 models/vexmira/ice/ice_antenna.mdl
 models/vexmira/ice/ice_logs.mdl
-models/vexmira/ice/ice_barrel.mdl
 models/vexmira/ice/ice_crate.mdl
-models/vexmira/ice/ice_cratem.mdl
 models/vexmira/ice/ice_lamp.mdl
 models/vexmira/ice/ice_fence.mdl
+models/vexmira/ice/ice_snowman.mdl
+models/vexmira/ice/ice_xbarrel.mdl

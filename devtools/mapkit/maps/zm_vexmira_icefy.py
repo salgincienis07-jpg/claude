@@ -1,6 +1,6 @@
-"""zm_vexmira_ice - compact snowy courtyard camp map in the classic ice_attack style (original layout).
+"""zm_vexmira_icefy - compact snowy courtyard camp map in the classic ice_attack style (original layout).
 
-    cd devtools && python3 -m mapkit.maps.zm_vexmira_ice [--quality final] [--preview DIR]
+    cd devtools && python3 -m mapkit.maps.zm_vexmira_icefy [--quality final] [--preview DIR]
 
 Top view (Y north), floor z 0, sky lid z 576, playable x -1088..1088, y -1344..1344:
 
@@ -33,7 +33,7 @@ from ..mapwriter import (CLIP, NULL, SKY, TRIGGER, Brush, Entity, Map, ambient, 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vexmira_ice'
+NAME = 'zm_vexmira_icefy'
 INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', NAME + '.ini')
 
 X0, X1, Y0, Y1 = -1088, 1088, -1344, 1344
@@ -61,38 +61,77 @@ ORG = 'ORIGIN'
 
 TEX_SCALE = {SNOW: 2, SROCK: 2, CONC: 1.5, BUNK: 1.5, CORR: 1.5, BRICK: 1.5}
 
-# model props: (file, x, y, z, yaw, clip (dx, dy, dz) or None) - clip is axis aligned, centred on x y
+# model props: (file, x, y, z, yaw); yaw must be a multiple of 90 (prop-shaped clips are axis aligned)
 PROPS = [
-    ('ice_truck', -420, 120, 0, 0, (320, 112, 144)),
-    ('ice_truck', 600, -300, 0, 90, (112, 320, 144)),
-    ('ice_jeep', -180, 700, 0, 180, (176, 84, 72)),
-    ('ice_sled', 220, -880, 0, 60, None),
-    ('ice_tank', -620, -380, 0, 90, (88, 192, 104)),
-    ('ice_generator', -760, 330, 0, 90, (56, 96, 64)),
-    ('ice_radar', 1000, -230, 192, 0, (48, 48, 112)),
-    ('ice_antenna', 1010, 100, 192, 0, (40, 40, 360)),
-    ('ice_logs', -240, -440, 0, 0, None),
-    ('ice_barrel', 720, 700, 0, 0, (32, 32, 46)),
-    ('ice_barrel', 756, 724, 0, 40, (32, 32, 46)),
-    ('ice_barrel', 736, 668, 0, 80, (32, 32, 46)),
-    ('ice_barrel', -720, 560, 0, 10, (32, 32, 46)),
-    ('ice_barrel', 180, -400, 0, 30, (32, 32, 46)),
-    ('ice_crate', 120, 180, 0, 0, (56, 56, 56)),
-    ('ice_crate', 120, 236, 0, 90, (56, 56, 56)),
-    ('ice_crate', 120, 208, 56, 20, (56, 56, 56)),
-    ('ice_cratem', -60, -150, 0, 0, (64, 40, 36)),
-    ('ice_cratem', -60, -110, 0, 0, (64, 40, 36)),
-    ('ice_cratem', 800, 560, 0, 90, (40, 64, 36)),
-    ('ice_crate', -880, 760, 0, 15, (56, 56, 56)),
-    ('ice_crate', 880, -760, 0, 0, (56, 56, 56)),
-    ('ice_lamp', -300, -980, 0, 90, (16, 16, 176)),
-    ('ice_lamp', 300, -980, 0, 90, (16, 16, 176)),
-    ('ice_lamp', -560, 900, 0, 270, (16, 16, 176)),
-    ('ice_lamp', 560, 900, 0, 270, (16, 16, 176)),
-    ('ice_lamp', 0, 0, 0, 0, (16, 16, 176)),
-    ('ice_fence', -640, -1000, 0, 0, (128, 8, 56)),
-    ('ice_fence', 512, -1000, 0, 0, (128, 8, 56)),
+    ('ice_truck', -420, 120, 0, 0),
+    ('ice_truck', 600, -300, 0, 90),
+    ('ice_jeep', -180, 700, 0, 180),
+    ('ice_cratem', -180, 762, 0, 0),           # step onto the jeep
+    ('ice_sled', 220, -880, 0, 90),
+    ('ice_tank', -620, -380, 0, 90),
+    ('ice_generator', -760, 330, 0, 90),
+    ('ice_barrel', -760, 400, 0, 0),           # step onto the generator
+    ('ice_radar', 1000, -230, 192, 0),
+    ('ice_antenna', 1010, 100, 192, 0),
+    ('ice_logs', -240, -440, 0, 0),
+    ('ice_barrel', 720, 700, 0, 0),
+    ('ice_barrel', 756, 724, 0, 90),
+    ('ice_barrel', 736, 668, 0, 180),
+    ('ice_barrel', -700, 610, 0, 0),
+    ('ice_barrel', 180, -400, 0, 270),
+    ('ice_cratem', 120, 128, 0, 0),             # step -> crate pile
+    ('ice_crate', 120, 180, 0, 0),
+    ('ice_crate', 120, 236, 0, 90),
+    ('ice_crate', 120, 208, 56, 0),
+    ('ice_cratem', -60, -150, 0, 0),
+    ('ice_cratem', -60, -110, 0, 0),
+    ('ice_cratem', 800, 560, 0, 90),
+    ('ice_crate', -880, 760, 0, 0),
+    ('ice_crate', 880, -760, 0, 0),
+    ('ice_lamp', -300, -980, 0, 90),
+    ('ice_lamp', 300, -980, 0, 90),
+    ('ice_lamp', -560, 900, 0, 270),
+    ('ice_lamp', 560, 900, 0, 270),
+    ('ice_lamp', 0, 0, 0, 0),
+    ('ice_fence', -640, -1000, 0, 0),
+    ('ice_fence', 512, -1000, 0, 0),
+    ('ice_snowman', -560, 700, 0, 270),
 ]
+# prop-shaped CLIP boxes in model space (x forward, y left, z up): tops flush with the model's walkable tops
+CLIPS = {
+    'ice_truck': [(-160, -56, 0, 64, 56, 144), (64, -52, 0, 156, 52, 128)],                 # cargo box, cab
+    'ice_jeep': [(-88, -42, 0, 88, 42, 50), (24, -38, 50, 88, 38, 58), (-82, -40, 50, 22, 40, 78)],
+    'ice_sled': [(-56, -22, 0, 60, 22, 30)],
+    'ice_tank': [(-96, -28, 0, 96, 28, 100), (-96, -40, 0, 96, -28, 80), (-96, 28, 0, 96, 40, 80)],
+    'ice_generator': [(-48, -28, 0, 48, 28, 64)],
+    'ice_barrel': [(-15, -15, 0, 15, 15, 46)],
+    'ice_crate': [(-28, -28, 0, 28, 28, 56)],
+    'ice_cratem': [(-32, -20, 0, 32, 20, 36)],
+    'ice_lamp': [(-4, -4, 0, 4, 4, 176)],
+    'ice_fence': [(0, -3, 0, 128, 3, 50)],
+    'ice_antenna': [(-18, -18, 0, 18, 18, 360)],
+    'ice_radar': [(-10, -10, 0, 10, 10, 64)],
+    'ice_snowman': [(-22, -22, 0, 22, 22, 38), (-16, -16, 38, 16, 16, 62), (-11, -11, 62, 11, 11, 84)],
+}
+# standing tops checked after the compile (verify_props): (label, x, y, z_top)
+STAND = [('truck1 cargo', -470, 120, 144), ('truck1 cab', -310, 120, 128), ('truck2 cargo', 600, -350, 144),
+         ('truck2 cab', 600, -190, 128), ('jeep roof', -140, 700, 78), ('jeep hood', -236, 700, 58),
+         ('sled', 220, -880, 30), ('tank', -620, -380, 100), ('generator', -760, 330, 64), ('barrel', -760, 400, 46),
+         ('crate pile', 120, 208, 112), ('crate', 120, 160, 56), ('cratem', -60, -150, 36), ('snowman', -560, 700, 84)]
+# explosive barrels (func_breakable + followed model): choke points
+XBARRELS = [(-384, 940), (384, 940), (-600, -600), (220, -580), (-900, 300), (470, 330)]
+
+
+def prop_clips(name, x, y, z, yaw):
+    out = []
+    c, s_ = round(math.cos(math.radians(yaw))), round(math.sin(math.radians(yaw)))
+    for (x0, y0, z0, x1, y1, z1) in CLIPS.get(name, []):
+        pts = [(x + px * c - py * s_, y + px * s_ + py * c) for px, py in ((x0, y0), (x1, y1))]
+        out.append(((min(p[0] for p in pts), min(p[1] for p in pts), z + z0),
+                    (max(p[0] for p in pts), max(p[1] for p in pts), z + z1)))
+    return out
+
+
 # lamp head positions (for light entities): model origin + (40, 0, 176) rotated by yaw
 
 
@@ -113,7 +152,7 @@ def launch(H, apex, vh, d):
 
 
 def build(ice_detail=True) -> Map:
-    m = Map(NAME, sky='snow', message='Vexmira Ice Attack', tex_scale=TEX_SCALE)
+    m = Map(NAME, sky='vexmira_frost', message='Vexmira Icefy - MapBy:SmurfSexy', tex_scale=TEX_SCALE)
     m.world['light'] = 0
     det: list = []                 # func_detail brushes (trims, snow caps, pipes, ...)
     D = det.extend
@@ -154,7 +193,7 @@ def build(ice_detail=True) -> Map:
         m.add(box((a[0], a[1], 0), (b[0], b[1], h), {'top': SNOW, 'all': SROCK}))
         snowcap(a[0], a[1], b[0], b[1], h, over=0, h=6)
     # buttresses along the long walls (break the flat faces)
-    for y in (-400, 600):
+    for y in ():
         for x, sx in ((X0 + PW, 1), (X1 - PW, -1)):
             D(box((min(x, x + sx * 24), y - 24, 0), (max(x, x + sx * 24), y + 24, PH - 64), {'top': SNOW, 'all': SROCK}))
 
@@ -172,13 +211,9 @@ def build(ice_detail=True) -> Map:
     trim_h(GX0 - 32, 1024, GX1 + 32, 1028, 168, h=10, out=2)
     # door frames (hazard trim) around the 3 openings
     for cx, hw, hh in ((-384, 64, 128), (384, 64, 128), (0, 96, 160)):
-        D(box((cx - hw - 12, 1012, 0), (cx - hw, 1024, hh + 12), HAZ))
-        D(box((cx + hw, 1012, 0), (cx + hw + 12, 1024, hh + 12), HAZ))
-        D(box((cx - hw - 12, 1012, hh), (cx + hw + 12, 1024, hh + 12), HAZ))
+        D(box((cx - hw - 12, 1016, hh), (cx + hw + 12, 1024, hh + 12), HAZ))
     # canopy over the shutter + snow
     D(box((-160, 960, 192), (160, 1024, 200), {'top': SNOW, 'all': MDARK}))
-    for x in (-150, 142):
-        D(box((x, 968, 0), (x + 8, 976, 192), MDARK))
     # VEXMIRA animated neon above the shutter (south face)
     sign = Brush.box((-160, 1016, 224), (160, 1024, 284), {'s': NEON, 'all': MDARK})
     sign.fit_faces(('s',))
@@ -218,13 +253,8 @@ def build(ice_detail=True) -> Map:
     # low concrete barriers (cover, hop-able 40)
     for x in (-440, -150, 150, 440):
         D(box((x - 56, -1000, 0), (x + 56, -984, 36), {'top': SNOW, 'all': CONC}))
-        D(box((x - 56, -998, 36), (x + 56, -986, 40), SNOW))
     # floodlight mast on the south wall (lit panel)
     for x in (-700, 700):
-        D(box((x - 6, Y0 + PW, 0), (x + 6, Y0 + PW + 12, 260), MDARK))
-        lb = Brush.box((x - 40, Y0 + PW + 4, 260), (x + 40, Y0 + PW + 36, 268), {'bottom': LW, 'all': MDARK})
-        lb.fit_faces(('bottom',))
-        D([lb])
         E(light((x, Y0 + 120, 220), (225, 235, 255), 220))
 
     # ------------------------------------------------------------------ BUNKER (west, raised room z 128)
@@ -264,8 +294,6 @@ def build(ice_detail=True) -> Map:
     E(light((-936, 0, 200), (255, 220, 170), 130))
     E(light((-1000, -150, 200), (200, 220, 255), 60))
     # pipes along the bunker south face
-    D(pipe((BX0 + 40, BY0 - 10, 100), (BX1, BY0 - 10, 100), 5, 6, MDARK))
-    D(pipe((BX1 - 10, BY0 - 10, 0), (BX1 - 10, BY0 - 10, 100), 5, 6, MDARK))
 
     # ------------------------------------------------------------------ WAREHOUSE (east), roof camp z 192
     WH0, WH1, WY0, WY1, WZ = 832, X1 - PW, -320, 160, 192
@@ -275,7 +303,7 @@ def build(ice_detail=True) -> Map:
     for (y0, y1) in ((WY0 - 2, -256), (-192, WY1 + 2)):
         trim_h(WH0 - 2, y0, WH0, y1, 120, h=6, out=0)
     for y in (-120, 90):
-        fr = Brush.box((WH0 - 4, y - 32, 132), (WH0, y + 32, 172), {'w': 'vx_glass', 'all': MDARK})
+        fr = Brush.box((WH0 - 4, y - 32, 132), (WH0, y + 32, 172), {'w': ICE, 'all': MDARK})
         fr.fit_faces(('w',))
         D([fr])
         D(box((WH0 - 8, y - 36, 128), (WH0, y + 36, 132), SNOW))
@@ -298,7 +326,7 @@ def build(ice_detail=True) -> Map:
     E(light((950, -100, WZ + 90), (220, 230, 255), 120))
     # ALARM button on the warehouse south wall (ground) -> klaxon + red lights for 6 s
     E(Entity('func_button', box((900, WY0 - 4, 48), (932, WY0, 72), HAZ), target='ice_alarm_mm', wait=20, speed=40,
-             lip=2, angles='0 90 0', sounds=11, _minlight=0.6))
+             lip=2, angles='0 90 0', sounds=0, _minlight=0.6))
     lb = Brush.box((892, WY0 - 4, 80), (940, WY0, 96), {'s': LR, 'all': MDARK})
     lb.fit_faces(('s',))
     D([lb])
@@ -370,7 +398,6 @@ def build(ice_detail=True) -> Map:
     # grate frames at both mouths
     for a, b in (((VX1, -704), (VX1 + 6, -640)), ((-960, VY1), (-896, VY1 + 6))):
         D(box((a[0], a[1], VZ - 8), (b[0], b[1], VZ), HAZ))
-    D(pipe((VX0 + 40, VY0 - 12, 140), (VX1, VY0 - 12, 140), 6, 6, MDARK))
 
     # ------------------------------------------------------------------ TUNNEL (sunken, 2 stair wells)
     m.add(stairs((448, -656, -128), '-x', 96, 128, rise=16, run=24, tex={'top': CONC, 'all': CONC}, clip=True))
@@ -391,7 +418,7 @@ def build(ice_detail=True) -> Map:
     m.add(box((SX1 - 32, TY0 - 8, -128), (SX1, TY0, -32), CONC))
     E(light((592, -800, -60), (160, 90, 255), 80))
     E(Entity('func_button', box((580, SY0, -88), (604, SY0 + 4, -64), HAZ), target='ice_secret_mm', wait=60,
-             speed=40, lip=2, angles='0 270 0', sounds=9, _minlight=0.8))
+             speed=40, lip=2, angles='0 270 0', sounds=0, _minlight=0.8))
     sg = Brush.box((560, SY0, -60), (624, SY0 + 2, -44), {'n': '~vx_neon_vex', 'all': NULL})
     sg.fit_faces(('n',))
     D([sg])
@@ -412,17 +439,79 @@ def build(ice_detail=True) -> Map:
         b.fit_faces(('n', 's', 'e', 'w', 'top'))
         E(Entity('func_breakable', [b], material=0, health=90, rendermode=2, renderamt=200, spawnobject=0,
                  explodemagnitude=0, _minlight=0.3))
-    for name, x, y, z, yaw, clip in PROPS:
-        if clip:
-            dx, dy, dz = clip
-            if dz > 60:              # tall props: clip up to the sky (no walkable/nav area on their tops)
-                dz = ZSKY - z
-            cx = x + 64 if name == 'ice_fence' else x
-            m.add(box((cx - dx / 2, y - dy / 2, z), (cx + dx / 2, y + dy / 2, z + dz), CLIP))
+    for name, x, y, z, yaw in PROPS:
+        for mn, mx in prop_clips(name, x, y, z, yaw):
+            m.add(box(mn, mx, CLIP))
         if name == 'ice_lamp':
             hx, hy, hz = _lamp_head(x, y, yaw)
             E(light((hx, hy, hz), (255, 225, 170), 150))
             E(env_sprite((hx, hy, hz + 6), 'sprites/glow01.spr', 0.35, (255, 225, 170), 110))
+    # access to the tall props: snow drifts up to the truck cabs (slope 0.64), a ladder on the fuel tank rungs
+    for (ox, oy, d) in ((-64, 120, '-x'), (600, 56, '-y')):
+        D(wedge((ox, oy, 0), d, 96, 200, 128, {'all': SNOW}))
+    lad4, _ = ladder((-580, -310, 0), '-x', 112, width=32, depth=16)     # the model has the rungs
+    E(lad4)
+
+    # ------------------------------------------------------------------ icefy pass: barrels, sign, strips, lake, fun
+    for i, (x, y) in enumerate(XBARRELS):
+        xb = prism((x, y), 15, 6, 0, 46, NULL)       # invisible + shootable; the plugin seats the model on it
+        E(Entity('func_breakable', xb, targetname=f'ice_xb{i + 1}', material=0, health=20, explodemagnitude=110,
+                 spawnobject=0, rendermode=2, renderamt=0, spawnflags=0))
+    # MapBy:SmurfSexy animated neon on the south wall (seen from the courtyard and when leaving the garage)
+    mb = Brush.box((-192, Y0 + PW, 196), (192, Y0 + PW + 4, 292), {'n': '+0vx_mapby', 'all': MDARK})
+    mb.fit_faces(('n',))
+    m.add(mb)
+    D(box((-200, Y0 + PW, 188), (200, Y0 + PW + 8, 196), TRIM))
+    D(box((-200, Y0 + PW, 292), (200, Y0 + PW + 8, 298), {'top': SNOW, 'all': TRIM}))
+    E(env_sprite((0, Y0 + PW + 24, 244), 'sprites/glow01.spr', 1.6, (255, 90, 220), 70))
+    E(light((0, Y0 + PW + 60, 244), (255, 110, 230), 140))
+    # FIREWORKS button under the sign (plugin [fx] fireworks via vexcmd_fx_fireworks)
+    fb = Brush.box((232, Y0 + PW, 48), (264, Y0 + PW + 4, 72), {'n': LC, 'all': HAZ})
+    fb.fit_faces(('n',))
+    E(Entity('func_button', [fb], target='ice_fw_mm', wait=20, speed=40, lip=2, angles='0 270 0', sounds=0,
+             _minlight=0.8))
+    pt('multi_manager', 'ice_fw_mm', origin=(248, Y0 + 80, 64), vexcmd_fx_fireworks=0, vexcmd_msg_fireworks=0)
+    # speed strips (horizontal trigger_push + animated cyan chevrons pointing along the push)
+    for (x0, y0, x1, y1, yaw) in ((-280, -1000, -216, -760, 90), (-200, -280, 80, -216, 0), (-416, 760, -352, 1000, 270)):
+        pl = Brush.box((x0, y0, 0), (x1, y1, 1), {'top': '+0vx_chev2', 'all': HAZ})
+        f = pl.face('top')
+        u = (math.cos(math.radians(yaw)), math.sin(math.radians(yaw)), 0)
+        v = (-u[1], u[0], 0)
+        f.set_axes(u, v, 1.0, 1.0, 0, 0)
+        D([pl])
+        E(Entity('trigger_push', box((x0, y0, 1), (x1, y1, 40), TRIGGER), speed=650, angles=f'0 {yaw} 0'))
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        E(light((cx, cy, 24), (60, 220, 255), 90))
+    # ice kicker at the end of strip A (rises 40 over 96, slippery)
+    D(wedge((-248, -760, 0), '+y', 64, 96, 40, {'all': ICE}))
+    # frozen lake (slippery: func_friction 25 %)
+    LX0, LX1, LY0, LY1 = -660, -300, 330, 560
+    lake = Brush.box((LX0, LY0, 0), (LX1, LY1, 1), {'top': ICE, 'all': ICE})
+    D([lake])
+    E(Entity('func_friction', box((LX0, LY0, 1), (LX1, LY1, 24), TRIGGER), modifier=25))
+    E(light((-480, 445, 80), (150, 210, 255), 90))
+    # bell on the watchtower beacon pole: button + ring
+    bb = Brush.box((tx0 + 12, ty1 - 14, TZ + 40), (tx0 + 16, ty1 - 2, TZ + 56), {'e': '~vx_light_y', 'all': HAZ})
+    bb.fit_faces(('e',))
+    E(Entity('func_button', [bb], target='ice_bell_snd', wait=4, speed=40, lip=1, angles='0 180 0', sounds=0,
+             _minlight=0.8))
+    D(prism((tx0 + 8, ty1 - 8), 7, 8, TZ + 72, TZ + 86, '~vx_light_y'))
+    pt('ambient_generic', 'ice_bell_snd', origin=(tx0 + 8, ty1 - 8, TZ + 80), message='vexmira/map/ice_bell.wav',
+       health=10, pitch=100, pitchstart=100, spawnflags=8 | 16 | 32)
+    # banners (Vexmira Biotech plates) + more icicles + snow drifts + frost windows
+    for bx_ in (-480, 480):
+        bn = Brush.box((bx_ - 64, 1016, 176), (bx_ + 64, 1024, 240), {'s': 'vx_sign_vexhd', 'all': MDARK})
+        bn.fit_faces(('s',))
+        D([bn])
+    for k in range(5):                                          # garage canopy + warehouse roof icicles
+        for (ix, iy, iz) in ((-130 + k * 64, 962, 192), (WH0 - 14, WY0 + 40 + k * 96, WZ - 8)):
+            if ix == WH0 - 14 and (-256 <= iy <= -192 or -64 <= iy <= 32):
+                continue
+            L = 14 + (k * 7) % 12
+            D([Brush.from_points([(ix - 3, iy - 3, iz), (ix + 3, iy - 3, iz), (ix, iy + 3, iz), (ix, iy, iz - L)], ICE)])
+    for (ox, oy, d, w, L, h) in ((900, Y0 + PW + 140, '-y', 200, 140, 56), (X1 - PW - 120, 700, '+x', 220, 120, 40),
+                                 (X0 + PW + 120, 560, '-x', 200, 120, 44)):
+        D(wedge((ox, oy, 0), d, w, L, h, {'all': SNOW}))
 
     # ------------------------------------------------------------------ atmosphere
     E(light_environment(pitch=-55, yaw=125, color=(215, 225, 255), brightness=170, diffuse=(150, 170, 210, 70),
@@ -451,23 +540,43 @@ def write_ini_models(path=INI):
             out.append(ln)
     while out and not out[-1].strip():
         out.pop()
-    out += ['', '[models]             ; generated by devtools/mapkit/maps/zm_vexmira_ice.py (PROPS)']
-    for name, x, y, z, yaw, _ in PROPS:
+    out += ['', '[models]             ; generated by devtools/mapkit/maps/zm_vexmira_icefy.py (PROPS)']
+    for name, x, y, z, yaw in PROPS:
         extra = ' fr:1' if name == 'ice_radar' else ''
         out.append(f'model = models/vexmira/ice/{name}.mdl {x} {y} {z} {yaw}{extra}')
+    out.append('; explosive barrels: the model follows the func_breakable (hidden when it explodes, back every round)')
+    for i in range(len(XBARRELS)):
+        out.append(f'model = models/vexmira/ice/ice_xbarrel.mdl @ice_xb{i + 1}')
     with open(path, 'w', encoding='latin-1', newline='\n') as fh:
         fh.write('\n'.join(out) + '\n')
 
 
 def write_res_extra(res_path):
     have = open(res_path).read().split('\n') if os.path.exists(res_path) else ['// %s custom resources' % NAME]
-    extra = [f'models/vexmira/ice/{n}.mdl' for n in dict.fromkeys(p[0] for p in PROPS)]
+    extra = [f'models/vexmira/ice/{n}.mdl' for n in dict.fromkeys([p[0] for p in PROPS] + ['ice_xbarrel'])]
+    extra += [f'sound/vexmira/map/{w}' for w in ('ice_bell.wav',)]
     extra = [p for p in extra if p not in have]
     for p in extra:
         assert os.path.exists(os.path.join(REPO, 'cstrike', p)), p
     with open(res_path, 'w', newline='\n') as fh:
         fh.write('\n'.join([h for h in have if h] + extra) + '\n')
     return extra
+
+
+def verify_props(bsp_path):
+    """Stand a player hull (hull 1) on every prop top in STAND: the hull must be free 1 unit above the top
+    and touch solid 2 units lower (it rests on the prop clip). Returns a list of problems."""
+    import numpy as np
+    from ..bspcheck import BSP
+    b = BSP(bsp_path)
+    bad = []
+    for label, x, y, ztop in STAND:
+        free = b.point_contents(np.array([x, y, ztop + 37.0]), 1) != -2
+        rest = b.point_contents(np.array([x, y, ztop + 34.0]), 1) == -2
+        print(f'  stand {label:13s} ({x} {y} {ztop}): free={free} rests={rest}')
+        if not (free and rest):
+            bad.append(label)
+    return bad
 
 
 def main(argv=None):
@@ -487,6 +596,7 @@ def main(argv=None):
     print(r.summary())
     if r.bsp:
         print('res extra:', write_res_extra(os.path.join(a.out, NAME + '.res')))
+        print('prop stand problems:', verify_props(r.bsp) or 'none')
     if r.ok and a.preview:
         from ..preview import render_views
         for p in render_views(r.bsp, a.preview, 1200):

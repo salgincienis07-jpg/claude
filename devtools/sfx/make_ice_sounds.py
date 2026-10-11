@@ -1,7 +1,8 @@
-"""zm_vexmira_ice sounds (3 small files, 8-bit mono 11025 Hz):
+"""zm_vexmira_icefy sounds (3 small files, 8-bit mono 11025 Hz):
   ice_wind.wav   4 s seamless wind loop (cue chunk at 0 -> ambient_generic loops it)
   ice_fire.wav   3 s seamless campfire crackle loop (cue chunk)
   ice_alarm.wav  2.4 s klaxon one-shot (alarm button; no cue)
+  ice_bell.wav   2.6 s hand bell (bell button; no cue)
 
     cd devtools && python3 sfx/make_ice_sounds.py
 """
@@ -71,11 +72,24 @@ def alarm(rng):
     return x * env
 
 
+def bell(rng):
+    """Small hand bell: inharmonic partials, fast attack, 2.2 s decay, two strikes."""
+    n = int(SR * 2.6)
+    t = np.arange(n) / SR
+    x = np.zeros(n)
+    for k, (f, a, d) in enumerate(((880, 1.0, 1.2), (2090, 0.5, 0.6), (2560, 0.35, 0.5), (3520, 0.2, 0.3), (440, 0.3, 1.6))):
+        for t0, g in ((0.0, 1.0), (0.55, 0.8)):
+            tt = np.clip(t - t0, 0, None)
+            x += g * a * np.sin(2 * np.pi * f * tt) * np.exp(-tt / d) * (t >= t0)
+    return x * np.minimum(1, t / 0.003)
+
+
 def main():
     rng = np.random.default_rng(7101)
     write('ice_wind.wav', wind(rng), True)
     write('ice_fire.wav', fire(rng), True)
     write('ice_alarm.wav', alarm(rng), False)
+    write('ice_bell.wav', bell(rng), False)
 
 
 if __name__ == '__main__':

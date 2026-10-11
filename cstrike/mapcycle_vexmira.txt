@@ -1,4 +1,4 @@
-zm_vexmira_ice
+zm_vexmira_icefy
 zm_vexmira_7door
 zm_vex_laboratory
 zm_vex_harbor

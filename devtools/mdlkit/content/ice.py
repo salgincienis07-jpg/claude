@@ -1,4 +1,4 @@
-"""zm_vexmira_ice props (owner request 2026-10-11): frozen cargo trucks, a jeep, barrels, a generator, a
+"""zm_vexmira_icefy props (owner request 2026-10-11): frozen cargo trucks, a jeep, barrels, a generator, a
 rotating radar dish and campfire logs. Spawned by the plugin from the map ini [models] section (not solid:
 the map has CLIP brushes where players collide). Small: 128-256 px textures, < 150 KB each.
 Fixed file names (models/vexmira/ice/ice_*.mdl) so the owner can drop in replacement models later.
