@@ -181,3 +181,20 @@ alarm dugmesi, buz bloklari, kamp atesi, animasyonlu neon (+0vx_neonice), env_sn
 13 prop modeli (mdlkit/content/ice.py -> models/vexmira/ice/, ini [models] + CLIP). bsp 1.1 MB, view p95 627 / max 657,
 17 brush ent; nav OK; vexprobe 240 sn 12 bot: stuck=4 (kamp/merdiven ustu bot davranisi), runtime hata 0.
 Zip: $SP/Vexmira_zm_vexmira_ice.zip. KALAN: stuck 0'a inmedi (bot merdiven inisi), p95 600 hedefinin 27 ustunde.
+
+## v4.1 fix pass (owner bug list) - WIP status / remaining steps
+Done (committed): 3-way merge of owner's newest package; per-plugin non-fatal asset guard
+(include/vex_asset_guard.inc: VexPcModel/VexPcSound/VexPcGeneric + VexAssetInit) replacing the
+global VexAssetGuard that disabled every plugin when one file was missing; event sounds moved to
+precache_generic (no sound slots); VxLeanResources no longer wipes built-in vexmira/ defaults;
+cfg: empty vex_res restored from v3.8 where the file is in the repo, CSO notifications / overhead
+icons / HP bars re-enabled, Vexmira cos wings/hats/pets re-added (slots 5-8 / 4-8 / 3-7);
+cosmetics: FOLLOW+aiment for bone/controller models, NOCLIP+velocity for community pets.
+Remaining:
+1. Special weapons buy: clear reason message when the plugin is not loaded (CommunityPluginIndex<0), test buy with bots (vexprobe_cmd).
+2. /shop: move Jetpack + HEV to the top of the human shop, show [N/A] when plugin missing.
+3. Cosmetics menu: CT skins + knives entries first, [N/A] for missing model/plugin, test buy/equip/persist.
+4. Laser mine: LASERMINE_MODEL -> models/vexmira/world/lasermine.mdl (done in cfg); orientation from plane normal; plant/take sounds (LM_DEPLOY/LM_PICKUP restored in cfg) - verify emit path.
+5. Wings/pets: verify on test server (vex_cos_give / vex_cos_dump).
+6-7. Boss / CSO / HP bars: verify precache counts (sound < 512, generic < 512) after restore; tune SOUND_BUDGET.
+8. Asset audit list, icefy bot run, zip Vexmira_v4.1_duzeltme.zip + DEGISIKLIKLER.txt.
