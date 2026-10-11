@@ -13,6 +13,15 @@ sound/vexmira/map/cd_scream.wav
 sound/vexmira/map/cd_siren.wav
 sound/vexmira/map/cd_wind.wav
 sprites/vexmira/fire.spr
+sound/vexmira/amb/dog_far.wav
+sound/vexmira/amb/gunfire_far.wav
+sound/vexmira/amb/heli_far.wav
+sound/vexmira/amb/heli_land.wav
+sound/vexmira/amb/pa_quarantine.wav
+sound/vexmira/amb/shell_whistle.wav
+sound/vexmira/amb/siren_far.wav
+sound/vexmira/amb/spark.wav
+sound/vexmira/amb/steam.wav
 models/vexmira/world/cd_heli.mdl
 models/vexmira/world/cd_loco.mdl
 models/vexmira/world/cd_windsock.mdl
