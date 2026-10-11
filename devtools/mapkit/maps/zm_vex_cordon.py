@@ -2152,18 +2152,7 @@ def make_sounds(out=SOUND_DIR):
     x = np.sin(2 * np.pi * ph) + 0.45 * np.sin(4 * np.pi * ph) + 0.2 * np.sin(6 * np.pi * ph)
     x = np.tanh(x * 1.8) * (0.45 + 0.55 * prof)
     made.append(('cd_siren.wav', _write_loop(os.path.join(out, 'cd_siren.wav'), _creverb(x, sr, rng, 1.6, 0.35), sr)))
-    # --- cd_rotor: helicopter, 5 Hz blade slap (8 per loop), turbine whine, wash (1.6 s, 11025)
-    sec, rng = 1.6, np.random.default_rng(7105)
-    n = int(sr * sec)
-    t = np.arange(n) / sr
-    x = 0.25 * _cnoise(n, sr, rng, lambda fr: np.exp(-((fr - 400) / 500) ** 2))
-    Ls = int(0.09 * sr)
-    ts = np.arange(Ls) / sr
-    slap = (np.sin(2 * np.pi * 55 * ts) * 0.9 + rng.standard_normal(Ls) * 0.2) * np.exp(-ts * 30)
-    for k in range(8):
-        _place(x, slap, int(k * n / 8))
-    x = np.fft.irfft(np.fft.rfft(x) * (1 / (1 + (np.fft.rfftfreq(n, 1 / sr) / 300.0) ** 4)), n)   # soft, deep wash
-    made.append(('cd_rotor.wav', _write_loop(os.path.join(out, 'cd_rotor.wav'), x, sr)))
+    # (v3.7: cd_rotor removed - owner request; no helicopter engine loop any more)
     # --- cd_boom: distant heavy impact one-shot (22050, no cue)
     fx.rng = np.random.default_rng(7106)
     b = fx.boom(2.8, 90, 28, 0.55, 1.0)
