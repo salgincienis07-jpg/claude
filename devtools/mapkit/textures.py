@@ -1562,6 +1562,26 @@ def t_neon_vex(rng, w, h):
     return _neon(rng, w, h, 'VEXMIRA', (190, 90, 255), under=(VEX_CYAN, 0), th=30, italic=0.18)
 
 
+@tex('vx_neonice', 256, 64, 'sign', light=(190, 120, 255, 380), frames=8, dither=True,
+     desc='animated VEXMIRA neon (zm_vexmira_ice): purple tubes, a cyan light pulse runs along the underline, 0.8 s loop')
+def t_neonice(rng, w, h):
+    base = _neon(rng, w, h, 'VEXMIRA', (190, 90, 255), under=((0, 120, 150), 0), th=30, italic=0.18)
+    th = 30
+    tw = text_width('VEXMIRA', th, 1.35) + 0.18 * th
+    x0 = (w - tw) / 2
+    yu = h - h * 0.17
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    band = np.exp(-((ys - yu) / 2.2) ** 2) * ((xs >= x0) & (xs <= x0 + tw))
+    frames = []
+    for f in range(8):
+        cx = x0 + tw * ((f + 0.5) / 8.0)
+        pulse = band * np.exp(-((xs - cx) / (tw / 9.0)) ** 2)
+        breath = 0.92 + 0.08 * math.cos(f / 8.0 * 2 * math.pi)
+        img = base * breath + pulse[..., None] * np.array([0.5, 1.0, 1.0], F)[None, None]
+        frames.append(np.clip(img, 0, 1))
+    return frames
+
+
 @tex('~vx_neon_exit', 128, 64, 'sign', light=(60, 255, 100, 300), dither=True, desc='EXIT neon sign (green)')
 def t_neon_exit(rng, w, h):
     return _neon(rng, w, h, 'EXIT', (50, 255, 90), th=28)
