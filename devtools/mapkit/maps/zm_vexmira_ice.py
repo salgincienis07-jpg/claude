@@ -272,18 +272,24 @@ def build(ice_detail=True) -> Map:
     m.add(box((WH0, WY0, 0), (WH1, WY1, WZ), {'top': SNOW, 'all': CORR}))
     # facade details: plinth, mid trim, window frames, roof parapets with gaps (ladder y -256..-192, pad -64..32)
     trim_h(WH0, WY0, WH1, WY1, 0, h=16, out=4)
-    trim_h(WH0 - 2, WY0 - 2, WH0, WY1 + 2, 120, h=6, out=0)
+    for (y0, y1) in ((WY0 - 2, -256), (-192, WY1 + 2)):
+        trim_h(WH0 - 2, y0, WH0, y1, 120, h=6, out=0)
     for y in (-120, 90):
         fr = Brush.box((WH0 - 4, y - 32, 132), (WH0, y + 32, 172), {'w': 'vx_glass', 'all': MDARK})
         fr.fit_faces(('w',))
         D([fr])
         D(box((WH0 - 8, y - 36, 128), (WH0, y + 36, 132), SNOW))
     P = {'top': SNOW, 'all': CONC}
+    # low roof curbs (8 high: step over / drop down anywhere - no trapped bots, zombies can always follow)
     for (y0, y1) in ((WY0, -256), (-192, -64), (32, WY1)):
-        m.add(box((WH0, y0, WZ), (WH0 + 16, y1, WZ + 24), P))
-    m.add(box((WH0, WY1 - 16, WZ), (WH1, WY1, WZ + 24), P))
-    m.add(box((WH0, WY0, WZ), (WH1, WY0 + 16, WZ + 24), P))
-    D(box((WH0 - 16, WY0 - 16, WZ - 8), (WH1, WY1 + 16, WZ), {'top': SNOW, 'all': MDARK}))   # roof overhang
+        D(box((WH0, y0, WZ), (WH0 + 12, y1, WZ + 8), P))
+    D(box((WH0, WY1 - 12, WZ), (WH1, WY1, WZ + 8), P))
+    D(box((WH0, WY0, WZ), (WH1, WY0 + 12, WZ + 8), P))
+    OH = {'top': SNOW, 'all': MDARK}            # roof overhang (open over the ladder and the pad landing)
+    for (y0, y1) in ((WY0 - 16, -256), (-192, -64), (32, WY1 + 16)):
+        D(box((WH0 - 16, y0, WZ - 8), (WH0, y1, WZ), OH))
+    D(box((WH0, WY0 - 16, WZ - 8), (WH1, WY0, WZ), OH))
+    D(box((WH0, WY1, WZ - 8), (WH1, WY1 + 16, WZ), OH))
     lad2, lv2 = ladder((WH0, -224, 0), '+x', WZ + 12, width=40, depth=16)
     E(lad2)
     # roof: vent box + steam pipe, light
@@ -318,12 +324,12 @@ def build(ice_detail=True) -> Map:
     D(box((tx0 + 12, ty0 + 8, 100), (tx1 - 12, ty0 + 12, 108), MDARK))   # cross braces
     D(box((tx0 + 12, ty1 - 12, 100), (tx1 - 12, ty1 - 8, 108), MDARK))
     rv, rc = [], []
-    for a, b in (((tx0, ty1), (tx1, ty1)), ((tx0, ty0), (TX - 32, ty0)), ((TX + 32, ty0), (tx1, ty0)),
-                 ((tx0, ty0), (tx0, ty1)), ((tx1, ty0), (tx1, TY - 48)), ((tx1, TY + 48), (tx1, ty1))):
+    for a, b in (((tx0, ty1), (tx1, ty1)), ((tx0, ty0), (tx0, ty1))):     # north + west rails; south/east open
         v, c = railing(a, b, TZ)
         rv += v
         rc += c
     m.add(rc)
+    m.add(box((TX - 28, ty0, 0), (TX + 28, ty0 + 8, TZ - 16), {'s': PLANK, 'all': FROST}))   # ladder backing board
     lad3, lv3 = ladder((TX, ty0, 0), '+y', TZ + 12, width=40, depth=16)
     E(lad3)
     E(masked_entity(rv, solid=False))
