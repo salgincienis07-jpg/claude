@@ -237,7 +237,7 @@ def build(ice_detail=True) -> Map:
     m.add(stairs((-976, 224, 0), '-y', 64, 128, rise=16, run=26, tex={'top': CONC, 'all': BUNK}, clip=True))
     # room walls (z 128..240) with door (east, at the ladder) + firing slit window
     m.add(wall((BX1 - 16, BY0), (BX1 - 16, BY1), 128, 240, 16, {'e': BUNK, 'w': CONC, 'all': BUNK}, side='right',
-               holes=[(48, 112, 128, 232), (240, 400, 176, 208)]))
+               holes=[(40, 120, 128, 232), (240, 400, 176, 208)]))
     m.add(wall((BX0, BY1), (BX1, BY1), 128, 240, 16, {'n': BUNK, 's': CONC, 'all': BUNK}, side='right',
                holes=[(96, 192, 176, 208)]))
     m.add(wall((BX0, BY0), (BX1, BY0), 128, 240, 16, {'s': BUNK, 'n': CONC, 'all': BUNK}, side='left'))
@@ -253,7 +253,9 @@ def build(ice_detail=True) -> Map:
     ice.fit_faces(('n', 's'))
     E(Entity('func_breakable', [ice], material=0, health=260, rendermode=2, renderamt=170, spawnobject=0,
              explodemagnitude=0, _minlight=0.2, targetname='ice_wall'))
-    lad1, lv1 = ladder((BX1, -144, 0), '-x', 132, width=32, depth=12)
+    # balcony in front of the east door (ladder top lands on open floor, not in the doorway)
+    m.add(box((BX1, -200, 0), (BX1 + 64, -88, 128), {'top': CONC, 'all': BUNK}))
+    lad1, lv1 = ladder((BX1 + 64, -144, 0), '-x', 128 + 12, width=40, depth=16)
     E(lad1)
     # interior: lamp (swinging pendulum), crates, room light
     lamp = box((-944, -8, 212), (-928, 8, 216), {'bottom': LW, 'all': MDARK}) + \
@@ -282,7 +284,7 @@ def build(ice_detail=True) -> Map:
     m.add(box((WH0, WY1 - 16, WZ), (WH1, WY1, WZ + 24), P))
     m.add(box((WH0, WY0, WZ), (WH1, WY0 + 16, WZ + 24), P))
     D(box((WH0 - 16, WY0 - 16, WZ - 8), (WH1, WY1 + 16, WZ), {'top': SNOW, 'all': MDARK}))   # roof overhang
-    lad2, lv2 = ladder((WH0, -224, 0), '+x', WZ + 4, width=32, depth=12)
+    lad2, lv2 = ladder((WH0, -224, 0), '+x', WZ + 12, width=40, depth=16)
     E(lad2)
     # roof: vent box + steam pipe, light
     D(box((940, -60, WZ), (1000, 0, WZ + 40), {'top': SNOW, 'all': MDARK}))
@@ -316,13 +318,13 @@ def build(ice_detail=True) -> Map:
     D(box((tx0 + 12, ty0 + 8, 100), (tx1 - 12, ty0 + 12, 108), MDARK))   # cross braces
     D(box((tx0 + 12, ty1 - 12, 100), (tx1 - 12, ty1 - 8, 108), MDARK))
     rv, rc = [], []
-    for a, b in (((tx0, ty1), (tx1, ty1)), ((tx0, ty0), (TX - 24, ty0)), ((TX + 24, ty0), (tx1, ty0)),
+    for a, b in (((tx0, ty1), (tx1, ty1)), ((tx0, ty0), (TX - 32, ty0)), ((TX + 32, ty0), (tx1, ty0)),
                  ((tx0, ty0), (tx0, ty1)), ((tx1, ty0), (tx1, TY - 48)), ((tx1, TY + 48), (tx1, ty1))):
         v, c = railing(a, b, TZ)
         rv += v
         rc += c
     m.add(rc)
-    lad3, lv3 = ladder((TX, ty0, 0), '+y', TZ + 4, width=32, depth=12)
+    lad3, lv3 = ladder((TX, ty0, 0), '+y', TZ + 12, width=40, depth=16)
     E(lad3)
     E(masked_entity(rv, solid=False))
     E(masked_entity(lv1 + lv2 + lv3, solid=False))
@@ -407,6 +409,8 @@ def build(ice_detail=True) -> Map:
     for name, x, y, z, yaw, clip in PROPS:
         if clip:
             dx, dy, dz = clip
+            if dz > 60:              # tall props: clip up to the sky (no walkable/nav area on their tops)
+                dz = ZSKY - z
             cx = x + 64 if name == 'ice_fence' else x
             m.add(box((cx - dx / 2, y - dy / 2, z), (cx + dx / 2, y + dy / 2, z + dz), CLIP))
         if name == 'ice_lamp':
