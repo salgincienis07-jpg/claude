@@ -1129,6 +1129,19 @@ def t_water_dk(rng, w, h):
     return grain(img, rng, 0.015)
 
 
+@tex('vx_pool', 128, 128, 'liquid', frames=6, desc='animated fountain water (+0..+5), NOT a liquid: flat, no warp subdivision')
+def t_pool(rng, w, h):
+    rip = _loop_noise(h, w, rng, 6, 4, 6, 4.0)
+    base = fbm(h, w, 3, rng, 4)
+    frames = []
+    for k in range(6):
+        r = rip(k)
+        r = (r - r.min()) / (r.max() - r.min() + 1e-6)
+        img = ramp(base * 0.4 + r * 0.6, [(0, (10, 30, 44)), (0.55, (24, 66, 86)), (0.85, (60, 120, 140)), (1, (170, 210, 225))])
+        frames.append(grain(img, rng, 0.01))
+    return frames
+
+
 @tex('!lava_vx', 128, 128, 'liquid', light=(255, 110, 30, 260), desc='liquid lava (CONTENTS_LAVA, swim-able; add trigger_hurt)')
 def t_lava_liq(rng, w, h):
     n = fbm(h, w, 4, rng, 6)

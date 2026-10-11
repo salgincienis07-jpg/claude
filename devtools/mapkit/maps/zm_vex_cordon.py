@@ -879,14 +879,14 @@ def dress(b):
 
     # ------------------------------------------------------------ P Liberation Plaza (boss arena)
     D(prism((0, -64), 28, 8, 96, 304, CONC))                                      # memorial column
-    # v3.7 fountain: a 64-wide basin round the monument plinth (rim 16 high = one step, water 10 deep);
+    # v3.7 fountain: a 64-wide basin round the monument plinth (rim 16 high = one step, water surface 10 up);
     # the jets / falling water are the plugin's additive studio model cd_fountain.mdl, splash loop below
     bx0, by0, bx1, by1 = -160 - 64, -224 - 64, 160 + 64, 96 + 64
     for mn, mx in (((bx0 - 12, by0 - 12), (bx1 + 12, by0)), ((bx0 - 12, by1), (bx1 + 12, by1 + 12)),
                    ((bx0 - 12, by0), (bx0, by1)), ((bx1, by0), (bx1 + 12, by1))):
         D(P((mn[0], mn[1], 0), (mx[0], mx[1], 16), CONC))                           # basin rim (coping)
     for r in rect_minus((bx0, by0, bx1, by1), [(-160, -224, 160, 96)]):
-        W(box((r[0], r[1], 0), (r[2], r[3], 10), {'top': WATER, 'all': WATER}))    # basin water
+        D(box((r[0], r[1], 0), (r[2], r[3], 10), {'top': '+0vx_pool', 'all': NULL}))  # basin water (flat animated, 1 poly per piece)
     L((0, 0, 40), (120, 170, 255), 70)                                               # underwater glow
     AMB((0, -64, 60), 'cd_fountain.wav', 5, 'medium')
     D(P((-48, -112, 304), (48, -16, 336), CONC, hide=()))

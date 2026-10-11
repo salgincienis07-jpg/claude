@@ -6,6 +6,7 @@ gfx/env/vexmira_nightlf.tga
 gfx/env/vexmira_nightrt.tga
 gfx/env/vexmira_nightup.tga
 sound/vexmira/map/cd_boom.wav
+sound/vexmira/map/cd_fountain.wav
 sound/vexmira/map/cd_harbor.wav
 sound/vexmira/map/cd_hum.wav
 sound/vexmira/map/cd_scream.wav
@@ -13,6 +14,10 @@ sound/vexmira/map/cd_siren.wav
 sound/vexmira/map/cd_wind.wav
 sprites/vexmira/fire.spr
 models/vexmira/world/cd_heli.mdl
+models/vexmira/world/cd_statue.mdl
+models/vexmira/world/cd_fountain.mdl
+models/vexmira/world/cd_flag.mdl
+models/vexmira/world/cd_lights.mdl
 sound/vexmira/radio/cd_ev_freeze_end_en.wav
 sound/vexmira/radio/cd_ev_freeze_end_tr.wav
 sound/vexmira/radio/cd_brk_half_en.wav
