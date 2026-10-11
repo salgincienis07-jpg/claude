@@ -70,7 +70,7 @@ STOCK_SKIES = {'desert', 'city', 'night', 'space', 'cx', 'office', 'de_storm', '
                'snow', 'tornsky', 'trainyard', '2desert', 'cliff', 'hav', 'dusk', 'neb6', 'xen9', 'alien1',
                'alien2', 'alien3', 'black', 'blue', 'grnplsnt'}
 # our own skies (6 TGAs under cstrike/gfx/env, shipped + listed in the map .res); --allow-sky adds more
-CUSTOM_SKIES = {'vexmira_night'}
+CUSTOM_SKIES = {'vexmira_night', 'vexmira_frost'}
 ALLOW_SKIES = set()
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 

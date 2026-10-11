@@ -392,9 +392,77 @@ def snowmobile():
                 decals=dec, tex=(128, 128), out=_out('ice_sled'), preview_area=AREA, budget=0.04e6)
 
 
+# ============================================================================================ explosive barrel
+def xbarrel():
+    """Red explosive drum r 15, h 44 with yellow/black hazard rings and DANGER printed on 4 sides (snow cap).
+    Origin = bottom centre. In the map it follows a func_breakable (explodes, comes back every round)."""
+    mats = {'xb_red': metal((200, 26, 20), seed=3301, paint=(210, 28, 22), chipping=0.2, rust=0.15, scratches=0.3,
+                            shine=0.45),
+            'xb_haz': metal((235, 190, 20), seed=3302, paint=(240, 196, 24), chipping=0.25, scratches=0.3),
+            'xb_dark': metal((30, 30, 32), seed=3303),
+            'xb_label': metal((240, 200, 30), seed=3304, scratches=0.15, chipping=0.1), 'ic_snow': SNOW, 'ic_ice': ICE}
+    P = [rod((0, 0, 0), (0, 0, 44), 15, mat='xb_red', name='drum', segs=16)]
+    for z0 in (4, 34):                     # hazard rings: 16 alternating yellow / black segments (slanted)
+        for k in range(16):
+            a0, a1 = k * math.pi / 8, (k + 1) * math.pi / 8
+            pts = []
+            for aa, dz in ((a0, 0), (a1, 0)):
+                for r in (14.0, 15.6):
+                    pts.append((r * math.cos(aa), r * math.sin(aa), z0))
+                    pts.append((r * math.cos(aa + 0.25), r * math.sin(aa + 0.25), z0 + 6))
+            P.append(hull(pts, 'xb_haz' if k % 2 == 0 else 'xb_dark', 'hazseg'))
+    P += [rod((0, 0, 44), (0, 0, 45), 14, mat='xb_dark', name='lid', segs=16),
+          rod((7, 0, 45), (7, 0, 47), 2.5, mat='xb_dark', name='cap', segs=8),
+          rod((0, 0, 45), (0, 0, 48), 12, r1=7, mat='ic_snow', name='snowcap', segs=12)]
+    for m in P:
+        m.detail = 0.5
+    dec = []
+    for sx in (1, -1):                    # yellow DANGER label plates on both sides (own atlas space)
+        lab = slab(sx * 15.2 - 0.5, sx * 15.2 + 0.5, -11, 11, 16, 30, 'xb_label', 'label')
+        lab.detail = 2.0
+        P.append(lab)
+        dec.append(dict(kind='shape', shape='danger', center=(sx * 15.8, 0, 23), u=(0, sx, 0), v=(0, 0, 1),
+                        size=5.4, color=(15, 15, 15), depth=1.5, soft=0.12))
+    return dict(kind='world', name='ice_xbarrel', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                decals=dec, tex=(256, 128), out=_out('ice_xbarrel'), preview_area=AREA, budget=0.07e6)
+
+
+# ============================================================================================ snowman
+def snowman():
+    """Snowman 84 tall: 3 snowballs, coal eyes/buttons, carrot nose (+X), stick arms, Vexmira purple scarf + hat."""
+    mats = {'sn_snow': SNOW, 'sn_coal': {'type': 'rubber', 'color': (20, 20, 22), 'seed': 3401},
+            'sn_carrot': {'type': 'skin', 'color': (240, 120, 30), 'variation': 0.1, 'seed': 3402},
+            'sn_stick': {'type': 'leather', 'color': (80, 56, 36), 'seed': 3403},
+            'sn_scarf': cloth((150, 70, 230), seed=3404, dirt=0.1), 'sn_hat': cloth((30, 30, 36), seed=3405, dirt=0.1),
+            'ic_snow': SNOW, 'ic_ice': ICE}
+    P = [sphere(22, center=(0, 0, 20), segs=14, rings=9, mat='sn_snow'),
+         sphere(16, center=(0, 0, 50), segs=14, rings=9, mat='sn_snow'),
+         sphere(11, center=(0, 0, 72), segs=12, rings=8, mat='sn_snow'),
+         rod((0, 0, 62), (0, 0, 66), 13, mat='sn_scarf', name='scarf', segs=12),
+         slab(4, 8, 8, 14, 38, 62, 'sn_scarf', 'scarf_tail'),
+         rod((0, 0, 81), (0, 0, 83), 13, mat='sn_hat', name='brim', segs=12),
+         rod((0, 0, 83), (0, 0, 96), 8, mat='sn_hat', name='hat', segs=12),
+         rod((0, 0, 86), (0, 0, 88), 8.3, mat='sn_scarf', name='hatband', segs=12),
+         cone((10, 0, 72), (22, 0, 71), 2.2, segs=6, mat='sn_carrot')]
+    for sy in (1, -1):
+        P.append(sphere(1.6, center=(9.5, sy * 4, 76), segs=6, rings=4, mat='sn_coal'))
+        P.append(tube([(0, sy * 14, 54), (0, sy * 30, 64), (2, sy * 36, 70)], [1.2, 1.0, 0.8], segs=5, mat='sn_stick',
+                      name='arm'))
+    for z in (44, 52, 30):
+        P.append(sphere(1.8, center=(15.5 if z > 40 else 21.5, 0, z), segs=6, rings=4, mat='sn_coal'))
+    for m in P:
+        m.detail = 0.5
+    return dict(kind='world', name='ice_snowman', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                tex=(128, 128), out=_out('ice_snowman'), preview_area=AREA, budget=0.05e6)
+
+
 def extra():
     return [tank(), crate_wood(), crate_mil(), lamppost(), fence(), antenna(), snowmobile()]
 
 
+def icefy():
+    return [xbarrel(), snowman()]
+
+
 def all():   # noqa: A001
-    return [truck(), jeep(), barrel(), generator(), radar(), logs()] + extra()
+    return [truck(), jeep(), barrel(), generator(), radar(), logs()] + extra() + icefy()

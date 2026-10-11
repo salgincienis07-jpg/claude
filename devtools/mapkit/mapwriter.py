@@ -38,7 +38,7 @@ BEVEL = 'BEVEL'
 
 # Stock skies shipped with every CS 1.6 install (gfx/env/<name>{bk,dn,ft,lf,rt,up}.tga)
 # our own skies shipped in cstrike/gfx/env (6 TGAs each, listed in the map's .res; bspcheck verifies the files)
-CUSTOM_SKIES = ('vexmira_night',)
+CUSTOM_SKIES = ('vexmira_night', 'vexmira_frost')
 STOCK_SKIES = ('desert', 'city', 'night', 'space', 'cx', 'office', 'de_storm', 'backalley',
                'morning', 'green', 'snow', 'tornsky', 'trainyard', '2desert', 'cliff', 'hav',
                'dusk', 'neb6', 'xen9', 'alien1', 'alien2', 'alien3', 'black', 'blue', 'grnplsnt')

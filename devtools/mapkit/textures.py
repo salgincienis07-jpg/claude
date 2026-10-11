@@ -1683,6 +1683,39 @@ def t_sign_vexhd(rng, w, h):
     return np.clip(grain(img, rng, 0.01), 0, 1)
 
 
+@tex('vx_mapby', 256, 64, 'sign', light=(255, 120, 230, 260), frames=8, dither=True,
+     desc='animated author neon "MapBy:SmurfSexy" (zm_vexmira_icefy): pink tubes, cyan outline, a white shimmer sweeps')
+def t_mapby(rng, w, h):
+    from PIL import ImageFont
+    base = steel(h, w, rng, (22, 18, 30), brushed=False)
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    frame = ((xs < 3) | (xs >= w - 3) | (ys < 3) | (ys >= h - 3)).astype(F)
+    base = apply_shade(base, shade(frame * 0.7, 2))
+    txt = 'MapBy:SmurfSexy'
+
+    def text(d, k):
+        f = _font(int(22 * k))
+        bb = d.textbbox((0, 0), txt, font=f)
+        d.text(((w * k - (bb[2] - bb[0])) / 2 - bb[0], (h * k - (bb[3] - bb[1])) / 2 - bb[1] - 2 * k), txt, font=f, fill=255)
+    m = _ss_mask(w, h, text)
+    outline = np.clip(blur(m, 1.2) * 2.2 - m, 0, 1)
+    under = ((np.abs(ys - (h - 9)) < 1.2) & (xs > 18) & (xs < w - 18)).astype(F)
+    pink = (255, 90, 220)
+    cyan = (40, 230, 255)
+    frames = []
+    for f in range(8):
+        img = base + glow(m, 5, pink, 0.55) + glow(outline + under, 3, cyan, 0.35)
+        img = mix(img, fill(h, w, (255, 170, 240)), m)
+        img = mix(img, fill(h, w, (120, 240, 255)), np.clip(outline * 0.8 + under, 0, 1))
+        cx = -30 + (w + 60) * f / 7.0
+        sweep = np.exp(-((xs - cx - (ys - h / 2) * 0.4) / 14.0) ** 2)
+        img = img + (m + outline * 0.5)[..., None] * sweep[..., None] * 0.55
+        if f == 5:                                   # one quick neon flicker per loop
+            img = base * 0.9 + (img - base) * 0.55
+        frames.append(np.clip(img, 0, 1))
+    return frames
+
+
 @tex('vx_door_metal', 64, 128, 'door', desc='steel door with hazard band')
 def t_door_metal(rng, w, h):
     img = steel(h, w, rng, (92, 98, 106))

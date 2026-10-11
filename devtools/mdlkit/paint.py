@@ -616,6 +616,35 @@ SHAPES = {
 }
 
 
+_TEXT_MASKS = {}
+
+
+def _sd_text(word):
+    """Pseudo-SDF of a bold word: u in [-len/2*0.62, +], v in [-0.5, 0.5] (v up); <0 inside the letters."""
+    def f(u, v):
+        if word not in _TEXT_MASKS:
+            from PIL import Image, ImageDraw, ImageFont
+            H = 96
+            font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 80)
+            W = int(len(word) * H * 0.62)
+            im = Image.new('L', (W, H), 0)
+            d = ImageDraw.Draw(im)
+            bb = d.textbbox((0, 0), word, font=font)
+            d.text(((W - (bb[2] - bb[0])) / 2 - bb[0], (H - (bb[3] - bb[1])) / 2 - bb[1]), word, font=font, fill=255)
+            _TEXT_MASKS[word] = np.asarray(im, np.float64) / 255.0
+        m = _TEXT_MASKS[word]
+        H, W = m.shape
+        hw = W / H * 0.5
+        x = np.clip(((u + hw) / (2 * hw)) * (W - 1), 0, W - 1).astype(int)
+        y = np.clip((0.5 - v) * (H - 1), 0, H - 1).astype(int)
+        inside = (np.abs(u) <= hw) & (np.abs(v) <= 0.5)
+        return np.where(inside, (0.5 - m[y, x]) * 0.08, 1.0)
+    return f
+
+
+SHAPES['danger'] = _sd_text('DANGER')
+
+
 def apply_decals(col, P, N, decals, mesh_name, mat_name, emis):
     for d in decals:
         tgt = d.get('target')
