@@ -1841,7 +1841,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
             b.W(box((nl[0], nl[1], L + 80), (nl[2], nl[3], L + 96), CRACK))
             b.W(stairs((flB[0], flB[1], L + 96), '-y', 128, 96, rise=12, run=16, tex=CRACK, clip=True))
         b.W(box((flB[0] - 64, flA[1], 0), (flB[0] + 64, flB[1], 96), CONC))   # fill under the first B flight
-    b.W(box((1168, 448, 720), (1456, 832, 1152), {'top': CONC, 'bottom': CONC, 'all': FAC}))   # crown: windowed tower top
+    b.W(box((1168, 448, 720), (1456, 832, 1152), CONC))   # crown: windowed tower top
     # tower south passage t (flank P <-> K)
     Z('t', [(1168, -560, 2160, -400)], 0, 512, ASPH, FAC, rl=256,
       holes=[sk(X, 1168), sk(X, 2160), sk(Y, -400)])
