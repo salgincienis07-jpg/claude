@@ -7,4 +7,4 @@ REPO="$(cd "$HERE/../.." && pwd)"
 SCR="$REPO/cstrike/addons/amxmodx/scripting"
 SRC="$SCR/vexmira_zombie.sma"
 OUT=${1:-/tmp/claude-0/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/scratchpad/test.amxx}
-cd $T && ./amxxpc "$SRC" -i$T/include -o"$OUT" 2>&1 | grep -v "^AMX Mod X Compiler\|^Copyright"
+cd $T && ./amxxpc "$SRC" -i$T/include -i$SCR/include -o"$OUT" 2>&1 | grep -v "^AMX Mod X Compiler\|^Copyright"

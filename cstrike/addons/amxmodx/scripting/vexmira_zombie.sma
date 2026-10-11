@@ -50,9 +50,16 @@
 
 #pragma dynamic 32768
 
+// Connection funnel, per map. Not all pre-handshake failures reach client_connect.
+new g_pSixTracer, g_pSixMemeCD, g_pSixLog;
+new Float:g_fSixConnect[33], Float:g_fSixEnter[33], Float:g_fSixMemeNext[33];
+new bool:g_bSixTracked[33], bool:g_bSixEntered[33];
+new g_iSixAttempts, g_iSixEntered, g_iSixAborted, g_iSixShort;
+
+
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "3.7-Arsenal8.1"
+#define VERSION  "4.0-Community"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -71,7 +78,7 @@
 #define NUM_BOSSES    9
 #define NUM_JOBS      26
 #define NUM_ITEMS     28
-#define NUM_SPECIAL   8
+#define NUM_SPECIAL   6
 enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SWE_EXPLOSIVE };
 #define NUM_PERKS     6
 #define PERK_MAX      5
@@ -156,6 +163,7 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 #define SET_NO_AUTOGUN (1<<6)
 #define SET_NO_FOG     (1<<7)
 #define SET_NO_TIPS    (1<<9)
+#define SET_NO_MEME    (1<<11)
 #define SET_NO_COS     (1<<10)   // v3.5: diger oyuncularin kanat / pet / sapkasini gizle
 
 enum
@@ -354,13 +362,13 @@ new const ITEM_ANNOUNCE[NUM_ITEMS] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
 /* Vexmira Arsenal 8: one retained rifle + seven original alternate-mode rifles. */
 #define VX_TAG 7800
 #define VX_MAX_PROJECTILES 24
-new const VX_FOLDER[8][] = {"vxr7", "helios", "atlas", "drakon", "boreal", "tesla", "singularity", "railguard"};
+new const VX_FOLDER[NUM_SPECIAL][] = {"vxr7", "helios", "atlas", "drakon", "boreal", "tesla"};
 new const VX_SOUND[7][] = {"fire", "magout", "magin", "bolt", "switch", "alt", "impact"};
-new const VX_ALT_COST[8] = {0,3,8,8,6,5,8,6};
-new const Float:VX_ALT_WAIT[8] = {0.0,0.65,2.2,3.0,2.5,1.3,3.2,1.4};
-new bool:g_bVxReady[8], bool:g_bVxGiving[33], bool:g_bVxAltHandled[33], bool:g_bVxRightHeld[33];
+new const VX_ALT_COST[NUM_SPECIAL] = {3, 3, 8, 8, 6, 5};
+new const Float:VX_ALT_WAIT[NUM_SPECIAL] = {0.9, 0.8, 2.2, 3.0, 2.5, 1.3};
+new bool:g_bVxReady[NUM_SPECIAL], bool:g_bVxGiving[33], bool:g_bVxAltHandled[33], bool:g_bVxRightHeld[33];
 new g_iVxClip[33], g_iVxAttack[33], g_iVxShots[33], g_iVxEvent;
-new g_szVxWorld[8][96], g_iVxProjectiles[VX_MAX_PROJECTILES];
+new g_szVxWorld[NUM_SPECIAL][96], g_iVxProjectiles[VX_MAX_PROJECTILES];
 new Float:g_fVxStart[33][3], Float:g_fVxEnd[33][3];
 new g_iVxOrbModel, g_iVxDragonModel;
 new const VX_ORB[] = "models/vexmira/weapons/arsenal/orb.mdl";
@@ -368,20 +376,20 @@ new const VX_DRAGON[] = "models/vexmira/weapons/arsenal/dragon.mdl";
 
 
 new const SW_BASE_ENT[NUM_SPECIAL][] =
-{"weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47"};
+{"weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47", "weapon_ak47"};
 new const WeaponIdType:SW_BASE_ID[NUM_SPECIAL] =
-{WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47};
-new Float:SW_MULT[NUM_SPECIAL] = {1.38, 1.25, 1.3, 1.4, 1.22, 1.28, 1.32, 1.5};
-new SW_COST[NUM_SPECIAL]       = {140, 155, 185, 195, 170, 180, 220, 190};
-new SW_LVL[NUM_SPECIAL]        = {12, 13, 16, 18, 15, 17, 22, 19};
-new SW_BPAMMO[NUM_SPECIAL]     = {180, 180, 192, 180, 168, 216, 192, 144};
-new SW_CLIP[NUM_SPECIAL]       = {30, 30, 32, 30, 28, 36, 32, 24};
-new SW_CHAIN_DMG[NUM_SPECIAL]  = {0,0,0,0,0,0,0,0};
-new Float:SW_RATE[NUM_SPECIAL] = {0.12, 0.12, 0.14, 0.15, 0.12, 0.13, 0.15, 0.18};
-new Float:SW_RECOIL[NUM_SPECIAL] = {0.85, 0.8, 0.9, 0.9, 0.8, 0.85, 0.95, 1.0};
-new SW_EFFECT[NUM_SPECIAL] = {0,0,0,0,0,0,0,0};
+{WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47, WEAPON_AK47};
+new Float:SW_MULT[NUM_SPECIAL] = {1.38, 1.25, 1.3, 1.4, 1.22, 1.28};
+new SW_COST[NUM_SPECIAL]       = {140, 155, 185, 195, 170, 180};
+new SW_LVL[NUM_SPECIAL]        = {12, 13, 16, 18, 15, 17};
+new SW_BPAMMO[NUM_SPECIAL]     = {180, 180, 192, 180, 168, 216};
+new SW_CLIP[NUM_SPECIAL]       = {30, 30, 32, 30, 28, 36};
+new SW_CHAIN_DMG[NUM_SPECIAL]  = {0, 0, 0, 0, 0, 0};
+new Float:SW_RATE[NUM_SPECIAL] = {0.12, 0.12, 0.14, 0.15, 0.12, 0.13};
+new Float:SW_RECOIL[NUM_SPECIAL] = {0.85, 0.8, 0.9, 0.9, 0.8, 0.85};
+new SW_EFFECT[NUM_SPECIAL] = {0, 0, 0, 0, 0, 0};
 new SW_RGB[NUM_SPECIAL][3]     =
-{{165,85,235},{255,175,65},{90,175,255},{255,85,40},{90,230,255},{165,135,255},{185,70,245},{115,255,155}};
+{{165,85,235}, {255,175,65}, {90,175,255}, {255,85,40}, {90,230,255}, {165,135,255}};
 new g_szSWName[2][NUM_SPECIAL][48], g_szSWDesc[2][NUM_SPECIAL][80];
 
 // Perk maliyeti: (seviye + 1) * vex_perk_cost_step VC
@@ -528,6 +536,17 @@ new g_bBoss[33], g_bMinion[33], g_bFirst[33], g_bForceZombie[33];
 new g_iClass[33], g_iClassPicked[33], g_iMaxHP[33];
 
 // Kalici veri
+// Vexmira Community integration. Downloaded plugins/models remain separate.
+new const COMMUNITY_WP[6][] = {"vex_janus7.amxx", "vex_plasma.amxx", "vex_thunderbolt.amxx", "vex_ethereal.amxx", "vex_salamander.amxx", "vex_bow.amxx"};
+new const COMMUNITY_WN[6][] = {"JANUS VII", "Plasma Gun", "Thunderbolt", "Ethereal", "Salamander", "Compound Bow"};
+new const COMMUNITY_COST[6] = {35, 30, 45, 30, 35, 35};
+new const COMMUNITY_KP[4][] = {"vex_dragonsword.amxx", "vex_katana.amxx", "vex_lightsaber.amxx", "vex_horseaxe.amxx"};
+new const COMMUNITY_KN[4][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe"};
+new const COMMUNITY_CT[4][] = {"vex_soldier", "vex_gign", "vex_halo", "vex_spetsnaz"};
+new const COMMUNITY_CN[4][] = {"CSO Battle Soldier", "CS:GO GIGN", "SP Megumin Halo", "CS:GO Spetsnaz"};
+new const COMMUNITY_COIN[2][4] = {{20,25,35,25},{25,25,30,25}};
+
+new g_iCommunityOwned[33][2], g_iCommunitySel[33][2];
 new g_iXP[33], g_iLevel[33], g_iAP[33], g_iVC[33];
 new g_iKills[33], g_iInfects[33], g_iWins[33], g_iBossK[33], g_iHS[33];
 new g_iAch[33], g_iTitle[33], g_iJob[33], g_iStyle[33], g_iSet[33], g_iTheme[33], g_iLang[33];
@@ -1878,6 +1897,17 @@ stock ShakeOne(id)
     message_end();
 }
 
+stock bool:SixMemeAllowed(id, const path[])
+{
+    if (!equal(path, "vexmira/meme/", 13)) return true;
+    if (!(1 <= id <= g_iMax) || !is_user_connected(id) || is_user_bot(id)) return false;
+    if ((g_iSet[id] & SET_NO_MEME) || (g_iSet[id] & SET_NO_STREAK)) return false;
+    new Float:now = get_gametime();
+    if (now < g_fSixMemeNext[id]) return false;
+    g_fSixMemeNext[id] = now + floatmax(2.0, get_pcvar_float(g_pSixMemeCD));
+    return true;
+}
+
 stock PlayKey(id, const key[])
 {
     new path[128];
@@ -1892,6 +1922,16 @@ stock PlayKey(id, const key[])
     // Dongulu WAV oyuncuya "spk" ile calinirsa bir daha susmaz: calma
     if (get_pcvar_num(g_pLoopGuard) && SndLooped(path))
         return;
+    if (equal(path, "vexmira/meme/", 13))
+    {
+        if (id == 0)
+        {
+            for (new p = 1; p <= g_iMax; p++)
+                if (is_user_connected(p) && !is_user_bot(p)) PlayKey(p, key);
+            return;
+        }
+        if (!SixMemeAllowed(id, path)) return;
+    }
     client_cmd(id, "spk ^"%s^"", path);
 }
 
@@ -1923,7 +1963,7 @@ stock EmitSafe(ent, chan, const path[], Float:vol = VOL_NORM, Float:attn = ATTN_
         return;
 
     // v3.0: sadece indirilen (2D) ses varliktan calinamaz -> yakindakilere "spk"
-    if (SndIs2DOnly(path))
+    if (SndIs2DOnly(path) || equal(path, "vexmira/meme/", 13))
     {
         new Float:o[3];
         if (ent > 0)
@@ -2537,6 +2577,7 @@ stock SpkAround(const Float:o[3], const path[], Float:attn, bool:everyone)
             if (get_distance_f(o, po) > range)
                 continue;
         }
+        if (!SixMemeAllowed(p, path)) continue;
         client_cmd(p, "spk ^"%s^"", path);
     }
 }
@@ -6361,6 +6402,12 @@ LoadData(id)
     g_iIfxSel[id]      = (n > 32) ? clamp(f[32], 0, NUM_IFX) : 0;
     g_iCmOwned[id]     = (n > 33) ? f[33] : 0;
     g_iCmSelPk[id]     = (n > 34) ? f[34] : 0;
+    for (new c = 0; c < 2; c++) {
+        g_iCommunityOwned[id][c] = (n > 35 + c * 2) ? (f[35 + c * 2] & 15) : 0;
+        g_iCommunitySel[id][c] = (n > 36 + c * 2) ? clamp(f[36 + c * 2], 0, 4) : 0;
+        new v = g_iCommunitySel[id][c];
+        if (v && !(g_iCommunityOwned[id][c] & (1 << (v - 1)))) g_iCommunitySel[id][c] = 0;
+    }
 
     g_iLevel[id] = CalcLevel(g_iXP[id]);
 
@@ -6384,13 +6431,13 @@ SaveData(id)
     new key[48], val[512];
     GetKey(id, key, charsmax(key));
 
-    formatex(val, charsmax(val), "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+    formatex(val, charsmax(val), "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
         g_iXP[id], g_iAP[id], g_iVC[id], g_iKills[id], g_iInfects[id], g_iWins[id], g_iBossK[id], g_iHS[id],
         g_iAch[id], g_iTitle[id], g_iJobNext[id] >= 0 ? g_iJobNext[id] : g_iJob[id], g_iStyle[id], g_iSet[id], g_iTheme[id], g_iLang[id],
         g_iDailyDay[id], g_iDailyStreak[id], g_iPrim[id], g_iSec[id], g_iPlaySec[id] / 60,
         g_iPerk[id][0], g_iPerk[id][1], g_iPerk[id][2], g_iPerk[id][3], g_iPerk[id][4], g_iPerk[id][5],
         g_iClassNext[id] >= 0 ? g_iClassNext[id] : g_iClass[id], get_systime(), g_iHudPos[id],
-        g_iCosOwned[id], g_iTrailSel[id], g_iKfxSel[id], g_iIfxSel[id], g_iCmOwned[id], g_iCmSelPk[id]);
+        g_iCosOwned[id], g_iTrailSel[id], g_iKfxSel[id], g_iIfxSel[id], g_iCmOwned[id], g_iCmSelPk[id], g_iCommunityOwned[id][0], g_iCommunitySel[id][0], g_iCommunityOwned[id][1], g_iCommunitySel[id][1]);
 
     nvault_set(g_hVault, key, val);
     UpdateTop(id, key);
@@ -7299,6 +7346,8 @@ ShowShopMenu(id)
     {
         formatex(item, charsmax(item), "\r%L", id, "SHOP_EXCHANGE", max(1, get_pcvar_num(g_pExchange)));
         MenuAdd(menu, item, 100);
+        MenuAdd(menu, "\yJetpack + Bazooka \r[80 AP]", 200);
+        MenuAdd(menu, "\yHEV Suit Mark IV \r[60 AP]", 201);
     }
 
     MenuFinish(id, menu);
@@ -7326,7 +7375,9 @@ public menu_shop_handler(id, menu, item)
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
 
-    if (sel == 100)
+    if (sel == 200 || sel == 201)
+        CommunityBuyGear(id, sel - 200);
+    else if (sel == 100)
         Exchange(id);
     else
     {
@@ -7579,31 +7630,7 @@ AnnounceBuy(id, const itemKey[])
 
 ShowSpecialMenu(id)
 {
-    new title[320], item[160], k1[12], k2[16], n1[40], n2[64];
-
-    VexHead(id, title, charsmax(title), "MENU_SPECIAL");
-    new menu = VexMenuCreate(title, "menu_special_handler");
-
-    for (new i = 0; i < NUM_SPECIAL; i++)
-    {
-        formatex(k1, charsmax(k1), "SW_%d", i);
-        formatex(k2, charsmax(k2), "SW_DESC_%d", i);
-        formatex(n1, charsmax(n1), "%L", id, k1);
-        formatex(n2, charsmax(n2), "%L", id, k2);
-
-        if (g_iLevel[id] < SW_LVL[i])
-            formatex(item, charsmax(item), "\y%s \r[Lv.%d] \r[%L]", n1, SW_LVL[i], id, "MENU_LOCKED");
-        else if (g_iSpecW[id] & (1 << i))
-            formatex(item, charsmax(item), "\y%s \r[%L\r]", n1, id, "OWNED");
-        else if (g_iAP[id] >= SwPrice(id, i))
-            formatex(item, charsmax(item), "\y%s \r[%d AP]", n1, SwPrice(id, i));
-        else
-            formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", n1, SwPrice(id, i), id, "MENU_LOCKED");
-
-        MenuAdd(menu, item, i);
-    }
-
-    MenuFinish(id, menu);
+    CommunityWeaponMenu(id);
 }
 
 SwPrice(id, i)
@@ -7615,76 +7642,8 @@ SwPrice(id, i)
 
 public menu_special_handler(id, menu, item)
 {
-    if (item < 0)
-    {
-        menu_destroy(menu);
-        return PLUGIN_HANDLED;
-    }
-
-    new i = MenuInfo(menu, item);
+    if (item >= 0) { new i = MenuInfo(menu, item); CommunityBuyWeapon(id, i); }
     menu_destroy(menu);
-    DescChat(id, "SW_%d", "SW_DESC_%d", i);
-
-    if (!is_user_alive(id) || g_bZombie[id] || g_bSurvivor[id] || g_bSniper[id])
-    {
-        Chat(id, "SHOP_UNAVAIL");
-        return PLUGIN_HANDLED;
-    }
-    if (g_iLevel[id] < SW_LVL[i])
-    {
-        Chat(id, "NEED_LEVEL", SW_LVL[i]);
-        return PLUGIN_HANDLED;
-    }
-    if (g_iSpecW[id] & (1 << i))
-    {
-        Chat(id, "SHOP_ALREADY");
-        return PLUGIN_HANDLED;
-    }
-    if (g_iAP[id] < SwPrice(id, i))
-    {
-        Chat(id, "SHOP_NOAP");
-        return PLUGIN_HANDLED;
-    }
-
-    if (!g_bVxReady[i])
-    {
-        Chat(id, "SHOP_UNAVAIL");
-        return PLUGIN_HANDLED;
-    }
-
-    // Ayni slottaki diger ozel silahi kaldir
-    new bool:pistol = (SW_BASE_ID[i] == WEAPON_DEAGLE) ? true : false;
-    for (new s = 0; s < NUM_SPECIAL; s++)
-    {
-        if ((SW_BASE_ID[s] == WEAPON_DEAGLE) == pistol)
-            g_iSpecW[id] &= ~(1 << s);
-    }
-
-    g_iSpecW[id] |= (1 << i);
-    new weapon = VxGive(id, i);
-    if (is_nullent(weapon))
-    {
-        g_iSpecW[id] &= ~(1 << i);
-        Chat(id, "SHOP_UNAVAIL");
-        return PLUGIN_HANDLED;
-    }
-    if (!is_nullent(weapon))
-        set_member(weapon, m_Weapon_iClip, SW_CLIP[i]);
-    rg_set_user_bpammo(id, SW_BASE_ID[i], SW_BPAMMO[i]);
-    engclient_cmd(id, SW_BASE_ENT[i]);
-
-    AddAP(id, -SwPrice(id, i), false, false);
-    PlayKey(id, "SHOP_BUY");
-
-    new Float:o[3];
-    get_entvar(id, var_origin, o);
-    FxRing(o, SW_RGB[i][0], SW_RGB[i][1], SW_RGB[i][2], 180);
-
-    new key[12], nm[40];
-    formatex(key, charsmax(key), "SW_%d", i);
-    formatex(nm, charsmax(nm), "%L", id, key);
-    Chat(id, "SW_BOUGHT", nm);
-    AnnounceBuy(id, key);
     return PLUGIN_HANDLED;
 }
 
@@ -8306,6 +8265,8 @@ ShowCosmeticMenu(id)
         formatex(item, charsmax(item), "\y%L \r[%L\r]", id, "COS_HIDE_OTHERS", id, (g_iSet[id] & SET_NO_COS) ? "COS_HIDDEN" : "COS_VISIBLE");
         MenuAdd(menu, item, 9);
     }
+    MenuAdd(menu, "\yCT Gorunumleri \r[Vex Coin]", 21);
+    MenuAdd(menu, "\yOzel Bicaklar \r[Vex Coin]", 22);
     MenuFinish(id, menu);
 }
 
@@ -8325,6 +8286,8 @@ public menu_cos_handler(id, menu, item)
         SaveData(id);
         ShowCosmeticMenu(id);
     }
+    else if (cat == 21 || cat == 22)
+        CommunityCoinMenu(id, cat - 21);
     else if (cat >= 3)
         ShowCmList(id, cat - 3);
     else
@@ -8749,10 +8712,8 @@ CmSpawn(id, c, i)
     // ayni adli kemikleri de kopyalar, digerlerinde ofset kontrolculerden gelir
     get_entvar(id, var_origin, o);
     engfunc(EngFunc_SetOrigin, ent, o);
-    set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
-    set_entvar(ent, var_aiment, id);
-    if (g_iCmAtt[c][i] != CMA_BONE)
-        CmApplyCtl(ent, id, c, i);
+    set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+    CommunityCosOrigin(ent, id, c, i);
     g_iCmOwn[ent] = id;
     g_iCmInfo[ent] = c * 16 + i;
     g_iCmEnt[id][c] = ent;
@@ -8789,8 +8750,7 @@ CmTick(Float:now)
             }
             // Model degisirse (sinif / skin) kafa yuksekligi yeniden okunur; konum istemcide (FOLLOW)
             OvhModelTops(id);
-            if (g_iCmAtt[c][i] != CMA_BONE)
-                CmApplyCtl(ent, id, c, i);
+            CommunityCosOrigin(ent, id, c, i);
         }
     }
 }
@@ -8823,17 +8783,6 @@ CmPack(es, ent, host)
     {
         set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
         return FMRES_IGNORED;
-    }
-    if (att != CMA_BONE)
-    {
-        new ctl[4], Float:pa[3], Float:a[3];
-        CmCtl(id, c, i, (get_entvar(id, var_flags) & FL_DUCKING) ? true : false, ctl);
-        set_es(es, ES_Controller, ctl);
-        get_entvar(id, var_angles, pa);
-        a[0] = g_fCmAng[c][i][0];
-        a[1] = pa[1] + g_fCmAng[c][i][1];
-        a[2] = g_fCmAng[c][i][2];
-        set_es(es, ES_Angles, a);
     }
     return FMRES_IGNORED;
 }
@@ -9398,6 +9347,21 @@ GiveModeWeapons(id, mm)
     }
 }
 
+
+VxLeanResources()
+{
+    new Snapshot:it = TrieSnapshotCreate(g_tRes);
+    new key[64], path[192];
+    for (new index; index < TrieSnapshotLength(it); index++)
+    {
+        TrieSnapshotGetKey(it, index, key, charsmax(key));
+        if (TrieGetString(g_tRes, key, path, charsmax(path)) && containi(path, "vexmira/") != -1)
+            TrieSetString(g_tRes, key, "");
+
+    }
+    TrieSnapshotDestroy(it);
+}
+
 VxDefaults()
 {
     new key[24], path[128];
@@ -9420,6 +9384,42 @@ VxDefaults()
 
 VxPrecache()
 {
+    // Client-side model event sounds also require FastDL delivery.
+    static const MODEL_EVENT_WAV[][] = {
+        "sound/weapons/cs2_ak47/boltpull.wav",
+        "sound/weapons/cs2_ak47/clipin.wav",
+        "sound/weapons/cs2_ak47/clipout.wav",
+        "sound/weapons/cs2_ak47/draw.wav",
+        "sound/weapons/cs2_aug/boltpull.wav",
+        "sound/weapons/cs2_aug/boltrelease.wav",
+        "sound/weapons/cs2_aug/cliphit.wav",
+        "sound/weapons/cs2_aug/clipin.wav",
+        "sound/weapons/cs2_aug/clipout.wav",
+        "sound/weapons/cs2_aug/draw.wav",
+        "sound/weapons/cs2_famas/boltback.wav",
+        "sound/weapons/cs2_famas/boltforward.wav",
+        "sound/weapons/cs2_famas/cliphit.wav",
+        "sound/weapons/cs2_famas/clipin.wav",
+        "sound/weapons/cs2_famas/clipout.wav",
+        "sound/weapons/cs2_famas/draw.wav",
+        "sound/weapons/cs2_m4a1s/boltback.wav",
+        "sound/weapons/cs2_m4a1s/boltforward.wav",
+        "sound/weapons/cs2_m4a1s/cliphit.wav",
+        "sound/weapons/cs2_m4a1s/clipin.wav",
+        "sound/weapons/cs2_m4a1s/clipout.wav",
+        "sound/weapons/cs2_m4a1s/draw.wav",
+        "sound/weapons/cs2_mp5sd/clipin.wav",
+        "sound/weapons/cs2_mp5sd/clipout.wav",
+        "sound/weapons/cs2_mp5sd/draw.wav",
+        "sound/weapons/cs2_mp5sd/slideback.wav",
+        "sound/weapons/cs2_mp5sd/slideforward.wav",
+        "sound/weapons/cs2_sg553/boltback.wav",
+        "sound/weapons/cs2_sg553/boltforward.wav",
+        "sound/weapons/cs2_sg553/clipin.wav",
+        "sound/weapons/cs2_sg553/clipout.wav",
+        "sound/weapons/cs2_sg553/draw.wav"
+    };
+    for (new ev; ev < sizeof MODEL_EVENT_WAV; ev++) PcGeneric(MODEL_EVENT_WAV[ev]);
     new key[24], path[128], full[160];
     if(file_exists(VX_ORB)) g_iVxOrbModel=PcModel(VX_ORB);
     if(file_exists(VX_DRAGON)) g_iVxDragonModel=PcModel(VX_DRAGON);
@@ -9429,9 +9429,10 @@ VxPrecache()
         formatex(key,charsmax(key),"SW%d_PMODEL",sw);GetFileModel(key,g_szSWPlayer[sw],charsmax(g_szSWPlayer[]));
         formatex(key,charsmax(key),"SW%d_WMODEL",sw);GetFileModel(key,g_szVxWorld[sw],charsmax(g_szVxWorld[]));
         g_bVxReady[sw]=bool:(g_szSWView[sw][0]&&g_szSWPlayer[sw][0]&&g_szVxWorld[sw][0]);
-        new count=sw?7:4;
+        new count=7;
         for(new j;j<count;j++)
         {
+            if (j >= 1 && j <= 3) continue; // Actual reload/draw audio comes from model events.
             formatex(path,charsmax(path),"vexmira/weapons/%s/%s.wav",VX_FOLDER[sw],VX_SOUND[j]);
             formatex(full,charsmax(full),"sound/%s",path);
             if(!file_exists(full) || !PcSound(path))g_bVxReady[sw]=false;
@@ -9439,7 +9440,7 @@ VxPrecache()
         if((sw==2||sw==4||sw==6)&&!g_iVxOrbModel)g_bVxReady[sw]=false;
         if(sw==3&&!g_iVxDragonModel)g_bVxReady[sw]=false;
         formatex(key,charsmax(key),"SW%d_FIRE",sw);PrecacheSoundKeyEx(key,false);
-        log_amx("[Arsenal8] slot=%d ready=%d",sw,g_bVxReady[sw]);
+        log_amx("[Arsenal6] slot=%d ready=%d",sw,g_bVxReady[sw]);
     }
     g_iVxEvent=engfunc(EngFunc_PrecacheEvent,1,"events/ak47.sc");
 }
@@ -9464,13 +9465,12 @@ VxTag(weapon,id,sw)
 }
 VxGive(id,sw)
 {
-    if(!(0<=sw<NUM_SPECIAL)||!g_bVxReady[sw])return 0;
-    g_bVxGiving[id]=true;g_iSpecW[id]=(1<<sw);
-    new weapon=rg_give_item(id,"weapon_ak47",GT_REPLACE);g_bVxGiving[id]=false;
-    if(is_nullent(weapon)){g_iSpecW[id]=0;return 0;}
-    VxTag(weapon,id,sw);set_entvar(weapon,var_iuser2,0);set_entvar(weapon,var_body,0);
-    set_member(weapon,m_Weapon_iClip,SW_CLIP[sw]);rg_set_user_bpammo(id,WEAPON_AK47,SW_BPAMMO[sw]);
-    engclient_cmd(id,"weapon_ak47");ExecuteHamB(Ham_Item_Deploy,weapon);return weapon;
+    if (sw < 0 || sw >= 6 || !CommunityAlive(id)) return 0;
+    rg_drop_items_by_slot(id, PRIMARY_WEAPON_SLOT);
+    CommunityRemoveWeapons(id);
+    g_iSpecW[id] = 0;
+    if (!CommunityCall(COMMUNITY_WP[sw], "vex_give", id)) return 0;
+    return get_member(id, m_pActiveItem);
 }
 public VxAddToPlayerPost(weapon,id)
 {
@@ -9497,7 +9497,7 @@ VxSound(id,sw,sound,channel=CHAN_WEAPON)
 VxCommand(id,uc)
 {
     new sw=VxActive(id),buttons=get_uc(uc,UC_Buttons);
-    if(sw<1){g_bVxRightHeld[id]=false;return;}
+    if(sw<0){g_bVxRightHeld[id]=false;return;}
     new bool:held=bool:(buttons&IN_ATTACK2);
     set_uc(uc,UC_Buttons,buttons&~IN_ATTACK2);
     if(held&&!g_bVxRightHeld[id])
@@ -9506,7 +9506,7 @@ VxCommand(id,uc)
         if(!get_member(w,m_Weapon_fInReload)&&Float:get_member(w,m_Weapon_flNextSecondaryAttack)<=0.0
             &&Float:get_member(id,m_flNextAttack)<=0.0)
         {
-            new mode=1-get_entvar(w,var_iuser2);set_entvar(w,var_iuser2,mode);set_entvar(w,var_body,mode);
+            new mode=1-get_entvar(w,var_iuser2);set_entvar(w,var_iuser2,mode);set_entvar(w,var_body,0);
             set_member(w,m_Weapon_flNextPrimaryAttack,floatmax(0.6,Float:get_member(w,m_Weapon_flNextPrimaryAttack)));
             set_member(w,m_Weapon_flNextSecondaryAttack,0.6);set_member(w,m_Weapon_flTimeWeaponIdle,0.65);
             VxAnim(id,w,6);VxSound(id,sw,4);
@@ -9529,7 +9529,7 @@ public VxAttackPre(weapon)
 public VxPlaybackEvent(flags,invoker,eventindex,Float:delay,Float:origin[3],Float:angles[3],Float:spreadX,Float:spreadY,punchX,punchY,b1,b2)
 {
     if(eventindex!=g_iVxEvent||VxActive(invoker)<0)return FMRES_IGNORED;
-    if((g_iVxShots[invoker]+1)%3==0)
+    if((g_iVxShots[invoker]+1)%max(3,get_pcvar_num(g_pSixTracer))==0)
     {
         new Float:a[3],Float:ofs[3],Float:ang[3],Float:f[3],Float:r[3],Float:u[3],Float:b[3];
         get_entvar(invoker,var_origin,a);get_entvar(invoker,var_view_ofs,ofs);get_entvar(invoker,var_v_angle,ang);
@@ -9551,7 +9551,7 @@ public VxClientDataPost(id,sendweapons,cd)
 VxShot(id,sw)
 {
     new weapon=get_member(id,m_pActiveItem);g_iVxShots[id]++;VxAnim(id,weapon,3+(g_iVxShots[id]%3));EmitSpecialFire(id,sw);
-    if(g_iVxShots[id]%3)return;
+    if(g_iVxShots[id]%max(3,get_pcvar_num(g_pSixTracer)))return;
     FxBeamEx(g_fVxStart[id],g_fVxEnd[id],g_sprBeam,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],3,0,1,150);
 }
 VxAim(id,Float:a[3],Float:f[3],Float:b[3],Float:angle[3])
@@ -9599,7 +9599,7 @@ VxRay(id,sw,const Float:a[3],const Float:f[3],const Float:b[3])
         engfunc(EngFunc_TraceLine,start,b,DONT_IGNORE_MONSTERS,ignore,tr);get_tr2(tr,TR_vecEndPos,end);
         new victim=get_tr2(tr,TR_pHit);if(n==0)hitFirst=victim;
         if(!(1<=victim<=g_iMax)||!is_user_alive(victim)||!g_bZombie[victim])break;
-        VxDamage(victim,id,id,(sw==1?135.0:(sw==5?110.0:180.0))*(1.0-0.2*float(n)));
+        VxDamage(victim,id,id,(sw==0?110.0:(sw==1?135.0:(sw==5?110.0:180.0)))*(1.0-0.2*float(n)));
         ignore=victim;for(new j;j<3;j++)start[j]=end[j]+f[j]*0.5;
     }
     free_tr2(tr);FxBeamEx(a,end,sw==5?g_sprLightning:g_sprBeam,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],sw==7?10:7,sw==5?10:0,2,220);FxSparks(end);
@@ -9728,7 +9728,7 @@ VxAlt(id,weapon,sw)
     set_member(weapon,m_Weapon_flNextPrimaryAttack,VX_ALT_WAIT[sw]);
     set_member(weapon,m_Weapon_flNextSecondaryAttack,VX_ALT_WAIT[sw]);set_member(weapon,m_Weapon_flTimeWeaponIdle,floatmax(0.75,VX_ALT_WAIT[sw]));
     VxAnim(id,weapon,7);VxSound(id,sw,5);set_entvar(id,var_effects,get_entvar(id,var_effects)|EF_MUZZLEFLASH);
-    if(sw==1||sw==5||sw==7)VxRay(id,sw,a,f,b);
+    if(sw==0||sw==1||sw==5||sw==7)VxRay(id,sw,a,f,b);
     else if(sw==3)VxRoar(id,a,f);
 }
 public cmd_ArsenalGive(id,level,cid)
@@ -9736,8 +9736,8 @@ public cmd_ArsenalGive(id,level,cid)
     if(!cmd_access(id,level,cid,3))return PLUGIN_HANDLED;
     new arg[32],idx[8];read_argv(1,arg,charsmax(arg));read_argv(2,idx,charsmax(idx));new sw=str_to_num(idx);
     new target=cmd_target(id,arg,CMDTARGET_ALLOW_SELF|CMDTARGET_ONLY_ALIVE);if(!target)return PLUGIN_HANDLED;
-    if(!(0<=sw<NUM_SPECIAL)||g_bZombie[target]||ModeOf(target)>=0){console_print(id,"[Arsenal8] Living normal human, slot 0..7 required.");return PLUGIN_HANDLED;}
-    console_print(id,"[Arsenal8] slot=%d give=%s",sw,VxGive(target,sw)?"OK":"FAILED");return PLUGIN_HANDLED;
+    if(!(0<=sw<NUM_SPECIAL)||g_bZombie[target]||ModeOf(target)>=0){console_print(id,"[Arsenal6] Living normal human, slot 0..5 required.");return PLUGIN_HANDLED;}
+    console_print(id,"[Arsenal6] slot=%d give=%s",sw,VxGive(target,sw)?"OK":"FAILED");return PLUGIN_HANDLED;
 }
 
 SpecialIndex(id, WeaponIdType:wid)
@@ -9849,6 +9849,11 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
 
     if (g_bZombie[id])
     {
+        if (wid == WEAPON_HEGRENADE) {
+            SetHookChainArg(2, ATYPE_STRING, "models/zombie_plague/v_grenade_infect.mdl");
+            SetHookChainArg(3, ATYPE_STRING, "models/p_fgrenade.mdl");
+            return HC_CONTINUE;
+        }
         if (wid != WEAPON_KNIFE)
             return HC_CONTINUE;
 
@@ -12777,11 +12782,7 @@ AirdropLoot(id, const name[])
     else if (roll <= 98)
     {
         new sw = random(NUM_SPECIAL);
-        for (new tries; tries < NUM_SPECIAL && !g_bVxReady[sw]; tries++) sw = (sw + 1) % NUM_SPECIAL;
-        g_iSpecW[id] |= (1 << sw);
         VxGive(id, sw);
-        rg_set_user_bpammo(id, SW_BASE_ID[sw], SW_BPAMMO[sw]);
-        engclient_cmd(id, SW_BASE_ENT[sw]);
         copy(key, charsmax(key), "LOOT_SW");
         amount = sw;
     }
@@ -12891,6 +12892,7 @@ public fw_SetModelPost(ent, const model[])
 {
     if (ent <= g_iMax || model[0] != 'm' || is_nullent(ent))
         return FMRES_IGNORED;
+    if (CommunityWorldModel(ent, model)) return FMRES_IGNORED;
     if (equal(model, "models/w_ak47.mdl"))
     {
         new cls[16]; get_entvar(ent, var_classname, cls, charsmax(cls));
@@ -12902,7 +12904,7 @@ public fw_SetModelPost(ent, const model[])
                 new Float:mins[3], Float:maxs[3];
                 get_entvar(ent, var_mins, mins); get_entvar(ent, var_maxs, maxs);
                 engfunc(EngFunc_SetModel, ent, g_szVxWorld[sw]);
-                set_entvar(ent, var_body, get_entvar(weapon, var_iuser2));
+                set_entvar(ent, var_body, 0);
                 engfunc(EngFunc_SetSize, ent, mins, maxs);
             }
         }
@@ -12951,6 +12953,11 @@ public fw_SetModelPost(ent, const model[])
 
 MakeZombie(id)
 {
+    CommunityRemoveWeapons(id);
+    CommunityRemoveKnives(id);
+    CommunityCall("vex_jetpack.amxx", "vex_infected", id);
+    CommunityCall("vex_hev.amxx", "vex_remove", id);
+
     if (!g_bZombie[id])
         RemovePlayerMines(id, true);
     KillTrail(id);
@@ -13090,6 +13097,8 @@ ClearZombieRoles(id)
 
 MakeSurvivor(id, bool:sniper)
 {
+    CommunityReset(id);
+
     ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
@@ -13133,6 +13142,9 @@ MakeSurvivor(id, bool:sniper)
 // Zombi -> insan (Antidote)
 MakeHuman(id)
 {
+    CommunityReset(id);
+    set_task(0.3, "CommunityApplyKnife", id + 64000);
+
     ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
@@ -13179,6 +13191,9 @@ MakeHuman(id)
 
 ApplyHumanModel(id)
 {
+    new v = g_iCommunitySel[id][0];
+    if (v > 0 && v <= 4 && (g_iCommunityOwned[id][0] & (1 << (v-1)))) { rg_set_user_model(id, COMMUNITY_CT[v-1]); return; }
+
     new flags = get_user_flags(id);
 
     if ((flags & ADMIN_BAN) && g_szAdminModel[0])
@@ -21397,8 +21412,51 @@ bool:RunChatCommand(id, const msg[])
 /* ================================================================== */
 
 // Baglanirken herkese "baglaniyor" bilgisi (harita degisiminde toplu giriste susar)
+public cmd_SixMemes(id)
+{
+    g_iSet[id] ^= SET_NO_MEME;
+    client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Meme sounds: %s", (g_iSet[id] & SET_NO_MEME) ? "OFF" : "ON");
+    return PLUGIN_HANDLED;
+}
+public cmd_SixStats(id, level, cid)
+{
+    if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+    console_print(id, "[Community] This map: attempts=%d entered=%d download-stage exits=%d exits-under-120s=%d", g_iSixAttempts,g_iSixEntered,g_iSixAborted,g_iSixShort);
+    console_print(id, "[Community] Log: addons/amxmodx/logs/vexmira_connections.log. Stage labels do not prove the cause.");
+    for (new sw;sw<6;sw++) console_print(id,"[Community] weapon=%s plugin_loaded=%d",COMMUNITY_WN[sw],find_plugin_byfile(COMMUNITY_WP[sw])>=0);
+    return PLUGIN_HANDLED;
+}
+SixConnect(id)
+{
+    g_fSixConnect[id]=get_gametime(); g_fSixEnter[id]=0.0;g_fSixMemeNext[id]=0.0;
+    g_bSixEntered[id]=false;g_bSixTracked[id]=!is_user_bot(id)&&!is_user_hltv(id);
+    if (!g_bSixTracked[id]) return;
+    g_iSixAttempts++;
+    if (get_pcvar_num(g_pSixLog)) log_to_file("vexmira_connections.log","CONNECT userid=%d",get_user_userid(id));
+}
+SixEnter(id)
+{
+    if (!g_bSixTracked[id]) return;
+    g_bSixEntered[id]=true;g_fSixEnter[id]=get_gametime();g_iSixEntered++;
+    if(get_pcvar_num(g_pSixLog)) log_to_file("vexmira_connections.log","ENTER userid=%d connect_to_enter=%.1f",get_user_userid(id),g_fSixEnter[id]-g_fSixConnect[id]);
+}
+SixLeave(id, bool:drop, const reason[])
+{
+    if (!g_bSixTracked[id]) return;
+    new clean[128];copy(clean,charsmax(clean),reason);replace_all(clean,charsmax(clean),"^n"," ");replace_all(clean,charsmax(clean),"^r"," ");
+    new Float:session=g_bSixEntered[id]?get_gametime()-g_fSixEnter[id]:0.0;
+    if(drop)
+    {
+        if(!g_bSixEntered[id])g_iSixAborted++;
+        else if(session<120.0)g_iSixShort++;
+    }
+    if(get_pcvar_num(g_pSixLog))log_to_file("vexmira_connections.log","LEAVE userid=%d entered=%d drop=%d connection=%.1f session=%.1f reason=%s",get_user_userid(id),g_bSixEntered[id],drop,get_gametime()-g_fSixConnect[id],session,clean);
+    g_bSixTracked[id]=false;
+}
+
 public client_connect(id)
 {
+    SixConnect(id);
     g_bWelcomed[id] = false;
     g_bMotdShown[id] = false;
     HudReset(id);
@@ -21427,6 +21485,7 @@ public client_connect(id)
 
 public client_putinserver(id)
 {
+    SixEnter(id);
     g_iCsoCur[id] = -1;
     g_iCsoQn[id] = 0;
     g_iCsoWpn[id] = 0;
@@ -21607,6 +21666,11 @@ public task_JoinAnnounce(tid)
 
 public client_disconnected(id, bool:drop, message[], maxlen)
 {
+    CommunityRemoveWeapons(id);
+    CommunityRemoveKnives(id);
+    remove_task(id + 64000);
+
+    SixLeave(id, drop, message);
     VxClear(id); g_bVxRightHeld[id] = false;
     for (new c = 0; c < CM_CATS; c++)
         CmRemove(id, c);
@@ -21703,6 +21767,7 @@ ResetPlayer(id)
     g_iQuest[id] = -1; g_bAlpha[id] = false; g_iMines[id] = 0;
     g_iCosOwned[id] = 0; g_iTrailSel[id] = 0; g_iKfxSel[id] = 0; g_iIfxSel[id] = 0;
     g_iCmOwned[id] = 0; g_iCmSelPk[id] = 0;
+    for (new c = 0; c < 2; c++) { g_iCommunityOwned[id][c] = 0; g_iCommunitySel[id][c] = 0; }
     g_szKey[id][0] = 0; g_bLoaded[id] = false; g_iClassNext[id] = -1; g_iJobNext[id] = -1;
     g_bTrailOn[id] = false;
     g_bLmGiven[id] = false;
@@ -22418,6 +22483,9 @@ UpdateScore(id)
 
 public rg_PlayerSpawn(id)
 {
+    CommunityReset(id);
+    set_task(0.5, "CommunityApplyKnife", id + 64000);
+
     if (!is_user_alive(id))
         return;
 
@@ -22542,6 +22610,7 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
 
     new Float:now = get_gametime();
     new Float:dmg = damage;
+    if (!g_bZombie[victim] && CommunityCall("vex_hev.amxx", "vex_has", victim)) dmg *= 0.8;
     new bool:isPlayer = (1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker)) ? true : false;
     g_iReflVictim = 0;
 
@@ -23031,6 +23100,10 @@ public rg_PlayerKilledPre(victim, attacker, gib)
 
 public rg_PlayerKilled(victim, attacker, gib)
 {
+    CommunityRemoveWeapons(victim);
+    CommunityRemoveKnives(victim);
+    remove_task(victim + 64000);
+
     new bool:valid = (1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker)) ? true : false;
     // v3.0: olenin yetenekleri / ustundeki etkiler (kanca, ninni, keseler...) temizlenir
     ZcCleanup(victim);
@@ -28442,6 +28515,14 @@ public task_MapChooserCheck()
 
 public plugin_natives()
 {
+    register_library("vex_community");
+    register_native("vex_prepare_jetpack", "CommunityNativePrepareJet");
+    register_native("vex_has_jetpack", "CommunityNativeJetpack");
+    register_native("vex_is_zombie", "CommunityNativeZombie");
+    register_native("vex_is_extra_weapon", "CommunityNativeWeapon");
+    register_native("vex_knife_allowed", "CommunityNativeKnife");
+    register_native("vex_restore_appearance", "CommunityNativeRestore");
+
     set_module_filter("fw_ModuleFilter");
     set_native_filter("fw_NativeFilter");
 }
@@ -28467,6 +28548,10 @@ public fw_NativeFilter(const name[], index, trap)
 
 public plugin_precache()
 {
+    CommunityPrecache();
+    CommunityNormalPrecache();
+    CommunityEventPrecache();
+
     g_tRes = TrieCreate();
     g_tMdlTop = TrieCreate();
     g_tSndInfo = TrieCreate();
@@ -28475,6 +28560,7 @@ public plugin_precache()
     g_tMdlDone = TrieCreate();
     SetDefaultResources();
     VxDefaults();
+    VxLeanResources();
     // Eski surum uyumlulugu: vexmira_resources.ini varsa once o okunur,
     // sonra TEK AYAR DOSYASI vexmira.cfg icindeki "vex_res" satirlari ustune yazar.
     LoadResourceIni();
@@ -28866,6 +28952,13 @@ public plugin_precache()
 
 public plugin_init()
 {
+    g_pSixTracer=register_cvar("vex_six_tracer_every","6");
+    g_pSixMemeCD=register_cvar("vex_meme_cooldown","8.0");
+    g_pSixLog=register_cvar("vex_connection_log","1");
+    register_clcmd("say /memes","cmd_SixMemes");
+    register_clcmd("say_team /memes","cmd_SixMemes");
+    register_concmd("vex_connection_stats","cmd_SixStats",ADMIN_RCON);
+
     RegisterHam(Ham_Weapon_PrimaryAttack, "weapon_ak47", "VxAttackPre", 0);
     RegisterHam(Ham_Item_AddToPlayer, "weapon_ak47", "VxAddToPlayerPost", 1);
     RegisterHookChain(RG_CBasePlayerWeapon_SendWeaponAnim, "VxSendAnim", false);
@@ -28873,7 +28966,7 @@ public plugin_init()
     register_forward(FM_UpdateClientData, "VxClientDataPost", 1);
     register_forward(FM_Think, "VxProjectileThink");
     register_forward(FM_Touch, "VxProjectileTouch");
-    register_concmd("amx_arsenal", "cmd_ArsenalGive", ADMIN_RCON, "<name/#userid> <0..7> - give Arsenal rifle");
+    register_concmd("amx_arsenal", "cmd_ArsenalGive", ADMIN_RCON, "<name/#userid> <0..5> - give Arsenal rifle");
     register_plugin(PLUGIN, VERSION, AUTHOR);
     register_dictionary("vexmira_zombie.txt");
 
@@ -28987,7 +29080,7 @@ public plugin_init()
 
     // v2.0
     g_pPrefix        = register_cvar("vex_chat_prefix", "^4[VEX]^1");
-    g_pHostname      = register_cvar("vex_hostname", "VEXMIRA ZOMBIE [TR/EN] | STORY MAP + CSO BOSS + EVENTS");
+    g_pHostname      = register_cvar("vex_hostname", "Vexmira Zombie | BOSS + STORY MAP + CSO | FREE VIP Plague");
     g_pHostDyn       = register_cvar("vex_hostname_dynamic", "1");
     g_pEnv           = register_cvar("vex_env", "1");
     g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
@@ -29396,3 +29489,9 @@ public plugin_end()
     if (g_tRes != Invalid_Trie)
         TrieDestroy(g_tRes);
 }
+
+#include "include/vex_community_core.inc"
+
+#include "include/vex_event_sounds.inc"
+
+#include "include/vex_normal_world.inc"
