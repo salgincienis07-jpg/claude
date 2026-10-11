@@ -1383,7 +1383,7 @@ def lane(x, y, z, d, H, L, w=56):
             (max(x + w, x1 + w * abs(d[1])) if d[0] == 0 else max(x - w * d[0], x1), max(y + w, y1) if d[1] else y + w, z + H))
 
 
-def osign(face, line, a, z, row, arrow=None, w=416, h=52):
+def osign(face, line, a, z, row, arrow=None, w=384, h=48):
     """Neon objective sign (~vx_objsign, 192x48, ONE drawn face) centred at `a` along the wall.
     row: 0 = 1 TRAFO, 1 = 2 KOPRU, 2 = 3 CATI, 3 = ZIPLA! (launch pad), 4 = HELI (zombie geyser);
     the printed chevrons point along the world direction `arrow` (picks the > or < atlas row)."""
@@ -1397,7 +1397,7 @@ def osign(face, line, a, z, row, arrow=None, w=416, h=52):
     return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, OBJ, depth=2, row=r, rows=8)
 
 
-def isign(face, line, a, z, row, w=416, h=52):
+def isign(face, line, a, z, row, w=384, h=48):
     """Bilingual neon district / warning sign (~vx_infosign row 0-7), one drawn face."""
     return wall_plate(face, line, a - w / 2, a + w / 2, z, z + h, '~vx_infosign', depth=2, row=row, rows=8)
 
@@ -1841,7 +1841,7 @@ def build(mock=False, mock_scale=1.0) -> Map:
             b.W(box((nl[0], nl[1], L + 80), (nl[2], nl[3], L + 96), CRACK))
             b.W(stairs((flB[0], flB[1], L + 96), '-y', 128, 96, rise=12, run=16, tex=CRACK, clip=True))
         b.W(box((flB[0] - 64, flA[1], 0), (flB[0] + 64, flB[1], 96), CONC))   # fill under the first B flight
-    b.W(box((1168, 448, 720), (1456, 832, 1152), CONC))   # crown: windowed tower top
+    b.W(box((1168, 448, 720), (1456, 832, 1152), {'top': CONC, 'bottom': CONC, 'all': FAC}))   # crown: windowed tower top
     # tower south passage t (flank P <-> K)
     Z('t', [(1168, -560, 2160, -400)], 0, 512, ASPH, FAC, rl=256,
       holes=[sk(X, 1168), sk(X, 2160), sk(Y, -400)])
