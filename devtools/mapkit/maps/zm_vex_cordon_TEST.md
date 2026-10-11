@@ -73,3 +73,15 @@ city). No blocking issue found.
 | geysers / trampolines | jump to launch | vertical push = acceleration only while airborne (pm_shared); verified bouncing apex ~+260..+530 |
 | scares (6), collapses (3), barrel reward | PASS | vexprobe_touch/fire: shadow trains move, skylight breaks, door bursts, barrel breaks -> fx + reward relay |
 | bot run 78 s, 4 bots, plugin on | PASS | crash=False, rounds 2, infections 1, in_solid 0, fall deaths 0; 1 stuck sample at the Kade roof hatch (2161 63 612) |
+
+## v3.7 owner-feedback pass (2026-10-11): heli landing, thick walls, radio, effects, props
+| check | result | evidence |
+|---|---|---|
+| budgets | PASS | view wpoly max 1035 / p95 895 (< 1300 / < 900); brush entities 55/60; map sounds 9/10 new (rotor + radio/com_go removed, cd_fountain added); bsp 4.20 MB; spawns 32+32 |
+| precache (plugin on) | PASS | sound 480/512, model 264/512, generic 285/512 (radio lines are generic downloads, no sound slot) |
+| heli landing clear zone | PASS | bots teleported onto the pad before / during the hover + descent were moved to safe spots (`map efekt clear: N oyuncu tasindi`), the deck descended to 592 without blocking, nobody in solid |
+| riding / stepping off | PASS | unfrozen bot on the deck rode 628 -> 725 -> through the air window (unstuck pass once at lift-off), later walked off and landed on the roof; another walked off the parked deck |
+| radio | PASS | `map telsiz` lines for beacon, heli_in, heli_clear, heli, heli_go, breach, minute, blackout, win, freeze_end, scare + chatter; subtitles `[RADIO] ...` seen in the real client |
+| effects | PASS | `map efekt heli_in / heli_app / heli_clear / heli_land / heli_up`; client shot shows the nose searchlight beam and the red pad light |
+| models | PASS | 25 vex_mapmodel entities (heli follows cd_heli, statue, fountain jets, 6 flags, 8 string-light strands x2) rendered in the Xash3D client |
+| Kade roof hatch stuck spot | FIXED | hatch + 2nd ladder removed; 65 s / 4 bots run: stuck=0, in_solid=0, 0 AMXX errors |
