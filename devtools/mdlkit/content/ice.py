@@ -13,6 +13,12 @@ Contracts (origin = bottom centre, front toward +X, z up):
   ice_generator diesel generator skid 96 x 56 x 64, exhaust stack, panel lights.        map clip 96 x 56 x 64
   ice_radar     radar dish on a short pedestal, seq 0 'spin' (looped, 4 s / turn), r 56, h 112 (on a roof)
   ice_logs      campfire: log tepee + stone ring, r 40, h 30 (fire = env_sprite in the map)
+  ice_tank      fuel tank 192 x 88 x 104 (axis X)                                       map clip 192 x 88 x 104
+  ice_crate     wooden crate 56^3;  ice_cratem military crate 64 x 40 x 36              map clip = size
+  ice_lamp      street lamp, 176 pole, lamp head at +X 40 (z 178)                        map clip 16 x 16 pole
+  ice_fence     fence segment x 0..128, 48 tall                                          map clip 128 x 8 x 56
+  ice_antenna   lattice radio mast 360 tall (on a roof / corner)                         map clip 40 x 40
+  ice_sled      snowmobile 130 x 48 x 52                                                  map clip 128 x 48 x 40
 """
 import math
 import os
@@ -210,5 +216,185 @@ def logs():
                 tex=(128, 64), out=_out('ice_logs'), preview_area=AREA, budget=0.03e6)
 
 
+# ============================================================================================ fuel tank
+def tank():
+    """Horizontal fuel tank on two saddles: 192 x 88 x 104, origin bottom centre, axis along X."""
+    mats = {'tk_body': metal((196, 198, 192), seed=2701, paint=(200, 202, 196), panels=30.0, chipping=0.25, rust=0.25,
+                             edge_wear=0.5, scratches=0.3),
+            'tk_dark': metal((50, 52, 54), seed=2702, rust=0.3), 'tk_rust': metal((120, 70, 40), seed=2703, rust=0.7),
+            'ic_snow': SNOW, 'ic_ice': ICE}
+    P = [rod((-88, 0, 58), (88, 0, 58), 40, mat='tk_body', name='shell', segs=16)]
+    for sx in (-1, 1):
+        P.append(lathe([(0, 40), (6, 36), (10, 24), (12, 2)], axis_start=(sx * 88, 0, 58), axis_dir=(sx, 0, 0), segs=16,
+                       mat='tk_body', cap_start=False, name='dome'))
+        P.append(slab(sx * 56 - 8, sx * 56 + 8, -38, 38, 0, 30, 'tk_dark', 'saddle'))
+        P.append(rod((sx * 56, 0, 58), (sx * 56 + 0.1, 0, 58), 41, mat='tk_rust', name='band', segs=16))
+        P.append(slab(sx * 56 - 1.5, sx * 56 + 1.5, -41, 41, 56, 60, 'tk_rust', 'strap'))
+    P += [rod((20, 0, 96), (20, 0, 108), 9, mat='tk_dark', name='manhole', segs=12),
+          rod((-40, 0, 96), (-40, 0, 112), 2.5, mat='tk_dark', name='vent', segs=6),
+          rod((-60, -30, 30), (-60, -50, 20), 3, mat='tk_dark', name='valve', segs=8),
+          hull([(-80, -24, 96), (-80, 24, 96), (80, -24, 96), (80, 24, 96), (-60, -10, 104), (60, 12, 103)],
+               'ic_snow', 'snow')]
+    for k in range(5):
+        P.append(slab(70 - 1, 70 + 1, -38 - 0.5, -38 + 0.5, 14 + k * 16, 16 + k * 16, 'tk_dark', 'rung'))
+    P += _icicles(-80, 80, -30, 82, 8, ln=8)
+    for m in P:
+        m.detail = 0.3
+    dec = [dict(kind='shape', shape='vex', center=(0, -40, 60), u=(1, 0, 0), v=(0, 0, 1), size=18,
+                color=(160, 90, 255), depth=6, soft=0.4, facing=(0, -1, 0)),
+           dict(kind='sphere', center=(-70, -30, 20), radius=40, soft=1.0, color=(80, 40, 20), mode='multiply', alpha=0.5)]
+    return dict(kind='world', name='ice_tank', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                decals=dec, tex=(256, 128), out=_out('ice_tank'), preview_area=AREA, budget=0.06e6)
+
+
+# ============================================================================================ crates
+def _crate(name, sx, sy, sz, wood):
+    if wood:
+        mats = {'cr_plank': {'type': 'leather', 'color': (150, 112, 70), 'seed': 2801},
+                'cr_frame': {'type': 'leather', 'color': (110, 78, 46), 'seed': 2802}, 'ic_snow': SNOW, 'ic_ice': ICE}
+    else:
+        mats = {'cr_plank': metal((72, 82, 54), seed=2803, paint=(74, 84, 56), panels=8.0, chipping=0.3, edge_wear=0.7),
+                'cr_frame': metal((44, 48, 40), seed=2804, edge_wear=0.5), 'ic_snow': SNOW, 'ic_ice': ICE}
+    hx, hy = sx / 2, sy / 2
+    P = [bx((sx - 4, sy - 4, sz - 2), (0, 0, (sz - 2) / 2), 'cr_plank', 'body', bevel=0.6)]
+    e = 4.0
+    for z in (e / 2, sz - 2 - e / 2):          # frame edges
+        P.append(bx((sx, e, e), (0, -hy + e / 2, z), 'cr_frame', 'edge', 0.3))
+        P.append(bx((sx, e, e), (0, hy - e / 2, z), 'cr_frame', 'edge', 0.3))
+        P.append(bx((e, sy, e), (-hx + e / 2, 0, z), 'cr_frame', 'edge', 0.3))
+        P.append(bx((e, sy, e), (hx - e / 2, 0, z), 'cr_frame', 'edge', 0.3))
+    for xx in (-hx + e / 2, hx - e / 2):
+        for yy in (-hy + e / 2, hy - e / 2):
+            P.append(bx((e, e, sz - 2), (xx, yy, (sz - 2) / 2), 'cr_frame', 'post', 0.3))
+    if wood:                                   # diagonal braces on the long sides
+        for sg in (1, -1):
+            P.append(hull([(-hx + 6, sg * (hy + 0.5), 6), (-hx + 12, sg * (hy + 0.5), 6), (hx - 6, sg * (hy + 0.5), sz - 10),
+                           (hx - 12, sg * (hy + 0.5), sz - 10), (-hx + 6, sg * (hy - 1.5), 6),
+                           (hx - 6, sg * (hy - 1.5), sz - 10)], 'cr_frame', 'brace'))
+    P.append(hull([(-hx + 2, -hy + 2, sz - 2), (hx - 2, -hy + 2, sz - 2), (-hx + 2, hy - 2, sz - 2), (hx - 2, hy - 2, sz - 2),
+                   (-hx / 2, -hy / 3, sz + 3), (hx / 3, hy / 4, sz + 4)], 'ic_snow', 'snow'))
+    for m in P:
+        m.detail = 0.4
+    dec = [] if wood else [dict(kind='shape', shape='vex', center=(0, -hy, sz / 2), u=(1, 0, 0), v=(0, 0, 1), size=8,
+                                color=(230, 230, 210), depth=4, soft=0.3, facing=(0, -1, 0))]
+    return dict(kind='world', name=name, parts=P, sequences=[dict(name='idle', frames=1)], materials=mats, decals=dec,
+                tex=(128, 128), out=_out(name), preview_area=AREA, budget=0.04e6)
+
+
+def crate_wood():
+    """Wooden supply crate 56 x 56 x 56 with frame + braces + snow cap (map clip 56^3)."""
+    return _crate('ice_crate', 56, 56, 56, True)
+
+
+def crate_mil():
+    """Military ammo crate 64 x 40 x 36, olive, VEX stencil (map clip 64 x 40 x 36)."""
+    return _crate('ice_cratem', 64, 40, 36, False)
+
+
+# ============================================================================================ lamp post
+def lamppost():
+    """Street lamp: 176 tall pole, arm toward +X with a lamp head (glow) at x 40, z 168. Origin = foot."""
+    mats = {'lp_pole': metal((52, 56, 62), seed=2901, scratches=0.3, edge_wear=0.4, rust=0.15),
+            'lp_lamp': glow((255, 236, 190), (255, 250, 235)), 'ic_snow': SNOW, 'ic_ice': ICE}
+    P = [rod((0, 0, 0), (0, 0, 10), 7, r1=5, mat='lp_pole', name='foot', segs=10),
+         rod((0, 0, 10), (0, 0, 176), 3, r1=2.4, mat='lp_pole', name='pole', segs=10),
+         tube([(0, 0, 170), (10, 0, 178), (30, 0, 180), (40, 0, 178)], [2.0, 2.0, 2.0, 2.0], segs=8, mat='lp_pole',
+              name='arm'),
+         hull([(28, -9, 178), (52, -9, 178), (28, 9, 178), (52, 9, 178), (32, -6, 184), (48, -6, 184), (32, 6, 184),
+               (48, 6, 184)], 'lp_pole', 'head'),
+         slab(30, 50, -7, 7, 176, 178, 'lp_lamp', 'lens'),
+         hull([(30, -8, 184), (50, -8, 184), (30, 8, 184), (50, 8, 184), (40, 0, 188)], 'ic_snow', 'snow')]
+    P += _icicles(30, 50, -9, 178, 3, ln=6)
+    for m in P:
+        m.detail = 0.4
+    return dict(kind='world', name='ice_lamp', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                tex=(64, 64), out=_out('ice_lamp'), preview_area=AREA, budget=0.03e6)
+
+
+# ============================================================================================ fence
+def fence():
+    """Wooden post-and-rail fence segment, 128 long along X (x 0..128), 48 tall, snow on the rails."""
+    mats = {'fc_wood': {'type': 'leather', 'color': (120, 92, 62), 'seed': 3001}, 'ic_snow': SNOW, 'ic_ice': ICE}
+    P = []
+    for x in (4, 64, 124):
+        P.append(bx((6, 6, 50), (x, 0, 25), 'fc_wood', 'post', 0.5))
+        P.append(hull([(x - 3, -3, 50), (x + 3, -3, 50), (x - 3, 3, 50), (x + 3, 3, 50), (x, 0, 54)], 'ic_snow', 'cap'))
+    for z in (18, 38):
+        P.append(bx((128, 3, 6), (64, 0, z), 'fc_wood', 'rail', 0.4))
+        P.append(bx((124, 3.4, 1.6), (64, 0, z + 3.6), 'ic_snow', 'snow', 0.6))
+    for m in P:
+        m.detail = 0.4
+    return dict(kind='world', name='ice_fence', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                tex=(128, 128), out=_out('ice_fence'), preview_area=AREA, budget=0.03e6)
+
+
+# ============================================================================================ antenna mast
+def antenna():
+    """Lattice radio mast 320 tall (3 legs, cross bracing), blinking-red top lamp (glow), small dishes."""
+    mats = {'an_steel': metal((170, 60, 50), seed=3101, paint=(180, 64, 52), scratches=0.3, rust=0.3),
+            'an_white': metal((220, 220, 216), seed=3102, scratches=0.2),
+            'an_red': glow((255, 30, 20), (255, 150, 130)), 'ic_snow': SNOW, 'ic_ice': ICE}
+    H, R = 320.0, 18.0
+    legs = [(R * math.cos(a), R * math.sin(a)) for a in (0, 2 * math.pi / 3, 4 * math.pi / 3)]
+    top = [(x * 0.35, y * 0.35) for x, y in legs]
+    P = []
+    for (x0, y0), (x1, y1) in zip(legs, top):
+        P.append(rod((x0, y0, 0), (x1, y1, H), 1.6, mat='an_steel', name='leg', segs=5))
+    n = 8
+    for k in range(n):
+        za, zb = H * k / n, H * (k + 1) / n
+        fa, fb = 1 - 0.65 * k / n, 1 - 0.65 * (k + 1) / n
+        for i in range(3):
+            (xa, ya), (xb, yb) = legs[i], legs[(i + 1) % 3]
+            P.append(rod((xa * fa, ya * fa, za), (xb * fb, yb * fb, zb), 0.8, mat='an_white' if k % 2 else 'an_steel',
+                         name='brace', segs=4))
+    P += [rod((0, 0, H), (0, 0, H + 40), 1.2, mat='an_white', name='whip', segs=5),
+          rod((0, 0, H + 40), (0, 0, H + 44), 3, mat='an_red', name='lamp', segs=8)]
+    for z, yaw in ((200, 0.4), (250, 2.5)):
+        c = (math.cos(yaw) * 10, math.sin(yaw) * 10, z)
+        P.append(lathe([(0, 1), (3, 9), (5, 13)], axis_start=c, axis_dir=(math.cos(yaw), math.sin(yaw), 0), segs=10,
+                       mat='an_white', name='dish'))
+    for m in P:
+        m.detail = 0.3
+    return dict(kind='world', name='ice_antenna', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                tex=(128, 128), out=_out('ice_antenna'), preview_area=AREA, budget=0.05e6)
+
+
+# ============================================================================================ snowmobile
+def snowmobile():
+    """Snowmobile 120 x 48 x 48 (front skis at +X), origin bottom centre."""
+    mats = {'sm_body': metal((40, 120, 220), seed=3201, paint=(40, 120, 225), panels=6.0, shine=0.5, edge_wear=0.4),
+            'sm_dark': metal((30, 30, 34), seed=3202, scratches=0.3),
+            'sm_seat': {'type': 'leather', 'color': (30, 30, 32), 'seed': 3203},
+            'sm_glass': {'type': 'visor', 'color': (60, 90, 110), 'color2': (200, 225, 240)},
+            'sm_lamp': glow((255, 240, 200)), 'ic_snow': SNOW, 'ic_ice': ICE}
+    P = [hull([(-50, -18, 8), (-50, 18, 8), (40, -20, 10), (40, 20, 10), (60, -14, 20), (60, 14, 20),
+               (-50, -18, 22), (-50, 18, 22), (30, -20, 34), (30, 20, 34), (52, -12, 30), (52, 12, 30)], 'sm_body', 'hood'),
+         hull([(-56, -14, 4), (-56, 14, 4), (10, -14, 4), (10, 14, 4), (-56, -14, 16), (-56, 14, 16),
+               (14, -14, 14), (14, 14, 14), (-60, -14, 10), (-60, 14, 10)], 'sm_dark', 'track'),
+         hull([(-46, -12, 22), (-46, 12, 22), (0, -12, 22), (0, 12, 22), (-44, -11, 32), (-44, 11, 32),
+               (-4, -11, 30), (-4, 11, 30)], 'sm_seat', 'seat'),
+         hull([(22, -16, 34), (22, 16, 34), (30, -18, 34), (30, 18, 34), (14, -14, 52), (14, 14, 52)], 'sm_glass',
+              'windshield'),
+         tube([(14, 0, 34), (8, 0, 42)], [1.4, 1.4], segs=6, mat='sm_dark', name='bar_post'),
+         rod((8, -20, 42), (8, 20, 42), 1.3, mat='sm_dark', name='handlebar', segs=6),
+         rod((60, 0, 22), (63, 0, 22), 4, mat='sm_lamp', name='headlight', segs=8)]
+    for sy in (1, -1):
+        P.append(tube([(10, sy * 22, 2), (58, sy * 22, 2), (70, sy * 22, 10)], [1.8, 1.8, 1.8], segs=6, mat='sm_dark',
+                      name='ski'))
+        P.append(rod((40, sy * 16, 12), (40, sy * 22, 3), 1.6, mat='sm_dark', name='strut', segs=6))
+    P.append(hull([(-44, -10, 32), (-44, 10, 32), (-6, -10, 30), (-6, 10, 30), (-26, 0, 36)], 'ic_snow', 'snow'))
+    for m in P:
+        m.detail = 0.3
+    dec = [dict(kind='shape', shape='vex', center=(20, sy * 20, 24), u=(1, 0, 0), v=(0, 0, 1), size=7,
+                color=(240, 240, 255), depth=4, soft=0.3, facing=(0, sy, 0)) for sy in (1, -1)]
+    return dict(kind='world', name='ice_sled', parts=P, sequences=[dict(name='idle', frames=1)], materials=mats,
+                decals=dec, tex=(128, 128), out=_out('ice_sled'), preview_area=AREA, budget=0.04e6)
+
+
+def extra():
+    return [tank(), crate_wood(), crate_mil(), lamppost(), fence(), antenna(), snowmobile()]
+
+
 def all():   # noqa: A001
-    return [truck(), jeep(), barrel(), generator(), radar(), logs()]
+    return [truck(), jeep(), barrel(), generator(), radar(), logs()] + extra()
