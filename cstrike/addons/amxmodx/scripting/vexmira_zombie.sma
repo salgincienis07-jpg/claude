@@ -60,7 +60,7 @@ new g_iSixAttempts, g_iSixEntered, g_iSixAborted, g_iSixShort;
 
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "4.1.0-Restore"
+#define VERSION  "4.1.1-Fix"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
