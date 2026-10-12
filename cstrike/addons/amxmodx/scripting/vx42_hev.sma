@@ -464,7 +464,8 @@ stock zp_remove_hev(id)
     if(!g_bHasHEV[id]) return;
     g_bHasHEV[id] = false;
     g_bCriticalPlayed[id] = false;
-    if (is_user_connected(id)) { vex_restore_appearance(id); }
+    // v4.2: cstrike cs_set_user_model modeli surekli zorlar; birakilmazsa enfekte olan oyuncu HEV modeliyle zombi olur
+    if (is_user_connected(id)) { cs_reset_user_model(id); vex_restore_appearance(id); }
     fm_remove_model_ent(id);
     remove_task(id);
 }

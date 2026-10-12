@@ -536,7 +536,7 @@ def summarize(console, texts, crashed, rc_before, rc, args):
     status = 'not listed'
     plugin_lines = []
     for l in console:
-        m = re.search(r'vexmira_zo\S*\s+(running|bad load|error|paused|stopped|debug)', l)
+        m = re.search(r'vexmira_(?:zo|cor)\S*\s+(running|bad load|error|paused|stopped|debug)', l)
         if m:
             status = m.group(1)
             plugin_lines.append(re.sub(r'\s+', ' ', l.strip()))
