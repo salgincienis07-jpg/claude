@@ -391,7 +391,7 @@ new const ASSET_BYTES[] = { 31372, 33228, 696856, 1120424, 704900, 219056, 48296
 
 public plugin_init()
 {
-    register_plugin("Vexmira Independent Diagnostic", "4.0.2", "Vexmira");
+    register_plugin("Vexmira Independent Diagnostic", "4.2.0", "Vexmira");
     register_concmd("vex_diagnose", "DiagnosticCommand", ADMIN_RCON);
     set_task(2.0, "StartupDiagnostic");
 }
