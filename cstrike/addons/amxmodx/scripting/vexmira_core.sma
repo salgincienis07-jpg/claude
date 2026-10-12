@@ -28481,15 +28481,15 @@ public task_MapChooserCheck()
 
 public plugin_natives()
 {
-    register_library("vex_community");
-    register_native("vex_register_component", "CommunityRegisterComponent");
-    register_native("vex_prepare_jetpack", "CommunityNativePrepareJet");
-    register_native("vex_has_jetpack", "CommunityNativeJetpack");
-    register_native("vex_is_survivor","CommunityNativeSurvivor");
-    register_native("vex_is_zombie", "CommunityNativeZombie");
-    register_native("vex_is_extra_weapon", "CommunityNativeWeapon");
-    register_native("vex_knife_allowed", "CommunityNativeKnife");
-    register_native("vex_restore_appearance", "CommunityNativeRestore");
+    register_library("vx42_community");
+    register_native("vx42_register_component", "CommunityRegisterComponent");
+    register_native("vx42_prepare_jetpack", "CommunityNativePrepareJet");
+    register_native("vx42_has_jetpack", "CommunityNativeJetpack");
+    register_native("vx42_is_survivor", "CommunityNativeSurvivor");
+    register_native("vx42_is_zombie", "CommunityNativeZombie");
+    register_native("vx42_is_extra_weapon", "CommunityNativeWeapon");
+    register_native("vx42_knife_allowed", "CommunityNativeKnife");
+    register_native("vx42_restore_appearance", "CommunityNativeRestore");
 
     set_module_filter("fw_ModuleFilter");
     set_native_filter("fw_NativeFilter");
