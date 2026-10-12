@@ -68,9 +68,10 @@ new g_MsgCurWeapon, g_MsgWeaponList
 new g_HamBot
 new g_IsConnected, g_IsAlive, g_PlayerWeapon[33]
 
+new bool:g_VexGiving[33];
+
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(5);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -105,17 +106,18 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(MODEL_V)
-	VexPcModel(MODEL_P)
-	VexPcModel(MODEL_W)
+    if (!VexAssetGuard("vex_salamander")) return;
+	precache_model(MODEL_V)
+	precache_model(MODEL_P)
+	precache_model(MODEL_W)
 	
 	for(new i = 0; i < sizeof(WeaponSounds); i++)
-		VexPcSound(WeaponSounds[i])
+		precache_sound(WeaponSounds[i])
 	for(new i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 2) VexPcGeneric(WeaponResources[i])
-		else if(i == 6) g_SmokePuff_SprID = VexPcModel(WeaponResources[i])
-		else VexPcModel(WeaponResources[i])
+		if(i == 2) precache_generic(WeaponResources[i])
+		else if(i == 6) g_SmokePuff_SprID = precache_model(WeaponResources[i])
+		else precache_model(WeaponResources[i])
 	}
 }
 
@@ -293,6 +295,10 @@ public fw_Item_Deploy_Post(Ent)
 
 public fw_Item_AddToPlayer_Post(Ent, id)
 {
+    if(id>=1 && id<=32 && !g_VexGiving[id]) UnSet_BitVar(g_Had_Salamander, id)
+
+    if(id<1 || id>32 || !is_user_connected(id)) return HAM_IGNORED;
+
 	if(!pev_valid(Ent))
 		return HAM_IGNORED
 		
@@ -652,6 +658,8 @@ public get_player_weapon(id)
 
 // ===================== STOCK... =======================
 // ======================================================
-public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; Get_Salamander(id); return vex_has(id); }
+public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; g_VexGiving[id]=true; Get_Salamander(id); g_VexGiving[id]=false; return vex_has(id) && user_has_weapon(id,CSW_M249); }
 public vex_remove(id) { Remove_Salamander(id); return 1; }
 public vex_has(id) { return Get_BitVar(g_Had_Salamander, id) ? 1 : 0; }
+
+

@@ -103,7 +103,6 @@ new g_MaxPlayers, g_Ham_Bot
 
 public plugin_init() 
 {
-    VexAssetInit();
     vex_register_component(9);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -122,12 +121,13 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(V_MODEL)
-	VexPcModel(P_MODEL_ON)
-	VexPcModel(P_MODEL_OFF)
+    if (!VexAssetGuard("vex_lightsaber")) return;
+	engfunc(EngFunc_PrecacheModel, V_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL_ON)
+	engfunc(EngFunc_PrecacheModel, P_MODEL_OFF)
 	
 	for(new i = 0; i < sizeof(LightSaber_Sounds); i++)
-		VexPcSound(LightSaber_Sounds[i])
+		engfunc(EngFunc_PrecacheSound, LightSaber_Sounds[i])
 }
 
 public client_putinserver(id)

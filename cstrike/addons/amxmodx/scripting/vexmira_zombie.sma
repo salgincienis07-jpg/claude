@@ -60,7 +60,7 @@ new g_iSixAttempts, g_iSixEntered, g_iSixAborted, g_iSixShort;
 
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "4.0.2-Community"
+#define VERSION  "4.1.0-Restore"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -541,13 +541,11 @@ new g_iClass[33], g_iClassPicked[33], g_iMaxHP[33];
 new const COMMUNITY_WP[6][] = {"vex_janus7.amxx", "vex_plasma.amxx", "vex_thunderbolt.amxx", "vex_ethereal.amxx", "vex_salamander.amxx", "vex_bow.amxx"};
 new const COMMUNITY_WN[6][] = {"JANUS VII", "Plasma Gun", "Thunderbolt", "Ethereal", "Salamander", "Compound Bow"};
 new const COMMUNITY_COST[6] = {35, 30, 45, 30, 35, 35};
-new const COMMUNITY_KP[4][] = {"vex_dragonsword.amxx", "vex_katana.amxx", "vex_lightsaber.amxx", "vex_horseaxe.amxx"};
-new const COMMUNITY_KN[4][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe"};
-new const COMMUNITY_CT[4][] = {"vex_soldier", "vex_gign", "vex_halo", "vex_spetsnaz"};
-new bool:g_bCommunityCtOk[4];
-new g_pPriceJet, g_pPriceHev;   // v4.1: /shop gear prices   // v4.1: CT skin model present on the server
-new const COMMUNITY_CN[4][] = {"CSO Battle Soldier", "CS:GO GIGN", "SP Megumin Halo", "CS:GO Spetsnaz"};
-new const COMMUNITY_COIN[2][4] = {{20,25,35,25},{25,25,30,25}};
+new const COMMUNITY_KP[5][] = {"vex_dragonsword.amxx", "vex_katana.amxx", "vex_lightsaber.amxx", "vex_horseaxe.amxx", ""};
+new const COMMUNITY_KN[5][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe", "CS:GO Butterfly"};
+new const COMMUNITY_CT[5][] = {"vex_soldier", "vex_gign", "vex_halo", "vex_spetsnaz", "vex_gsg9"};
+new const COMMUNITY_CN[5][] = {"CSO Battle Soldier", "CS:GO GIGN", "SP Megumin Halo", "CS:GO Spetsnaz", "CS:GO GSG9"};
+new const COMMUNITY_COIN[2][5] = {{20,25,35,25,30},{25,25,30,25,30}};
 
 new g_iCommunityOwned[33][2], g_iCommunitySel[33][2];
 new g_iXP[33], g_iLevel[33], g_iAP[33], g_iVC[33];
@@ -914,7 +912,6 @@ new g_szCmEn[CM_CATS][CM_MAX][32], g_szCmTr[CM_CATS][CM_MAX][32], g_szCmMdl[CM_C
 new g_iCmPrice[CM_CATS][CM_MAX], g_iCmVip[CM_CATS][CM_MAX], g_iCmAtt[CM_CATS][CM_MAX], g_iCmSeq[CM_CATS][CM_MAX];
 new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Float:g_fCmScale[CM_CATS][CM_MAX], Float:g_fCmFps[CM_CATS][CM_MAX];
 new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
-new bool:g_bCmCtl[CM_CATS][CM_MAX];   // v4.1: model has the 3 Vexmira offset controllers (cos_*.mdl, devtools/mdlkit)
 new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];   // sahiplik: bit (kat*8 + no); secim: 4 bit / kat
 new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no; 100+ = on izleme)
 new g_iCmPrev[33], g_iCmPrevInfo[33], Float:g_fCmPrevEnd[33];  // v3.5 on izleme (vitrin) varligi / (kat*16 + no) / bitis
@@ -1093,23 +1090,10 @@ stock MenuNoPage(menu)
 //   3. satir (istege bagli): yari saydam beyaz (\d) kisa aciklama; ardindan bos satir.
 stock VexHead(id, out[], len, const key[], const sub[] = "")
 {
-    new t[64], mn[32], k2[16], vip[24];
-    formatex(t, charsmax(t), "%L", id, key);
-    replace_string(t, charsmax(t), "\y", "");
-    replace_string(t, charsmax(t), "\r", "");
-    strtoupper(t);
-    formatex(k2, charsmax(k2), "MODE_NAME_%d", clamp(g_iMode, 0, MODE_TOTAL - 1));
-    formatex(mn, charsmax(mn), "%L", id, k2);
-    strtoupper(mn);
-    if (IsVip(id))
-        formatex(vip, charsmax(vip), " \r[\y%s\r]", IsElite(id) ? "ELITE" : "VIP");
-    formatex(out, len, "\rVEXMIRA \y%s^n\r[\yAP %d\r] [\yVC %d\r] [\yLv %d\r]%s [\y%s\r]^n", t, g_iAP[id], g_iVC[id], g_iLevel[id], vip, mn);
-    if (sub[0])
-    {
-        add(out, len, "\d");
-        add(out, len, sub);
-        add(out, len, "^n");
-    }
+    new t[64]; formatex(t,charsmax(t),"%L",id,key);
+    replace_string(t,charsmax(t),"\y",""); replace_string(t,charsmax(t),"\r","");
+    formatex(out,len,"\yVEXMIRA \w| %s^n\dAP: \y%d \d  Coin: \y%d \d  Lv: \y%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
+    if(sub[0]) { add(out,len,"\d"); add(out,len,sub); add(out,len,"^n"); }
 }
 
 // Ac/kapa durumu: [ACIK] sari / [KAPALI] kirmizi (EN [ON] / [OFF])
@@ -3140,7 +3124,7 @@ new const CSO_SHEETS[][] = { "m", "g", "fx" };
 CsoPrecache()
 {
     g_iCsoRounds = 0;
-    if (g_iPreCso <= 0)
+    if (g_iPreCso <= 0 || g_iPreCso == 2)
         return;
     new path[96];
     for (new i = 0; i < sizeof CSO_SHEETS; i++)
@@ -3473,6 +3457,7 @@ CsoQueue(id, note, arg)
 // false: bu oyuncuya sprite gidemez (stil kapali / bot / olu / izleyici / dosya yok) -> eski yazi.
 bool:CsoNotify(id, note, arg = 0)
 {
+    if (CsoOn() && g_iPreCso == 2) return CommunityLightNotify(id,note,arg);
     if (!CsoOn() || !g_bCsoFile[note] || !(get_pcvar_num(g_pCsoNotes) & CSO_BIT[note]))
         return false;
     if (note == CN_ROUND && (arg < 1 || arg > g_iCsoRounds))
@@ -3749,8 +3734,6 @@ stock ChatColorFor(const key[])
 
 stock Chat(id, const key[], any:...)
 {
-    if (is_user_connected(id) && is_user_bot(id) && equal(key, "SHOP_", 5))
-        log_amx("[chat-bot] #%d %s", id, key);   // v4.1: test server (bots drive the shop through vexprobe)
     if (!is_user_connected(id) || is_user_bot(id))
         return;
 
@@ -4007,7 +3990,7 @@ OvhRefresh(id, bool:on)
         {
             if (g_bBoss[id] && g_iBoss == id && g_szOvhSpr[OVS_BOSSBAR][0])
                 barType = OVS_BOSSBAR;
-            else if ((g_bNemesis[id] || g_bAssassin[id] || (g_bZombie[id] && g_bAlpha[id])) && g_szOvhSpr[OVS_SMALLBAR][0])
+            else if (g_szOvhSpr[OVS_SMALLBAR][0])
                 barType = OVS_SMALLBAR;
         }
         if (!g_bBoss[id])
@@ -5297,7 +5280,7 @@ PlanBossLoad()
 
     if (!g_iBossLoadN)
     {
-        new need = clamp(PlanBossRoundCount(), 1, maxN);
+        new need = maxN;
         new info[16];
         get_localinfo("vex_bossrot", info, charsmax(info));
         new used = str_to_num(info) & ((1 << NUM_BOSSES) - 1);
@@ -5838,6 +5821,11 @@ LoadMainConfig(bool:precache)
         if (!argc)
             continue;
 
+        if (equali(args[0], "vex_restore"))
+        {
+            if (precache && argc >= 3) CommunityRestoreResource(args[1],args[2]);
+            continue;
+        }
         if (equali(args[0], "vex_res"))
         {
             if (precache && argc >= 2)
@@ -6413,8 +6401,8 @@ LoadData(id)
     g_iCmOwned[id]     = (n > 33) ? f[33] : 0;
     g_iCmSelPk[id]     = (n > 34) ? f[34] : 0;
     for (new c = 0; c < 2; c++) {
-        g_iCommunityOwned[id][c] = (n > 35 + c * 2) ? (f[35 + c * 2] & 15) : 0;
-        g_iCommunitySel[id][c] = (n > 36 + c * 2) ? clamp(f[36 + c * 2], 0, 4) : 0;
+        g_iCommunityOwned[id][c] = (n > 35 + c * 2) ? (f[35 + c * 2] & 31) : 0;
+        g_iCommunitySel[id][c] = (n > 36 + c * 2) ? clamp(f[36 + c * 2], 0, 5) : 0;
         new v = g_iCommunitySel[id][c];
         if (v && !(g_iCommunityOwned[id][c] & (1 << (v - 1)))) g_iCommunitySel[id][c] = 0;
     }
@@ -7328,22 +7316,11 @@ ShowShopMenu(id)
     if (isZ) VexHead(id, title, charsmax(title), "MENU_SHOP_Z"); else VexHead(id, title, charsmax(title), "MENU_SHOP_H");
     new menu = VexMenuCreate(title, "menu_shop_handler");
 
-    // v4.1: Jetpack + HEV first (they were on the last page and looked missing)
-    if (!isZ)
-    {
-        for (new g = 0; g < 2; g++)
-        {
-            new pr = CommunityGearPrice(g);
-            if (!CommunityAvailable(g ? "vex_hev.amxx" : "vex_jetpack.amxx"))
-                formatex(item, charsmax(item), "\y%s \r[%L]", g ? "HEV Suit Mark IV" : "Jetpack + Bazooka", id, "MENU_NA");
-            else if (g_iAP[id] >= pr)
-                formatex(item, charsmax(item), "\y%s \r[%d AP]", g ? "HEV Suit Mark IV" : "Jetpack + Bazooka", pr);
-            else
-                formatex(item, charsmax(item), "\y%s \r[%d AP] \r[%L]", g ? "HEV Suit Mark IV" : "Jetpack + Bazooka", pr, id, "MENU_LOCKED");
-            MenuAdd(menu, item, 200 + g);
-        }
+    if (!isZ) {
+        MenuAdd(menu,"\yOzel Silahlar \d[6 silah / AP]",202);
+        MenuAdd(menu,"\yJetpack + Bazooka \r[80 AP]",200);
+        MenuAdd(menu,"\yHEV Suit \r[60 AP]",201);
     }
-
     for (new i = 0; i < NUM_ITEMS; i++)
     {
         if (ITEM_TEAM[i] != isZ)
@@ -7372,6 +7349,7 @@ ShowShopMenu(id)
     {
         formatex(item, charsmax(item), "\r%L", id, "SHOP_EXCHANGE", max(1, get_pcvar_num(g_pExchange)));
         MenuAdd(menu, item, 100);
+
     }
 
     MenuFinish(id, menu);
@@ -7399,6 +7377,7 @@ public menu_shop_handler(id, menu, item)
     new sel = MenuInfo(menu, item);
     menu_destroy(menu);
 
+    if (sel == 202) { CommunityWeaponMenu(id); return PLUGIN_HANDLED; }
     if (sel == 200 || sel == 201)
         CommunityBuyGear(id, sel - 200);
     else if (sel == 100)
@@ -8250,48 +8229,17 @@ public cmd_cosmetic(id)
 
 ShowCosmeticMenu(id)
 {
-    new title[320], item[128], cur[48];
-    VexHead(id, title, charsmax(title), "COS_MENU");
-    new menu = VexMenuCreate(title, "menu_cos_handler");
-
-    static const CATKEY[3][] = { "COS_CAT_TRAIL", "COS_CAT_KFX", "COS_CAT_IFX" };
-    for (new c = 0; c < 3; c++)
-    {
-        new sel = CosSelected(id, c);
-        if (sel > 0)
-            CosName(id, c, sel - 1, cur, charsmax(cur));
-        else
-            formatex(cur, charsmax(cur), "%L", id, "COS_NONE");
-        formatex(item, charsmax(item), "\y%L \r[%s\r]", id, CATKEY[c], cur);
-        MenuAdd(menu, item, c);
+    new title[320],item[128]; VexHead(id,title,charsmax(title),"COS_MENU");
+    new menu=VexMenuCreate(title,"menu_cos_handler");
+    MenuAdd(menu,"\yInsan Gorunumleri \d[5 / Kalici Coin]",21);
+    MenuAdd(menu,"\yBicak Koleksiyonu \d[5 / Kalici Coin]",22);
+    for(new c=0;c<CM_CATS;c++) {
+        formatex(item,charsmax(item),"\y%L \d[%d model / Coin]",id,CM_CATKEY[c],g_iCmN[c]);
+        MenuAdd(menu,item,3+c);
     }
-    // v3.2: kanat / pet / sapka (yalniz dosyasi olan satir varsa gorunur)
-    new bool:gap = false;
-    for (new c = 0; c < CM_CATS; c++)
-    {
-        if (!g_iCmN[c])
-            continue;
-        if (!gap)
-        {
-            menu_addblank(menu, 0);
-            gap = true;
-        }
-        new v = CmSel(id, c);
-        if (v > 0 && g_bCmOk[c][v - 1])
-            CmName(id, c, v - 1, cur, charsmax(cur));
-        else
-            formatex(cur, charsmax(cur), "%L", id, "COS_NONE");
-        formatex(item, charsmax(item), "\y%L \r[%s\r]", id, CM_CATKEY[c], cur);
-        MenuAdd(menu, item, 3 + c);
-    }
-    if (gap && get_pcvar_num(g_pCosHide))
-    {
-        formatex(item, charsmax(item), "\y%L \r[%L\r]", id, "COS_HIDE_OTHERS", id, (g_iSet[id] & SET_NO_COS) ? "COS_HIDDEN" : "COS_VISIBLE");
-        MenuAdd(menu, item, 9);
-    }
-    MenuAdd(menu, "\yCT Gorunumleri \r[Vex Coin]", 21);
-    MenuAdd(menu, "\yOzel Bicaklar \r[Vex Coin]", 22);
-    MenuFinish(id, menu);
+    MenuAdd(menu,"\yIz / Oldurme / Enfeksiyon Efektleri",23);
+    formatex(item,charsmax(item),"\w%L \d[%L]",id,"COS_HIDE_OTHERS",id,(g_iSet[id]&SET_NO_COS)?"COS_HIDDEN":"COS_VISIBLE");
+    MenuAdd(menu,item,9); MenuFinish(id,menu);
 }
 
 public menu_cos_handler(id, menu, item)
@@ -8310,6 +8258,7 @@ public menu_cos_handler(id, menu, item)
         SaveData(id);
         ShowCosmeticMenu(id);
     }
+    else if (cat == 23) CommunityEffectMenu(id);
     else if (cat == 21 || cat == 22)
         CommunityCoinMenu(id, cat - 21);
     else if (cat >= 3)
@@ -8501,34 +8450,12 @@ CmPrecache()
         for (new i = 0; i < CM_MAX; i++)
         {
             g_bCmOk[c][i] = (g_szCmMdl[c][i][0] && PcModel(g_szCmMdl[c][i])) ? true : false;
-            g_bCmCtl[c][i] = g_bCmOk[c][i] && CmModelControllers(g_szCmMdl[c][i]) >= 3;
-            if (g_bCmOk[c][i])
+            if (g_bCmOk[c][i]) {
+                CommunityCosMetadata(c,i);
                 g_iCmN[c]++;
+            }
         }
     }
-}
-
-// v4.1: number of bone controllers in a studio model (studiohdr_t.numbonecontrollers, offset 148)
-CmModelControllers(const path[])
-{
-    new fp = fopen(path, "rb", true);
-    if (!fp)
-        return 0;
-    new n;
-    fseek(fp, 148, SEEK_SET);
-    fread(fp, n, BLOCK_INT);
-    fclose(fp);
-    return clamp(n, 0, 8);
-}
-
-// v4.1: how a cosmetic is attached
-//   bone type (community wings / hats rigged on the player skeleton) and Vexmira cos_*.mdl (offset
-//   controllers on the root bone): MOVETYPE_FOLLOW + aiment = drawn by the client on the player every
-//   frame (bone merge / controller offset), never crooked, never lagging.
-//   other models (community pets / props without controllers): free entity placed next to the player.
-bool:CmFollows(c, i)
-{
-    return (g_iCmAtt[c][i] == CMA_BONE || g_bCmCtl[c][i]) ? true : false;
 }
 
 CmSel(id, c)
@@ -8760,23 +8687,10 @@ CmSpawn(id, c, i)
     // ayni adli kemikleri de kopyalar, digerlerinde ofset kontrolculerden gelir
     get_entvar(id, var_origin, o);
     engfunc(EngFunc_SetOrigin, ent, o);
-    engfunc(EngFunc_SetSize, ent, Float:{-4.0, -4.0, -4.0}, Float:{4.0, 4.0, 4.0});
-    set_entvar(ent, var_effects, 0);
-    set_entvar(ent, var_rendermode, kRenderNormal);
-    set_entvar(ent, var_renderamt, 255.0);
-    if (CmFollows(c, i))
-    {
-        set_entvar(ent, var_movetype, MOVETYPE_FOLLOW);
-        set_entvar(ent, var_aiment, id);
-        set_entvar(ent, var_angles, Float:{0.0, 0.0, 0.0});
-        if (g_iCmAtt[c][i] != CMA_BONE)
-            CmApplyCtl(ent, id, c, i);
-    }
-    else
-    {
-        set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
-        CommunityCosOrigin(ent, id, c, i);
-    }
+    if(g_iCmAtt[c][i]==CMA_BONE) {
+        set_entvar(ent,var_movetype,MOVETYPE_FOLLOW); set_entvar(ent,var_aiment,id);
+    } else set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
+    CommunityCosOrigin(ent, id, c, i);
     g_iCmOwn[ent] = id;
     g_iCmInfo[ent] = c * 16 + i;
     g_iCmEnt[id][c] = ent;
@@ -8813,10 +8727,8 @@ CmTick(Float:now)
             }
             // Model degisirse (sinif / skin) kafa yuksekligi yeniden okunur; konum istemcide (FOLLOW)
             OvhModelTops(id);
-            if (!CmFollows(c, i))
-                CommunityCosOrigin(ent, id, c, i);
-            else if (g_iCmAtt[c][i] != CMA_BONE)
-                CmApplyCtl(ent, id, c, i);
+            CommunityCosOrigin(ent, id, c, i);
+            CommunityCosAnimate(ent,c,i,now);
         }
     }
 }
@@ -8849,19 +8761,6 @@ CmPack(es, ent, host)
     {
         set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
         return FMRES_IGNORED;
-    }
-    if (att != CMA_BONE && g_bCmCtl[c][i])
-    {
-        // v3.6 (restored in v4.1): offset controllers in the same packet as the player (no lag when
-        // ducking) + upright yaw-only angles (the player's pitch would tilt wings / hats)
-        new ctl[4], Float:pa[3], Float:a[3];
-        CmCtl(id, c, i, (get_entvar(id, var_flags) & FL_DUCKING) ? true : false, ctl);
-        set_es(es, ES_Controller, ctl);
-        get_entvar(id, var_angles, pa);
-        a[0] = g_fCmAng[c][i][0];
-        a[1] = pa[1] + g_fCmAng[c][i][1];
-        a[2] = g_fCmAng[c][i][2];
-        set_es(es, ES_Angles, a);
     }
     return FMRES_IGNORED;
 }
@@ -9434,11 +9333,7 @@ VxLeanResources()
     for (new index; index < TrieSnapshotLength(it); index++)
     {
         TrieSnapshotGetKey(it, index, key, charsmax(key));
-        // v4.1: v4.0.2 cleared EVERY built-in "vexmira/" default here (boss sounds / models / skill
-        // effects, HP bar + overhead icon sprites, CSO notification graphics, kill sounds ...), which
-        // silently removed those features. Now only the retired Arsenal-8 (SW*) defaults are cleared;
-        // every other default stays and is loaded only if its file exists (PcSound / PcModel check).
-        if (equal(key, "SW", 2) && TrieGetString(g_tRes, key, path, charsmax(path)) && containi(path, "vexmira/") != -1)
+        if (TrieGetString(g_tRes, key, path, charsmax(path)) && containi(path, "vexmira/") != -1)
             TrieSetString(g_tRes, key, "");
 
     }
@@ -9897,11 +9792,8 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
     if (g_bZombie[id])
     {
         if (wid == WEAPON_HEGRENADE) {
-            // v4.1: only when the files are on the server (p_ model not precached = Host_Error)
-            if (VexPrecached("models/zombie_plague/v_grenade_infect.mdl"))
-                SetHookChainArg(2, ATYPE_STRING, "models/zombie_plague/v_grenade_infect.mdl");
-            if (VexPrecached("models/p_fgrenade.mdl"))
-                SetHookChainArg(3, ATYPE_STRING, "models/p_fgrenade.mdl");
+            SetHookChainArg(2, ATYPE_STRING, "models/zombie_plague/v_grenade_infect.mdl");
+            SetHookChainArg(3, ATYPE_STRING, "models/p_fgrenade.mdl");
             return HC_CONTINUE;
         }
         if (wid != WEAPON_KNIFE)
@@ -9923,6 +9815,13 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
         return HC_CONTINUE;
     }
 
+    if (CommunityExtra(id)) return HC_CONTINUE;
+    if (wid == WEAPON_KNIFE && g_iCommunitySel[id][1] == 5 && CommunityAlive(id)
+        && !CommunityCall("vex_hev.amxx","vex_has",id) && !CommunityCall("vex_jetpack.amxx","vex_has",id)) {
+        SetHookChainArg(2,ATYPE_STRING,"models/vexmira/community/knives/v_butterfly.mdl");
+        SetHookChainArg(3,ATYPE_STRING,"models/vexmira/community/normal/p_knife.mdl");
+        return HC_CONTINUE;
+    }
     // Mode loadouts may use dedicated cfg models; empty entries inherit the normal weapon model.
     new mm = ModeOf(id), ms = (mm >= 0) ? ModeSlot(mm, wid) : -1;
     if (ms >= 0)
@@ -13023,6 +12922,7 @@ MakeZombie(id)
     // v3.0: kanca / ninni / karartma gibi insan durumlari ve onceki yetenekler temizlenir
     ZcCleanup(id);
 
+    g_bSurvivor[id]=0; g_bSniper[id]=0;
     g_bZombie[id] = 1;
     g_bAlpha[id] = false;
     g_iMines[id] = 0;
@@ -13152,6 +13052,7 @@ MakeSurvivor(id, bool:sniper)
     ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
+    g_bSurvivor[id]=0; g_bSniper[id]=0;
     g_iSpecW[id] = 0;
     g_bVxGiving[id] = false; g_iVxAttack[id] = 0; g_iVxClip[id] = 0; g_iVxShots[id] = 0; g_bVxRightHeld[id] = false; g_bVxAltHandled[id] = false; // Loadout weapons are mode-owned, not retained shop weapon modifiers.
     if (sniper)
@@ -13172,6 +13073,7 @@ MakeSurvivor(id, bool:sniper)
     else
     {
         GiveModeWeapons(id, 0);
+        CommunityCall("vex_minigun.amxx","vex_give",id);
         g_iMaxHP[id] = get_pcvar_num(g_pSurvHP);
         if (g_iMode == MODE_ARMAGEDDON)
             g_iMaxHP[id] /= 2;
@@ -13198,6 +13100,8 @@ MakeHuman(id)
     ZcCleanup(id);
     ClearZombieRoles(id);
     g_bZombie[id] = 0;
+    g_bSurvivor[id]=0; g_bSniper[id]=0; g_bUnlClip[id]=0;
+    g_iMaxHP[id]=MaxHumanHP(id);
     g_bFirst[id] = 0;
     g_bGunsGiven[id] = false;
     g_bNadesGiven[id] = false;
@@ -13242,7 +13146,7 @@ MakeHuman(id)
 ApplyHumanModel(id)
 {
     new v = g_iCommunitySel[id][0];
-    if (v > 0 && v <= 4 && g_bCommunityCtOk[v-1] && (g_iCommunityOwned[id][0] & (1 << (v-1)))) { rg_set_user_model(id, COMMUNITY_CT[v-1]); return; }
+    if (v > 0 && v <= 5 && (g_iCommunityOwned[id][0] & (1 << (v-1))) && CommunityCtReady(v-1)) { rg_set_user_model(id, COMMUNITY_CT[v-1]); return; }
 
     new flags = get_user_flags(id);
 
@@ -13479,6 +13383,7 @@ public fw_CmdStart(id, uc_handle, seed)
     // Insan: Volt EMP / Kabus dehseti sirasinda fener acilamaz
     if (!g_bZombie[id])
     {
+        if (imp == 100 && CommunityInspect(id)) { set_uc(uc_handle,UC_Impulse,0); return FMRES_HANDLED; }
         if (imp == 100 && g_fNoLight[id] > get_gametime())
         {
             set_uc(uc_handle, UC_Impulse, 0);
@@ -25672,6 +25577,7 @@ ShowAdminActions(id)
         formatex(item, charsmax(item), "\y%L", id, key);
         MenuAdd(menu, item, i);
     }
+    MenuAdd(menu,"\yOzel Silah / Jetpack / HEV Ver",18);
     MenuFinish(id, menu);
 }
 
@@ -25700,6 +25606,7 @@ public menu_admactions(id, menu, item)
     new aname[32], tname[32], key[16];
     get_user_name(id, aname, charsmax(aname));
     get_user_name(target, tname, charsmax(tname));
+    if(sel==18) { CommunityAdminEquipment(id); return PLUGIN_HANDLED; }
     formatex(key, charsmax(key), "ADMA_%d", sel);
 
     switch (sel)
@@ -27831,8 +27738,6 @@ MapVoteInit()
     g_pCosPreview     = register_cvar("vex_cos_preview", "10");     // v3.5 vitrin suresi (sn), 0 = kapali
     g_pCosDeal        = register_cvar("vex_cos_daily_deal", "25");  // v3.5 gunun firsati indirimi (yuzde), 0 = kapali
     g_pCosHide        = register_cvar("vex_cos_hide", "1");         // v3.5 /kozmetik: digerlerininkini gizle secenegi
-    g_pPriceJet       = register_cvar("vex_price_jetpack", "80");   // v4.1: /shop Jetpack + Bazooka (AP)
-    g_pPriceHev       = register_cvar("vex_price_hev", "60");       // v4.1: /shop HEV Suit Mark IV (AP)
     g_pMapPool        = register_cvar("vex_map_pool", "zm_vexmira_icefy zm_vexmira_dust zm_vexmira_7door zm_vex_laboratory");
     g_pMapVoteRound   = register_cvar("vex_map_vote_round", "0");
     g_pMapVoteTime    = register_cvar("vex_map_vote_time", "20");
@@ -27883,7 +27788,7 @@ MapCandidates(out[][32], maxn)
     while (n < maxn && (pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
     {
         strtolower(tmp);
-        if (!tmp[0] || equal(tmp, g_szCurMap) || !MapExists(tmp))
+        if (!tmp[0] || !MapExists(tmp))
             continue;
         new bool:dup = false;
         for (new i = 0; i < n; i++)
@@ -28245,6 +28150,13 @@ MapOnRoundEnd()
     new bool:last = (MapEndsByRounds() && g_iRound >= RoundsTotal()) ? true : false;
     if (!last && !g_bMapChangeNow)
         return;
+    if(last && !g_bMapDecided) {
+        g_bMapChangeNow=true;
+        if(g_bMapVoting || StartMapVote(0,false)) {
+            set_task(0.2,"task_MapHold",TASK_MAPHOLD);
+            return;
+        }
+    }
     MapChangeBegin(last);
 }
 
@@ -28277,7 +28189,7 @@ MapChangeBegin(bool:lastRound)
 
 public task_MapHold()
 {
-    if (g_bMapChanging)
+    if (g_bMapChanging || (g_bMapVoting && g_bRoundEnded && g_iRound>=RoundsTotal()))
         set_member_game(m_flRestartRoundTime, get_gametime() + 60.0);
 }
 
@@ -28316,6 +28228,7 @@ public task_DoChangeLevel()
 // Oyunun kendi harita degisimi (mp_timelimit / mp_maxrounds ara ekrani): oylanan haritaya git
 public rg_ChangeLevel()
 {
+    if(g_bMapVoting) return HC_SUPERCEDE;
     if (!MapVoteOn())
         return HC_CONTINUE;
     if (!g_bMapDecided || !MapExists(g_szNextMap))
@@ -28571,6 +28484,7 @@ public plugin_natives()
     register_native("vex_register_component", "CommunityRegisterComponent");
     register_native("vex_prepare_jetpack", "CommunityNativePrepareJet");
     register_native("vex_has_jetpack", "CommunityNativeJetpack");
+    register_native("vex_is_survivor","CommunityNativeSurvivor");
     register_native("vex_is_zombie", "CommunityNativeZombie");
     register_native("vex_is_extra_weapon", "CommunityNativeWeapon");
     register_native("vex_knife_allowed", "CommunityNativeKnife");
@@ -28601,8 +28515,7 @@ public fw_NativeFilter(const name[], index, trap)
 
 public plugin_precache()
 {
-    // v4.1: no global asset check any more (one missing file disabled everything). Missing files are
-    // skipped one by one (VexPcModel / PcModel / PcSound log them) - see vex_diagnose for a full list.
+    if (!VexAssetGuard("vexmira_zombie")) return;
     if (!is_regamedll())
     {
         set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx modules");
@@ -28611,6 +28524,7 @@ public plugin_precache()
     CommunityPrecache();
     CommunityNormalPrecache();
     CommunityEventPrecache();
+    CommunityExtraEventPrecache();
 
     g_tRes = TrieCreate();
     g_tMdlTop = TrieCreate();
@@ -28993,6 +28907,7 @@ public plugin_precache()
     // v3.7: harita senaryosundaki telsiz sesleri (indirme) + dekor modelleri
     MsPrecacheIni();
 
+    CommunityInspectPrecache();
     PickSky();
 
     // Ozet (precache_* donus indekslerinden). Bu noktada oyun / harita henuz kendi
@@ -29339,6 +29254,7 @@ public plugin_init()
     PrecacheReportTotals();
     OvhInit();
 
+    set_task(2.0,"CommunityCheckComponents");
     g_msgWeather = get_user_msgid("ReceiveW");
 
     // Tek ayar dosyasi tablolari (konsoldan da calisir)
@@ -29458,6 +29374,11 @@ public plugin_init()
     RegisterSay("laser",    "mayin",     "cmd_lm_menu");
     RegisterSay("plant",    "lazerkur",  "cmd_lm_plant");
     RegisterSay("take",     "lazersok",  "cmd_lm_take");
+    RegisterSay("models", "gorunum", "CommunityModelsCommand");
+    RegisterSay("knives", "bicaklar", "CommunityKnivesCommand");
+    register_clcmd("vex_inspect", "CommunityInspectCommand");
+    register_concmd("vex_status", "CommunityStatus", ADMIN_RCON);
+    register_forward(FM_GetGameDescription,"CommunityGameDescription");
     RegisterSay("nades",    "bomba",     "cmd_nade_menu");
     RegisterSay("quest",    "gorev",     "cmd_quest");
     RegisterSay("boss",     "bosslar",   "cmd_bossinfo");
@@ -29517,6 +29438,12 @@ public plugin_init()
 // Panel / server.cfg sonradan hostname vb. ezerse diye birkac saniye sonra tekrar uygulanir.
 public plugin_cfg()
 {
+    new boot[8]; get_localinfo("vex_community_boot",boot,charsmax(boot));
+    if(!boot[0]) {
+        set_localinfo("vex_community_boot","1");
+        new map[32]; get_mapname(map,charsmax(map));
+        if(!equal(map,"zm_vexmira_icefy") && is_map_valid("zm_vexmira_icefy")) set_task(2.0,"CommunityBootMap");
+    }
     new n = LoadMainConfig(false);
     log_amx("[Vexmira] vexmira.cfg yuklendi (%d satir).", n);
 
@@ -29554,3 +29481,9 @@ public plugin_end()
 #include "include/vex_event_sounds.inc"
 
 #include "include/vex_normal_world.inc"
+
+#include "include/vex_restore_features.inc"
+
+public CommunityNativeSurvivor(plugin,params) { new id=get_param(1); return id>=1 && id<=32 && g_bSurvivor[id] && is_user_alive(id); }
+
+public CommunityBootMap() { server_cmd("changelevel zm_vexmira_icefy"); }

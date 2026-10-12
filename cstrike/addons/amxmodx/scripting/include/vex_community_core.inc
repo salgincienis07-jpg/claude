@@ -1,8 +1,8 @@
-new g_CommunityComponents[12]; // Stored as plugin index + 1; zero means unavailable.
+new g_CommunityComponents[13]; // Stored as plugin index + 1; zero means unavailable.
 public CommunityRegisterComponent(plugin, params)
 {
     new component=get_param(1);
-    if(component<1 || component>12) return 0;
+    if(component<1 || component>13) return 0;
     if(g_CommunityComponents[component-1] && g_CommunityComponents[component-1]!=plugin+1)
     {
         log_amx("[Community] Duplicate component %d: disable the older plugin copy",component);
@@ -13,15 +13,32 @@ public CommunityRegisterComponent(plugin, params)
 }
 CommunityPluginIndex(const plugin[])
 {
-    for(new i=0;i<6;i++) if(equal(plugin,COMMUNITY_WP[i])) return g_CommunityComponents[i]-1;
-    for(new i=0;i<4;i++) if(equal(plugin,COMMUNITY_KP[i])) return g_CommunityComponents[i+6]-1;
-    if(equal(plugin,"vex_hev.amxx")) return g_CommunityComponents[10]-1;
-    if(equal(plugin,"vex_jetpack.amxx")) return g_CommunityComponents[11]-1;
+    for(new i=0;i<6;i++) if(equal(plugin,COMMUNITY_WP[i])) { if(g_CommunityComponents[i]) return g_CommunityComponents[i]-1; break; }
+    for(new i=0;i<4;i++) if(equal(plugin,COMMUNITY_KP[i])) { if(g_CommunityComponents[i+6]) return g_CommunityComponents[i+6]-1; break; }
+    if(equal(plugin,"vex_minigun.amxx")) if(g_CommunityComponents[12]) return g_CommunityComponents[12]-1;
+    if(equal(plugin,"vex_hev.amxx")) if(g_CommunityComponents[10]) return g_CommunityComponents[10]-1;
+    if(equal(plugin,"vex_jetpack.amxx")) if(g_CommunityComponents[11]) return g_CommunityComponents[11]-1;
+    new filename[128],name[96],version[32],author[64],status[32];
+    for(new k=0;k<get_pluginsnum();k++) {
+        get_plugin(k,filename,charsmax(filename),name,charsmax(name),version,charsmax(version),author,charsmax(author),status,charsmax(status));
+        new delta=strlen(filename)-strlen(plugin);
+        if(plugin[0] && delta>=0 && equal(filename[delta],plugin) && (equal(status,"running") || equal(status,"debug"))) return k;
+    }
     return -1;
 }
 CommunityCall(const plugin[], const func[], id)
 {
+    if(!plugin[0]) return 0;
     new index=CommunityPluginIndex(plugin);
+    if(index<0) {
+        // Exact/suffix discovery repairs older component adapters and panel-prefixed filenames.
+        new filename[128],name[96],version[32],author[64],status[32];
+        for(new k=0;k<get_pluginsnum();k++) {
+            get_plugin(k,filename,charsmax(filename),name,charsmax(name),version,charsmax(version),author,charsmax(author),status,charsmax(status));
+            new delta=strlen(filename)-strlen(plugin);
+            if(delta>=0 && equal(filename[delta],plugin) && (equal(status,"running") || equal(status,"debug"))) { index=k; break; }
+        }
+    }
     if(index<0) return 0;
     new function=get_func_id(func,index);
     if(function<0 || callfunc_begin_i(function,index)!=1) return 0;
@@ -29,19 +46,21 @@ CommunityCall(const plugin[], const func[], id)
     return callfunc_end();
 }
 CommunityAlive(id) { return is_user_alive(id) && !g_bZombie[id] && !g_bSurvivor[id] && !g_bSniper[id] && !g_bBoss[id] && !g_bMinion[id]; }
-CommunityRemoveWeapons(id) { for (new i=0;i<6;i++) CommunityCall(COMMUNITY_WP[i], "vex_remove", id); CommunityRemoveShots(id); }
+CommunityRemoveWeapons(id) { for (new i=0;i<6;i++) CommunityCall(COMMUNITY_WP[i], "vex_remove", id); CommunityCall("vex_minigun.amxx","vex_remove",id); CommunityRemoveShots(id); }
 CommunityRemoveKnives(id) { for (new i=0;i<4;i++) CommunityCall(COMMUNITY_KP[i], "vex_remove", id); }
 CommunityReset(id)
 {
     CommunityRemoveWeapons(id); CommunityRemoveKnives(id);
     CommunityCall("vex_jetpack.amxx", "vex_remove", id);
     CommunityCall("vex_hev.amxx", "vex_remove", id);
+    CommunityCall("vex_minigun.amxx", "vex_remove", id);
     remove_task(id + 64000);
 }
 CommunityExtra(id)
 {
     if (!is_user_alive(id)) return 0;
     new w=get_user_weapon(id);
+    if(w==CSW_M249 && CommunityCall("vex_minigun.amxx","vex_has",id)) return 1;
     static const BASE[6]={CSW_M249,CSW_AK47,CSW_AWP,CSW_M4A1,CSW_M249,CSW_M4A1};
     for (new i=0;i<6;i++) if (w==BASE[i] && CommunityCall(COMMUNITY_WP[i],"vex_has",id)) return 1;
     return 0;
@@ -68,33 +87,29 @@ CommunityWeaponMenu(id)
 }
 CommunityBuyWeapon(id,i)
 {
-    if(i<0 || i>=6) return;
-    if(!CommunityAlive(id)) { Chat(id,"SHOP_ONLY_HUMAN"); return; }
-    new index=CommunityPluginIndex(COMMUNITY_WP[i]);
-    if(index<0 || get_func_id("vex_give",index)<0) { CommunityNotInstalled(id,COMMUNITY_WP[i]); return; }
+    if(i<0 || i>=6 || !CommunityAlive(id)) { Chat(id,"SHOP_UNAVAIL"); return; }
     if(CommunityCall(COMMUNITY_WP[i],"vex_has",id)) { Chat(id,"SHOP_ALREADY"); return; }
     if(g_iAP[id]<COMMUNITY_COST[i]) { Chat(id,"SHOP_NOAP"); return; }
+    new index=CommunityPluginIndex(COMMUNITY_WP[i]);
+    if(index<0 || get_func_id("vex_give",index)<0) {
+        client_print_color(id,print_team_default,"^4[Vexmira]^1 %s eklentisi hazir degil. Yonetici: vex_status",COMMUNITY_WN[i]);
+        log_amx("[Community] unavailable component %s; run vex_status",COMMUNITY_WP[i]); return;
+    }
     // Drop before clearing flags, so upstream SetModel writes its pickup impulse.
     rg_drop_items_by_slot(id, PRIMARY_WEAPON_SLOT);
     CommunityRemoveWeapons(id);
     if(!CommunityCall(COMMUNITY_WP[i],"vex_give",id)) { Chat(id,"SHOP_UNAVAIL"); return; }
     AddAP(id,-COMMUNITY_COST[i],false,false); PlayKey(id,"SHOP_BUY");
-    Chat(id,"SHOP_BOUGHT",COMMUNITY_WN[i],COMMUNITY_COST[i]);
-    if(is_user_bot(id)) log_amx("[Community] test: #%d bought %s (has=%d)",id,COMMUNITY_WN[i],CommunityCall(COMMUNITY_WP[i],"vex_has",id));
 }
 CommunityBuyGear(id,i)
 {
-    if(!CommunityAlive(id)) { Chat(id,"SHOP_ONLY_HUMAN"); return; }
-    new price=CommunityGearPrice(i);
-    new plugin[32]; copy(plugin,charsmax(plugin),i?"vex_hev.amxx":"vex_jetpack.amxx");
-    new index=CommunityPluginIndex(plugin);
-    if(index<0 || get_func_id("vex_give",index)<0) { CommunityNotInstalled(id,plugin); return; }
-    if(CommunityCall(plugin,"vex_has",id)) { Chat(id,"SHOP_ALREADY"); return; }
+    if(!CommunityAlive(id)) { Chat(id,"SHOP_UNAVAIL"); return; }
+    new price=i?60:80;
     if(g_iAP[id]<price) { Chat(id,"SHOP_NOAP"); return; }
-    if(!CommunityCall(plugin,"vex_give",id)) { Chat(id,i?"SHOP_HEV_ROUND":"SHOP_UNAVAIL"); return; }
+    new plugin[32]; copy(plugin,charsmax(plugin),i?"vex_hev.amxx":"vex_jetpack.amxx");
+    if(CommunityCall(plugin,"vex_has",id)) { Chat(id,"SHOP_ALREADY"); return; }
+    if(!CommunityCall(plugin,"vex_give",id)) { Chat(id,"SHOP_UNAVAIL"); return; }
     CommunityRemoveKnives(id); AddAP(id,-price,false,false); PlayKey(id,"SHOP_BUY");
-    Chat(id,"SHOP_BOUGHT",i?"HEV Suit Mark IV":"Jetpack + Bazooka",price);
-    if(is_user_bot(id)) log_amx("[Community] test: #%d bought gear %d",id,i);
 }
 CommunityCoinMenu(id,c)
 {
@@ -102,7 +117,7 @@ CommunityCoinMenu(id,c)
     formatex(title,charsmax(title),"\yVEXMIRA COMMUNITY^n\r%s | %d Vex Coin",c?"Bicak Koleksiyonu":"CT Gorunumleri",g_iVC[id]);
     new menu=VexMenuCreate(title,"CommunityCoinHandler");
     MenuAdd(menu,"\yStandart / Kapat",c*10);
-    for(new i=0;i<4;i++) {
+    for(new i=0;i<5;i++) {
         formatex(line,charsmax(line),"\y%s \r[%s | %d VC]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],g_iCommunitySel[id][c]==i+1?"KUSANILDI":(g_iCommunityOwned[id][c]&(1<<i)?"SAHIP":"KALICI"),COMMUNITY_COIN[c][i]);
         MenuAdd(menu,line,c*10+i+1);
     }
@@ -112,7 +127,7 @@ public CommunityCoinHandler(id,menu,item)
 {
     if(item<0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new sel=MenuInfo(menu,item); menu_destroy(menu); new c=sel/10,v=sel%10;
-    if(c<0 || c>1 || v<0 || v>4) return PLUGIN_HANDLED;
+    if(c<0 || c>1 || v<0 || v>5) return PLUGIN_HANDLED;
     if(v && !(g_iCommunityOwned[id][c] & (1<<(v-1)))) {
         new cost=COMMUNITY_COIN[c][v-1];
         if(g_iVC[id]<cost) { Chat(id,"COS_NOVC",cost); CommunityCoinMenu(id,c); return PLUGIN_HANDLED; }
@@ -132,32 +147,33 @@ public CommunityApplyKnife(taskid)
     CommunityRemoveKnives(id);
     if(CommunityCall("vex_jetpack.amxx","vex_has",id) || CommunityCall("vex_hev.amxx","vex_has",id)) return;
     new v=g_iCommunitySel[id][1];
-    if(v && (g_iCommunityOwned[id][1] & (1<<(v-1)))) CommunityCall(COMMUNITY_KP[v-1],"vex_give",id);
+    if(v==5) { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_weapon(id)==CSW_KNIFE) ExecuteHamB(Ham_Item_Deploy,ent); }
+    else if(v && (g_iCommunityOwned[id][1] & (1<<(v-1)))) CommunityCall(COMMUNITY_KP[v-1],"vex_give",id);
     else { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_weapon(id)==CSW_KNIFE) ExecuteHamB(Ham_Item_Deploy,ent); }
 }
 CommunityPrecache()
 {
     new path[128];
-    for(new i=0;i<4;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); g_bCommunityCtOk[i]=VexPcModel(path)>0; }
-    if(g_bCommunityCtOk[2]) VexPcGeneric("models/player/vex_halo/vex_haloT.mdl");
-    VexPcModel("models/zombie_plague/v_grenade_infect.mdl");
-    VexPcModel("models/p_fgrenade.mdl");
+    for(new i=0;i<5;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); if(file_exists(path,true)) precache_model(path); else log_amx("[Community] EKSIK model: %s (bu CT gorunumu kapali)",path); }
+    precache_generic("models/player/vex_halo/vex_haloT.mdl");
+    precache_model("models/vexmira/community/knives/v_butterfly.mdl");
+    precache_model("models/zombie_plague/v_grenade_infect.mdl");
 }
 CommunityCosOrigin(ent,id,c,i)
 {
     new Float:o[3],Float:a[3]; get_entvar(id,var_origin,o); get_entvar(id,var_angles,a);
-    new Float:r=a[1]*0.0174532925;
-    o[0]+=g_fCmOfs[c][i][0]*floatcos(r)-g_fCmOfs[c][i][1]*floatsin(r);
-    o[1]+=g_fCmOfs[c][i][0]*floatsin(r)+g_fCmOfs[c][i][1]*floatcos(r);
+    if(g_iCmAtt[c][i]==CMA_BONE) {
+        engfunc(EngFunc_SetOrigin,ent,o); a[0]=0.0; a[2]=0.0;
+        set_entvar(ent,var_angles,a); return;
+    }
+    new Float:y=a[1]*0.0174532925;
+    o[0]+=g_fCmOfs[c][i][0]*floatcos(y)-g_fCmOfs[c][i][1]*floatsin(y);
+    o[1]+=g_fCmOfs[c][i][0]*floatsin(y)+g_fCmOfs[c][i][1]*floatcos(y);
     o[2]+=g_fCmOfs[c][i][2];
     if(c!=1 && (get_entvar(id,var_flags)&FL_DUCKING)) o[2]-=18.0;
     a[0]=g_fCmAng[c][i][0]; a[1]+=g_fCmAng[c][i][1]; a[2]=g_fCmAng[c][i][2];
-    new Float:t = get_gametime() + float(id);
-    if (c==2) { o[2] += floatsin(t*2.0)*0.5; if (i==2) a[1] += t*30.0; }
-    if (c==0 && i<3) a[2] += floatsin(t*1.5)*1.5;
+    if(c==2 && i==2) a[1]+=get_gametime()*30.0;
     engfunc(EngFunc_SetOrigin,ent,o); set_entvar(ent,var_angles,a);
-    // v4.1: move with the player between the 0.1 s updates (smooth for other clients, no rubber band)
-    new Float:v[3]; get_entvar(id,var_velocity,v); set_entvar(ent,var_velocity,v);
 }
 
 public CommunityNativeJetpack(plugin, params) { new id=get_param(1); return id>=1 && id<=32 ? CommunityCall("vex_jetpack.amxx","vex_has",id):0; }
@@ -176,14 +192,8 @@ CommunityRemoveShots(id)
 }
 
 public CommunityNativePrepareJet(plugin, params) { new id=get_param(1); if(id>=1 && id<=32) CommunityRemoveKnives(id); return 1; }
-
-// v4.1: shop prices of the two gear items (cvars vex_price_jetpack / vex_price_hev)
-CommunityGearPrice(i) { return max(1, get_pcvar_num(i ? g_pPriceHev : g_pPriceJet)); }
-bool:CommunityAvailable(const plugin[]) { new index=CommunityPluginIndex(plugin); return index>=0 && get_func_id("vex_give",index)>=0; }
-// v4.1: clear reason instead of "you can't buy this right now" when the item plugin is not running
-CommunityNotInstalled(id,const plugin[])
+CommunityCtReady(i)
 {
-    Chat(id,"SHOP_NOTINST");
-    static Float:last;
-    if(get_gametime()-last>30.0) { last=get_gametime(); log_amx("[Community] %s is not running (not in plugins-vexmira.ini, failed, or its model files are missing) - see amxx plugins / vex_diagnose",plugin); }
+    new path[128]; formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]);
+    return file_exists(path,true);
 }

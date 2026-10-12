@@ -74,7 +74,6 @@ new g_IsConnected, g_IsAlive, g_PlayerWeapon[33], g_HamBot
 
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(10);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -96,11 +95,12 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(MODEL_V)
-	VexPcModel(MODEL_P)
+    if (!VexAssetGuard("vex_horseaxe")) return;
+	precache_model(MODEL_V)
+	precache_model(MODEL_P)
 	
 	for(new i = 0; i < sizeof(HorseAxe_Sounds); i++)
-		VexPcSound(HorseAxe_Sounds[i])
+		precache_sound(HorseAxe_Sounds[i])
 }
 
 public client_putinserver(id)
@@ -527,8 +527,6 @@ public is_alive(id)
 		return 0
 	if(Get_BitVar(g_IsAlive, id)) return 1
 	else return 0
-	
-	return 1
 }
 
 public get_player_weapon(id)

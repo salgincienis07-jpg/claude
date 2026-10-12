@@ -90,9 +90,10 @@ new g_Had_Plasma, g_WeaponClip[33], Float:g_WeaponRecoil[33][3]
 new g_Msg_WeaponList, g_Msg_CurWeapon, g_Msg_AmmoX
 new g_MuzzleFlash_SprId, g_PlasmaExp_SprId, g_weapon_event, g_HamBot, g_MaxPlayers
 
+new bool:g_VexGiving[33];
+
 public plugin_init() 
 {
-    VexAssetInit();
     vex_register_component(2);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 
@@ -125,25 +126,26 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(V_MODEL)
-	VexPcModel(P_MODEL)
-	VexPcModel(W_MODEL)
+    if (!VexAssetGuard("vex_plasma")) return;
+	engfunc(EngFunc_PrecacheModel, V_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL)
+	engfunc(EngFunc_PrecacheModel, W_MODEL)
 	
 	new i
 	for(i = 0; i < sizeof(WeaponSounds); i++)
-		VexPcSound(WeaponSounds[i])
+		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
 	for(i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 0) VexPcGeneric(WeaponResources[i])
-		else VexPcModel(WeaponResources[i])
+		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[i])
+		else engfunc(EngFunc_PrecacheModel, WeaponResources[i])
 	}
 	for(i = 0; i < sizeof(WeaponFiles); i++)
 	{
-		if(i == 1) g_PlasmaExp_SprId = VexPcModel(WeaponFiles[i])
-		else VexPcModel(WeaponFiles[i])
+		if(i == 1) g_PlasmaExp_SprId = engfunc(EngFunc_PrecacheModel, WeaponFiles[i])
+		else engfunc(EngFunc_PrecacheModel, WeaponFiles[i])
 	}
 		
-	g_MuzzleFlash_SprId = VexPcModel(MuzzleFlash)
+	g_MuzzleFlash_SprId = engfunc(EngFunc_PrecacheModel, MuzzleFlash)
 	register_forward(FM_PrecacheEvent, "fw_PrecacheEvent_Post", 1)
 }
 
@@ -285,6 +287,8 @@ public Damage_Plasma(Ent, Id)
 public Remove_PlasmaBall(Ent)
 {
 	if(!pev_valid(Ent)) return
+    new classname[32]; pev(Ent,pev_classname,classname,charsmax(classname));
+    if(!equal(classname,"vex_plasma_ball")) return
 	engfunc(EngFunc_RemoveEntity, Ent)
 }
 
@@ -499,6 +503,10 @@ public fw_Weapon_Reload_Post(Ent)
 
 public fw_Item_AddToPlayer_Post(Ent, Id)
 {
+    if(Id>=1 && Id<=32 && !g_VexGiving[Id]) UnSet_BitVar(g_Had_Plasma, Id);
+
+    if(Id<1 || Id>32 || !is_user_connected(Id)) return HAM_IGNORED;
+
 	if(!pev_valid(Ent))
 		return
 		
@@ -684,6 +692,8 @@ stock get_position(id,Float:forw, Float:right, Float:up, Float:vStart[])
 	vStart[1] = vOrigin[1] + vForward[1] * forw + vRight[1] * right + vUp[1] * up
 	vStart[2] = vOrigin[2] + vForward[2] * forw + vRight[2] * right + vUp[2] * up
 }
-public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; Get_Plasma(id); return vex_has(id); }
+public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; g_VexGiving[id]=true; Get_Plasma(id); g_VexGiving[id]=false; return vex_has(id) && user_has_weapon(id,CSW_AK47); }
 public vex_remove(id) { Remove_Plasma(id); return 1; }
 public vex_has(id) { return Get_BitVar(g_Had_Plasma, id) ? 1 : 0; }
+
+

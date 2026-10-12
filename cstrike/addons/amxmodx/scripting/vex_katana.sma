@@ -93,7 +93,6 @@ new g_Old_Weapon[33], g_Ham_Bot
 
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(8);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -112,11 +111,12 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(V_MODEL)
-	VexPcModel(P_MODEL)
+    if (!VexAssetGuard("vex_katana")) return;
+	engfunc(EngFunc_PrecacheModel, V_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	
 	for(new i = 0; i < sizeof(DualKatana_Sound); i++)
-		VexPcSound(DualKatana_Sound[i])
+		engfunc(EngFunc_PrecacheSound, DualKatana_Sound[i])
 }
 
 public get_dualkatana(id)

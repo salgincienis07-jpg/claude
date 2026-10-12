@@ -93,55 +93,55 @@ new bool:g_bCriticalPlayed[33];
 
 public plugin_precache()
 {
+    if (!VexAssetGuard("vex_hev")) return;
     static model_path[128];
     formatex(model_path, charsmax(model_path), "models/player/%s/%s.mdl", HEV_MODEL_SHORT, HEV_MODEL_SHORT);
-    VexPcModel(model_path);
-    VexPcModel(HEV_ZOMBIE_FULL);
+    precache_model(model_path);
+    precache_model(HEV_ZOMBIE_FULL);
     
-    VexPcModel(V_HEV_ZOMBIE_KNIFE);
-    VexPcModel(V_HEV_MODEL);
-    VexPcModel(V_HEV_ADRENALINE);
-    VexPcModel(V_HEV_AK47);
-    VexPcModel(V_HEV_M4A1);
-    VexPcModel(V_HEV_MP5NAVY);
-    VexPcModel(V_HEV_AWP);
-    VexPcModel(V_HEV_DEAGLE);
-    VexPcModel(V_HEV_GLOCK18);
-    VexPcModel(V_HEV_AUG);
-    VexPcModel(V_HEV_FAMAS);
-    VexPcModel(V_HEV_M249);
-    VexPcModel(V_HEV_M3);
-    VexPcModel(V_HEV_XM1014);
-    VexPcModel(V_HEV_USP);
-    VexPcModel(V_HEV_P228);
-    VexPcModel(V_HEV_P90);
-    VexPcModel(V_HEV_GALIL);
-    VexPcModel(V_HEV_UMP45);
-    VexPcModel(V_HEV_TMP);
-    VexPcModel(V_HEV_SG550);
-    VexPcModel(V_HEV_G3SG1);
+    precache_model(V_HEV_ZOMBIE_KNIFE);
+    precache_model(V_HEV_MODEL);
+    precache_model(V_HEV_ADRENALINE);
+    precache_model(V_HEV_AK47);
+    precache_model(V_HEV_M4A1);
+    precache_model(V_HEV_MP5NAVY);
+    precache_model(V_HEV_AWP);
+    precache_model(V_HEV_DEAGLE);
+    precache_model(V_HEV_GLOCK18);
+    precache_model(V_HEV_AUG);
+    precache_model(V_HEV_FAMAS);
+    precache_model(V_HEV_M249);
+    precache_model(V_HEV_M3);
+    precache_model(V_HEV_XM1014);
+    precache_model(V_HEV_USP);
+    precache_model(V_HEV_P228);
+    precache_model(V_HEV_P90);
+    precache_model(V_HEV_GALIL);
+    precache_model(V_HEV_UMP45);
+    precache_model(V_HEV_TMP);
+    precache_model(V_HEV_SG550);
+    precache_model(V_HEV_G3SG1);
 
-    VexPcModel(V_HEV_WRENCH);
-    VexPcModel(P_HEV_WRENCH);
+    precache_model(V_HEV_WRENCH);
+    precache_model(P_HEV_WRENCH);
 
-    VexPcSound("fvox/morphine_shot.wav");
-    VexPcSound("fvox/health_critical.wav");
-    VexPcSound("fvox/hevSuit_get_infected_alert2.wav");
-    VexPcSound("fvox/power_restored.wav");
-    VexPcSound("fvox/hev_logon.wav");
-    VexPcSound("fvox/flatline.wav");
-    VexPcSound("player/pl_long_jump_1.wav");
+    precache_sound("fvox/morphine_shot.wav");
+    precache_sound("fvox/health_critical.wav");
+    precache_sound("fvox/hevSuit_get_infected_alert2.wav");
+    precache_sound("fvox/power_restored.wav");
+    precache_sound("fvox/hev_logon.wav");
+    precache_sound("fvox/flatline.wav");
+    precache_sound("player/pl_long_jump_1.wav");
 
-    VexPcSound(SND_WRENCH_DEPLOY);
-    VexPcSound(SND_WRENCH_HIT);
-    VexPcSound(SND_WRENCH_HITWALL);
-    VexPcSound(SND_WRENCH_SLASH);
-    VexPcSound(SND_WRENCH_STAB);
+    precache_sound(SND_WRENCH_DEPLOY);
+    precache_sound(SND_WRENCH_HIT);
+    precache_sound(SND_WRENCH_HITWALL);
+    precache_sound(SND_WRENCH_SLASH);
+    precache_sound(SND_WRENCH_STAB);
 }
 
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(11);
     register_plugin("[ZP] HEV Suit Mark IV", "1.1", "sp_half : SAAD~Rubio / LyesMC")
     g_iItemId = -1;

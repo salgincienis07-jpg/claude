@@ -65,9 +65,10 @@ new g_Had_Ethereal, g_Ethereal_Clip[33], Float:g_Recoil[33][3]
 new g_Event_Ethereal, g_Msg_WeaponList, g_SmokePuff_SprId, g_ham_bot, g_Beam_SprID
 new g_Muzzleflash_Ent, g_Muzzleflash
 
+new bool:g_VexGiving[33];
+
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(4);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -100,21 +101,22 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(V_MODEL)
-	VexPcModel(P_MODEL)
-	VexPcModel(W_MODEL)
+    if (!VexAssetGuard("vex_ethereal")) return;
+	engfunc(EngFunc_PrecacheModel, V_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL)
+	engfunc(EngFunc_PrecacheModel, W_MODEL)
 	
 	new i
 	for(i = 0; i < sizeof(Ethereal_Sounds); i++)
-		VexPcSound(Ethereal_Sounds[i])
+		engfunc(EngFunc_PrecacheSound, Ethereal_Sounds[i])
 	for(i = 0; i < sizeof(Ethereal_Resources); i++)
 	{
-		if(i == 0) VexPcGeneric(Ethereal_Resources[i])
-		else VexPcModel(Ethereal_Resources[i])
+		if(i == 0) engfunc(EngFunc_PrecacheGeneric, Ethereal_Resources[i])
+		else engfunc(EngFunc_PrecacheModel, Ethereal_Resources[i])
 	}
 	
-	g_SmokePuff_SprId = VexPcModel("sprites/wall_puff1.spr")
-	g_Beam_SprID = VexPcModel("sprites/laserbeam.spr")
+	g_SmokePuff_SprId = engfunc(EngFunc_PrecacheModel, "sprites/wall_puff1.spr")
+	g_Beam_SprID = engfunc(EngFunc_PrecacheModel, "sprites/laserbeam.spr")
 	
 	
 	register_forward(FM_PrecacheEvent, "fw_PrecacheEvent_Post", 1)
@@ -122,7 +124,8 @@ public plugin_precache()
 	// Muzzleflash
 	g_Muzzleflash_Ent = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target"))
 	
-	if (VexPcModel(MUZZLE_FLASH)) engfunc(EngFunc_SetModel, g_Muzzleflash_Ent, MUZZLE_FLASH)
+	precache_model(MUZZLE_FLASH)
+	engfunc(EngFunc_SetModel, g_Muzzleflash_Ent, MUZZLE_FLASH)
 	set_pev(g_Muzzleflash_Ent, pev_scale, 0.2)
 	
 	set_pev(g_Muzzleflash_Ent, pev_rendermode, kRenderTransTexture)
@@ -391,6 +394,10 @@ public fw_Item_Deploy_Post(Ent)
 
 public fw_Item_AddToPlayer_Post(Ent, id)
 {
+    if(id>=1 && id<=32 && !g_VexGiving[id]) UnSet_BitVar(g_Had_Ethereal, id);
+
+    if(id<1 || id>32 || !is_user_connected(id)) return HAM_IGNORED;
+
 	if(!pev_valid(Ent))
 		return HAM_IGNORED
 		
@@ -759,6 +766,8 @@ stock Set_Player_NextAttack(id, CSWID, Float:NextTime)
 	set_pdata_float(Ent, 48, NextTime, 4)
 }
 
-public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; Get_Ethereal(id); return vex_has(id); }
+public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; g_VexGiving[id]=true; Get_Ethereal(id); g_VexGiving[id]=false; return vex_has(id) && user_has_weapon(id,CSW_M4A1); }
 public vex_remove(id) { Remove_Ethereal(id); return 1; }
 public vex_has(id) { return Get_BitVar(g_Had_Ethereal, id) ? 1 : 0; }
+
+

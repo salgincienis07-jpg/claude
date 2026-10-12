@@ -94,9 +94,10 @@ const SECONDARY_WEAPONS_BIT_SUM = (1<<CSW_P228)|(1<<CSW_ELITE)|(1<<CSW_FIVESEVEN
 new g_Had_Janus7, g_Janus7_Mode[33], g_Janus7_Clip[33], g_BulletCount[33], g_ChangingMode, Float:EmitSoundTime[33]
 new g_Event_Janus7, g_Msg_WeaponList, g_SmokePuff_SprId, g_RifleShell_Id, g_ham_bot, g_SprId, g_MaxPlayers
 
+new bool:g_VexGiving[33];
+
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(1);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -123,22 +124,23 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(V_MODEL)
-	VexPcModel(P_MODEL)
-	VexPcModel(W_MODEL)
+    if (!VexAssetGuard("vex_janus7")) return;
+	engfunc(EngFunc_PrecacheModel, V_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL)
+	engfunc(EngFunc_PrecacheModel, W_MODEL)
 	
 	new i
 	for(i = 0; i < sizeof(Janus7_Sounds); i++)
-		VexPcSound(Janus7_Sounds[i])
+		engfunc(EngFunc_PrecacheSound, Janus7_Sounds[i])
 	for(i = 0; i < sizeof(Janus7_Resources); i++)
 	{
-		if(i == 0) VexPcGeneric(Janus7_Resources[i])
-		else VexPcModel(Janus7_Resources[i])
+		if(i == 0) engfunc(EngFunc_PrecacheGeneric, Janus7_Resources[i])
+		else engfunc(EngFunc_PrecacheModel, Janus7_Resources[i])
 	}
 	
-	g_RifleShell_Id = VexPcModel("models/rshell.mdl")
-	g_SmokePuff_SprId = VexPcModel("sprites/wall_puff1.spr")
-	g_SprId = VexPcModel( "sprites/lgtning.spr" )
+	g_RifleShell_Id = engfunc(EngFunc_PrecacheModel, "models/rshell.mdl")
+	g_SmokePuff_SprId = engfunc(EngFunc_PrecacheModel, "sprites/wall_puff1.spr")
+	g_SprId = precache_model( "sprites/lgtning.spr" )
 	
 	register_forward(FM_PrecacheEvent, "fw_PrecacheEvent_Post", 1)
 }
@@ -522,6 +524,10 @@ public fw_Item_Deploy_Post(Ent)
 
 public fw_Item_AddToPlayer_Post(Ent, id)
 {
+    if(id>=1 && id<=32 && !g_VexGiving[id]) UnSet_BitVar(g_Had_Janus7, id);
+
+    if(id<1 || id>32 || !is_user_connected(id)) return HAM_IGNORED;
+
 	if(!pev_valid(Ent))
 		return HAM_IGNORED
 		
@@ -1085,6 +1091,8 @@ stock is_wall_between_points(Float:start[3], Float:end[3], ignore_ent)
 	return floatround(get_distance_f(end, EndPos))
 } 
 
-public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; Get_Janus7(id); return vex_has(id); }
+public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; g_VexGiving[id]=true; Get_Janus7(id); g_VexGiving[id]=false; return vex_has(id) && user_has_weapon(id,CSW_M249); }
 public vex_remove(id) { Remove_Janus7(id); return 1; }
 public vex_has(id) { return Get_BitVar(g_Had_Janus7, id) ? 1 : 0; }
+
+

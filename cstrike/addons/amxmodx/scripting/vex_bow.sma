@@ -112,9 +112,10 @@ new g_Had_CompoundBow, g_InTempingAttack, g_BowArrow[33], g_WeaponState[33], Flo
 new g_MsgCurWeapon, g_MsgAmmoX, g_MsgWeaponList
 new g_SprId_LaserBeam
 
+new bool:g_VexGiving[33];
+
 public plugin_init()
 {
-    VexAssetInit();
     vex_register_component(6);
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
@@ -143,22 +144,23 @@ public plugin_init()
 
 public plugin_precache()
 {
-	VexPcModel(V_MODEL)
-	VexPcModel(P_MODEL)
-	VexPcModel(P_MODEL_EMPTY)
-	VexPcModel(W_MODEL)
-	VexPcModel(ARROW_MODEl)
+    if (!VexAssetGuard("vex_bow")) return;
+	engfunc(EngFunc_PrecacheModel, V_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL)
+	engfunc(EngFunc_PrecacheModel, P_MODEL_EMPTY)
+	engfunc(EngFunc_PrecacheModel, W_MODEL)
+	engfunc(EngFunc_PrecacheModel, ARROW_MODEl)
 	
 	new i
 	for(i = 0; i < sizeof(WeaponSounds); i++)
-		VexPcSound(WeaponSounds[i])
+		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
 	for(i = 0; i < sizeof(WeaponResources); i++)
 	{
-		if(i == 0) VexPcGeneric(WeaponResources[i])
-		else VexPcModel(WeaponResources[i])
+		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[i])
+		else engfunc(EngFunc_PrecacheModel, WeaponResources[i])
 	}
 	
-	g_SprId_LaserBeam = VexPcModel("sprites/laserbeam.spr")
+	g_SprId_LaserBeam = engfunc(EngFunc_PrecacheModel, "sprites/laserbeam.spr")
 }
 
 public Get_CompoundBow(id)
@@ -735,6 +737,10 @@ public Make_Push(id)
 
 public fw_Item_AddToPlayer_Post(Ent, Id)
 {
+    if(Id>=1 && Id<=32 && !g_VexGiving[Id]) UnSet_BitVar(g_Had_CompoundBow, Id);
+
+    if(Id<1 || Id>32 || !is_user_connected(Id)) return HAM_IGNORED;
+
 	if(pev(Ent, pev_impulse) == WEAPON_SECRETCODE)
 	{
 		Set_BitVar(g_Had_CompoundBow, Id)
@@ -1037,6 +1043,8 @@ stock get_angle_between_vectors(const Float:fV1[3], const Float:fV2[3])
 	return iResult
 }
 
-public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; Get_CompoundBow(id); return vex_has(id); }
+public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; g_VexGiving[id]=true; Get_CompoundBow(id); g_VexGiving[id]=false; return vex_has(id) && user_has_weapon(id,CSW_M4A1); }
 public vex_remove(id) { Remove_CompoundBow(id); return 1; }
 public vex_has(id) { return Get_BitVar(g_Had_CompoundBow, id) ? 1 : 0; }
+
+

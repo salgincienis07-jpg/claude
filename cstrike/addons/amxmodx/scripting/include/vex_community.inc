@@ -6,3 +6,5 @@ native vex_has_jetpack(id);
 native vex_prepare_jetpack(id);
 
 native vex_register_component(component);
+
+native vex_is_survivor(id);
