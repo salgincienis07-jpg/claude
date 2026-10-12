@@ -132,7 +132,13 @@ def inline_reapi(incdir):
                 die('unexpected include %s in %s' % (inc, name))
             out.append(line)
         return '// ---- inlined %s.inc ----\n' % name + '\n'.join(out) + '\n'
-    return one('reapi')
+    txt = one('reapi')
+    # documentation comments of the ReAPI includes are not needed in the single file (-~500 KB)
+    toks = [t for t in P.tokenize(txt) if t[0] != 'comment' or t[1].startswith('// ---- inlined')]
+    txt = P.join(toks)
+    txt = re.sub(r'[ \t]+\n', '\n', txt)
+    txt = re.sub(r'\n{3,}', '\n\n', txt)
+    return txt
 
 
 def exclusion_set(incdir):
@@ -659,6 +665,81 @@ def build_core():
     b = core.index('    console_print(id,"Cosmetics ready:')
     core = core[:a] + '''    ZcModuleStatus(id);
 ''' + core[b:]
+    # 4.3 menu style (devtools/single/menu_style.pwn): one colour scheme for every menu
+    a = core.index('// CSO tarzi menu renkleri:')
+    b = core.index('// Sayfalamasiz (tek sayfa) menu')
+    core = core[:a] + read(os.path.join(HERE, 'menu_style.pwn')) + '\n' + core[b:]
+    core = rep1(core, '''    formatex(out,len,"\\yVEXMIRA \\w| %s^n\\dAP: \\y%d \\d  Coin: \\y%d \\d  Lv: \\y%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);''',
+                '''    g_iMenuFor = id;
+    formatex(out,len,"\\yVEXMIRA  \\w%s^n\\dAP \\y%d\\d   VC \\y%d\\d   Lv \\y%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);''')
+    core = rep1(core, '''    formatex(out, len, "\\r[%s%L\\r]", on ? "\\y" : "\\r", id, on ? "ON" : "OFF");''',
+                '''    formatex(out, len, "%s[%L]", on ? "\\y" : "\\d", id, on ? "ON" : "OFF");''')
+    core = rep1(core, '''    formatex(t, charsmax(t), "\\y%L", id, "MENU_BACK");  menu_setprop(menu, MPROP_BACKNAME, t);
+    formatex(t, charsmax(t), "\\y%L", id, "MENU_NEXT");  menu_setprop(menu, MPROP_NEXTNAME, t);
+    formatex(t, charsmax(t), "\\y%L", id, "MENU_EXIT");  menu_setprop(menu, MPROP_EXITNAME, t);
+    menu_setprop(menu, MPROP_NUMBER_COLOR, "\\r");''',
+                '''    formatex(t, charsmax(t), "\\w%L", id, "MENU_BACK");  menu_setprop(menu, MPROP_BACKNAME, t);
+    formatex(t, charsmax(t), "\\w%L", id, "MENU_NEXT");  menu_setprop(menu, MPROP_NEXTNAME, t);
+    formatex(t, charsmax(t), "\\w%L", id, "MENU_EXIT");  menu_setprop(menu, MPROP_EXITNAME, t);
+    menu_setprop(menu, MPROP_NUMBER_COLOR, "\\y");''')
+    core = rep1(core, '''    menu_display(id, menu, 0);
+}
+
+
+/* ================================================================== */
+/*  HAVA IKMALI''', '''    menu_display(id, menu, 0);
+    g_iMenuFor = 0;
+}
+
+
+/* ================================================================== */
+/*  HAVA IKMALI''')
+    # 4.3: bilingual labels instead of hard-coded Turkish menu lines
+    core = rep1(core, '''        MenuAdd(menu,"\\yOzel Silahlar \\d[6 silah / AP]",202);
+        MenuAdd(menu,"\\yJetpack + Bazooka \\r[80 AP]",200);
+        MenuAdd(menu,"\\yHEV Suit \\r[60 AP]",201);
+        MenuAdd(menu,"\\yInsan / CT Gorunumleri \\d[VC]",210);
+        MenuAdd(menu,"\\yBicak Koleksiyonu \\d[VC]",211);''',
+        '''        formatex(item,charsmax(item),"%L \\d(%L)",id,"ZC_SPECIAL",id,"ZC_GUNS6"); MenuAdd(menu,item,202);
+        formatex(item,charsmax(item),"%L [80 AP]",id,"ZC_JETPACK"); MenuAdd(menu,item,200);
+        formatex(item,charsmax(item),"%L [60 AP]",id,"ZC_HEV"); MenuAdd(menu,item,201);
+        formatex(item,charsmax(item),"%L [VC]",id,"ZC_CTSKINS"); MenuAdd(menu,item,210);
+        formatex(item,charsmax(item),"%L [VC]",id,"ZC_KNIVES"); MenuAdd(menu,item,211);''')
+    core = rep1(core, '''    MenuAdd(menu,"\\yInsan Gorunumleri \\d[5 / Kalici Coin]",21);
+    MenuAdd(menu,"\\yBicak Koleksiyonu \\d[5 / Kalici Coin]",22);''',
+        '''    formatex(item,charsmax(item),"%L \\d(5, %L) [VC]",id,"ZC_SKINS",id,"ZC_PERM"); MenuAdd(menu,item,21);
+    formatex(item,charsmax(item),"%L \\d(5, %L) [VC]",id,"ZC_KNIVES",id,"ZC_PERM"); MenuAdd(menu,item,22);''')
+    core = rep1(core, '''    MenuAdd(menu,"\\yIz / Oldurme / Enfeksiyon Efektleri",23);''',
+        '''    formatex(item,charsmax(item),"%L",id,"ZC_FX"); MenuAdd(menu,item,23);''')
+    core = rep1(core, '''        formatex(item,charsmax(item),"\\y%L \\d[%d model / Coin]",id,CM_CATKEY[c],g_iCmN[c]);''',
+        '''        formatex(item,charsmax(item),"%L \\d(%d) [VC]",id,CM_CATKEY[c],g_iCmN[c]);''')
+    core = rep1(core, '''    new title[128],line[160];
+    formatex(title,charsmax(title),"\\yVEXMIRA COMMUNITY^n\\r%s | %d Vex Coin",c?"Bicak Koleksiyonu":"CT Gorunumleri",g_iVC[id]);
+    new menu=VexMenuCreate(title,"CommunityCoinHandler");
+    MenuAdd(menu,"\\yStandart / Kapat",c*10);
+    for(new i=0;i<5;i++) {
+        formatex(line,charsmax(line),"\\y%s \\r[%s | %d VC]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],g_iCommunitySel[id][c]==i+1?"KUSANILDI":(g_iCommunityOwned[id][c]&(1<<i)?"SAHIP":"KALICI"),COMMUNITY_COIN[c][i]);
+        MenuAdd(menu,line,c*10+i+1);
+    }''',
+        '''    new title[320],line[160];
+    VexHead(id,title,charsmax(title),c?"ZC_KNIVES":"ZC_CTSKINS");
+    new menu=VexMenuCreate(title,"CommunityCoinHandler");
+    if(g_iCommunitySel[id][c]==0) formatex(line,charsmax(line),"%L [%L]",id,"ZC_STANDARD",id,"ZC_EQUIPPED");
+    else formatex(line,charsmax(line),"%L",id,"ZC_STANDARD");
+    MenuAdd(menu,line,c*10);
+    for(new i=0;i<5;i++) {
+        if(g_iCommunitySel[id][c]==i+1) formatex(line,charsmax(line),"%s [%L]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],id,"ZC_EQUIPPED");
+        else if(g_iCommunityOwned[id][c]&(1<<i)) formatex(line,charsmax(line),"%s [%L]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],id,"ZC_OWNED");
+        else formatex(line,charsmax(line),"%s [%d VC]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],COMMUNITY_COIN[c][i]);
+        MenuAdd(menu,line,c*10+i+1);
+    }''')
+    core = rep1(core, '''    for(new i=0;i<6;i++) { formatex(line,charsmax(line),"\\y%s \\d[Ucretsiz ver]",COMMUNITY_WN[i]); MenuAdd(menu,line,i); }
+    MenuAdd(menu,"\\yJetpack + Bazooka",10); MenuAdd(menu,"\\yHEV Suit",11);
+    MenuAdd(menu,"\\ySurvivor Minigun \\d[Survivor gerekli]",12); MenuFinish(id,menu);''',
+        '''    for(new i=0;i<6;i++) { formatex(line,charsmax(line),"%s [%L]",COMMUNITY_WN[i],id,"ZC_FREE"); MenuAdd(menu,line,i); }
+    formatex(line,charsmax(line),"%L [%L]",id,"ZC_JETPACK",id,"ZC_FREE"); MenuAdd(menu,line,10);
+    formatex(line,charsmax(line),"%L [%L]",id,"ZC_HEV",id,"ZC_FREE"); MenuAdd(menu,line,11);
+    formatex(line,charsmax(line),"Survivor Minigun \\d(%L)",id,"ZC_NEED_SURV"); MenuAdd(menu,line,12); MenuFinish(id,menu);''')
     if 'CommunityCall' in core or 'CommunityPluginIndex' in core or 'callfunc_begin_i(function' in core:
         die('core still has CommunityCall / CommunityPluginIndex')
     # duplicate guard: only OLD multi-file Vexmira plugins are paused
@@ -678,13 +759,18 @@ stock bool:VexIsOldCopy(const file[], const title[], const ver[])
     new lower[128]; copy(lower, charsmax(lower), file); strtolower(lower);
     if (containi(lower, "vexmira_zombie") != -1 || containi(lower, "vexmirazombie") != -1) return true;
     if (containi(lower, "vexmira_core") != -1 || containi(lower, "vexmiracore") != -1) return true;
-    // vex_*.amxx / vx42_*.amxx and panel copies like 12_vex_janus7.amxx, 3vx42janus7.amxx
+    // vex_janus7.amxx / vx42_janus7.amxx and panel copies like 12_vex_janus7.amxx, 3vx42janus7.amxx
     if (containi(lower, "vx42") != -1) return true;
-    new base[128]; copy(base, charsmax(base), lower);
-    new s = 0; while (base[s] >= '0' && base[s] <= '9') s++;
-    while (base[s] == '_' || base[s] == '-') s++;
-    if (equal(base[s], "vex_", 4) || equal(base[s], "vex", 3) && !equal(base[s], "vexprobe", 8)) {
-        if (containi(base[s], ".amxx") != -1) return true;
+    static const items[][] = {"diagnostic","janus7","plasma","thunderbolt","ethereal","salamander","bow",
+        "dragonsword","katana","lightsaber","horseaxe","hev","jetpack","minigun"};
+    new flat[128], j = 0;
+    for (new i = 0; lower[i] && j < charsmax(flat); i++) if (lower[i] != '_' && lower[i] != '-') flat[j++] = lower[i];
+    flat[j] = 0;
+    new key[40];
+    for (new i = 0; i < sizeof items; i++) {
+        formatex(key, charsmax(key), "vex%s.amxx", items[i]);
+        new d = strlen(flat) - strlen(key);
+        if (d >= 0 && equal(flat[d], key)) return true;
     }
     // an older core under any file name (same title, other version)
     if (equal(title, PLUGIN) && !equal(ver, VERSION)) return true;
@@ -766,6 +852,10 @@ def main():
     fm_hooks, ev_hooks = {}, []
     for idx, (key, src, comp) in enumerate(MODS):
         m = process_module(idx, key, src, comp, excl, report)
+        if key == 'diag':
+            # the single plugin's own file name has no "vex" in it: report it too
+            m.toks = P.tokenize(rep1(P.join(m.toks), 'if(containi(filename,"vex")==-1) continue;',
+                                     'if(containi(filename,"vex")==-1 && i!=get_plugin(-1)) continue;'))
         transform_tasks(m, report)
         transform_precache(m)
         collect_hooks(m, fm_hooks, ev_hooks)
@@ -831,7 +921,7 @@ HEADER = r'''/*
       Gerekli moduller: reapi, fakemeta, hamsandwich, engine, cstrike, fun, nvault
       (geoip istege bagli). ReHLDS + ReGameDLL_CS gerekli.
 
-      Ayar dosyalari (vexmira.cfg, vexmira_maps/*.ini, vexmira_motd_*.html,
+      Ayar dosyalari (vexmira.cfg, vexmira_maps/HARITA.ini, vexmira_motd_en/tr.html,
       data/lang/vexmira_zombie.txt) bu dosyanin icinde gomuludur: sunucuda yoksa
       ilk acilista yazilir, varsa DOKUNULMAZ (duzenlemeleriniz korunur).
       Yeniden yazdirmak icin: zc_writeconfigs (konsol)  veya  zc_rewrite_configs 1 + harita degisimi.
