@@ -128,9 +128,16 @@ public CommunityCoinHandler(id,menu,item)
     if(item<0) { menu_destroy(menu); return PLUGIN_HANDLED; }
     new sel=MenuInfo(menu,item); menu_destroy(menu); new c=sel/10,v=sel%10;
     if(c<0 || c>1 || v<0 || v>5) return PLUGIN_HANDLED;
+    CommunityCoinSelect(id,c,v);
+    CommunityCoinMenu(id,c); return PLUGIN_HANDLED;
+}
+// c: 0 = CT gorunumu, 1 = bicak; v: 0 = standart, 1..5 = urun (sahip degilse VC ile alinir, kalici)
+CommunityCoinSelect(id,c,v)
+{
+    if(c<0 || c>1 || v<0 || v>5) return 0;
     if(v && !(g_iCommunityOwned[id][c] & (1<<(v-1)))) {
         new cost=COMMUNITY_COIN[c][v-1];
-        if(g_iVC[id]<cost) { Chat(id,"COS_NOVC",cost); CommunityCoinMenu(id,c); return PLUGIN_HANDLED; }
+        if(g_iVC[id]<cost) { Chat(id,"COS_NOVC",cost); return 0; }
         g_iVC[id]-=cost; g_iCommunityOwned[id][c]|=1<<(v-1); PlayKey(id,"SHOP_BUY");
     }
     g_iCommunitySel[id][c]=v; SaveData(id);
@@ -138,7 +145,7 @@ public CommunityCoinHandler(id,menu,item)
         if(!c && !CommunityCall("vx42_hev.amxx","vex_has",id)) ApplyHumanModel(id);
         else if(c) CommunityApplyKnife(id+64000);
     }
-    CommunityCoinMenu(id,c); return PLUGIN_HANDLED;
+    return 1;
 }
 public CommunityApplyKnife(taskid)
 {
@@ -161,19 +168,33 @@ CommunityPrecache()
 }
 CommunityCosOrigin(ent,id,c,i)
 {
-    new Float:o[3],Float:a[3]; get_entvar(id,var_origin,o); get_entvar(id,var_angles,a);
+    new Float:o[3],Float:a[3];
     if(g_iCmAtt[c][i]==CMA_BONE) {
+        get_entvar(id,var_origin,o); get_entvar(id,var_angles,a);
         engfunc(EngFunc_SetOrigin,ent,o); a[0]=0.0; a[2]=0.0;
         set_entvar(ent,var_angles,a); return;
     }
+    CommunityCosCalc(id,c,i,o,a);
+    engfunc(EngFunc_SetOrigin,ent,o); set_entvar(ent,var_angles,a);
+}
+// Kontrolcusuz kozmetik konumu: cfg ofseti oyuncunun yaw'ina gore dondurulur (x ileri, y sol, z yukari).
+// Pet: govdeden en az 26 birim yanda durur ve havada hafifce suzulur (z>=0 olanlar).
+CommunityCosCalc(id,c,i,Float:o[3],Float:a[3])
+{
+    get_entvar(id,var_origin,o); get_entvar(id,var_angles,a);
+    new Float:x=g_fCmOfs[c][i][0], Float:yy=g_fCmOfs[c][i][1], Float:z=g_fCmOfs[c][i][2];
+    if(g_iCmAtt[c][i]==CMA_FOLLOW) {
+        new Float:d=floatsqroot(x*x+yy*yy);
+        if(d<26.0) { if(d<0.1) { x=0.0; yy=26.0; } else { x=x*26.0/d; yy=yy*26.0/d; } }
+        if(z>=0.0) z+=2.5*floatsin(get_gametime()*2.4+float(id));
+    }
     new Float:y=a[1]*0.0174532925;
-    o[0]+=g_fCmOfs[c][i][0]*floatcos(y)-g_fCmOfs[c][i][1]*floatsin(y);
-    o[1]+=g_fCmOfs[c][i][0]*floatsin(y)+g_fCmOfs[c][i][1]*floatcos(y);
-    o[2]+=g_fCmOfs[c][i][2];
+    o[0]+=x*floatcos(y)-yy*floatsin(y);
+    o[1]+=x*floatsin(y)+yy*floatcos(y);
+    o[2]+=z;
     if(c!=1 && (get_entvar(id,var_flags)&FL_DUCKING)) o[2]-=18.0;
     a[0]=g_fCmAng[c][i][0]; a[1]+=g_fCmAng[c][i][1]; a[2]=g_fCmAng[c][i][2];
     if(c==2 && i==2) a[1]+=get_gametime()*30.0;
-    engfunc(EngFunc_SetOrigin,ent,o); set_entvar(ent,var_angles,a);
 }
 
 public CommunityNativeJetpack(plugin, params) { new id=get_param(1); return id>=1 && id<=32 ? CommunityCall("vx42_jetpack.amxx","vex_has",id):0; }

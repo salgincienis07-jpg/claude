@@ -265,9 +265,9 @@ new const SOUND_KEYS[][] =
     "HEADSHOT", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "KILL_MONSTER",
     "STREAK_5", "STREAK_10", "STREAK_15",
     "NADE_FIRE", "NADE_FROST", "NADE_INFECT", "FREEZE", "BURN", "ANTIDOTE", "MADNESS",
-    "SW_FIRE", "SW0_FIRE", "SW1_FIRE", "SW2_FIRE", "SW3_FIRE", "SW4_FIRE", "SW5_FIRE", "SW6_FIRE", "SW7_FIRE",
-    "SW0_DRAW", "SW1_DRAW", "SW2_DRAW", "SW3_DRAW", "SW4_DRAW", "SW5_DRAW", "SW6_DRAW", "SW7_DRAW",
-    "SW0_RELOAD", "SW1_RELOAD", "SW2_RELOAD", "SW3_RELOAD", "SW4_RELOAD", "SW5_RELOAD", "SW6_RELOAD", "SW7_RELOAD",
+    "SW_FIRE", "SW0_FIRE", "SW1_FIRE", "SW2_FIRE", "SW3_FIRE", "SW4_FIRE", "SW5_FIRE",
+    "SW0_DRAW", "SW1_DRAW", "SW2_DRAW", "SW3_DRAW", "SW4_DRAW", "SW5_DRAW",
+    "SW0_RELOAD", "SW1_RELOAD", "SW2_RELOAD", "SW3_RELOAD", "SW4_RELOAD", "SW5_RELOAD",
     "ZAP", "MVP", "VIP_JOIN", "BOSS_WARN", "BOSS_ROAR", "BOSS_ABILITY",
     "ZOMBIE_IDLE", "ZOMBIE_SLASH", "ZOMBIE_HITWALL", "ZOMBIE_HIT", "ZOMBIE_STAB", "ZOMBIE_ACID", "ZOMBIE_HEAL", "ZOMBIE_BLINK", "ZOMBIE_SHOCK",
     "WELCOME", "PLAYER_JOIN", "PLAYER_LEAVE", "BOSS_SOON", "BOSS_INTRO", "BOSS_STEP", "BOSS_PHASE", "BOSS_ENRAGE",
@@ -911,6 +911,7 @@ new const CM_CATKEY[CM_CATS][] = { "COS_CAT_WING", "COS_CAT_PET", "COS_CAT_HAT" 
 new g_szCmEn[CM_CATS][CM_MAX][32], g_szCmTr[CM_CATS][CM_MAX][32], g_szCmMdl[CM_CATS][CM_MAX][96];
 new g_iCmPrice[CM_CATS][CM_MAX], g_iCmVip[CM_CATS][CM_MAX], g_iCmAtt[CM_CATS][CM_MAX], g_iCmSeq[CM_CATS][CM_MAX];
 new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Float:g_fCmScale[CM_CATS][CM_MAX], Float:g_fCmFps[CM_CATS][CM_MAX];
+new bool:g_bCmCtl[CM_CATS][CM_MAX]; // v4.2: model has the 3 'root' offset controllers (models/vexmira/cos)
 new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
 new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];   // sahiplik: bit (kat*8 + no); secim: 4 bit / kat
 new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];              // varlik -> sahibi / (kat*16 + no; 100+ = on izleme)
@@ -7320,6 +7321,8 @@ ShowShopMenu(id)
         MenuAdd(menu,"\yOzel Silahlar \d[6 silah / AP]",202);
         MenuAdd(menu,"\yJetpack + Bazooka \r[80 AP]",200);
         MenuAdd(menu,"\yHEV Suit \r[60 AP]",201);
+        MenuAdd(menu,"\yInsan / CT Gorunumleri \d[VC]",210);
+        MenuAdd(menu,"\yBicak Koleksiyonu \d[VC]",211);
     }
     for (new i = 0; i < NUM_ITEMS; i++)
     {
@@ -7378,6 +7381,7 @@ public menu_shop_handler(id, menu, item)
     menu_destroy(menu);
 
     if (sel == 202) { CommunityWeaponMenu(id); return PLUGIN_HANDLED; }
+    if (sel == 210 || sel == 211) { CommunityCoinMenu(id, sel - 210); return PLUGIN_HANDLED; }
     if (sel == 200 || sel == 201)
         CommunityBuyGear(id, sel - 200);
     else if (sel == 100)
@@ -8687,10 +8691,16 @@ CmSpawn(id, c, i)
     // ayni adli kemikleri de kopyalar, digerlerinde ofset kontrolculerden gelir
     get_entvar(id, var_origin, o);
     engfunc(EngFunc_SetOrigin, ent, o);
-    if(g_iCmAtt[c][i]==CMA_BONE) {
+    // v4.2: bone (CS iskeleti) ve ofset kontrolculu (models/vexmira/cos) modeller oyuncuya KILITLI
+    // (MOVETYPE_FOLLOW: istemci her karede oyuncunun konumu/yonuyle cizer, kayma/gecikme yok).
+    // Kontrolcusu olmayan modeller her pakette AddToFullPack'te konumlanir (CmPack).
+    if(g_iCmAtt[c][i]==CMA_BONE || g_bCmCtl[c][i]) {
         set_entvar(ent,var_movetype,MOVETYPE_FOLLOW); set_entvar(ent,var_aiment,id);
-    } else set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
-    CommunityCosOrigin(ent, id, c, i);
+        if(g_bCmCtl[c][i]) CmApplyCtl(ent, id, c, i);
+    } else {
+        set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
+        CommunityCosOrigin(ent, id, c, i);
+    }
     g_iCmOwn[ent] = id;
     g_iCmInfo[ent] = c * 16 + i;
     g_iCmEnt[id][c] = ent;
@@ -8727,7 +8737,8 @@ CmTick(Float:now)
             }
             // Model degisirse (sinif / skin) kafa yuksekligi yeniden okunur; konum istemcide (FOLLOW)
             OvhModelTops(id);
-            CommunityCosOrigin(ent, id, c, i);
+            if (g_bCmCtl[c][i] && g_iCmAtt[c][i] != CMA_BONE) CmApplyCtl(ent, id, c, i);
+            else if (g_iCmAtt[c][i] != CMA_BONE) CommunityCosOrigin(ent, id, c, i);
             CommunityCosAnimate(ent,c,i,now);
         }
     }
@@ -8757,6 +8768,15 @@ CmPack(es, ent, host)
     if (c >= CM_CATS || i >= CM_MAX)
         return FMRES_IGNORED;
     new att = g_iCmAtt[c][i];
+    // v4.2: kontrolcusuz model (topluluk sapka / pet): her pakette oyuncunun GUNCEL konumuna gore
+    // (0.1 sn'lik adim gecikmesi yok -> govdeye girmez, sallanmaz)
+    if (att != CMA_BONE && !g_bCmCtl[c][i] && is_user_alive(id))
+    {
+        new Float:po[3], Float:pa[3];
+        CommunityCosCalc(id, c, i, po, pa);
+        set_es(es, ES_Origin, po);
+        set_es(es, ES_Angles, pa);
+    }
     if (att != CMA_FOLLOW && (host == id || (get_entvar(host, var_iuser1) == 4 && get_entvar(host, var_iuser2) == id)))
     {
         set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
@@ -8892,13 +8912,22 @@ public menu_cmbuy_handler(id, menu, item)
         ShowCmList(id, c);
         return PLUGIN_HANDLED;
     }
+    CmDoBuy(id, c, i);
+    ShowCmList(id, c);
+    return PLUGIN_HANDLED;
+}
+
+// Satin al (sahip degilse) + tak; 1 = takildi
+CmDoBuy(id, c, i)
+{
+    if (c < 0 || c >= CM_CATS || i < 0 || i >= CM_MAX || !g_bCmOk[c][i])
+        return 0;
     new nm[32], bit = 1 << (c * 8 + i);
     CmName(id, c, i, nm, charsmax(nm));
     if (g_iCmVip[c][i] && !IsVip(id))
     {
         Chat(id, "VIP_ONLY");
-        ShowCmList(id, c);
-        return PLUGIN_HANDLED;
+        return 0;
     }
     if (!(g_iCmOwned[id] & bit))
     {
@@ -8906,8 +8935,7 @@ public menu_cmbuy_handler(id, menu, item)
         if (g_iVC[id] < price)
         {
             Chat(id, "COS_NOVC", price);
-            ShowCmList(id, c);
-            return PLUGIN_HANDLED;
+            return 0;
         }
         g_iVC[id] -= price;
         g_iCmOwned[id] |= bit;
@@ -8918,8 +8946,7 @@ public menu_cmbuy_handler(id, menu, item)
     CmSetSel(id, c, i + 1);
     Chat(id, "COS_EQUIP", nm);
     SaveData(id);
-    ShowCmList(id, c);
-    return PLUGIN_HANDLED;
+    return 1;
 }
 
 // Test / yonetici: vex_cos_give <#id|bot> <wing|pet|hat> <no> -> sahip yap + tak (VC harcamaz)
@@ -29377,6 +29404,12 @@ public plugin_init()
     RegisterSay("take",     "lazersok",  "cmd_lm_take");
     RegisterSay("models", "gorunum", "CommunityModelsCommand");
     RegisterSay("knives", "bicaklar", "CommunityKnivesCommand");
+    RegisterSay("knife",  "bicak",    "CommunityKnivesCommand");
+    RegisterSay("model",  "skin",     "CommunityModelsCommand");
+    RegisterSay("ctmodel","karakter", "CommunityModelsCommand");
+    RegisterSay("jetpack","jet",      "CommunityJetCommand");
+    RegisterSay("hev",    "zirh",     "CommunityHevCommand");
+    RegisterSay("sw",     "ozelsilah","cmd_special");
     register_clcmd("vex_inspect", "CommunityInspectCommand");
     register_concmd("vex_status", "CommunityStatus", ADMIN_RCON);
     register_forward(FM_GetGameDescription,"CommunityGameDescription");
@@ -29541,6 +29574,9 @@ VexDuplicateGuard()
         server_print("[Vexmira] !!! Delete them (and configs/plugins-vexmira.ini), keep only plugins-vexmira42.ini, then restart.");
     }
 }
+
+public CommunityJetCommand(id) { CommunityBuyGear(id,0); return PLUGIN_HANDLED; }
+public CommunityHevCommand(id) { CommunityBuyGear(id,1); return PLUGIN_HANDLED; }
 
 public CommunityNativeSurvivor(plugin,params) { new id=get_param(1); return id>=1 && id<=32 && g_bSurvivor[id] && is_user_alive(id); }
 

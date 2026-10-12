@@ -153,7 +153,9 @@ new Float:g_fCmNativeRate[CM_CATS][CM_MAX];
 CommunityCosMetadata(c,i)
 {
     new fp=fopen(g_szCmMdl[c][i],"rb"); if(!fp) return;
-    new count,offset,frames,Float:fps;
+    new count,offset,frames,Float:fps,nctl;
+    fseek(fp,148,SEEK_SET); fread(fp,nctl,BLOCK_INT);
+    g_bCmCtl[c][i]=(nctl>=3);
     fseek(fp,164,SEEK_SET); fread(fp,count,BLOCK_INT); fread(fp,offset,BLOCK_INT);
     if(count<1 || count>256) { fclose(fp); return; }
     g_iCmSeq[c][i]=clamp(g_iCmSeq[c][i],0,count-1);
