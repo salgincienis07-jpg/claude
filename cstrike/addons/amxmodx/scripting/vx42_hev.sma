@@ -125,13 +125,13 @@ public plugin_precache()
     precache_model(V_HEV_WRENCH);
     precache_model(P_HEV_WRENCH);
 
-    precache_sound("fvox/morphine_shot.wav");
-    precache_sound("fvox/health_critical.wav");
-    precache_sound("fvox/hevSuit_get_infected_alert2.wav");
-    precache_sound("fvox/power_restored.wav");
-    precache_sound("fvox/hev_logon.wav");
-    precache_sound("fvox/flatline.wav");
-    precache_sound("player/pl_long_jump_1.wav");
+    VexPcSnd("fvox/morphine_shot.wav", false);
+    VexPcSnd("fvox/health_critical.wav", false);
+    VexPcSnd("fvox/hevSuit_get_infected_alert2.wav", false);
+    VexPcSnd("fvox/power_restored.wav", false);
+    VexPcSnd("fvox/hev_logon.wav", false);
+    VexPcSnd("fvox/flatline.wav", false);
+    VexPcSnd("player/pl_long_jump_1.wav", false);
 
     precache_sound(SND_WRENCH_DEPLOY);
     precache_sound(SND_WRENCH_HIT);

@@ -133,7 +133,7 @@ public plugin_precache()
 	
 	new i
 	for(i = 0; i < sizeof(WeaponSounds); i++)
-		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
+		VexPcSnd(WeaponSounds[i], (i==0||i==1) ? true : false)
 	for(i = 0; i < sizeof(WeaponResources); i++)
 	{
 		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[i])

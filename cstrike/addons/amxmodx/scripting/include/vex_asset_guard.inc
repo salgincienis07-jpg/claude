@@ -551,3 +551,12 @@ stock bool:VexAssetGuard(const scope[])
     }
     return true;
 }
+
+// v4.2: sounds the server never emits (model-event draw / clip / idle sounds, "spk" voice lines) are sent
+// as downloads (precache_generic) instead of using one of the 512 server sound slots.
+stock VexPcSnd(const s[], bool:emitted)
+{
+    if (emitted) { precache_sound(s); return; }
+    new f[128]; formatex(f, charsmax(f), "sound/%s", s);
+    if (file_exists(f, true)) precache_generic(f);
+}

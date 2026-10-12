@@ -100,7 +100,7 @@ public plugin_precache()
 	precache_model(MODEL_P)
 	
 	for(new i = 0; i < sizeof(HorseAxe_Sounds); i++)
-		precache_sound(HorseAxe_Sounds[i])
+		VexPcSnd(HorseAxe_Sounds[i], (i==1||i==2||i==3||i==4||i==5||i==7) ? true : false)
 }
 
 public client_putinserver(id)

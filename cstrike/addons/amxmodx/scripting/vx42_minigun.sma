@@ -718,7 +718,7 @@ PRECACHE_SOUNDS_FROM_MODEL(const szModelPath[])
 				if (strlen(szSoundPath))
 				{
 					strtolower(szSoundPath);
-					precache_sound(szSoundPath);
+					VexPcSnd(szSoundPath, false); // model event: client plays it, no server slot
 				}
 			}
 		}

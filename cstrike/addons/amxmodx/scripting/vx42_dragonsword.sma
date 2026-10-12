@@ -115,7 +115,7 @@ public plugin_precache()
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	
 	for(new i = 0; i < sizeof(DragonSword_Sound); i++)
-		engfunc(EngFunc_PrecacheSound, DragonSword_Sound[i])
+		VexPcSnd(DragonSword_Sound[i], (i==1||i==2||i==4||i==5||i==6||i==7) ? true : false)
 }
 
 public get_dragonsword(id)

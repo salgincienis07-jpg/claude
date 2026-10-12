@@ -116,7 +116,7 @@ public plugin_precache()
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	
 	for(new i = 0; i < sizeof(DualKatana_Sound); i++)
-		engfunc(EngFunc_PrecacheSound, DualKatana_Sound[i])
+		VexPcSnd(DualKatana_Sound[i], (i==1||i==2||i==3||i==4||i==5||i==6||i==7||i==8) ? true : false)
 }
 
 public get_dualkatana(id)

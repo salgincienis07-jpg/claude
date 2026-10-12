@@ -108,7 +108,7 @@ public plugin_precache()
 	
 	new i
 	for(i = 0; i < sizeof(Ethereal_Sounds); i++)
-		engfunc(EngFunc_PrecacheSound, Ethereal_Sounds[i])
+		VexPcSnd(Ethereal_Sounds[i], (i==0) ? true : false)
 	for(i = 0; i < sizeof(Ethereal_Resources); i++)
 	{
 		if(i == 0) engfunc(EngFunc_PrecacheGeneric, Ethereal_Resources[i])

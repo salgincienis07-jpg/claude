@@ -112,7 +112,7 @@ public plugin_precache()
 	precache_model(MODEL_W)
 	
 	for(new i = 0; i < sizeof(WeaponSounds); i++)
-		precache_sound(WeaponSounds[i])
+		VexPcSnd(WeaponSounds[i], (i==0) ? true : false)
 	for(new i = 0; i < sizeof(WeaponResources); i++)
 	{
 		if(i == 2) precache_generic(WeaponResources[i])

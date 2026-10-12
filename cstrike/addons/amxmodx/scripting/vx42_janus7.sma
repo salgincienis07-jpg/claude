@@ -131,7 +131,7 @@ public plugin_precache()
 	
 	new i
 	for(i = 0; i < sizeof(Janus7_Sounds); i++)
-		engfunc(EngFunc_PrecacheSound, Janus7_Sounds[i])
+		VexPcSnd(Janus7_Sounds[i], (i==0||i==1||i==2||i==8) ? true : false)
 	for(i = 0; i < sizeof(Janus7_Resources); i++)
 	{
 		if(i == 0) engfunc(EngFunc_PrecacheGeneric, Janus7_Resources[i])

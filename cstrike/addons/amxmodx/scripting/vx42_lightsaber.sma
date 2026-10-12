@@ -127,7 +127,7 @@ public plugin_precache()
 	engfunc(EngFunc_PrecacheModel, P_MODEL_OFF)
 	
 	for(new i = 0; i < sizeof(LightSaber_Sounds); i++)
-		engfunc(EngFunc_PrecacheSound, LightSaber_Sounds[i])
+		VexPcSnd(LightSaber_Sounds[i], (i==1||i==2||i==8||i==12||i==13) ? true : false)
 }
 
 public client_putinserver(id)

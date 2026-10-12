@@ -191,8 +191,11 @@ CommunityCosCalc(id,c,i,Float:o[3],Float:a[3])
     new Float:y=a[1]*0.0174532925;
     o[0]+=x*floatcos(y)-yy*floatsin(y);
     o[1]+=x*floatsin(y)+yy*floatcos(y);
+    new bool:duck=(get_entvar(id,var_flags)&FL_DUCKING)?true:false;
+    if(g_iCmAtt[c][i]==CMA_HEAD) z+=duck?g_fOvhDuck[id]:g_fOvhStand[id];           // kafa ustu + z
+    else if(g_iCmAtt[c][i]==CMA_BACK) z+=(duck?g_fOvhDuck[id]:g_fOvhStand[id])-18.0; // sirt + z
+    else if(c!=1 && duck) z-=18.0;
     o[2]+=z;
-    if(c!=1 && (get_entvar(id,var_flags)&FL_DUCKING)) o[2]-=18.0;
     a[0]=g_fCmAng[c][i][0]; a[1]+=g_fCmAng[c][i][1]; a[2]=g_fCmAng[c][i][2];
     if(c==2 && i==2) a[1]+=get_gametime()*30.0;
 }

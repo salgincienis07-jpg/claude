@@ -114,7 +114,7 @@ public plugin_precache()
 	precache_model(SNIP_MODEL_B)
 	
 	for(new i = 0; i < sizeof(WeaponSounds); i++) 
-		engfunc(EngFunc_PrecacheSound, WeaponSounds[i])
+		VexPcSnd(WeaponSounds[i], (i==0||i==1||i==2) ? true : false)
 	for(new i = 0; i < sizeof(WeaponResources); i++)
 	{
 		if(i == 0) engfunc(EngFunc_PrecacheGeneric, WeaponResources[0])
