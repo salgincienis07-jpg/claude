@@ -93,7 +93,7 @@ new bool:g_bCriticalPlayed[33];
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_hev")) return;
+    if (!VexAssetGuard("vx42_hev")) return;
     static model_path[128];
     formatex(model_path, charsmax(model_path), "models/player/%s/%s.mdl", HEV_MODEL_SHORT, HEV_MODEL_SHORT);
     precache_model(model_path);

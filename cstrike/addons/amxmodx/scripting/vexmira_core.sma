@@ -60,7 +60,7 @@ new g_iSixAttempts, g_iSixEntered, g_iSixAborted, g_iSixShort;
 
 
 #define PLUGIN   "Vexmira Zombie Core"
-#define VERSION  "4.1.1-Fix"
+#define VERSION  "4.2.0"
 #define AUTHOR   "SmurfSexy & Capital"
 
 /* ================================================================== */
@@ -538,10 +538,10 @@ new g_iClass[33], g_iClassPicked[33], g_iMaxHP[33];
 
 // Kalici veri
 // Vexmira Community integration. Downloaded plugins/models remain separate.
-new const COMMUNITY_WP[6][] = {"vex_janus7.amxx", "vex_plasma.amxx", "vex_thunderbolt.amxx", "vex_ethereal.amxx", "vex_salamander.amxx", "vex_bow.amxx"};
+new const COMMUNITY_WP[6][] = {"vx42_janus7.amxx", "vx42_plasma.amxx", "vx42_thunderbolt.amxx", "vx42_ethereal.amxx", "vx42_salamander.amxx", "vx42_bow.amxx"};
 new const COMMUNITY_WN[6][] = {"JANUS VII", "Plasma Gun", "Thunderbolt", "Ethereal", "Salamander", "Compound Bow"};
 new const COMMUNITY_COST[6] = {35, 30, 45, 30, 35, 35};
-new const COMMUNITY_KP[5][] = {"vex_dragonsword.amxx", "vex_katana.amxx", "vex_lightsaber.amxx", "vex_horseaxe.amxx", ""};
+new const COMMUNITY_KP[5][] = {"vx42_dragonsword.amxx", "vx42_katana.amxx", "vx42_lightsaber.amxx", "vx42_horseaxe.amxx", ""};
 new const COMMUNITY_KN[5][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe", "CS:GO Butterfly"};
 new const COMMUNITY_CT[5][] = {"vex_soldier", "vex_gign", "vex_halo", "vex_spetsnaz", "vex_gsg9"};
 new const COMMUNITY_CN[5][] = {"CSO Battle Soldier", "CS:GO GIGN", "SP Megumin Halo", "CS:GO Spetsnaz", "CS:GO GSG9"};
@@ -9817,7 +9817,7 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
 
     if (CommunityExtra(id)) return HC_CONTINUE;
     if (wid == WEAPON_KNIFE && g_iCommunitySel[id][1] == 5 && CommunityAlive(id)
-        && !CommunityCall("vex_hev.amxx","vex_has",id) && !CommunityCall("vex_jetpack.amxx","vex_has",id)) {
+        && !CommunityCall("vx42_hev.amxx","vex_has",id) && !CommunityCall("vx42_jetpack.amxx","vex_has",id)) {
         SetHookChainArg(2,ATYPE_STRING,"models/vexmira/community/knives/v_butterfly.mdl");
         SetHookChainArg(3,ATYPE_STRING,"models/vexmira/community/normal/p_knife.mdl");
         return HC_CONTINUE;
@@ -12904,8 +12904,8 @@ MakeZombie(id)
 {
     CommunityRemoveWeapons(id);
     CommunityRemoveKnives(id);
-    CommunityCall("vex_jetpack.amxx", "vex_infected", id);
-    CommunityCall("vex_hev.amxx", "vex_remove", id);
+    CommunityCall("vx42_jetpack.amxx", "vex_infected", id);
+    CommunityCall("vx42_hev.amxx", "vex_remove", id);
 
     if (!g_bZombie[id])
         RemovePlayerMines(id, true);
@@ -13073,7 +13073,7 @@ MakeSurvivor(id, bool:sniper)
     else
     {
         GiveModeWeapons(id, 0);
-        CommunityCall("vex_minigun.amxx","vex_give",id);
+        CommunityCall("vx42_minigun.amxx","vex_give",id);
         g_iMaxHP[id] = get_pcvar_num(g_pSurvHP);
         if (g_iMode == MODE_ARMAGEDDON)
             g_iMaxHP[id] /= 2;
@@ -21793,6 +21793,7 @@ public task_Welcome(tid)
     // v3.2: kisa karsilama (gerisi periyodik ipuclarinda)
     Chat(id, "WELCOME", name);
     Chat(id, "WELCOME_2");
+    client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Vexmira Zombie ^4v%s", VERSION);
     SendFogForEvent(id);
 
     if (g_iDailyDay[id] < get_systime() / 86400)
@@ -22565,7 +22566,7 @@ public rg_TakeDamage(victim, inflictor, attacker, Float:damage, bits)
 
     new Float:now = get_gametime();
     new Float:dmg = damage;
-    if (!g_bZombie[victim] && CommunityCall("vex_hev.amxx", "vex_has", victim)) dmg *= 0.8;
+    if (!g_bZombie[victim] && CommunityCall("vx42_hev.amxx", "vex_has", victim)) dmg *= 0.8;
     new bool:isPlayer = (1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker)) ? true : false;
     g_iReflVictim = 0;
 
@@ -23546,7 +23547,7 @@ ShowMainMenu(id)
     new title[320], item[96];
 
     new hsub[96];
-    formatex(hsub, charsmax(hsub), "%L", id, "MENU_MAIN_SUB");
+    formatex(hsub, charsmax(hsub), "%L \d| v%s", id, "MENU_MAIN_SUB", VERSION);
     VexHead(id, title, charsmax(title), "MENU_MAIN", hsub);
     new menu = VexMenuCreate(title, "menu_main_handler");
     PlayKey(id, "UI_OPEN");
@@ -28515,7 +28516,7 @@ public fw_NativeFilter(const name[], index, trap)
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vexmira_zombie")) return;
+    if (!VexAssetGuard("vexmira_core")) return;
     if (!is_regamedll())
     {
         set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx modules");
@@ -29438,6 +29439,9 @@ public plugin_init()
 // Panel / server.cfg sonradan hostname vb. ezerse diye birkac saniye sonra tekrar uygulanir.
 public plugin_cfg()
 {
+    VexDuplicateGuard();
+    server_print("[Vexmira] Vexmira Zombie Core v%s yuklendi (vexmira_core.amxx + plugins-vexmira42.ini)", VERSION);
+    log_amx("[Vexmira] Vexmira Zombie Core v%s", VERSION);
     new boot[8]; get_localinfo("vex_community_boot",boot,charsmax(boot));
     if(!boot[0]) {
         set_localinfo("vex_community_boot","1");
@@ -29483,6 +29487,60 @@ public plugin_end()
 #include "include/vex_normal_world.inc"
 
 #include "include/vex_restore_features.inc"
+
+/* ================================================================== */
+/*  v4.2.0 CIFT KOPYA KORUMASI: eski / panel onekli kopyalari duraklat  */
+/* ================================================================== */
+stock bool:VexIsOldCopy(const file[], const title[], self)
+{
+    static const items[][] = {"diagnostic","janus7","plasma","thunderbolt","ethereal","salamander","bow",
+        "dragonsword","katana","lightsaber","horseaxe","hev","jetpack","minigun"};
+    new lower[128]; copy(lower, charsmax(lower), file); strtolower(lower);
+    if (containi(lower, "vexmira_zombie") != -1 || containi(lower, "vexmirazombie") != -1) return true;
+    if (equal(title, PLUGIN) && !self) return true;
+    new key[40];
+    for (new i = 0; i < sizeof items; i++)
+    {
+        // eski ad (vex_janus7.amxx, 12_vex_janus7.amxx ...)
+        formatex(key, charsmax(key), "vex_%s.amxx", items[i]);
+        new d = strlen(lower) - strlen(key);
+        if (d >= 0 && equal(lower[d], key)) return true;
+        // yeni adin onekli kopyasi (12_vx42_janus7.amxx) - asil dosya ayrica yukluyse
+        formatex(key, charsmax(key), "vx42_%s.amxx", items[i]);
+        d = strlen(lower) - strlen(key);
+        if (d > 0 && equal(lower[d], key) && is_plugin_loaded(key, true) != -1) return true;
+    }
+    // cekirdegin onekli kopyasi (5_vexmira_core.amxx)
+    new d2 = strlen(lower) - strlen("vexmira_core.amxx");
+    if (!self && d2 >= 0 && equal(lower[d2], "vexmira_core.amxx")) return true;
+    return false;
+}
+
+VexDuplicateGuard()
+{
+    new self = get_plugin(-1);
+    new file[128], title[96], ver[32], author[64], status[32], list[512], n;
+    for (new k = 0; k < get_pluginsnum(); k++)
+    {
+        if (get_plugin(k, file, charsmax(file), title, charsmax(title), ver, charsmax(ver), author, charsmax(author), status, charsmax(status)) == -1)
+            continue;
+        if (!VexIsOldCopy(file, title, k == self)) continue;
+        if (k == self) continue;
+        if (equal(status, "running") || equal(status, "debug"))
+            pause("ac", file);
+        for (new c = 0; c < sizeof g_CommunityComponents; c++)
+            if (g_CommunityComponents[c] == k + 1) g_CommunityComponents[c] = 0;
+        format(list, charsmax(list), "%s%s%s (%s v%s)", list, n ? ", " : "", file, title, ver);
+        n++;
+    }
+    if (n)
+    {
+        log_amx("[Vexmira] !!! UYARI: %d ESKI/CIFT Vexmira eklentisi bulundu ve DURAKLATILDI: %s", n, list);
+        log_amx("[Vexmira] !!! Bunlari plugins klasorunden SILIN, eski configs/plugins-vexmira.ini dosyasini silin ve sunucuyu yeniden baslatin.");
+        server_print("[Vexmira] !!! WARNING: %d old/duplicate Vexmira plugin(s) PAUSED: %s", n, list);
+        server_print("[Vexmira] !!! Delete them (and configs/plugins-vexmira.ini), keep only plugins-vexmira42.ini, then restart.");
+    }
+}
 
 public CommunityNativeSurvivor(plugin,params) { new id=get_param(1); return id>=1 && id<=32 && g_bSurvivor[id] && is_user_alive(id); }
 

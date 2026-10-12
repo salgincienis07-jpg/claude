@@ -37,17 +37,17 @@ SP = '/tmp/claude-0/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/scrat
 SERVER = os.environ.get('VEX_SERVER', os.path.join(SP, 'server'))
 AMXXPC_DIR = os.path.join(SP, 'tools', 'bin')
 
-SNAPSHOT = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.sma.snapshot')
+SNAPSHOT = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_core.sma.snapshot')
 # source of the installed build: the .sma (single file since 3.1; vex/*.inc only if ever present again)
-SNAPSHOT_DIR = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.src')
+SNAPSHOT_DIR = os.path.join(SERVER, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_core.src')
 SCRIPTING = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'scripting')
 RE_TS = re.compile(r'^L \d\d/\d\d/\d{4} - \d\d:\d\d:\d\d: ')
 
 
 def plugin_sources():
     """{relative path: bytes} of everything the plugin build reads from the repo:
-    scripting/vexmira_zombie.sma (+ scripting/vex/*.inc if present; none since the 3.1 merge)."""
-    files = {'vexmira_zombie.sma': os.path.join(SCRIPTING, 'vexmira_zombie.sma')}
+    scripting/vexmira_core.sma (+ scripting/vex/*.inc if present; none since the 3.1 merge)."""
+    files = {'vexmira_core.sma': os.path.join(SCRIPTING, 'vexmira_core.sma')}
     for f in sorted(glob.glob(os.path.join(SCRIPTING, 'vex', '*.inc'))):
         files['vex/' + os.path.basename(f)] = f
     out = {}
@@ -68,7 +68,7 @@ def read_snapshot():
                     snap[os.path.relpath(p, SNAPSHOT_DIR).replace(os.sep, '/')] = fh.read()
     elif os.path.exists(SNAPSHOT):
         with open(SNAPSHOT, 'rb') as fh:
-            snap['vexmira_zombie.sma'] = fh.read()
+            snap['vexmira_core.sma'] = fh.read()
     return snap
 
 
@@ -81,7 +81,7 @@ def write_snapshot(snap):
         with open(p, 'wb') as fh:
             fh.write(data)
     with open(SNAPSHOT, 'wb') as fh:              # legacy single-file snapshot (.sma only)
-        fh.write(snap.get('vexmira_zombie.sma', b''))
+        fh.write(snap.get('vexmira_core.sma', b''))
 
 
 # ------------------------------------------------------------------------------------- install
@@ -112,7 +112,7 @@ def sync_package(server=SERVER, verbose=True):
     # configs: vexmira*.cfg/ini/html
     for f in sorted(glob.glob(os.path.join(amx_r, 'configs', '*'))):
         b = os.path.basename(f)
-        if b.startswith('vexmira'):        # plugins-vexmira.ini is written per run (set_vexmira_ini)
+        if b.startswith('vexmira'):        # plugins-vexmira42.ini is written per run (set_vexmira_ini)
             if _link(f, os.path.join(amx_s, 'configs', b)):
                 made.append('configs/' + b)
     # lang files (only ours; AMXX keeps its own)
@@ -169,7 +169,7 @@ def build_plugin(server=SERVER, retries=0, wait=60):
     """Compile the repo .sma (devtools/plugin/build_plugin.sh) into a temp file; install it (and the
     source snapshot used for stack-trace lines) only when the build is clean. Another agent may be
     editing the plugin: with retries > 0 a failed build is retried after `wait` seconds."""
-    out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')
+    out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_core.amxx')
     tmp = out[:-len('.amxx')] + '.new.amxx'      # amxxpc wants the .amxx suffix
     for attempt in range(retries + 1):
         snap = plugin_sources()                   # .sma + vex/*.inc
@@ -182,7 +182,7 @@ def build_plugin(server=SERVER, retries=0, wait=60):
         warns = [l for l in log.splitlines() if re.search(r'\bwarning\b', l, re.I)]
         ok = os.path.exists(tmp) and os.path.getsize(tmp) > 0 and not errs
         changed = plugin_sources() != snap          # edited while compiling -> snapshot unreliable
-        print('[build] vexmira_zombie.amxx: %s (%d errors, %d warnings, %d bytes)%s' % (
+        print('[build] vexmira_core.amxx: %s (%d errors, %d warnings, %d bytes)%s' % (
             'OK' if ok else 'FAILED', len(errs), len(warns), os.path.getsize(tmp) if os.path.exists(tmp) else 0,
             ' (source changed during build)' if changed else ''))
         for l in (errs + warns)[:30]:
@@ -205,7 +205,7 @@ def build_plugin(server=SERVER, retries=0, wait=60):
 def plugin_stale(server=SERVER):
     """True when the installed build is missing or the .sma or any vex/*.inc module (added, removed
     or edited) differs from the sources it was compiled from."""
-    out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_zombie.amxx')
+    out = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', 'vexmira_core.amxx')
     if not os.path.exists(out):
         return True
     snap = read_snapshot()
@@ -469,7 +469,7 @@ def run(args, quiet=False, collect_missing=False):
             f.write(texts[name])
     for f in glob.glob(os.path.join(cs, 'addons/amxmodx/logs/vexprobe_precache_*.txt')):
         shutil.copy(f, rundir)
-    for rel, data in read_snapshot().items():      # compiled sources: vexmira_zombie.sma + vex/*.inc
+    for rel, data in read_snapshot().items():      # compiled sources: vexmira_core.sma + vex/*.inc
         p = os.path.join(rundir, rel)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p, 'wb') as fh:
@@ -505,7 +505,7 @@ _SNAP = None
 
 
 def _annotate(frame):
-    """'[0] vexmira_zombie.sma::Func (line N)' or '[0] <path>/vex/hud.inc::Func (line N)'
+    """'[0] vexmira_core.sma::Func (line N)' or '[0] <path>/vex/hud.inc::Func (line N)'
     -> + the source line from the compiled snapshot (.sma or the module file)."""
     global _SNAP
     m = re.search(r'([^\s:]*?)([\w.-]+\.(?:sma|inc))::\w+ \(line (\d+)\)', frame)
@@ -694,7 +694,7 @@ def format_summary(s):
     w('VEXMIRA TEST RUN  map=%s  bots=%d  seconds=%d  exit=%s  crash=%s' % (
         s['map'], s['bots'], s['seconds'], s['exit_code'], s['crash']))
     w('=' * 100)
-    w('plugin vexmira_zombie.amxx : %s' % s['plugin_status'])
+    w('plugin vexmira_core.amxx : %s' % s['plugin_status'])
     if s['plugin_line']:
         w('   %s' % s['plugin_line'])
     if s['probe_line']:
@@ -776,15 +776,16 @@ def format_summary(s):
 
 # ------------------------------------------------------------------------------------- plugin ini
 def set_vexmira_ini(enabled=True, debug=True, server=SERVER):
-    """configs/plugins-vexmira.ini in the server: absent (plugin off), a server-local copy with the
+    """configs/plugins-vexmira42.ini in the server: absent (plugin off), a server-local copy with the
     AMXX "debug" flag (stack traces with .sma lines) or a link to the repo file."""
-    ini = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
-    for p in (ini, ini + '.off'):          # .off = leftover of older harness versions
+    ini = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira42.ini')
+    old = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')  # pre-4.2 name
+    for p in (ini, ini + '.off', old):     # .off = leftover of older harness versions
         if os.path.lexists(p):
             os.unlink(p)
     if not enabled:
         return
-    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
+    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira42.ini')
     if not debug:
         os.symlink(src, ini)
         return

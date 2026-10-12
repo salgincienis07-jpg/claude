@@ -38,7 +38,7 @@ public CommunityStatus(id,level,cid)
 {
     if(id && !cmd_access(id,level,cid,1)) return PLUGIN_HANDLED;
     console_print(id,"VEXMIRA %s | %d slots | inspect + 5x collection | map vote 30",VERSION,g_iMax);
-    static const filenames[13][]={"vex_janus7.amxx","vex_plasma.amxx","vex_thunderbolt.amxx","vex_ethereal.amxx","vex_salamander.amxx","vex_bow.amxx","vex_dragonsword.amxx","vex_katana.amxx","vex_lightsaber.amxx","vex_horseaxe.amxx","vex_hev.amxx","vex_jetpack.amxx","vex_minigun.amxx"};
+    static const filenames[13][]={"vx42_janus7.amxx","vx42_plasma.amxx","vx42_thunderbolt.amxx","vx42_ethereal.amxx","vx42_salamander.amxx","vx42_bow.amxx","vx42_dragonsword.amxx","vx42_katana.amxx","vx42_lightsaber.amxx","vx42_horseaxe.amxx","vx42_hev.amxx","vx42_jetpack.amxx","vx42_minigun.amxx"};
     for(new c=0;c<13;c++) {
         new index=CommunityPluginIndex(filenames[c]);
         new file[128],name[96],ver[32],author[64],status[32];
@@ -79,10 +79,10 @@ CommunityInspectPrecache()
 public CommunityInspectCommand(id) { CommunityInspect(id); return PLUGIN_HANDLED; }
 CommunityInspect(id)
 {
-    if(!CommunityAlive(id) || CommunityExtra(id) || CommunityCall("vex_hev.amxx","vex_has",id)) return 0;
+    if(!CommunityAlive(id) || CommunityExtra(id) || CommunityCall("vx42_hev.amxx","vex_has",id)) return 0;
     new weapon=get_member(id,m_pActiveItem); if(is_nullent(weapon)) return 0;
     new w=get_user_weapon(id); if(w<1 || w>30) return 0;
-    if(w==CSW_KNIFE && (CommunityCall("vex_jetpack.amxx","vex_has",id) || (g_iCommunitySel[id][1]>0 && g_iCommunitySel[id][1]!=5))) return 0;
+    if(w==CSW_KNIFE && (CommunityCall("vx42_jetpack.amxx","vex_has",id) || (g_iCommunitySel[id][1]>0 && g_iCommunitySel[id][1]!=5))) return 0;
     new bool:butterfly=w==CSW_KNIFE && g_iCommunitySel[id][1]==5;
     new weaponState=get_member(weapon,m_Weapon_iWeaponState);
     new slot=((w==CSW_M4A1 && !(weaponState&WPNSTATE_M4A1_SILENCED)) || (w==CSW_USP && !(weaponState&WPNSTATE_USP_SILENCED)))?1:0;
@@ -139,10 +139,10 @@ public CommunityAdminEquipmentHandler(id,menu,item)
     if(!target || !is_user_alive(target)) { Chat(id,"ADM_GONE"); return PLUGIN_HANDLED; }
     new ok;
     if(sel>=0 && sel<6) ok=VxGive(target,sel);
-    else if(sel==12) ok=CommunityCall("vex_minigun.amxx","vex_give",target);
+    else if(sel==12) ok=CommunityCall("vx42_minigun.amxx","vex_give",target);
     else if(CommunityAlive(target)) {
         CommunityRemoveKnives(target);
-        ok=CommunityCall(sel==10?"vex_jetpack.amxx":"vex_hev.amxx","vex_give",target);
+        ok=CommunityCall(sel==10?"vx42_jetpack.amxx":"vx42_hev.amxx","vex_give",target);
     }
     console_print(id,"[Vexmira] equipment grant: target=%d selection=%d success=%d",target,sel,ok);
     log_to_file("vexmira_admin.log","equipment admin=%d target=%d selection=%d success=%d",get_user_userid(id),get_user_userid(target),sel,ok);

@@ -106,7 +106,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_salamander")) return;
+    if (!VexAssetGuard("vx42_salamander")) return;
 	precache_model(MODEL_V)
 	precache_model(MODEL_P)
 	precache_model(MODEL_W)

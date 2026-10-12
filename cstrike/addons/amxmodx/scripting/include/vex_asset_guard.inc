@@ -2,14 +2,14 @@
 // Sounds, .txt HUD files and textures only warn. The core plugin never disables itself.
 stock bool:VexGuardFatal(const scope[], const path[])
 {
-    if(equal(scope,"vexmira_zombie")) return false;
+    if(equal(scope,"vexmira_core")) return false;
     return containi(path,".mdl")!=-1 || containi(path,".spr")!=-1;
 }
 // Checks only this plugin's required assets; optional restored paths are independently validated.
 stock bool:VexAssetGuard(const scope[])
 {
     new required[192],sample[4];
-    if(equal(scope,"vex_salamander")) {
+    if(equal(scope,"vx42_salamander")) {
         static const paths[][]={
             "models/p_salamander.mdl",
             "models/v_salamander.mdl",
@@ -41,7 +41,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_janus7")) {
+    if(equal(scope,"vx42_janus7")) {
         static const paths[][]={
             "models/p_janus7.mdl",
             "models/v_janus7.mdl",
@@ -74,7 +74,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_hev")) {
+    if(equal(scope,"vx42_hev")) {
         static const paths[][]={
             "models/hev_weapons/p_wrench.mdl",
             "models/hev_weapons/v_ak47.mdl",
@@ -155,7 +155,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_ethereal")) {
+    if(equal(scope,"vx42_ethereal")) {
         static const paths[][]={
             "models/p_ethereal.mdl",
             "models/v_ethereal2.mdl",
@@ -183,7 +183,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_plasma")) {
+    if(equal(scope,"vx42_plasma")) {
         static const paths[][]={
             "models/p_plasmagun.mdl",
             "models/v_plasmagun2.mdl",
@@ -216,7 +216,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_katana")) {
+    if(equal(scope,"vx42_katana")) {
         static const paths[][]={
             "models/p_katanad.mdl",
             "models/v_katanad.mdl",
@@ -244,7 +244,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_bow")) {
+    if(equal(scope,"vx42_bow")) {
         static const paths[][]={
             "models/arrow.mdl",
             "models/p_bow.mdl",
@@ -276,7 +276,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_lightsaber")) {
+    if(equal(scope,"vx42_lightsaber")) {
         static const paths[][]={
             "models/p_sfsword_off.mdl",
             "models/p_sfsword_on.mdl",
@@ -310,7 +310,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_minigun")) {
+    if(equal(scope,"vx42_minigun")) {
         static const paths[][]={
             "models/p_m134x.mdl",
             "models/shell2x.mdl",
@@ -340,7 +340,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_jetpack")) {
+    if(equal(scope,"vx42_jetpack")) {
         static const paths[][]={
             "models/vexmira/community/jetpack/p_jetpack.mdl",
             "models/vexmira/community/jetpack/rpgrocket.mdl",
@@ -366,7 +366,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vexmira_zombie")) {
+    if(equal(scope,"vexmira_core")) {
         static const paths[][]={
             "models/player/vex_gign/vex_gign.mdl",
             "models/player/vex_gsg9/vex_gsg9.mdl",
@@ -463,7 +463,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_dragonsword")) {
+    if(equal(scope,"vx42_dragonsword")) {
         static const paths[][]={
             "models/p_dragonsword.mdl",
             "models/v_dragonsword2.mdl",
@@ -491,7 +491,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_thunderbolt")) {
+    if(equal(scope,"vx42_thunderbolt")) {
         static const paths[][]={
             "models/p_sfsniper.mdl",
             "models/v_sfsightB.mdl",
@@ -522,7 +522,7 @@ stock bool:VexAssetGuard(const scope[])
             }
         }
     }
-    if(equal(scope,"vex_horseaxe")) {
+    if(equal(scope,"vx42_horseaxe")) {
         static const paths[][]={
             "models/p_horseaxe.mdl",
             "models/v_horseaxe.mdl",

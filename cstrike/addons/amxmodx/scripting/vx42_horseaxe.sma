@@ -95,7 +95,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_horseaxe")) return;
+    if (!VexAssetGuard("vx42_horseaxe")) return;
 	precache_model(MODEL_V)
 	precache_model(MODEL_P)
 	

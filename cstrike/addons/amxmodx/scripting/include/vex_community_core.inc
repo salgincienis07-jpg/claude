@@ -15,9 +15,9 @@ CommunityPluginIndex(const plugin[])
 {
     for(new i=0;i<6;i++) if(equal(plugin,COMMUNITY_WP[i])) { if(g_CommunityComponents[i]) return g_CommunityComponents[i]-1; break; }
     for(new i=0;i<4;i++) if(equal(plugin,COMMUNITY_KP[i])) { if(g_CommunityComponents[i+6]) return g_CommunityComponents[i+6]-1; break; }
-    if(equal(plugin,"vex_minigun.amxx")) if(g_CommunityComponents[12]) return g_CommunityComponents[12]-1;
-    if(equal(plugin,"vex_hev.amxx")) if(g_CommunityComponents[10]) return g_CommunityComponents[10]-1;
-    if(equal(plugin,"vex_jetpack.amxx")) if(g_CommunityComponents[11]) return g_CommunityComponents[11]-1;
+    if(equal(plugin,"vx42_minigun.amxx")) if(g_CommunityComponents[12]) return g_CommunityComponents[12]-1;
+    if(equal(plugin,"vx42_hev.amxx")) if(g_CommunityComponents[10]) return g_CommunityComponents[10]-1;
+    if(equal(plugin,"vx42_jetpack.amxx")) if(g_CommunityComponents[11]) return g_CommunityComponents[11]-1;
     new filename[128],name[96],version[32],author[64],status[32];
     for(new k=0;k<get_pluginsnum();k++) {
         get_plugin(k,filename,charsmax(filename),name,charsmax(name),version,charsmax(version),author,charsmax(author),status,charsmax(status));
@@ -46,21 +46,21 @@ CommunityCall(const plugin[], const func[], id)
     return callfunc_end();
 }
 CommunityAlive(id) { return is_user_alive(id) && !g_bZombie[id] && !g_bSurvivor[id] && !g_bSniper[id] && !g_bBoss[id] && !g_bMinion[id]; }
-CommunityRemoveWeapons(id) { for (new i=0;i<6;i++) CommunityCall(COMMUNITY_WP[i], "vex_remove", id); CommunityCall("vex_minigun.amxx","vex_remove",id); CommunityRemoveShots(id); }
+CommunityRemoveWeapons(id) { for (new i=0;i<6;i++) CommunityCall(COMMUNITY_WP[i], "vex_remove", id); CommunityCall("vx42_minigun.amxx","vex_remove",id); CommunityRemoveShots(id); }
 CommunityRemoveKnives(id) { for (new i=0;i<4;i++) CommunityCall(COMMUNITY_KP[i], "vex_remove", id); }
 CommunityReset(id)
 {
     CommunityRemoveWeapons(id); CommunityRemoveKnives(id);
-    CommunityCall("vex_jetpack.amxx", "vex_remove", id);
-    CommunityCall("vex_hev.amxx", "vex_remove", id);
-    CommunityCall("vex_minigun.amxx", "vex_remove", id);
+    CommunityCall("vx42_jetpack.amxx", "vex_remove", id);
+    CommunityCall("vx42_hev.amxx", "vex_remove", id);
+    CommunityCall("vx42_minigun.amxx", "vex_remove", id);
     remove_task(id + 64000);
 }
 CommunityExtra(id)
 {
     if (!is_user_alive(id)) return 0;
     new w=get_user_weapon(id);
-    if(w==CSW_M249 && CommunityCall("vex_minigun.amxx","vex_has",id)) return 1;
+    if(w==CSW_M249 && CommunityCall("vx42_minigun.amxx","vex_has",id)) return 1;
     static const BASE[6]={CSW_M249,CSW_AK47,CSW_AWP,CSW_M4A1,CSW_M249,CSW_M4A1};
     for (new i=0;i<6;i++) if (w==BASE[i] && CommunityCall(COMMUNITY_WP[i],"vex_has",id)) return 1;
     return 0;
@@ -70,7 +70,7 @@ public CommunityNativeWeapon(plugin, params) { new id=get_param(1); return id>=1
 public CommunityNativeKnife(plugin, params)
 {
     new id=get_param(1);
-    return id>=1 && id<=32 && CommunityAlive(id) && !CommunityCall("vex_jetpack.amxx","vex_has",id) && !CommunityCall("vex_hev.amxx","vex_has",id);
+    return id>=1 && id<=32 && CommunityAlive(id) && !CommunityCall("vx42_jetpack.amxx","vex_has",id) && !CommunityCall("vx42_hev.amxx","vex_has",id);
 }
 public CommunityNativeRestore(plugin, params)
 {
@@ -106,7 +106,7 @@ CommunityBuyGear(id,i)
     if(!CommunityAlive(id)) { Chat(id,"SHOP_UNAVAIL"); return; }
     new price=i?60:80;
     if(g_iAP[id]<price) { Chat(id,"SHOP_NOAP"); return; }
-    new plugin[32]; copy(plugin,charsmax(plugin),i?"vex_hev.amxx":"vex_jetpack.amxx");
+    new plugin[32]; copy(plugin,charsmax(plugin),i?"vx42_hev.amxx":"vx42_jetpack.amxx");
     if(CommunityCall(plugin,"vex_has",id)) { Chat(id,"SHOP_ALREADY"); return; }
     if(!CommunityCall(plugin,"vex_give",id)) { Chat(id,"SHOP_UNAVAIL"); return; }
     CommunityRemoveKnives(id); AddAP(id,-price,false,false); PlayKey(id,"SHOP_BUY");
@@ -135,7 +135,7 @@ public CommunityCoinHandler(id,menu,item)
     }
     g_iCommunitySel[id][c]=v; SaveData(id);
     if(CommunityAlive(id)) {
-        if(!c && !CommunityCall("vex_hev.amxx","vex_has",id)) ApplyHumanModel(id);
+        if(!c && !CommunityCall("vx42_hev.amxx","vex_has",id)) ApplyHumanModel(id);
         else if(c) CommunityApplyKnife(id+64000);
     }
     CommunityCoinMenu(id,c); return PLUGIN_HANDLED;
@@ -145,7 +145,7 @@ public CommunityApplyKnife(taskid)
     new id=taskid-64000;
     if(id<1 || id>32 || !CommunityAlive(id)) return;
     CommunityRemoveKnives(id);
-    if(CommunityCall("vex_jetpack.amxx","vex_has",id) || CommunityCall("vex_hev.amxx","vex_has",id)) return;
+    if(CommunityCall("vx42_jetpack.amxx","vex_has",id) || CommunityCall("vx42_hev.amxx","vex_has",id)) return;
     new v=g_iCommunitySel[id][1];
     if(v==5) { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_weapon(id)==CSW_KNIFE) ExecuteHamB(Ham_Item_Deploy,ent); }
     else if(v && (g_iCommunityOwned[id][1] & (1<<(v-1)))) CommunityCall(COMMUNITY_KP[v-1],"vex_give",id);
@@ -176,7 +176,7 @@ CommunityCosOrigin(ent,id,c,i)
     engfunc(EngFunc_SetOrigin,ent,o); set_entvar(ent,var_angles,a);
 }
 
-public CommunityNativeJetpack(plugin, params) { new id=get_param(1); return id>=1 && id<=32 ? CommunityCall("vex_jetpack.amxx","vex_has",id):0; }
+public CommunityNativeJetpack(plugin, params) { new id=get_param(1); return id>=1 && id<=32 ? CommunityCall("vx42_jetpack.amxx","vex_has",id):0; }
 
 CommunityRemoveShots(id)
 {

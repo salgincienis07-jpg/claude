@@ -144,7 +144,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_bow")) return;
+    if (!VexAssetGuard("vx42_bow")) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL_EMPTY)

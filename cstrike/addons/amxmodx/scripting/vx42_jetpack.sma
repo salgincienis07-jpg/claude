@@ -54,7 +54,7 @@ const OFFSET_WEAPONOWNER = 41
 const OFFSET_LINUX_WEAPONS = 4
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_jetpack")) return;
+    if (!VexAssetGuard("vx42_jetpack")) return;
     SprTrail = precache_model("sprites/smoke.spr")
     SprExplode = precache_model("sprites/zerogxplode.spr")
     SprRing = precache_model("sprites/shockwave.spr")

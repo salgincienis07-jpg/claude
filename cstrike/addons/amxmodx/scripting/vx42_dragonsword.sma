@@ -110,7 +110,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_dragonsword")) return;
+    if (!VexAssetGuard("vx42_dragonsword")) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	

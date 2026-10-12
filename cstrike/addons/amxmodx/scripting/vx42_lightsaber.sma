@@ -121,7 +121,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_lightsaber")) return;
+    if (!VexAssetGuard("vx42_lightsaber")) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL_ON)
 	engfunc(EngFunc_PrecacheModel, P_MODEL_OFF)

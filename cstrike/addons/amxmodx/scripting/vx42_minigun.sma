@@ -125,7 +125,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if(!VexAssetGuard("vex_minigun")) return;
+    if(!VexAssetGuard("vx42_minigun")) return;
 	precache_model(V_MODEL)
 	precache_model(P_MODEL)
 	precache_model(W_MODEL)

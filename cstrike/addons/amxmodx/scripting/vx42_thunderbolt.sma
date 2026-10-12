@@ -105,7 +105,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_thunderbolt")) return;
+    if (!VexAssetGuard("vx42_thunderbolt")) return;
 	precache_model(V_MODEL)
 	precache_model(P_MODEL)
 	precache_model(W_MODEL)

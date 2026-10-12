@@ -124,7 +124,7 @@ public plugin_init()
 
 public plugin_precache()
 {
-    if (!VexAssetGuard("vex_janus7")) return;
+    if (!VexAssetGuard("vx42_janus7")) return;
 	engfunc(EngFunc_PrecacheModel, V_MODEL)
 	engfunc(EngFunc_PrecacheModel, P_MODEL)
 	engfunc(EngFunc_PrecacheModel, W_MODEL)
