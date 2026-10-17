@@ -1,0 +1,96 @@
+VEXMIRA ZOMBIE 5.3.1 - KURULUM VE DEGISIKLIKLER
+================================================
+
+KURULUM (panel)
+---------------
+1) Eklentiler -> Eklenti Yukle ile su iki dosyayi yukle (panel derler):
+      addons/amxmodx/scripting/vexmira_core.sma
+      addons/amxmodx/scripting/vexmira_gear.sma
+   (Panel calismazsa: Dosya Yonetici ile addons/amxmodx/plugins/ icine hazir
+    vexmira_core.amxx + vexmira_gear.amxx atilabilir; plugins-vexmira.ini zaten listeler.)
+   Eski vexmira_core / vexmira_gear satirlari plugins.ini'de iki kez olmasin.
+
+2) Dosya Yonetici ile su klasorleri sunucuya kopyala (ustune yaz):
+      addons/amxmodx/configs/vexmira.cfg        (TEK ayar dosyasi)
+      addons/amxmodx/data/lang/vexmira_zombie.txt
+      gfx/env/                (6 yeni VEXMIRA gokyuzu, 36 .tga)
+      models/vexmira/nades/   (enfeksiyon bombasi v_ / p_ / w_ modelleri)
+      models/vexmira/lasermine/ (insan + zombi lazer mayini)
+      sprites/vexmira/cso/    (animasyonlu CSO ekran kartlari + geri sayim kartlari)
+   FastDL kullaniyorsan ayni dosyalari FastDL klasorune de at.
+
+3) vexmira_epic.cfg ARTIK KULLANILMIYOR. Silmesen de eklenti ilk acilista onu
+   vexmira_epic.cfg.old yapar. Tum ayarlar vexmira.cfg icinde, bolum bolum ve aciklamali.
+
+4) Haritayi degistir (changelevel). Ilk haritada eklenti dev boss modellerini
+   models/player/<boss>_x16/ altina kendisi uretir (FastDL varsa bu klasoru de FastDL'e kopyala).
+
+
+COKMELERIN SEBEBI VE COZUMU
+---------------------------
+* Enfeksiyon bombasi: kod sunucuda OLMAYAN "models/zombie_plague/v_grenade_infect.mdl"
+  modelini oyuncunun eline veriyordu -> motor "SV_ModelIndex: model not precached" ile
+  sunucuyu kapatiyordu. Artik:
+    - yeni ozel model (models/vexmira/nades/v_infect.mdl - zombi pencesinde yesil kanister),
+    - model yoksa orijinal CS bombasi,
+    - MOTOR SEVIYESINDE KORUMA: yuklenmemis HICBIR model oyuncuya / nesneye verilemez
+      (her karede kontrol; olursa log'a "[ModelGuard]" yazar ve orijinal CS modeline duser).
+* Ozel silahlarin alan saldirisi (VxLOS): get_tr2 yanlis kullanimi -> segfault. Duzeltildi.
+* Harita yuklendikten sonra precache denemesi (Host_Error) artik engelleniyor.
+* Eksik sprite dosyasi istemciye "0" indeksle gidiyordu (oyuncunun oyunu cokebilir) -> HL yedek sprite.
+* Lazer mayin modeli yuklenemezse EngFunc_ModelIndex -> Host_Error. Korundu.
+* Ses yukleme sayisi 511/512 idi (bir eklenti daha ses eklese harita acilirken cokme).
+  BOSS_PRELOAD 9 -> 4 (bosslar haritadan haritaya doner), guvenli pay birakildi.
+TEST: gercek oyuncu + 20-31 bot, tum modlar / bosslar / eventler, tum market esyalari,
+8 ozel silah (sol+sag tik), jetpack, 8 bicak, 5 CT skin, 18 kozmetik, enfeksiyon bombasi:
+COKME YOK.
+
+
+YENI / DUZELTILEN OZELLIKLER (ayar adlari vexmira.cfg icinde)
+---------------------------------------------------------------
+* Sunucu adi: Zombie Plague | Vexmira | Boss+Events+Bunny              (vex_hostname)
+* Ozel silahlar 3 kat guclu                                            (vex_sw_damage_mult 3.0)
+* Herkese sinirsiz yedek mermi (tum mod/eventlerde), ozel silahlar haric (vex_unlimited_bpammo 1)
+* Jetpack elinde degilken de ucar (CTRL+SPACE), roket sadece jetpack elindeyken.
+* Her market esyasina ozel renkli efekt (halka + isik + parcacik + ekran parlamasi).
+* Ates / dondurma / aydinlatma / enfeksiyon bombasi: 5 asamali epik patlama
+  (ates topu, mantar bulut, sok dalgasi, kivilcim/kor yagmuru, yanan zemin, duman, yanik izi,
+   buz sisi + buz parcalari, magnezyum isigi + kivilcim fiskiyesi)     (vex_nade_fx 1)
+* Kanat + sapka: oyuncunun iskeletine yapisik (MOVETYPE_FOLLOW) -> gecikme / isinlanma yok
+                                                                        (vex_cos_follow 1)
+* Bosslar kodla DEV: model ve hitbox 1.6 kat, ayaklar yerde           (vex_res BOSS_SCALE "1.6")
+  + giriste 3 dalga artci sok efekti.
+* Tum modellerde otomatik vurus kutusu: boyu uzun modellerde kafa vuruslari kacmaz (vex_auto_hitbox 1)
+* 6 yeni VEXMIRA gokyuzu (Kanli Ay, Zehirli Sis, Bosluk Firtinasi, Cehennem, Kara Gunes,
+  Olu Kutup Isiklari). Her harita farkli biriyle baslar, her round siradakine gecer
+                                                                        (vex_res SKY_MODE "3" / SKY_LIST)
+* Elektrik Kesintisi: artik TUM round karanlik (eskiden mod isigi eventi eziyordu),
+  haritanin acilip kapanan lambalari da kapali kalir                  (vex_blackout_light "b")
+* Lazer mayin: insanlara beyaz-mavi teknolojik, zombilere organik biyo-mayin modeli (animasyonlu).
+  VexCoin marketinde 4 lazer isini: Plazma Akimi, Kan Nabzi, Toksik Ark, Gokkusagi Prizmasi
+  (animasyonlu: kayan doku, nabiz, titresim, renk dongusu)            (vex_laser_prices)
+* Zombi pence / aci / olum / enfeksiyon sesleri: her seferinde farkli ses; config'te
+  "a.wav|b.wav|c.wav" seklinde istedigin kadar ses yazabilirsin     (vex_res ZOMBIE_HIT / _PAIN / _DIE ...)
+  ("bruh" meme olum sesleri kaldirildi.)
+* CSO ekran kartlari (animasyonlu, TR/EN): ROUND 1-30, INSANLAR KAZANDI, ZOMBILER KAZANDI,
+  MVP, BOSS GELIYOR, SON INSAN, killmark ... + YENI round basi geri sayim kartlari (ENFEKSIYON 10..1)
+                                                                        (vex_res CSO_CARDSET "vexmira")
+* Ust skor paneli CSO duzeninde: [ INSAN n ]  ROUND r/t  dk:sn  [ n ZOMBI ] (renkli), boss
+  roundunda boss can yuzdesi.
+* Tek config: vexmira.cfg - bolumler: GENEL, ROUND VE MODLAR, HARITA, CAN/HASAR, OZEL SILAHLAR,
+  MARKET, SINIFLAR, BOSSLAR, EVENTLER/ISIK, BOMBALAR, LAZER MAYIN, KOZMETIK, VIP, HUD, SES,
+  GOREV, KAYNAKLAR. Her satirin yaninda ne ise yaradigi yazili.
+
+
+DURUSTCE: MOTORUN SINIRLARI
+---------------------------
+* Gokyuzu round icinde: oyun istemcisi gokyuzunu canli yenileyebiliyorsa her round degisir;
+  yenileyemeyen istemcide yeni gokyuzu bir sonraki haritada gorunur (her harita farkli basladigi
+  icin herkes hepsini gorur).
+* Ust panel: CS 1.6 ekranin ustune istemci dosyasi degistirmeden resim koyduramiyor; panel
+  renkli metin olarak cizilir (CSO kartlari ise ekranin ortasinda resimli/animasyonlu).
+* Kanat/sapka hizasi artik modelin kendi kemik tasarimina gore (klasik Hats/Wings modelleri
+  bu sekilde kafaya / sirta oturur). Ozel bir kozmetik yanlis duruyorsa o modelin dosyasini
+  gonder, ona ozel ayar yapayim.
+* Dev boss dosyalari ilk haritada uretilir; sunucu dosya yazma izni vermezse normal boyutta kalir
+  (log: "[GiantBoss] ... olusturulamadi").

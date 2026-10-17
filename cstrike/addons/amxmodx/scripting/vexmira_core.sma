@@ -1,4 +1,4 @@
-/* VEXMIRA 5.3.0-ResourceCompact | vexcore
+/* VEXMIRA 5.3.1-Stable | vexcore
 Derived from Vexmira 4.4.0-Full. Core: SmurfSexy & Capital.
 ReAPI SDK: s1lent / rehlds contributors (original API declarations embedded).
 CSO item authors preserved in component AUTHOR constants; see existing package KAYNAKLAR.md.
@@ -3147,7 +3147,7 @@ new const RADIO_EN_FILES521[][]={"start","hazard","boss","supply","last","win","
 new const Float:RADIO_EN_LENGTH521[10]={3.520,5.520,4.720,3.200,6.800,3.360,3.520,3.840,4.480,4.560};
 
 native vx521_pair_version();
-#define VERSION  "5.3.0-ResourceCompact"
+#define VERSION  "5.3.1-Stable"
 #define AUTHOR   "SmurfSexy & Capital"
 #define MAX_LEVEL     60
 #define NUM_CLASSES   24
@@ -3779,7 +3779,8 @@ new g_iDropBodyChute, g_iDropBodyLanded, g_szDropSeqFall[24], g_szDropSeqIdle[24
 new Trie:g_tSnd2D, Trie:g_tSnd3D, Trie:g_tMdlDone;
 new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_iMdlBudget, g_iSndSkipped, g_iMdlSkipped;
 new g_iLzOwned531[33], g_iLzSel531[33], g_pLzPrices531;
-new g_pBlackLight531, g_pCosFollow531, g_pSwDmg531, g_pInfAmmo531;
+new Trie:g_tSndSeen531, Trie:g_tGenSeen531, g_iSndTop531, g_iGenTop531, g_iSndRefused531, g_iGenRefused531, g_iMapSnd531;
+new g_pAutoHit531, g_pBlackLight531, g_pCosFollow531, g_pSwDmg531, g_pInfAmmo531;
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
 new g_szInfV531[96] = "models/vexmira/nades/v_infect.mdl", g_szInfP531[96] = "models/vexmira/nades/p_infect.mdl", g_szInfW531[96] = "models/vexmira/nades/w_infect.mdl";
 new Trie:g_tPcAll531, bool:g_bPcReady531, bool:g_bPcHook531, Float:g_fGuardTime531, g_iGuardV531[33], g_iGuardP531[33], g_iGuardLog531;
@@ -3808,7 +3809,7 @@ new const CSO_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "kni
 new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1 };
 new const CSO_LAY[CN_TOTAL] = { 'k', 'l', 'l', 'l', 'l', 'k', 'l', 'k', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'l', 'l', 'r', 'c', 'c', 'c', 'c' };
 new const CSO_SHEETS[][] = { "m", "g", "fx", "rnd", "cdtr", "cden" };
-new bool:g_bCsoVex531 = true;
+new bool:g_bCsoVex531 = true, g_iCsoLang531;   // 0 both, 1 tr only, 2 en only
 #define CSO_ROUNDS  30
 #define CSO_QMAX    4
 #define TASK_CSO    41500
@@ -5759,6 +5760,8 @@ CsoPrecacheVex531()
             if (file_exists(path, true)) PcGeneric(path); else fxok = 0;
         }
     static const LNG[][] = { "en", "tr" }, FR[] = { 'm', 'g' };
+    new lm[8]; copy(lm, charsmax(lm), GetResString("CSO_LANG", "tr"));
+    g_iCsoLang531 = equali(lm, "both") ? 0 : (equali(lm, "en") ? 2 : 1);
     for (new n = 0; n < CN_TOTAL; n++)
     {
         if (n == CN_ROUND) continue;
@@ -5766,6 +5769,7 @@ CsoPrecacheVex531()
         for (new l = 0; l < (CSO_LANG[n] ? 2 : 1); l++)
             for (new f = 0; f < sizeof FR; f++)
             {
+                if (CSO_LANG[n] && g_iCsoLang531 && l != (g_iCsoLang531 == 1 ? 1 : 0)) continue;
                 if (CSO_LANG[n]) formatex(path, charsmax(path), "sprites/vexmira/cso/%s_%s_%c.txt", CSO_FILE[n], LNG[l], FR[f]);
                 else formatex(path, charsmax(path), "sprites/vexmira/cso/%s_%c.txt", CSO_FILE[n], FR[f]);
                 if (file_exists(path, true)) PcGeneric(path); else ok = 0;
@@ -5781,9 +5785,10 @@ CsoPrecacheVex531()
         g_iCsoRounds = r;
     }
     g_bCsoFile[CN_ROUND] = (g_iCsoRounds > 0 && fxok) ? true : false;
-    for (new l = 0; l < 2; l++)                 // round-start countdown cards
-        for (new c = 1; c <= 15; c++)
+    for (new l = 0; l < 2; l++)                 // round-start countdown cards (10..1)
+        for (new c = 1; c <= 10; c++)
         {
+            if (g_iCsoLang531 && l != (g_iCsoLang531 == 1 ? 1 : 0)) continue;
             formatex(path, charsmax(path), "sprites/vexmira/cso/cd_%s_%d.txt", LNG[l], c);
             if (file_exists(path, true)) PcGeneric(path);
         }
@@ -5906,11 +5911,11 @@ stock CsoName(id, note, arg, frm, out[], len)
     if (g_bCsoVex531)
     {
         static const FRC[] = { 'a', 'b', 'g', 'm', 'c' };
-        new bool:tr = (g_iLang[id] == 2);
+        new bool:tr = g_iCsoLang531 ? (g_iCsoLang531 == 1) : (g_iLang[id] == 2);
         if (frm == CF_A || frm == CF_B || frm == CF_C)
             formatex(out, len, "vexmira/cso/fx%c_%c", FRC[frm], (note == CN_TEN && arg > 0) ? 'r' : CSO_LAY[note]);
         else if (note == CN_TEN && arg > 0)
-            formatex(out, len, "vexmira/cso/cd_%s_%d", tr ? "tr" : "en", clamp(arg, 1, 15));
+            formatex(out, len, "vexmira/cso/cd_%s_%d", tr ? "tr" : "en", clamp(arg, 1, 10));
         else if (note == CN_ROUND)
             formatex(out, len, "vexmira/cso/rnd%d", arg);
         else if (CSO_LANG[note])
@@ -6352,7 +6357,8 @@ VexCountdown(id, seconds)
         formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "TUR BASLAMASINA %d^nSAVASA HAZIR OL", seconds);
     else
         formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "ROUND STARTS IN %d^nPREPARE FOR COMBAT", seconds);
-    CsoNotify(id, CN_TEN, seconds);
+    if (seconds <= 10 || !g_bCsoVex531) CsoNotify(id, CN_TEN, seconds);
+    else VexNotify(id, CN_TEN, seconds);
     g_szCsoOverride[id][0] = 0;
 }
 
@@ -7416,6 +7422,18 @@ if (!tmp[0] || !SkyExists(tmp)) { if (tmp[0]) log_amx("[Vexmira] gokyuzu dosyasi
 copy(g_szSkyRot531[g_iSkyRotN531++], charsmax(g_szSkyRot531[]), tmp);
 }
 if (!g_iSkyRotN531) return;
+// only SKY_PER_MAP skies are downloaded per map (512-download limit); the window moves every map
+new per = clamp(str_to_num(GetResString("SKY_PER_MAP", "3")), 1, 8);
+if (per < g_iSkyRotN531)
+{
+new info0[8]; get_localinfo("vex_skywin", info0, charsmax(info0));
+new start = (str_to_num(info0) + per) % g_iSkyRotN531;
+num_to_str(start, info0, charsmax(info0)); set_localinfo("vex_skywin", info0);
+new tmp531[8][32];
+for (new k = 0; k < per; k++) copy(tmp531[k], charsmax(tmp531[]), g_szSkyRot531[(start + k) % g_iSkyRotN531]);
+for (new k = 0; k < per; k++) copy(g_szSkyRot531[k], charsmax(g_szSkyRot531[]), tmp531[k]);
+g_iSkyRotN531 = per;
+}
 static const SIDE[][] = { "up", "dn", "lf", "rt", "ft", "bk" };
 new path[96];
 for (new k = 0; k < g_iSkyRotN531; k++)
@@ -12141,6 +12159,15 @@ NxStage(const Float:o[3], kind, stage, Float:delay)
 new data[5];
 data[0] = floatround(o[0]); data[1] = floatround(o[1]); data[2] = floatround(o[2]); data[3] = kind; data[4] = stage;
 set_task(delay, "task_NadeStage531", 0, data, sizeof data);
+}
+public task_BossAftershock531(const d[])
+{
+new Float:o[3]; o[0] = float(d[0]); o[1] = float(d[1]); o[2] = float(d[2]) - 30.0;
+NxRing(o, g_sprShock531 ? g_sprShock531 : g_sprRing, d[3], d[4], d[5], 520, 36, 5, 230, 4.0);
+NxRing(o, g_sprRing, 255, 255, 255, 260, 12, 4, 200, 2.0);
+NxLight(o, d[3], d[4], d[5], 40, 8, 30);
+NxStreak(o, 0x6B, 60, 260, 200);
+NxShakeNear(o, 900.0, 7);
 }
 public task_NadeStage531(const data[])
 {
@@ -17584,6 +17611,12 @@ FxDisk(o, r, g, b, 350, 10);
 FxExplosion(o);
 FxLight(o, r, g, b, 60, 30, 10);
 ShakeAll(14, 3.0, 6);
+// 5.3.1: three aftershocks in the boss colour (0.5 / 1.1 / 1.8 s): ground rings, flash, spark fountain
+for (new k531 = 0; k531 < 3; k531++)
+{
+new d531[6]; d531[0] = floatround(o[0]); d531[1] = floatround(o[1]); d531[2] = floatround(o[2]); d531[3] = r; d531[4] = g; d531[5] = b;
+set_task(0.5 + 0.65 * float(k531), "task_BossAftershock531", 0, d531, sizeof d531);
+}
 ChatAllS("BOSS_SPAWNED", name);
 formatex(key, charsmax(key), "BOSS_INFO_%d", g_iBossType);
 ChatAll(key);
@@ -28276,6 +28309,8 @@ NadeFxPrecache531();
 
 register_forward(FM_EmitAmbientSound, "fw_AmbientPost", 1);
 g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "200")), 40, 480);
+// 5.3.1: leave room for the map's own sounds + CS stock sounds (~230) so the map never hits 512
+g_iSndBudget = clamp(min(g_iSndBudget, 500 - 230 - g_iMapSnd531), 40, 480);
 // 5.2.5: let GameDLL precache stock sounds; no Spawn-time unregistration.
 g_bSndBlockWin=false;
 g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
@@ -28782,6 +28817,7 @@ g_pCosFollow531 = register_cvar("vex_cos_follow", "1");
 g_pSwDmg531 = register_cvar("vex_sw_damage_mult", "3.0");
 g_pNadeFx531 = register_cvar("vex_nade_fx", "1");
 g_pLzPrices531 = register_cvar("vex_laser_prices", "300 450 600 900");
+g_pAutoHit531 = register_cvar("vex_auto_hitbox", "1");
 g_pBlackLight531 = register_cvar("vex_blackout_light", "b");
 register_cvar("vex_dbg_nxmask", "0");
 g_pInfAmmo531 = register_cvar("vex_unlimited_bpammo", "1");
@@ -29807,12 +29843,90 @@ return TrieKeyExists(g_tPcAll531, k);
 }
 public VxModelOkPublic(const m[]) return VxModelOk(m) ? 1 : 0;
 // ReHLDS engine hook: sees EVERY model precache (game, map, AMXX natives of every plugin loaded after this one)
+
+#define PC_SAFE_LIMIT531 505
+public VxRhPcSoundPre531(const s[])
+{
+if (g_iSndTop531 < PC_SAFE_LIMIT531 || !s[0]) return HC_CONTINUE;
+if (g_tSndSeen531 != Invalid_Trie && TrieKeyExists(g_tSndSeen531, s)) return HC_CONTINUE;
+if (g_iSndRefused531++ < 20) log_amx("[PrecacheGuard] ses limiti (%d/512): '%s' yuklenmedi (cokme onlendi)", g_iSndTop531, s);
+SetHookChainReturn(ATYPE_INTEGER, 0);
+return HC_SUPERCEDE;
+}
+public VxRhPcSoundPost531(const s[])
+{
+new idx = GetHookChainReturn(ATYPE_INTEGER);
+if (idx <= 0) return HC_CONTINUE;
+if (g_tSndSeen531 == Invalid_Trie) g_tSndSeen531 = TrieCreate();
+TrieSetCell(g_tSndSeen531, s, idx);
+if (idx > g_iSndTop531) g_iSndTop531 = idx;
+return HC_CONTINUE;
+}
+public VxRhPcGenPre531(const s[])
+{
+if (g_iGenTop531 < PC_SAFE_LIMIT531 || !s[0]) return HC_CONTINUE;
+if (g_tGenSeen531 != Invalid_Trie && TrieKeyExists(g_tGenSeen531, s)) return HC_CONTINUE;
+if (g_iGenRefused531++ < 20) log_amx("[PrecacheGuard] indirme limiti (%d/512): '%s' eklenmedi (cokme onlendi)", g_iGenTop531, s);
+SetHookChainReturn(ATYPE_INTEGER, 0);
+return HC_SUPERCEDE;
+}
+public VxRhPcGenPost531(const s[])
+{
+new idx = GetHookChainReturn(ATYPE_INTEGER);
+if (idx <= 0) return HC_CONTINUE;
+if (g_tGenSeen531 == Invalid_Trie) g_tGenSeen531 = TrieCreate();
+TrieSetCell(g_tGenSeen531, s, idx);
+if (idx > g_iGenTop531) g_iGenTop531 = idx;
+return HC_CONTINUE;
+}
+// how many different .wav files the current map's entities will precache after us (BSP entity lump)
+MapSoundCount531()
+{
+new map[64], path[96]; get_mapname(map, charsmax(map));
+formatex(path, charsmax(path), "maps/%s.bsp", map);
+new fp = fopen(path, "rb", true);
+if (!fp) return 0;
+new ver, off, len;
+fread(fp, ver, BLOCK_INT); fread(fp, off, BLOCK_INT); fread(fp, len, BLOCK_INT);
+if (len <= 0 || len > 2000000) { fclose(fp); return 0; }
+fseek(fp, off, SEEK_SET);
+new Trie:seen = TrieCreate(), n, buf[256], cur[128], cl, bool:q;
+new got;
+while ((got = fread_blocks(fp, buf, sizeof buf, BLOCK_CHAR)) > 0 && len > 0)
+{
+for (new i = 0; i < got && len > 0; i++, len--)
+{
+new c = buf[i] & 0xFF;
+if (c == '"')
+{
+if (q && cl > 4)
+{
+cur[cl] = 0;
+if (containi(cur, ".wav") != -1 && !TrieKeyExists(seen, cur)) { TrieSetCell(seen, cur, 1); n++; }
+}
+q = !q; cl = 0;
+continue;
+}
+if (q && cl < charsmax(cur)) cur[cl++] = c;
+}
+}
+fclose(fp);
+TrieDestroy(seen);
+log_amx("[PrecacheGuard] harita %s: %d farkli ses dosyasi kullaniyor (eklenti ses butcesi buna gore ayarlanir)", map, n);
+return n;
+}
 VxGuardInit531()
 {
 if (g_tPcAll531 == Invalid_Trie) g_tPcAll531 = TrieCreate();
 register_forward(FM_LightStyle, "fw_LightStyle531", 0);    // map light entities set their styles while spawning
 if (RegisterHookChain(RH_PF_precache_model_I, "VxRhPcModel531", 1)) g_bPcHook531 = true;
 else log_amx("[ModelGuard] ReHLDS precache kancasi yok: model korumasi pasif");
+// precache safety net: sounds / generic files never pass 505 (the 512 overflow is a Host_Error = crash)
+RegisterHookChain(RH_PF_precache_sound_I, "VxRhPcSoundPre531", 0);
+RegisterHookChain(RH_PF_precache_sound_I, "VxRhPcSoundPost531", 1);
+RegisterHookChain(RH_PF_precache_generic_I, "VxRhPcGenPre531", 0);
+RegisterHookChain(RH_PF_precache_generic_I, "VxRhPcGenPost531", 1);
+g_iMapSnd531 = MapSoundCount531();
 }
 public VxRhPcModel531(const s[])
 {
@@ -29949,7 +30063,7 @@ public plugin_init()
 set_task(0.1, "VxPcClose531");
 log_to_file("vexmira_isolation.log","[530 vexcore] plugin_init BEGIN stage=%d full=%d",g_iIsolation526,g_bRun526);
 register_clcmd("vex_test","IsolationStatus526");
-if(!g_bRun526) {register_plugin("Vexmira vexcore Baseline Test","5.3.0-ResourceCompact","Vexmira");log_to_file("vexmira_isolation.log","[530 vexcore] baseline plugin_init COMPLETE");return;}
+if(!g_bRun526) {register_plugin("Vexmira vexcore Baseline Test","5.3.1-Stable","Vexmira");log_to_file("vexmira_isolation.log","[530 vexcore] baseline plugin_init COMPLETE");return;}
 
 log_to_file("vexmira_startup.log","[530 vexcore] plugin_init BEGIN");
 register_forward(FM_UpdateClientData, "VxGuardClientData", 0);
@@ -30239,7 +30353,22 @@ public BossBounds48(id)
 if(id<1 || id>g_iMax || !is_user_alive(id)) return FMRES_IGNORED;
 new idx=-1;if(g_bBoss[id] && id==g_iBoss && g_iBossType>=0 && g_iBossType<9) idx=g_iBossType;
 else if(g_iEvent==EV_TITAN && g_bFirst[id] && g_bZombie[id]) idx=9;
-if(idx<0) return FMRES_IGNORED;
+if(idx<0)
+{
+// 5.3.1 auto hit box: every player model taller than the 72-unit hull (CSO zombies, giants...) gets its
+// trace box raised to the model's real top (read from the .mdl), so head shots above the hull register
+if(!get_pcvar_num(g_pAutoHit531)) return FMRES_IGNORED;
+OvhModelTops(id);
+new bool:duck531=(get_entvar(id,var_flags)&FL_DUCKING)?true:false;
+new Float:top531=duck531?g_fOvhDuck[id]:g_fOvhStand[id];
+new Float:hull531=duck531?18.0:36.0;
+if(top531<=hull531+2.0 || top531>200.0) return FMRES_IGNORED;
+new Float:hi531[3];get_entvar(id,var_absmax,hi531);
+new Float:o531[3];get_entvar(id,var_origin,o531);
+hi531[2]=floatmax(hi531[2],o531[2]+top531+4.0);
+set_entvar(id,var_absmax,hi531);
+return FMRES_IGNORED;
+}
 new Float:o[3],Float:lo[3],Float:hi[3];get_entvar(id,var_origin,o);
 new Float:gk=(idx<9 && g_fBossScale531>1.0 && containi(g_szBModel[g_iBossType],"_x")!=-1)?g_fBossScale531:1.0;
 new Float:r=floatclamp(B48_RADIUS[idx]*gk,24.0,160.0);

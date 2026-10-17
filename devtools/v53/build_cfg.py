@@ -3,7 +3,7 @@
 
     python3 devtools/v53/build_cfg.py            # writes configs/vexmira.cfg (+ embeds it into vexmira_gear.sma)
 
-Input : configs/vexmira.cfg (5.3 base) + configs/vexmira_epic.cfg (5.3 overrides, loaded after the base)
+Input : devtools/v53/src/vexmira_530.cfg + vexmira_epic_530.cfg (owner's 5.3.0 files, epic loaded after the base)
 Output: ONE configs/vexmira.cfg - every key once, final value, grouped in documented sections (Turkish).
         The gear plugin's embedded default copy (ZC_F_CFG) is regenerated from it, the epic copy emptied.
 Overrides for 5.3.1 live in OVERRIDE below (key -> full line).
@@ -50,6 +50,8 @@ OVERRIDE = [
     ('vex_res LASERMINE_DEPLOY_SEQ "deploy"', 'mayin acilis animasyonu'),
     ('vex_res LASERMINE_ANGLES "0 0 0"', ''), ('vex_res LASERMINE_OFFSET "0.3"', ''),
     ('vex_res LASERMINE_EMITTER "10.3 0 0"', 'isinin ciktigi uc (model +X ekseni)'),
+    ('vex_res CSO_LANG "tr"', 'kart dili: tr / en / both (both = oyuncunun diline gore, ~30 dosya daha indirilir)'),
+    ('vex_res SKY_PER_MAP "3"', 'bir haritada donen gokyuzu sayisi (her harita sonraki 3 lu gruba gecer; indirme limiti icin)'),
     ('vex_res CSO_CARDSET "vexmira"', 'ekran kartlari: vexmira = animasyonlu CSO seti, cards = eski 5.3 kartlari'),
     ('vex_res ZOMBIE_HIT "zombie/claw_strike1.wav|zombie/claw_strike2.wav|zombie/claw_strike3.wav"',
      'pence ile vurus (| ile birden fazla ses: her vurusta rastgele biri)'),
@@ -64,6 +66,7 @@ OVERRIDE = [
     ('vex_nade_fx 1', '1 = ates / buz / isik / enfeksiyon bombalarinda katmanli epik patlama efektleri'),
     ('vex_cos_follow 1', '1 = kanat + sapka oyuncuya kemikle yapisik (gecikme / isinlanma yok)'),
     ('vex_blackout_light "b"', 'Elektrik Kesintisi roundu isik seviyesi (a = zifiri karanlik ... m = normal)'),
+    ('vex_auto_hitbox 1', '1 = boyu uzun modellerde (CSO zombileri, dev bosslar) vurus kutusu modele gore otomatik buyur'),
     ('vex_laser_prices "300 450 600 900"', 'VexCoin lazer isinlari: Plazma / Kan / Toksik / Gokkusagi fiyatlari'),
     ('vex_env_event 18 b 0 0 0 18 0', 'Elektrik Kesintisi: tum round karanlik'),
 ]
@@ -162,8 +165,9 @@ def parse(path):
 
 
 def main():
-    base = parse(os.path.join(CFG, 'vexmira.cfg'))
-    epic_path = os.path.join(CFG, 'vexmira_epic.cfg')
+    SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
+    base = parse(os.path.join(SRC, 'vexmira_530.cfg'))
+    epic_path = os.path.join(SRC, 'vexmira_epic_530.cfg')
     epic = parse(epic_path) if os.path.exists(epic_path) else []
     order, table = [], {}
     for e in base + epic:                       # later wins (epic loaded after base)

@@ -1,4 +1,4 @@
-/* VEXMIRA 5.3.0-ResourceCompact | vexgear
+/* VEXMIRA 5.3.1-Stable | vexgear
 Derived from Vexmira 4.4.0-Full. Core: SmurfSexy & Capital.
 ReAPI SDK: s1lent / rehlds contributors (original API declarations embedded).
 CSO item authors preserved in component AUTHOR constants; see existing package KAYNAKLAR.md.
@@ -3172,7 +3172,7 @@ if (emitted) { ZcPcSound(s); return; }
 new f[128]; formatex(f, charsmax(f), "sound/%s", s);
 if (file_exists(f, true)) (!VxPcOk531()) ? 0 : precache_generic(f);
 }
-#define VERSION "5.3.0-ResourceCompact"
+#define VERSION "5.3.1-Stable"
 native vx47_jetgauge(id,percent,fuel);
 native vx45_corezombie(id);
 native vx45_coreweapon(id);
@@ -14691,10 +14691,10 @@ public plugin_init()
 set_task(0.1, "VxPcClose531");
 log_to_file("vexmira_isolation.log","[530 vexgear] plugin_init BEGIN stage=%d full=%d",g_iIsolation526,g_bRun526);
 register_clcmd("vex_test","IsolationStatus526");
-if(!g_bRun526) {register_plugin("Vexmira vexgear Baseline Test","5.3.0-ResourceCompact","Vexmira");log_to_file("vexmira_isolation.log","[530 vexgear] baseline plugin_init COMPLETE");return;}
+if(!g_bRun526) {register_plugin("Vexmira vexgear Baseline Test","5.3.1-Stable","Vexmira");log_to_file("vexmira_isolation.log","[530 vexgear] baseline plugin_init COMPLETE");return;}
 
 log_to_file("vexmira_startup.log","[530 vexgear] plugin_init BEGIN");
-register_plugin("Vexmira Equipment", "5.3.0-ResourceCompact", "SmurfSexy & Capital / CSO authors");
+register_plugin("Vexmira Equipment", "5.3.1-Stable", "SmurfSexy & Capital / CSO authors");
 ZcBuildTrackedSoundList();
 if (g_bZcOn[0]) { log_to_file("vexmira_startup.log","[530 gear] jan BEGIN"); jan_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] jan READY"); }
 if (g_bZcOn[1]) { log_to_file("vexmira_startup.log","[530 gear] pla BEGIN"); pla_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] pla READY"); }
@@ -15626,6 +15626,7 @@ new const ZC_F_CFG[][] = {
 "amx_language ^"en^"",
 "amx_client_languages 1",
 "vex_connection_log 1",
+"vex_auto_hitbox 1                                            // 1 = boyu uzun modellerde (CSO zombileri, dev bosslar) vurus kutusu modele gore otomatik buyur",
 "",
 "// ==============================================================================",
 "// KAYNAKLAR (vex_res)",
@@ -15675,6 +15676,7 @@ new const ZC_F_CFG[][] = {
 "vex_res AMBIENT_EVENT16 ^"sound/vexmira/arena52/ambience/event16.wav^"",
 "vex_res AMBIENT_EVENT17 ^"sound/vexmira/arena52/ambience/event17.wav^"",
 "vex_res AMBIENT_EVENT18 ^"sound/vexmira/arena52/ambience/event18.wav^"",
+"vex_res SKY_PER_MAP ^"3^"                                      // bir haritada donen gokyuzu sayisi (her harita sonraki 3 lu gruba gecer; indirme limiti icin)",
 "",
 "// ---- KAYNAK: ZOMBI SESLERI VE MODELLERI -------------------------------------",
 "vex_res ZOMBIE_INFECT ^"zombie_plague/zombie_infec1.wav|zombie_plague/zombie_infec2.wav|zombie_plague/zombie_infec3.wav^" // insan zombiye donusunce",
@@ -16296,6 +16298,7 @@ new const ZC_F_CFG[][] = {
 "vex_res MODE5_MUSIC ^"^"",
 "vex_res MODE6_MUSIC ^"^"",
 "vex_res MODE7_MUSIC ^"^"",
+"vex_res CSO_LANG ^"tr^"                                        // kart dili: tr / en / both (both = oyuncunun diline gore, ~30 dosya daha indirilir)",
 "vex_res CSO_CARDSET ^"vexmira^"                                // ekran kartlari: vexmira = animasyonlu CSO seti, cards = eski 5.3 kartlari"
 };
 new const ZC_F_LANG[][] = {
