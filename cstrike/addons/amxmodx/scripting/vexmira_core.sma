@@ -3778,7 +3778,7 @@ new g_szWNade[3][96], g_szEggModel[96];
 new g_iDropBodyChute, g_iDropBodyLanded, g_szDropSeqFall[24], g_szDropSeqIdle[24], g_szMineSeqName[24], g_szMineDeploySeq[24];
 new Trie:g_tSnd2D, Trie:g_tSnd3D, Trie:g_tMdlDone;
 new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_iMdlBudget, g_iSndSkipped, g_iMdlSkipped;
-new g_pCosFollow531;
+new g_pCosFollow531, g_pSwDmg531, g_pInfAmmo531;
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
 new g_szInfV531[96] = "models/vexmira/nades/v_infect.mdl", g_szInfP531[96] = "models/vexmira/nades/p_infect.mdl", g_szInfW531[96] = "models/vexmira/nades/w_infect.mdl";
 new Trie:g_tPcAll531, bool:g_bPcReady531, bool:g_bPcHook531, Float:g_fGuardTime531, g_iGuardV531[33], g_iGuardP531[33], g_iGuardLog531;
@@ -7209,11 +7209,74 @@ copy(out, len, name);
 MdlHeadTops(name);
 }
 }
+// 5.3.1 SKY_MODE 3: rotation. All SKY_LIST skies are downloaded on connect; every map starts with the next
+// one of the list and every new round switches to the next sky (sv_skyname is sent to clients with the
+// movevars each frame; clients that cannot reload the sky mid-map show the new one from the next map).
+new g_szSkyRot531[8][32], g_iSkyRotN531, g_iSkyRotPos531;
+
+// 5.3.1: unlimited reserve ammo for every normal weapon in every mode/event; special weapons
+// (/ozel arsenal + CSO gear guns) keep their limited ammo.
+bool:VxIsSpecialWeapon531(id, weapon)
+{
+if (VxIndex(weapon) >= 0) return true;
+new WeaponIdType:wid = get_member(weapon, m_iId);
+static const GEAR_BASE[][2] = { {1, _:WEAPON_M249}, {2, _:WEAPON_AK47}, {3, _:WEAPON_AWP}, {4, _:WEAPON_M4A1}, {5, _:WEAPON_M249}, {6, _:WEAPON_M4A1} };
+for (new k = 0; k < sizeof GEAR_BASE; k++)
+if (_:wid == GEAR_BASE[k][1] && ZcCall(GEAR_BASE[k][0], ZCOP_has, id)) return true;
+if (ZcCall(ZC_MINIGUN, ZCOP_has, id) && wid == WEAPON_M249) return true;
+return false;
+}
+VxRefillReserve531(weapon)
+{
+if (!get_pcvar_num(g_pInfAmmo531) || is_nullent(weapon)) return;
+new id = get_member(weapon, m_pPlayer);
+if (!(1 <= id <= g_iMax) || !is_user_alive(id) || g_bZombie[id] || VxIsSpecialWeapon531(id, weapon)) return;
+new WeaponIdType:wid = get_member(weapon, m_iId);
+new mx = rg_get_weapon_info(wid, WI_MAX_ROUNDS);
+if (mx > 0 && rg_get_user_bpammo(id, wid) < mx) rg_set_user_bpammo(id, wid, mx);
+}
+public VxHamReloadPre531(weapon) { VxRefillReserve531(weapon); return HAM_IGNORED; }
+public VxReloadPre531(const weapon, iClipSize, iAnim, Float:fDelay) { VxRefillReserve531(weapon); return HC_CONTINUE; }
+public VxShotgunReloadPre531(const weapon, iAnim, iStartAnim, Float:fDelay, Float:fStartDelay) { VxRefillReserve531(weapon); return HC_CONTINUE; }
+PickSkyRotation()
+{
+new list[256], pos, tmp[32];
+copy(list, charsmax(list), GetResString("SKY_LIST", ""));
+g_iSkyRotN531 = 0;
+while (g_iSkyRotN531 < sizeof g_szSkyRot531 && (pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
+{
+if (!tmp[0] || !SkyExists(tmp)) { if (tmp[0]) log_amx("[Vexmira] gokyuzu dosyasi eksik: gfx/env/%s*.tga (atlandi)", tmp); continue; }
+copy(g_szSkyRot531[g_iSkyRotN531++], charsmax(g_szSkyRot531[]), tmp);
+}
+if (!g_iSkyRotN531) return;
+static const SIDE[][] = { "up", "dn", "lf", "rt", "ft", "bk" };
+new path[96];
+for (new k = 0; k < g_iSkyRotN531; k++)
+for (new i = 0; i < 6; i++)
+{
+formatex(path, charsmax(path), "gfx/env/%s%s.tga", g_szSkyRot531[k], SIDE[i]);
+PcGeneric(path);
+}
+new info[8]; get_localinfo("vex_skyrot", info, charsmax(info));
+g_iSkyRotPos531 = (str_to_num(info) + 1) % g_iSkyRotN531;
+num_to_str(g_iSkyRotPos531, info, charsmax(info)); set_localinfo("vex_skyrot", info);
+copy(g_szSky, charsmax(g_szSky), g_szSkyRot531[g_iSkyRotPos531]);
+set_cvar_string("sv_skyname", g_szSky);
+log_amx("[Vexmira] gokyuzu rotasyonu: %d gokyuzu, bu harita %s ile basliyor", g_iSkyRotN531, g_szSky);
+}
+SkyNextRound531()
+{
+if (g_iSkyRotN531 < 2 || str_to_num(GetResString("SKY_MODE", "1")) != 3) return;
+g_iSkyRotPos531 = (g_iSkyRotPos531 + 1) % g_iSkyRotN531;
+copy(g_szSky, charsmax(g_szSky), g_szSkyRot531[g_iSkyRotPos531]);
+set_cvar_string("sv_skyname", g_szSky);
+}
 PickSky()
 {
 new mode = str_to_num(GetResString("SKY_MODE", "1"));
 if (mode <= 0)
 return;
+if (mode == 3) { PickSkyRotation(); return; }
 new own[32];
 get_cvar_string("sv_skyname", own, charsmax(own));
 if (own[0] && !IsStockSky(own) && SkyExists(own))
@@ -8241,7 +8304,7 @@ if ((i = TblIdx(args, argc, 6, NUM_SPECIAL)) >= 0)
 {
 SW_COST[i]   = max(0, str_to_num(args[2]));
 SW_LVL[i]    = clamp(str_to_num(args[3]), 1, MAX_LEVEL);
-SW_MULT[i]   = floatclamp(str_to_float(args[4]), 0.1, 4.0);
+SW_MULT[i]   = floatclamp(str_to_float(args[4]), 0.1, 10.0);
 SW_BPAMMO[i] = clamp(str_to_num(args[5]), 1, 999);
 if (argc >= 7)
 {
@@ -9526,12 +9589,47 @@ case IT_ZNOKB:   g_bNoKB[id] = 1;
 g_iBought[id][i]++;
 AddAP(id, -cost, false, false);
 PlayKey(id, "SHOP_BUY");
+VxItemFx531(id, i);
 new key[12], nm[40];
 formatex(key, charsmax(key), "ITEM_%d", i);
 formatex(nm, charsmax(nm), "%L", id, key);
 Chat(id, "SHOP_BOUGHT", nm, cost);
 if (ITEM_ANNOUNCE[i])
 AnnounceBuy(id, key);
+}
+
+// 5.3.1: every shop item has its own colour burst (ring at the feet, rising implosion, light, screen tint)
+static const ITEM_RGB531[][3] = {
+{60,255,120},{80,160,255},{255,120,30},{90,200,255},{255,240,140},{200,120,255},
+{160,255,255},{255,80,160},{255,200,40},{255,60,40},{255,255,255},
+{120,255,200},{255,40,200},{80,255,40},{170,40,255},{255,30,30},{40,200,255},{150,150,170},
+{255,230,60},{120,120,255},{60,255,60},{0,255,255},{255,170,60},
+{255,90,0},{100,60,160},{120,255,120},{40,255,90},{140,90,60}
+};
+VxItemFx531(id, i)
+{
+if (!is_user_alive(id)) return;
+new r = 255, g = 255, b = 255;
+if (0 <= i < sizeof ITEM_RGB531) { r = ITEM_RGB531[i][0]; g = ITEM_RGB531[i][1]; b = ITEM_RGB531[i][2]; }
+VxItemFxRGB531(id, r, g, b);
+new Float:o[3];
+get_entvar(id, var_origin, o);
+if (i == IT_MEDKIT) FxHeal(id);
+else if (i == IT_ANTIDOTE || i == IT_INFBOMB) FxSpr(o, g_sprFx[FXS_INFECT], 6, 210, 6.0);
+else if (i == IT_FROSTNADE) FxSpr(o, g_sprFx[FXS_ICE], 5, 200, 6.0);
+else if (i == IT_FIRENADE || i == IT_RAGE) FxSpr(o, g_sprFx[FXS_EXFIRE], 4, 200, 6.0);
+}
+VxItemFxRGB531(id, r, g, b)
+{
+if (!is_user_alive(id)) return;
+new Float:o[3], Float:f[3];
+get_entvar(id, var_origin, o);
+f = o; f[2] -= ((get_entvar(id, var_flags) & FL_DUCKING) ? 16.0 : 34.0);
+FxRingEx(f, r, g, b, 140, 14, 5, 230);
+FxRingEx(f, 255, 255, 255, 70, 6, 3, 160);
+FxLight(o, r, g, b, 22, 6, 40);
+FxImplosion(o, 70, 18, 4);
+FadeOne(id, r, g, b, 55, 0.35);
 }
 AnnounceBuy(id, const itemKey[])
 {
@@ -11182,7 +11280,7 @@ VxDamage(victim,attacker,inflictor,Float:damage)
 {
 if(!(1<=victim<=g_iMax)||!is_user_alive(victim)||!g_bZombie[victim])return;
 if(!(1<=attacker<=g_iMax)||!is_user_alive(attacker)||g_bZombie[attacker]||ModeOf(attacker)>=0)return;
-ExecuteHamB(Ham_TakeDamage,victim,inflictor,attacker,damage,DMG_ENERGYBEAM);
+ExecuteHamB(Ham_TakeDamage,victim,inflictor,attacker,damage*floatclamp(get_pcvar_float(g_pSwDmg531),0.1,20.0),DMG_ENERGYBEAM);
 }
 VxRadius(const Float:o[3],id,ent,sw,Float:radius,Float:damage)
 {
@@ -19831,6 +19929,7 @@ return HC_SUPERCEDE;
 }
 public rg_RestartRound()
 {
+SkyNextRound531();
 g_bModePicked47 = false;
 g_bForcedRound47 = false;
 for(new reset47=1;reset47<=32;reset47++) { BannerRemove47(reset47); GaugeRemove47(reset47); }
@@ -22482,7 +22581,7 @@ if (g_bDmgAmp[attacker])
 m *= 1.0 + float(max(0, ITEM_VAL[IT_DMGAMP])) / 100.0;
 new sw = SpecialIndex(attacker, wid);
 if (sw >= 0 && inflictor == attacker && (bits & DMG_BULLET))
-m *= SW_MULT[sw];
+m *= SW_MULT[sw] * floatclamp(get_pcvar_float(g_pSwDmg531), 0.1, 20.0);
 dmg *= m;
 if (g_bBoss[victim] || g_bNemesis[victim] || g_bAssassin[victim])
 dmg = floatmin(dmg, floatmax(100.0, get_pcvar_float(g_pSpecCap)));
@@ -27961,6 +28060,8 @@ g_pLmMaxRange    = register_cvar("vex_lm_max_range", "600");
 g_pLmBlockModes  = register_cvar("vex_lm_block_modes", "nemesis assassin");
 g_pDbgDirs       = register_cvar("vex_debug_dirs", "0");
 g_pCosFollow531 = register_cvar("vex_cos_follow", "1");
+g_pSwDmg531 = register_cvar("vex_sw_damage_mult", "3.0");
+g_pInfAmmo531 = register_cvar("vex_unlimited_bpammo", "1");
 g_pAutoJoinHumans= register_cvar("vex_auto_join_humans", "1");
 g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
 g_pNadeSensorArm = register_cvar("vex_nade_sensor_arm", "1.5");
@@ -28362,7 +28463,7 @@ if(VxActive(id)==i) {Chat(id,"SHOP_ALREADY");return;}
 if(g_iAP[id]<SW_COST[i]) {Chat(id,"SHOP_NOAP");return;}
 if(!g_bVxReady[i]) {client_print(id,print_chat,"[VEXMIRA] %s dosyalari yuklu degil; AP harcanmadi.",V50_NAMES[i]);return;}
 if(!VxGive(id,i)) {Chat(id,"SHOP_UNAVAIL");return;}
-AddAP(id,-SW_COST[i],false,false);PlayKey(id,"SHOP_BUY");
+AddAP(id,-SW_COST[i],false,false);PlayKey(id,"SHOP_BUY");VxItemFxRGB531(id,SW_RGB[i][0],SW_RGB[i][1],SW_RGB[i][2]);
 }
 CommunityBuyGear(id,i)
 {
@@ -28375,7 +28476,7 @@ new comp=ZC_JETPACK;
 if(ZcCall(comp,ZCOP_has,id)) { Chat(id,"SHOP_ALREADY"); return; }
 if(!ZcCompOn(comp)) { client_print_color(id,print_team_default,"^4[Vexmira]^1 %s %L","Jetpack",id,"ZC_ITEM_OFF"); return; }
 if(!ZcCall(comp,ZCOP_give,id)) { Chat(id,"SHOP_UNAVAIL"); return; }
-CommunityRemoveKnives(id); AddAP(id,-price,false,false); PlayKey(id,"SHOP_BUY");
+CommunityRemoveKnives(id); AddAP(id,-price,false,false); PlayKey(id,"SHOP_BUY"); VxItemFxRGB531(id,255,150,40);
 }
 CommunityCoinMenu(id,c)
 {
@@ -28412,7 +28513,7 @@ if(v && ((!c && !g_bCommunityCtOk[v-1]) || (c && !KnifeReady47(v-1)))) { Chat(id
 if(v && !(g_iCommunityOwned[id][c] & (1<<(v-1)))) {
 new cost=COMMUNITY_COIN[c][v-1];
 if(g_iVC[id]<cost) { Chat(id,"COS_NOVC",cost); return 0; }
-g_iVC[id]-=cost; g_iCommunityOwned[id][c]|=1<<(v-1); PlayKey(id,"SHOP_BUY");
+g_iVC[id]-=cost; g_iCommunityOwned[id][c]|=1<<(v-1); PlayKey(id,"SHOP_BUY"); VxItemFxRGB531(id,255,215,0);
 }
 g_iCommunitySel[id][c]=v; SaveData(id);
 if(CommunityAlive(id)) {
@@ -29116,6 +29217,14 @@ if(!g_bRun526) {register_plugin("Vexmira vexcore Baseline Test","5.3.0-ResourceC
 
 log_to_file("vexmira_startup.log","[530 vexcore] plugin_init BEGIN");
 register_forward(FM_UpdateClientData, "VxGuardClientData", 0);
+RegisterHookChain(RG_CBasePlayerWeapon_DefaultReload, "VxReloadPre531", false);
+RegisterHookChain(RG_CBasePlayerWeapon_DefaultShotgunReload, "VxShotgunReloadPre531", false);
+// weapon Reload() returns early when the reserve is empty, so refill before it runs too
+static const GUNS531[][] = { "weapon_p228", "weapon_scout", "weapon_xm1014", "weapon_mac10", "weapon_aug", "weapon_elite",
+"weapon_fiveseven", "weapon_ump45", "weapon_sg550", "weapon_galil", "weapon_famas", "weapon_usp", "weapon_glock18",
+"weapon_awp", "weapon_mp5navy", "weapon_m249", "weapon_m3", "weapon_m4a1", "weapon_tmp", "weapon_g3sg1",
+"weapon_deagle", "weapon_sg552", "weapon_ak47", "weapon_p90" };
+for (new g531 = 0; g531 < sizeof GUNS531; g531++) RegisterHam(Ham_Weapon_Reload, GUNS531[g531], "VxHamReloadPre531", 0);
 ZcCore_plugin_init();
 log_to_file("vexmira_startup.log","[530 core] base init READY");
 set_task(30.0,"VexStability51",781951,_,_,"b");

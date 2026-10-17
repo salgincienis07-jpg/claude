@@ -9723,11 +9723,8 @@ public jet_OnCmdStart(id, uc_handle, jet_random_seed)
 {
 if(!is_user_alive(id) || vx45_corezombie(id) || !jet_bHasJetpack[id]) return;
 new Float:now = get_gametime();
-if (get_user_weapon(id) != CSW_KNIFE) {
-new Float:dt48=floatclamp(now-jet_fFuelClock[id],0.0,0.1);jet_fFuelClock[id]=now;
-jet_fFuelRemainder[id]+=dt48*125.0;new gain48=floatround(jet_fFuelRemainder[id],floatround_floor);jet_fFuelRemainder[id]-=float(gain48);jet_iGas[id]=min(jet_MaxGas,jet_iGas[id]+gain48);
-JetGaugeUpdate48(id,now);return;
-}
+// 5.3.1: the jetpack flies with ANY weapon in hand (CTRL+SPACE); the rocket (right click) stays on the jetpack slot
+new bool:jet_inHand531 = (get_user_weapon(id) == CSW_KNIFE);
 new Float:jet_dt = floatclamp(now - jet_fFuelClock[id], 0.0, 0.1);
 jet_fFuelClock[id] = now;
 static jet_button; jet_button = get_uc(uc_handle, UC_Buttons);
@@ -9761,7 +9758,7 @@ write_byte(200)
 message_end()
 }
 }
-if(jet_button & IN_ATTACK2)
+if(jet_inHand531 && (jet_button & IN_ATTACK2))
 {
 static Float:jet_ctime; jet_ctime = get_gametime();
 if(jet_fLastShot[id] < jet_ctime)
