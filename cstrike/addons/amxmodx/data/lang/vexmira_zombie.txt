@@ -1,6 +1,6 @@
 [en]
 WELCOME = ^4Welcome to ^3VEXMIRA^1, ^3%s^1! Grab a weapon, the night is long.
-WELCOME_2 = ^1Press ^4M^1 for everything: shop, jobs, ^4laser mines^1, ^4grenade modes^1, VIP, settings.
+WELCOME_2 = ^1^4M^1 = menu. ^4/ozel^1: 8 ozel silah | ^4/shop^1: Jetpack | ^4/cosmetic^1: collections.
 WELCOME_3 = ^1You're playing in ^4English^1. Prefer Turkish? Just type ^4/dil^1.
 WELCOME_HUD = WELCOME, %s^nV E X M I R A   -   Zombie Plague
 DAILY_READY = ^4[$] ^1Your ^4daily reward^1 is ready! Type ^4/daily^1.
@@ -1039,7 +1039,6 @@ JOB_NEXT = ^1Your new job becomes active ^4on your next spawn^1.
 GUNS_ONCE = ^1You already received your weapons this life. Pick new ones next round.
 NO_SUICIDE = ^1Special characters can't use ^3kill^1. Fight to the end!
 
-// ---- v2.0 ----
 BSK_0_1 = SEISMIC STOMP
 BSKT_0_1 = Everyone around it is thrown into the air!
 BSK_0_2 = EARTHSHATTER
@@ -1338,13 +1337,13 @@ VIPI_7 = Daily reward +%d / +%d percent
 VIPI_8 = Aura, light trail, VIP model, chat tag
 VIPI_BUY = Get VIP: %s
 TIP_1 = ^4[TIP] ^1Press ^4M^1 for the menu: market, weapons, class, settings.
-TIP_2 = ^4[TIP] ^1Every ^4500^1 damage = ^4+1 AP^1. Headshots pay extra.
+TIP_2 = ^4[TIP] ^1Every ^4800^1 zombie damage earns ^4+1 AP^1. Save AP for your next weapon.
 TIP_3 = ^4[TIP] ^1Laser mines: ^4V^1 = plant, hold ^4C^1 = pick up. You get new ones every round.
 TIP_4 = ^4[TIP] ^1Right click with a grenade: ^4impact, sensor, laser trap, homing, cluster^1.
 TIP_5 = ^4[TIP] ^1Your ^4daily reward^1 is waiting: ^4/daily^1. Streaks pay more.
 TIP_6 = ^4[TIP] ^1Spend ^4Vex Coin^1 on permanent perks: ^4/perks
 TIP_7 = ^4[TIP] ^1Jobs give humans a role. New jobs unlock with level: ^4/job
-TIP_8 = ^4[TIP] ^1Special weapons burn, freeze and shock zombies: ^4/special
+TIP_8 = ^4[TIP] ^1JANUS, Plasma, Thunderbolt, Ethereal, Salamander and Bow: ^4/ozel
 TIP_9 = ^4[TIP] ^1Zombies: infect ^43^1 humans in one round to become an ^3ALPHA^1.
 TIP_10 = ^4[TIP] ^3Nemesis^1 and ^3Assassin^1 kill in one hit. Keep distance, use lasers.
 TIP_11 = ^4[TIP] ^1Bosses learn a new skill every phase. Watch the colored circles!
@@ -1354,7 +1353,7 @@ TIP_14 = ^4[TIP] ^1Low FPS? ^4/fps^1 has performance presets.
 TIP_15 = ^4[TIP] ^1Turkce icin ^4/dil^1 yaz. Language: ^4/lang
 TIP_16 = ^4[TIP] ^1Each map is ^430 rounds^1 with boss fights and a ^3FINAL BOSS^1: ^4/round
 TIP_17 = ^4[TIP] ^1Every round has a quest with AP and XP: ^4/quest
-TIP_18 = ^4[VIP] ^1VIP: extra jump, more AP/XP/VC, free pack, discounts. ^4/vipinfo
+TIP_18 = ^4[TIP] ^1Cosmetics are permanent: 5 CT skins, 5 knives, wings, pets and hats. ^4/cosmetic
 MENU_MAIN = Zombie Plague
 VIPI_9 = Respawn protection +%.1f s, faster respawn
 VIPI_10 = Vote weight x%d (mode, event, map)
@@ -1409,9 +1408,13 @@ ZC_FREE = free
 ZC_NEED_SURV = Survivor only
 ZC_GUNS6 = 6 guns
 ZC_PERM = permanent
+
+ZC_ALIVE_HUMAN = ^1You need to be an ordinary living human to buy this. Survivor and Sniper use their mode loadout.
+ZC_HEV_LIMIT = ^1HEV can be bought once per round. You can buy it again next round.
+ZC_MISSING_COLLECTION = ^1This appearance is unavailable; your coins were not spent. Admin: vex_diagnose
 [tr]
 WELCOME = ^3VEXMIRA^1'ya hos geldin ^3%s^1! Silahini kap, gece uzun.
-WELCOME_2 = ^1Her sey ^4M^1 tusunda: market, meslek, ^4lazer mayini^1, ^4bomba modlari^1, VIP, ayarlar.
+WELCOME_2 = ^4M^1 = menu. ^4/ozel^1: 8 ozel silah | ^4/shop^1: Jetpack | ^4/kozmetik^1: koleksiyonlar.
 WELCOME_3 = ^1Su an ^4Turkce^1 oynuyorsun. English mi istersin? ^4/lang^1 yazman yeterli.
 WELCOME_HUD = HOS GELDIN, %s^nV E X M I R A   -   Zombie Plague
 DAILY_READY = ^4[$] ^4Gunluk odulun^1 hazir! ^4/gunluk^1 yaz.
@@ -2450,7 +2453,6 @@ JOB_NEXT = ^1Yeni meslegin ^4bir sonraki dogusunda^1 aktif olur.
 GUNS_ONCE = ^1Bu hayatta silahini zaten aldin. Yeni secimin sonraki roundda gecerli.
 NO_SUICIDE = ^1Ozel karakterler ^3kill^1 kullanamaz. Sonuna kadar savas!
 
-// ---- v2.0 ----
 BSK_0_1 = SISMIK EZME
 BSKT_0_1 = Etrafindaki herkes havaya ucuyor!
 BSK_0_2 = YER YARIGI
@@ -2749,13 +2751,13 @@ VIPI_7 = Gunluk odul +yuzde %d / %d
 VIPI_8 = Aura, isik izi, VIP modeli, sohbet etiketi
 VIPI_BUY = VIP almak icin: %s
 TIP_1 = ^4[IPUCU] ^4M^1 = menu: market, silah, sinif, ayarlar.
-TIP_2 = ^4[IPUCU] ^1Her ^4500^1 hasar = ^4+1 AP^1. Headshot fazladan oder.
+TIP_2 = ^4[IPUCU] ^1Zombiye her ^4800^1 hasar = ^4+1 AP^1. Yeni silahin icin AP biriktir.
 TIP_3 = ^4[IPUCU] ^1Lazer: ^4V^1 = kur, ^4C^1 basili tut = sok. Her round yenisi verilir.
 TIP_4 = ^4[IPUCU] ^1Elinde bomba varken sag tik: ^4carpma, sensor, lazer tuzak, gudumlu, parca^1.
 TIP_5 = ^4[IPUCU] ^4Gunluk odulun^1 hazir: ^4/gunluk^1. Seri yaptikca artar.
 TIP_6 = ^4[IPUCU] ^4Vex Coin^1 ile kalici yetenek al: ^4/yetenek
 TIP_7 = ^4[IPUCU] ^1Meslekler insanlara rol verir, level atladikca acilir: ^4/meslek
-TIP_8 = ^4[IPUCU] ^1Ozel silahlar yakar, dondurur, carpar: ^4/ozel
+TIP_8 = ^4[IPUCU] ^1JANUS, Plasma, Thunderbolt, Ethereal, Salamander ve Bow: ^4/ozel
 TIP_9 = ^4[IPUCU] ^1Zombiler: bir roundda ^43^1 insan enfekte et, ^3ALFA^1 ol.
 TIP_10 = ^4[IPUCU] ^3Nemesis^1 ve ^3Assassin^1 tek vurusta oldurur. Mesafe koru, lazer kullan.
 TIP_11 = ^4[IPUCU] ^1Bosslar her fazda yeni yetenek ogrenir. Yerdeki renkli halkalara dikkat!
@@ -2765,7 +2767,7 @@ TIP_14 = ^4[IPUCU] ^1FPS dusuk mu? ^4/fps^1 performans ayarlari.
 TIP_15 = ^4[IPUCU] ^1For English type ^4/lang^1. Dil: ^4/dil
 TIP_16 = ^4[IPUCU] ^1Her harita ^430 round^1: boss savaslari ve ^3FINAL BOSS^1: ^4/round
 TIP_17 = ^4[IPUCU] ^1Her roundun AP ve XP veren bir gorevi var: ^4/gorev
-TIP_18 = ^4[VIP] ^1VIP: ekstra ziplama, fazla AP/XP/VC, bedava paket, indirim. ^4/vipbilgi
+TIP_18 = ^4[IPUCU] ^1Kalici koleksiyon: 5 CT modeli, 5 bicak, kanat, pet ve sapka. ^4/kozmetik
 MENU_MAIN = Zombi Salgini
 VIPI_9 = Dogus korumasi +%.1f sn, hizli dogus
 VIPI_10 = Oy agirligi x%d (mod, event, harita)
@@ -2818,3 +2820,7 @@ ZC_FREE = ucretsiz
 ZC_NEED_SURV = sadece Survivor
 ZC_GUNS6 = 6 silah
 ZC_PERM = kalici
+
+ZC_ALIVE_HUMAN = ^1Bunu almak icin hayatta ve normal insan olmalisin. Survivor ve Sniper kendi mod silahlarini kullanir.
+ZC_HEV_LIMIT = ^1HEV roundda bir kez alinabilir. Sonraki round yeniden alabilirsin.
+ZC_MISSING_COLLECTION = ^1Bu gorunum su an yuklu degil; coin harcanmadi. Yonetici: vex_diagnose
