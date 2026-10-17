@@ -1,6 +1,6 @@
 [en]
 WELCOME = ^4Welcome to ^3VEXMIRA^1, ^3%s^1! Grab a weapon, the night is long.
-WELCOME_2 = ^1^4M^1 = menu. ^4/ozel^1: 8 ozel silah | ^4/shop^1: Jetpack | ^4/cosmetic^1: collections.
+WELCOME_2 = ^1^4M^1 = menu. ^4/ozel^1: 7 ozel silah | ^4/shop^1: Jetpack | ^4/cosmetic^1: collections.
 WELCOME_3 = ^1You're playing in ^4English^1. Prefer Turkish? Just type ^4/dil^1.
 WELCOME_HUD = WELCOME, %s^nV E X M I R A   -   Zombie Plague
 DAILY_READY = ^4[$] ^1Your ^4daily reward^1 is ready! Type ^4/daily^1.
@@ -1422,7 +1422,7 @@ ZC_HEV_LIMIT = ^1HEV can be bought once per round. You can buy it again next rou
 ZC_MISSING_COLLECTION = ^1This appearance is unavailable; your coins were not spent. Admin: vex_diagnose
 [tr]
 WELCOME = ^3VEXMIRA^1'ya hos geldin ^3%s^1! Silahini kap, gece uzun.
-WELCOME_2 = ^4M^1 = menu. ^4/ozel^1: 8 ozel silah | ^4/shop^1: Jetpack | ^4/kozmetik^1: koleksiyonlar.
+WELCOME_2 = ^4M^1 = menu. ^4/ozel^1: 7 ozel silah | ^4/shop^1: Jetpack | ^4/kozmetik^1: koleksiyonlar.
 WELCOME_3 = ^1Su an ^4Turkce^1 oynuyorsun. English mi istersin? ^4/lang^1 yazman yeterli.
 WELCOME_HUD = HOS GELDIN, %s^nV E X M I R A   -   Zombie Plague
 DAILY_READY = ^4[$] ^4Gunluk odulun^1 hazir! ^4/gunluk^1 yaz.

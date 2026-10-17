@@ -3857,7 +3857,7 @@ enum { X_FIREBALL=0, X_FLAME, X_EMBER, X_FROSTBURST, X_FROSTMIST, X_SHARD, X_FLA
 X_GLOW, X_RING, X_BEAM, X_BEAMW, X_SMOKE, X_VOIDBURST, X_SHOCKBURST };
 new g_iFx532[FX532_TOTAL];
 #define TEFIRE_ADD532 32
-new g_iGiantMode532 = 1, g_iGiantEnt532, g_iGiantSeq532 = -1;
+new g_iGiantMode532 = 2, g_iGiantEnt532, g_iGiantSeq532 = -1;
 new g_pAmbVol532, g_pAmbRe532, g_pCosSmooth532, g_pRadioText532, bool:g_bCsoC532, bool:g_bCapLow532[33], g_pTop532, g_pTopPad532, g_pTopY532;
 new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
 new g_pComboTime, bool:g_bFirstBlood;
@@ -5868,7 +5868,7 @@ CsoPrecacheVex531()
 }
 CsoPrecache()
 {
-    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c532"));
+    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c533"));
     g_bCsoC532 = false;
     if (equali(set, "off"))
     {
@@ -5876,9 +5876,9 @@ CsoPrecache()
         for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = false;
         return;
     }
-    if (equali(set, "c532"))
+    if (equali(set, "c533") || equali(set, "c532"))
     {
-        CsoPrecache532();
+        CsoPrecache533();
         return;
     }
     g_bCsoVex531 = !equali(set, "cards");
@@ -5909,6 +5909,61 @@ CsoPrecache()
         for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = true;
 }
 // 5.3.2 big cards: one 256x128 picture per card (2 download slots each), text card always shown too
+// 5.3.3: every notification has a picture card (sprites/vexmira/c533, sheets of two 256x128 cells)
+new const C533_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "knife", "nade", "mvp", "hwin", "zwin", "boss",
+    "infect", "nemesis", "assassin", "survivor", "last", "level", "round", "fb", "bkill", "infd", "cd" };
+new bool:g_bHp533;
+CsoPrecache533()
+{
+    g_bCsoVex531 = true;
+    g_bCsoC532 = true;
+    g_iCsoRounds = 30;
+    new lm[8]; copy(lm, charsmax(lm), GetResString("CSO_LANG", "tr"));
+    g_iCsoLang531 = equali(lm, "en") ? 2 : 1;          // one language only (download list)
+    new lg[3]; copy(lg, charsmax(lg), g_iCsoLang531 == 2 ? "en" : "tr");
+    new path[96], sheet[96], line[160], n533, Trie:sheets = TrieCreate();
+    for (new n = 0; n < CN_TOTAL; n++)
+    {
+        g_bCsoFile[n] = false;
+        if (g_iPreCso <= 0) continue;
+        new ok = 1;
+        for (new c = 1; c <= (n == CN_TEN ? 10 : 1); c++)
+        {
+            if (n == CN_TEN) formatex(path, charsmax(path), "sprites/vexmira/c533/cd%d_%s.txt", c, lg);
+            else formatex(path, charsmax(path), "sprites/vexmira/c533/%s_%s.txt", C533_FILE[n], lg);
+            if (!Txt533Sheet(path, sheet, charsmax(sheet))) { ok = 0; continue; }
+            if (ZcPcGeneric(path) > 0) n533++; else ok = 0;
+            if (!TrieKeyExists(sheets, sheet)) { TrieSetCell(sheets, sheet, 1); if (ZcPcGeneric(sheet) > 0) n533++; else ok = 0; }
+        }
+        g_bCsoFile[n] = ok ? true : false;
+    }
+    g_bHp533 = true;
+    for (new l = 0; l <= 10; l++)
+    {
+        formatex(path, charsmax(path), "sprites/vexmira/c533/hp_%d.txt", l);
+        if (!Txt533Sheet(path, sheet, charsmax(sheet)) || ZcPcGeneric(path) <= 0) { g_bHp533 = false; continue; }
+        n533++;
+        if (!TrieKeyExists(sheets, sheet)) { TrieSetCell(sheets, sheet, 1); if (ZcPcGeneric(sheet) > 0) n533++; else g_bHp533 = false; }
+    }
+    TrieDestroy(sheets);
+    #pragma unused line
+    log_amx("[Vexmira] 5.3.3 ekran kartlari: %d dosya (sprites/vexmira/c533, dil %s, boss can bari %s)", n533, lg, g_bHp533 ? "var" : "YOK");
+}
+// sheet sprite named in a card .txt (3rd column of the first crosshair line)
+bool:Txt533Sheet(const txt[], out[], len)
+{
+    out[0] = 0;
+    new fp = fopen(txt, "rt", true);
+    if (!fp) return false;
+    new line[192], a[24], b[8], c[96];
+    while (!feof(fp))
+    {
+        fgets(fp, line, charsmax(line));
+        if (parse(line, a, charsmax(a), b, charsmax(b), c, charsmax(c)) == 3 && equal(a, "crosshair")) { formatex(out, len, "sprites/%s.spr", c); break; }
+    }
+    fclose(fp);
+    return out[0] ? file_exists(out, true) : false;
+}
 new const C532_FILE[CN_TOTAL][] = { "", "", "", "", "", "", "", "", "mvp", "hwin", "zwin", "boss",
     "", "", "", "", "last", "", "", "", "", "", "" };
 CsoPrecache532()
@@ -6024,8 +6079,10 @@ stock CsoName(id, note, arg, frm, out[], len)
 {
     if (g_bCsoC532)
     {
-        new bool:tr2 = g_iCsoLang531 ? (g_iCsoLang531 == 1) : (g_iLang[id] == 2);
-        formatex(out, len, "vexmira/c532/%s_%s", C532_FILE[note], tr2 ? "tr" : "en");
+        new bool:tr2 = (g_iCsoLang531 != 2);
+        if (note == CN_TEN) formatex(out, len, "vexmira/c533/cd%d_%s", clamp(arg, 1, 10), tr2 ? "tr" : "en");
+        else formatex(out, len, "vexmira/c533/%s_%s", C533_FILE[note], tr2 ? "tr" : "en");
+        #pragma unused id
         return;
     }
     if (g_bCsoVex531)
@@ -6085,7 +6142,13 @@ log_amx("[CSO] frame %s -> #%d", nm, id);
 }
 stock bool:CsoNoteOn(note)
 {
-return (note >= 0 && note < CN_TOTAL && (get_pcvar_num(g_pCsoNotes) & CSO_BIT[note])) ? true : false;
+return (note >= 0 && note < CN_TOTAL && (CsoNotesMask533() & CSO_BIT[note])) ? true : false;
+}
+// vex_cso_notes: big numbers (2147483647) overflow the float cvar -> 0; anything <= 0 or >= 65536 = all cards
+stock CsoNotesMask533()
+{
+new v = get_pcvar_num(g_pCsoNotes);
+return (v <= 0 || v >= 65536) ? 0xFFFF : v;
 }
 stock bool:CsoOn()
 {
@@ -6219,7 +6282,7 @@ bool:CsoApply(id, note, arg, Float:dur, bool:sound, Float:elapsed = 0.0)
     g_fCsoStart[id] = get_gametime() - elapsed;
     g_fCsoEnd[id] = g_fCsoStart[id] + dur;
     new frm = CsoFrameAt(note, elapsed, dur, elapsed > 0.0 ? CF_M : -1);
-    CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 90));
+    CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 89));
     CsoSendFrame(id, frm, w, clip);
     new nm[40];
     CsoName(id, note, arg, frm, nm, charsmax(nm));
@@ -6318,7 +6381,10 @@ bool:CsoNotifyImg(id, note, arg = 0)
 {
     if (id < 1 || id > g_iMax || note < 0 || note >= CN_TOTAL || !is_user_connected(id) || (g_iSet[id] & SET_NO_FX))
         return false;
-    if (!CsoOn() || !g_bCsoFile[note] || !(get_pcvar_num(g_pCsoNotes) & CSO_BIT[note]))
+    if (get_pcvar_num(g_pCsoLog)) log_amx("[CSO] istek not=%d #%d on=%d dosya=%d bit=%d canli=%d", note, id, CsoOn(), g_bCsoFile[note], (CsoNotesMask533() & CSO_BIT[note]) ? 1 : 0, is_user_alive(id));
+    if (!CsoOn() || !g_bCsoFile[note] || !(CsoNotesMask533() & CSO_BIT[note]))
+        return false;
+    if (g_bCsoC532 && note == CN_TEN && arg <= 0)      // "10 seconds left" (round end) stays a text card
         return false;
     if (note == CN_ROUND && (arg < 1 || arg > g_iCsoRounds))
         return false;
@@ -6390,14 +6456,52 @@ stock CsoHudAll(note, arg, slot, r, g, b, Float:hold, const key[], iVal = 0)
 // Custom card caption: localized title/detail sits with the generated sprite plate.
 CsoSub(id, note, arg)
 {
+    if (g_bCsoC532) return;     // 5.3.3: the picture card IS the notification (no text under it)
     g_bCapLow532[id] = g_bCsoC532 && C532_FILE[note][0] != 0;
     VexNotify(id, note, arg);
     g_bCapLow532[id] = false;
 }
 
 // 0.1 sn: yalniz aktif / kuyrugu olan oyuncular islenir
+// 5.3.3 BOSS HP CARD: during a boss fight every living player (not the boss) sees a picture boss HP bar
+// above the crosshair (crosshair drawn inside the card). Paused while a notification card is shown,
+// never on scoped weapons (their scope uses the same client slot).
+new g_iHpLvl533[33] = { -1, ... }, g_iHpWpn533[33], g_pHpCard533;
+HpRestore533(id)
+{
+    new w = g_iHpWpn533[id];
+    g_iHpLvl533[id] = -1; g_iHpWpn533[id] = 0;
+    if (w < 1 || w > 30 || !is_user_connected(id) || g_iCsoCur[id] >= 0) return;
+    CsoSendWL(id, g_szWL[w], w);
+    new fov = is_user_alive(id) ? get_member(id, m_iFOV) : 90;
+    CsoFov(id, fov > 0 ? fov : 90);
+    if (is_user_alive(id)) { new clip, ammo, cw = get_user_weapon(id, clip, ammo); if (cw >= 1 && cw <= 30) CsoCurW(id, cw, clip); }
+}
+BossHpTick533()
+{
+    new boss = g_iBoss;
+    new bool:fight = g_bHp533 && g_bCsoC532 && get_pcvar_num(g_pHpCard533) && g_iMode == MODE_BOSS && boss >= 1 && boss <= g_iMax && is_user_alive(boss) && !g_bRoundEnded;
+    new lvl = 0;
+    if (fight) { new pct = floatround(Float:get_entvar(boss, var_health) * 100.0 / float(max(1, g_iBossMaxHP)), floatround_ceil); lvl = clamp((pct + 9) / 10, 0, 10); }
+    for (new id = 1; id <= g_iMax; id++)
+    {
+        if (!is_user_connected(id) || is_user_bot(id)) { g_iHpLvl533[id] = -1; continue; }
+        if (g_iCsoCur[id] >= 0) { g_iHpLvl533[id] = -1; g_iHpWpn533[id] = 0; continue; }     // card on screen
+        new clip, ammo, w = is_user_alive(id) ? get_user_weapon(id, clip, ammo) : 0;
+        new bool:want = fight && id != boss && is_user_alive(id) && w >= 1 && w <= 30 && g_bWL[w] && CsoFovOk(id) && !(g_iSet[id] & SET_NO_FX)
+            && w != CSW_AWP && w != CSW_SCOUT && w != CSW_SG550 && w != CSW_G3SG1 && w != CSW_AUG && w != CSW_SG552;
+        if (!want) { if (g_iHpLvl533[id] >= 0) HpRestore533(id); continue; }
+        if (lvl == g_iHpLvl533[id] && w == g_iHpWpn533[id]) continue;
+        if (g_iHpWpn533[id] && g_iHpWpn533[id] != w) CsoSendWL(id, g_szWL[g_iHpWpn533[id]], g_iHpWpn533[id]);
+        new nm[32]; formatex(nm, charsmax(nm), "vexmira/c533/hp_%d", lvl);
+        CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 89));
+        CsoSendWL(id, nm, w); CsoCurW(id, w, clip);
+        g_iHpLvl533[id] = lvl; g_iHpWpn533[id] = w;
+    }
+}
 public task_CsoTick()
 {
+    BossHpTick533();
     new Float:now = get_gametime();
     for (new id = 1; id <= g_iMax; id++)
     {
@@ -6509,7 +6613,8 @@ VexCountdown(id, seconds)
         formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "TUR BASLAMASINA %d^nSAVASA HAZIR OL", seconds);
     else
         formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "ROUND STARTS IN %d^nPREPARE FOR COMBAT", seconds);
-    if (seconds <= 10 || !g_bCsoVex531) CsoNotify(id, CN_TEN, seconds);
+    if (g_bCsoC532) { if (seconds >= 1 && seconds <= 10) CsoNotify(id, CN_TEN, seconds); }
+    else if (seconds <= 10 || !g_bCsoVex531) CsoNotify(id, CN_TEN, seconds);
     else VexNotify(id, CN_TEN, seconds);
     g_szCsoOverride[id][0] = 0;
 }
@@ -6651,7 +6756,7 @@ formatex(key, charsmax(key), "BOSS_NAME_%d", g_iBossType);
 AsciiBar(bar, 20, pct);
 for (new id = 1; id <= g_iMax; id++)
 {
-if (!is_user_connected(id) || is_user_bot(id))
+if (!is_user_connected(id) || is_user_bot(id) || g_iHpLvl533[id] >= 0)     // 5.3.3: picture HP card shown instead
 continue;
 formatex(nm, charsmax(nm), "%L", id, key);
 SpaceOut(nm, spaced, charsmax(spaced));
@@ -8546,6 +8651,32 @@ return;
 if (!PcModel(out))
 out[0] = 0;
 }
+// 5.3.3: config entries whose file is not on the server (shown by the console command vex_kontrol)
+new Trie:g_tResMiss533;
+ResMiss533(const key[], const path[])
+{
+if (g_tResMiss533 == Invalid_Trie) g_tResMiss533 = TrieCreate();
+TrieSetString(g_tResMiss533, key, path);
+}
+public cmd_Kontrol533(id)
+{
+if (id && !(get_user_flags(id) & ADMIN_BAN)) return PLUGIN_HANDLED;
+console_print(id, "===== VEXMIRA AYAR KONTROLU =====");
+new n;
+if (g_tResMiss533 != Invalid_Trie)
+{
+new Snapshot:it = TrieSnapshotCreate(g_tResMiss533), key[48], path[192];
+for (new i = 0; i < TrieSnapshotLength(it); i++)
+{
+TrieSnapshotGetKey(it, i, key, charsmax(key)); TrieGetString(g_tResMiss533, key, path, charsmax(path));
+console_print(id, "  EKSIK DOSYA: vex_res %s -> %s (varsayilan kullaniliyor)", key, path); n++;
+}
+TrieSnapshotDestroy(it);
+}
+console_print(id, "  %d eksik dosya. Ses yolu ornegi: vex_res AMBIENT_MODE2 ^"sound/klasor/dosya.wav^" (wav: mono, 8/16 bit, 11-22 kHz; muzik icin .mp3 de olur)", n);
+console_print(id, "  Kartlar: %s | dev boss: %s | ses %d/512, indirme ~%d, model %d/512", CsoOn() ? "acik" : "KAPALI", g_iGiantMode532 == 2 ? "dosya" : (g_iGiantMode532 == 1 ? "clone" : "kapali"), g_iTotSnd, g_iTotGen, g_iTotMdl);
+return PLUGIN_HANDLED;
+}
 ResSet(const key[], const value[])
 {
 if(!key[0]) return;
@@ -8569,7 +8700,7 @@ if(value[0] && (containi(value,".wav")!=-1 || containi(value,".mp3")!=-1)) {
 while(equali(normalized,"sound/",6)) {new tmp[192];copy(tmp,charsmax(tmp),normalized[6]);copy(normalized,charsmax(normalized),tmp);}
 if(contain(normalized,"..")!=-1 || normalized[0]=='/') {log_amx("[Vexmira] Gecersiz ses yolu: %s",key);return;}
 new full[192];formatex(full,charsmax(full),"sound/%s",normalized);
-if(!file_exists(full,true)) {log_amx("[Vexmira] Ses bulunamadi: %s (%s) - varsayilan kullanilacak",full,key);return;}
+if(!file_exists(full,true)) {log_amx("[Vexmira] Ses bulunamadi: %s (%s) - varsayilan kullanilacak",full,key);ResMiss533(key,full);return;}
 if(containi(value,".mp3")!=-1 || equal(key,"AMBIENT_",8)) copy(normalized,charsmax(normalized),full);
 }
 TrieSetString(g_tRes,key,normalized);
@@ -10174,9 +10305,55 @@ VxItemFxRGB531(id, r, g, b);
 new Float:o[3];
 get_entvar(id, var_origin, o);
 if (i == IT_MEDKIT) FxHeal(id);
-else if (i == IT_ANTIDOTE || i == IT_INFBOMB) FxSpr(o, g_sprFx[FXS_INFECT], 6, 210, 6.0);
-else if (i == IT_FROSTNADE) FxSpr(o, g_sprFx[FXS_ICE], 5, 200, 6.0);
-else if (i == IT_FIRENADE || i == IT_RAGE) FxSpr(o, g_sprFx[FXS_EXFIRE], 4, 200, 6.0);
+ItemFx533(id, i, o);
+}
+// 5.3.3: every shop item family has its own sound + effect (vex_res ITEM_SND_<family> = own .wav)
+enum { IF_POWER = 0, IF_HEAL, IF_ARMOR, IF_MADNESS, IF_RAGE, IF_CLOAK, IF_JUMP, IF_SPEED, IF_SHIELD, IF_REGEN, IF_AMMO, IF_ANTIDOTE, IF_SERUM, IF_TOTAL };
+new const IF_NAME533[IF_TOTAL][] = { "power", "heal", "armor", "madness", "rage", "cloak", "jump", "speed", "shield", "regen", "ammo", "antidote", "serum" };
+// item id -> family (order of the IT_ enum)
+new const ITEM_FAM533[] = { IF_HEAL, IF_ARMOR, IF_POWER, IF_POWER, IF_POWER, IF_JUMP, IF_SPEED, IF_REGEN, IF_AMMO, IF_RAGE,
+    IF_POWER, IF_ANTIDOTE, IF_MADNESS, IF_SERUM, IF_SERUM, IF_RAGE, IF_POWER, IF_ARMOR, IF_SPEED, IF_CLOAK, IF_POWER, IF_SHIELD,
+    IF_AMMO, IF_SPEED, IF_CLOAK, IF_JUMP, IF_REGEN, IF_SHIELD };
+ItemSndPrecache533()
+{
+new key[32], path[96];
+for (new f = 0; f < IF_TOTAL; f++)
+{
+formatex(key, charsmax(key), "ITEM_SND_%s", IF_NAME533[f]);
+if (!TrieGetString(g_tRes, key, path, charsmax(path)))
+{
+formatex(path, charsmax(path), "vexmira/item533/%s.wav", IF_NAME533[f]);
+TrieSetString(g_tRes, key, path);
+}
+PrecacheSoundKeyEx(key, false);
+}
+}
+ItemFx533(id, i, const Float:o[3])
+{
+new f = (0 <= i < sizeof ITEM_FAM533) ? ITEM_FAM533[i] : IF_POWER;
+new key[32]; formatex(key, charsmax(key), "ITEM_SND_%s", IF_NAME533[f]);
+EmitKey(id, key, CHAN_ITEM, ATTN_NORM);
+if (!g_iFx532[X_GLOW]) return;
+new Float:c[3]; c = o; c[2] += 10.0;
+new Float:feet[3]; feet = o; feet[2] -= ((get_entvar(id, var_flags) & FL_DUCKING) ? 16.0 : 34.0);
+switch (f)
+{
+case IF_HEAL: { NxSprite(c, g_iFx532[X_GLOW], 10, 200, 10.0); NxShower(c, g_iFx532[X_TOXICMIST], 10, 10, 2, 22, 18, 60.0); NxRing(feet, g_iFx532[X_RING], 80, 255, 120, 120, 16, 5, 200, 2.0); }
+case IF_ARMOR, IF_SHIELD: { NxExplo(c, g_iFx532[X_SHOCKBURST], 9, 22, 6.0); NxShower(c, g_iFx532[X_SHARD], 14, 8, 2, 30, 20, 30.0); NxRing(feet, g_iFx532[X_RING], 120, 200, 255, 150, 20, 4, 230, 2.0); }
+case IF_MADNESS:
+{
+NxExplo(c, g_iFx532[X_FIREBALL], 12, 18, 10.0);
+NxRing(feet, g_iFx532[X_RING], 255, 20, 20, 260, 34, 5, 240, 2.0); NxRing(feet, g_iFx532[X_RING], 255, 120, 80, 160, 16, 4, 255, 6.0);
+NxLight(c, 255, 20, 20, 30, 12, 20); NxShakeNear(o, 300.0, 6); FadeOne(id, 255, 0, 0, 90, 0.6);
+}
+case IF_RAGE: { NxExplo(c, g_iFx532[X_FIREBALL], 10, 20, 6.0); NxShower(c, g_iFx532[X_EMBER], 18, 10, 2, 40, 24); NxRing(feet, g_iFx532[X_RING], 255, 90, 20, 200, 24, 4, 230, 2.0); }
+case IF_CLOAK: { NxExplo(c, g_iFx532[X_VOIDBURST], 10, 16, 6.0); NxRing(feet, g_iFx532[X_RING], 170, 80, 255, 140, 20, 6, 180, 2.0); }
+case IF_JUMP: { NxRing(feet, g_iFx532[X_RING], 255, 230, 120, 110, 12, 3, 240, 1.0); NxShower(feet, g_iFx532[X_SPARK], 20, 6, 1, 50, 12, 40.0); }
+case IF_SPEED: { NxStreak(feet, 0x6B, 40, 260, 120); NxRing(feet, g_iFx532[X_RING], 255, 220, 60, 180, 14, 3, 240, 2.0); NxShower(c, g_iFx532[X_SPARK], 12, 6, 1, 46, 30); }
+case IF_REGEN, IF_ANTIDOTE, IF_SERUM: { NxField(feet, g_iFx532[X_TOXICMIST], 50, 8, TEFIRE_ADD532 | TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 10); NxSprite(c, g_iFx532[X_GLOW], 8, 180, 10.0); }
+case IF_AMMO: { NxShower(c, g_iFx532[X_SPARK], 16, 6, 1, 34, 20, 20.0); NxRing(feet, g_iFx532[X_RING], 255, 200, 90, 100, 12, 3, 220, 2.0); }
+default: { NxSprite(c, g_iFx532[X_GLOW], 12, 220, 10.0); NxExplo(c, g_iFx532[X_FLARE], 8, 14, 10.0); }
+}
 }
 VxItemFxRGB531(id, r, g, b)
 {
@@ -10684,6 +10861,7 @@ new menu=VexMenuCreate(title,"menu_cos_handler");
 formatex(item,charsmax(item),"%L \d(5, %L) [VC]",id,"ZC_SKINS",id,"ZC_PERM"); MenuAdd(menu,item,21);
 formatex(item,charsmax(item),"%L \d(5, %L) [VC]",id,"ZC_KNIVES",id,"ZC_PERM"); MenuAdd(menu,item,22);
 for(new c=0;c<CM_CATS;c++) {
+if(c==2) continue;      // 5.3.3: no hat market
 formatex(item,charsmax(item),"%L \d(%d) [VC]",id,CM_CATKEY[c],g_iCmN[c]);
 MenuAdd(menu,item,3+c);
 }
@@ -10821,6 +10999,8 @@ new c = -1;
 for (new k = 0; k < CM_CATS; k++)
 if (equali(args[0], CM_TABLE[k])) c = k;
 if (c < 0 || argc < 5)
+return;
+if (c == 2)      // 5.3.3: hats removed (no hat market, no hat downloads)
 return;
 new i = str_to_num(args[1]) - 1;
 if (i < 0 || i >= CM_MAX)
@@ -11669,6 +11849,13 @@ TrieSetString(g_tRes, key, "");
 }
 TrieSnapshotDestroy(it);
 }
+// 5.3.3: special weapon 4 (Dark Knight) removed: no files precached, not in any menu
+#define SW_REMOVED533 4
+VxDisableSW533()
+{
+static const K[][] = { "SW4_VMODEL", "SW4_PMODEL", "SW4_WMODEL", "SW4_FIRE" };
+for (new i = 0; i < sizeof K; i++) TrieSetString(g_tRes, K[i], "");
+}
 VxDefaults()
 {
 new key[24],path[128];
@@ -11689,6 +11876,7 @@ if(file_exists(VX_ORB)) g_iVxOrbModel=PcModel(VX_ORB);
 
 for(new sw;sw<NUM_SPECIAL;sw++)
 {
+if(sw==SW_REMOVED533) {g_bVxReady[sw]=false;g_szSWView[sw][0]=0;g_szSWPlayer[sw][0]=0;g_szVxWorld[sw][0]=0;continue;}
 formatex(path,charsmax(path),"sprites/vexmira/arena51/skill%d.spr",sw);g_iSkillSpr51[sw]=PcModel(path);
 formatex(key,charsmax(key),"SW%d_VMODEL",sw);GetFileModel(key,g_szSWView[sw],charsmax(g_szSWView[]));
 formatex(key,charsmax(key),"SW%d_PMODEL",sw);GetFileModel(key,g_szSWPlayer[sw],charsmax(g_szSWPlayer[]));
@@ -12897,6 +13085,22 @@ g_iLmBlockMask |= (1 << m);
 }
 }
 return (g_iLmBlockMask & (1 << mode)) ? true : false;
+}
+// vex_giant_build: builds the giant copy of EVERY boss now (models/player/<boss>_x<k>/), so the whole set
+// can be copied to FastDL once; players then download each giant only once, fast.
+public srv_GiantBuild533()
+{
+new key[24], nm[32], out[48], ok, all;
+for (new i = 0; i < NUM_BOSSES; i++)
+{
+formatex(key, charsmax(key), "B%d_MODEL", i);
+if (!TrieGetString(g_tRes, key, nm, charsmax(nm)) || !nm[0]) continue;
+all++;
+if (GmBossGiant(nm, out, charsmax(out))) { ok++; server_print("[GiantBoss] %s -> models/player/%s/%s.mdl", nm, out, out); }
+else server_print("[GiantBoss] %s: olusturulamadi (model yok / klasor izni)", nm);
+}
+server_print("[GiantBoss] %d / %d dev boss modeli hazir. Bu klasorleri FastDL'e de kopyala.", ok, all);
+return PLUGIN_HANDLED;
 }
 public srv_DbgGiant()
 {
@@ -28628,6 +28832,7 @@ SetDefaultResources();
 VxDefaults();
 VxLeanResources();
 LoadMainConfig(true);
+VxDisableSW533();
 CsoPrecache();
 VxInfPrecache531();
 NadeFxPrecache531();
@@ -28636,6 +28841,7 @@ register_forward(FM_EmitAmbientSound, "fw_AmbientPost", 1);
 g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "200")), 40, 480);
 // 5.3.1: leave room for the map's own sounds + CS stock sounds (~230) so the map never hits 512
 g_iSndBudget = clamp(min(g_iSndBudget, 500 - 230 - g_iMapSnd531), 40, 480);
+ItemSndPrecache533();
 // 5.2.5: let GameDLL precache stock sounds; no Spawn-time unregistration.
 g_bSndBlockWin=false;
 g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
@@ -28890,7 +29096,7 @@ formatex(key, charsmax(key), "B%d_MODEL", i);
 // 5.3.1: giant copy first (vex_res BOSS_SCALE), original as fallback
 new bname[32], giant[48];
 g_fBossScale531 = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
-g_iGiantMode532 = equali(GetResString("BOSS_GIANT", "clone"), "file") ? 2 : (equali(GetResString("BOSS_GIANT", "clone"), "off") ? 0 : 1);
+g_iGiantMode532 = equali(GetResString("BOSS_GIANT", "file"), "clone") ? 1 : (equali(GetResString("BOSS_GIANT", "file"), "off") ? 0 : 2);
 if (g_iGiantMode532 == 2 && TrieGetString(g_tRes, key, bname, charsmax(bname)) && bname[0] && GmBossGiant(bname, giant, charsmax(giant)))
 {
 new gpath[128]; formatex(gpath, charsmax(gpath), "models/player/%s/%s.mdl", giant, giant);
@@ -29253,7 +29459,7 @@ g_pZc[ZCV_ALTKEYS]     = register_cvar("vex_skill_alt_keys", "1");
 g_pOvhEnable     = register_cvar("vex_overhead", "1");
 g_pHudStyle      = register_cvar("vex_hud_style", "1");
 g_pHudTop        = register_cvar("vex_hud_top", "-1");
-g_pTop532 = register_cvar("vex_topboard", "1"); g_pCosSmooth532 = register_cvar("vex_cos_smooth", "1"); g_pAmbVol532 = register_cvar("vex_ambience_volume", "0.55"); g_pAmbRe532 = register_cvar("vex_ambience_restart", "120"); g_pTopPad532 = register_cvar("vex_topboard_pad", "44"); g_pTopY532 = register_cvar("vex_topboard_y", "0.01");
+g_pTop532 = register_cvar("vex_topboard", "1"); g_pHpCard533 = register_cvar("vex_boss_hpcard", "1"); g_pCosSmooth532 = register_cvar("vex_cos_smooth", "1"); g_pAmbVol532 = register_cvar("vex_ambience_volume", "0.55"); g_pAmbRe532 = register_cvar("vex_ambience_restart", "120"); g_pTopPad532 = register_cvar("vex_topboard_pad", "44"); g_pTopY532 = register_cvar("vex_topboard_y", "0.01");
 g_pHudRight      = register_cvar("vex_hud_right", "-1");
 g_pHudMvp        = register_cvar("vex_hud_mvp", "-1");
 g_pHudXp         = register_cvar("vex_hud_xp", "-1");
@@ -29298,7 +29504,7 @@ register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
 register_srvcmd("vex_debug_buy", "srv_DbgBuy");
 register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");register_srvcmd("vex_debug_card", "srv_DbgCard532");register_srvcmd("vex_debug_lmwall", "srv_DbgLmWall532");register_srvcmd("vex_debug_radio", "srv_DbgRadio532");
-register_srvcmd("vex_debug_giant", "srv_DbgGiant");
+register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);
@@ -29542,7 +29748,7 @@ return 1;
 CommunityWeaponMenu(id)
 {
 new title[320],line[160];VexHead(id,title,charsmax(title),"MENU_SPECIAL");new menu=VexMenuCreate(title,"menu_special_handler");
-for(new i=0;i<NUM_SPECIAL;i++) {formatex(line,charsmax(line),"\w%s \r[%d AP]",V50_NAMES[i],SW_COST[i]);MenuAdd(menu,line,i);}
+for(new i=0;i<NUM_SPECIAL;i++) {if(i==SW_REMOVED533) continue;formatex(line,charsmax(line),"\w%s \r[%d AP]",V50_NAMES[i],SW_COST[i]);MenuAdd(menu,line,i);}
 formatex(line,charsmax(line),"%L",id,"MENU_BACK");MenuAdd(menu,line,999);MenuFinish(id,menu);
 }
 CommunityBuyWeapon(id,i)
@@ -29837,7 +30043,7 @@ return 1;
 }
 bool:CommunityLightNotify(id,note,arg)
 {
-if(!is_user_connected(id) || is_user_bot(id) || !(get_pcvar_num(g_pCsoNotes)&CSO_BIT[note])) return false;
+if(!is_user_connected(id) || is_user_bot(id) || !(CsoNotesMask533()&CSO_BIT[note])) return false;
 if(get_gametime()<g_fLightNoteReady[id]) return true;
 new text[96];
 static const labels[CN_TOTAL][]={"KILL","DOUBLE KILL","TRIPLE KILL","MULTI KILL","MEGA KILL","HEADSHOT","KNIFE KILL","GRENADE KILL","MVP","HUMANS WIN","ZOMBIES WIN","BOSS INCOMING","INFECTION","NEMESIS","ASSASSIN","SURVIVOR","LAST HUMAN","LEVEL UP","ROUND","FIRST BLOOD","BOSS DEFEATED","INFECTED","LAST 10 SECONDS"};
@@ -29858,7 +30064,7 @@ CommunityAdminEquipment(id)
 if(!(get_user_flags(id)&ADMIN_BAN)) return;
 new title[320],line[96]; VexHead(id,title,charsmax(title),"ADMM_4");
 new menu=VexMenuCreate(title,"CommunityAdminEquipmentHandler");
-for(new i=0;i<NUM_SPECIAL;i++) { formatex(line,charsmax(line),"%s [%L]",V50_NAMES[i],id,"ZC_FREE"); MenuAdd(menu,line,i); }
+for(new i=0;i<NUM_SPECIAL;i++) { if(i==SW_REMOVED533) continue; formatex(line,charsmax(line),"%s [%L]",V50_NAMES[i],id,"ZC_FREE"); MenuAdd(menu,line,i); }
 formatex(line,charsmax(line),"%L [%L]",id,"ZC_JETPACK",id,"ZC_FREE"); MenuAdd(menu,line,10);
 
 formatex(line,charsmax(line),"Survivor Minigun \d(%L)",id,"ZC_NEED_SURV"); MenuAdd(menu,line,12); MenuFinish(id,menu);
@@ -29979,8 +30185,7 @@ public CommunityBootMap() { server_cmd("changelevel zm_vexmira_icefy"); }
 EpicPrecache()
 {
 new path[160];
-for(new ae48=0;ae48<EV_TOTAL;ae48++) {formatex(path,charsmax(path),"sound/vexmira/arena48/event%d.wav",ae48);if(file_exists(path,true)) ZcPcGeneric(path);}
-for(new am48=0;am48<MODE_TOTAL;am48++) {formatex(path,charsmax(path),"sound/vexmira/arena48/mode%d.wav",am48);if(file_exists(path,true)) ZcPcGeneric(path);}
+// 5.3.3: arena48/event*.wav + mode*.wav were downloaded but never played (arena51/cues are used) -> removed
 AmbientPrecache49();
 EpicGrenadeEvents();
 if(file_exists("sprites/vexmira/arena51/gren_flare.spr",true)) g_iEpicFlare=ZcPcModel("sprites/vexmira/arena51/gren_flare.spr");
@@ -30872,7 +31077,7 @@ engfunc(EngFunc_SetOrigin,ent,o);a[0]=g_fCmAng[1][i][0];a[1]+=g_fCmAng[1][i][1];
 }
 bool:AmbientValid49(const path[])
 {
-new len=strlen(path);if(len<12 || len>=159 || !equal(path,"sound/",6) || !equali(path[len-4],".wav") || contain(path,"..")!=-1) return false;
+new len=strlen(path);if(len<12 || len>=159 || !equal(path,"sound/",6) || !(equali(path[len-4],".wav") || equali(path[len-4],".mp3")) || contain(path,"..")!=-1) return false;
 for(new j=0;j<len;j++) if(!((path[j]>='a'&&path[j]<='z')||(path[j]>='A'&&path[j]<='Z')||(path[j]>='0'&&path[j]<='9')||path[j]=='_'||path[j]=='/'||path[j]=='.'||path[j]=='-')) return false;
 return file_exists(path,true)?true:false;
 }
@@ -30893,7 +31098,7 @@ formatex(path,charsmax(path),"sound/vexmira/amb532/%s.wav",AMB_BED[bed]);
 if(!file_exists(path,true)) formatex(path,charsmax(path),"sound/vexmira/arena52/ambience/%s%d.wav",kind==0?"mode":(kind==1?"event":"boss"),j);
 TrieSetString(g_tRes,key,path);
 }
-if(path[0] && !TrieKeyExists(g_tAmbientReady52,path) && AmbientValid49(path) && PcSound(path[6])) TrieSetCell(g_tAmbientReady52,path,1);
+if(path[0] && !TrieKeyExists(g_tAmbientReady52,path) && AmbientValid49(path) && (containi(path,".mp3")!=-1 ? ZcPcGeneric(path)>0 : PcSound(path[6])>0)) TrieSetCell(g_tAmbientReady52,path,1);
 }
 UiHudPrecache52();
 RadioPrecache52();
@@ -30913,8 +31118,10 @@ if(!equal(path,g_szAmbient49)) {copy(g_szAmbient49,charsmax(g_szAmbient49),path)
 }
 AmbientStop52(id)
 {
-if(g_szAmbientPlaying52[id][0] && is_user_connected(id) && !is_user_bot(id))
-rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbientPlaying52[id][6],0.0,ATTN_NONE,SND_STOP,PITCH_NORM);
+if(g_szAmbientPlaying52[id][0] && is_user_connected(id) && !is_user_bot(id)) {
+if(containi(g_szAmbientPlaying52[id],".mp3")!=-1) VxClientCmd527(id,"mp3 stop");
+else rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbientPlaying52[id][6],0.0,ATTN_NONE,SND_STOP,PITCH_NORM);
+}
 g_szAmbientPlaying52[id][0]=0;g_iAmbientUser49[id]=0;
 }
 AmbientClient49(id)
@@ -30926,10 +31133,11 @@ if(g_tAmbientReady52==Invalid_Trie || !TrieKeyExists(g_tAmbientReady52,g_szAmbie
 new Float:now=get_gametime(),stamp=g_iAmbientEpoch49*2048+get_user_userid(id);
 if(g_iAmbientUser49[id]==stamp && now<g_fAmbientNext49[id]) return;
 AmbientStop52(id);
-rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbient49[6],floatclamp(get_pcvar_float(g_pAmbVol532),0.05,1.0),ATTN_NONE,0,PITCH_NORM);
+if(containi(g_szAmbient49,".mp3")!=-1) VxClientCmd527(id,"mp3 loop ^"%s^"",g_szAmbient49);
+else rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbient49[6],floatclamp(get_pcvar_float(g_pAmbVol532),0.05,1.0),ATTN_NONE,0,PITCH_NORM);
 if(dbg) log_amx("[AudioDbg] ambiyans #%d CAL %s",id,g_szAmbient49);
 copy(g_szAmbientPlaying52[id],charsmax(g_szAmbientPlaying52[]),g_szAmbient49);
-g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+get_pcvar_float(g_pAmbRe532);
+g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+(containi(g_szAmbient49,".mp3")!=-1?3600.0:get_pcvar_float(g_pAmbRe532));
 }
 
 
@@ -31507,7 +31715,7 @@ new const paths[][]={
 "sound/vexmira/arena52/foley/pin.wav",
 "sound/vexmira/arena52/foley/throw.wav"
 };
-for(new i=0;i<sizeof paths;i++) ZcPcGeneric(paths[i]);
+for(new i=0;i<sizeof paths;i++) if(containi(paths[i],"/arsenal/4/")==-1) ZcPcGeneric(paths[i]);
 }
 
 UiHudPrecache52()

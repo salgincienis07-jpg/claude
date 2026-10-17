@@ -59,7 +59,7 @@ OVERRIDE = [
     ('vex_res ZOMBIE_PAIN "%s"' % PAIN_POOL, 'zombi hasar alinca (sinifa ozel yoksa)'),
     ('vex_res ZOMBIE_DIE "%s"' % DIE_POOL, 'zombi olunce'),
     ('vex_res ZOMBIE_INFECT "%s"' % INFECT_POOL, 'insan zombiye donusunce'),
-    ('vex_sw_damage_mult 3.0', 'OZEL SILAH HASARI: tum ozel silahlarin hasar carpani (vex_sw carpaninin USTUNE; 1.0 = eski)'),
+    ('vex_sw_damage_mult 2.4', 'OZEL SILAH HASARI: tum ozel silahlarin hasar carpani (vex_sw carpaninin USTUNE; 1.0 = eski, 5.3.1 = 3.0)'),
     ('vex_unlimited_bpammo 1', '1 = herkeste sinirsiz yedek mermi (TUM mod/eventlerde), ozel silahlar haric'),
     ('vex_nade_fx 1', '1 = ates / buz / isik / enfeksiyon bombalarinda katmanli epik patlama efektleri'),
     ('vex_cos_follow 1', '1 = kanat + sapka oyuncuya kemikle yapisik (gecikme / isinlanma yok)'),
@@ -67,12 +67,18 @@ OVERRIDE = [
     ('vex_auto_hitbox 1', '1 = boyu uzun modellerde (CSO zombileri, dev bosslar) vurus kutusu modele gore otomatik buyur'),
     ('vex_laser_prices "300 450 600 900"', 'VexCoin lazer isinlari: Plazma / Kan / Toksik / Gokkusagi fiyatlari'),
     ('vex_env_event 18 b 0 0 0 18 0', 'Elektrik Kesintisi: tum round karanlik'),
+    # ---- 5.3.3 ----
+    ('vex_lm_color_mode 3', 'lazer rengi: 3 = insan mavi / zombi yesil (nabizli), 2 = vex_lm_color, 1 = oyuncuya gore, 0 = mayin canina gore'),
+    ('mapcyclefile "mapcycle_vexmira.txt"', 'harita sirasi dosyasi (sunucudaki haritalari buraya ekle; oylama havuzu: vex_map_pool)'),
+    ('vex_boss_hpcard 1', '1 = boss savasinda nisangahin ustunde resimli BOSS CAN BARI (yazili bar yerine)'),
+    ('vex_cso_notes 255', 'hangi resimli kartlar acik (bit toplami): 1 kill 2 MVP 4 round 8 kazanma 16 boss/ozel round 32 son insan 64 seviye 128 ilk kan/boss oldu/enfekte/geri sayim. 255 = HEPSI'),
+    ('vex_cso_fov 89', 'KART ICIN SART: 89 (90 olursa resimli kartlar gorunmez; kart istemcinin zoom nisangahi ile cizilir)'),
     # ---- 5.3.2 ----
     ('vex_chat_prefix "^4[^1VEXMIRA^4]^1"', 'sistem mesaji etiketi (^1 sari ^3 takim rengi ^4 yesil; Turkce harf kullanma, CS 1.6 sohbeti bozuk gosterir)'),
     ('vex_chat_prefix_boss "^3[^4BOSS^3]^1"', 'boss / boss yetenekleri etiketi'),
     ('vex_chat_prefix_event "^4[^3EVENT^4]^1"', 'event / hava olayi etiketi'),
     ('vex_chat_prefix_admin "^3[^4ADMIN^3]^1"', 'admin islemleri etiketi'),
-    ('vex_res BOSS_GIANT "clone"', 'DEV BOSS YONTEMI: clone = boss kendi modeliyle buyuk cizilir (YENI DOSYA YOK, oyuncu hicbir sey indirmez - onerilen) | file = eski yontem (models/player/<boss>_x16 dosyasi uretilir, indirme gerekir) | off = normal boyut'),
+    ('vex_res BOSS_GIANT "file"', 'DEV BOSS: file = boss modelinin buyutulmus kopyasi uretilir (models/player/<boss>_x16; Steam CS 1.6 icin TEK calisan yol) - sunucu konsolunda bir kez vex_giant_build yaz, olusan _x16 klasorlerini FastDL e kopyala | off = normal boyut | clone = sadece Xash istemcisi (Steam de boss buyumez, havada durur - KULLANMA)'),
     ('vex_topboard 1', 'UST SKOR PANELI (CSO tarzi): 1 = acik  [INSAN galibiyet/canli]  TUR + sure + mod  [ZOMBI galibiyet/canli]'),
     ('vex_topboard_pad 44', 'panelde yan bloklarin ortadan uzakligi (bosluk sayisi). Yazilar ust uste binerse buyut, cok aciksa kucult (10-60)'),
     ('vex_topboard_y 0.01', 'panelin ekrandaki yuksekligi (0.0 = en ust, 0.05 = biraz asagi)'),
@@ -102,8 +108,9 @@ OVERRIDE += [
     ('vex_ambience_restart 120', 'ambiyans kac saniyede bir tazelenir (parcalar zaten kendi kendine doner; baglanan / sesi kesilen oyuncu icin)'),
 ]
 # keys whose old value must go (meme sounds on zombies, per-class overrides that hid the pools)
-DROP_VALUE_RE = [re.compile(r'^vex_res Z\d+_(DIE|PAIN)$')]
+DROP_VALUE_RE = [re.compile(r'^vex_res Z\d+_(DIE|PAIN)$'), re.compile(r'^vex_res SW4_')]
 DROP_KEYS = {('vex_restore', 'LASERMINE_MODEL')}
+DROP_CMDS = {'vex_hat', 'vex_cos_smooth'}     # 5.3.3: hats removed
 
 SECTIONS = [
     ('GENEL', 'Sunucu adi, sohbet etiketleri, temel ayarlar',
@@ -195,6 +202,137 @@ def parse(path):
     return out
 
 
+BOSS_TR = ['BRUTE', 'BANSHEE', 'OVERLORD', 'INFERNO', 'REAPER', 'FROSTLORD', 'STORMCALLER', 'HIVE QUEEN', 'VOID']
+CLASS_TR = ['Walker', 'Runner', 'Tank', 'Banshee', 'Leech', 'Stalker', 'Bomber', 'Frost', 'Spitter', 'Hulk', 'Voodoo',
+            'Phantom', 'Kasap', 'Avci', 'Boga', 'Orumcek', 'Magma', 'Volt', 'Taklitci', 'Kostebek', 'Siren', 'Kale',
+            'Spor Ana', 'Kabus']
+MODE_TR = ['Enfeksiyon', 'Coklu Enfeksiyon', 'Nemesis', 'Assassin', 'Survivor', 'Sniper', 'Swarm', 'Plague', 'Armageddon', 'Boss']
+SW_TR = ['Arbalest', 'Heaven Splitter', 'Quantum Horizon', 'Magnum Drill Chimera', 'Dark Knight', 'Infinity Laser Fist',
+         'Void Avenger', 'Dual Beretta Gunslinger']
+BOSS_WHAT = {'INTRO': 'giris sesi (boss dogunca)', 'IDLE': 'bekleme / nefes sesi', 'PAIN': 'hasar alma sesi',
+             'PAIN2': 'hasar alma sesi 2', 'DEATH': 'olum sesi', 'STEP': 'adim / yurume sesi', 'ATTACK': 'pence saldiri sesi',
+             'PHASE': 'faz gecis (ofkelenme) sesi', 'KILL': 'oyuncu oldurunce cikan ses', 'R1': '1. yetenek sesi',
+             'R2': '2. yetenek sesi', 'R3': '3. yetenek sesi', 'MODEL': 'oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)',
+             'CLAW': 'el / pence modeli (v_ modeli)'}
+ZC_WHAT = {'MODEL': 'oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)', 'IDLE': 'bekleme / homurtu sesi',
+           'CLAW': 'el / pence modeli', 'ABILITY': 'yetenek (R) sesi', 'PAIN': 'hasar sesi', 'DIE': 'olum sesi'}
+WPN_WHAT = {'V': 'el (gorus) modeli', 'P': 'oyuncunun elindeki model (baskalari gorur)', 'W': 'yere dusen model'}
+
+
+def auto_comment(key, value):
+    """Turkish explanation for a vex_res line that has none."""
+    m = re.match(r'^B(\d)_([A-Z0-9]+)$', key)
+    if m and int(m.group(1)) < len(BOSS_TR):
+        return 'BOSS %s (%s): %s' % (m.group(1), BOSS_TR[int(m.group(1))], BOSS_WHAT.get(m.group(2), m.group(2).lower()))
+    m = re.match(r'^Z(\d+)_([A-Z0-9]+)$', key)
+    if m and int(m.group(1)) < len(CLASS_TR):
+        return 'ZOMBI SINIFI %s (%s): %s' % (m.group(1), CLASS_TR[int(m.group(1))], ZC_WHAT.get(m.group(2), m.group(2).lower()))
+    m = re.match(r'^MODE(\d)_MUSIC$', key)
+    if m:
+        return '%s roundu muzigi (.wav ya da .mp3)' % MODE_TR[int(m.group(1))]
+    m = re.match(r'^SW(\d)_([A-Z]+)$', key)
+    if m:
+        what = {'VMODEL': 'el modeli', 'PMODEL': 'oyuncu ustu model', 'WMODEL': 'yerdeki model', 'FIRE': 'ates sesi'}.get(m.group(2), m.group(2).lower())
+        return 'OZEL SILAH %s (%s): %s' % (m.group(1), SW_TR[int(m.group(1))], what)
+    m = re.match(r'^([VPW])_([A-Z0-9]+)$', key)
+    if m:
+        return '%s silahi: %s' % (m.group(2).lower(), WPN_WHAT[m.group(1)])
+    m = re.match(r'^(SURVIVOR|SNIPER)_W(\d)_([A-Z]+)$', key)
+    if m:
+        return '%s silahi %s: %s' % (m.group(1).capitalize(), m.group(2), {'VMODEL': 'el modeli', 'PMODEL': 'oyuncu ustu model', 'SOUND': 'ates sesi'}.get(m.group(3), ''))
+    m = re.match(r'^STREAK_(\d)$', key)
+    if m:
+        return 'seri oldurme sesi (%s. seviye)' % m.group(1)
+    v = value.lower()
+    known = {'MODEL_BUDGET': 'eklentinin yukleyebilecegi en fazla model/sprite sayisi (512 sinirina karsi koruma)',
+             'SOUND_BUDGET': 'eklentinin yukleyebilecegi en fazla 3D ses sayisi (512 sinirina karsi koruma)',
+             'HUMAN_MODELS': 'insan oyuncu modelleri (birden fazla: bosluk ile; models/player/AD/AD.mdl -> AD)',
+             'ADMIN_MODEL': 'admin oyuncu modeli', 'VIP_MODEL': 'VIP oyuncu modeli', 'SURVIVOR_MODEL': 'Survivor modeli',
+             'SNIPER_MODEL': 'Sniper modeli', 'NEMESIS_MODEL': 'Nemesis modeli', 'ASSASSIN_MODEL': 'Assassin modeli',
+             'VOX_COUNTDOWN': 'geri sayim anonsu: 0 kapali, 1 sayilar, 2 sayilar + efekt',
+             'LASERMINE_BODY': 'mayin model govde no', 'LASERMINE_SKIN': 'mayin model skin no',
+             'LASERMINE_ANGLES': 'mayin model aci duzeltmesi (pitch yaw roll)', 'LASERMINE_OFFSET': 'mayinin duvardan uzakligi (birim)'}
+    if key in known:
+        return known[key]
+    if key.startswith('VOX_'):
+        return 'anons (vox) sesi: ' + key[4:].lower()
+    if key.endswith('_MODEL') or key.endswith('MODELS'):
+        return 'model: ' + key.lower().replace('_', ' ') + ' (bos = varsayilan)'
+    if not value.strip('"'):
+        return key.lower().replace('_', ' ') + ' (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)'
+    if '.wav' in v or '.mp3' in v:
+        return 'ses: ' + key.lower().replace('_', ' ') + ' (degistirmek icin kendi dosya yolunu yaz; "" = sessiz)'
+    if '.mdl' in v:
+        return 'model: ' + key.lower().replace('_', ' ')
+    if '.spr' in v:
+        return 'sprite / efekt: ' + key.lower().replace('_', ' ')
+    return ''
+
+
+EV_TR = ['Normal', 'Kan Ayi', 'Yogun Sis', 'Hiz Tutkusu', 'Dusuk Yercekimi', 'Cift Hasar', 'Karanlik Gece', 'Salgin',
+         'Malzeme Dususu', 'Delilik', 'Adrenalin', 'Meteor Yagmuru', 'Zombi Surusu', 'Titan Saati', 'Altin Hucumu',
+         'Vampir Gecesi', 'Kafa Avi', 'Firtina', 'Elektrik Kesintisi']
+CVAR_TR = {
+    'mp_maxrounds': 'harita kac round surer', 'mp_roundover': 'round bitince bekleme davranisi (ReGameDLL)',
+    'mp_autoteambalance': 'otomatik takim dengeleme (zombi modunda 0)', 'mp_limitteams': 'takim farki siniri (0 = yok)',
+    'mp_buytime': 'CS satin alma suresi (0 = kapali, market eklentide)', 'mp_buy_anywhere': 'her yerde CS market (0 = kapali)',
+    'mp_maxmoney': 'en fazla para', 'mp_t_default_weapons_secondary': 'T baslangic tabancasi ("" = yok)',
+    'mp_ct_default_weapons_secondary': 'CT baslangic tabancasi', 'mp_t_default_weapons_primary': 'T baslangic silahi',
+    'mp_ct_default_weapons_primary': 'CT baslangic silahi', 'mp_t_give_player_knife': 'T bicak verilir', 'mp_ct_give_player_knife': 'CT bicak verilir',
+    'mp_free_armor': 'bedava zirh', 'mp_weapons_allow_map_placed': 'haritadaki silahlar alinabilir', 'mp_nadedrops': 'olunce bomba dusurme',
+    'mp_weapondrop': 'olunce silah dusurme', 'mp_item_staytime': 'yerdeki esya kac sn kalir', 'mp_falldamage': 'dusme hasari',
+    'mp_respawn_immunitytime': 'dogunca dokunulmazlik sn', 'mp_kill_filled_spawn': 'dolu dogma noktasinda oldurme',
+    'mp_show_scenarioicon': 'senaryo ikonu', 'mp_scoreboard_showmoney': 'skor tablosunda para gorunumu', 'mp_knockback': 'CS geri tepmesi (eklentininki ayri)',
+    'mp_freezetime': 'round basi donma suresi (sn)', 'mp_roundtime': 'round suresi (dakika)', 'mp_friendlyfire': 'takim hasari',
+    'mp_footsteps': 'ayak sesleri', 'mp_tkpunish': 'takim oldurme cezasi', 'sv_alltalk': '1 = herkes birbirini duyar',
+    'sv_allowupload': 'oyuncu spray yukleme', 'sv_auto_precache_sounds_in_models': 'modellerdeki sesleri otomatik yukle (0 = ses limiti icin kapali)',
+    'vex_ui52': 'ekran duyurulari (mod / event baslangic yazilari)', 'vex_rounds_total': 'toplam round (harita oylamasi icin)',
+    'vex_boss_rounds': 'hangi roundlar BOSS roundu (bosluk ile)', 'vex_event_chance': 'event cikma sansi (%)',
+    'vex_vote_every': 'kac roundda bir mod oylamasi', 'vex_map_pool': 'oylamadaki haritalar', 'vex_map_vote_round': 'harita oylamasi hangi roundda',
+    'vex_map_vote_time': 'harita oylama suresi (sn)', 'vex_map_vote_extend': '1 = "haritayi uzat" secenegi', 'vex_map_ambience': 'harita ortam sesi seviyesi / sikligi',
+    'vex_survivor_hp': 'Survivor cani', 'vex_sniper_hp': 'Sniper cani', 'vex_nemesis_speed': 'Nemesis hizi', 'vex_assassin_speed': 'Assassin hizi',
+    'vex_nemesis_gravity': 'Nemesis yercekimi (1 = normal)', 'vex_assassin_gravity': 'Assassin yercekimi',
+    'vex_nemesis_rage_cooldown': 'Nemesis ofke yetenegi bekleme (sn)', 'vex_assassin_veil_cooldown': 'Assassin gorunmezlik bekleme (sn)',
+    'vex_boss_hp': 'boss temel cani', 'vex_boss_hp_per_player': 'her oyuncu basina boss can artisi', 'vex_special_kill_ap': 'ozel zombi oldurme odulu (AP)',
+    'vex_nade_cluster_damage': 'misket bombasi parca hasari', 'vex_boss_kill_ap': 'boss oldurme odulu (AP)', 'vex_boss_kill_vc': 'boss oldurme odulu (VexCoin)',
+    'vex_bossbar_width': 'boss can bari genisligi', 'vex_airdrop': '1 = ikmal kutusu dususu acik', 'vex_env_calm_random': 'sakin roundlarda rastgele isik/hava',
+    'vex_weather': 'hava durumu (0 kapali, 1 yagmur, 2 kar)', 'vex_nade_fire_radius': 'ates bombasi yaricapi', 'vex_nade_frost_radius': 'buz bombasi yaricapi',
+    'vex_lm_enable': '1 = lazer mayin acik', 'vex_lm_per_round': 'oyuncu basina round basi mayin', 'vex_lm_per_round_vip': 'VIP round basi mayin',
+    'vex_lm_max': 'ayni anda en fazla mayin', 'vex_lm_max_vip': 'VIP ayni anda en fazla mayin', 'vex_lm_block_modes': 'lazer mayinin YASAK oldugu modlar',
+    'vex_vip_contact': 'VIP almak icin iletisim (menude gorunur)', 'vex_vip_bonus': 'VIP ekstra odul %', 'vex_vip_armor': 'VIP round basi zirh',
+    'vex_vip_autopack': 'VIP otomatik paket', 'vex_vip_spawnprot': 'VIP dogma korumasi (sn)', 'vex_vip_vote_weight': 'VIP oy agirligi',
+    'vex_vip_join_announce': 'VIP girince duyuru', 'vex_hud_style': 'HUD stili', 'vex_hud_mvp': 'MVP bilgisi HUD da', 'vex_hud_overhead': 'kafa ustu bilgi stili',
+    'vex_cso_style': '1 = CSO resimli kart sistemi acik (0 = kapali)', 'vex_cso_time': 'kart ekranda kalma suresi (sn)', 'vex_cso_sound': 'kart sesi',
+    'vex_cso_icons': 'sag tarafta rol ikonu', 'vex_overhead': 'kafa ustu can bari / ikon', 'vex_overhead_margin': 'kafa ustu ikon yuksekligi', 'vex_head_icon_size': 'kafa ustu ikon boyutu',
+    'vex_radio52': '1 = ozel telsiz sesleri acik', 'vex_radio52_interval': 'rastgele telsiz konusmasi araligi (sn)', 'vex_six_tracer_every': 'iz mermisi sikligi',
+    'vex_meme_cooldown': 'meme sesi bekleme (sn)', 'vex_win_human_ap': 'insanlar kazaninca AP', 'vex_win_zombie_ap': 'zombiler kazaninca AP',
+    'vex_achievement_vc': 'basarim odulu (VC)', 'vex_infect_xp': 'enfekte etme XP', 'vex_mvp_vc': 'MVP odulu (VC)', 'vex_debug_dirs': 'gelistirici testi (0 birak)',
+    'vex_elite_bonus': 'ELITE ekstra odul %', 'vex_elite_armor': 'ELITE zirh', 'amx_language': 'varsayilan dil (en / tr)', 'amx_client_languages': 'oyuncu kendi dilini secebilir',
+    'vex_connection_log': 'baglanma / ayrilma kaydi', 'vex_start_ap': 'yeni oyuncu baslangic AP', 'vex_motd': 'giriste bilgi penceresi',
+    'vex_chat_tip_interval': 'sohbet ipucu araligi (sn)', 'vex_modewpn': 'Survivor / Sniper silahi: <mod> <yuva> <silah> <hasar> <sarjor> <yedek> <efekt>',
+}
+
+
+def cvar_comment(key):
+    cmd = key[0]
+    if cmd == 'vex_sw' and len(key) > 1:
+        return 'OZEL SILAH %s (%s): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>' % (key[1], SW_TR[int(key[1])])
+    if cmd == 'vex_sw_text' and len(key) > 2:
+        return 'OZEL SILAH %s yazisi (%s): ad + aciklama' % (key[1], key[2])
+    if cmd in ('vex_env_event', 'vex_env_mode', 'vex_env_boss', 'vex_env_calm') and len(key) > 1:
+        n = int(key[1])
+        who = {'vex_env_event': 'EVENT %d (%s)' % (n, EV_TR[n] if n < len(EV_TR) else n),
+               'vex_env_mode': 'MOD %d (%s)' % (n, MODE_TR[n] if n < len(MODE_TR) else n),
+               'vex_env_boss': 'BOSS %d (%s)' % (n, BOSS_TR[n] if n < len(BOSS_TR) else n),
+               'vex_env_calm': 'sakin tur %d' % n}[cmd]
+        return '%s: <isik a-z (a karanlik, m normal)> <sis R G B> <sis yogunluk> <hava 0/1 yagmur/2 kar>' % who
+    if cmd == 'vex_wing':
+        return 'KANAT %s: "EN ad" "TR ad" <model> <VC fiyat> <vip 0/1> <bone> <x y z> <aci p y r> <olcek> <animasyon> <hiz>' % key[1]
+    if cmd == 'vex_pet':
+        return 'PET %s: "EN ad" "TR ad" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>' % key[1]
+    return CVAR_TR.get(cmd, '')
+
+
 def main():
     SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
     base = parse(os.path.join(SRC, 'vexmira_530.cfg'))
@@ -221,8 +359,15 @@ def main():
             table[k]['code'] = line
             if com:
                 table[k]['comment'] = com
+    for k in order:
+        e = table[k]
+        if k[0] == 'vex_res' and len(k) > 1 and not e['comment']:
+            val = e['code'].split(None, 2)[2] if len(e['code'].split(None, 2)) > 2 else ''
+            e['comment'] = auto_comment(k[1], val)
+        elif not e['comment']:
+            e['comment'] = cvar_comment(k)
     for k in list(order):
-        if k in DROP_KEYS or (k[0] == 'vex_res' and len(k) > 1 and any(r.match('vex_res ' + k[1]) for r in DROP_VALUE_RE)):
+        if k in DROP_KEYS or k[0] in DROP_CMDS or (k[0] == 'vex_res' and len(k) > 1 and any(r.match('vex_res ' + k[1]) for r in DROP_VALUE_RE)):
             order.remove(k)
             table.pop(k, None)
     # sectioning
@@ -260,23 +405,32 @@ def main():
         out.append('// ' + '=' * W)
 
     def emit(e):
-        for l in e['lead']:
-            if not l.lower().startswith(('vexmira zombie', 'vexmira community', 'vexmira six', 'vexmira 5.')):
-                out.append('// ' + l)
+        pass                                    # 5.3.3: old (English) note lines dropped, sections explain
         code = e['code']
         out.append(('%-60s // %s' % (code, e['comment'])) if e['comment'] else code)
 
     out += [
-        '// VEXMIRA ZOMBIE 5.3.1 - TEK AYAR DOSYASI (vexmira_core + vexmira_gear)',
+        '// VEXMIRA ZOMBIE 5.3.3 - TEK AYAR DOSYASI (vexmira_core + vexmira_gear)',
         '// ' + '-' * W,
         '// NASIL DEGISTIRILIR:',
-        '//  * Her satir: ayar_adi deger      // aciklama   ("//" sonrasi okunmaz, istediginiz notu yazabilirsiniz)',
-        '//  * Degeri degistirip kaydedin; oyunda "amx_rcon vex_reload" veya harita degisimi ile gecerli olur.',
-        '//  * vex_res ... satirlari (model / ses / sprite / gokyuzu) SADECE harita degisiminde yuklenir.',
-        '//  * Ses satirlarinda birden fazla dosya "a.wav|b.wav|c.wav" seklinde yazilabilir: her seferinde rastgele biri.',
-        '//  * Yol yazarken: modeller "models/...mdl", sesler "sound/" OLMADAN ("zombie/claw_strike1.wav").',
-        '//  * Dosya sunucuda yoksa eklenti onu ATLAR (cokmez) ve logs/ altina "bulunamadi" yazar.',
-        '//  * vexmira_epic.cfg ARTIK KULLANILMAZ: tum ayarlar bu dosyada (eski dosya otomatik .old yapilir).',
+        '//  * Her satir:   ayar_adi  deger      // aciklama    ("//" sonrasi okunmaz, kendi notunu yazabilirsin)',
+        '//  * Kaydet; oyunda "amx_rcon vex_reload" ya da harita degisimiyle gecerli olur.',
+        '//  * vex_res ... satirlari (model / ses / sprite / gokyuzu / ambiyans) SADECE harita degisiminde yuklenir.',
+        '//  * SES YOLU:   "sound/" ile ya da onsuz yazabilirsin, ikisi de olur:  "vexmira/x.wav" = "sound/vexmira/x.wav"',
+        '//      wav dosyasi MONO olmali (8 ya da 16 bit, 11025 / 22050 Hz). Stereo / 44 kHz wav CS 1.6 da CALMAZ.',
+        '//      Muzik / ambiyans icin .mp3 de kullanabilirsin.',
+        '//  * Birden fazla ses:  "a.wav|b.wav|c.wav"  -> her seferinde rastgele biri.',
+        '//  * MODEL YOLU: "models/klasor/dosya.mdl"; oyuncu modellerinde sadece klasor adi (models/player/AD/AD.mdl -> "AD").',
+        '//  * "" (bos) = o ses / model kapali ya da varsayilan.',
+        '//  * Dosya sunucuda yoksa eklenti onu ATLAR (cokmez). Hangi dosyalarin eksik oldugunu gormek icin',
+        '//    sunucu konsoluna (ya da admin olarak oyunda) yaz:  vex_kontrol',
+        '// ORNEKLER:',
+        '//    Nemesis roundu ambiyansi    ->  vex_res AMBIENT_MODE2 "sound/benim/nemesis_amb.wav"',
+        '//    Boss 0 (Brute) giris sesi    ->  vex_res B0_INTRO "benim/brute_giris.wav"',
+        '//    Zombi pencesi sesleri        ->  vex_res ZOMBIE_HIT "zombie/claw1.wav|zombie/claw2.wav"',
+        '//    Kanat modeli                 ->  vex_wing 1 "Ad" "Ad TR" models/benim/kanat.mdl 250 0 bone -3 0 -2 0 0 0 1 1 1.0',
+        '//    Market esyasi sesi           ->  vex_res ITEM_SND_madness "benim/cinnet.wav"',
+        '//  * vexmira_epic.cfg ARTIK KULLANILMAZ: tum ayarlar bu dosyada.',
         '// ' + '-' * W,
     ]
     for name, desc, _ in SECTIONS:
