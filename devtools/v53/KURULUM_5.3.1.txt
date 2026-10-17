@@ -43,7 +43,7 @@ COKMELERIN SEBEBI VE COZUMU
   BOSS_PRELOAD 9 -> 3 (bosslar haritadan haritaya doner) + motor seviyesi guvenlik agi:
   ses / indirme listesi 509 a gelirse fazlasi reddedilir (sunucu asla cokmez).
   Olcum (3 harita): ses 506-509, indirme ~450, model ~420 / 512, hicbir harita sesi reddedilmedi.
-TEST: gercek oyuncu + 31 bot (32 kisi dolu, 7door) ve 20 bot (18 dk),, tum modlar / bosslar / eventler, tum market esyalari,
+TEST: gercek oyuncu + 31 bot (32 kisi dolu, 7door) ve 20 bot (18 dk), tum modlar / bosslar / eventler, tum market esyalari,
 8 ozel silah (sol+sag tik), jetpack, 8 bicak, 5 CT skin, 18 kozmetik, enfeksiyon bombasi:
 COKME YOK.
 
