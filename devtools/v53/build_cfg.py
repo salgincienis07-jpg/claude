@@ -86,6 +86,7 @@ OVERRIDE = [
     ('vex_topboard_y 0.01', 'panelin ekrandaki yuksekligi (0.0 = en ust, 0.05 = biraz asagi)'),
     ('vex_radio_text 1', '1 = ozel telsiz sesi calinca sohbete gercekci telsiz metni yazilir (TR/EN, oyuncunun diline gore)'),
     ('vex_cos_smooth 1', '1 = sapkalar oyuncuyla ayni akicilikta hareket eder (gecikme / isinlanma yok)'),
+    ('vex_map_pool "zm_vexmira_7door zm_vexmira_dust zm_vexmira_icefy zm_3rooms zm_cross zm_dust_world zm_foda zm_fox zm_lila_panic zm_ice_attack3"', 'oylamadaki haritalar (sunucuda .bsp dosyasi olmayan harita oylamada gosterilmez)'),
     ('vex_full_rotation 1', '1 = her haritada (30 round) 7 ozel modun HEPSI + 18 eventin HEPSI + coklu enfeksiyon kesin oynanir (harita basinda plan kurulur; boss roundlari vex_boss_rounds). 0 = eski rastgele sistem'),
     ('vex_special_rounds "4 11 19 26"', 'ozel mod roundlari - SADECE vex_full_rotation 0 iken kullanilir'),
     ('vex_event_chance 30', 'event cikma sansi (%) - SADECE vex_full_rotation 0 iken kullanilir'),

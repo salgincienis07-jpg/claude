@@ -9002,19 +9002,45 @@ if (id && !(get_user_flags(id) & ADMIN_BAN)) return PLUGIN_HANDLED;
 new total = FdlCollect534(), dir[96], out[128], url[128];
 get_datadir(dir, charsmax(dir));
 formatex(out, charsmax(out), "%s/vexmira_fastdl.txt", dir);
-delete_file(out);
 get_cvar_string("sv_downloadurl", url, charsmax(url));
-write_file(out, "// Vexmira: bu haritada oyuncularin indirdigi ozel dosyalar (buyukten kucuge). FastDL klasorune AYNI yollarla kopyala.");
-for (new i = 0; i < g_iFdlN534; i++) { new l[140]; formatex(l, charsmax(l), "%s   // %d KB", g_szFdl534[i], g_iFdlSz534[i] / 1024); write_file(out, l); }
+FdlWrite534(total);
 console_print(id, "[Vexmira] %d dosya, toplam %.1f MB -> %s", g_iFdlN534, float(total) / 1048576.0, out);
 console_print(id, "[Vexmira] FastDL: %s", url[0] ? url : "YOK (sv_downloadurl bos) - oyuncular bu dosyalari oyunun yavas indirmesiyle ceker!");
 for (new i = 0; i < min(12, g_iFdlN534); i++) console_print(id, "   %5d KB  %s", g_iFdlSz534[i] / 1024, g_szFdl534[i]);
 return PLUGIN_HANDLED;
 }
+// list of this map + one merged list of every map played so far (vexmira_fastdl_hepsi.txt)
+FdlWrite534(total)
+{
+new dir[96], out[128], all[128], map[48], l[140];
+get_datadir(dir, charsmax(dir));
+get_mapname(map, charsmax(map));
+formatex(out, charsmax(out), "%s/vexmira_fastdl.txt", dir);
+formatex(all, charsmax(all), "%s/vexmira_fastdl_hepsi.txt", dir);
+delete_file(out);
+formatex(l, charsmax(l), "// Vexmira - %s: oyuncunun indirdigi %d ozel dosya, %.1f MB (buyukten kucuge). FastDL klasorune AYNI yollarla kopyala.", map, g_iFdlN534, float(total) / 1048576.0);
+write_file(out, l);
+for (new i = 0; i < g_iFdlN534; i++) { formatex(l, charsmax(l), "%s   // %d KB", g_szFdl534[i], g_iFdlSz534[i] / 1024); write_file(out, l); }
+new Trie:seen = TrieCreate(), line[140];
+new fp = fopen(all, "rt");
+if (fp)
+{
+while (!feof(fp)) { fgets(fp, line, charsmax(line)); trim(line); if (line[0] && line[0] != '/') TrieSetCell(seen, line, 1); }
+fclose(fp);
+}
+else write_file(all, "// Vexmira - oynanan BUTUN haritalarin indirme dosyalari (her harita acilisinda eklenir). Hepsini FastDL'e AYNI yollarla koy.");
+new added;
+for (new i = 0; i < g_iFdlN534; i++)
+if (!TrieKeyExists(seen, g_szFdl534[i])) { write_file(all, g_szFdl534[i]); TrieSetCell(seen, g_szFdl534[i], 1); added++; }
+TrieDestroy(seen);
+return added;
+}
 public task_FastDlWarn534()
 {
 new url[128]; get_cvar_string("sv_downloadurl", url, charsmax(url));
 new total = FdlCollect534();
+new added = FdlWrite534(total);
+if (added) log_amx("[Vexmira] FastDL listesi: %d yeni dosya data/vexmira_fastdl_hepsi.txt dosyasina eklendi", added);
 if (!url[0])
 log_amx("[Vexmira] UYARI: FastDL (sv_downloadurl) yok. Bu haritada %d ozel dosya / %.1f MB oyuncuya YAVAS indirilir. Liste: konsola vex_fastdl", g_iFdlN534, float(total) / 1048576.0);
 else

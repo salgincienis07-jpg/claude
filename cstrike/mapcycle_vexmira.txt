@@ -1,8 +1,10 @@
-zm_vexmira_icefy
-zm_vexmira_dust
 zm_vexmira_7door
-zm_vex_laboratory
-zm_vex_harbor
-zm_vex_ruins
-zm_vex_frostbase
-zm_vex_temple
+zm_vexmira_dust
+zm_vexmira_icefy
+zm_3rooms
+zm_cross
+zm_dust_world
+zm_foda
+zm_fox
+zm_lila_panic
+zm_ice_attack3

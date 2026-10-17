@@ -15045,7 +15045,7 @@ new const ZC_F_CFG[][] = {
 "// ==============================================================================",
 "vex_vote_every 6                                             // kac roundda bir mod oylamasi",
 "vex_map_vote           1                                     // 1 = harita oylamasi + RTV acik (0 = kapali, oyunun kendi dongusu)",
-"vex_map_pool ^"zm_vexmira_icefy zm_vexmira_dust zm_vexmira_7door^" // oylamadaki haritalar",
+"vex_map_pool ^"zm_vexmira_7door zm_vexmira_dust zm_vexmira_icefy zm_3rooms zm_cross zm_dust_world zm_foda zm_fox zm_lila_panic zm_ice_attack3^" // oylamadaki haritalar (sunucuda .bsp dosyasi olmayan harita oylamada gosterilmez)",
 "vex_map_vote_round 30                                        // harita oylamasi hangi roundda",
 "vex_map_vote_time 20                                         // harita oylama suresi (sn)",
 "vex_map_vote_extend 0                                        // 1 = ^"haritayi uzat^" secenegi",

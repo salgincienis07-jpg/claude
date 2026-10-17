@@ -1,0 +1,50 @@
+VEXMIRA ZOMBIE 5.3.4 - TAM GUNCEL PAKET (5.3.2 + 5.3.3 + 5.3.4a + 5.3.4 hepsi icinde)
+===================================================================================
+Bu zip, 5.3.1'den bu yana degisen / eklenen BUTUN dosyalari icerir. Onceki 5.3.x paketlerine gerek yok.
+Sunucuda zaten olan eski modeller / sesler (bosslar, silahlar, zombi siniflari) pakette yok, oldugu gibi kalir.
+
+KURULUM
+-------
+1) Eklentiler -> Eklenti Yukle:  addons/amxmodx/scripting/vexmira_core.sma  ve  vexmira_gear.sma
+   (Panel derleyemezse: addons/amxmodx/plugins/ icindeki hazir .amxx dosyalarini at.)
+2) Dosya Yonetici: zip'teki cstrike/ klasorunun icindekileri sunucunun cstrike/ klasorune kopyala (ustune yaz).
+   Icinde: vexmira.cfg, dil dosyasi, 7door haritasi + tam senaryo dosyasi (helikopter), mapcycle_vexmira.txt,
+   kartlar (c533 + yeni ust boss bari c534), efekt sprite'lari (fx532), ambiyans / yetenek / esya sesleri.
+3) Silebilirsin (artik kullanilmiyor): sprites/vexmira/c532/ , sprites/vexmira/cso/ ,
+   sprites/vexmira/c533/hp_*.txt , sprites/vexmira/c533/shp*.spr
+4) Haritayi degistir. Eklenti dev boss dosyalarini (models/player/*_x16) kendisi kucuk haliyle uretir.
+
+FASTDL (girislerde bekleme olmamasi icin EN ONEMLI adim)
+-------------------------------------------------------
+* FASTDL_LISTESI.txt : config'teki butun dosya yollari + bosslar (normal + dev _x16) + haritalar + bizim
+  butun dosyalarimiz. Bu listedeki dosyalarin HEPSINI FastDL klasorune AYNI klasor yapisiyla kopyala
+  (sunucuda olmayan satiri atla). Dev boss _x16 dosyalari sunucuda haritayi bir kez actiktan sonra olusur.
+* Haritalarin .res dosyasi varsa (zm_dust_world.res, zm_lila_panic.res ...) icinde yazan dosyalari da kopyala.
+* Sunucu ayrica her harita acilisinda gercek listeyi kendisi yazar:
+      addons/amxmodx/data/vexmira_fastdl.txt        (o anki harita, buyukten kucuge, KB ile)
+      addons/amxmodx/data/vexmira_fastdl_hepsi.txt  (oynanan butun haritalar birlesik)
+  Bir sure oynadiktan sonra bu "hepsi" dosyasina bakip eksik kalan dosyalari da FastDL'e at.
+* Log'da "FastDL yok" uyarisi cikiyorsa sv_downloadurl ayarli degildir.
+
+HARITALAR
+---------
+Oylama havuzu (vex_map_pool) ve harita sirasi (mapcycle_vexmira.txt):
+  zm_vexmira_7door zm_vexmira_dust zm_vexmira_icefy zm_3rooms zm_cross zm_dust_world zm_foda zm_fox
+  zm_lila_panic zm_ice_attack3
+* zm_ice_attack3 pakette yok (internette guvenilir bir indirme bulunamadi): .bsp dosyasini maps/ klasorune
+  sen koy. Sunucuda .bsp'si olmayan harita oylamada otomatik gosterilmez, hata vermez.
+* Ekran goruntusundeki haritalar (3rooms, cross, dust_world, foda, fox, lila_panic) sunucuda var; .bsp ve
+  .res dosyalarini FastDL'e de koy.
+
+5.3.4'TE NE DEGISTI (ozet)
+--------------------------
+* Dev boss dosyalari ~3 kat kucuk, 9'u da tek seferlik indirme (her haritada yeni indirme yok).
+* Boss can bari ekranin ust kisminda (vex_boss_hpcard 0 = kapali).
+* "ENFEKTE ETTIN" karti artik sadece enfekte eden zombide.
+* Lazerler: hasar 550 (insan + zombi), iki taraf da karsi lazeri kirabilir, sahibi olunce kaybolmaz.
+* 7door: helikopter, modeller, efektler, ortam sesleri, telsiz geri geldi (senaryo dosyasi tamamlandi).
+* 30 roundda 7 ozel modun ve 18 eventin HEPSI kesin oynanir (vex_plan ile plani gor).
+* Sunucu adi: VEXMIRA ZOMBIE PLAGUE | 9 BOSS | 18 EVENT | CSO SILAH | LAZER
+Ayrintilar: 5.3.2 / 5.3.3 / 5.3.4 notlari bu paketteki KURULUM_*.txt dosyalarinda.
+
+TEST: 32 oyuncu 7door - cokme yok, hata yok; model 441/512, ses 498/512, indirme listesi 416/512.
