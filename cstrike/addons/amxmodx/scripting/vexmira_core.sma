@@ -3778,7 +3778,11 @@ new g_szWNade[3][96], g_szEggModel[96];
 new g_iDropBodyChute, g_iDropBodyLanded, g_szDropSeqFall[24], g_szDropSeqIdle[24], g_szMineSeqName[24], g_szMineDeploySeq[24];
 new Trie:g_tSnd2D, Trie:g_tSnd3D, Trie:g_tMdlDone;
 new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_iMdlBudget, g_iSndSkipped, g_iMdlSkipped;
+new g_pCosFollow531;
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
+new g_szInfV531[96] = "models/vexmira/nades/v_infect.mdl", g_szInfP531[96] = "models/vexmira/nades/p_infect.mdl", g_szInfW531[96] = "models/vexmira/nades/w_infect.mdl";
+new Trie:g_tPcAll531, bool:g_bPcReady531, bool:g_bPcHook531, Float:g_fGuardTime531, g_iGuardV531[33], g_iGuardP531[33], g_iGuardLog531;
+
 #define MAX_AMB 64
 new g_iAmbEnt[MAX_AMB], g_szAmbSnd[MAX_AMB][64], Float:g_fAmbVol[MAX_AMB], Float:g_fAmbAttn[MAX_AMB];
 new g_iAmbPitch[MAX_AMB], bool:g_bAmbOn[MAX_AMB], g_iAmbN, g_iAmbRestored, bool:g_bAmbReplay, bool:g_bAmbMuted;
@@ -5071,7 +5075,7 @@ return 0;
 set_entvar(ent, var_classname, ZONE_CLASS);
 if (g_sprZone)
 {
-engfunc(EngFunc_SetModel, ent, g_szSprZone);
+VxSM(ent, g_szSprZone);
 set_entvar(ent, var_rendermode, kRenderTransAdd);
 set_entvar(ent, var_renderamt, 220.0);
 new Float:c[3];
@@ -6642,7 +6646,7 @@ set_entvar(ent, var_flags, FL_KILLME);
 return 0;
 }
 set_entvar(ent, var_classname, OVH_CLASS);
-engfunc(EngFunc_SetModel, ent, g_szOvhSpr[slot]);
+VxSM(ent, g_szOvhSpr[slot]);
 set_entvar(ent, var_solid, SOLID_NOT);
 set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
 set_entvar(ent, var_iuser1, id);
@@ -7485,6 +7489,7 @@ return FMRES_IGNORED;
 public fw_PcModelPost(const s[])
 {
 g_iTotMdl = max(g_iTotMdl, get_orig_retval());
+if (get_orig_retval() > 0) VxPcRemember(s);
 return FMRES_IGNORED;
 }
 public fw_PcGenericPost(const s[])
@@ -7509,6 +7514,7 @@ log_amx("[Vexmira] UYARI: precache limitine yakin! vexmira.cfg: vex_res SOUND_BU
 }
 public srv_PrecacheStats()
 {
+server_print("[ModelGuard] hook=%d kayitli model=%d v_ak47=%d p_fgrenade=%d", g_bPcHook531, g_tPcAll531 != Invalid_Trie ? TrieGetSize(g_tPcAll531) : -1, VxModelOk("models/v_ak47.mdl"), VxModelOk("models/p_fgrenade.mdl"));
 new list[96], nm[16];
 for (new i = 0; i < g_iBossLoadN; i++)
 {
@@ -10286,7 +10292,7 @@ set_entvar(ent, var_flags, FL_KILLME);
 return;
 }
 set_entvar(ent, var_classname, "vex_cosmodel");
-engfunc(EngFunc_SetModel, ent, g_szCmMdl[c][i]);
+VxSM(ent, g_szCmMdl[c][i]);
 set_entvar(ent, var_solid, SOLID_NOT);
 set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
 set_entvar(ent, var_iuser1, id);
@@ -10398,7 +10404,7 @@ set_entvar(ent, var_flags, FL_KILLME);
 return 0;
 }
 set_entvar(ent, var_classname, "vex_cosmodel");
-engfunc(EngFunc_SetModel, ent, g_szCmMdl[c][i]);
+VxSM(ent, g_szCmMdl[c][i]);
 set_entvar(ent, var_solid, SOLID_NOT);
 set_entvar(ent, var_iuser1, id);
 set_entvar(ent, var_iuser2, CM_MAGIC);
@@ -10451,7 +10457,7 @@ OvhModelTops(id);
 CommunityCosOrigin(ent, id, c, i);
 if(c==1 && g_fCmOfs[c][i][2]<0.0) { new Float:po49[3];get_entvar(ent,var_origin,po49);g_fPetFloor49[id]=po49[2];CommunityPetMove49(id); }
 CommunityCosState48(ent,id,c,i);
-CommunityCosAnimate(ent,c,i,now);
+if (get_entvar(ent, var_movetype) != MOVETYPE_FOLLOW) CommunityCosAnimate(ent,c,i,now);
 }
 }
 }
@@ -11257,7 +11263,7 @@ new ent=CreateSafe51("info_target");if(is_nullent(ent))return false;
 g_iVxProjectiles[slot]=ent;set_entvar(ent,var_classname,"vx_arsenal_projectile");set_entvar(ent,var_owner,id);
 set_entvar(ent,var_iuser1,sw);set_entvar(ent,var_iuser3,get_user_userid(id));set_entvar(ent,var_iuser4,slot+1);
 set_entvar(ent,var_fuser1,get_gametime()+(sw==3?0.7:3.0));set_entvar(ent,var_fuser3,get_gametime());set_entvar(ent,var_angles,angle);
-engfunc(EngFunc_SetModel,ent,VX_ORB);set_entvar(ent,var_skin,0);set_entvar(ent,var_scale,0.25);set_entvar(ent,var_rendermode,kRenderTransAdd);set_entvar(ent,var_renderamt,220.0);new Float:rgb50[3];for(new k=0;k<3;k++) rgb50[k]=float(SW_RGB[sw][k]);set_entvar(ent,var_rendercolor,rgb50);
+VxSM(ent,VX_ORB);set_entvar(ent,var_skin,0);set_entvar(ent,var_scale,0.25);set_entvar(ent,var_rendermode,kRenderTransAdd);set_entvar(ent,var_renderamt,220.0);new Float:rgb50[3];for(new k=0;k<3;k++) rgb50[k]=float(SW_RGB[sw][k]);set_entvar(ent,var_rendercolor,rgb50);
 new Float:start[3],Float:vel[3];for(new j;j<3;j++){start[j]=a[j]+f[j]*32.0;vel[j]=f[j]*(sw==2?680.0:750.0);}
 if(sw==3)
 {
@@ -11427,8 +11433,9 @@ new WeaponIdType:wid = get_member(weapon, m_iId);
 if (g_bZombie[id])
 {
 if (wid == WEAPON_HEGRENADE) {
-SetHookChainArg(2, ATYPE_STRING, "models/zombie_plague/v_grenade_infect.mdl");
-SetHookChainArg(3, ATYPE_STRING, "models/p_fgrenade.mdl");
+// 5.3.1: infection bomb models only when they are really loaded (missing model = server crash)
+if (VxModelOk(g_szInfV531)) SetHookChainArg(2, ATYPE_STRING, g_szInfV531);
+if (VxModelOk(g_szInfP531)) SetHookChainArg(3, ATYPE_STRING, g_szInfP531);
 return HC_CONTINUE;
 }
 if (wid != WEAPON_KNIFE)
@@ -11947,6 +11954,43 @@ g_iLmBlockMask |= (1 << m);
 }
 }
 return (g_iLmBlockMask & (1 << mode)) ? true : false;
+}
+public srv_DbgBuy()
+{
+new a[8], sw[32], who[8]; read_argv(1, a, charsmax(a)); read_argv(2, sw, charsmax(sw)); read_argv(3, who, charsmax(who));
+new it = str_to_num(a), n;
+if (a[0] == 'j' || a[0] == 'k' || a[0] == 's' || a[0] == 'w')
+{
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_alive(p) || (equal(who, "real") && is_user_bot(p))) continue;
+g_iAP[p] += 5000; g_iVC[p] += 5000;
+if (a[0] == 'j') CommunityBuyGear(p, 0);
+else if (a[0] == 'k') CommunityCoinSelect(p, 1, str_to_num(a[1]));
+else if (a[0] == 's') CommunityCoinSelect(p, 0, str_to_num(a[1]));
+else CommunityBuyWeapon(p, str_to_num(a[1]));
+if (sw[0]) engclient_cmd(p, sw);
+n++;
+}
+log_amx("[Vexmira] DBGBUY gear %s players=%d", a, n);
+return PLUGIN_HANDLED;
+}
+if (equal(a, "z"))
+{
+for (new p = 1; p <= g_iMax; p++) if (is_user_alive(p) && !is_user_bot(p) && !g_bZombie[p]) { MakeZombie(p); n++; }
+log_amx("[Vexmira] DBGBUY zombie humans=%d", n);
+return PLUGIN_HANDLED;
+}
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_alive(p) || ITEM_TEAM[it] != (g_bZombie[p] ? 1 : 0)) continue;
+if (equal(who, "real") && is_user_bot(p)) continue;
+g_iAP[p] += 5000; g_iLevel[p] = max(g_iLevel[p], 99);
+BuyItem(p, it); n++;
+if (sw[0]) engclient_cmd(p, sw);
+}
+log_amx("[Vexmira] DBGBUY item=%d buyers=%d", it, n);
+return PLUGIN_HANDLED;
 }
 public srv_DbgSwTest()
 {
@@ -12544,7 +12588,7 @@ set_entvar(ent, var_classname, LM_CLASS);
 // The stock tripmine has a different model axis and wall pose than the Vexmira zombie mine.
 // Select its fixed HL world pose per human mine; read configurable offsets for zombie mines.
 MinePreset(zombieMine ? false : true, false, zombieMine ? false : true);
-engfunc(EngFunc_SetModel, ent, model);
+VxSM(ent, model);
 set_entvar(ent, var_body, zombieMine ? g_iMineBody : 3);
 set_entvar(ent, var_sequence, zombieMine ? g_iMineSeq : 7);
 set_entvar(ent, var_skin, zombieMine ? g_iMineSkin : 0);
@@ -13728,7 +13772,7 @@ if (is_nullent(ent))
 return;
 set_entvar(ent, var_classname, DROP_CLASS);
 UiAll52(58,2.5,4);Radio52(3);
-engfunc(EngFunc_SetModel, ent, g_szDropModel);
+VxSM(ent, g_szDropModel);
 if (g_szDropSeqFall[0])
 {
 set_entvar(ent, var_body, g_iDropBodyChute);
@@ -13747,7 +13791,7 @@ set_entvar(ent, var_iuser1, 0);
 if(g_iSupplySigil47) {
 new sig=CreateSafe51("info_target");
 if(sig && !is_nullent(sig)) {
-set_entvar(sig,var_classname,"vex_supply_sigil47");engfunc(EngFunc_SetModel,sig,"models/vexmira/epic/supply_sigil47.mdl");
+set_entvar(sig,var_classname,"vex_supply_sigil47");VxSM(sig,"models/vexmira/epic/supply_sigil47.mdl");
 set_entvar(sig,var_solid,SOLID_NOT);set_entvar(sig,var_movetype,MOVETYPE_NOCLIP);set_entvar(sig,var_scale,0.7);
 set_entvar(sig,var_iuser4,470048);set_entvar(ent,var_euser1,sig);
 }
@@ -13781,7 +13825,7 @@ new spr = CreateSafe51("info_target");
 if (!is_nullent(spr))
 {
 set_entvar(spr, var_classname, "vex_dropglow");
-engfunc(EngFunc_SetModel, spr, g_szSprBeacon);
+VxSM(spr, g_szSprBeacon);
 set_entvar(spr, var_rendermode, kRenderTransAdd);
 set_entvar(spr, var_renderamt, 255.0);
 set_entvar(spr, var_rendercolor, Float:{255.0, 200.0, 40.0});
@@ -14081,7 +14125,7 @@ if (sw >= 0 && g_bVxReady[sw])
 {
 new Float:mins[3], Float:maxs[3];
 get_entvar(ent, var_mins, mins); get_entvar(ent, var_maxs, maxs);
-if(!equal(model,g_szVxWorld[sw])) {g_bModelSwap51=true;engfunc(EngFunc_SetModel,ent,g_szVxWorld[sw]);g_bModelSwap51=false;}
+if(!equal(model,g_szVxWorld[sw])) {g_bModelSwap51=true;VxSM(ent,g_szVxWorld[sw]);g_bModelSwap51=false;}
 set_entvar(ent, var_body, 0);
 engfunc(EngFunc_SetSize, ent, mins, maxs);
 }
@@ -14094,7 +14138,7 @@ new slot = -1;
 if (equal(model[9], "hegrenade.mdl"))           slot = 0;
 else if (equal(model[9], "smokegrenade.mdl"))   slot = 1;
 else if (equal(model[9], "flashbang.mdl"))      slot = 2;
-if (slot < 0 || !g_szWNade[slot][0])
+if (slot < 0)
 return FMRES_IGNORED;
 new cls[12];
 get_entvar(ent, var_classname, cls, charsmax(cls));
@@ -14102,11 +14146,23 @@ if (!equal(cls, "grenade"))
 return FMRES_IGNORED;
 new owner = get_entvar(ent, var_owner);
 if (1 <= owner <= g_iMax && g_bZombie[owner])
+{
+// 5.3.1: thrown infection bomb uses its own world model
+if (slot == 0 && g_szInfW531[0] && !equal(model, g_szInfW531) && VxModelOk(g_szInfW531))
+{
+new Float:zmins[3], Float:zmaxs[3];
+get_entvar(ent, var_mins, zmins); get_entvar(ent, var_maxs, zmaxs);
+g_bModelSwap51=true; VxSM(ent, g_szInfW531); g_bModelSwap51=false;
+engfunc(EngFunc_SetSize, ent, zmins, zmaxs);
+}
+return FMRES_IGNORED;
+}
+if (!g_szWNade[slot][0])
 return FMRES_IGNORED;
 new Float:mins[3], Float:maxs[3];
 get_entvar(ent, var_mins, mins);
 get_entvar(ent, var_maxs, maxs);
-if(!equal(model,g_szWNade[slot])) {g_bModelSwap51=true;engfunc(EngFunc_SetModel,ent,g_szWNade[slot]);g_bModelSwap51=false;}
+if(!equal(model,g_szWNade[slot])) {g_bModelSwap51=true;VxSM(ent,g_szWNade[slot]);g_bModelSwap51=false;}
 engfunc(EngFunc_SetSize, ent, mins, maxs);
 return FMRES_IGNORED;
 }
@@ -14209,9 +14265,9 @@ set_entvar(id, var_max_health, hp);
 SetGravity(id, grav);
 rg_set_user_armor(id, 0, ARMOR_NONE);
 if (g_iEvent == EV_TITAN && g_bFirst[id] && g_bTitan47 && !g_bBoss[id])
-rg_set_user_model(id, "vex_titan48", true);
+VxSetUserModel(id, "vex_titan48", true);
 else if (model[0])
-rg_set_user_model(id, model, true);
+VxSetUserModel(id, model, true);
 rg_set_user_footsteps(id, g_bAssassin[id] || (cls == 5 && !g_bNemesis[id]) ? true : false);
 ApplyRender(id);
 rg_reset_maxspeed(id);
@@ -14256,7 +14312,7 @@ if (sniper)
 {
 GiveModeWeapons(id, 1);
 g_iMaxHP[id] = get_pcvar_num(g_pSnipHP);
-if (g_szSnipModel[0]) rg_set_user_model(id, g_szSnipModel, true);
+if (g_szSnipModel[0]) VxSetUserModel(id, g_szSnipModel, true);
 }
 else
 {
@@ -14265,7 +14321,7 @@ ZcCall(ZC_MINIGUN, ZCOP_give,id);
 g_iMaxHP[id] = get_pcvar_num(g_pSurvHP);
 if (g_iMode == MODE_ARMAGEDDON)
 g_iMaxHP[id] /= 2;
-if (g_szSurvModel[0]) rg_set_user_model(id, g_szSurvModel, true);
+if (g_szSurvModel[0]) VxSetUserModel(id, g_szSurvModel, true);
 }
 rg_give_item(id, "weapon_hegrenade");
 g_iFireNades[id]++;
@@ -14324,14 +14380,14 @@ ApplyHumanModel(id)
 {
 
 new v = g_iCommunitySel[id][0];
-if (v > 0 && v <= 5 && (g_iCommunityOwned[id][0] & (1 << (v-1))) && CommunityCtReady(v-1)) { rg_set_user_model(id, COMMUNITY_CT[v-1], true); return; }
+if (v > 0 && v <= 5 && (g_iCommunityOwned[id][0] & (1 << (v-1))) && CommunityCtReady(v-1)) { VxSetUserModel(id, COMMUNITY_CT[v-1], true); return; }
 new flags = get_user_flags(id);
 if ((flags & ADMIN_BAN) && g_szAdminModel[0])
-rg_set_user_model(id, g_szAdminModel, true);
+VxSetUserModel(id, g_szAdminModel, true);
 else if (((flags & ADMIN_LEVEL_H) || IsVip(id)) && g_szVipModel[0])
-rg_set_user_model(id, g_szVipModel, true);
+VxSetUserModel(id, g_szVipModel, true);
 else if (g_iHumanModelN > 0)
-rg_set_user_model(id, g_szHumanModels[clamp(g_iHumanSkin[id], 0, g_iHumanModelN - 1)], true);
+VxSetUserModel(id, g_szHumanModels[clamp(g_iHumanSkin[id], 0, g_iHumanModelN - 1)], true);
 else
 rg_reset_user_model(id,true);
 }
@@ -15225,7 +15281,7 @@ get_tr2(0, TR_vecEndPos, start);
 set_entvar(ent, var_classname, ZPROJ_CLASS);
 if (type == ZP_HOOK && g_szHookModel[0])
 {
-engfunc(EngFunc_SetModel, ent, g_szHookModel);
+VxSM(ent, g_szHookModel);
 set_entvar(ent, var_renderfx, kRenderFxGlowShell);
 set_entvar(ent, var_rendercolor, Float:{180.0, 30.0, 30.0});
 set_entvar(ent, var_renderamt, 6.0);
@@ -15239,7 +15295,7 @@ else
 copy(spr, charsmax(spr), g_szSprOrb);
 if (spr[0])
 {
-engfunc(EngFunc_SetModel, ent, spr);
+VxSM(ent, spr);
 set_entvar(ent, var_rendermode, kRenderTransAdd);
 set_entvar(ent, var_renderamt, 230.0);
 if (type == ZP_WEB)
@@ -15969,7 +16025,7 @@ if (g_szHumanModel[0])
 copy(model, charsmax(model), g_szHumanModel);
 else
 copy(model, charsmax(model), "gign");
-rg_set_user_model(id, model, true);
+VxSetUserModel(id, model, true);
 rg_set_user_footsteps(id, true);
 ApplyRender(id);
 FxSprite(o, g_sprSmoke, 14, 140);
@@ -15987,7 +16043,7 @@ if (!is_user_alive(id) || !g_bZombie[id])
 return;
 new cls = clamp(g_iClass[id], 0, NUM_CLASSES - 1);
 if (g_szZModel[cls][0])
-rg_set_user_model(id, g_szZModel[cls], true);
+VxSetUserModel(id, g_szZModel[cls], true);
 else
 rg_reset_user_model(id,true);
 rg_set_user_footsteps(id, false);
@@ -16193,7 +16249,7 @@ return false;
 set_entvar(ent, var_classname, SPORE_CLASS);
 if (g_szSporeModel[0])
 {
-engfunc(EngFunc_SetModel, ent, g_szSporeModel);
+VxSM(ent, g_szSporeModel);
 set_entvar(ent, var_sequence, 0);
 set_entvar(ent, var_framerate, 1.0);
 set_entvar(ent, var_animtime, now);
@@ -16207,7 +16263,7 @@ new spr[64];
 copy(spr, charsmax(spr), g_szSprSpore[0] ? g_szSprSpore : g_szSprOrb);
 if (spr[0])
 {
-engfunc(EngFunc_SetModel, ent, spr);
+VxSM(ent, spr);
 set_entvar(ent, var_rendermode, kRenderTransAdd);
 set_entvar(ent, var_renderamt, 220.0);
 set_entvar(ent, var_rendercolor, Float:{110.0, 220.0, 60.0});
@@ -16541,7 +16597,7 @@ if (is_user_alive(id) && g_bZombie[id])
 {
 new cls = clamp(g_iClass[id], 0, NUM_CLASSES - 1);
 if (g_szZModel[cls][0])
-rg_set_user_model(id, g_szZModel[cls], true);
+VxSetUserModel(id, g_szZModel[cls], true);
 else
 rg_reset_user_model(id,true);
 rg_set_user_footsteps(id, false);
@@ -16715,7 +16771,7 @@ set_entvar(boss, var_max_health, float(g_iBossMaxHP));
 SetGravity(boss, BOSS_GRAV[g_iBossType]);
 rg_set_user_armor(boss, 0, ARMOR_NONE);
 if (g_szBModel[g_iBossType][0])
-rg_set_user_model(boss, g_szBModel[g_iBossType], true);
+VxSetUserModel(boss, g_szBModel[g_iBossType], true);
 new stepKey[24];
 rg_set_user_footsteps(boss, BossSndKey("STEP", stepKey, charsmax(stepKey)) ? true : false);
 ApplyRender(boss);
@@ -19152,7 +19208,7 @@ FloorAt(o, pos);
 set_entvar(ent, var_classname, EGG_CLASS);
 if (g_szEggModel[0])
 {
-engfunc(EngFunc_SetModel, ent, g_szEggModel);
+VxSM(ent, g_szEggModel);
 if (AnimByName(ent, "pulse", -1, 1.0) < 0)
 AnimByName(ent, "idle", 0, 1.0);
 set_entvar(ent, var_renderfx, kRenderFxGlowShell);
@@ -19161,7 +19217,7 @@ set_entvar(ent, var_renderamt, 12.0);
 }
 else if (g_szSprOrb[0])
 {
-engfunc(EngFunc_SetModel, ent, g_szSprOrb);
+VxSM(ent, g_szSprOrb);
 set_entvar(ent, var_rendermode, kRenderTransAdd);
 set_entvar(ent, var_renderamt, 230.0);
 set_entvar(ent, var_rendercolor, Float:{110.0, 255.0, 0.0});
@@ -19332,7 +19388,7 @@ return 0;
 set_entvar(ent, var_classname, PROJ_CLASS);
 if (g_szSprOrb[0])
 {
-engfunc(EngFunc_SetModel, ent, g_szSprOrb);
+VxSM(ent, g_szSprOrb);
 set_entvar(ent, var_rendermode, kRenderTransAdd);
 set_entvar(ent, var_renderamt, 255.0);
 new Float:c[3];
@@ -25511,7 +25567,7 @@ new spr = CreateSafe51("info_target");
 if (!is_nullent(spr) && spr < OVH_MAXENT)
 {
 set_entvar(spr, var_classname, "vex_mapmarker");
-engfunc(EngFunc_SetModel, spr, g_szSprBeacon);
+VxSM(spr, g_szSprBeacon);
 set_entvar(spr, var_rendermode, kRenderTransAdd);
 set_entvar(spr, var_renderamt, 210.0);
 set_entvar(spr, var_rendercolor, Float:{0.0, 200.0, 255.0});
@@ -26040,7 +26096,7 @@ new e = CreateSafe51("info_target");
 if (!pev_valid(e))
 continue;
 set_pev(e, pev_classname, "vex_mapmodel");
-engfunc(EngFunc_SetModel, e, g_szMmPath[m]);
+VxSM(e, g_szMmPath[m]);
 if (g_szMmName[m][0])
 set_pev(e, pev_targetname, g_szMmName[m]);
 set_pev(e, pev_solid, SOLID_NOT);
@@ -27423,6 +27479,7 @@ VxDefaults();
 VxLeanResources();
 LoadMainConfig(true);
 CsoPrecache();
+VxInfPrecache531();
 
 register_forward(FM_EmitAmbientSound, "fw_AmbientPost", 1);
 g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "200")), 40, 480);
@@ -27903,6 +27960,7 @@ g_pLmTakeRange   = register_cvar("vex_lm_take_range", "170");
 g_pLmMaxRange    = register_cvar("vex_lm_max_range", "600");
 g_pLmBlockModes  = register_cvar("vex_lm_block_modes", "nemesis assassin");
 g_pDbgDirs       = register_cvar("vex_debug_dirs", "0");
+g_pCosFollow531 = register_cvar("vex_cos_follow", "1");
 g_pAutoJoinHumans= register_cvar("vex_auto_join_humans", "1");
 g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
 g_pNadeSensorArm = register_cvar("vex_nade_sensor_arm", "1.5");
@@ -28050,6 +28108,7 @@ g_pPrefixAdmin   = register_cvar("vex_chat_prefix_admin", "^3[ADMIN]^1");
 register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
 register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
+register_srvcmd("vex_debug_buy", "srv_DbgBuy");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);
@@ -28389,11 +28448,23 @@ ZcPcGeneric("models/vexmira/community/cosmetics/pet_halo47T.mdl");
 ZcPcGeneric("models/vexmira/community/cosmetics/pet_headcrab47T.mdl");
 for (new k47 = 0; k47 < 3; k47++) g_bKnife47[k47] = ZcPcModel(KNIFE47[k47]) > 0;
 g_bCommunityButterflyOk = ZcPcModel("models/vexmira/arena48/v_balrog.mdl")>0;
-ZcPcModel("models/zombie_plague/v_grenade_infect.mdl");
+
 }
 CommunityCosOrigin(ent,id,c,i)
 {
 new Float:o[3],Float:a[3],Float:owner[3];
+// 5.3.1: wings + hats are glued with MOVETYPE_FOLLOW (client renders them in the same frame as the
+// player and bone-merges them onto the skeleton): no lag, no teleport, follows crouch/run animation.
+if(c!=1 && get_pcvar_num(g_pCosFollow531)) {
+if(get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW || get_entvar(ent,var_aiment)!=id) {
+set_entvar(ent,var_movetype,MOVETYPE_FOLLOW);set_entvar(ent,var_aiment,id);
+get_entvar(id,var_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
+set_entvar(ent,var_angles,Float:{0.0,0.0,0.0});
+set_entvar(ent,var_framerate,g_fCmFps[c][i]>0.0?g_fCmFps[c][i]:1.0);set_entvar(ent,var_animtime,get_gametime());
+}
+CmApplyCtl(ent,id,c,i);
+return;
+}
 if(c==2 && equal(g_szCmMdl[c][i],"models/vexmira/arena52/hats/",28) && CosCanFollow49(id,c)) {
 set_entvar(ent,var_movetype,MOVETYPE_FOLLOW);set_entvar(ent,var_aiment,id);
 get_entvar(id,var_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
@@ -28479,7 +28550,7 @@ CommunitySetWorld(ent,const path[])
 {
 if(g_tZcModelsReady==Invalid_Trie || !TrieKeyExists(g_tZcModelsReady,path)) return;
 new Float:mins[3],Float:maxs[3]; get_entvar(ent,var_mins,mins); get_entvar(ent,var_maxs,maxs);
-engfunc(EngFunc_SetModel,ent,path); engfunc(EngFunc_SetSize,ent,mins,maxs);
+VxSM(ent,path); engfunc(EngFunc_SetSize,ent,mins,maxs);
 }
 new g_iInspectSeq[31][2], Float:g_fInspectTime[31][2], Float:g_fInspectReady[33];
 new g_iButterflyInspect=-1, Float:g_fButterflyInspect;
@@ -28887,6 +28958,123 @@ public VxNativeRestore(plugin, params) { if(!g_bRun526) return 0; return Communi
 public VxNativePrepareJet(plugin, params) { if(!g_bRun526) return 0; return CommunityNativePrepareJet(get_param(1)); }
 public VxNativeSurvivor(plugin, params) { if(!g_bRun526) return 0; return CommunityNativeSurvivor(get_param(1)); }
 public VxNativeJetpack(plugin, params) { if(!g_bRun526) return 0; return CommunityNativeJetpack(get_param(1)); }
+
+// ===================== 5.3.1 model guard =====================
+// Every model the engine precaches (game + map + all plugins) is remembered here. A model that is NOT
+// in this list is never given to a player/entity: the engine would shut the server down with
+// "SV_ModelIndex: model X not precached" / "no precache". Bad values fall back to the stock CS model.
+VxPcRemember(const m[])
+{
+if (g_tPcAll531 == Invalid_Trie) g_tPcAll531 = TrieCreate();
+new k[96]; copy(k, charsmax(k), m); strtolower(k);
+TrieSetCell(g_tPcAll531, k, 1);
+g_bPcReady531 = true;
+}
+stock bool:VxModelOk(const m[])
+{
+if (!m[0]) return true;
+if (!g_bPcHook531 || !g_bPcReady531 || g_tPcAll531 == Invalid_Trie) return true;
+// stock CS models (models/x.mdl, sprites/x.spr) are not ours to judge
+if (equal(m, "models/", 7) && contain(m[7], "/") == -1 && !equal(m[7], "zombie", 6)) return true;   // no data (hook missing): do not block anything
+new k[96]; copy(k, charsmax(k), m); strtolower(k);
+return TrieKeyExists(g_tPcAll531, k);
+}
+public VxModelOkPublic(const m[]) return VxModelOk(m) ? 1 : 0;
+// ReHLDS engine hook: sees EVERY model precache (game, map, AMXX natives of every plugin loaded after this one)
+VxGuardInit531()
+{
+if (g_tPcAll531 == Invalid_Trie) g_tPcAll531 = TrieCreate();
+if (RegisterHookChain(RH_PF_precache_model_I, "VxRhPcModel531", 1)) g_bPcHook531 = true;
+else log_amx("[ModelGuard] ReHLDS precache kancasi yok: model korumasi pasif");
+}
+public VxRhPcModel531(const s[])
+{
+if (GetHookChainReturn(ATYPE_INTEGER) > 0) VxPcRemember(s);
+return HC_CONTINUE;
+}
+VxGuardLog(const what[], const m[])
+{
+if (g_iGuardLog531 < 60) { g_iGuardLog531++; log_amx("[ModelGuard] %s: '%s' sunucuda yuklu (precache) degil -> orijinal CS modeli kullanildi (cokme onlendi)", what, m); }
+}
+// stock model of the player's current weapon: models/v_<x>.mdl / models/p_<x>.mdl (always precached by CS)
+VxStockWeaponModel(id, bool:view, out[], len)
+{
+new w = get_member(id, m_pActiveItem), cls[32];
+out[0] = 0;
+if (is_nullent(w)) return;
+get_entvar(w, var_classname, cls, charsmax(cls));
+if (!equal(cls, "weapon_", 7)) return;
+formatex(out, len, "models/%s_%s.mdl", view ? "v" : "p", cls[7]);
+if (!VxModelOk(out)) out[0] = 0;
+}
+// called once per server frame (first UpdateClientData of the frame), before CS turns the model
+// strings into indexes for the network
+VxGuardFrame()
+{
+new Float:t = get_gametime();
+if (t == g_fGuardTime531) return;
+g_fGuardTime531 = t;
+if (!g_bPcReady531) return;
+new m[96], st[96];
+for (new id = 1; id <= g_iMax; id++)
+{
+if (!is_user_connected(id)) { g_iGuardV531[id] = 0; g_iGuardP531[id] = 0; continue; }
+new v = pev(id, pev_viewmodel), pm = pev(id, pev_weaponmodel);
+if (v != g_iGuardV531[id])
+{
+pev(id, pev_viewmodel2, m, charsmax(m));
+if (!VxModelOk(m)) { VxGuardLog("viewmodel", m); VxStockWeaponModel(id, true, st, charsmax(st)); set_pev(id, pev_viewmodel2, st); v = pev(id, pev_viewmodel); }
+g_iGuardV531[id] = v;
+}
+if (pm != g_iGuardP531[id])
+{
+pev(id, pev_weaponmodel2, m, charsmax(m));
+if (!VxModelOk(m)) { VxGuardLog("weaponmodel", m); VxStockWeaponModel(id, false, st, charsmax(st)); set_pev(id, pev_weaponmodel2, st); pm = pev(id, pev_weaponmodel); }
+g_iGuardP531[id] = pm;
+}
+}
+}
+public VxGuardClientData(id, sendweapons, cd)
+{
+VxGuardFrame();
+return FMRES_IGNORED;
+}
+// safe replacements for engfunc(EngFunc_SetModel) / entity_set_model / rg_set_user_model / cs_set_user_model
+VxInfPrecache531()
+{
+// 5.3.1 infection bomb: vexmira.cfg vex_res NADE_INFECT_V / _P / _W; zombie_plague model as 2nd choice, stock CS model last
+copy(g_szInfV531, charsmax(g_szInfV531), GetResString("NADE_INFECT_V", "models/vexmira/nades/v_infect.mdl"));
+copy(g_szInfP531, charsmax(g_szInfP531), GetResString("NADE_INFECT_P", "models/vexmira/nades/p_infect.mdl"));
+copy(g_szInfW531, charsmax(g_szInfW531), GetResString("NADE_INFECT_W", "models/vexmira/nades/w_infect.mdl"));
+if (!(file_exists(g_szInfV531, true) && ZcPcModel(g_szInfV531) > 0))
+{
+if (file_exists("models/zombie_plague/v_grenade_infect.mdl", true) && ZcPcModel("models/zombie_plague/v_grenade_infect.mdl") > 0) copy(g_szInfV531, charsmax(g_szInfV531), "models/zombie_plague/v_grenade_infect.mdl");
+else copy(g_szInfV531, charsmax(g_szInfV531), "models/v_hegrenade.mdl");
+}
+if (!(file_exists(g_szInfP531, true) && ZcPcModel(g_szInfP531) > 0)) copy(g_szInfP531, charsmax(g_szInfP531), "models/p_hegrenade.mdl");
+if (!(file_exists(g_szInfW531, true) && ZcPcModel(g_szInfW531) > 0)) copy(g_szInfW531, charsmax(g_szInfW531), "models/w_hegrenade.mdl");
+log_amx("[Vexmira] enfeksiyon bombasi modelleri: %s | %s | %s", g_szInfV531, g_szInfP531, g_szInfW531);
+}
+stock VxSM(ent, const m[])
+{
+if (!VxModelOk(m)) { VxGuardLog("SetModel", m); return 0; }
+engfunc(EngFunc_SetModel, ent, m);
+return 1;
+}
+stock VxPlayerModelOk(const name[])
+{
+new p[128]; formatex(p, charsmax(p), "models/player/%s/%s.mdl", name, name);
+if (VxModelOk(p)) return 1;
+VxGuardLog("player model", p);
+return 0;
+}
+stock VxSetUserModel(id, const name[], bool:upd = false)
+{
+if (!VxPlayerModelOk(name)) return 0;
+rg_set_user_model(id, name, upd);
+return 1;
+}
+// ===================== end model guard =====================
 public plugin_precache()
 {
 g_iIsolation526=ReadIsolation526();
@@ -28894,6 +29082,7 @@ log_to_file("vexmira_groups.log","[530 vexcore] selected profile=%d",g_iIsolatio
 log_to_file("vexmira_isolation.log","[530 vexcore] stage=%d full_module=%d precache BEGIN",g_iIsolation526,g_bRun526);
 if(!g_bRun526) {log_to_file("vexmira_isolation.log","[530 vexcore] baseline precache READY: no custom resources/hooks");return;}
 
+VxGuardInit531();
 RegisterHookChain(RH_Con_Printf,"VxConsole524",0);
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePre524",0);
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePost524",1);
@@ -28926,6 +29115,7 @@ register_clcmd("vex_test","IsolationStatus526");
 if(!g_bRun526) {register_plugin("Vexmira vexcore Baseline Test","5.3.0-ResourceCompact","Vexmira");log_to_file("vexmira_isolation.log","[530 vexcore] baseline plugin_init COMPLETE");return;}
 
 log_to_file("vexmira_startup.log","[530 vexcore] plugin_init BEGIN");
+register_forward(FM_UpdateClientData, "VxGuardClientData", 0);
 ZcCore_plugin_init();
 log_to_file("vexmira_startup.log","[530 core] base init READY");
 set_task(30.0,"VexStability51",781951,_,_,"b");
@@ -29036,7 +29226,7 @@ if(!ent || is_nullent(ent)) return;
 g_iBanner47[id]=ent; g_iBannerKind47[id]=kind;
 g_fBannerStart47[id]=get_gametime(); g_fBannerEnd47[id]=get_gametime()+duration;
 set_entvar(ent,var_classname,"vex_screen47");
-engfunc(EngFunc_SetModel,ent,BANNER47[kind]);
+VxSM(ent,BANNER47[kind]);
 set_entvar(ent,var_solid,SOLID_NOT);set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
 set_entvar(ent,var_rendermode,kind==4?kRenderTransAlpha:kRenderTransAdd);set_entvar(ent,var_renderamt,220.0);
 set_entvar(ent,var_scale,0.0183);set_entvar(ent,var_iuser4,470047);
@@ -29092,7 +29282,7 @@ SigilSpawn47(id,kind,Float:duration)
 if(!is_user_alive(id) || kind<0 || kind>1 || !g_iSigil47[kind]) return;
 new ent=CreateSafe51("info_target");
 if(!ent || is_nullent(ent)) return;
-set_entvar(ent,var_classname,"vex_sigil47");engfunc(EngFunc_SetModel,ent,SIGIL47[kind]);
+set_entvar(ent,var_classname,"vex_sigil47");VxSM(ent,SIGIL47[kind]);
 set_entvar(ent,var_solid,SOLID_NOT);set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
 set_entvar(ent,var_iuser1,id);set_entvar(ent,var_iuser2,get_user_userid(id));set_entvar(ent,var_iuser4,470048);
 set_entvar(ent,var_scale,0.65);set_entvar(ent,var_fuser1,get_gametime()+duration);

@@ -3405,7 +3405,7 @@ if(jan_Get_BitVar(jan_g_Had_Janus7, iOwner))
 {
 jan_Remove_Janus7(iOwner)
 set_pev(weapon, pev_impulse, 11012014)
-engfunc(EngFunc_SetModel, entity, jan_W_MODEL)
+VxSM(entity, jan_W_MODEL)
 return FMRES_SUPERCEDE
 }
 }
@@ -4295,7 +4295,7 @@ if(pla_Get_BitVar(pla_g_Had_Plasma, iOwner))
 {
 pla_Remove_Plasma(iOwner)
 set_pev(weapon, pev_impulse, pla_WEAPON_SECRETCODE)
-engfunc(EngFunc_SetModel, entity, pla_W_MODEL)
+VxSM(entity, pla_W_MODEL)
 return FMRES_SUPERCEDE
 }
 }
@@ -4464,7 +4464,7 @@ set_pev(pla_Ent, pev_fuser1, get_gametime() + 3.0)
 set_pev(pla_Ent, pev_scale, random_float(0.1, 0.25))
 set_pev(pla_Ent, pev_nextthink, halflife_time() + 0.1)
 entity_set_string(pla_Ent, EV_SZ_classname, pla_PLASMABALL_CLASSNAME)
-engfunc(EngFunc_SetModel, pla_Ent, pla_WeaponFiles[0])
+VxSM(pla_Ent, pla_WeaponFiles[0])
 set_pev(pla_Ent, pev_mins, Float:{-1.0, -1.0, -1.0})
 set_pev(pla_Ent, pev_maxs, Float:{1.0, 1.0, 1.0})
 set_pev(pla_Ent, pev_origin, pla_StartOrigin)
@@ -4743,7 +4743,7 @@ if(thb_Get_BitVar(thb_g_Had_Thunderbolt, id))
 thb_UnSet_BitVar(thb_g_Had_Thunderbolt, id)
 set_pev(weapon, pev_impulse, thb_WEAPON_SECRETCODE)
 set_pev(weapon, pev_iuser4, cs_get_user_bpammo(id, thb_CSW_THUNDERBOLT))
-engfunc(EngFunc_SetModel, entity, thb_W_MODEL)
+VxSM(entity, thb_W_MODEL)
 return FMRES_SUPERCEDE
 }
 }
@@ -5292,7 +5292,7 @@ eth_g_Beam_SprID = ZcPcModel("sprites/laserbeam.spr")
 register_forward(FM_PrecacheEvent, "eth_fw_PrecacheEvent_Post", 1)
 eth_g_Muzzleflash_Ent = GearCreate51("info_target")
 ZcPcModel(eth_MUZZLE_FLASH)
-engfunc(EngFunc_SetModel, eth_g_Muzzleflash_Ent, eth_MUZZLE_FLASH)
+VxSM(eth_g_Muzzleflash_Ent, eth_MUZZLE_FLASH)
 set_pev(eth_g_Muzzleflash_Ent, pev_scale, 0.2)
 set_pev(eth_g_Muzzleflash_Ent, pev_rendermode, kRenderTransTexture)
 set_pev(eth_g_Muzzleflash_Ent, pev_renderamt, 0.0)
@@ -5388,7 +5388,7 @@ if(eth_Get_BitVar(eth_g_Had_Ethereal, iOwner))
 {
 eth_Remove_Ethereal(iOwner)
 set_pev(weapon, pev_impulse, 1712015)
-engfunc(EngFunc_SetModel, entity, eth_W_MODEL)
+VxSM(entity, eth_W_MODEL)
 return FMRES_SUPERCEDE
 }
 }
@@ -5933,7 +5933,7 @@ return FMRES_IGNORED
 if(sal_Get_BitVar(sal_g_Had_Salamander, id))
 {
 set_pev(weapon, pev_impulse, 442015)
-engfunc(EngFunc_SetModel, entity, sal_MODEL_W)
+VxSM(entity, sal_MODEL_W)
 sal_UnSet_BitVar(sal_g_Had_Salamander, id)
 return FMRES_SUPERCEDE
 }
@@ -6054,7 +6054,7 @@ set_pev(sal_iEnt, pev_fuser1, get_gametime() + 1.0)
 set_pev(sal_iEnt, pev_scale, 0.25)
 set_pev(sal_iEnt, pev_nextthink, get_gametime() + 0.05)
 entity_set_string(sal_iEnt, EV_SZ_classname, "vex_sal_flame")
-engfunc(EngFunc_SetModel, sal_iEnt, sal_WeaponResources[0])
+VxSM(sal_iEnt, sal_WeaponResources[0])
 set_pev(sal_iEnt, pev_mins, Float:{-1.0, -1.0, -1.0})
 set_pev(sal_iEnt, pev_maxs, Float:{1.0, 1.0, 1.0})
 set_pev(sal_iEnt, pev_origin, Origin)
@@ -6626,7 +6626,7 @@ if(bow_Get_BitVar(bow_g_Had_CompoundBow, id))
 {
 set_pev(weapon, pev_impulse, bow_WEAPON_SECRETCODE)
 set_pev(weapon, pev_iuser1, bow_g_BowArrow[id])
-engfunc(EngFunc_SetModel, entity, bow_W_MODEL)
+VxSM(entity, bow_W_MODEL)
 bow_Remove_CompoundBow(id)
 return FMRES_SUPERCEDE
 }
@@ -6825,7 +6825,7 @@ set_pev(bow_Arrow, pev_iuser2, bow_Get_SpecialTeam(id, cs_get_user_team(id)))
 set_pev(bow_Arrow, pev_iuser3, 0)
 set_pev(bow_Arrow, pev_iuser4, 0)
 entity_set_string(bow_Arrow, EV_SZ_classname, bow_ARROW_CLASSNAME)
-engfunc(EngFunc_SetModel, bow_Arrow, bow_ARROW_MODEl)
+VxSM(bow_Arrow, bow_ARROW_MODEl)
 set_pev(bow_Arrow, pev_mins, Float:{-1.0, -1.0, -1.0})
 set_pev(bow_Arrow, pev_maxs, Float:{1.0, 1.0, 1.0})
 set_pev(bow_Arrow, pev_origin, bow_StartOrigin)
@@ -9386,7 +9386,7 @@ hev_g_iSuitPower[id] = hev_MAX_POWER;
 hev_fm_remove_model_ent(id);
 if (is_user_connected(id))
 {
-cs_set_user_model(id, hev_HEV_MODEL_SHORT);
+VxCsSetModel(id, hev_HEV_MODEL_SHORT);
 set_pev(id, pev_viewmodel2, hev_V_HEV_MODEL)
 hev_util_play_weapon_animation(id, hev_HEV_ANIM_SEQUENCE);
 remove_task( (id) + ZC_TOFF_HEV)
@@ -9414,7 +9414,7 @@ hev_zp_remove_hev(id);
 hev_g_bIsHEVZombie[id] = true;
 if (is_user_connected(id))
 {
-cs_set_user_model(id, hev_HEV_ZOMBIE_SHORT);
+VxCsSetModel(id, hev_HEV_ZOMBIE_SHORT);
 if(get_user_weapon(id) == CSW_KNIFE) set_pev(id, pev_viewmodel2, hev_V_HEV_ZOMBIE_KNIFE);
 }
 }
@@ -9934,7 +9934,7 @@ if(jet_fullgas) jet_iGas[id] = jet_MaxGas;
 new Float:Origin[3]
 entity_get_vector(id, EV_VEC_origin, Origin)
 entity_set_string(ent, EV_SZ_classname, jet_ClassJetpack_P)
-entity_set_model(ent, jet_ModelJetpack_P)
+VxSM(ent, jet_ModelJetpack_P)
 entity_set_origin(ent, Origin)
 entity_set_int(ent, EV_INT_movetype, MOVETYPE_FOLLOW)
 entity_set_edict(ent, EV_ENT_aiment, id)
@@ -9954,7 +9954,7 @@ Origin[1] += 2*jet_Aim[1]
 entity_set_string(ent, EV_SZ_classname, jet_ClassJetpack)
 entity_set_int(ent, EV_INT_iuser4, jet_iGas[id]);
 entity_set_float(ent, EV_FL_fuser3, jet_fLastShot[id]);
-entity_set_model(ent, jet_ModelJetpack_W)
+VxSM(ent, jet_ModelJetpack_W)
 #if defined jet_MAKE_JETPACK_BOUNCING
 entity_set_int(ent, EV_INT_movetype, MOVETYPE_BOUNCE)
 #else
@@ -9990,7 +9990,7 @@ new Float:origin[3], Float:velocity[3]
 entity_get_vector(id, EV_VEC_origin, origin)
 origin[2] += 16.0
 entity_set_string(ent, EV_SZ_classname, jet_ClassRocket)
-entity_set_model(ent, jet_ModelRocket)
+VxSM(ent, jet_ModelRocket)
 entity_set_origin(ent, origin)
 entity_set_int(ent, EV_INT_movetype, MOVETYPE_FLY)
 entity_set_int(ent, EV_INT_solid, SOLID_BBOX)
@@ -10195,7 +10195,7 @@ mgn_pOwner = pev(mgn_Ent, pev_owner)
 if(mgn_pOwner>=1 && mgn_pOwner<=32 && mgn_g_pWeaponA[mgn_pOwner] && pev_valid(mgn_pModel))
 {
 set_pev(mgn_pModel, pev_impulse, mgn_WEAP_KEY)
-engfunc(EngFunc_SetModel, mgn_Ent, mgn_W_MODEL)
+VxSM(mgn_Ent, mgn_W_MODEL)
 mgn_g_pWeaponA[mgn_pOwner] = false
 return FMRES_SUPERCEDE
 }
@@ -14607,6 +14607,45 @@ return precache_generic(path);
 public GuardM51(const path[]) { g_iPcM51=max(g_iPcM51,get_orig_retval()); }
 public GuardS51(const path[]) { g_iPcS51=max(g_iPcS51,get_orig_retval()); }
 public GuardG51(const path[]) { g_iPcG51=max(g_iPcG51,get_orig_retval()); }
+
+// ===================== 5.3.1 model guard (gear) =====================
+// Asks vexmira_core (VxModelOkPublic) whether a model is really precached before using it.
+new g_iGuardPl531 = -2, g_iGuardFn531 = -1, g_iGuardLog531;
+stock VxCoreModelOk(const m[])
+{
+if (!m[0]) return 1;
+if (g_iGuardPl531 == -2)
+{
+g_iGuardPl531 = -1;
+new n = get_pluginsnum();
+for (new i = 0; i < n; i++)
+{
+new f = get_func_id("VxModelOkPublic", i);
+if (f >= 0) { g_iGuardPl531 = i; g_iGuardFn531 = f; break; }
+}
+}
+if (g_iGuardPl531 < 0) return 1;
+new st[16], d[2];
+get_plugin(g_iGuardPl531, d, 0, d, 0, d, 0, d, 0, st, charsmax(st));
+if (!equal(st, "running") && !equal(st, "debug")) return 1;
+if (callfunc_begin_i(g_iGuardFn531, g_iGuardPl531) != 1) return 1;
+callfunc_push_str(m, false);
+return callfunc_end();
+}
+stock VxSM(ent, const m[])
+{
+if (!VxCoreModelOk(m)) { if (g_iGuardLog531++ < 40) log_amx("[ModelGuard] SetModel '%s' yuklu degil -> atlandi (cokme onlendi)", m); return 0; }
+engfunc(EngFunc_SetModel, ent, m);
+return 1;
+}
+stock VxCsSetModel(id, const name[])
+{
+new p[128]; formatex(p, charsmax(p), "models/player/%s/%s.mdl", name, name);
+if (!VxCoreModelOk(p)) { if (g_iGuardLog531++ < 40) log_amx("[ModelGuard] oyuncu modeli '%s' yuklu degil -> degistirilmedi", p); return 0; }
+cs_set_user_model(id, name);
+return 1;
+}
+// ===================== end model guard =====================
 public plugin_precache()
 {
 g_iIsolation526=ReadIsolation526();
