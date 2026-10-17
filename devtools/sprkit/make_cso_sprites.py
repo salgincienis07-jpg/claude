@@ -380,6 +380,19 @@ def round_cell(cv, ox, oy, n):
     chevrons(cv, ox + w - 20, cy + 4, -1, ACC['cyan'], 2, 0.7)
 
 
+def countdown_cell(cv, ox, oy, n, lang):
+    """5.3.1 round-start countdown (infection in N): 128x40, toxic plate + big red number"""
+    w, h = 128, 40
+    cx, cy = ox + w / 2, oy + h / 2
+    plate(cv, ox + 4, oy + 5, ox + w - 4, oy + h - 4, ACC['green'], 0.3, tip=9)
+    rng = np.random.default_rng(100 + n)
+    particles(cv, rng, ox + 6, oy + 2, ox + w - 6, oy + h - 2, 14, [ACC['green'], (255, 80, 60), WHITE], bias='ends')
+    paint_text(cv, 'ENFEKSIYON' if lang == 'tr' else 'INFECTION', cx, oy + 11, 8, 'gold', 92)
+    paint_text(cv, str(n), cx, cy + 4, 21, 'red', 90, ACC['red'], 0.6)
+    icon(cv, 'splat', ox + 18, cy + 4, 6.5, ACC['green'])
+    icon(cv, 'splat', ox + w - 18, cy + 4, 6.5, ACC['green'])
+
+
 # ortak giris / cikis kareleri (renksiz: beyaz-lavanta cekirdek, mor-camgobegi parilti)
 def fx_cell(cv, ox, oy, w, h, kind, compact=False):
     cx, cy = ox + w / 2, oy + h / 2
@@ -605,6 +618,17 @@ def main():
                 break
             sh.add(128, 40, lambda cv, x, y, n=n: round_cell(cv, x, y, n), [('rnd%d' % n, 0, 0, 128, 40)])
         sheets.append(sh)
+    # 5.3.1 round-start countdown 1..15 (tr/en); odd and even numbers on different pages so every
+    # second is a page switch (the client may not refresh a region change on the same page)
+    for lang in ('tr', 'en'):
+        for parity in (1, 0):
+            sh = Sheet('cd%s%d' % (lang, parity))
+            for n in range(1, 16):
+                if n % 2 != parity:
+                    continue
+                sh.add(128, 40, lambda cv, x, y, n=n, lang=lang: countdown_cell(cv, x, y, n, lang),
+                       [('cd_%s_%d' % (lang, n), 0, 0, 128, 40)])
+            sheets.append(sh)
     total = 0
     for sh in sheets:
         total += render_sheet(sh)

@@ -796,6 +796,10 @@ TOP_A = V E X M I R A   //   ROUND  %d / %d
 TOP_B = ZOMBIES  %d    -    %d  HUMANS
 TOP_B_BOSS = BOSS FIGHT    -    %d  HUMANS ALIVE
 TOP_C = %s   ::   %s
+CSO_TOP_C531 = ROUND %d / %d   %d:%02d
+CSO_TOP_L531 = [ HUMANS  %d ]
+CSO_TOP_R531 = [ %d  ZOMBIES ]
+CSO_TOP_RB531 = [ BOSS  %d%% ]
 CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
 CSO_TOP_B = HUMAN  %d      VS      %d  ZOMBIE
 CSO_TOP_BOSS = BOSS FIGHT      VS      %d  HUMAN
@@ -2210,6 +2214,10 @@ TOP_A = V E X M I R A   //   ROUND  %d / %d
 TOP_B = ZOMBI  %d    -    %d  INSAN
 TOP_B_BOSS = BOSS SAVASI    -    %d  INSAN HAYATTA
 TOP_C = %s   ::   %s
+CSO_TOP_C531 = ROUND %d / %d   %d:%02d
+CSO_TOP_L531 = [ INSAN  %d ]
+CSO_TOP_R531 = [ %d  ZOMBI ]
+CSO_TOP_RB531 = [ BOSS  %d%% ]
 CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
 CSO_TOP_B = INSAN  %d      VS      %d  ZOMBI
 CSO_TOP_BOSS = BOSS SAVASI      VS      %d  INSAN
