@@ -107,6 +107,13 @@ public cmd_pos()
 FindBoss(&bar = 0)
 {
     new model[64];
+    // 5.3.2 giant boss body (vex_res BOSS_GIANT "clone"): the boss player is the body's owner
+    new gb = -1;
+    while ((gb = engfunc(EngFunc_FindEntityByString, gb, "classname", "vex_giantbody")) > 0)
+    {
+        new ow = pev(gb, pev_owner);
+        if (ow >= 1 && ow <= get_maxplayers() && is_user_alive(ow)) { bar = gb; return ow; }
+    }
     for (new e = get_maxplayers() + 1; e < global_get(glb_maxEntities); e++)
     {
         if (!pev_valid(e) || pev(e, pev_iuser2) != OVH_MAGIC)
@@ -135,6 +142,14 @@ ResolveTarget(const arg[])
             if (is_user_connected(id) && get_user_userid(id) == uid)
                 return id;
         return 0;
+    }
+    if (equali(arg, "class:", 6))            // first entity of a classname (its owner/aiment if it is a player attachment)
+    {
+        new e = engfunc(EngFunc_FindEntityByString, -1, "classname", arg[6]);
+        if (e <= 0) return 0;
+        new ai = pev(e, pev_aiment);
+        if (ai >= 1 && ai <= get_maxplayers() && is_user_alive(ai)) return ai;
+        return e;
     }
     if (equali(arg, "ent:", 4))
     {

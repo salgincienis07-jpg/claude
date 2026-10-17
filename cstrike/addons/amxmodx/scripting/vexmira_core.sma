@@ -3137,6 +3137,42 @@ new g_pUi52,g_pRadio52,g_pRadioInterval52,g_iUiPage52[33],g_iUiPriority52[33];
 new Float:g_fRadioBusy52,Float:g_fRadioNext52,Float:g_fRadioAt52[15];new g_iRadioLast52=-1;
 new bool:g_bRadioReady52[15];
 new const RADIO_FILE52[][]={"start","hazard","boss","supply","last","win","loss","fire","ice","storm","night","chatter1","chatter2","chatter3","chatter4"};
+// 5.3.2: chat subtitle for every radio line (who speaks + what), TR / EN
+new const RADIO_WHO52[15]={0,1,0,2,0,0,0,3,3,1,1,4,4,4,4};
+new const RADIO_WHO_TR52[][]={"MERKEZ","GOZCU","LOJISTIK","ISTIHKAM","DEVRIYE"};
+new const RADIO_WHO_EN52[][]={"COMMAND","SPOTTER","LOGISTICS","ENGINEER","PATROL"};
+new const RADIO_TXT_TR52[15][]={
+"Tum birimler dikkat! Enfeksiyon bolgesi aktif, mevzilerinizi alin.",
+"Biyolojik tehlike tespit edildi! Zombi hareketliligi artiyor.",
+"Buyuk sinyal yaklasiyor... BOSS geliyor! Atese hazir olun!",
+"Ikmal kutusu indirildi! Bolgeye gidip malzemeleri alin.",
+"Son hayatta kalan! Tekrarliyorum: SON INSAN, dayan!",
+"Bolge temizlendi. Iyi is cikardiniz, tamam.",
+"Hat koptu... bolge kaybedildi. Geri cekilin!",
+"Yangin bombasi patladi! Alev hattindan uzak durun.",
+"Dondurucu patlama! Hedefler yavasladi, simdi vurun!",
+"Firtina yaklasiyor, gorus mesafesi dusuyor. Dikkatli olun.",
+"Elektrik kesildi! Karanlikta birbirinizden ayrilmayin.",
+"Kuzey koridorda hareket var, kontrol ediyorum...",
+"Muhimmat durumunu bildirin. Kimse yalniz kalmasin.",
+"Sesleri duyuyor musunuz? Yaklasiyorlar...",
+"Hat acik, beklemedeyim. Gozunuz uzerimizde olsun."};
+new const RADIO_TXT_EN52[15][]={
+"All units, be advised! Infection zone is hot, take your positions.",
+"Biohazard detected! Zombie activity is rising.",
+"Massive signal incoming... BOSS inbound! Weapons ready!",
+"Supply drop is down! Move to the zone and grab the gear.",
+"Last survivor! I repeat: LAST HUMAN, hold on!",
+"Area secured. Good work, over.",
+"Line is broken... sector lost. Fall back!",
+"Fire grenade out! Stay clear of the flame line.",
+"Freeze blast! Targets are slowed, hit them now!",
+"Storm incoming, visibility dropping. Stay sharp.",
+"Power is down! Stick together in the dark.",
+"Movement in the north corridor, checking it...",
+"Report your ammo. Nobody stays alone.",
+"Do you hear that? They are getting closer...",
+"Channel open, standing by. Eyes on us."};
 new const Float:RADIO_LENGTH52[15]={3.200,4.480,4.320,3.360,4.880,2.320,3.520,3.360,3.360,5.440,4.080,3.040,3.360,3.280,4.000};
 
 new bool:g_bUiHudFiles52[64],bool:g_bUiHudActive52[33];
@@ -3814,6 +3850,15 @@ new bool:g_bCsoVex531 = true, g_iCsoLang531;   // 0 both, 1 tr only, 2 en only
 #define CSO_QMAX    4
 #define TASK_CSO    41500
 new g_pCso, g_pCsoNotes, g_pCsoTime, g_pCsoKmTime, g_pCsoFov, g_pCsoSnd, g_pCsoBots, g_pCsoLog, g_pCsoIcons, g_pCsoAnim;
+#define FX532_TOTAL 17
+new const FX532_NAME[FX532_TOTAL][] = { "fireball","flame","ember","frostburst","frostmist","shard","flare","spark",
+"toxicburst","toxicmist","glow","ring","beam","beam_wide","smoke","voidburst","shockburst" };
+enum { X_FIREBALL=0, X_FLAME, X_EMBER, X_FROSTBURST, X_FROSTMIST, X_SHARD, X_FLARE, X_SPARK, X_TOXICBURST, X_TOXICMIST,
+X_GLOW, X_RING, X_BEAM, X_BEAMW, X_SMOKE, X_VOIDBURST, X_SHOCKBURST };
+new g_iFx532[FX532_TOTAL];
+#define TEFIRE_ADD532 32
+new g_iGiantMode532 = 1, g_iGiantEnt532, g_iGiantSeq532 = -1;
+new g_pCosSmooth532, g_pRadioText532, bool:g_bCsoC532, bool:g_bCapLow532[33], g_pTop532, g_pTopPad532, g_pTopY532;
 new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
 new g_pComboTime, bool:g_bFirstBlood;
 new g_szHudSig[33][400], Float:g_fHudNext[33], g_iHudXpSeen[33] = { -1, ... }, Float:g_fXpBarEnd[33];
@@ -4597,9 +4642,9 @@ write_byte(TE_EXPLOSION);
 engfunc(EngFunc_WriteCoord, o[0]);
 engfunc(EngFunc_WriteCoord, o[1]);
 engfunc(EngFunc_WriteCoord, o[2] + 20.0);
-write_short(g_sprExplode);
-write_byte(30);
-write_byte(15);
+write_short(g_iFx532[X_FIREBALL] ? g_iFx532[X_FIREBALL] : g_sprExplode);
+write_byte(g_iFx532[X_FIREBALL] ? 22 : 30);
+write_byte(g_iFx532[X_FIREBALL] ? 20 : 15);
 write_byte(TE_EXPLFLAG_NOSOUND);
 message_end();
 }
@@ -4635,6 +4680,17 @@ case EL_TOXIC: spr = g_sprFx[FXS_EXTOXIC];
 case EL_VOID:  spr = g_sprFx[FXS_EXVOID];
 default:       spr = g_sprFx[FXS_SHOCK];
 }
+// 5.3.2: smooth 128px element bursts for every skill explosion (bosses, zombie classes, items)
+new s532;
+switch (el)
+{
+case EL_FIRE:  s532 = g_iFx532[X_FIREBALL];
+case EL_ICE:   s532 = g_iFx532[X_FROSTBURST];
+case EL_TOXIC: s532 = g_iFx532[X_TOXICBURST];
+case EL_VOID:  s532 = g_iFx532[X_VOIDBURST];
+default:       s532 = g_iFx532[X_SHOCKBURST];
+}
+if (s532) { spr = s532; scale = max(6, scale * 4 / 5); rate = max(rate, 18); }
 if (!spr)
 return false;
 for (new p = 1; p <= g_iMax; p++)
@@ -5356,6 +5412,39 @@ case 1: return 2;
 }
 return 0;
 }
+// 5.3.2 CSO style top board. Three blocks that are all centred strings of the same padded width, so
+// they line up at every resolution: [HUMAN  wins / alive]   ROUND r/t  m:ss  mode   [wins / alive  ZOMBIE]
+TopBoard532(id, humans, zombies, total, const lineC[])
+{
+static const PAD[] = "                                                            ";
+new pad = clamp(get_pcvar_num(g_pTopPad532), 10, 60);
+new sp[64]; copy(sp, min(pad, charsmax(sp)), PAD);
+new left = max(0, RoundTimeLeft());
+new hw = get_member_game(m_iNumCTWins), zw = get_member_game(m_iNumTerroristWins);
+new Float:y = get_pcvar_float(g_pTopY532);
+new lab[24], alive[24];
+formatex(alive, charsmax(alive), "%L", id, "TB532_ALIVE");
+// left block: humans
+formatex(lab, charsmax(lab), "%L", id, "TB532_HUM");
+set_dhudmessage(70, 195, 255, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
+show_dhudmessage(id, "%s   [ %d ]%s^n%s %d%s", lab, hw, sp, alive, humans, sp);
+// right block: zombies (boss HP in boss rounds)
+formatex(lab, charsmax(lab), "%L", id, "TB532_ZOM");
+if (g_iMode == MODE_BOSS && g_iBoss && is_user_alive(g_iBoss))
+{
+new pct = clamp(floatround(Float:get_entvar(g_iBoss, var_health) * 100.0 / float(max(1, g_iBossMaxHP))), 0, 100);
+set_dhudmessage(205, 90, 255, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
+show_dhudmessage(id, "%s[ %d ]   BOSS^n%s%d%%  HP", sp, zw, sp, pct);
+}
+else
+{
+set_dhudmessage(255, 70, 55, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
+show_dhudmessage(id, "%s[ %d ]   %s^n%s%d %s", sp, zw, lab, sp, zombies, alive);
+}
+// centre: round + clock (gold), mode / event (soft)
+set_dhudmessage(255, 212, 80, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
+show_dhudmessage(id, "%L^n%d:%02d^n%s", id, "TB532_ROUND", g_iRound, total, left / 60, left % 60, lineC);
+}
 DrawHud()
 {
 new humans = CountHumans(true), zombies = CountZombies(true);
@@ -5389,25 +5478,9 @@ else if (toBoss > 0 && toBoss <= 3 && g_iMode != MODE_BOSS)
 formatex(lineC, charsmax(lineC), "%L", id, "TOP_C_BOSSIN", mn, ev, toBoss);
 else
 formatex(lineC, charsmax(lineC), "%L", id, "TOP_C", mn, ev);
-if (CsoOn())
+if (get_pcvar_num(g_pTop532))
 {
-// 5.3.1 CSO scoreboard: [ HUMANS n ]  ROUND r/t  m:ss  [ n ZOMBIES ] (team colours), mode/event below
-new left = max(0, RoundTimeLeft());
-set_dhudmessage(255, 205, 60, -1.0, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
-show_dhudmessage(id, "%L^n%s", id, "CSO_TOP_C531", g_iRound, total, left / 60, left % 60, lineC);
-set_dhudmessage(40, 200, 255, 0.24, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
-show_dhudmessage(id, "%L", id, "CSO_TOP_L531", humans);
-if (g_iMode == MODE_BOSS && g_iBoss && is_user_alive(g_iBoss))
-{
-new pct = clamp(floatround(Float:get_entvar(g_iBoss, var_health) * 100.0 / float(max(1, g_iBossMaxHP))), 0, 100);
-set_dhudmessage(200, 80, 255, 0.64, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
-show_dhudmessage(id, "%L", id, "CSO_TOP_RB531", pct);
-}
-else
-{
-set_dhudmessage(255, 60, 50, 0.64, Y_TOPBAR, 0, 0.0, 2.0, 0.0, 0.0);
-show_dhudmessage(id, "%L", id, "CSO_TOP_R531", zombies);
-}
+TopBoard532(id, humans, zombies, total, lineC);
 }
 else if (g_iMode == MODE_BOSS && g_iBoss)
 {
@@ -5795,7 +5868,19 @@ CsoPrecacheVex531()
 }
 CsoPrecache()
 {
-    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "vexmira"));
+    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c532"));
+    g_bCsoC532 = false;
+    if (equali(set, "off"))
+    {
+        g_bCsoVex531 = false;
+        for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = false;
+        return;
+    }
+    if (equali(set, "c532"))
+    {
+        CsoPrecache532();
+        return;
+    }
     g_bCsoVex531 = !equali(set, "cards");
     if (g_iPreCso > 0 && g_bCsoVex531 && file_exists("sprites/vexmira/cso/fx1.spr", true))
     {
@@ -5822,6 +5907,35 @@ CsoPrecache()
     }
     if (ok)
         for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = true;
+}
+// 5.3.2 big cards: one 256x128 picture per card (2 download slots each), text card always shown too
+new const C532_FILE[CN_TOTAL][] = { "", "", "", "", "", "", "", "", "mvp", "hwin", "zwin", "boss",
+    "", "", "", "", "last", "", "", "", "", "", "" };
+CsoPrecache532()
+{
+    g_bCsoVex531 = true;
+    g_bCsoC532 = true;
+    g_iCsoRounds = 0;
+    new lm[8]; copy(lm, charsmax(lm), GetResString("CSO_LANG", "tr"));
+    g_iCsoLang531 = equali(lm, "both") ? 0 : (equali(lm, "en") ? 2 : 1);
+    new path[96], n532;
+    for (new n = 0; n < CN_TOTAL; n++)
+    {
+        g_bCsoFile[n] = false;
+        if (!C532_FILE[n][0] || g_iPreCso <= 0) continue;
+        new ok = 1;
+        for (new l = 0; l < 2; l++)
+        {
+            if (g_iCsoLang531 && l != (g_iCsoLang531 == 1 ? 1 : 0)) continue;
+            for (new e = 0; e < 2; e++)
+            {
+                formatex(path, charsmax(path), "sprites/vexmira/c532/%s_%s.%s", C532_FILE[n], l ? "tr" : "en", e ? "txt" : "spr");
+                if (file_exists(path, true) && ZcPcGeneric(path) > 0) n532++; else ok = 0;
+            }
+        }
+        g_bCsoFile[n] = ok ? true : false;
+    }
+    log_amx("[Vexmira] 5.3.2 ekran kartlari: %d dosya (sprites/vexmira/c532)", n532);
 }
 CsoInitWL()
 {
@@ -5908,6 +6022,12 @@ message_end();
 }
 stock CsoName(id, note, arg, frm, out[], len)
 {
+    if (g_bCsoC532)
+    {
+        new bool:tr2 = g_iCsoLang531 ? (g_iCsoLang531 == 1) : (g_iLang[id] == 2);
+        formatex(out, len, "vexmira/c532/%s_%s", C532_FILE[note], tr2 ? "tr" : "en");
+        return;
+    }
     if (g_bCsoVex531)
     {
         static const FRC[] = { 'a', 'b', 'g', 'm', 'c' };
@@ -5938,7 +6058,7 @@ stock CsoName(id, note, arg, frm, out[], len)
 }
 stock CsoFrameAt(note, Float:t, Float:dur, cur)
 {
-    if (!g_bCsoVex531 || get_pcvar_num(g_pCsoAnim) <= 0)
+    if (!g_bCsoVex531 || g_bCsoC532 || get_pcvar_num(g_pCsoAnim) <= 0)
         return CF_M;
     // a (0-0.08 s) -> b (-0.18) -> body: g glint (0.2 s) / m (0.6 s) pulse -> last 0.2 s c
     if (t < 0.08)
@@ -5983,6 +6103,31 @@ return;
 if (CSO_PRIO[note] <= 2 ? (g_iSet[id] & SET_NO_STREAK) : (g_iSet[id] & SET_NO_AMB))
 return;
 PlayKey(id, CSO_SND[note]);
+}
+// 5.3.2 text card: big notes = framed title (with a dark under-layer for depth) + white detail line,
+// short colour pulse on screen; small notes (kills, headshot ...) = compact line under the crosshair.
+VexCardText532(id, note, const title[], const detail[], r, g, b, Float:hold)
+{
+new bool:big = !(note <= CN_NADE || note == CN_FIRST || note == CN_INFD || note == CN_TEN || note == CN_HS);
+// MVP sits one row lower than the win card (both come at round end); max 2 DHUD per card (client limit 8)
+new Float:y = big ? (g_bCapLow532[id] ? (note == CN_MVP ? 0.74 : 0.665) : (note == CN_MVP ? 0.36 : 0.25)) : 0.62;
+new framed[160];
+if (big) formatex(framed, charsmax(framed), "--==[   %s   ]==--", title);
+else formatex(framed, charsmax(framed), "+  %s  +", title);
+set_dhudmessage(r, g, b, -1.0, y, 0, 0.0, hold, 0.06, 0.35);
+show_dhudmessage(id, "%s", framed);
+if (detail[0])
+{
+set_dhudmessage(235, 235, 235, -1.0, y + (big ? 0.045 : 0.035), 0, 0.0, hold, 0.12, 0.35);
+show_dhudmessage(id, "%s", detail);
+}
+if (big && !g_bCapLow532[id] && is_user_connected(id) && !is_user_bot(id))
+{
+message_begin(MSG_ONE_UNRELIABLE, g_msgFade, _, id);
+write_short(1 << 10); write_short(0); write_short(0x0000);
+write_byte(r); write_byte(g); write_byte(b); write_byte(28);
+message_end();
+}
 }
 stock bool:VexNotify(id, note, arg = 0)
 {
@@ -6055,9 +6200,7 @@ if (g_szCsoOverride[id][0])
     copy(title, charsmax(title), g_szCsoOverride[id]);
     detail[0] = 0;
 }
-set_dhudmessage(r,g,b,-1.0,0.555,0,0.0,hold,0.04,0.08);
-if (detail[0]) show_dhudmessage(id,"%s^n%s",title,detail);
-else show_dhudmessage(id,"%s",title);
+VexCardText532(id, note, title, detail, r, g, b, hold);
 return true;
 }
 
@@ -6164,7 +6307,14 @@ CsoQueue(id, note, arg)
 
 // true: ekranda sprite olarak gosterilecek (hemen ya da kuyrukta) -> cagiran yazi gostermez.
 // false: bu oyuncuya sprite gidemez (stil kapali / bot / olu / izleyici / dosya yok) -> eski yazi.
+// 5.3.2: every notification ALWAYS shows: picture card when possible, otherwise the styled text card
 bool:CsoNotify(id, note, arg = 0)
+{
+    if (CsoNotifyImg(id, note, arg))
+        return true;
+    return VexNotify(id, note, arg);
+}
+bool:CsoNotifyImg(id, note, arg = 0)
 {
     if (id < 1 || id > g_iMax || note < 0 || note >= CN_TOTAL || !is_user_connected(id) || (g_iSet[id] & SET_NO_FX))
         return false;
@@ -6240,7 +6390,9 @@ stock CsoHudAll(note, arg, slot, r, g, b, Float:hold, const key[], iVal = 0)
 // Custom card caption: localized title/detail sits with the generated sprite plate.
 CsoSub(id, note, arg)
 {
+    g_bCapLow532[id] = g_bCsoC532 && C532_FILE[note][0] != 0;
     VexNotify(id, note, arg);
+    g_bCapLow532[id] = false;
 }
 
 // 0.1 sn: yalniz aktif / kuyrugu olan oyuncular islenir
@@ -6978,6 +7130,8 @@ set_entvar(ents[i], var_effects, hidden ? EF_NODRAW : 0);
 }
 public fw_AddToFullPackPost(es, e, ent, host, hostflags, player, pSet)
 {
+if (g_iGiantEnt532 && get_orig_retval() && (ent == g_iGiantEnt532 || ent == g_iBoss))
+GiantPack532(es, ent, host);
 if (!player && ent < OVH_MAXENT && g_iMsMkOf[ent])
 return MsMkPack(es, host);
 if (!player && ent > g_iMax && ent < OVH_MAXENT && g_iCmOwn[ent])
@@ -8245,6 +8399,75 @@ for (new v = 0; v < nv && v < 32768; v++) GmScale3(fp, vi + v * 12, k);
 }
 fclose(fp);
 return true;
+}
+// 5.3.2 GIANT BOSS WITHOUT DOWNLOADS (vex_res BOSS_GIANT "clone"): the CS client ignores the scale of
+// player models, but it does scale normal entities. So the boss player is hidden (only on the clients, in
+// AddToFullPack) and a "body" entity with the SAME model file (already on every client) is drawn at
+// BOSS_SCALE size every server frame: same position (feet on the ground), same yaw, the player's
+// movement / attack animation. No new model files -> nothing extra to download on any map.
+GiantRemove532()
+{
+if (g_iGiantEnt532 && pev_valid(g_iGiantEnt532)) engfunc(EngFunc_RemoveEntity, g_iGiantEnt532);
+g_iGiantEnt532 = 0; g_iGiantSeq532 = -1;
+}
+public GiantFrame532()
+{
+if (g_iGiantMode532 != 1 || g_fBossScale531 <= 1.01) { if (g_iGiantEnt532) GiantRemove532(); return; }
+new id = g_iBoss;
+if (!(g_iMode == MODE_BOSS && id >= 1 && id <= g_iMax && is_user_alive(id) && g_bBoss[id] && g_iBossType >= 0 && g_iBossType < NUM_BOSSES && g_szBModel[g_iBossType][0]))
+{
+if (g_iGiantEnt532) GiantRemove532();
+return;
+}
+new ent = g_iGiantEnt532;
+if (!ent || !pev_valid(ent))
+{
+new mdl[128]; formatex(mdl, charsmax(mdl), "models/player/%s/%s.mdl", g_szBModel[g_iBossType], g_szBModel[g_iBossType]);
+if (!VxModelOk(mdl)) return;
+ent = CreateSafe51("info_target");
+if (is_nullent(ent)) return;
+set_entvar(ent, var_classname, "vex_giantbody");
+VxSM(ent, mdl);
+set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
+set_entvar(ent, var_solid, SOLID_NOT);
+set_entvar(ent, var_scale, g_fBossScale531);
+set_entvar(ent, var_owner, id);
+engfunc(EngFunc_SetSize, ent, Float:{-1.0, -1.0, -1.0}, Float:{1.0, 1.0, 1.0});
+g_iGiantEnt532 = ent; g_iGiantSeq532 = -1;
+log_amx("[GiantBoss] dev govde: ent %d, boss #%d, model %s, olcek %.2f (yeni dosya yok)", ent, id, mdl, g_fBossScale531);
+}
+new Float:o[3], Float:a[3], Float:v[3];
+get_entvar(id, var_origin, o); get_entvar(id, var_v_angle, a); get_entvar(id, var_velocity, v);
+o[2] += ((get_entvar(id, var_flags) & FL_DUCKING) ? 18.0 : 36.0) * (g_fBossScale531 - 1.0);
+engfunc(EngFunc_SetOrigin, ent, o);
+a[0] = 0.0; a[2] = 0.0; set_entvar(ent, var_angles, a);
+new seq = get_entvar(id, var_sequence), gait = get_entvar(id, var_gaitsequence);
+if (floatsqroot(v[0] * v[0] + v[1] * v[1]) > 30.0 && gait > 0 && (Float:get_entvar(id, var_animtime) < get_gametime() - 0.6)) seq = gait;
+if (seq != g_iGiantSeq532)
+{
+g_iGiantSeq532 = seq;
+set_entvar(ent, var_sequence, seq); set_entvar(ent, var_frame, 0.0);
+set_entvar(ent, var_animtime, get_gametime()); set_entvar(ent, var_framerate, 1.0);
+}
+// boss effects (glow shell, colour) are copied to the body
+set_entvar(ent, var_renderfx, get_entvar(id, var_renderfx));
+new Float:c[3]; get_entvar(id, var_rendercolor, c); set_entvar(ent, var_rendercolor, c);
+set_entvar(ent, var_rendermode, get_entvar(id, var_rendermode));
+set_entvar(ent, var_renderamt, Float:get_entvar(id, var_renderamt));
+set_entvar(ent, var_skin, get_entvar(id, var_skin)); set_entvar(ent, var_body, get_entvar(id, var_body));
+}
+// AddToFullPack (post): hide the real boss, hide the body from the boss himself (first person)
+GiantPack532(es, ent, host)
+{
+if (!g_iGiantEnt532) return FMRES_IGNORED;
+if (ent == g_iBoss && ent >= 1 && ent <= g_iMax)
+{
+set_es(es, ES_RenderMode, kRenderTransAlpha); set_es(es, ES_RenderAmt, 0); set_es(es, ES_RenderFx, kRenderFxNone);
+return FMRES_IGNORED;
+}
+if (ent == g_iGiantEnt532 && host == g_iBoss && !(g_iCamera47[host] && !is_nullent(g_iCamera47[host])))
+set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
+return FMRES_IGNORED;
 }
 // name -> giant name (built if needed); false = keep the original
 bool:GmBossGiant(const name[], out[], len)
@@ -10915,6 +11138,7 @@ new Float:po49[3];get_entvar(id,var_origin,po49);
 po49[0]+=g_fPetRel49[id][0];po49[1]+=g_fPetRel49[id][1];po49[2]=g_fPetFloor49[id];
 set_es(es,ES_Origin,po49);
 } else if(c!=1 && get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW) {
+if(get_pcvar_num(g_pCosSmooth532)) {set_es(es,ES_MoveType,MOVETYPE_STEP);set_es(es,ES_AnimTime,get_gametime());}
 new Float:po49[3];get_entvar(id,var_origin,po49);
 new Float:eo49[3],Float:old49[3];get_entvar(ent,var_origin,eo49);get_entvar(ent,var_vuser1,old49);
 new Float:ya51[3];get_entvar(id,var_angles,ya51);
@@ -12052,17 +12276,31 @@ NadeOnThrow(id, ent, 2);
 // Layered + staged (0 / 0.15 / 0.4 / 0.8 / 1.3 s) temp-entity effects. One PVS message per layer, so
 // 32 players cost the same as one. vex_nade_fx 0 = old simple effects, 1 = epic (default).
 new g_sprGlow531, g_sprHot531, g_sprSteam531, g_sprShock531, g_iDecScorch531 = -1, g_pNadeFx531;
+// 5.3.2: own smooth additive sprites (sprites/vexmira/fx532/). Additive = black is see-through, so no
+// black squares behind any effect; built from soft gradients, so no pixel blocks when scaled up.
 NadeFxPrecache531()
 {
 g_sprGlow531  = VxPcStock531("sprites/glow01.spr");
 g_sprHot531   = VxPcStock531("sprites/hotglow.spr");
 g_sprSteam531 = VxPcStock531("sprites/steam1.spr");
 g_sprShock531 = VxPcStock531("sprites/shockwave.spr");
+new path[96];
+for (new i = 0; i < FX532_TOTAL; i++)
+{
+formatex(path, charsmax(path), "sprites/vexmira/fx532/%s.spr", FX532_NAME[i]);
+g_iFx532[i] = VxPcStock531(path);
+if (!g_iFx532[i]) log_amx("[Vexmira] 5.3.2 efekt sprite'i eksik: %s (sunucuya yukleyin; o efekt eski haliyle calisir)", path);
 }
+}
+stock bool:Fx532Ok() { return g_iFx532[X_FIREBALL] && g_iFx532[X_FROSTBURST] && g_iFx532[X_FLARE] && g_iFx532[X_TOXICBURST] && g_iFx532[X_RING] && g_iFx532[X_SMOKE]; }
 VxPcStock531(const path[])
 {
 if (!file_exists(path, true)) return 0;
-return (!VxPcOk531()) ? 0 : precache_model(path);
+// 5.3.2: optional effect sprites never take the last model slots (map + other plugins come first)
+if (contain(path, "/fx532/") != -1 && max(g_iTotMdl, g_iPcMdl) >= 430) { log_amx("[AssetGuard] model listesi dolu, efekt sprite'i atlandi: %s", path); return 0; }
+new idx = (!VxPcOk531()) ? 0 : precache_model(path);
+if (idx > g_iPcMdl) g_iPcMdl = idx;
+return idx;
 }
 stock NxBegin(const Float:o[3]) { engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, o, 0); }
 stock NxCoord(const Float:o[3], Float:dz = 0.0) { engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]); engfunc(EngFunc_WriteCoord, o[2] + dz); }
@@ -12188,106 +12426,121 @@ return true;
 }
 NadeFxStage531(const Float:o[3], kind, stage)
 {
-new fireSpr = g_sprFx[FXS_EXFIRE] ? g_sprFx[FXS_EXFIRE] : (g_sprFire ? g_sprFire : g_sprExplode);
-new iceSpr = g_sprFx[FXS_EXICE] ? g_sprFx[FXS_EXICE] : g_sprFx[FXS_ICE];
-new iceBit = g_sprFx[FXS_ICE] ? g_sprFx[FXS_ICE] : g_sprGlow531;
-new ring = g_sprShock531 ? g_sprShock531 : g_sprRing;
+if (Fx532Ok()) { NadeFx532(o, kind, stage); return; }
+NadeFxOld531(o, kind, stage);
+}
+// 5.3.2 explosions: every sprite is additive and soft (fireball / frost burst / flare star / toxic burst,
+// ring texture for the shock waves, INDEXALPHA smoke for TE_SMOKE). Stage 0 = blast, 1-4 = aftermath.
+NadeFx532(const Float:o[3], kind, stage)
+{
+new ring = g_iFx532[X_RING];
 switch (kind)
 {
-case 0: // ---------------- FIRE: fireball, mushroom, shockwave, ember shower, burning ground, smoke column, scorch
+case 0: // FIRE: white-hot flash, rolling fireball, double shock ring, ember fountain, burning ground, smoke column
 {
 switch (stage)
 {
 case 0:
 {
-NxExplo(o, fireSpr, 34, 14, 26.0);
-NxExplo(o, g_sprExplode, 26, 18, 10.0);
-NxLight(o, 255, 120, 30, 46, 10, 30);
-NxRing(o, ring, 255, 110, 20, 340, 40, 4, 220, 8.0);
-NxRing(o, g_sprRing, 255, 220, 120, 220, 18, 3, 255, 4.0);
-NxShower(o, g_sprHot531 ? g_sprHot531 : fireSpr, 26, 10, 2, 38, 26);
-NxStreak(o, 0x6B, 60, 220, 180);
+NxSprite(o, g_iFx532[X_GLOW], 30, 255, 30.0);
+NxExplo(o, g_iFx532[X_FIREBALL], 26, 22, 34.0);
+NxExplo(o, g_iFx532[X_FIREBALL], 18, 26, 12.0);
+NxLight(o, 255, 130, 40, 48, 12, 30);
+NxRing(o, ring, 255, 120, 30, 380, 60, 5, 210, 6.0);
+NxRing(o, ring, 255, 230, 160, 230, 26, 3, 255, 3.0);
+NxShower(o, g_iFx532[X_EMBER], 30, 14, 3, 40, 26);
+NxStreak(o, 0x6B, 50, 220, 160);
 NxShakeNear(o, 420.0, 9);
 if (g_iDecScorch531 < 0) g_iDecScorch531 = engfunc(EngFunc_DecalIndex, "{scorch1");
 NxDecal(o, g_iDecScorch531);
 }
 case 1:
 {
-NxExplo(o, fireSpr, 22, 12, 70.0);            // rising mushroom head
-NxField(o, g_sprFire ? g_sprFire : fireSpr, 110, 14, TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_PLANAR | TEFIRE_FLAG_LOOP, 30);
-NxRing(o, g_sprRing, 255, 70, 0, 160, 10, 5, 180, 2.0);
+NxExplo(o, g_iFx532[X_FIREBALL], 20, 16, 78.0);           // mushroom head rising
+NxField(o, g_iFx532[X_FLAME], 120, 16, TEFIRE_ADD532 | TEFIRE_FLAG_LOOP, 34);
+NxRing(o, ring, 255, 80, 10, 170, 20, 6, 170, 2.0);
 }
-case 2:
-{
-NxLight(o, 255, 90, 20, 30, 14, 12);
-NxSmoke(o, g_sprSmoke ? g_sprSmoke : g_sprSteam531, 40, 8, 40.0);
-NxShower(o, g_sprHot531, 12, 14, 1, 20, 18, 90.0);
-}
-case 3: { NxField(o, g_sprFire ? g_sprFire : fireSpr, 90, 10, TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_PLANAR | TEFIRE_FLAG_LOOP, 24); NxSmoke(o, g_sprSteam531, 50, 6, 80.0); }
-case 4: { NxSmoke(o, g_sprSmoke ? g_sprSmoke : g_sprSteam531, 60, 5, 120.0); NxLight(o, 200, 70, 20, 18, 10, 16); }
+case 2: { NxSmoke(o, g_iFx532[X_SMOKE], 34, 10, 60.0); NxShower(o, g_iFx532[X_EMBER], 14, 18, 2, 22, 20, 90.0); NxLight(o, 255, 100, 25, 32, 14, 12); }
+case 3: { NxField(o, g_iFx532[X_FLAME], 90, 10, TEFIRE_ADD532 | TEFIRE_FLAG_LOOP, 26); NxSmoke(o, g_iFx532[X_SMOKE], 44, 8, 100.0); }
+case 4: { NxSmoke(o, g_iFx532[X_SMOKE], 52, 6, 140.0); NxLight(o, 200, 70, 20, 20, 10, 16); }
 }
 }
-case 1: // ---------------- FROST: white flash, crystal burst, double shockwave, shard shower, frost mist, snow
+case 1: // FROST: blue-white flash, crystal star burst, double shock ring, ice shard shower, cold mist carpet
 {
 switch (stage)
 {
 case 0:
 {
-NxExplo(o, iceSpr, 34, 14, 26.0);
-NxLight(o, 140, 210, 255, 50, 12, 24);
-NxRing(o, ring, 120, 220, 255, 360, 46, 4, 230, 8.0);
-NxRing(o, g_sprRing, 255, 255, 255, 240, 16, 3, 255, 4.0);
-NxShower(o, iceBit, 30, 12, 2, 46, 30);
-NxStreak(o, 0x6F, 50, 200, 160);
+NxSprite(o, g_iFx532[X_GLOW], 30, 255, 30.0);
+NxExplo(o, g_iFx532[X_FROSTBURST], 28, 22, 30.0);
+NxLight(o, 140, 210, 255, 52, 12, 24);
+NxRing(o, ring, 110, 210, 255, 400, 64, 5, 220, 6.0);
+NxRing(o, ring, 230, 250, 255, 250, 24, 3, 255, 3.0);
+NxShower(o, g_iFx532[X_SHARD], 34, 14, 4, 48, 30);
+NxStreak(o, 0x6F, 40, 200, 160);
 NxShakeNear(o, 360.0, 5);
 }
 case 1:
 {
-NxField(o, iceBit, 150, 18, TEFIRE_FLAG_ALLFLOAT | TEFIRE_FLAG_ALPHA, 26);
-NxRing(o, g_sprRing, 60, 160, 255, 300, 30, 6, 160, 1.0);
-NxSprite(o, g_sprGlow531, 9, 200, 30.0);
+NxField(o, g_iFx532[X_FROSTMIST], 150, 18, TEFIRE_ADD532 | TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 30);
+NxExplo(o, g_iFx532[X_FROSTBURST], 16, 18, 60.0);
+NxRing(o, ring, 60, 160, 255, 300, 34, 7, 150, 1.0);
 }
-case 2: { NxSmoke(o, g_sprSteam531, 46, 6, 20.0); NxLight(o, 90, 180, 255, 34, 16, 8); NxShower(o, iceBit, 14, 16, 1, 16, 22, 120.0); }
-case 3: { NxField(o, iceBit, 120, 12, TEFIRE_FLAG_ALLFLOAT | TEFIRE_FLAG_ALPHA, 20); }
-case 4: { NxSmoke(o, g_sprSteam531, 60, 5, 40.0); }
+case 2: { NxShower(o, g_iFx532[X_SHARD], 16, 18, 2, 18, 24, 120.0); NxLight(o, 90, 180, 255, 34, 16, 8); }
+case 3: { NxField(o, g_iFx532[X_FROSTMIST], 120, 12, TEFIRE_ADD532 | TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 22); }
+case 4: { NxSprite(o, g_iFx532[X_GLOW], 16, 120, 10.0); }
 }
 }
-case 2: // ---------------- FLARE: magnesium flash, spark fountain, spark carpet, glow star
+case 2: // FLARE: magnesium star (rotating lens flare), spark fountain, spark carpet
 {
 switch (stage)
 {
 case 0:
 {
-NxLight(o, 255, 240, 220, 60, 6, 40);
-NxSprite(o, g_sprGlow531, 12, 255, 16.0);
-NxRing(o, g_sprRing, 255, 70, 60, 200, 20, 4, 230, 4.0);
-NxStreak(o, 0x6B, 90, 320, 120);
-NxShower(o, g_sprHot531 ? g_sprHot531 : g_sprGlow531, 24, 8, 1, 60, 20, 30.0);
+NxLight(o, 255, 240, 220, 60, 8, 36);
+NxExplo(o, g_iFx532[X_FLARE], 22, 14, 18.0);
+NxSprite(o, g_iFx532[X_GLOW], 24, 255, 18.0);
+NxRing(o, ring, 255, 120, 90, 240, 30, 4, 220, 3.0);
+NxShower(o, g_iFx532[X_SPARK], 34, 10, 2, 64, 22, 30.0);
+NxStreak(o, 0x6B, 70, 320, 120);
 }
-case 1: { NxField(o, g_sprHot531 ? g_sprHot531 : g_sprGlow531, 70, 12, TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 12); NxStreak(o, 0x6B, 40, 260, 90); }
-case 2: { NxStreak(o, 0x6B, 40, 240, 90); NxSmoke(o, g_sprSteam531, 18, 10, 10.0); }
-case 3: { NxStreak(o, 0x6B, 30, 220, 80); }
-case 4: { NxStreak(o, 0x6B, 25, 200, 80); }
+case 1: { NxExplo(o, g_iFx532[X_FLARE], 16, 12, 18.0); NxShower(o, g_iFx532[X_SPARK], 20, 10, 2, 50, 18, 30.0); }
+case 2: { NxExplo(o, g_iFx532[X_FLARE], 14, 12, 18.0); NxStreak(o, 0x6B, 30, 240, 90); }
+case 3: { NxShower(o, g_iFx532[X_SPARK], 14, 10, 2, 40, 16, 30.0); }
+case 4: { NxSprite(o, g_iFx532[X_GLOW], 14, 160, 18.0); }
 }
 }
-case 3: // ---------------- INFECTION: toxic burst, green shockwave, acid mist
+case 3: // INFECTION: toxic burst with bubbles, green shock ring, acid mist
 {
 switch (stage)
 {
 case 0:
 {
-NxExplo(o, g_sprFx[FXS_EXTOXIC] ? g_sprFx[FXS_EXTOXIC] : g_sprExplode, 32, 14, 24.0);
-NxLight(o, 60, 255, 40, 44, 12, 24);
-NxRing(o, ring, 40, 255, 40, 320, 40, 4, 220, 8.0);
-NxShower(o, g_sprFx[FXS_TOXIC] ? g_sprFx[FXS_TOXIC] : g_sprGlow531, 24, 12, 2, 40, 28);
+NxExplo(o, g_iFx532[X_TOXICBURST], 26, 20, 28.0);
+NxLight(o, 60, 255, 40, 46, 12, 24);
+NxRing(o, ring, 40, 255, 40, 340, 56, 5, 210, 6.0);
+NxShower(o, g_iFx532[X_TOXICMIST], 18, 14, 3, 36, 26);
 NxShakeNear(o, 320.0, 5);
 }
-case 1: { NxField(o, g_sprFx[FXS_TOXIC] ? g_sprFx[FXS_TOXIC] : g_sprGlow531, 140, 16, TEFIRE_FLAG_ALLFLOAT | TEFIRE_FLAG_ALPHA, 22); }
-case 2: { NxSmoke(o, g_sprSteam531, 50, 6, 20.0); NxLight(o, 40, 200, 30, 30, 16, 10); }
-case 3: { NxRing(o, g_sprRing, 80, 255, 60, 200, 16, 6, 140, 2.0); }
-case 4: { NxSmoke(o, g_sprSteam531, 60, 5, 60.0); }
+case 1: { NxField(o, g_iFx532[X_TOXICMIST], 140, 16, TEFIRE_ADD532 | TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 28); }
+case 2: { NxExplo(o, g_iFx532[X_TOXICBURST], 14, 16, 50.0); NxLight(o, 40, 200, 30, 30, 16, 10); }
+case 3: { NxRing(o, ring, 80, 255, 60, 200, 22, 6, 140, 2.0); }
+case 4: { NxField(o, g_iFx532[X_TOXICMIST], 100, 10, TEFIRE_ADD532 | TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 18); }
 }
 }
+}
+}
+NadeFxOld531(const Float:o[3], kind, stage)
+{
+// fallback when the fx532 sprites are not on the server: only additive draws (no fields / smoke = no squares)
+new ring = g_sprShock531 ? g_sprShock531 : g_sprRing;
+if (stage) return;
+switch (kind)
+{
+case 0: { NxExplo(o, g_sprFx[FXS_EXFIRE] ? g_sprFx[FXS_EXFIRE] : g_sprExplode, 26, 14, 26.0); NxLight(o, 255, 120, 30, 46, 10, 30); NxRing(o, ring, 255, 110, 20, 340, 40, 4, 220, 8.0); NxStreak(o, 0x6B, 60, 220, 180); }
+case 1: { NxExplo(o, g_sprFx[FXS_EXICE] ? g_sprFx[FXS_EXICE] : g_sprExplode, 26, 14, 26.0); NxLight(o, 140, 210, 255, 50, 12, 24); NxRing(o, ring, 120, 220, 255, 360, 46, 4, 230, 8.0); NxStreak(o, 0x6F, 50, 200, 160); }
+case 2: { NxLight(o, 255, 240, 220, 60, 6, 40); NxRing(o, g_sprRing, 255, 70, 60, 200, 20, 4, 230, 4.0); NxStreak(o, 0x6B, 90, 320, 120); }
+case 3: { NxExplo(o, g_sprFx[FXS_EXTOXIC] ? g_sprFx[FXS_EXTOXIC] : g_sprExplode, 26, 14, 24.0); NxLight(o, 60, 255, 40, 44, 12, 24); NxRing(o, ring, 40, 255, 40, 320, 40, 4, 220, 8.0); }
 }
 }
 // ===================== end epic grenade explosions =====================
@@ -12643,11 +12896,54 @@ new bool:ok = GmBossGiant(nm, out, charsmax(out));
 server_print("[GiantBoss] test %s -> %d %s", nm, ok, out);
 return PLUGIN_HANDLED;
 }
+public srv_DbgLmWall532()
+{
+new a[16], Float:o[3], Float:yaw, zm;
+for (new k = 0; k < 3; k++) { read_argv(1 + k, a, charsmax(a)); o[k] = str_to_float(a); }
+read_argv(4, a, charsmax(a)); yaw = str_to_float(a); read_argv(5, a, charsmax(a)); zm = str_to_num(a);
+new owner; for (new p = 1; p <= g_iMax; p++) if (is_user_alive(p)) { owner = p; break; }
+if (!owner) return PLUGIN_HANDLED;
+new Float:e[3]; e[0] = o[0] + floatcos(yaw, degrees) * 800.0; e[1] = o[1] + floatsin(yaw, degrees) * 800.0; e[2] = o[2];
+new tr = create_tr2(); engfunc(EngFunc_TraceLine, o, e, IGNORE_MONSTERS, 0, tr);
+new Float:fr, Float:hit[3], Float:n[3]; get_tr2(tr, TR_flFraction, fr); get_tr2(tr, TR_vecEndPos, hit); get_tr2(tr, TR_vecPlaneNormal, n); free_tr2(tr);
+if (fr >= 1.0) { server_print("[lmwall] duvar yok"); return PLUGIN_HANDLED; }
+new old = g_bZombie[owner]; g_bZombie[owner] = zm ? true : false;
+new ent = CreateMine(owner, hit, n);
+g_bZombie[owner] = old;
+server_print("[lmwall] mine %d at %.0f %.0f %.0f normal %.2f %.2f %.2f dist %.0f", ent, hit[0], hit[1], hit[2], n[0], n[1], n[2], fr * 800.0);
+log_amx("[lmwall] mine %d at %.0f %.0f %.0f normal %.2f %.2f %.2f dist %.0f", ent, hit[0], hit[1], hit[2], n[0], n[1], n[2], fr * 800.0);
+return PLUGIN_HANDLED;
+}
+public srv_DbgCard532()
+{
+new a[8]; read_argv(1, a, charsmax(a)); new note = str_to_num(a); read_argv(2, a, charsmax(a)); new arg = str_to_num(a);
+for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && !is_user_bot(p)) log_amx("[Vexmira] debug kart %d -> #%d : %d", note, p, CsoNotify(p, note, arg));
+return PLUGIN_HANDLED;
+}
+public srv_DbgRadio532()
+{
+new a[8]; read_argv(1, a, charsmax(a)); g_fRadioBusy52 = 0.0; new i = str_to_num(a); if (i >= 0 && i < 15) g_fRadioAt52[i] = 0.0; Radio52(i);
+return PLUGIN_HANDLED;
+}
 public srv_DbgNadeFx()
 {
 new a[16], Float:o[3];
 read_argv(1, a, charsmax(a)); new kind = str_to_num(a);
 for (new k = 0; k < 3; k++) { read_argv(2 + k, a, charsmax(a)); o[k] = str_to_float(a); }
+read_argv(2, a, charsmax(a));
+if (equal(a, "aim"))      // at the point the first real player looks at (max 260 units)
+{
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_alive(p) || is_user_bot(p)) continue;
+new Float:st[3], Float:vo[3], Float:an[3], Float:fw[3], Float:en[3];
+get_entvar(p, var_origin, st); get_entvar(p, var_view_ofs, vo); xs_vec_add(st, vo, st);
+get_entvar(p, var_v_angle, an); an[0] = floatmax(an[0], 10.0); angle_vector(an, ANGLEVECTOR_FORWARD, fw);
+xs_vec_mul_scalar(fw, 260.0, en); xs_vec_add(st, en, en);
+new tr = create_tr2(); engfunc(EngFunc_TraceLine, st, en, IGNORE_MONSTERS, p, tr); get_tr2(tr, TR_vecEndPos, o); free_tr2(tr);
+break;
+}
+}
 new data[4]; data[0] = kind; data[1] = floatround(o[0]); data[2] = floatround(o[1]); data[3] = floatround(o[2]);
 read_argv(5, a, charsmax(a)); new rep = max(1, str_to_num(a));
 for (new r = 0; r < rep; r++) set_task(0.1 + float(r) * 2.5, "task_DbgNadeFx", 0, data, sizeof data);
@@ -13290,15 +13586,18 @@ return 0;
 set_entvar(ent, var_classname, LM_CLASS);
 // The stock tripmine has a different model axis and wall pose than the Vexmira zombie mine.
 // Select its fixed HL world pose per human mine; read configurable offsets for zombie mines.
-MinePreset(zombieMine ? false : true, false, zombieMine ? false : true);
+// 5.3.2: only the stock HL tripmine model needs the old tripmine pose; the Vexmira mine models
+// (lm_human / lm_zombie) sit flush on the wall with the config values (LASERMINE_OFFSET / ANGLES / EMITTER)
+new bool:stockTrip = containi(model, "tripmine") != -1;
+MinePreset(stockTrip, false, stockTrip);
 VxSM(ent, model);
-set_entvar(ent, var_body, zombieMine ? g_iMineBody : 3);
-set_entvar(ent, var_sequence, zombieMine ? g_iMineSeq : 7);
-set_entvar(ent, var_skin, zombieMine ? g_iMineSkin : 0);
+set_entvar(ent, var_body, stockTrip ? 3 : g_iMineBody);
+set_entvar(ent, var_sequence, stockTrip ? 7 : g_iMineSeq);
+set_entvar(ent, var_skin, stockTrip ? 0 : g_iMineSkin);
 set_entvar(ent, var_framerate, 0.0);
-if (zombieMine && g_szMineDeploySeq[0])
+if (!stockTrip && g_szMineDeploySeq[0])
 AnimByName(ent, g_szMineDeploySeq, g_iMineSeq, 1.0);
-else if (zombieMine && g_szMineSeqName[0])
+else if (!stockTrip && g_szMineSeqName[0])
 AnimByName(ent, g_szMineSeqName, g_iMineSeq, 1.0);
 set_entvar(ent, var_movetype, MOVETYPE_FLY);
 set_entvar(ent, var_solid, SOLID_NOT);
@@ -13479,6 +13778,13 @@ if (beam)
     set_entvar(beam, var_iuser1, BEAM_MARK_LM);
     set_entvar(beam, var_iuser2, get_entvar(ent, var_iuser4));
     set_entvar(beam, var_fuser1, float(clamp(get_pcvar_num(g_pLmBeamWidth), 1, 100)));
+    // 5.3.2: continuous soft beam texture (core + glow, flowing streaks) instead of the dashed one
+    new bt = g_iFx532[get_entvar(ent, var_iuser4) ? X_BEAMW : X_BEAM];
+    if (bt > 0)
+    {
+        set_entvar(beam, var_model, get_entvar(ent, var_iuser4) ? "sprites/vexmira/fx532/beam_wide.spr" : "sprites/vexmira/fx532/beam.spr");
+        set_entvar(beam, var_modelindex, bt);
+    }
 }
 set_entvar(ent, var_iuser3, beam);
 set_entvar(ent, var_iuser2, 1);
@@ -13653,15 +13959,25 @@ MineBeamAnimate(mine, beam, Float:now)
         LzStyle531(mine, beam, g_iLzSel531[owner531], now);
         return;
     }
-    set_entvar(beam, var_body, zombieMine ? 4 : 0);
-    new Float:rate = zombieMine ? 4.2 : 6.0;
+    // 5.3.2 default beams: no noise (noise breaks the beam into zig-zag pieces), texture flows
+    // from the mine to the wall, soft breathing glow, small light + sparks where it hits the wall.
+    set_entvar(beam, var_body, 0);
+    set_entvar(beam, var_animtime, zombieMine ? 22.0 : 45.0);
+    new Float:rate = zombieMine ? 3.2 : 5.0;
     new Float:pulse = 0.5 + 0.5 * floatsin(now * rate);
     new r, g, b;
     MineTeamColor(zombieMine, r, g, b);
-    new bright = 135 + floatround(pulse * 115.0);
+    new bright = 175 + floatround(pulse * 80.0);
     new baseWidth = floatround(Float:get_entvar(beam, var_fuser1));
-    set_entvar(beam, var_scale, float(clamp(baseWidth + floatround(pulse * (zombieMine ? 3.0 : 2.0)), 1, 100)));
+    set_entvar(beam, var_scale, float(clamp(baseWidth + floatround(pulse * (zombieMine ? 4.0 : 3.0)), 1, 100)));
     BeamColor(beam, r, g, b, bright);
+    if (Float:get_entvar(beam, var_fuser2) <= now)
+    {
+        set_entvar(beam, var_fuser2, now + 0.7);
+        new Float:e[3]; get_entvar(mine, var_vuser2, e);
+        NxLight(e, r, g, b, 5, 4, 12);
+        if (!zombieMine) { NxBegin(e); write_byte(TE_SPARKS); NxCoord(e); message_end(); }
+    }
 }
 MineTeamColor(bool:zombieMine, &r, &g, &b)
 {
@@ -28564,7 +28880,9 @@ continue;
 formatex(key, charsmax(key), "B%d_MODEL", i);
 // 5.3.1: giant copy first (vex_res BOSS_SCALE), original as fallback
 new bname[32], giant[48];
-if (TrieGetString(g_tRes, key, bname, charsmax(bname)) && bname[0] && GmBossGiant(bname, giant, charsmax(giant)))
+g_fBossScale531 = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
+g_iGiantMode532 = equali(GetResString("BOSS_GIANT", "clone"), "file") ? 2 : (equali(GetResString("BOSS_GIANT", "clone"), "off") ? 0 : 1);
+if (g_iGiantMode532 == 2 && TrieGetString(g_tRes, key, bname, charsmax(bname)) && bname[0] && GmBossGiant(bname, giant, charsmax(giant)))
 {
 new gpath[128]; formatex(gpath, charsmax(gpath), "models/player/%s/%s.mdl", giant, giant);
 if (PcModel(gpath)) { copy(g_szBModel[i], charsmax(g_szBModel[]), giant); MdlHeadTops(giant); PcPlayerTex(giant); }
@@ -28665,7 +28983,7 @@ register_clcmd("say /memes","cmd_SixMemes");
 register_clcmd("say_team /memes","cmd_SixMemes");
 register_concmd("vex_connection_stats","cmd_SixStats",ADMIN_RCON);
 register_plugin(PLUGIN, VERSION, AUTHOR);
-g_pUi52=register_cvar("vex_ui52","1");g_pRadio52=register_cvar("vex_radio52","1");g_pRadioInterval52=register_cvar("vex_radio52_interval","90");
+g_pUi52=register_cvar("vex_ui52","1");g_pRadio52=register_cvar("vex_radio52","1");g_pRadioText532=register_cvar("vex_radio_text","1");g_pRadioInterval52=register_cvar("vex_radio52_interval","90");
 register_dictionary("vexmira_zombie.txt");
 register_dictionary("vexmira_epic.txt");
 if (!is_regamedll())
@@ -28819,7 +29137,7 @@ g_pNadeFx531 = register_cvar("vex_nade_fx", "1");
 g_pLzPrices531 = register_cvar("vex_laser_prices", "300 450 600 900");
 g_pAutoHit531 = register_cvar("vex_auto_hitbox", "1");
 g_pBlackLight531 = register_cvar("vex_blackout_light", "b");
-register_cvar("vex_dbg_nxmask", "0");
+register_cvar("vex_dbg_nxmask", "0");register_cvar("vex_debug_audio", "0");
 g_pInfAmmo531 = register_cvar("vex_unlimited_bpammo", "1");
 g_pAutoJoinHumans= register_cvar("vex_auto_join_humans", "1");
 g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
@@ -28926,6 +29244,7 @@ g_pZc[ZCV_ALTKEYS]     = register_cvar("vex_skill_alt_keys", "1");
 g_pOvhEnable     = register_cvar("vex_overhead", "1");
 g_pHudStyle      = register_cvar("vex_hud_style", "1");
 g_pHudTop        = register_cvar("vex_hud_top", "-1");
+g_pTop532 = register_cvar("vex_topboard", "1"); g_pCosSmooth532 = register_cvar("vex_cos_smooth", "1"); g_pTopPad532 = register_cvar("vex_topboard_pad", "44"); g_pTopY532 = register_cvar("vex_topboard_y", "0.01");
 g_pHudRight      = register_cvar("vex_hud_right", "-1");
 g_pHudMvp        = register_cvar("vex_hud_mvp", "-1");
 g_pHudXp         = register_cvar("vex_hud_xp", "-1");
@@ -28969,12 +29288,13 @@ register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
 register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
 register_srvcmd("vex_debug_buy", "srv_DbgBuy");
-register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");
+register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");register_srvcmd("vex_debug_card", "srv_DbgCard532");register_srvcmd("vex_debug_lmwall", "srv_DbgLmWall532");register_srvcmd("vex_debug_radio", "srv_DbgRadio532");
 register_srvcmd("vex_debug_giant", "srv_DbgGiant");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);
 register_forward(FM_AddToFullPack, "fw_AddToFullPackPost", 1);
+register_forward(FM_StartFrame, "GiantFrame532", 1);
 PrecacheReportTotals();
 OvhInit();
 set_task(2.0,"CommunityCheckComponents");
@@ -29317,7 +29637,10 @@ CommunityCosOrigin(ent,id,c,i)
 new Float:o[3],Float:a[3],Float:owner[3];
 // 5.3.1: wings + hats are glued with MOVETYPE_FOLLOW (client renders them in the same frame as the
 // player and bone-merges them onto the skeleton): no lag, no teleport, follows crouch/run animation.
-if(c!=1 && get_pcvar_num(g_pCosFollow531)) {
+// 5.3.2: only wings use FOLLOW (their models bone-merge on the back). Hats go back to the head-bone
+// anchor of 5.3 (FOLLOW drew them at the player's centre = inside the body); their lag is removed in
+// CmPack (sent with the same client interpolation as players).
+if(c==0 && get_pcvar_num(g_pCosFollow531)) {
 if(get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW || get_entvar(ent,var_aiment)!=id) {
 set_entvar(ent,var_movetype,MOVETYPE_FOLLOW);set_entvar(ent,var_aiment,id);
 get_entvar(id,var_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
@@ -30370,7 +30693,7 @@ set_entvar(id,var_absmax,hi531);
 return FMRES_IGNORED;
 }
 new Float:o[3],Float:lo[3],Float:hi[3];get_entvar(id,var_origin,o);
-new Float:gk=(idx<9 && g_fBossScale531>1.0 && containi(g_szBModel[g_iBossType],"_x")!=-1)?g_fBossScale531:1.0;
+new Float:gk=(idx<9 && g_fBossScale531>1.0 && (g_iGiantMode532==1 || containi(g_szBModel[g_iBossType],"_x")!=-1))?g_fBossScale531:1.0;
 new Float:r=floatclamp(B48_RADIUS[idx]*gk,24.0,160.0);
 lo[0]=o[0]-r;lo[1]=o[1]-r;lo[2]=o[2]-40.0;hi[0]=o[0]+r;hi[1]=o[1]+r;
 hi[2]=o[2]+((get_entvar(id,var_flags)&FL_DUCKING)?B48_DUCK[idx]:B48_TOP[idx])*gk+36.0*(gk-1.0);
@@ -30557,12 +30880,14 @@ g_szAmbientPlaying52[id][0]=0;g_iAmbientUser49[id]=0;
 AmbientClient49(id)
 {
 if(id<1 || id>g_iMax || !is_user_connected(id) || is_user_bot(id)) return;
-if(!g_bRoundActive || g_bRoundEnded || (g_iSet[id]&SET_NO_AMB) || !g_szAmbient49[0]) {AmbientStop52(id);return;}
-if(g_tAmbientReady52==Invalid_Trie || !TrieKeyExists(g_tAmbientReady52,g_szAmbient49)) {AmbientStop52(id);return;}
+new dbg=get_cvar_num("vex_debug_audio");
+if(!g_bRoundActive || g_bRoundEnded || (g_iSet[id]&SET_NO_AMB) || !g_szAmbient49[0]) {if(dbg) log_amx("[AudioDbg] ambiyans #%d yok: round=%d bitti=%d kapali=%d yol='%s'",id,g_bRoundActive,g_bRoundEnded,(g_iSet[id]&SET_NO_AMB)?1:0,g_szAmbient49);AmbientStop52(id);return;}
+if(g_tAmbientReady52==Invalid_Trie || !TrieKeyExists(g_tAmbientReady52,g_szAmbient49)) {if(dbg) log_amx("[AudioDbg] ambiyans '%s' yuklenmemis",g_szAmbient49);AmbientStop52(id);return;}
 new Float:now=get_gametime(),stamp=g_iAmbientEpoch49*2048+get_user_userid(id);
 if(g_iAmbientUser49[id]==stamp && now<g_fAmbientNext49[id]) return;
 AmbientStop52(id);
 rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbient49[6],0.65,ATTN_NONE,0,PITCH_NORM);
+if(dbg) log_amx("[AudioDbg] ambiyans #%d CAL %s",id,g_szAmbient49);
 copy(g_szAmbientPlaying52[id],charsmax(g_szAmbientPlaying52[]),g_szAmbient49);
 g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+30.0;
 }
@@ -30961,6 +31286,7 @@ Float:OverheadTop52(id)
 {
 new Float:top=(get_entvar(id,var_flags)&FL_DUCKING)?g_fOvhDuck[id]:g_fOvhStand[id];
 if(g_bBoss[id] && g_iBossType>=0 && g_iBossType<9) top=floatmax(top,(get_entvar(id,var_flags)&FL_DUCKING)?B48_DUCK[g_iBossType]:B48_TOP[g_iBossType]);
+if(g_bBoss[id] && id==g_iBoss && g_iGiantMode532==1 && g_fBossScale531>1.01) {new Float:k=g_fBossScale531;top=top*k+((get_entvar(id,var_flags)&FL_DUCKING)?18.0:36.0)*(k-1.0);}
 CosCanFollow49(id,2);
 new bone=g_iCosBone50[id][1];
 if(bone>=0) {new Float:p[3],Float:a[3],Float:o[3];engfunc(EngFunc_GetBonePosition,id,bone,p,a);get_entvar(id,var_origin,o);top=floatmax(top,p[2]-o[2]+12.0);}
@@ -31014,13 +31340,19 @@ new enpath[128];for(new j=0;j<10;j++) {formatex(enpath,charsmax(enpath),"sound/v
 }
 Radio52(i)
 {
-if(i<0 || i>=15 || !g_bRadioReady52[i] || !get_pcvar_num(g_pRadio52)) return;
-new Float:now=get_gametime();if(now<floatmax(g_fRadioBusy52,g_fRdBusy) || now<g_fRadioAt52[i]) return;
+new dbg=get_cvar_num("vex_debug_audio");
+if(i<0 || i>=15 || !g_bRadioReady52[i] || !get_pcvar_num(g_pRadio52)) {if(dbg) log_amx("[AudioDbg] radio %d: hazir degil (ready=%d cvar=%d)",i,(i>=0&&i<15)?g_bRadioReady52[i]:-1,get_pcvar_num(g_pRadio52));return;}
+new Float:now=get_gametime();if(now<floatmax(g_fRadioBusy52,g_fRdBusy) || now<g_fRadioAt52[i]) {if(dbg) log_amx("[AudioDbg] radio %d: mesgul/bekleme",i);return;}
+if(dbg) log_amx("[AudioDbg] radio %d CAL (%s)",i,RADIO_FILE52[i]);
 new path[128];formatex(path,charsmax(path),"vexmira/arena52/radio/%s.wav",RADIO_FILE52[i]);
 new en=RADIO_EN_MAP521[i],enpath[128];formatex(enpath,charsmax(enpath),"vexmira/arena521/radio/en/%s.wav",RADIO_EN_FILES521[en]);
 for(new p=1;p<=g_iMax;p++) if(is_user_connected(p)&&!is_user_bot(p)&&!(g_iSet[p]&(SET_NO_AMB|SET_NO_RADIO52))) {
 if(g_iLang[p]==2) VxClientCmd527(p,"spk ^"%s^"",path);
 else if(g_bRadioEn521[en]) VxClientCmd527(p,"spk ^"%s^"",enpath);
+if(get_pcvar_num(g_pRadioText532)) {
+if(g_iLang[p]==2) client_print_color(p,print_team_grey,"^4((TELSIZ))^3 %s:^1 %s ^4*kssht*",RADIO_WHO_TR52[RADIO_WHO52[i]],RADIO_TXT_TR52[i]);
+else client_print_color(p,print_team_grey,"^4((RADIO))^3 %s:^1 %s ^4*kssht*",RADIO_WHO_EN52[RADIO_WHO52[i]],RADIO_TXT_EN52[i]);
+}
 }
 g_fRadioBusy52=now+floatmax(RADIO_LENGTH52[i],RADIO_EN_LENGTH521[en])+0.8;g_fRadioAt52[i]=now+25.0;g_fRadioNext52=now+floatmax(45.0,get_pcvar_float(g_pRadioInterval52));g_iRadioLast52=i;
 }

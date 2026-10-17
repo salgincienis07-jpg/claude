@@ -1,0 +1,98 @@
+VEXMIRA ZOMBIE 5.3.2 - KURULUM VE DEGISIKLIKLER
+================================================
+Bu pakette SADECE 5.3.1'den sonra degisen / yeni dosyalar + zm_vexmira_7door haritasi var.
+Sunucuda zaten olan model / ses / sprite dosyalarini tekrar yuklemene gerek yok.
+
+KURULUM (panel)
+---------------
+1) Eklentiler -> Eklenti Yukle:
+      addons/amxmodx/scripting/vexmira_core.sma
+      addons/amxmodx/scripting/vexmira_gear.sma
+   (Panel derleyemezse: Dosya Yonetici ile addons/amxmodx/plugins/ icine hazir
+    vexmira_core.amxx + vexmira_gear.amxx at.)
+
+2) Dosya Yonetici ile kopyala (ustune yaz):
+      addons/amxmodx/configs/vexmira.cfg          (TEK ayar dosyasi, yeni ayarlar eklendi)
+      addons/amxmodx/data/lang/vexmira_zombie.txt
+      sprites/vexmira/fx532/      (YENI: puruzsuz efekt sprite'lari - bombalar, yetenekler, lazer isini)
+      sprites/vexmira/c532/       (YENI: buyuk ekran kartlari - ZOMBILER/INSANLAR KAZANDI, MVP, BOSS, SON INSAN)
+      maps/zm_vexmira_7door.bsp / .nav / .res
+      addons/amxmodx/configs/vexmira_maps/zm_vexmira_7door.ini
+      gfx/env/vexmira_night*.tga, sound/vexmira/map/, sound/vexmira/amb/, models/vexmira/world/,
+      sprites/vexmira/fire.spr  (7door haritasinin kendi dosyalari; .res listesindekiler)
+   FastDL kullaniyorsan ayni dosyalari FastDL klasorune de at.
+
+3) Eski dev boss dosyalarini SILEBILIRSIN: models/player/*_x16/ klasorleri artik kullanilmiyor
+   (sunucuda ve FastDL'de). Hicbir oyuncu artik boss icin dosya indirmez.
+
+4) Haritayi degistir (changelevel).
+
+
+NELER DUZELDI
+-------------
+* OZEL RADYO SESLERI CALISMIYORDU: 5.3.1'deki animasyonlu CSO kart seti ~120 indirme dosyasi
+  ekleyip indirme listesini (512 sinir) doldurmustu; haritanin telsiz sesleri listeye giremiyordu.
+  Kart seti kucultuldu (10 dosya), liste 509 -> ~340. Butun telsiz sesleri yeniden yukleniyor.
+  + Telsiz sesi calinca sohbete gercekci telsiz metni yazilir (TR/EN):
+      ((TELSIZ)) MERKEZ: Tum birimler dikkat! Enfeksiyon bolgesi aktif... *kssht*   (vex_radio_text 1)
+
+* CSO BILDIRIMLERI HIC CIKMIYORDU: kart dosyasi yoksa / oyuncu oluyse hicbir sey gosterilmiyordu.
+  Artik HER bildirim her zaman cikar: buyuk resimli kart (ZOMBILER KAZANDI, INSANLAR KAZANDI, MVP,
+  BOSS GELIYOR, SON INSAN) + altinda stilli yazi karti; diger bildirimler (round, nemesis, ilk kan,
+  kafa vurusu ...) stilli yazi karti. Kartlar ust uste binmez.               (vex_res CSO_CARDSET "c532")
+
+* EFEKTLERIN ARKASINDA SIYAH KARE: yanan zemin / sis efektleri "normal" modda ciziliyordu
+  (sprite'in siyah arka plani kare olarak gorunuyordu). Butun bomba efektleri yeniden yapildi:
+  kendi yumusak, isik-toplamali (additive) sprite'larimizla -> siyah kare yok, piksel piksel degil.
+  Ates: beyaz parlama + yuvarlanan ates topu + mantar bulut + cift sok dalgasi + kor yagmuru +
+        yanan zemin + duman sutunu + yanik izi
+  Buz: mavi-beyaz flas + kristal yildiz patlamasi + buz parcalari + soguk sis halisi
+  Aydinlatma: donen magnezyum yildizi + kivilcim fiskiyesi
+  Enfeksiyon: kabarcikli toksik patlama + yesil sok dalgasi + asit sisi
+  Boss ve zombi yeteneklerinin patlamalari da ayni yumusak sprite setini kullanir
+  (ates / buz / toksik / bosluk / elektrik).
+
+* LAZER MAYIN GORUNMUYOR + DUVARDAN ONDE DURUYORDU: insan mayini hala eski HL tripmine modeli gibi
+  yerlestiriliyordu (duvardan 8 birim onde, olmayan govde/animasyon -> gorunmez). Artik yeni mayin
+  modeli duvara sifir oturur ve gorunur.
+  ISIN: kesik kesik gorunen doku yerine kesintisiz yeni isin dokusu (ince parlak cekirdek + yumusak
+  hale), duvara dogru akan enerji, nefes alan parlaklik, isinin degdigi yerde isik + kivilcim.
+  4 VexCoin isini (Plazma / Kan / Toksik / Gokkusagi) de bu dokuyu kullanir.  (vex_lm_beam_width 14)
+
+* DEV BOSSLAR GIRISTE BEKLETIYORDU / HER HARITADA INDIRME: dev boss artik YENI DOSYA URETMEDEN
+  cizilir (boss kendi modeliyle, oyun motorunda buyutulur). Oyuncular hicbir sey indirmez,
+  giris aninda olur.                                             (vex_res BOSS_GIANT "clone", BOSS_SCALE)
+
+* SAPKALAR KARAKTERIN ICINE GIRIYORDU: sapkalar 5.3'teki gibi kafa kemigine oturur (FOLLOW yontemi
+  sapkayi oyuncunun ortasina ciziyordu). Yururken gecikme olmamasi icin sapka oyuncuyla ayni
+  akicilikta gonderilir.                                         (vex_cos_smooth 1)
+
+* UST SKOR PANELI (CSO tarzi, yeniden):
+        INSAN   [ 5 ]          TUR 7 / 30           [ 3 ]   ZOMBI
+        CANLI 12                  2:31                    4 CANLI
+                          Enfeksiyon :: Normal
+  Bloklar her cozunurlukte hizali; boss roundunda sagda boss can yuzdesi.
+  (vex_topboard / vex_topboard_pad / vex_topboard_y)
+
+* Sohbet etiketleri: [VEXMIRA] [BOSS] [EVENT] [ADMIN] iki renkli.
+
+
+AYARLAR (vexmira.cfg, hepsinin yaninda aciklama var)
+----------------------------------------------------
+  vex_res CSO_CARDSET "c532"   c532 = buyuk resimli kartlar | off = sadece yazi | vexmira = eski set (onerilmez)
+  vex_res CSO_LANG "tr"        kart dili: tr / en / both
+  vex_res BOSS_GIANT "clone"   clone = indirmesiz dev boss | file = eski _x16 dosyalari | off = normal boy
+  vex_res BOSS_SCALE "1.6"     boss buyuklugu
+  vex_topboard 1               ust skor paneli
+  vex_radio_text 1             telsiz metinleri
+  vex_cos_smooth 1             sapka akiciligi
+  vex_lm_beam_width 14         lazer isini kalinligi
+  vex_nade_fx 1                epik bomba efektleri
+
+
+DURUSTCE
+--------
+* Ses listesi (512) haritalarda 506-509 dolu: bu yuzden yeteneklere YENI ses dosyasi eklenmedi
+  (eklenirse harita acilirken cokme riski). Yetenekler mevcut ozel seslerini kullanir.
+* Ekrana resim koymanin tek yolu nisangah sprite'idir: resimli kart oyuncu canliyken ve elinde
+  silah varken cikar; olu / izleyici oyuncu ayni bildirimi yazi karti olarak gorur.

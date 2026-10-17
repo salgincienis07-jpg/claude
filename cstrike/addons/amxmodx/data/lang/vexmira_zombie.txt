@@ -800,6 +800,10 @@ CSO_TOP_C531 = ROUND %d / %d   %d:%02d
 CSO_TOP_L531 = [ HUMANS  %d ]
 CSO_TOP_R531 = [ %d  ZOMBIES ]
 CSO_TOP_RB531 = [ BOSS  %d%% ]
+TB532_HUM = HUMAN
+TB532_ZOM = ZOMBIE
+TB532_ALIVE = ALIVE
+TB532_ROUND = ROUND %d / %d
 CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
 CSO_TOP_B = HUMAN  %d      VS      %d  ZOMBIE
 CSO_TOP_BOSS = BOSS FIGHT      VS      %d  HUMAN
@@ -2218,6 +2222,10 @@ CSO_TOP_C531 = ROUND %d / %d   %d:%02d
 CSO_TOP_L531 = [ INSAN  %d ]
 CSO_TOP_R531 = [ %d  ZOMBI ]
 CSO_TOP_RB531 = [ BOSS  %d%% ]
+TB532_HUM = INSAN
+TB532_ZOM = ZOMBI
+TB532_ALIVE = CANLI
+TB532_ROUND = TUR %d / %d
 CSO_TOP_A = <<=====[   ROUND  %d / %d   |   %d:%02d   ]=====>>
 CSO_TOP_B = INSAN  %d      VS      %d  ZOMBI
 CSO_TOP_BOSS = BOSS SAVASI      VS      %d  INSAN

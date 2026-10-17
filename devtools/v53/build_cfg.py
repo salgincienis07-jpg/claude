@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Vexmira 5.3.1 single config builder.
+"""Vexmira 5.3.1 / 5.3.2 single config builder.
 
     python3 devtools/v53/build_cfg.py            # writes configs/vexmira.cfg (+ embeds it into vexmira_gear.sma)
 
@@ -50,7 +50,7 @@ OVERRIDE = [
     ('vex_res LASERMINE_EMITTER "10.3 0 0"', 'isinin ciktigi uc (model +X ekseni)'),
     ('vex_res CSO_LANG "tr"', 'kart dili: tr / en / both (both = oyuncunun diline gore, ~30 dosya daha indirilir)'),
     ('vex_res SKY_PER_MAP "3"', 'bir haritada donen gokyuzu sayisi (her harita sonraki 3 lu gruba gecer; indirme limiti icin)'),
-    ('vex_res CSO_CARDSET "vexmira"', 'ekran kartlari: vexmira = animasyonlu CSO seti, cards = eski 5.3 kartlari'),
+    ('vex_res CSO_CARDSET "c532"', 'ekran kartlari: c532 = 5.3.2 buyuk resimli kartlar (onerilen, 10 indirme), vexmira = eski animasyonlu set (~120 indirme!), off = sadece yazi kart'),
     ('vex_res ZOMBIE_HIT "zombie/claw_strike1.wav|zombie/claw_strike2.wav|zombie/claw_strike3.wav"',
      'pence ile vurus (| ile birden fazla ses: her vurusta rastgele biri)'),
     ('vex_res ZOMBIE_STAB "zombie/claw_strike2.wav|zombie/claw_strike3.wav"', 'agir pence (sag tik) vurusu'),
@@ -67,6 +67,18 @@ OVERRIDE = [
     ('vex_auto_hitbox 1', '1 = boyu uzun modellerde (CSO zombileri, dev bosslar) vurus kutusu modele gore otomatik buyur'),
     ('vex_laser_prices "300 450 600 900"', 'VexCoin lazer isinlari: Plazma / Kan / Toksik / Gokkusagi fiyatlari'),
     ('vex_env_event 18 b 0 0 0 18 0', 'Elektrik Kesintisi: tum round karanlik'),
+    # ---- 5.3.2 ----
+    ('vex_chat_prefix "^4[^1VEXMIRA^4]^1"', 'sistem mesaji etiketi (^1 sari ^3 takim rengi ^4 yesil; Turkce harf kullanma, CS 1.6 sohbeti bozuk gosterir)'),
+    ('vex_chat_prefix_boss "^3[^4BOSS^3]^1"', 'boss / boss yetenekleri etiketi'),
+    ('vex_chat_prefix_event "^4[^3EVENT^4]^1"', 'event / hava olayi etiketi'),
+    ('vex_chat_prefix_admin "^3[^4ADMIN^3]^1"', 'admin islemleri etiketi'),
+    ('vex_res BOSS_GIANT "clone"', 'DEV BOSS YONTEMI: clone = boss kendi modeliyle buyuk cizilir (YENI DOSYA YOK, oyuncu hicbir sey indirmez - onerilen) | file = eski yontem (models/player/<boss>_x16 dosyasi uretilir, indirme gerekir) | off = normal boyut'),
+    ('vex_topboard 1', 'UST SKOR PANELI (CSO tarzi): 1 = acik  [INSAN galibiyet/canli]  TUR + sure + mod  [ZOMBI galibiyet/canli]'),
+    ('vex_topboard_pad 44', 'panelde yan bloklarin ortadan uzakligi (bosluk sayisi). Yazilar ust uste binerse buyut, cok aciksa kucult (10-60)'),
+    ('vex_topboard_y 0.01', 'panelin ekrandaki yuksekligi (0.0 = en ust, 0.05 = biraz asagi)'),
+    ('vex_radio_text 1', '1 = ozel telsiz sesi calinca sohbete gercekci telsiz metni yazilir (TR/EN, oyuncunun diline gore)'),
+    ('vex_cos_smooth 1', '1 = sapkalar oyuncuyla ayni akicilikta hareket eder (gecikme / isinlanma yok)'),
+    ('vex_lm_beam_width 14', 'lazer isini kalinligi (5.3.2 dokusu: ince parlak cekirdek + yumusak isik hali)'),
 ]
 # keys whose old value must go (meme sounds on zombies, per-class overrides that hid the pools)
 DROP_VALUE_RE = [re.compile(r'^vex_res Z\d+_(DIE|PAIN)$')]
@@ -99,7 +111,7 @@ SECTIONS = [
      r'^(vex_cos|vex_wing|vex_pet|vex_hat|vex_vc|vex_coin)'),
     ('VIP', 'VIP / ELITE ayricaliklari', r'^(vex_vip)'),
     ('HUD / CSO EKRAN / ARAYUZ', 'Ust skor paneli, CSO kartlari, can barlari, simgeler',
-     r'^(vex_hud|vex_cso|vex_overhead|vex_bossbar|vex_hpbar|vex_head_icon|vex_radio|vex_banner|vex_tip)'),
+     r'^(vex_hud|vex_topboard|vex_cso|vex_overhead|vex_bossbar|vex_hpbar|vex_head_icon|vex_radio|vex_banner|vex_tip)'),
     ('SES VE MUZIK', 'Ses dongu korumasi, meme sesleri, radyo',
      r'^(vex_sound|vex_meme|vex_six|vex_music|vex_round_stopsound)'),
     ('GOREV / ODUL / SEVIYE', 'vex_quest <no> <hedef> <XP> <AP> | kazanma odulleri',
