@@ -1,0 +1,56 @@
+VEXMIRA ZOMBIE 5.3.4 - KURULUM VE DEGISIKLIKLER
+================================================
+(5.3.4a'daki dev boss duzeltmesi bu pakete DAHIL - 5.3.4a'yi kurduysan bunun ustune kur.)
+
+KURULUM
+-------
+1) Eklentiler -> Eklenti Yukle:  addons/amxmodx/scripting/vexmira_core.sma  ve  vexmira_gear.sma
+   (Panel derleyemezse: addons/amxmodx/plugins/ icine hazir .amxx dosyalarini at.)
+2) Dosya Yonetici ile kopyala (ustune yaz):
+      addons/amxmodx/configs/vexmira.cfg
+      addons/amxmodx/configs/vexmira_maps/zm_vexmira_7door.ini     (ONEMLI: helikopter ve harita efektleri)
+      sprites/vexmira/c534/                                       (YENI: ust kisimda duran boss can bari)
+   FastDL kullaniyorsan ayni dosyalari FastDL'e de at.
+   Artik kullanilmiyor, silebilirsin: sprites/vexmira/c533/ icindeki hp_*.txt ve shp*.spr
+3) Haritayi degistir. Sonra konsola:  vex_fastdl   (asagida)
+
+NE DEGISTI
+----------
+* 7DOOR HARITASINDA HELIKOPTER / MODELLER / EFEKTLER / SESLER CALISMIYORDU:
+  Sebep eklenti degil, haritanin senaryo dosyasi (zm_vexmira_7door.ini) eski bir guncellemede kirpilmisti:
+  helikopter, lokomotif, ruzgar tulumu, sokak lambalari, heykel, cesme, bayraklar, butun harita efektleri
+  (patlama, kivilcim, buhar...), ortam sesleri (uzak helikopter, siren, kopek, top atisi...), telsiz
+  konusmalari bolumleri yoktu. Tam dosya geri konuldu. Test: 32 oyuncu 7door, hepsi yukleniyor, cokme yok.
+
+* BOSS CAN BARI ekranin ortasindaydi -> artik ekranin UST kisminda (nisangahin ~200 px yukarisinda),
+  ortada sadece kucuk nisangah kalir. Kapatmak icin: vex_boss_hpcard 0
+
+* "ENFEKTE ETTIN" KARTI SEBEPSIZ CIKIYORDU: bazi duyurular (mod / event duyurulari) yazili bildirim yerine
+  bu resimli karti gonderiyordu; ayrica enfekte olan KURBANA da gidiyordu. Artik sadece enfekte EDEN
+  zombi gorur, duyurular yazi olarak cikar.
+
+* LAZERLER:
+  - Hasar: insan lazeri 550, zombi lazeri 550 (eskiden 150 / 35).   vex_lm_damage / vex_lm_zombie_damage
+  - Iki taraf da kirabilir: zombiler insan lazerini pence/yetenekle, insanlar zombi lazerini mermiyle
+    (vex_lm_health 600 can).                                      vex_lm_human_break_mult / vex_lm_zombie_mult
+  - "Bir sure sonra gorunmez oluyor": sahibi olunce ya da enfekte olunca lazer sessizce siliniyordu.
+    Artik tur sonuna kadar (ya da kirilana kadar) kalir ve kuruldugu tarafa ait kalir
+    (enfekte olan sahibin lazeri insanlara donmez).                vex_lm_keep 1
+
+* 30 ROUNDDA BUTUN MODLAR VE EVENTLER: harita basinda 30 roundluk plan kurulur:
+  7 ozel mod (Nemesis, Suikastci, Kurtulan, Keskin Nisanci, Suru, Veba, Armageddon) + 18 eventin HEPSI
+  + coklu enfeksiyon roundlari + 4 boss (8 16 24 30). Sira her haritada farkli.
+  Konsola  vex_plan  yaz: bu haritanin round round plani.          vex_full_rotation 1  (0 = eski rastgele)
+
+* GIRENLER BEKLEMESIN:
+  - Dev boss dosyalari ~3 kat kucuk ve tek seferlik indirme (5.3.4a).
+  - vex_fastdl : bu haritada oyuncunun indirdigi butun ozel dosyalari (buyukten kucuge, KB ile)
+    addons/amxmodx/data/vexmira_fastdl.txt dosyasina yazar. Bu listedeki dosyalari FastDL klasorune ayni
+    yollarla koy -> giris saniyeler surer. Sunucu acilinca log'a: FastDL yoksa uyari + toplam MB.
+    (Testte 7door: 432 dosya / 19.6 MB. FastDL olmadan bu, oyunun kendi indirmesiyle dakikalar surer;
+    girislerdeki beklemenin asil sebebi budur.)
+
+* SUNUCU ADI: vex_hostname "VEXMIRA ZOMBIE PLAGUE | 9 BOSS | 18 EVENT | CSO SILAH | LAZER"
+  (config'te 2 alternatif daha var; en fazla 63 harf).
+
+LIMITLER (7door, 32 oyuncu): model 441/512, ses 498/512, indirme listesi 417/512 - cokme yok, hata yok.

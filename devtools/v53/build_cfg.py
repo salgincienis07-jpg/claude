@@ -29,7 +29,7 @@ PAIN_POOL = 'zombie_plague/zombie_pain1.wav|zombie_plague/zombie_pain2.wav|zombi
 DIE_POOL = 'zombie_plague/zombie_die1.wav|zombie_plague/zombie_die2.wav|zombie_plague/zombie_die3.wav'
 
 OVERRIDE = [
-    ('vex_hostname "Zombie Plague | Vexmira | Boss+Events+Bunny"', 'sunucu adi (oyun listesinde gorunen)'),
+    ('vex_hostname "VEXMIRA ZOMBIE PLAGUE | 9 BOSS | 18 EVENT | CSO SILAH | LAZER"', 'sunucu adi (oyun listesinde gorunen, en fazla 63 harf). Oneriler: "VEXMIRA ZOMBIE [TR] 9 BOSS | CSO SILAH | LAZER | JETPACK | LVL" / "VEXMIRA ZP | DEV BOSS + HELIKOPTER HARITA | CSO | 7/24"'),
     ('vex_hostname_dynamic 0', '1 = adin sonuna round / mod bilgisi eklenir, 0 = sabit ad'),
     ('vex_res BOSS_PRELOAD "3"', 'haritada yuklenen boss sayisi (her boss ~6 ses + model; 3 = 512 ses sinirindan guvenli pay, bosslar haritadan haritaya doner)'),
     ('vex_res BOSS_PRELOAD_LIST ""', 'bos = bosslar haritadan haritaya sirayla doner (hepsi zamanla gelir)'),
@@ -86,6 +86,13 @@ OVERRIDE = [
     ('vex_topboard_y 0.01', 'panelin ekrandaki yuksekligi (0.0 = en ust, 0.05 = biraz asagi)'),
     ('vex_radio_text 1', '1 = ozel telsiz sesi calinca sohbete gercekci telsiz metni yazilir (TR/EN, oyuncunun diline gore)'),
     ('vex_cos_smooth 1', '1 = sapkalar oyuncuyla ayni akicilikta hareket eder (gecikme / isinlanma yok)'),
+    ('vex_full_rotation 1', '1 = her haritada (30 round) 7 ozel modun HEPSI + 18 eventin HEPSI + coklu enfeksiyon kesin oynanir (harita basinda plan kurulur; boss roundlari vex_boss_rounds). 0 = eski rastgele sistem'),
+    ('vex_special_rounds "4 11 19 26"', 'ozel mod roundlari - SADECE vex_full_rotation 0 iken kullanilir'),
+    ('vex_event_chance 30', 'event cikma sansi (%) - SADECE vex_full_rotation 0 iken kullanilir'),
+    ('vex_lm_damage 550', 'INSAN lazerinin zombiye vurdugu hasar (her temas)'),
+    ('vex_lm_zombie_damage 550', 'ZOMBI lazerinin insana vurdugu hasar (her temas)'),
+    ('vex_lm_keep 1', '1 = lazer, sahibi olunce / enfekte olunca YOK OLMAZ (tur sonuna kadar ya da kirilana kadar kalir)'),
+    ('vex_lm_human_break_mult 1.0', 'insanlarin zombi lazerine verdigi hasar carpani (mermiyle kirma; zombiler icin vex_lm_zombie_mult)'),
     ('vex_lm_beam_width 14', 'lazer isini kalinligi (5.3.2 dokusu: ince parlak cekirdek + yumusak isik hali)'),
 ]
 # 5.3.2 ambience: 8 looping beds (sound/vexmira/amb532) shared by every round type

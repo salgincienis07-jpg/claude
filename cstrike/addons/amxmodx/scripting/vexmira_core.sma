@@ -3679,6 +3679,8 @@ new g_pNemOneShot, g_pAsnOneShot, g_pNemVsSurv, g_pNemSpeed, g_pAsnSpeed, g_pNem
 new g_pNemRageTime, g_pNemRageCd, g_pAsnVeilTime, g_pAsnVeilCd, g_pSpecialLeapCd;
 new g_iLmTakeEnt[33];
 new g_pMeteorEvery, g_pMeteorCount;
+new g_pLmZDmg534, g_pLmKeep534, g_pLmHumanMult534;
+new g_iPlanMode534[64], g_iPlanEv534[64], g_iPlanTotal534, g_pFullRot534, bool:g_bPlanR1534;
 new g_pLmPerRound, g_pLmPerRoundVip, g_pLmOneShot, g_pLmSpecialDmg, g_pLmKillWear, g_pLmPlantTime, g_pLmTakeTime;
 new g_pLmArmTime, g_pLmBeamWidth, g_pLmColorMode, g_pLmColor, g_pLmRange, g_pLmTakeRange, g_pAirdropLaser;
 new g_pLmMaxRange, g_pLmBlockModes, g_pDbgDirs;
@@ -5940,7 +5942,7 @@ CsoPrecache533()
     g_bHp533 = true;
     for (new l = 0; l <= 10; l++)
     {
-        formatex(path, charsmax(path), "sprites/vexmira/c533/hp_%d.txt", l);
+        formatex(path, charsmax(path), "sprites/vexmira/c534/bh_%d.txt", l);
         if (!Txt533Sheet(path, sheet, charsmax(sheet)) || ZcPcGeneric(path) <= 0) { g_bHp533 = false; continue; }
         n533++;
         if (!TrieKeyExists(sheets, sheet)) { TrieSetCell(sheets, sheet, 1); if (ZcPcGeneric(sheet) > 0) n533++; else g_bHp533 = false; }
@@ -6493,7 +6495,7 @@ BossHpTick533()
         if (!want) { if (g_iHpLvl533[id] >= 0) HpRestore533(id); continue; }
         if (lvl == g_iHpLvl533[id] && w == g_iHpWpn533[id]) continue;
         if (g_iHpWpn533[id] && g_iHpWpn533[id] != w) CsoSendWL(id, g_szWL[g_iHpWpn533[id]], g_iHpWpn533[id]);
-        new nm[32]; formatex(nm, charsmax(nm), "vexmira/c533/hp_%d", lvl);
+        new nm[32]; formatex(nm, charsmax(nm), "vexmira/c534/bh_%d", lvl);
         CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 89));
         CsoSendWL(id, nm, w); CsoCurW(id, w, clip);
         g_iHpLvl533[id] = lvl; g_iHpWpn533[id] = w;
@@ -6601,7 +6603,7 @@ VexPlainAnnounce(id,const en[],const tu[],r,g,b,Float:hold)
 {
     if (id < 1 || id > g_iMax || !is_user_connected(id) || is_user_bot(id) || (g_iSet[id] & SET_NO_FX)) return;
     VexCopy(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), g_iLang[id] == 2, en, tu);
-    CsoNotify(id, CN_INFD, 0);
+    VexNotify(id, CN_INFD, 0);      // 5.3.4: text only (the picture card is "ENFEKTE ETTIN" -> it popped for every announcement)
     g_szCsoOverride[id][0] = 0;
     #pragma unused r, g, b, hold
 }
@@ -8933,6 +8935,90 @@ ResMiss533(const key[], const path[])
 {
 if (g_tResMiss533 == Invalid_Trie) g_tResMiss533 = TrieCreate();
 TrieSetString(g_tResMiss533, key, path);
+}
+// 5.3.4 vex_fastdl: every custom file players download on THIS map (plugin models / sprites / sounds / generic
+// files + the map and its .res list), largest first, written to addons/amxmodx/data/vexmira_fastdl.txt. Copy
+// exactly these files to the FastDL web folder (same paths): with FastDL a player downloads them in seconds,
+// without it the game's own download is very slow (the "long wait on join"). Startup warns when
+// sv_downloadurl is empty.
+#define FDL_MAX 900
+new g_szFdl534[FDL_MAX][96], g_iFdlSz534[FDL_MAX], g_iFdlN534;
+stock FdlAdd534(const path[])
+{
+if (g_iFdlN534 >= FDL_MAX || !path[0]) return;
+for (new i = 0; i < g_iFdlN534; i++) if (equali(g_szFdl534[i], path)) return;
+new sz = file_size(path, 0);
+if (sz <= 0) return;                                      // not in cstrike/ (stock content in valve/ or missing)
+copy(g_szFdl534[g_iFdlN534], charsmax(g_szFdl534[]), path);
+g_iFdlSz534[g_iFdlN534++] = sz;
+}
+stock FdlTrie534(Trie:t, bool:snd)
+{
+if (t == Invalid_Trie) return;
+new TrieIter:it = TrieIterCreate(t), k[96], full[110];
+while (!TrieIterEnded(it))
+{
+TrieIterGetKey(it, k, charsmax(k));
+if (snd && !equali(k, "sound/", 6)) { formatex(full, charsmax(full), "sound/%s", k); FdlAdd534(full); }
+else FdlAdd534(k);
+TrieIterNext(it);
+}
+TrieIterDestroy(it);
+}
+FdlCollect534()
+{
+g_iFdlN534 = 0;
+new map[48], path[96], line[128];
+get_mapname(map, charsmax(map));
+formatex(path, charsmax(path), "maps/%s.bsp", map); FdlAdd534(path);
+formatex(path, charsmax(path), "maps/%s.res", map);
+new fp = fopen(path, "rt");
+if (fp)
+{
+while (!feof(fp))
+{
+fgets(fp, line, charsmax(line)); trim(line);
+if (line[0] && !(line[0] == '/' && line[1] == '/')) FdlAdd534(line);
+}
+fclose(fp);
+}
+FdlTrie534(g_tMdlDone, false);
+FdlTrie534(g_tSnd2D, true);
+FdlTrie534(g_tSnd3D, true);
+// largest first
+for (new i = 1; i < g_iFdlN534; i++)
+for (new j = i; j > 0 && g_iFdlSz534[j - 1] < g_iFdlSz534[j]; j--)
+{
+new t = g_iFdlSz534[j]; g_iFdlSz534[j] = g_iFdlSz534[j - 1]; g_iFdlSz534[j - 1] = t;
+new tmp[96]; copy(tmp, charsmax(tmp), g_szFdl534[j]); copy(g_szFdl534[j], charsmax(g_szFdl534[]), g_szFdl534[j - 1]); copy(g_szFdl534[j - 1], charsmax(g_szFdl534[]), tmp);
+}
+new total;
+for (new i = 0; i < g_iFdlN534; i++) total += g_iFdlSz534[i];
+return total;
+}
+public cmd_FastDl534(id)
+{
+if (id && !(get_user_flags(id) & ADMIN_BAN)) return PLUGIN_HANDLED;
+new total = FdlCollect534(), dir[96], out[128], url[128];
+get_datadir(dir, charsmax(dir));
+formatex(out, charsmax(out), "%s/vexmira_fastdl.txt", dir);
+delete_file(out);
+get_cvar_string("sv_downloadurl", url, charsmax(url));
+write_file(out, "// Vexmira: bu haritada oyuncularin indirdigi ozel dosyalar (buyukten kucuge). FastDL klasorune AYNI yollarla kopyala.");
+for (new i = 0; i < g_iFdlN534; i++) { new l[140]; formatex(l, charsmax(l), "%s   // %d KB", g_szFdl534[i], g_iFdlSz534[i] / 1024); write_file(out, l); }
+console_print(id, "[Vexmira] %d dosya, toplam %.1f MB -> %s", g_iFdlN534, float(total) / 1048576.0, out);
+console_print(id, "[Vexmira] FastDL: %s", url[0] ? url : "YOK (sv_downloadurl bos) - oyuncular bu dosyalari oyunun yavas indirmesiyle ceker!");
+for (new i = 0; i < min(12, g_iFdlN534); i++) console_print(id, "   %5d KB  %s", g_iFdlSz534[i] / 1024, g_szFdl534[i]);
+return PLUGIN_HANDLED;
+}
+public task_FastDlWarn534()
+{
+new url[128]; get_cvar_string("sv_downloadurl", url, charsmax(url));
+new total = FdlCollect534();
+if (!url[0])
+log_amx("[Vexmira] UYARI: FastDL (sv_downloadurl) yok. Bu haritada %d ozel dosya / %.1f MB oyuncuya YAVAS indirilir. Liste: konsola vex_fastdl", g_iFdlN534, float(total) / 1048576.0);
+else
+log_amx("[Vexmira] FastDL: %s | bu haritada %d ozel dosya / %.1f MB (eksiksiz yuklu olmali; liste: vex_fastdl)", url, g_iFdlN534, float(total) / 1048576.0);
 }
 public cmd_Kontrol533(id)
 {
@@ -14249,11 +14335,13 @@ public fw_MineThink(ent)
 if (is_nullent(ent))
 return;
 new owner = get_entvar(ent, var_iuser1);
-if (!is_user_alive(owner))
+// 5.3.4: the mine stays when its owner dies / is infected (vex_lm_keep 1); its side is the one it was planted for
+if (!is_user_connected(owner) || (!get_pcvar_num(g_pLmKeep534) && !is_user_alive(owner)))
 {
 MineDestroy(ent, false);
 return;
 }
+new bool:mz = get_entvar(ent, var_iuser4) ? true : false;
 new Float:now = get_gametime();
 new Float:o[3], Float:normal[3];
 get_entvar(ent, var_origin, o);
@@ -14323,7 +14411,7 @@ get_entvar(ent, var_vuser2, end);
 new Float:po[3], Float:hitp[3];
 for (new z = 1; z <= g_iMax; z++)
 {
-if (!is_user_alive(z) || (g_bZombie[z] == g_bZombie[owner]) || g_fBurrow[z] > now)
+if (!is_user_alive(z) || ((g_bZombie[z] ? true : false) == mz) || g_fBurrow[z] > now)
 continue;
 if (!BeamHitsPlayer(start, end, z))
 continue;
@@ -14507,7 +14595,8 @@ if (now < g_fLmCd[zombie])
 return;
 g_fLmCd[zombie] = now + 0.25;
 new bool:special = (g_bBoss[zombie] || g_bNemesis[zombie] || g_bAssassin[zombie]) ? true : false;
-new bool:oneshot = !g_bZombie[owner] && get_pcvar_num(g_pLmOneShot) ? true : false;
+new bool:mz = get_entvar(ent, var_iuser4) ? true : false;
+new bool:oneshot = !mz && get_pcvar_num(g_pLmOneShot) ? true : false;
 new Float:dmg;
 if (special)
 dmg = get_pcvar_float(g_pLmSpecialDmg);
@@ -14515,7 +14604,8 @@ else if (oneshot)
 dmg = 999999.0;
 else
 dmg = get_pcvar_float(g_pLmDamage);
-if (g_bZombie[owner]) dmg = 35.0;
+if (mz) dmg = get_pcvar_float(g_pLmZDmg534);            // 5.3.4: zombie mine on humans (was a fixed 35)
+if (!is_user_connected(owner) || (g_bZombie[owner] ? true : false) != mz) owner = 0;  // owner switched side: no team kill credit
 new r, g, b;
 MineColor(ent, r, g, b);
 FxSparks(point);
@@ -14601,9 +14691,11 @@ if (equal(cls, SPORE_CLASS))
 return SporeTakeDamage(ent, attacker, damage);
 if (!equal(cls, LM_CLASS))
 return HAM_IGNORED;
-if (!(1 <= attacker <= g_iMax) || !is_user_connected(attacker) || !g_bZombie[attacker])
+// 5.3.4: both sides break the OTHER side's mines (zombies claw/skills, humans shoot them)
+new bool:mz = get_entvar(ent, var_iuser4) ? true : false;
+if (!(1 <= attacker <= g_iMax) || !is_user_connected(attacker) || (g_bZombie[attacker] ? true : false) == mz)
 return HAM_SUPERCEDE;
-new Float:mult = get_pcvar_float(g_pLmZMult);
+new Float:mult = g_bZombie[attacker] ? get_pcvar_float(g_pLmZMult) : get_pcvar_float(g_pLmHumanMult534);
 if (g_bNemesis[attacker] || g_bAssassin[attacker] || g_bBoss[attacker])
 mult *= 2.5;
 new Float:o[3];
@@ -14628,7 +14720,7 @@ new owner = get_entvar(ent, var_iuser1);
 new Float:po[3];
 for (new p = 1; p <= g_iMax; p++)
 {
-if (!is_user_alive(p) || !g_bZombie[p])
+if (!is_user_alive(p) || (g_bZombie[p] ? true : false) == (get_entvar(ent, var_iuser4) ? true : false))
 continue;
 get_entvar(p, var_origin, po);
 if (get_distance_f(o, po) <= 130.0)
@@ -15807,7 +15899,7 @@ CommunityRemoveWeapons(id);
 CommunityRemoveKnives(id);
 ZcCall(ZC_JETPACK, ZCOP_infected, id);
 ZcCall(ZC_HEV, ZCOP_remove, id);
-if (!g_bZombie[id])
+if (!g_bZombie[id] && !get_pcvar_num(g_pLmKeep534))
 RemovePlayerMines(id, true);
 KillTrail(id);
 if (g_iClassNext[id] >= 0)
@@ -16186,7 +16278,7 @@ HealTo(attacker, 400, g_iMaxHP[attacker]);
 Reward(attacker, get_pcvar_num(g_pInfectXP), get_pcvar_num(g_pInfectAP));
 PayBounty(attacker, victim);
 Chat(victim, "YOU_INFECTED", aname);
-CsoNotify(victim, CN_INFD);
+CsoNotify(attacker, CN_INFD);      // 5.3.4: "ENFEKTE ETTIN" belongs to the infector, not the victim
 Chat(attacker, "YOU_INFECTOR", vname);
 if (!g_bFirstInfect)
 {
@@ -21642,9 +21734,73 @@ return m;
 }
 return MODE_INFECTION;
 }
+// 5.3.4 FULL ROTATION (vex_full_rotation 1): at round 1 a plan is made for the whole map (vex_rounds_total /
+// mp_maxrounds) so EVERY special mode (nemesis, assassin, survivor, sniper, swarm, plague, armageddon) and EVERY
+// event is played once, plus multi-infection rounds; boss rounds stay where vex_boss_rounds puts them.
+// Specials are spread evenly over the map, events fill the other rounds in random order. Too few rounds ->
+// specials first, then as many events as fit (a different random set every map).
+stock Shuffle534(arr[], n) { for (new i = n - 1; i > 0; i--) { new j = random(i + 1), t = arr[i]; arr[i] = arr[j]; arr[j] = t; } }
+BuildPlan534()
+{
+new total = clamp(RoundsTotal(), 1, 63);
+g_iPlanTotal534 = total;
+new list[64], n;
+for (new r = 0; r < 64; r++) { g_iPlanMode534[r] = MODE_INFECTION; g_iPlanEv534[r] = EV_NONE; }
+for (new r = 2; r <= total; r++) if (!IsBossRound(r)) list[n++] = r;
+new sp[MODE_TOTAL], ns;
+for (new m = MODE_NEMESIS; m < MODE_BOSS; m++) sp[ns++] = m;
+Shuffle534(sp, ns);
+new bool:used[64], cnt = min(ns, n);
+for (new i = 0; i < cnt; i++)
+{
+new idx = clamp((i * n) / cnt + (n / cnt) / 2, 0, n - 1);
+while (used[idx]) idx = (idx + 1) % n;
+used[idx] = true;
+g_iPlanMode534[list[idx]] = sp[i];
+}
+new ev[EV_TOTAL], ne;
+for (new e = EV_BLOODMOON; e < EV_TOTAL; e++) ev[ne++] = e;
+Shuffle534(ev, ne);
+new k, slot;
+for (new idx = 0; idx < n; idx++)
+{
+if (used[idx]) continue;
+new r = list[idx];
+if (k < ne) g_iPlanEv534[r] = ev[k++];
+if (slot++ % 4 == 1) g_iPlanMode534[r] = MODE_MULTI;          // every 4th normal round is multi-infection
+}
+if (k < ne) g_iPlanEv534[1] = ev[k++];                           // short map: round 1 gets an event too
+new txt[512], len;
+for (new r = 1; r <= total && len < charsmax(txt) - 12; r++)
+len += formatex(txt[len], charsmax(txt) - len, "%d:%s%d ", r, IsBossRound(r) ? "B" : (g_iPlanMode534[r] >= MODE_NEMESIS ? "S" : (g_iPlanMode534[r] == MODE_MULTI ? "M" : "I")),
+IsBossRound(r) ? 0 : (g_iPlanMode534[r] >= MODE_NEMESIS ? g_iPlanMode534[r] : g_iPlanEv534[r]));
+log_amx("[Vexmira] tam rotasyon plani (%d round, %d ozel mod, %d/%d event): %s", total, cnt, k, ne, txt);
+}
+public cmd_Plan534(id)
+{
+if (id && !(get_user_flags(id) & ADMIN_BAN)) return PLUGIN_HANDLED;
+if (!g_iPlanTotal534) BuildPlan534();
+new txt[160], len;
+console_print(id, "[Vexmira] rotasyon=%d round=%d/%d plan=%d", get_pcvar_num(g_pFullRot534), g_iRound, RoundsTotal(), g_iPlanTotal534);
+for (new r = 1; r <= g_iPlanTotal534; r++)
+{
+new mk[24], ek[24];
+formatex(mk, charsmax(mk), "MODE_NAME_%d", IsBossRound(r) ? MODE_BOSS : g_iPlanMode534[r]);
+formatex(ek, charsmax(ek), "EV_NAME_%d", g_iPlanEv534[r]);
+len = formatex(txt, charsmax(txt), "  %2d: %L", r, id ? id : LANG_SERVER, mk);
+if (g_iPlanEv534[r] && !IsBossRound(r)) formatex(txt[len], charsmax(txt) - len, " + event %d", g_iPlanEv534[r]);
+console_print(id, "%s%s", txt, r == g_iRound ? "   <== simdi" : "");
+#pragma unused ek
+}
+return PLUGIN_HANDLED;
+}
 PickMode()
 {
 if (g_bModePicked47) return;
+if (get_pcvar_num(g_pFullRot534) && (g_iPlanTotal534 != clamp(RoundsTotal(), 1, 63) || (g_iRound == 1 && !g_bPlanR1534)))
+{ BuildPlan534(); g_bPlanR1534 = true; }
+if (g_iRound > 1) g_bPlanR1534 = false;
+new bool:plan = get_pcvar_num(g_pFullRot534) && g_iRound >= 1 && g_iRound <= g_iPlanTotal534 && g_iPlanTotal534 == clamp(RoundsTotal(), 1, 63);
 g_bModePicked47 = true;
 g_bForcedRound47 = (g_iForceMode >= 0);
 new players = CountPlaying();
@@ -21657,6 +21813,8 @@ g_iForceMode = -1;
 }
 else if (IsBossRound(g_iRound) && players >= MODE_MINPL[MODE_BOSS])
 g_iMode = MODE_BOSS;
+else if (plan)
+g_iMode = (players >= MODE_MINPL[g_iPlanMode534[g_iRound]]) ? g_iPlanMode534[g_iRound] : MODE_INFECTION;
 else if (RoundInList(g_pSpecialRounds, g_iRound))
 g_iMode = PickSpecialMode(players);
 else if (g_iRound >= 3 && random_num(1, 100) <= get_pcvar_num(g_pMultiChance))
@@ -21682,6 +21840,8 @@ else if (g_iForceEvent >= 0)
 g_iEvent = g_iForceEvent;
 g_iForceEvent = -1;
 }
+else if (plan)
+g_iEvent = g_iPlanEv534[g_iRound];
 else if (g_iRound > 1 && random_num(1, 100) <= get_pcvar_num(g_pEventChance))
 {
 g_iEvent = random_num(EV_BLOODMOON, EV_TOTAL - 1);
@@ -24472,7 +24632,7 @@ Reward(attacker, 10, 3);
 if (valid)
 PayBounty(attacker, victim);
 g_iBounty[victim] = 0;
-if (!g_bZombie[victim])
+if (!g_bZombie[victim] && !get_pcvar_num(g_pLmKeep534))
 RemovePlayerMines(victim, true);
 if (g_bZombie[victim] && g_bRoundActive && AllowsRespawn() && !g_bMinion[victim] && !is_user_bot(victim))
 Chat(victim, "YOU_DIED_ZOMBIE", floatround(RespawnDelay(victim)));
@@ -27560,7 +27720,7 @@ g_fMmPos[m][n++] = str_to_float(tok);
 }
 if (n < 3)
 continue;
-if(!PcModel(g_szMmPath[m], false)) { log_amx("[VexMap] Decor skipped (not precached): %s",g_szMmPath[m]); return; }
+if(!PcModel(g_szMmPath[m], false)) { log_amx("[VexMap] Decor skipped (not precached): %s",g_szMmPath[m]); continue; }
 g_iMmN++;
 continue;
 }
@@ -29559,6 +29719,7 @@ g_pTipInterval  = register_cvar("vex_chat_tip_interval", "240");
 g_pLiveChatter  = register_cvar("vex_live_chatter", "0");
 g_pVoteEvery    = register_cvar("vex_vote_every", "4");
 g_pRoundsTotal  = register_cvar("vex_rounds_total", "30");
+g_pFullRot534 = register_cvar("vex_full_rotation", "1");
 g_pBossRounds   = register_cvar("vex_boss_rounds", "7 15 23 30");
 g_pSpecialRounds= register_cvar("vex_special_rounds", "4 11 19 26");
 g_pMultiChance  = register_cvar("vex_multi_chance", "15");
@@ -29630,6 +29791,9 @@ g_pLmPerRound    = register_cvar("vex_lm_per_round", "3");
 g_pLmPerRoundVip = register_cvar("vex_lm_per_round_vip", "4");
 g_pLmOneShot     = register_cvar("vex_lm_oneshot", "1");
 g_pLmSpecialDmg  = register_cvar("vex_lm_special_damage", "600");
+g_pLmZDmg534 = register_cvar("vex_lm_zombie_damage", "550");
+g_pLmKeep534 = register_cvar("vex_lm_keep", "1");
+g_pLmHumanMult534 = register_cvar("vex_lm_human_break_mult", "1.0");
 g_pLmKillWear    = register_cvar("vex_lm_kill_wear", "100");
 g_pLmPlantTime   = register_cvar("vex_lm_plant_time", "1.0");
 g_pLmTakeTime    = register_cvar("vex_lm_take_time", "2.0");
@@ -29802,7 +29966,7 @@ register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
 register_srvcmd("vex_debug_buy", "srv_DbgBuy");
 register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");register_srvcmd("vex_debug_card", "srv_DbgCard532");register_srvcmd("vex_debug_lmwall", "srv_DbgLmWall532");register_srvcmd("vex_debug_radio", "srv_DbgRadio532");
-register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_debug_slim", "srv_DbgSlim534");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
+register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_debug_slim", "srv_DbgSlim534");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_concmd("vex_plan", "cmd_Plan534", ADMIN_BAN, "- bu haritanin 30 round mod/event plani");register_concmd("vex_fastdl", "cmd_FastDl534", ADMIN_BAN, "- FastDL icin indirilecek dosya listesi");set_task(20.0, "task_FastDlWarn534");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);
