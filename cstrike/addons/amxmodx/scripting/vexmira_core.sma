@@ -7536,6 +7536,8 @@ TrieSetString(g_tRes, "SPR_ICON_LAST",   "sprites/vexmira/icon_lasthuman.spr");
 TrieSetString(g_tRes, "SPR_ICON_ALPHA",  "sprites/vexmira/icon_alpha.spr");
 TrieSetString(g_tRes, "BOSS_PRELOAD",      "4");
 TrieSetString(g_tRes, "BOSS_PRELOAD_LIST", "");
+TrieSetString(g_tRes, "BOSS_GIANT_TEX",    "256");
+TrieSetString(g_tRes, "BOSS_GIANT_ALL",    "1");
 TrieSetString(g_tRes, "SOUND_BUDGET",      "200");
 TrieSetString(g_tRes, "MODEL_BUDGET",      "250");
 TrieSetString(g_tRes, "SOUND_BLOCK_STOCK", "1");
@@ -8505,6 +8507,269 @@ for (new v = 0; v < nv && v < 32768; v++) GmScale3(fp, vi + v * 12, k);
 fclose(fp);
 return true;
 }
+stock bool:GsMarked(const path[], const mark[])
+{
+new fp = fopen(path, "rb");
+if (!fp) return false;
+new buf[33]; fseek(fp, 8, SEEK_SET); fread_blocks(fp, buf, 32, BLOCK_CHAR); fclose(fp); buf[32] = 0;
+return equal(buf, mark) ? true : false;
+}
+stock GsMark(const path[], const mark[])
+{
+new fp = fopen(path, "r+b");
+if (!fp) return;
+new buf[64], n = strlen(mark);
+for (new i = 0; i < 64; i++) buf[i] = i < n ? mark[i] : 0;
+fseek(fp, 8, SEEK_SET); fwrite_blocks(fp, buf, 64, BLOCK_CHAR); fclose(fp);
+}
+// 5.3.4 SLIM GIANT COPY (reference: devtools/mdlkit/giant_slim.py). Every player downloads the giant boss
+// copy, so it is made ~3x smaller: the weapon aim/shoot/reload sequences the boss never plays keep their
+// names (indices unchanged) but use the knife animation, their animation blocks are cut out, and textures
+// larger than BOSS_GIANT_TEX are downscaled (s/t of the meshes scaled with them). All file offsets remapped.
+#define GS_MAXP 4096
+#define GS_MAXQ 400
+#define GS_MAXS 512
+#define GS_MAXT 64
+new g_GsPos[GS_MAXP], g_GsVal[GS_MAXP], g_GsNP;
+new g_GsSeqO[GS_MAXQ], g_GsSeqAi[GS_MAXQ], g_GsRed[GS_MAXQ], g_GsLab[GS_MAXQ][33];
+new g_GsSegA[GS_MAXS], g_GsSegB[GS_MAXS], g_GsSegN[GS_MAXS], g_GsSegT[GS_MAXS], g_GsNS;
+new g_GsTexF[GS_MAXT], g_GsTexW[GS_MAXT], g_GsTexH[GS_MAXT];
+stock GsRdS(fp, off) { new v; fseek(fp, off, SEEK_SET); fread(fp, v, BLOCK_SHORT); v &= 0xFFFF; if (v & 0x8000) v |= 0xFFFF0000; return v; }
+stock GsWrI(fp, off, v) { fseek(fp, off, SEEK_SET); fwrite(fp, v, BLOCK_INT); }
+stock GsP(fp, pos, len)
+{
+if (pos <= 0 || pos + 4 > len || g_GsNP >= GS_MAXP) return;
+new v = GmRdI(fp, pos);
+if (v > 0 && v <= len) { g_GsPos[g_GsNP] = pos; g_GsVal[g_GsNP++] = v; }
+}
+stock GsEnd(a, len, nq)
+{
+new e = len;
+for (new i = 0; i < g_GsNP; i++) if (g_GsVal[i] > a && g_GsVal[i] < e) e = g_GsVal[i];
+for (new q = 0; q < nq; q++) if (g_GsSeqAi[q] > a && g_GsSeqAi[q] < e) e = g_GsSeqAi[q];
+return e;
+}
+stock GsRemap(off)
+{
+new r = off;
+for (new s = 0; s < g_GsNS; s++)
+{
+if (g_GsSegB[s] <= off) r -= (g_GsSegB[s] - g_GsSegA[s]) - g_GsSegN[s];
+else break;
+}
+return r;
+}
+stock GsCopyRange(in, out, a, b)
+{
+static buf[2048];
+fseek(in, a, SEEK_SET);
+while (a < b)
+{
+new n = min(b - a, sizeof buf);
+n = fread_blocks(in, buf, n, BLOCK_CHAR);
+if (n <= 0) return;
+fwrite_blocks(out, buf, n, BLOCK_CHAR);
+a += n;
+}
+}
+stock GsFindSeq(const lab[], nq) { for (new q = 0; q < nq; q++) if (equal(g_GsLab[q], lab)) return q; return -1; }
+// weapon sequence -> knife sequence index, -1 = keep
+stock GsKnifeOf(q, nq)
+{
+new l[33]; copy(l, charsmax(l), g_GsLab[q]);
+new pre[8], p;
+if (equal(l, "ref_", 4)) { copy(pre, charsmax(pre), "ref"); p = 4; }
+else if (equal(l, "crouch_", 7)) { copy(pre, charsmax(pre), "crouch"); p = 7; }
+else return -1;
+new kind[8];
+if (equal(l[p], "aim_", 4)) { copy(kind, charsmax(kind), "aim"); p += 4; }
+else if (equal(l[p], "shoot2_", 7)) { copy(kind, charsmax(kind), "shoot"); p += 7; }
+else if (equal(l[p], "shoot_", 6)) { copy(kind, charsmax(kind), "shoot"); p += 6; }
+else if (equal(l[p], "reload_", 7)) { copy(kind, charsmax(kind), "aim"); p += 7; }
+else return -1;
+new wl = strlen(l[p]);
+if (!wl || (wl >= 5 && equal(l[p + wl - 5], "knife"))) return -1;
+new t[40]; formatex(t, charsmax(t), "%s_%s_knife", pre, kind);
+new k = GsFindSeq(t, nq);
+return (k >= 0 && g_GsSeqAi[k] != g_GsSeqAi[q]) ? k : -1;
+}
+// in = patched giant file, out = new slim file. false = not possible (caller keeps the plain giant)
+bool:GsSlim(const inPath[], const outPath[], maxTex)
+{
+new in = fopen(inPath, "rb");
+if (!in) return false;
+new len = GmRdI(in, 72);
+if (GmRdI(in, 0) != 0x54534449 || GmRdI(in, 4) != 10 || len != file_size(inPath, 0)) { fclose(in); return false; }
+g_GsNP = 0; g_GsNS = 0;
+new nq = GmRdI(in, 164), si = GmRdI(in, 168), nsg = GmRdI(in, 172), sgi = GmRdI(in, 176);
+new nt = GmRdI(in, 180), ti = GmRdI(in, 184), nsr = GmRdI(in, 192), nsf = GmRdI(in, 196);
+new nbp = GmRdI(in, 204), bpi = GmRdI(in, 208);
+if (nq < 1 || nq > GS_MAXQ || nt < 0 || nt > GS_MAXT || nbp < 0 || nbp > 32) { fclose(in); return false; }
+if (nsg >= 1 && GmRdI(in, sgi + 100) != 0) { fclose(in); return false; }
+static const HDRP[] = { 144, 152, 160, 168, 176, 184, 188, 200, 208, 216, 224, 232, 240 };
+for (new i = 0; i < sizeof HDRP; i++) GsP(in, HDRP[i], len);
+for (new q = 0; q < nq; q++)
+{
+new o = si + q * 176;
+if (GmRdI(in, o + 156) != 0) { fclose(in); return false; }   // external sequence group
+g_GsSeqO[q] = o; g_GsSeqAi[q] = GmRdI(in, o + 124); g_GsRed[q] = -1;
+fseek(in, o, SEEK_SET); fread_blocks(in, g_GsLab[q], 32, BLOCK_CHAR); g_GsLab[q][32] = 0; strtolower(g_GsLab[q]);
+if (GmRdI(in, o + 48) > 0) GsP(in, o + 52, len);
+if (GmRdI(in, o + 60) > 0) GsP(in, o + 64, len);
+GsP(in, o + 88, len); GsP(in, o + 92, len);
+}
+for (new b = 0; b < nbp; b++)
+{
+new o = bpi + b * 76, nm = GmRdI(in, o + 64), mi = GmRdI(in, o + 72);
+GsP(in, o + 72, len);
+for (new m = 0; m < nm && m < 64; m++)
+{
+new mo = mi + m * 112;
+GsP(in, mo + 76, len); GsP(in, mo + 84, len); GsP(in, mo + 88, len); GsP(in, mo + 96, len); GsP(in, mo + 100, len); GsP(in, mo + 108, len);
+new nme = GmRdI(in, mo + 72), mei = GmRdI(in, mo + 76);
+for (new k = 0; k < nme && k < 256; k++) { GsP(in, mei + k * 20 + 4, len); GsP(in, mei + k * 20 + 16, len); }
+}
+}
+for (new t = 0; t < nt; t++) GsP(in, ti + t * 80 + 76, len);
+if (g_GsNP >= GS_MAXP) { fclose(in); return false; }
+// 1) weapon sequences -> knife; cut blocks nobody uses any more
+for (new q = 0; q < nq; q++) g_GsRed[q] = GsKnifeOf(q, nq);
+for (new q = 0; q < nq; q++)
+{
+if (g_GsRed[q] < 0) continue;
+new a = g_GsSeqAi[q], bool:used = false, bool:dup = false;
+for (new r = 0; r < nq && !used; r++) if (g_GsRed[r] < 0 && g_GsSeqAi[r] == a) used = true;
+for (new s = 0; s < g_GsNS && !dup; s++) if (g_GsSegA[s] == a) dup = true;
+if (used || dup || a <= 0 || a >= len || g_GsNS >= GS_MAXS) continue;
+g_GsSegA[g_GsNS] = a; g_GsSegB[g_GsNS] = GsEnd(a, len, nq); g_GsSegN[g_GsNS] = 0; g_GsSegT[g_GsNS++] = -1;
+}
+// 2) textures (chrome stays; several skin families -> one common factor)
+new fmin = 1 << 20;
+for (new t = 0; t < nt; t++)
+{
+new o = ti + t * 80, fl = GmRdI(in, o + 64), w = GmRdI(in, o + 68), h = GmRdI(in, o + 72), ix = GmRdI(in, o + 76), f = 1;
+g_GsTexW[t] = w; g_GsTexH[t] = h;
+if (maxTex >= 16 && !(fl & 2) && w > 0 && h > 0 && w <= 2048)
+while (max(w, h) / f > maxTex && w / (f * 2) >= 16 && h / (f * 2) >= 16) f *= 2;
+if (ix <= 0 || ix + w * h + 768 > GsEnd(ix, len, nq)) f = 1;
+g_GsTexF[t] = f;
+if (f < fmin) fmin = f;
+}
+for (new t = 0; t < nt; t++)
+{
+if (nsf > 1) g_GsTexF[t] = fmin;
+new f = g_GsTexF[t];
+if (f <= 1 || g_GsNS >= GS_MAXS) { g_GsTexF[t] = 1; continue; }
+new ix = GmRdI(in, ti + t * 80 + 76), w = g_GsTexW[t], h = g_GsTexH[t];
+g_GsSegA[g_GsNS] = ix; g_GsSegB[g_GsNS] = ix + w * h + 768; g_GsSegN[g_GsNS] = (w / f) * (h / f) + 768; g_GsSegT[g_GsNS++] = t;
+}
+if (!g_GsNS) { fclose(in); return false; }
+// sort segments, refuse overlaps
+for (new i = 1; i < g_GsNS; i++)
+for (new j = i; j > 0 && g_GsSegA[j - 1] > g_GsSegA[j]; j--)
+{
+new x;
+x = g_GsSegA[j]; g_GsSegA[j] = g_GsSegA[j - 1]; g_GsSegA[j - 1] = x;
+x = g_GsSegB[j]; g_GsSegB[j] = g_GsSegB[j - 1]; g_GsSegB[j - 1] = x;
+x = g_GsSegN[j]; g_GsSegN[j] = g_GsSegN[j - 1]; g_GsSegN[j - 1] = x;
+x = g_GsSegT[j]; g_GsSegT[j] = g_GsSegT[j - 1]; g_GsSegT[j - 1] = x;
+}
+for (new i = 1; i < g_GsNS; i++) if (g_GsSegB[i - 1] > g_GsSegA[i]) { fclose(in); return false; }
+// 3) write
+new out = fopen(outPath, "wb");
+if (!out) { fclose(in); return false; }
+static row[2048], dst[2048];
+new pos = 0;
+for (new s = 0; s < g_GsNS; s++)
+{
+GsCopyRange(in, out, pos, g_GsSegA[s]);
+new t = g_GsSegT[s];
+if (t >= 0)
+{
+new f = g_GsTexF[t], w = g_GsTexW[t], h = g_GsTexH[t], nw = w / f, nh = h / f, ix = g_GsSegA[s];
+for (new y = 0; y < nh; y++)
+{
+fseek(in, ix + y * f * w, SEEK_SET);
+fread_blocks(in, row, w, BLOCK_CHAR);
+for (new x = 0; x < nw; x++) dst[x] = row[x * f];
+fwrite_blocks(out, dst, nw, BLOCK_CHAR);
+}
+GsCopyRange(in, out, ix + w * h, ix + w * h + 768);
+}
+pos = g_GsSegB[s];
+}
+GsCopyRange(in, out, pos, len);
+fclose(out);
+// 4) patch offsets / redirected seqdescs / texture sizes
+out = fopen(outPath, "r+b");
+if (!out) { fclose(in); return false; }
+new nlen = GsRemap(len);
+for (new i = 0; i < g_GsNP; i++) GsWrI(out, GsRemap(g_GsPos[i]), GsRemap(g_GsVal[i]));
+static blk[40];
+for (new q = 0; q < nq; q++)
+{
+new no = GsRemap(g_GsSeqO[q]), r = g_GsRed[q];
+if (r >= 0)
+{
+new to = g_GsSeqO[r];
+fseek(in, to + 32, SEEK_SET); fread_blocks(in, blk, 4, BLOCK_CHAR); fseek(out, no + 32, SEEK_SET); fwrite_blocks(out, blk, 4, BLOCK_CHAR);
+fseek(in, to + 56, SEEK_SET); fread_blocks(in, blk, 4, BLOCK_CHAR); fseek(out, no + 56, SEEK_SET); fwrite_blocks(out, blk, 4, BLOCK_CHAR);
+fseek(in, to + 120, SEEK_SET); fread_blocks(in, blk, 36, BLOCK_CHAR); fseek(out, no + 120, SEEK_SET); fwrite_blocks(out, blk, 36, BLOCK_CHAR);
+}
+GsWrI(out, no + 124, GsRemap(g_GsSeqAi[r >= 0 ? r : q]));
+}
+new bool:anyTex = false;
+for (new t = 0; t < nt; t++)
+{
+if (g_GsTexF[t] <= 1) continue;
+anyTex = true;
+new no = GsRemap(ti + t * 80);
+GsWrI(out, no + 68, g_GsTexW[t] / g_GsTexF[t]); GsWrI(out, no + 72, g_GsTexH[t] / g_GsTexF[t]);
+}
+GsWrI(out, 72, nlen);
+fclose(in);
+// 5) mesh s/t for downscaled textures (skin family 0), read from the new file
+if (anyTex)
+{
+new nbpi = GmRdI(out, 208), nski = GmRdI(out, 200), done[256], nd;
+for (new b = 0; b < nbp; b++)
+{
+new o = nbpi + b * 76, nm = GmRdI(out, o + 64), mi = GmRdI(out, o + 72);
+for (new m = 0; m < nm && m < 64; m++)
+{
+new mo = mi + m * 112, nme = GmRdI(out, mo + 72), mei = GmRdI(out, mo + 76);
+for (new k = 0; k < nme && k < 256; k++)
+{
+new tri = GmRdI(out, mei + k * 20 + 4), sref = GmRdI(out, mei + k * 20 + 8), bool:seen = false;
+if (sref < 0 || sref >= nsr) continue;
+new tx = GsRdS(out, nski + sref * 2);
+if (tx < 0 || tx >= nt || g_GsTexF[tx] <= 1) continue;
+for (new z = 0; z < nd && !seen; z++) if (done[z] == tri) seen = true;
+if (seen) continue;
+if (nd < sizeof done) done[nd++] = tri;
+new Float:rs = float(g_GsTexW[tx] / g_GsTexF[tx]) / float(g_GsTexW[tx]);
+new Float:rt = float(g_GsTexH[tx] / g_GsTexF[tx]) / float(g_GsTexH[tx]);
+new p = tri, guard = 0;
+while (p > 0 && p + 2 <= nlen && guard++ < 65536)
+{
+new n = GsRdS(out, p); p += 2;
+if (!n) break;
+n = abs(n);
+for (new v = 0; v < n; v++, p += 8)
+{
+new s0 = GsRdS(out, p + 4), t0 = GsRdS(out, p + 6);
+fseek(out, p + 4, SEEK_SET);
+fwrite(out, floatround(float(s0) * rs, floatround_tozero), BLOCK_SHORT);
+fwrite(out, floatround(float(t0) * rt, floatround_tozero), BLOCK_SHORT);
+}
+}
+}
+}
+}
+}
+fclose(out);
+return true;
+}
 // 5.3.2 GIANT BOSS WITHOUT DOWNLOADS (vex_res BOSS_GIANT "clone"): the CS client ignores the scale of
 // player models, but it does scale normal entities. So the boss player is hidden (only on the clients, in
 // AddToFullPack) and a "body" entity with the SAME model file (already on every client) is drawn at
@@ -8594,15 +8859,26 @@ formatex(gname, charsmax(gname), "%s_x%d", name, floatround(k * 10.0));
 formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
 formatex(dir, charsmax(dir), "models/player/%s", gname);
 formatex(dst, charsmax(dst), "%s/%s.mdl", dir, gname);
-if (!file_exists(dst, true))
+// 5.3.4: slim copy (see GsSlim). The header name field carries a build mark, so the fat 5.3.3 copies and
+// copies made with another BOSS_GIANT_TEX are rebuilt once. Same file name -> nothing new to download for
+// players that already have it.
+new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX", "256")), 0, 4096), mark[32];
+formatex(mark, charsmax(mark), "vexgiant534 t%d", tex);
+if (!file_exists(dst, true) || !GsMarked(dst, mark))
 {
 if (!file_exists(src, true)) return false;
 if (!dir_exists(dir)) mkdir(dir);
 if (!GmCopy(src, dst) || !GmPatch(dst, k)) { delete_file(dst); log_amx("[GiantBoss] %s olusturulamadi (dosya/klasor izni?) - normal boyut", dst); return false; }
+new tmp[168], s0 = file_size(dst, 0), bool:slim;
+formatex(tmp, charsmax(tmp), "%s.tmp", dst);
+if (GsSlim(dst, tmp, tex) && GmCopy(tmp, dst)) slim = true;
+delete_file(tmp);
+GsMark(dst, mark);
 formatex(t1, charsmax(t1), "models/player/%s/%sT.mdl", name, name);
 formatex(t2, charsmax(t2), "%s/%sT.mdl", dir, gname);
 if (file_exists(t1, true) && !file_exists(t2, true)) GmCopy(t1, t2);
-log_amx("[GiantBoss] dev model uretildi: %s (x%.1f)", dst, k);
+log_amx("[GiantBoss] dev model uretildi: %s (x%.1f) %d KB%s", dst, k, file_size(dst, 0) / 1024, slim ? "" : " (inceltilemedi, tam kopya)");
+if (slim) log_amx("[GiantBoss] inceltildi: %d KB -> %d KB (kullanilmayan silah animasyonlari + doku %d px)", s0 / 1024, file_size(dst, 0) / 1024, tex);
 }
 if (!CommunityLegacyFileOk(dst)) return false;
 copy(out, len, gname);
@@ -13100,6 +13376,14 @@ if (GmBossGiant(nm, out, charsmax(out))) { ok++; server_print("[GiantBoss] %s ->
 else server_print("[GiantBoss] %s: olusturulamadi (model yok / klasor izni)", nm);
 }
 server_print("[GiantBoss] %d / %d dev boss modeli hazir. Bu klasorleri FastDL'e de kopyala.", ok, all);
+return PLUGIN_HANDLED;
+}
+// vex_debug_slim <in.mdl> <out.mdl> <max_tex>: run only the slim step (test against devtools/mdlkit/giant_slim.py)
+public srv_DbgSlim534()
+{
+new a[160], b[160], t[8]; read_argv(1, a, charsmax(a)); read_argv(2, b, charsmax(b)); read_argv(3, t, charsmax(t));
+new bool:ok = GsSlim(a, b, str_to_num(t));
+server_print("[GiantBoss] slim %s -> %s : %d (%d -> %d bytes)", a, b, ok, file_size(a, 0), ok ? file_size(b, 0) : 0);
 return PLUGIN_HANDLED;
 }
 public srv_DbgGiant()
@@ -29096,9 +29380,17 @@ for (new i = 0; i < NUM_BOSSES; i++)
 {
 g_szBModel[i][0] = 0;
 g_szBClaw[i][0] = 0;
-if (!g_bBossLoaded[i])
-continue;
 formatex(key, charsmax(key), "B%d_MODEL", i);
+if (!g_bBossLoaded[i])
+{
+// 5.3.4 BOSS_GIANT_ALL 1: the giant copies of the bosses NOT on this map are precached too, so the set is
+// the same on every map -> each player downloads every giant once (first join) and never again.
+new bn[32], gn[48], gp[128];
+if (str_to_num(GetResString("BOSS_GIANT_ALL", "1")) && !equali(GetResString("BOSS_GIANT", "file"), "off") && !equali(GetResString("BOSS_GIANT", "file"), "clone")
+&& TrieGetString(g_tRes, key, bn, charsmax(bn)) && bn[0] && GmBossGiant(bn, gn, charsmax(gn)))
+{ formatex(gp, charsmax(gp), "models/player/%s/%s.mdl", gn, gn); if (PcModel(gp)) PcPlayerTex(gn); }
+continue;
+}
 // 5.3.1: giant copy first (vex_res BOSS_SCALE), original as fallback
 new bname[32], giant[48];
 g_fBossScale531 = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
@@ -29510,7 +29802,7 @@ register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
 register_srvcmd("vex_debug_buy", "srv_DbgBuy");
 register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");register_srvcmd("vex_debug_card", "srv_DbgCard532");register_srvcmd("vex_debug_lmwall", "srv_DbgLmWall532");register_srvcmd("vex_debug_radio", "srv_DbgRadio532");
-register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
+register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_debug_slim", "srv_DbgSlim534");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);

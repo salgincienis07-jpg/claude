@@ -1,0 +1,30 @@
+VEXMIRA ZOMBIE 5.3.4a - DEV BOSS INDIRME DUZELTMESI
+====================================================
+Bu pakette SADECE degisen dosyalar var (eklenti + config).
+
+KURULUM
+-------
+1) Eklentiler -> Eklenti Yukle:  addons/amxmodx/scripting/vexmira_core.sma  ve  vexmira_gear.sma
+   (Panel derleyemezse: addons/amxmodx/plugins/ icine hazir .amxx dosyalarini at.)
+2) Dosya Yonetici: addons/amxmodx/configs/vexmira.cfg  (ustune yaz)
+3) Haritayi degistir. Eklenti eski buyuk _x16 dosyalarini KENDISI yeni, kucuk hale getirir
+   (bir kerelik, birkac saniye). Istersen konsola:  vex_giant_build
+4) FastDL kullaniyorsan: sunucudaki models/player/ altindaki TUM  *_x16  klasorlerini FastDL'e kopyala
+   (eskilerinin ustune yaz). FastDL'de dosya yoksa oyuncu onu oyunun kendi yavas indirmesiyle ceker -
+   uzun indirmenin asil sebebi budur.
+
+NE DEGISTI
+----------
+* DEV BOSS DOSYASI ~3 KAT KUCUK: dev kopyada boss'un hic kullanmadigi silah animasyonlari (ak47, awp,
+  tabanca, kalkan... nisan/ates/sarjor) bicak animasyonuna baglanip dosyadan cikarildi; dokular
+  256 px'e indirildi. Boss ayni gorunur, ayni hareket eder, hitbox ayni.
+  Ornek (gercek CS oyuncu modeliyle olculdu): 835 KB -> 270 KB.
+* HER HARITADA YENI INDIRME YOK: 9 dev bossun hepsi her haritada ayni set olarak yuklenir.
+  Oyuncu hepsini ILK GIRISTE bir kez indirir; sonraki haritalarda hic boss indirmesi olmaz.
+  (Eskiden her harita 3 farkli boss -> her harita degisiminde yeni indirme.)
+* Ayarlar (vexmira.cfg):
+    vex_res BOSS_GIANT_TEX "256"   doku siniri (512 = daha net ama buyuk, 0 = dokunma)
+    vex_res BOSS_GIANT_ALL "1"     1 = tek seferlik indirme | 0 = haritadaki 3 boss
+    vex_res BOSS_GIANT "off"       hic indirme istemezsen (boss normal boy)
+
+TEST: 32 oyuncu (31 bot), 7door: cokme yok; model 434/512, ses 489/512, indirme 365/512.
