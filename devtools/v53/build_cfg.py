@@ -24,16 +24,14 @@ INDEXED = {'vex_item': 1, 'vex_class': 1, 'vex_sw': 1, 'vex_gun': 2, 'vex_job': 
            'vex_env_calm': 1, 'vex_cosmetic': 2, 'vex_quest': 1, 'vex_sw_text': 2, 'vex_wing': 1, 'vex_pet': 1,
            'vex_hat': 1, 'vex_modewpn': 2, 'vex_res': 1, 'vex_restore': 1}
 
-INFECT_POOL = 'zombie_plague/zombie_infec1.wav|zombie_plague/zombie_infec2.wav|zombie_plague/zombie_infec3.wav'
-PAIN_POOL = ('zombie_plague/zombie_pain1.wav|zombie_plague/zombie_pain2.wav|zombie_plague/zombie_pain3.wav|'
-             'zombie_plague/zombie_pain4.wav|zombie_plague/zombie_pain5.wav|zombie/zo_pain1.wav|zombie/zo_pain2.wav')
-DIE_POOL = ('zombie_plague/zombie_die1.wav|zombie_plague/zombie_die2.wav|zombie_plague/zombie_die3.wav|'
-            'zombie_plague/zombie_die4.wav|zombie_plague/zombie_die5.wav')
+INFECT_POOL = 'zombie_plague/zombie_infec1.wav|zombie_plague/zombie_infec2.wav'
+PAIN_POOL = 'zombie_plague/zombie_pain1.wav|zombie_plague/zombie_pain2.wav|zombie_plague/zombie_pain3.wav|zombie/zo_pain1.wav'
+DIE_POOL = 'zombie_plague/zombie_die1.wav|zombie_plague/zombie_die2.wav|zombie_plague/zombie_die3.wav'
 
 OVERRIDE = [
     ('vex_hostname "Zombie Plague | Vexmira | Boss+Events+Bunny"', 'sunucu adi (oyun listesinde gorunen)'),
     ('vex_hostname_dynamic 0', '1 = adin sonuna round / mod bilgisi eklenir, 0 = sabit ad'),
-    ('vex_res BOSS_PRELOAD "4"', 'haritada yuklenen boss sayisi (her boss ~6 ses + model; 4 = 512 sinirindan guvenli pay)'),
+    ('vex_res BOSS_PRELOAD "3"', 'haritada yuklenen boss sayisi (her boss ~6 ses + model; 3 = 512 ses sinirindan guvenli pay, bosslar haritadan haritaya doner)'),
     ('vex_res BOSS_PRELOAD_LIST ""', 'bos = bosslar haritadan haritaya sirayla doner (hepsi zamanla gelir)'),
     ('vex_res BOSS_SCALE "1.6"', 'BOSS BUYUKLUGU: 1.0 = normal, 1.6 = 1.6 kat dev (model + hitbox kodla buyutulur)'),
     ('vex_res SKY_MODE "3"', '0 = haritanin kendi gokyuzu, 1 = rastgele, 2 = ilk, 3 = her round sonraki (rotasyon)'),

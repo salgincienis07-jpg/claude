@@ -29844,7 +29844,7 @@ return TrieKeyExists(g_tPcAll531, k);
 public VxModelOkPublic(const m[]) return VxModelOk(m) ? 1 : 0;
 // ReHLDS engine hook: sees EVERY model precache (game, map, AMXX natives of every plugin loaded after this one)
 
-#define PC_SAFE_LIMIT531 505
+#define PC_SAFE_LIMIT531 509
 public VxRhPcSoundPre531(const s[])
 {
 if (g_iSndTop531 < PC_SAFE_LIMIT531 || !s[0]) return HC_CONTINUE;

@@ -40,8 +40,10 @@ COKMELERIN SEBEBI VE COZUMU
 * Eksik sprite dosyasi istemciye "0" indeksle gidiyordu (oyuncunun oyunu cokebilir) -> HL yedek sprite.
 * Lazer mayin modeli yuklenemezse EngFunc_ModelIndex -> Host_Error. Korundu.
 * Ses yukleme sayisi 511/512 idi (bir eklenti daha ses eklese harita acilirken cokme).
-  BOSS_PRELOAD 9 -> 4 (bosslar haritadan haritaya doner), guvenli pay birakildi.
-TEST: gercek oyuncu + 20-31 bot, tum modlar / bosslar / eventler, tum market esyalari,
+  BOSS_PRELOAD 9 -> 3 (bosslar haritadan haritaya doner) + motor seviyesi guvenlik agi:
+  ses / indirme listesi 509 a gelirse fazlasi reddedilir (sunucu asla cokmez).
+  Olcum (3 harita): ses 506-509, indirme ~450, model ~420 / 512, hicbir harita sesi reddedilmedi.
+TEST: gercek oyuncu + 31 bot (32 kisi dolu, 7door) ve 20 bot (18 dk),, tum modlar / bosslar / eventler, tum market esyalari,
 8 ozel silah (sol+sag tik), jetpack, 8 bicak, 5 CT skin, 18 kozmetik, enfeksiyon bombasi:
 COKME YOK.
 
