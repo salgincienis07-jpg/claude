@@ -778,14 +778,16 @@ def format_summary(s):
 def set_vexmira_ini(enabled=True, debug=True, server=SERVER):
     """configs/plugins-vexmira42.ini in the server: absent (plugin off), a server-local copy with the
     AMXX "debug" flag (stack traces with .sma lines) or a link to the repo file."""
-    ini = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira42.ini')
-    old = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')  # pre-4.2 name
-    for p in (ini, ini + '.off', old):     # .off = leftover of older harness versions
+    # 5.3: vexmira_core.amxx + vexmira_gear.amxx listed in configs/plugins-vexmira.ini
+    ini = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
+    old = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira42.ini')  # 4.2 name
+    v53 = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-v53.ini')        # manual tests
+    for p in (ini, ini + '.off', old, v53):     # .off = leftover of older harness versions
         if os.path.lexists(p):
             os.unlink(p)
     if not enabled:
         return
-    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira42.ini')
+    src = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'plugins-vexmira.ini')
     if not debug:
         os.symlink(src, ini)
         return

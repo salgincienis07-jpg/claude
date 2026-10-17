@@ -3170,7 +3170,7 @@ stock VexPcSnd(const s[], bool:emitted)
 {
 if (emitted) { ZcPcSound(s); return; }
 new f[128]; formatex(f, charsmax(f), "sound/%s", s);
-if (file_exists(f, true)) precache_generic(f);
+if (file_exists(f, true)) (!VxPcOk531()) ? 0 : precache_generic(f);
 }
 #define VERSION "5.3.0-ResourceCompact"
 native vx47_jetgauge(id,percent,fuel);
@@ -14581,7 +14581,7 @@ return 0;
 new known51;if(g_tZcModelsReady!=Invalid_Trie && TrieGetCell(g_tZcModelsReady,path,known51))return known51;
 if(g_iPcM51>=448) {g_zcGuardFail=true;log_amx("[AssetGuard] model reserve: %s",path);return 0;}
 log_to_file("vexmira_startup.log","MODEL begin: %s",path);
-new modelIndex = precache_model(path);
+new modelIndex = (!VxPcOk531()) ? 0 : precache_model(path);
 RegisterTexture530(path);
 log_to_file("vexmira_startup.log","MODEL ready: %s [%d]",path,modelIndex);
 if(g_tZcModelsReady==Invalid_Trie) g_tZcModelsReady=TrieCreate();
@@ -14593,13 +14593,13 @@ ZcPcSound(const path[])
 new f[160]; formatex(f, charsmax(f), "sound/%s", path);
 if (!file_exists(f, true)) { log_amx("[AssetGuard] UYARI eksik ses %s (atlandi)", f); return 0; }
 if(g_iPcS51>=448) {g_zcGuardFail=true;return 0;}
-return precache_sound(path);
+return (!VxPcOk531()) ? 0 : precache_sound(path);
 }
 ZcPcGeneric(const path[])
 {
 if (!file_exists(path, true)) { log_amx("[AssetGuard] UYARI eksik dosya %s (atlandi)", path); return 0; }
 if(g_iPcG51>=448) return 0;
-return precache_generic(path);
+return (!VxPcOk531()) ? 0 : precache_generic(path);
 }
 public GuardM51(const path[]) { g_iPcM51=max(g_iPcM51,get_orig_retval()); }
 public GuardS51(const path[]) { g_iPcS51=max(g_iPcS51,get_orig_retval()); }
@@ -14677,8 +14677,18 @@ g_zcCurMod = -1;
 for (new i = 0; i < ZC_MODS; i++)
 if (i>=6 && i!=10 && !g_bZcOn[i]) log_amx("[Vexmira] modul %s KAPALI: eksik/bozuk dosya (yukaridaki AssetGuard satirlari). Diger her sey calisiyor.", ZC_MOD_NAME[i]);
 }
+// 5.3.1: precache after map load = engine Host_Error (server shutdown) -> refuse instead
+new bool:g_bPcClosed531, g_iPcLate531;
+stock bool:VxPcOk531()
+{
+if (!g_bPcClosed531) return true;
+if (g_iPcLate531++ < 5) log_amx("[Guard] harita yuklendikten sonra precache denemesi engellendi (cokme onlendi)");
+return false;
+}
+public VxPcClose531() g_bPcClosed531 = true;
 public plugin_init()
 {
+set_task(0.1, "VxPcClose531");
 log_to_file("vexmira_isolation.log","[530 vexgear] plugin_init BEGIN stage=%d full=%d",g_iIsolation526,g_bRun526);
 register_clcmd("vex_test","IsolationStatus526");
 if(!g_bRun526) {register_plugin("Vexmira vexgear Baseline Test","5.3.0-ResourceCompact","Vexmira");log_to_file("vexmira_isolation.log","[530 vexgear] baseline plugin_init COMPLETE");return;}

@@ -5673,10 +5673,10 @@ CsoPrecache()
         {
             formatex(path, charsmax(path), "sprites/vexmira/notify/card%d%s.spr", card, variant ? "_static" : "");
             if (!file_exists(path, true)) { ok = false; continue; }
-            precache_generic(path);
+            (!VxPcOk531()) ? 0 : precache_generic(path);
             formatex(path, charsmax(path), "sprites/vexmira/notify/card%d%s.txt", card, variant ? "_static" : "");
             if (!file_exists(path, true)) { ok = false; continue; }
-            precache_generic(path);
+            (!VxPcOk531()) ? 0 : precache_generic(path);
         }
     }
     if (ok)
@@ -7419,7 +7419,7 @@ return 0;
 new full[160]; formatex(full,charsmax(full),"sound/%s",path);
 if(!file_exists(full,true)) { log_amx("[VexAsset] Sound skipped (missing): %s",full); return 0; }
 if(max(g_iTotSnd,g_iPcSnd)>=448) {log_amx("[AssetGuard] sound reserve: %s",path);return 0;}
-new idx = precache_sound(path);
+new idx = (!VxPcOk531()) ? 0 : precache_sound(path);
 g_iMySnd++;
 g_iPcSnd = max(g_iPcSnd, idx);
 TrieSetCell(g_tSnd3D, path, idx);
@@ -7437,7 +7437,7 @@ return;
 if(!file_exists(path,true)) { log_amx("[VexAsset] Download skipped (missing): %s",path); return; }
 TrieSetCell(g_tMdlDone, path, 1);
 if(max(g_iTotGen,g_iPcGen)>=448) {log_amx("[AssetGuard] download reserve: %s",path);return;}
-new idx = precache_generic(path);
+new idx = (!VxPcOk531()) ? 0 : precache_generic(path);
 g_iMyGen++;
 g_iPcGen = max(g_iPcGen, idx);
 }
@@ -7459,7 +7459,7 @@ return 0;
 if(!StockModel50(path) && (!file_exists(path,true) || !CommunityLegacyFileOk(path))) { log_amx("[VexAsset] Model skipped (missing/incomplete): %s",path); return 0; }
 if(max(g_iTotMdl,g_iPcMdl)>=448) {log_amx("[AssetGuard] model reserve: %s",path);return 0;}
 log_to_file("vexmira_startup.log","MODEL begin: %s",path);
-idx = precache_model(path);
+idx = (!VxPcOk531()) ? 0 : precache_model(path);
 RegisterTexture530(path);
 log_to_file("vexmira_startup.log","MODEL ready: %s [%d]",path,idx);
 g_iMyMdl++;
@@ -11274,7 +11274,7 @@ bool:VxLOS(const Float:a[3],victim,ignore)
 {
 new Float:b[3];get_entvar(victim,var_origin,b);b[2]+=18.0;
 new tr=create_tr2();engfunc(EngFunc_TraceLine,a,b,DONT_IGNORE_MONSTERS,ignore,tr);
-new bool:ok=bool:(get_tr2(tr,TR_pHit)==victim||Float:get_tr2(tr,TR_flFraction)>=0.98);free_tr2(tr);return ok;
+new Float:fr531;get_tr2(tr,TR_flFraction,fr531);new bool:ok=bool:(get_tr2(tr,TR_pHit)==victim||fr531>=0.98);free_tr2(tr);return ok;
 }
 VxDamage(victim,attacker,inflictor,Float:damage)
 {
@@ -11718,6 +11718,241 @@ FxTrail(ent, 255, 60, 60);
 }
 NadeOnThrow(id, ent, 2);
 }
+
+// ===================== 5.3.1 epic grenade explosions =====================
+// Layered + staged (0 / 0.15 / 0.4 / 0.8 / 1.3 s) temp-entity effects. One PVS message per layer, so
+// 32 players cost the same as one. vex_nade_fx 0 = old simple effects, 1 = epic (default).
+new g_sprGlow531, g_sprHot531, g_sprSteam531, g_sprShock531, g_iDecScorch531 = -1, g_pNadeFx531;
+NadeFxPrecache531()
+{
+g_sprGlow531  = VxPcStock531("sprites/glow01.spr");
+g_sprHot531   = VxPcStock531("sprites/hotglow.spr");
+g_sprSteam531 = VxPcStock531("sprites/steam1.spr");
+g_sprShock531 = VxPcStock531("sprites/shockwave.spr");
+}
+VxPcStock531(const path[])
+{
+if (!file_exists(path, true)) return 0;
+return (!VxPcOk531()) ? 0 : precache_model(path);
+}
+stock NxBegin(const Float:o[3]) { engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, o, 0); }
+stock NxCoord(const Float:o[3], Float:dz = 0.0) { engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]); engfunc(EngFunc_WriteCoord, o[2] + dz); }
+stock NxRing(const Float:o[3], spr, r, g, b, radius, width, life, bright, Float:dz = 0.0)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 1) return;
+if (spr <= 0) return;
+NxBegin(o); write_byte(TE_BEAMCYLINDER); NxCoord(o, dz);
+engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]); engfunc(EngFunc_WriteCoord, o[2] + dz + float(radius));
+write_short(spr); write_byte(0); write_byte(0); write_byte(life); write_byte(width); write_byte(0);
+write_byte(r); write_byte(g); write_byte(b); write_byte(bright); write_byte(0); message_end();
+}
+stock NxExplo(const Float:o[3], spr, scale, rate, Float:dz = 0.0)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 2) return;
+if (spr <= 0) return;
+NxBegin(o); write_byte(TE_EXPLOSION); NxCoord(o, dz); write_short(spr); write_byte(scale); write_byte(rate);
+write_byte(TE_EXPLFLAG_NOSOUND | TE_EXPLFLAG_NODLIGHTS | TE_EXPLFLAG_NOPARTICLES); message_end();
+}
+stock NxSprite(const Float:o[3], spr, scale, bright, Float:dz = 0.0)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 4) return;
+if (spr <= 0) return;
+NxBegin(o); write_byte(TE_SPRITE); NxCoord(o, dz); write_short(spr); write_byte(scale); write_byte(bright); message_end();
+}
+stock NxLight(const Float:o[3], r, g, b, radius, life, decay)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 8) return;
+NxBegin(o); write_byte(TE_DLIGHT); NxCoord(o, 8.0); write_byte(radius); write_byte(r); write_byte(g); write_byte(b);
+write_byte(life); write_byte(decay); message_end();
+}
+// TE_FIREFIELD: a field of sprites on the ground (burning ground / frost mist / spark carpet)
+stock NxField(const Float:o[3], spr, radius, count, flags, life)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 16) return;
+if (spr <= 0) return;
+NxBegin(o); write_byte(TE_FIREFIELD); NxCoord(o, 4.0); write_short(radius); write_short(spr);
+write_byte(count); write_byte(flags); write_byte(life); message_end();
+}
+// TE_SPRITETRAIL: shower of sprites flying out (embers / ice shards / sparks)
+stock NxShower(const Float:o[3], spr, count, life, scale, speed, rnd, Float:up = 40.0)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 32) return;
+if (spr <= 0) return;
+NxBegin(o); write_byte(TE_SPRITETRAIL); NxCoord(o, 4.0); NxCoord(o, up);
+write_short(spr); write_byte(count); write_byte(life); write_byte(scale); write_byte(speed); write_byte(rnd); message_end();
+}
+stock NxStreak(const Float:o[3], color, count, speed, rnd)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 64) return;
+NxBegin(o); write_byte(TE_STREAK_SPLASH); NxCoord(o, 4.0);
+engfunc(EngFunc_WriteCoord, 0.0); engfunc(EngFunc_WriteCoord, 0.0); engfunc(EngFunc_WriteCoord, 1.0);
+write_byte(color); write_short(count); write_short(speed); write_short(rnd); message_end();
+}
+stock NxSmoke(const Float:o[3], spr, scale, fps, Float:dz = 0.0)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 128) return;
+if (spr <= 0) return;
+NxBegin(o); write_byte(TE_SMOKE); NxCoord(o, dz); write_short(spr); write_byte(scale); write_byte(fps); message_end();
+}
+stock NxDecal(const Float:o[3], decal)
+{
+if (get_cvar_num("vex_dbg_nxmask") & 256) return;
+if (decal < 0) return;
+NxBegin(o); write_byte(TE_WORLDDECAL); NxCoord(o, -2.0); write_byte(decal); message_end();
+}
+NxShakeNear(const Float:o[3], Float:radius, amp)
+{
+new Float:po[3];
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_alive(p) || is_user_bot(p) || (g_iSet[p] & SET_NO_FX)) continue;
+get_entvar(p, var_origin, po);
+new Float:d = get_distance_f(o, po);
+if (d > radius) continue;
+new a = floatround(float(amp) * (1.0 - d / radius)) + 1;
+message_begin(MSG_ONE_UNRELIABLE, g_msgShake, _, p);
+write_short(a << 12); write_short(1 << 12); write_short(10 << 12); message_end();
+}
+}
+// ground point under a grenade (effects sit on the floor, not in the air)
+NxGround(const Float:o[3], Float:out[3])
+{
+new Float:e[3]; out = o; e = o; e[2] -= 64.0;
+new tr = create_tr2();
+engfunc(EngFunc_TraceLine, o, e, IGNORE_MONSTERS, 0, tr);
+new Float:fr; get_tr2(tr, TR_flFraction, fr);
+if (fr < 1.0) get_tr2(tr, TR_vecEndPos, out);
+free_tr2(tr);
+out[2] += 2.0;
+}
+NxStage(const Float:o[3], kind, stage, Float:delay)
+{
+new data[5];
+data[0] = floatround(o[0]); data[1] = floatround(o[1]); data[2] = floatround(o[2]); data[3] = kind; data[4] = stage;
+set_task(delay, "task_NadeStage531", 0, data, sizeof data);
+}
+public task_NadeStage531(const data[])
+{
+new Float:o[3]; o[0] = float(data[0]); o[1] = float(data[1]); o[2] = float(data[2]);
+NadeFxStage531(o, data[3], data[4]);
+}
+// kind: 0 fire, 1 frost, 2 flare, 3 infection
+NadeFxEpic531(const Float:origin[3], kind)
+{
+if (!get_pcvar_num(g_pNadeFx531)) return false;
+new Float:o[3]; NxGround(origin, o);
+NadeFxStage531(o, kind, 0);
+NxStage(o, kind, 1, 0.15);
+NxStage(o, kind, 2, 0.45);
+NxStage(o, kind, 3, 0.9);
+NxStage(o, kind, 4, 1.4);
+return true;
+}
+NadeFxStage531(const Float:o[3], kind, stage)
+{
+new fireSpr = g_sprFx[FXS_EXFIRE] ? g_sprFx[FXS_EXFIRE] : (g_sprFire ? g_sprFire : g_sprExplode);
+new iceSpr = g_sprFx[FXS_EXICE] ? g_sprFx[FXS_EXICE] : g_sprFx[FXS_ICE];
+new iceBit = g_sprFx[FXS_ICE] ? g_sprFx[FXS_ICE] : g_sprGlow531;
+new ring = g_sprShock531 ? g_sprShock531 : g_sprRing;
+switch (kind)
+{
+case 0: // ---------------- FIRE: fireball, mushroom, shockwave, ember shower, burning ground, smoke column, scorch
+{
+switch (stage)
+{
+case 0:
+{
+NxExplo(o, fireSpr, 34, 14, 26.0);
+NxExplo(o, g_sprExplode, 26, 18, 10.0);
+NxLight(o, 255, 120, 30, 46, 10, 30);
+NxRing(o, ring, 255, 110, 20, 340, 40, 4, 220, 8.0);
+NxRing(o, g_sprRing, 255, 220, 120, 220, 18, 3, 255, 4.0);
+NxShower(o, g_sprHot531 ? g_sprHot531 : fireSpr, 26, 10, 2, 38, 26);
+NxStreak(o, 0x6B, 60, 220, 180);
+NxShakeNear(o, 420.0, 9);
+if (g_iDecScorch531 < 0) g_iDecScorch531 = engfunc(EngFunc_DecalIndex, "{scorch1");
+NxDecal(o, g_iDecScorch531);
+}
+case 1:
+{
+NxExplo(o, fireSpr, 22, 12, 70.0);            // rising mushroom head
+NxField(o, g_sprFire ? g_sprFire : fireSpr, 110, 14, TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_PLANAR | TEFIRE_FLAG_LOOP, 30);
+NxRing(o, g_sprRing, 255, 70, 0, 160, 10, 5, 180, 2.0);
+}
+case 2:
+{
+NxLight(o, 255, 90, 20, 30, 14, 12);
+NxSmoke(o, g_sprSmoke ? g_sprSmoke : g_sprSteam531, 40, 8, 40.0);
+NxShower(o, g_sprHot531, 12, 14, 1, 20, 18, 90.0);
+}
+case 3: { NxField(o, g_sprFire ? g_sprFire : fireSpr, 90, 10, TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_PLANAR | TEFIRE_FLAG_LOOP, 24); NxSmoke(o, g_sprSteam531, 50, 6, 80.0); }
+case 4: { NxSmoke(o, g_sprSmoke ? g_sprSmoke : g_sprSteam531, 60, 5, 120.0); NxLight(o, 200, 70, 20, 18, 10, 16); }
+}
+}
+case 1: // ---------------- FROST: white flash, crystal burst, double shockwave, shard shower, frost mist, snow
+{
+switch (stage)
+{
+case 0:
+{
+NxExplo(o, iceSpr, 34, 14, 26.0);
+NxLight(o, 140, 210, 255, 50, 12, 24);
+NxRing(o, ring, 120, 220, 255, 360, 46, 4, 230, 8.0);
+NxRing(o, g_sprRing, 255, 255, 255, 240, 16, 3, 255, 4.0);
+NxShower(o, iceBit, 30, 12, 2, 46, 30);
+NxStreak(o, 0x6F, 50, 200, 160);
+NxShakeNear(o, 360.0, 5);
+}
+case 1:
+{
+NxField(o, iceBit, 150, 18, TEFIRE_FLAG_ALLFLOAT | TEFIRE_FLAG_ALPHA, 26);
+NxRing(o, g_sprRing, 60, 160, 255, 300, 30, 6, 160, 1.0);
+NxSprite(o, g_sprGlow531, 9, 200, 30.0);
+}
+case 2: { NxSmoke(o, g_sprSteam531, 46, 6, 20.0); NxLight(o, 90, 180, 255, 34, 16, 8); NxShower(o, iceBit, 14, 16, 1, 16, 22, 120.0); }
+case 3: { NxField(o, iceBit, 120, 12, TEFIRE_FLAG_ALLFLOAT | TEFIRE_FLAG_ALPHA, 20); }
+case 4: { NxSmoke(o, g_sprSteam531, 60, 5, 40.0); }
+}
+}
+case 2: // ---------------- FLARE: magnesium flash, spark fountain, spark carpet, glow star
+{
+switch (stage)
+{
+case 0:
+{
+NxLight(o, 255, 240, 220, 60, 6, 40);
+NxSprite(o, g_sprGlow531, 12, 255, 16.0);
+NxRing(o, g_sprRing, 255, 70, 60, 200, 20, 4, 230, 4.0);
+NxStreak(o, 0x6B, 90, 320, 120);
+NxShower(o, g_sprHot531 ? g_sprHot531 : g_sprGlow531, 24, 8, 1, 60, 20, 30.0);
+}
+case 1: { NxField(o, g_sprHot531 ? g_sprHot531 : g_sprGlow531, 70, 12, TEFIRE_FLAG_SOMEFLOAT | TEFIRE_FLAG_LOOP, 12); NxStreak(o, 0x6B, 40, 260, 90); }
+case 2: { NxStreak(o, 0x6B, 40, 240, 90); NxSmoke(o, g_sprSteam531, 18, 10, 10.0); }
+case 3: { NxStreak(o, 0x6B, 30, 220, 80); }
+case 4: { NxStreak(o, 0x6B, 25, 200, 80); }
+}
+}
+case 3: // ---------------- INFECTION: toxic burst, green shockwave, acid mist
+{
+switch (stage)
+{
+case 0:
+{
+NxExplo(o, g_sprFx[FXS_EXTOXIC] ? g_sprFx[FXS_EXTOXIC] : g_sprExplode, 32, 14, 24.0);
+NxLight(o, 60, 255, 40, 44, 12, 24);
+NxRing(o, ring, 40, 255, 40, 320, 40, 4, 220, 8.0);
+NxShower(o, g_sprFx[FXS_TOXIC] ? g_sprFx[FXS_TOXIC] : g_sprGlow531, 24, 12, 2, 40, 28);
+NxShakeNear(o, 320.0, 5);
+}
+case 1: { NxField(o, g_sprFx[FXS_TOXIC] ? g_sprFx[FXS_TOXIC] : g_sprGlow531, 140, 16, TEFIRE_FLAG_ALLFLOAT | TEFIRE_FLAG_ALPHA, 22); }
+case 2: { NxSmoke(o, g_sprSteam531, 50, 6, 20.0); NxLight(o, 40, 200, 30, 30, 16, 10); }
+case 3: { NxRing(o, g_sprRing, 80, 255, 60, 200, 16, 6, 140, 2.0); }
+case 4: { NxSmoke(o, g_sprSteam531, 60, 5, 60.0); }
+}
+}
+}
+}
+// ===================== end epic grenade explosions =====================
 public rg_ExplodeHe(ent, tracehandle, bits)
 {
 NadeCleanup(ent);
@@ -11732,11 +11967,14 @@ new Float:o[3], Float:po[3];
 get_entvar(ent, var_origin, o);
 if (type == NADE_FIRE)
 {
+if (!NadeFxEpic531(o, 0))
+{
 if (!FxExploEl(o, EL_FIRE, 24, 16))
 FxExplosion(o);
 FxRing(o, 255, 80, 0, 300);
 FxSprite(o,g_sprFire,18,200);
 FxLight(o,255,100,40,22,6,32);
+}
 EmitKey(ent,"NADE_FIRE",CHAN_WEAPON,ATTN_NORM);Radio52(7);
 new Float:frad = get_pcvar_float(g_pNadeFireRad), Float:fdmg = get_pcvar_float(g_pNadeFireDmg);
 new burn = max(1, get_pcvar_num(g_pNadeFireBurn));
@@ -11754,10 +11992,13 @@ ExecuteHamB(Ham_TakeDamage, p, ent, owner, fdmg, DMG_BURN | DMG_GRENADE);
 }
 else
 {
+if (!NadeFxEpic531(o, 3))
+{
 FxRing(o, 0, 255, 0, 300);
 FxLight(o, 0, 255, 0, 40, 15, 20);
 if (!FxExploEl(o, EL_TOXIC, 24, 14))
 FxSprite(o, g_sprSmoke, 30, 200);
+}
 PlayKey(0, "NADE_INFECT");
 if (g_bRoundActive && AllowsInfection() && is_user_connected(owner) && g_bZombie[owner])
 {
@@ -11785,12 +12026,15 @@ if (get_entvar(ent, var_impulse) != NADE_FROST)
 return HC_CONTINUE;
 new Float:o[3], Float:po[3];
 get_entvar(ent, var_origin, o);
+if (!NadeFxEpic531(o, 1))
+{
 FxRing(o, 0, 150, 255, 300);
 FxRing(o, 200, 240, 255, 200);
 FxExploEl(o, EL_ICE, 24, 14);
 FxDisk(o, 0, 120, 255, 260, 5);
 FxStreak(o, 7, 60, 300);
 FxLight(o, 0, 150, 255, 40, 15, 20);
+}
 EmitKey(ent,"NADE_FROST",CHAN_WEAPON,ATTN_NORM);Radio52(8);
 new Float:rad = get_pcvar_float(g_pNadeFrostRad), Float:ft = get_pcvar_float(g_pNadeFrostTime);
 for (new p = 1; p <= g_iMax; p++)
@@ -11814,6 +12058,7 @@ return HC_CONTINUE;
 new Float:o[3];
 get_entvar(ent, var_origin, o);
 AddFlare(o);
+NadeFxEpic531(o, 2);
 if(g_iEpicFlare) FxSpr(o,g_iEpicFlare,7,190,12.0);
 EpicCue(0,"flare");
 FxLight(o, 255, 60, 60, 50, 12, 2);
@@ -12052,6 +12297,21 @@ g_iLmBlockMask |= (1 << m);
 }
 }
 return (g_iLmBlockMask & (1 << mode)) ? true : false;
+}
+public srv_DbgNadeFx()
+{
+new a[16], Float:o[3];
+read_argv(1, a, charsmax(a)); new kind = str_to_num(a);
+for (new k = 0; k < 3; k++) { read_argv(2 + k, a, charsmax(a)); o[k] = str_to_float(a); }
+new data[4]; data[0] = kind; data[1] = floatround(o[0]); data[2] = floatround(o[1]); data[3] = floatround(o[2]);
+read_argv(5, a, charsmax(a)); new rep = max(1, str_to_num(a));
+for (new r = 0; r < rep; r++) set_task(0.1 + float(r) * 2.5, "task_DbgNadeFx", 0, data, sizeof data);
+return PLUGIN_HANDLED;
+}
+public task_DbgNadeFx(const d[])
+{
+new Float:o[3]; o[0] = float(d[1]); o[1] = float(d[2]); o[2] = float(d[3]);
+NadeFxEpic531(o, d[0]);
 }
 public srv_DbgBuy()
 {
@@ -27579,6 +27839,7 @@ VxLeanResources();
 LoadMainConfig(true);
 CsoPrecache();
 VxInfPrecache531();
+NadeFxPrecache531();
 
 register_forward(FM_EmitAmbientSound, "fw_AmbientPost", 1);
 g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "200")), 40, 480);
@@ -27777,6 +28038,23 @@ g_sprChain = PrecacheResSprite("SPR_CHAIN", g_szSprChain, charsmax(g_szSprChain)
 g_sprWeb   = PrecacheResSprite("SPR_WEB", g_szSprWeb, charsmax(g_szSprWeb));
 g_sprSpore = PrecacheResSprite("SPR_SPORE", g_szSprSpore, charsmax(g_szSprSpore));
 g_sprEmp   = PrecacheResSprite("SPR_EMP", g_szSprEmp, charsmax(g_szSprEmp));
+// 5.3.1: a missing sprite file must never reach a client as model index 0 (client crash):
+// fall back to Half-Life stock sprites every client has.
+if (!g_sprRing)      g_sprRing      = VxPcStock531("sprites/shockwave.spr");
+if (!g_sprBeam)      g_sprBeam      = VxPcStock531("sprites/laserbeam.spr");
+if (!g_sprLightning) g_sprLightning = VxPcStock531("sprites/lgtning.spr");
+if (!g_sprExplode)   g_sprExplode   = VxPcStock531("sprites/zerogxplode.spr");
+if (!g_sprSmoke)     g_sprSmoke     = VxPcStock531("sprites/steam1.spr");
+if (!g_sprLaser)     g_sprLaser     = g_sprBeam;
+if (!g_sprFlare)     g_sprFlare     = VxPcStock531("sprites/glow01.spr");
+if (!g_sprFire)      g_sprFire      = VxPcStock531("sprites/fexplo.spr");
+if (!g_sprLmBeam)    g_sprLmBeam    = g_sprBeam;
+if (!g_sprChain)     g_sprChain     = g_sprBeam;
+if (!g_sprWeb)       g_sprWeb       = g_sprBeam;
+if (!g_sprSpore)     g_sprSpore     = g_sprFlare;
+if (!g_sprEmp)       g_sprEmp       = g_sprRing;
+if (!g_sprBlood)     g_sprBlood     = VxPcStock531("sprites/blood.spr");
+if (!g_sprBloodSpray) g_sprBloodSpray = VxPcStock531("sprites/bloodspray.spr");
 new fxbuf[64];
 g_iFxSprN = 0;
 for (new i = 0; i < FXS_TOTAL; i++)
@@ -28061,6 +28339,8 @@ g_pLmBlockModes  = register_cvar("vex_lm_block_modes", "nemesis assassin");
 g_pDbgDirs       = register_cvar("vex_debug_dirs", "0");
 g_pCosFollow531 = register_cvar("vex_cos_follow", "1");
 g_pSwDmg531 = register_cvar("vex_sw_damage_mult", "3.0");
+g_pNadeFx531 = register_cvar("vex_nade_fx", "1");
+register_cvar("vex_dbg_nxmask", "0");
 g_pInfAmmo531 = register_cvar("vex_unlimited_bpammo", "1");
 g_pAutoJoinHumans= register_cvar("vex_auto_join_humans", "1");
 g_pAirdropLaser  = register_cvar("vex_airdrop_laser", "1");
@@ -28210,6 +28490,7 @@ register_srvcmd("vex_precache_stats", "srv_PrecacheStats");
 register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
 register_srvcmd("vex_debug_buy", "srv_DbgBuy");
+register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);
@@ -29191,7 +29472,7 @@ g_iFwPcSnd = register_forward(FM_PrecacheSound, "fw_PcSoundPost", 1);
 g_iFwPcMdl = register_forward(FM_PrecacheModel, "fw_PcModelPost", 1);
 g_iFwPcGen = register_forward(FM_PrecacheGeneric, "fw_PcGenericPost", 1);
 // Engine set_view requires this exact model path, including group test profiles.
-if(file_exists("models/rpgrocket.mdl",true) && CommunityLegacyFileOk("models/rpgrocket.mdl")) g_bCameraReady529=precache_model("models/rpgrocket.mdl")>0;
+if(file_exists("models/rpgrocket.mdl",true) && CommunityLegacyFileOk("models/rpgrocket.mdl")) g_bCameraReady529=(!VxPcOk531()) ? 0 : precache_model("models/rpgrocket.mdl")>0;
 log_to_file("vexmira_startup.log","[5.3.0] BEGIN map preload");
 if(vx521_pair_version()!=530) {set_fail_state("VEXMIRA: core + gear version mismatch. Install both v5.3.0 files together.");return;}
 g_pZcRewrite=register_cvar("zc_rewrite_configs","0");
@@ -29209,8 +29490,18 @@ VxPrecache();PrecacheContexts51();
 log_to_file("vexmira_startup.log","[5.3.0] COMPLETE map preload");
 log_amx("[Vex530] Precache complete: sound=%d model=%d generic=%d",max(g_iTotSnd,g_iPcSnd),max(g_iTotMdl,g_iPcMdl),max(g_iTotGen,g_iPcGen));
 }
+// 5.3.1: precache after map load = engine Host_Error (server shutdown) -> refuse instead
+new bool:g_bPcClosed531, g_iPcLate531;
+stock bool:VxPcOk531()
+{
+if (!g_bPcClosed531) return true;
+if (g_iPcLate531++ < 5) log_amx("[Guard] harita yuklendikten sonra precache denemesi engellendi (cokme onlendi)");
+return false;
+}
+public VxPcClose531() g_bPcClosed531 = true;
 public plugin_init()
 {
+set_task(0.1, "VxPcClose531");
 log_to_file("vexmira_isolation.log","[530 vexcore] plugin_init BEGIN stage=%d full=%d",g_iIsolation526,g_bRun526);
 register_clcmd("vex_test","IsolationStatus526");
 if(!g_bRun526) {register_plugin("Vexmira vexcore Baseline Test","5.3.0-ResourceCompact","Vexmira");log_to_file("vexmira_isolation.log","[530 vexcore] baseline plugin_init COMPLETE");return;}
@@ -29253,7 +29544,7 @@ return 0;
 new known51;if(g_tZcModelsReady!=Invalid_Trie && TrieGetCell(g_tZcModelsReady,path,known51)) return known51;
 if(max(g_iTotMdl,g_iPcMdl)>=448) {g_zcGuardFail=true;log_amx("[AssetGuard] model limit reserve: %s",path);return 0;}
 log_to_file("vexmira_startup.log","MODEL begin: %s",path);
-new modelIndex = precache_model(path);
+new modelIndex = (!VxPcOk531()) ? 0 : precache_model(path);
 RegisterTexture530(path);
 log_to_file("vexmira_startup.log","MODEL ready: %s [%d]",path,modelIndex);
 if(g_tZcModelsReady==Invalid_Trie) g_tZcModelsReady=TrieCreate();
@@ -29266,14 +29557,14 @@ if(!AllowAudio528()) return 0;
 if(max(g_iTotSnd,g_iPcSnd)>=448) return 0;
 new f[160]; formatex(f, charsmax(f), "sound/%s", path);
 if (!file_exists(f, true)) { log_amx("[AssetGuard] UYARI eksik ses %s (atlandi)", f); return 0; }
-return precache_sound(path);
+return (!VxPcOk531()) ? 0 : precache_sound(path);
 }
 ZcPcGeneric(const path[])
 {
 if(!AllowGeneric528(path)) return 0;
 if(max(g_iTotGen,g_iPcGen)>=448) {log_amx("[AssetGuard] generic reserve: %s",path);return 0;}
 if (!file_exists(path, true)) { log_amx("[AssetGuard] UYARI eksik dosya %s (atlandi)", path); return 0; }
-return precache_generic(path);
+return (!VxPcOk531()) ? 0 : precache_generic(path);
 }
 
 public cmd_Third47(id)
