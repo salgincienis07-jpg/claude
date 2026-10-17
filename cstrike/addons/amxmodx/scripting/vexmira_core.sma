@@ -3858,7 +3858,7 @@ X_GLOW, X_RING, X_BEAM, X_BEAMW, X_SMOKE, X_VOIDBURST, X_SHOCKBURST };
 new g_iFx532[FX532_TOTAL];
 #define TEFIRE_ADD532 32
 new g_iGiantMode532 = 1, g_iGiantEnt532, g_iGiantSeq532 = -1;
-new g_pCosSmooth532, g_pRadioText532, bool:g_bCsoC532, bool:g_bCapLow532[33], g_pTop532, g_pTopPad532, g_pTopY532;
+new g_pAmbVol532, g_pAmbRe532, g_pCosSmooth532, g_pRadioText532, bool:g_bCsoC532, bool:g_bCapLow532[33], g_pTop532, g_pTopPad532, g_pTopY532;
 new g_iPreCso = 1, bool:g_bCsoFile[CN_TOTAL], g_iCsoRounds;
 new g_pComboTime, bool:g_bFirstBlood;
 new g_szHudSig[33][400], Float:g_fHudNext[33], g_iHudXpSeen[33] = { -1, ... }, Float:g_fXpBarEnd[33];
@@ -29244,7 +29244,7 @@ g_pZc[ZCV_ALTKEYS]     = register_cvar("vex_skill_alt_keys", "1");
 g_pOvhEnable     = register_cvar("vex_overhead", "1");
 g_pHudStyle      = register_cvar("vex_hud_style", "1");
 g_pHudTop        = register_cvar("vex_hud_top", "-1");
-g_pTop532 = register_cvar("vex_topboard", "1"); g_pCosSmooth532 = register_cvar("vex_cos_smooth", "1"); g_pTopPad532 = register_cvar("vex_topboard_pad", "44"); g_pTopY532 = register_cvar("vex_topboard_y", "0.01");
+g_pTop532 = register_cvar("vex_topboard", "1"); g_pCosSmooth532 = register_cvar("vex_cos_smooth", "1"); g_pAmbVol532 = register_cvar("vex_ambience_volume", "0.55"); g_pAmbRe532 = register_cvar("vex_ambience_restart", "120"); g_pTopPad532 = register_cvar("vex_topboard_pad", "44"); g_pTopY532 = register_cvar("vex_topboard_y", "0.01");
 g_pHudRight      = register_cvar("vex_hud_right", "-1");
 g_pHudMvp        = register_cvar("vex_hud_mvp", "-1");
 g_pHudXp         = register_cvar("vex_hud_xp", "-1");
@@ -30848,12 +30848,21 @@ return file_exists(path,true)?true:false;
 AmbientPrecache49()
 {
 if(g_tAmbientReady52==Invalid_Trie) g_tAmbientReady52=TrieCreate();
+// 5.3.2: 8 looping ambience beds (sound/vexmira/amb532, mono 11 kHz = plays on every client) shared by all
+// modes / events / bosses -> 8 sound slots instead of 44. Config: vex_res AMBIENT_MODE<n> / AMBIENT_EVENT<n> /
+// AMBIENT_BOSS<n> "sound/....wav" overrides one entry ("" = silence for that round type).
+static const AMB_MODE[]={0,1,2,2,3,3,1,1,7,6}, AMB_EVENT[]={0,4,5,1,3,1,5,1,0,7,1,7,7,7,3,5,2,4,5};
+static const AMB_BED[][]={"calm","tension","hunt","hope","storm","frost","boss","chaos"};
 new path[160],key[32];
 for(new kind=0;kind<3;kind++) for(new j=0;j<(kind==0?MODE_TOTAL:(kind==1?EV_TOTAL:9));j++) {
 formatex(key,charsmax(key),"AMBIENT_%s%d",kind==0?"MODE":(kind==1?"EVENT":"BOSS"),j);
-formatex(path,charsmax(path),"sound/vexmira/arena52/ambience/%s%d.wav",kind==0?"mode":(kind==1?"event":"boss"),j);
+if(!TrieGetString(g_tRes,key,path,charsmax(path))) {
+new bed=kind==2?6:(kind==0?AMB_MODE[min(j,sizeof AMB_MODE-1)]:AMB_EVENT[min(j,sizeof AMB_EVENT-1)]);
+formatex(path,charsmax(path),"sound/vexmira/amb532/%s.wav",AMB_BED[bed]);
+if(!file_exists(path,true)) formatex(path,charsmax(path),"sound/vexmira/arena52/ambience/%s%d.wav",kind==0?"mode":(kind==1?"event":"boss"),j);
 TrieSetString(g_tRes,key,path);
-if(AmbientValid49(path) && PcSound(path[6])) TrieSetCell(g_tAmbientReady52,path,1);
+}
+if(path[0] && !TrieKeyExists(g_tAmbientReady52,path) && AmbientValid49(path) && PcSound(path[6])) TrieSetCell(g_tAmbientReady52,path,1);
 }
 UiHudPrecache52();
 RadioPrecache52();
@@ -30886,10 +30895,10 @@ if(g_tAmbientReady52==Invalid_Trie || !TrieKeyExists(g_tAmbientReady52,g_szAmbie
 new Float:now=get_gametime(),stamp=g_iAmbientEpoch49*2048+get_user_userid(id);
 if(g_iAmbientUser49[id]==stamp && now<g_fAmbientNext49[id]) return;
 AmbientStop52(id);
-rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbient49[6],0.65,ATTN_NONE,0,PITCH_NORM);
+rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbient49[6],floatclamp(get_pcvar_float(g_pAmbVol532),0.05,1.0),ATTN_NONE,0,PITCH_NORM);
 if(dbg) log_amx("[AudioDbg] ambiyans #%d CAL %s",id,g_szAmbient49);
 copy(g_szAmbientPlaying52[id],charsmax(g_szAmbientPlaying52[]),g_szAmbient49);
-g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+30.0;
+g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+get_pcvar_float(g_pAmbRe532);
 }
 
 

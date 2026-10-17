@@ -80,6 +80,27 @@ OVERRIDE = [
     ('vex_cos_smooth 1', '1 = sapkalar oyuncuyla ayni akicilikta hareket eder (gecikme / isinlanma yok)'),
     ('vex_lm_beam_width 14', 'lazer isini kalinligi (5.3.2 dokusu: ince parlak cekirdek + yumusak isik hali)'),
 ]
+# 5.3.2 ambience: 8 looping beds (sound/vexmira/amb532) shared by every round type
+_BED = ['calm', 'tension', 'hunt', 'hope', 'storm', 'frost', 'boss', 'chaos']
+_MODE_N = ['Enfeksiyon', 'Coklu', 'Nemesis', 'Assassin', 'Survivor', 'Sniper', 'Swarm', 'Plague', 'Armageddon', 'Boss']
+_EV_N = ['Normal', 'Kan Ayi', 'Yogun Sis', 'Hiz', 'Dusuk Yercekimi', 'Cift Hasar', 'Karanlik Gece', 'Salgin',
+         'Malzeme', 'Delilik', 'Adrenalin', 'Meteor', 'Zombi Surusu', 'Titan', 'Altin', 'Vampir Gecesi',
+         'Kafa Avi', 'Firtina', 'Elektrik Kesintisi']
+for _j, _b in enumerate([0, 1, 2, 2, 3, 3, 1, 1, 7, 6]):
+    OVERRIDE.append(('vex_res AMBIENT_MODE%d "sound/vexmira/amb532/%s.wav"' % (_j, _BED[_b]),
+                     'ambiyans: %s roundu (calm/tension/hunt/hope/storm/frost/boss/chaos ya da kendi wav dosyan; mono 22kHz alti; "" = sessiz)' % _MODE_N[_j]))
+for _j, _b in enumerate([0, 4, 5, 1, 3, 1, 5, 1, 0, 7, 1, 7, 7, 7, 3, 5, 2, 4, 5]):
+    OVERRIDE.append(('vex_res AMBIENT_EVENT%d "sound/vexmira/amb532/%s.wav"' % (_j, _BED[_b]), 'ambiyans: %s eventi' % _EV_N[_j]))
+for _j in range(9):
+    OVERRIDE.append(('vex_res AMBIENT_BOSS%d "sound/vexmira/amb532/boss.wav"' % _j, 'ambiyans: boss %d roundu' % _j))
+for _k, _d in (('BURST', 'patlama'), ('LEAP', 'sicrama'), ('SHIELD', 'kemik kalkan'), ('DRAIN', 'can emme'),
+               ('CLOAK', 'gorunmezlik'), ('TOXIC', 'zehir puskurtme'), ('FROST', 'buz patlamasi')):
+    OVERRIDE.append(('vex_res ABILITY_%s "vexmira/skill532/%s.wav"' % (_k, _k.lower()),
+                     'zombi yetenegi sesi: %s (5.3.2 ozel ses; eskiden hepsi ayni silah sesiydi)' % _d))
+OVERRIDE += [
+    ('vex_ambience_volume 0.55', 'ambiyans muzik/ses seviyesi (0.05 - 1.0)'),
+    ('vex_ambience_restart 120', 'ambiyans kac saniyede bir tazelenir (parcalar zaten kendi kendine doner; baglanan / sesi kesilen oyuncu icin)'),
+]
 # keys whose old value must go (meme sounds on zombies, per-class overrides that hid the pools)
 DROP_VALUE_RE = [re.compile(r'^vex_res Z\d+_(DIE|PAIN)$')]
 DROP_KEYS = {('vex_restore', 'LASERMINE_MODEL')}
@@ -113,7 +134,7 @@ SECTIONS = [
     ('HUD / CSO EKRAN / ARAYUZ', 'Ust skor paneli, CSO kartlari, can barlari, simgeler',
      r'^(vex_hud|vex_topboard|vex_cso|vex_overhead|vex_bossbar|vex_hpbar|vex_head_icon|vex_radio|vex_banner|vex_tip)'),
     ('SES VE MUZIK', 'Ses dongu korumasi, meme sesleri, radyo',
-     r'^(vex_sound|vex_meme|vex_six|vex_music|vex_round_stopsound)'),
+     r'^(vex_sound|vex_ambience|vex_meme|vex_six|vex_music|vex_round_stopsound)'),
     ('GOREV / ODUL / SEVIYE', 'vex_quest <no> <hedef> <XP> <AP> | kazanma odulleri',
      r'^(vex_quest|vex_win_|vex_daily|vex_ach|vex_xp|vex_level|vex_perk|vex_kill|vex_reward)'),
 ]

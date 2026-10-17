@@ -16,6 +16,9 @@ cp $R/addons/amxmodx/configs/vexmira.cfg $C/addons/amxmodx/configs/
 cp $R/addons/amxmodx/data/lang/vexmira_zombie.txt $C/addons/amxmodx/data/lang/
 # new 5.3.2 sprites: smooth additive effects + big screen cards
 cp -r $R/sprites/vexmira/fx532 $R/sprites/vexmira/c532 $C/sprites/vexmira/
+# new 5.3.2 sounds: 8 looping round ambience beds + 7 zombie skill sounds
+mkdir -p $C/sound/vexmira
+cp -r $R/sound/vexmira/amb532 $R/sound/vexmira/skill532 $C/sound/vexmira/
 # 7door map
 cp $R/maps/zm_vexmira_7door.bsp $R/maps/zm_vexmira_7door.nav $R/maps/zm_vexmira_7door.res $C/maps/
 cp $R/addons/amxmodx/configs/vexmira_maps/zm_vexmira_7door.ini $C/addons/amxmodx/configs/vexmira_maps/
