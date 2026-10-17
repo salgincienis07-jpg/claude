@@ -16,6 +16,8 @@ KURULUM (panel)
       addons/amxmodx/data/lang/vexmira_zombie.txt
       sprites/vexmira/fx532/      (YENI: puruzsuz efekt sprite'lari - bombalar, yetenekler, lazer isini)
       sprites/vexmira/c532/       (YENI: buyuk ekran kartlari - ZOMBILER/INSANLAR KAZANDI, MVP, BOSS, SON INSAN)
+      sound/vexmira/amb532/       (YENI: 8 dongulu round ambiyansi)
+      sound/vexmira/skill532/     (YENI: 7 zombi yetenek sesi)
       maps/zm_vexmira_7door.bsp / .nav / .res
       addons/amxmodx/configs/vexmira_maps/zm_vexmira_7door.ini
       gfx/env/vexmira_night*.tga, sound/vexmira/map/, sound/vexmira/amb/, models/vexmira/world/,
@@ -74,6 +76,23 @@ NELER DUZELDI
   Bloklar her cozunurlukte hizali; boss roundunda sagda boss can yuzdesi.
   (vex_topboard / vex_topboard_pad / vex_topboard_y)
 
+* JETPACK MODELI GORUNMUYORDU: panel eklentilere numara verdigi icin vexmira_gear, vexmira_core'dan
+  ONCE yukleniyordu; 5.3.1'deki model korumasi gear'in yukledigi modelleri (jetpack) "yuklu degil"
+  sanip gizliyordu. Iki eklenti artik birbirinin listesini sorar. Test: ters yukleme sirasinda
+  jetpack sirtta / yerde gorunuyor, uyari yok.
+
+* AMBIYANS CALMIYORDU: her round turu icin yeni, CS 1.6'nin kesin calabildigi formatta (mono 11 kHz,
+  kendi kendine donen) 8 atmosfer parcasi:
+     calm (enfeksiyon), tension (coklu/swarm/plague), hunt (nemesis/assassin), hope (survivor/sniper),
+     storm (firtina/kan ayi), frost (gece/karanlik/vampir/elektrik kesintisi), boss, chaos (armageddon/meteor)
+  Her mod / event / boss icin hangisinin calacagi config'te: vex_res AMBIENT_MODE<n> / AMBIENT_EVENT<n> /
+  AMBIENT_BOSS<n>  (kendi wav dosyani da yazabilirsin; "" = sessiz). Ses seviyesi: vex_ambience_volume.
+  Eskiden 44 ayri dosya ses listesinde 44 yer kapliyordu; simdi 8.
+
+* YETENEK SESLERI: zombilerin genel yetenekleri (patlama, sicrama, kalkan, can emme, gorunmezlik,
+  zehir, buz) hepsi ayni silah sesini caliyordu; her birine ozel ses (vex_res ABILITY_*).
+  Boss yetenekleri (R1/R2/R3) ve 24 zombi sinifi zaten kendi seslerini kullaniyor.
+
 * Sohbet etiketleri: [VEXMIRA] [BOSS] [EVENT] [ADMIN] iki renkli.
 
 
@@ -90,9 +109,13 @@ AYARLAR (vexmira.cfg, hepsinin yaninda aciklama var)
   vex_nade_fx 1                epik bomba efektleri
 
 
+YUKLEME LISTELERI (3 harita olculdu, sinir 512)
+-----------------------------------------------
+                ses        indirme     model
+  5.3.1       506-509      ~509        ~420     (tasmaya 3 dosya kalmisti; telsiz sesleri disarida kaliyordu)
+  5.3.2       476-480      ~340        432-446  (rahat pay, hicbir dosya reddedilmiyor)
+
 DURUSTCE
 --------
-* Ses listesi (512) haritalarda 506-509 dolu: bu yuzden yeteneklere YENI ses dosyasi eklenmedi
-  (eklenirse harita acilirken cokme riski). Yetenekler mevcut ozel seslerini kullanir.
 * Ekrana resim koymanin tek yolu nisangah sprite'idir: resimli kart oyuncu canliyken ve elinde
   silah varken cikar; olu / izleyici oyuncu ayni bildirimi yazi karti olarak gorur.
