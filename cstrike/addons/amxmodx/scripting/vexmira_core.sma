@@ -13131,7 +13131,13 @@ public srv_DbgCard532()
 {
 new a[8]; read_argv(1, a, charsmax(a)); new note = str_to_num(a); read_argv(2, a, charsmax(a)); new arg = str_to_num(a);
 for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && !is_user_bot(p)) log_amx("[Vexmira] debug kart %d -> #%d : %d", note, p, CsoNotify(p, note, arg));
+read_argv(3, a, charsmax(a));
+if (equal(a, "shot")) { new d[2]; d[0] = note; d[1] = arg; set_task(0.35, "task_DbgCardShot533", 0, d, 2); }   // test client only
 return PLUGIN_HANDLED;
+}
+public task_DbgCardShot533(const d[])
+{
+for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && !is_user_bot(p)) client_cmd(p, "screenshot scrshots/kart_%02d_%02d.png", d[0], d[1]);
 }
 public srv_DbgRadio532()
 {

@@ -1,0 +1,82 @@
+VEXMIRA ZOMBIE 5.3.3 - KURULUM VE DEGISIKLIKLER
+================================================
+Bu pakette SADECE 5.3.2'den sonra degisen / yeni dosyalar + zm_vexmira_7door haritasinin TUM dosyalari var.
+(5.3.2'deki sprites/vexmira/fx532, sound/vexmira/amb532, sound/vexmira/skill532 klasorleri aynen kaliyor.)
+ONIZLEME/ klasorunde kartlarin resimleri ve oyun ici ekran goruntuleri var.
+
+KURULUM (panel)
+---------------
+1) Eklentiler -> Eklenti Yukle:
+      addons/amxmodx/scripting/vexmira_core.sma
+      addons/amxmodx/scripting/vexmira_gear.sma
+   (Panel derleyemezse: Dosya Yonetici ile addons/amxmodx/plugins/ icine hazir .amxx dosyalarini at.)
+
+2) Dosya Yonetici ile kopyala (ustune yaz):
+      addons/amxmodx/configs/vexmira.cfg        (TEK ayar dosyasi - Turkce, her satir aciklamali)
+      addons/amxmodx/data/lang/vexmira_zombie.txt
+      sprites/vexmira/c533/     (YENI: butun resimli CSO kartlari)
+      sound/vexmira/item533/    (YENI: market esyasi sesleri)
+      7door haritasi: maps/zm_vexmira_7door.bsp/.nav/.res, addons/amxmodx/configs/vexmira_maps/zm_vexmira_7door.ini,
+                      gfx/env/vexmira_night*.tga, sound/vexmira/map/, sound/vexmira/amb/, sound/vexmira/radio/,
+                      models/vexmira/world/, sprites/vexmira/fire.spr
+   FastDL kullaniyorsan ayni dosyalari FastDL klasorune de at.
+
+   Artik GEREK YOK, silebilirsin (sunucu + FastDL): sprites/vexmira/c532/ , sprites/vexmira/cso/
+
+3) DEV BOSSLAR (onemli):
+   Haritayi bir kez ac, sunucu konsoluna yaz:     vex_giant_build
+   Butun bossların buyuk kopyalari olusur: models/player/<boss>_x16/ . Bu _x16 klasorlerini FastDL'e
+   kopyala. Boylece oyuncular her dev bossu bir kez ve hizli indirir (FastDL yoksa giris yavas olur).
+   Dosyalar bir kez uretilir, her haritada yeniden uretilmez.
+
+4) Haritayi degistir.  Sonra konsola:  vex_kontrol   -> eksik dosya / kart / limit raporu.
+
+
+NELER DUZELDI
+-------------
+* RESIMLI CSO KARTLARI HIC CIKMIYORDU - iki sebep vardi ve ikisi de config'teydi:
+    - vex_cso_fov 90 : kart istemcinin "zoom nisangahi" ile cizilir, bu sadece 90'in altinda calisir.
+    - vex_cso_notes 2147483647 : bu sayi oyun motorunda tasip 0 oluyordu -> butun kartlar kapali.
+  Artik 89 ve 255 (kodda da korumali, eski degerler yazilsa bile calisir).
+  Gercek oyun istemcisiyle test edildi: 22 kartin hepsi ekranda cikiyor (ONIZLEME/oyun_ici_kartlar.jpg).
+
+* YENI KART SETI (hepsi resim, altinda yazi YOK -> ust uste binme yok):
+    Buyuk: ZOMBILER KAZANDI, INSANLAR KAZANDI, MVP, BOSS GELIYOR, BOSS YENILDI, SON INSAN, ENFEKSIYON,
+           NEMESIS, SUIKASTCI, KURTULAN, ILK KAN, SEVIYE ATLADIN, YENI TUR
+    Killmark (nisangahin altinda): ELEME, CIFT / UCLU / COKLU ELEME, KATLIAM, KAFADAN!, BICAKLA!, BOMBAYLA!,
+           ENFEKTE ETTIN
+    Geri sayim: round basinda 10 -> 1 ozel kartlar (alttaki "TUR BASLAMASINA" yazisi kaldirildi)
+    Boss can bari: boss savasinda nisangahin ustunde resimli bar (yazili boss bari yerine) - vex_boss_hpcard 1
+  Olu / izleyici oyuncu resim goremez (oyun motoru siniri), ona ayni bildirim yazi olarak cikar.
+
+* DEV BOSSLAR HAVADA DURUYORDU / BUYUMUYORDU: Steam CS 1.6 istemcisi model buyutmeyi desteklemiyor
+  (5.3.2'deki "dosyasiz" yontem sadece Xash'te calisiyordu). Dosya yontemine donuldu:
+  vex_res BOSS_GIANT "file" + vex_giant_build (yukarida). Ayaklar yerde, boy BOSS_SCALE (1.6).
+
+* SAPKALAR KALDIRILDI: sapka marketi yok, sapka modelleri indirilmiyor.
+* DARK KNIGHT KALDIRILDI: menude yok, dosyalari (model + ses) yuklenmiyor / indirilmiyor.
+* OZEL SILAH HASARI biraz dusuruldu: vex_sw_damage_mult 3.0 -> 2.4
+* MARKET ESYALARI: her esyanin kendi sesi + efekti (13 ses ailesi):
+    Zombi Cinneti: kirmizi ates topu + cift sok dalgasi + ekran kirmizi + sarsinti + kukreme/kalp atisi
+    Ofke: ates + kor yagmuru | Ilk Yardim: yesil sifa sisi | Zirh/Kalkan: elektrik patlamasi + buz kristali
+    Gorunmezlik: mor bosluk patlamasi | Ziplama: halka + kivilcim | Hiz/Adrenalin: hiz cizgileri
+    Panzehir / Serum / Yenilenme: toksik sis | Mermi: kivilcim ...
+  Sesleri config'ten degistir: vex_res ITEM_SND_madness "klasor/ses.wav" (power heal armor madness rage
+  cloak jump speed shield regen ammo antidote serum)
+
+* GEREKSIZ INDIRMELER: hic calinmayan 29 duyuru sesi (sound/vexmira/arena48/event*, mode*), Dark Knight,
+  sapkalar, eski kart setleri artik indirilmiyor.
+
+* CONFIG: tamamen Turkce, her satirin yaninda ne ise yaradigi yazili (boss / zombi sinifi / silah adlariyla).
+  Basta "NASIL DEGISTIRILIR" ve ornekler var. Ses yolu "sound/" ile ya da onsuz yazilabilir; ambiyans ve
+  muzik icin .mp3 de calisir. Dosya bulunamazsa:  vex_kontrol  yazinca hangisi oldugu gorunur.
+  NOT: wav dosyalari MONO olmali (11025 / 22050 Hz). Stereo / 44 kHz wav CS 1.6 da hic calmaz -
+  Nemesis ambiyansi degistirip calmadiysa sebep buyuk ihtimalle bu.
+
+
+TEST (gercek oyun istemcisi + botlar)
+-------------------------------------
+* Kartlar: 22 kartin hepsi ekranda (ONIZLEME/oyun_ici_kartlar.jpg), geri sayim + boss can bari + esya efekti
+  (ONIZLEME/oyun_ici_gerisayim_bosscan_esya.jpg).
+* 32 oyuncu (31 bot + gercek istemci), 7door, 440 sn, 8 round, tum modlar + dev boss (x16): COKME YOK, hata yok.
+* Yukleme listeleri (sinir 512): ses 485-489, indirme ~365, model 421-436 (3 haritada olculdu).
