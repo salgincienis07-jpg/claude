@@ -8414,12 +8414,21 @@ public GiantFrame532()
 {
 if (g_iGiantMode532 != 1 || g_fBossScale531 <= 1.01) { if (g_iGiantEnt532) GiantRemove532(); return; }
 new id = g_iBoss;
-if (!(g_iMode == MODE_BOSS && id >= 1 && id <= g_iMax && is_user_alive(id) && g_bBoss[id] && g_iBossType >= 0 && g_iBossType < NUM_BOSSES && g_szBModel[g_iBossType][0]))
+new bool:have = g_iGiantEnt532 && pev_valid(g_iGiantEnt532);
+// keep the giant body through the boss' death animation (until the round restarts)
+if (!(g_iMode == MODE_BOSS && id >= 1 && id <= g_iMax && is_user_connected(id) && g_iBossType >= 0 && g_iBossType < NUM_BOSSES && g_szBModel[g_iBossType][0]
+&& ((is_user_alive(id) && g_bBoss[id]) || have)))
 {
 if (g_iGiantEnt532) GiantRemove532();
 return;
 }
 new ent = g_iGiantEnt532;
+if (!is_user_alive(id))
+{
+new dseq = get_entvar(id, var_sequence);
+if (dseq != g_iGiantSeq532) { g_iGiantSeq532 = dseq; set_entvar(ent, var_sequence, dseq); set_entvar(ent, var_frame, 0.0); set_entvar(ent, var_animtime, get_gametime()); set_entvar(ent, var_framerate, 1.0); }
+return;
+}
 if (!ent || !pev_valid(ent))
 {
 new mdl[128]; formatex(mdl, charsmax(mdl), "models/player/%s/%s.mdl", g_szBModel[g_iBossType], g_szBModel[g_iBossType]);
@@ -30162,7 +30171,29 @@ if (!g_bPcHook531 || !g_bPcReady531 || g_tPcAll531 == Invalid_Trie) return true;
 // stock CS models (models/x.mdl, sprites/x.spr) are not ours to judge
 if (equal(m, "models/", 7) && contain(m[7], "/") == -1 && !equal(m[7], "zombie", 6)) return true;   // no data (hook missing): do not block anything
 new k[96]; copy(k, charsmax(k), m); strtolower(k);
-return TrieKeyExists(g_tPcAll531, k);
+if (TrieKeyExists(g_tPcAll531, k)) return true;
+// 5.3.2: not seen by our engine hook -> maybe vexmira_gear precached it before this plugin was loaded
+return VxGearKnows532(m);
+}
+new g_iGearPl532 = -2, g_iGearFn532 = -1;
+stock bool:VxGearKnows532(const m[])
+{
+if (g_iGearPl532 == -2)
+{
+g_iGearPl532 = -1;
+new n = get_pluginsnum();
+for (new i = 0; i < n; i++) { new f = get_func_id("VxGearModelOkPublic", i); if (f >= 0) { g_iGearPl532 = i; g_iGearFn532 = f; break; } }
+}
+if (g_iGearPl532 < 0) return false;
+if (callfunc_begin_i(g_iGearFn532, g_iGearPl532) != 1) return false;
+callfunc_push_str(m, false);
+new bool:ok = callfunc_end() == 1;
+if (ok)
+{
+new k[96]; copy(k, charsmax(k), m); strtolower(k);
+TrieSetCell(g_tPcAll531, k, 1);          // cache: ask the gear plugin only once per model
+}
+return ok;
 }
 public VxModelOkPublic(const m[]) return VxModelOk(m) ? 1 : 0;
 // ReHLDS engine hook: sees EVERY model precache (game, map, AMXX natives of every plugin loaded after this one)

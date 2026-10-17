@@ -143,9 +143,9 @@ ResolveTarget(const arg[])
                 return id;
         return 0;
     }
-    if (equali(arg, "class:", 6))            // first entity of a classname (its owner/aiment if it is a player attachment)
+    if (equali(arg, "cls.", 4))              // cls.<classname>: first entity of a classname (its owner/aiment if it is a player attachment)
     {
-        new e = engfunc(EngFunc_FindEntityByString, -1, "classname", arg[6]);
+        new e = engfunc(EngFunc_FindEntityByString, -1, "classname", arg[4]);
         if (e <= 0) return 0;
         new ai = pev(e, pev_aiment);
         if (ai >= 1 && ai <= get_maxplayers() && is_user_alive(ai)) return ai;

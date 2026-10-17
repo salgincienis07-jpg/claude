@@ -14608,9 +14608,18 @@ public GuardG51(const path[]) { g_iPcG51=max(g_iPcG51,get_orig_retval()); }
 // ===================== 5.3.1 model guard (gear) =====================
 // Asks vexmira_core (VxModelOkPublic) whether a model is really precached before using it.
 new g_iGuardPl531 = -2, g_iGuardFn531 = -1, g_iGuardLog531;
+// 5.3.2: models this plugin precached itself are always OK (the core's engine hook can miss them when the
+// panel loads vexmira_gear BEFORE vexmira_core - then the jetpack / weapon models were wrongly hidden)
+public VxGearModelOkPublic(const m[])
+{
+new k;
+if (g_tZcModelsReady != Invalid_Trie && TrieGetCell(g_tZcModelsReady, m, k) && k > 0) return 1;
+return 0;
+}
 stock VxCoreModelOk(const m[])
 {
 if (!m[0]) return 1;
+{ new k; if (g_tZcModelsReady != Invalid_Trie && TrieGetCell(g_tZcModelsReady, m, k) && k > 0) return 1; }
 if (g_iGuardPl531 == -2)
 {
 g_iGuardPl531 = -1;
