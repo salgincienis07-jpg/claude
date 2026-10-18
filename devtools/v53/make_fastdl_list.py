@@ -19,7 +19,7 @@ SP = '/tmp/claude-0/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/scrat
 SRV = os.path.join(SP, 'server', 'cstrike')
 EXT = ('.mdl', '.spr', '.wav', '.mp3', '.tga', '.bmp', '.wad', '.txt', '.bsp', '.res')
 OBSOLETE = ('sound/vexmira/meme/', 'sound/vexmira/amb532/', 'sound/vexmira/skill532/', 'sound/vexmira/item533/', 'sound/vexmira/arena51/classes/', 'sprites/vexmira/c532/', 'sprites/vexmira/cso/', 'sprites/vexmira/c533/hp_', 'sprites/vexmira/c533/shp',
-            'maps/zm_vex_testroom', 'maps/zm_vex_pilot')
+            'maps/zm_vex_testroom', 'maps/zm_vex_pilot', 'maps/zm_vexmira_dust2v1')
 DIRS = ('models/', 'sound/', 'sprites/', 'gfx/', 'maps/', 'overviews/', 'resource/')
 
 

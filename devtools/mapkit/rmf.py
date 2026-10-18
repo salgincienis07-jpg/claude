@@ -256,9 +256,11 @@ def _new_face(n, d, tex):
             break
     f = Face()
     f.tex = tex
-    u = np.zeros(3); u[(a + 1) % 3] = 1
-    v = np.zeros(3); v[(a + 2) % 3] = -1
-    if a == 2:
+    if a == 0:
+        u, v = np.array([0, 1.0, 0]), np.array([0, 0, -1.0])
+    elif a == 1:
+        u, v = np.array([1.0, 0, 0]), np.array([0, 0, -1.0])
+    else:
         u, v = np.array([1.0, 0, 0]), np.array([0, -1.0, 0])
     f.u, f.ushift, f.v, f.vshift, f.rot, f.uscale, f.vscale = tuple(u), 0.0, tuple(v), 0.0, 0.0, 1.0, 1.0
     f.plane = [tuple(p0), tuple(p1), tuple(p2)]
@@ -306,3 +308,88 @@ def solid_bbox(solid):
     import numpy as np
     V = np.array([v for f in solid.faces for v in f.verts])
     return V.min(0), V.max(0)
+
+
+def _clip_with(solid, extra_specs, tex):
+    import numpy as np
+    base = _planes(solid)
+    out = []
+    for spec in extra_specs:
+        extra = []
+        for n, d in spec:
+            n = np.array(n, float)
+            if any(np.allclose(n, bn, atol=1e-4) and abs(d - bd) < 0.05 for bn, bd, _ in base):
+                continue                       # coincides with an existing face: keep the original
+            extra.append((n, float(d), None))
+        planes = base + extra
+        V = _verts(planes)
+        if len(V) < 4:
+            continue
+        span = V.max(0) - V.min(0)
+        if min(span) < 0.5:
+            continue
+        s = Solid()
+        for n, d, f in planes:
+            on = np.abs(V @ n - d) < 0.05
+            if on.sum() < 3:
+                continue
+            if f is None:
+                f = _new_face(n, d, tex)
+            nf = Face()
+            for k in Face.__slots__:
+                setattr(nf, k, getattr(f, k))
+            nf.verts = [tuple(p) for p in V[on]]
+            s.faces.append(nf)
+        if len(s.faces) >= 4:
+            out.append(s)
+    return out
+
+
+def subtract_box(solid, mn, mx, tex='d2_wall'):
+    """parts of a convex solid outside the axis box mn..mx (up to 6 convex pieces); new cut faces get `tex`."""
+    x0, y0, z0 = mn
+    x1, y1, z1 = mx
+    X = [((-1, 0, 0), -x0), ((1, 0, 0), x1)]
+    XY = X + [((0, -1, 0), -y0), ((0, 1, 0), y1)]
+    specs = [
+        [((1, 0, 0), x0)], [((-1, 0, 0), -x1)],
+        X + [((0, 1, 0), y0)], X + [((0, -1, 0), -y1)],
+        XY + [((0, 0, 1), z0)], XY + [((0, 0, -1), -z1)],
+    ]
+    return _clip_with(solid, specs, tex)
+
+
+def solid_hits_box(solid, mn, mx, eps=0.1):
+    a, b = solid_bbox(solid)
+    if any(a[i] >= mx[i] - eps or b[i] <= mn[i] + eps for i in range(3)):
+        return False
+    import numpy as np
+    # exact: is any interior point of the box inside the solid? use separating planes of the solid
+    planes = _planes(solid)
+    corners = np.array([[x, y, z] for x in (mn[0] + eps, mx[0] - eps) for y in (mn[1] + eps, mx[1] - eps) for z in (mn[2] + eps, mx[2] - eps)])
+    for n, d, _ in planes:
+        if np.all(corners @ n >= d):
+            return False
+    return True
+
+
+def box_solid(mn, mx, tex):
+    """axis box as an RMF Solid (so it can be carved like dust2 brushes). tex: name or {top,bottom,side|all}."""
+    import numpy as np
+    s = Solid()
+    mn = np.array(mn, float); mx = np.array(mx, float)
+    for n, d, key in (((1, 0, 0), mx[0], 'side'), ((-1, 0, 0), -mn[0], 'side'), ((0, 1, 0), mx[1], 'side'),
+                      ((0, -1, 0), -mn[1], 'side'), ((0, 0, 1), mx[2], 'top'), ((0, 0, -1), -mn[2], 'bottom')):
+        t = tex if isinstance(tex, str) else tex.get(key, tex.get('all', 'd2_wall'))
+        f = _new_face(n, d, t)
+        a = int(np.argmax(np.abs(n)))
+        val = mx[a] if n[a] > 0 else mn[a]
+        o = [i for i in range(3) if i != a]
+        vs = []
+        for p0 in (mn[o[0]], mx[o[0]]):
+            for p1 in (mn[o[1]], mx[o[1]]):
+                v = [0, 0, 0]; v[a] = val; v[o[0]] = p0; v[o[1]] = p1
+                vs.append(tuple(v))
+        f.verts = vs
+        s.faces.append(f)
+    return s

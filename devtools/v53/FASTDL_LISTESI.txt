@@ -3,7 +3,7 @@
 // Sunucuda olmayan bir dosya varsa atla (o model/ses o haritada kullanilmiyordur).
 // Haritalarin .res dosyasi varsa, .res icinde yazan dosyalari da kopyala.
 // Sunucu her harita acilisinda kendi listesini de yazar: addons/amxmodx/data/vexmira_fastdl_hepsi.txt
-// Toplam 856 dosya
+// Toplam 845 dosya
 
 
 // ---- gfx ----
@@ -56,7 +56,7 @@ maps/zm_vexmira_7door.bsp
 maps/zm_vexmira_7door.res
 maps/zm_vexmira_dust.bsp
 maps/zm_vexmira_dust.res
-maps/zm_vexmira_dust2v1.bsp
+maps/zm_vexmira_dust2zm.bsp
 maps/zm_vexmira_icefy.bsp
 maps/zm_vexmira_icefy.res
 
@@ -108,7 +108,6 @@ models/vexmira/arena50/arsenal/5/w.mdl
 models/vexmira/arena50/arsenal/6/p.mdl
 models/vexmira/arena50/arsenal/6/w.mdl
 models/vexmira/arena50/arsenal/7/w.mdl
-models/vexmira/arena50/cosmetics/pet_headcrab4748T.mdl
 models/vexmira/arena51/arsenal/0/v.mdl
 models/vexmira/arena51/arsenal/1/v.mdl
 models/vexmira/arena51/arsenal/2/v.mdl
@@ -122,9 +121,6 @@ models/vexmira/arena52/default/v_knife.mdl
 models/vexmira/community/claws/classic.mdl
 models/vexmira/community/claws/heavy.mdl
 models/vexmira/community/claws/scary.mdl
-models/vexmira/community/cosmetics/pet_halo47T.mdl
-models/vexmira/community/cosmetics/pet_headcrab4748T.mdl
-models/vexmira/community/cosmetics/pet_headcrab47T.mdl
 models/vexmira/community/jetpack/p_jetpack.mdl
 models/vexmira/community/jetpack/rpgrocket.mdl
 models/vexmira/community/jetpack/v_jetpack.mdl
@@ -615,10 +611,6 @@ sound/vexmira/epic/count/ten.wav
 sound/vexmira/epic/count/three.wav
 sound/vexmira/epic/count/two.wav
 sound/vexmira/epic/flare.wav
-sound/vexmira/epic/human_win.wav
-sound/vexmira/epic/ice.wav
-sound/vexmira/epic/round_start.wav
-sound/vexmira/epic/zombie_win.wav
 sound/vexmira/map/cd_boom.wav
 sound/vexmira/map/cd_fountain.wav
 sound/vexmira/map/cd_harbor.wav
@@ -843,13 +835,10 @@ sprites/vexmira/c534/sbh3.spr
 sprites/vexmira/c534/sbh4.spr
 sprites/vexmira/c534/sbh5.spr
 sprites/vexmira/epic/death47.spr
-sprites/vexmira/epic/intro47.spr
 sprites/vexmira/epic/jet_blast47.spr
 sprites/vexmira/epic/jet_flame.spr
 sprites/vexmira/epic/jet_ring.spr
 sprites/vexmira/epic/jet_smoke.spr
-sprites/vexmira/epic/victory_ct47.spr
-sprites/vexmira/epic/victory_t47.spr
 sprites/vexmira/fire.spr
 sprites/vexmira/fx532/beam.spr
 sprites/vexmira/fx532/beam_wide.spr

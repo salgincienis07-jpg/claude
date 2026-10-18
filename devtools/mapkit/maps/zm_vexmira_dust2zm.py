@@ -1,6 +1,6 @@
-"""zm_vexmira_dust2v1 - de_dust2 (owner supplied .rmf source) turned into a Vexmira Zombie Plague camp map.
+"""zm_vexmira_dust2zm - de_dust2 (owner supplied .rmf source) turned into a Vexmira Zombie Plague camp map.
 
-    cd devtools && python3 -m mapkit.maps.zm_vexmira_dust2v1 --rmf de_dust2.rmf [--quality final] [--preview DIR]
+    cd devtools && python3 -m mapkit.maps.zm_vexmira_dust2zm --rmf de_dust2.rmf [--quality final] [--preview DIR]
 
 The original layout is kept 1:1 (brushes, texture alignment); cs_dust.wad textures are replaced by our own
 dust-style look-alikes (mapkit/dust2tex.py, embedded -> no wad download). Bomb sites / buy zones / hostage
@@ -19,7 +19,7 @@ from ..rmf import RMF
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vexmira_dust2v1'
+NAME = 'zm_vexmira_dust2zm'
 DROP = {'func_bomb_target', 'func_buyzone', 'info_bomb_target', 'func_hostage_rescue', 'hostage_entity',
         'info_map_parameters', 'trigger_camera', 'info_target'}
 
@@ -48,14 +48,14 @@ def base_map(rmf_path):
         print('unmapped textures:', miss)
     m.ents = [e for e in m.ents if e.classname not in DROP]
     m.world.keys = [('classname', 'worldspawn'), ('skyname', 'desert'), ('MaxRange', '8192'),
-                    ('message', 'zm_vexmira_dust2v1 - MapBy:SmurfSexy - Vexmira Zombie')]
+                    ('message', 'zm_vexmira_dust2zm - MapBy:SmurfSexy - Vexmira Zombie')]
     return m
 
 
 def build(rmf_path, quality='normal', preview=None, out=None):
     from ..compile import compile_map
     m = base_map(rmf_path)
-    from . import zm_vexmira_dust2v1_add as add
+    from . import zm_vexmira_dust2zm_add as add
     add.prepare(m)
     extra_world, extra_ents = add.additions(m)
     text = m.to_map(extra_world, extra_ents)
@@ -68,7 +68,7 @@ def build(rmf_path, quality='normal', preview=None, out=None):
     if preview and r.ok:
         from ..preview import render_views
         render_views(r.bsp, preview)
-    add.write_ini(m)
+    add.write_ini(m, r.bsp if r.ok else None)
     return r
 
 

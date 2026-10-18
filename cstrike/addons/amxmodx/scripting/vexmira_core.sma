@@ -3818,6 +3818,7 @@ new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_
 new g_iLzOwned531[33], g_iLzSel531[33], g_pLzPrices531;
 new Trie:g_tSndSeen531, Trie:g_tGenSeen531, g_iSndTop531, g_iGenTop531, g_iSndRefused531, g_iGenRefused531, g_iMapSnd531;
 new g_pAutoHit531, g_pBlackLight531, g_pCosFollow531, g_pSwDmg531, g_pInfAmmo531;
+new Float:g_fArB536[4], bool:g_bArB536, Float:g_fArH536[32][4], g_iArHN536, g_pArenaTp536, g_iArTp536[33];
 new g_pNoUrban536, g_pBdHp536, g_pBdBoss536, g_iBdGib536, g_pGunDmg536, g_pKBMax536, g_pHsSnd536, Float:g_fHsSnd536[33];
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
 new g_szInfV531[96] = "models/vexmira/nades/v_infect.mdl", g_szInfP531[96] = "models/vexmira/nades/p_infect.mdl", g_szInfW531[96] = "models/vexmira/nades/w_infect.mdl";
@@ -18591,6 +18592,7 @@ VoiceReset(boss);
 EpicBossStart(boss);
 set_task(0.9, "task_BossFlash", TASK_INTRO);
 set_task(2.5, "task_BossIntroEnd", TASK_INTRO + 1);
+if (g_bArB536 && g_iArHN536 > 0 && get_pcvar_num(g_pArenaTp536)) set_task(0.5, "task_Arena536", TASK_INTRO + 2);
 }
 public task_BossFlash()
 {
@@ -19483,6 +19485,8 @@ remove_task(TASK_BOSSHIT);
 remove_task(TASK_BOSSFX);
 remove_task(TASK_INTRO);
 remove_task(TASK_INTRO + 1);
+remove_task(TASK_INTRO + 2);
+remove_task(TASK_INTRO + 3);
 for (new i = 0; i < 4; i++)
 remove_task(TASK_BOSSHIT + 10 + i);
 for (new s = 0; s < sizeof g_fPoolEnd; s++)
@@ -21642,6 +21646,8 @@ TrieClear(g_tRoundBuys);
 g_iStartTries = 0;
 g_bAnnounced = false;
 remove_task(TASK_INTRO + 1);
+remove_task(TASK_INTRO + 2);
+remove_task(TASK_INTRO + 3);
 for (new t = 0; t < 30; t++)
 remove_task(TASK_BOSSHIT + t);
 for (new id = 1; id <= g_iMax; id++)
@@ -22028,7 +22034,6 @@ g_iZombieStreak = 0;
 if (g_iHumanStreak >= 3)
 LiveAll(0, "LIVE_HSTREAK", 2, g_iHumanStreak);
 Radio52(5);
-EpicCue(0, "human_win");
 new xp = get_pcvar_num(g_pWinHXP), ap = get_pcvar_num(g_pWinHAP);
 switch (g_iMode)
 {
@@ -22055,7 +22060,6 @@ g_iHumanStreak = 0;
 if (g_iZombieStreak >= 3)
 LiveAll(0, "LIVE_ZSTREAK", 2, g_iZombieStreak);
 Radio52(6);
-EpicCue(0, "zombie_win");
 for (new id = 1; id <= g_iMax; id++)
 {
 if (is_user_connected(id) && g_bZombie[id] && !g_bMinion[id])
@@ -27163,6 +27167,7 @@ log_amx("[Vexmira] mp_roundtime %s (geri yuklendi)", base);
 #define MSS_FX    9
 #define MSS_SKIP  10
 #define MSS_AMB   11
+#define MSS_ARENA 12
 MsLoadIni()
 {
 new map[32], path[160];
@@ -27200,6 +27205,7 @@ else if (equali(line, "[locks]"))        { sec = MSS_LOCK; g_bMsSeq = true; }
 else if (equali(line, "[hints]"))        sec = MSS_HINT;
 else if (equali(line, "[fx]"))           sec = MSS_FX;
 else if (equali(line, "[ambience]"))     sec = MSS_AMB;
+else if (equali(line, "[arena]"))        sec = MSS_ARENA;
 else if (equali(line, "[radio]") || equali(line, "[chatter]") || equali(line, "[models]"))
 sec = MSS_SKIP;
 else
@@ -27277,6 +27283,11 @@ MsBad(path, ln, line, bad);
 case MSS_AMB:
 {
 if (!MsParseAmb(val))
+MsBad(path, ln, line, bad);
+}
+case MSS_ARENA:
+{
+if (!Arena536_Parse(key, val))
 MsBad(path, ln, line, bad);
 }
 case MSS_LOCK, MSS_HINT:
@@ -29286,7 +29297,6 @@ return;
 }
 CommunityPrecache();
 
-ZcPcGeneric("models/vexmira/arena50/cosmetics/pet_headcrab4748T.mdl");
 CommunityNormalPrecache();
 CommunityEventPrecache();
 CommunityExtraEventPrecache();
@@ -30324,18 +30334,17 @@ else { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_wea
 }
 CommunityPrecache()
 {
-ZcPcGeneric("models/vexmira/community/cosmetics/pet_headcrab4748T.mdl");
 
 MeleePrecache48();
 g_iSupplySigil47=ZcPcModel("models/vexmira/epic/supply_sigil47.mdl");
 for(new sg47=0;sg47<2;sg47++) g_iSigil47[sg47]=ZcPcModel(SIGIL47[sg47]);
-for(new b47=0;b47<5;b47++) g_iBannerModel47[b47]=ZcPcModel(BANNER47[b47]);
+// 5.3.6: kinds 0-2 (victory / intro banners) are never shown any more (CSO cards replaced them) -> no download
+for(new b47=3;b47<5;b47++) g_iBannerModel47[b47]=ZcPcModel(BANNER47[b47]);
 g_bTitan47 = ZcPcModel("models/player/vex_titan48/vex_titan48.mdl") > 0;
 new path[128];
 for(new i=0;i<5;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); if(file_exists(path,true)) g_bCommunityCtOk[i] = ZcPcModel(path)>0; else log_amx("[Community] EKSIK model: %s (bu CT gorunumu kapali)",path); }
 ZcPcGeneric("models/player/vex_halo/vex_haloT.mdl");
-ZcPcGeneric("models/vexmira/community/cosmetics/pet_halo47T.mdl");
-ZcPcGeneric("models/vexmira/community/cosmetics/pet_headcrab47T.mdl");
+// 5.3.6: pet texture files removed (pets are gone, their models were never loaded)
 for (new k47 = 0; k47 < 3; k47++) g_bKnife47[k47] = ZcPcModel(KNIFE47[k47]) > 0;
 g_bCommunityButterflyOk = ZcPcModel("models/vexmira/arena48/v_balrog.mdl")>0;
 
@@ -30692,7 +30701,8 @@ for(new i=1;i<=10;i++) {
 formatex(path,charsmax(path),"sound/vexmira/epic/count/%s.wav",VOX_NUM[i]);
 if(file_exists(path,true)) ZcPcGeneric(path);
 }
-static const cues[][]={"round_start","human_win","zombie_win","ice","flare"};
+// 5.3.6: round_start / human_win / zombie_win played on top of the 5.3.5 ROUND_START / HUMAN_WIN / ZOMBIE_WIN sounds (double sound), ice was unused
+static const cues[][]={"flare"};
 for(new i=0;i<sizeof cues;i++) {
 formatex(path,charsmax(path),"sound/vexmira/epic/%s.wav",cues[i]);
 if(file_exists(path,true)) ZcPcGeneric(path);
@@ -30756,7 +30766,7 @@ EpicRoundStart()
 {
 Radio52(g_iMode==MODE_BOSS?2:0);
 if(!g_bRoundActive) return;
-if(g_iMode!=MODE_BOSS) EpicCue(0,"round_start");
+// 5.3.6: round start sound = ROUND_START (no second cue)
 remove_task(TASK_EPIC_MUSIC);set_task(3.0,"EpicBossMusic",TASK_EPIC_MUSIC);
 for(new p=1;p<=g_iMax;p++) if(is_user_alive(p) && IsVip(p) && (g_iSet[p]&E46_VIP_SPAWN)) EpicVipFx(p);
 }
@@ -31384,8 +31394,7 @@ public msg_WinText47(msg,dest,id)
 {
 if(get_msg_args()<2 || get_msg_argtype(2)!=ARG_STRING) return PLUGIN_CONTINUE;
 new text[64];get_msg_arg_string(2,text,charsmax(text));
-if(equal(text,"#CTs_Win") && g_iBannerModel47[0]) return PLUGIN_HANDLED;
-if(equal(text,"#Terrorists_Win") && g_iBannerModel47[1]) return PLUGIN_HANDLED;
+if(equal(text,"#CTs_Win") || equal(text,"#Terrorists_Win")) return PLUGIN_HANDLED;   // CSO win cards show it
 return PLUGIN_CONTINUE;
 }
 
@@ -32355,8 +32364,102 @@ if (!get_pcvar_num(g_pNoUrban536) || !is_user_alive(id)) return;
 new mdl[32]; cs_get_user_model(id, mdl, charsmax(mdl));
 if (equali(mdl, "urban")) cs_set_user_model(id, "gign");
 }
+// 5.3.6: boss arena. Map ini [arena]: "boss = x y z [yaw]" + "human = x y z [yaw]" (up to 32).
+// When a boss round starts, the boss and every living human are teleported there (hull checked, unstuck after).
+bool:Arena536_Parse(const key[], const val[])
+{
+new sx[16], sy[16], sz[16], sa[16];
+new n = parse(val, sx, charsmax(sx), sy, charsmax(sy), sz, charsmax(sz), sa, charsmax(sa));
+if (n < 3) return false;
+new Float:p[4];
+p[0] = str_to_float(sx); p[1] = str_to_float(sy); p[2] = str_to_float(sz); p[3] = (n >= 4) ? str_to_float(sa) : 0.0;
+if (floatabs(p[0]) > 4096.0 || floatabs(p[1]) > 4096.0 || floatabs(p[2]) > 4096.0) return false;
+if (equali(key, "boss")) { g_fArB536 = p; g_bArB536 = true; return true; }
+if (equali(key, "human"))
+{
+if (g_iArHN536 >= sizeof g_fArH536) return false;
+g_fArH536[g_iArHN536++] = p;
+return true;
+}
+return false;
+}
+// try the point, then rings of offsets around it; true + moved when a free spot was found
+bool:Arena536_Put(id, const Float:p[4])
+{
+static const Float:OFF[][3] =
+{
+{0.0, 0.0, 0.0}, {0.0, 0.0, 12.0}, {40.0, 0.0, 4.0}, {-40.0, 0.0, 4.0}, {0.0, 40.0, 4.0}, {0.0, -40.0, 4.0},
+{40.0, 40.0, 4.0}, {-40.0, -40.0, 4.0}, {40.0, -40.0, 4.0}, {-40.0, 40.0, 4.0},
+{80.0, 0.0, 8.0}, {-80.0, 0.0, 8.0}, {0.0, 80.0, 8.0}, {0.0, -80.0, 8.0}, {80.0, 80.0, 8.0}, {-80.0, -80.0, 8.0},
+{80.0, -80.0, 8.0}, {-80.0, 80.0, 8.0}, {120.0, 0.0, 12.0}, {-120.0, 0.0, 12.0}, {0.0, 120.0, 12.0}, {0.0, -120.0, 12.0}
+};
+new Float:t[3];
+for (new i = 0; i < sizeof OFF; i++)
+{
+t[0] = p[0] + OFF[i][0]; t[1] = p[1] + OFF[i][1]; t[2] = p[2] + OFF[i][2];
+if (engfunc(EngFunc_PointContents, t) == CONTENTS_SOLID) continue;
+if (!IsHullFree(id, t)) continue;
+engfunc(EngFunc_SetOrigin, id, t);
+set_entvar(id, var_velocity, Float:{0.0, 0.0, 0.0});
+set_entvar(id, var_basevelocity, Float:{0.0, 0.0, 0.0});
+new Float:ang[3];
+ang[1] = p[3];
+set_entvar(id, var_angles, ang);
+set_entvar(id, var_v_angle, ang);
+set_entvar(id, var_fixangle, 1);
+FxTeleport(t);
+return true;
+}
+return false;
+}
+public task_Arena536()
+{
+if (!g_iBoss || !is_user_alive(g_iBoss) || !g_bArB536 || !g_iArHN536) return;
+new moved;
+arrayset(g_iArTp536, 0, sizeof g_iArTp536);
+if (Arena536_Put(g_iBoss, g_fArB536)) { g_iArTp536[g_iBoss] = 1; moved++; }
+new start = random(g_iArHN536), k;
+for (new p = 1; p <= g_iMax; p++)
+{
+if (p == g_iBoss || !is_user_alive(p) || g_bZombie[p]) continue;
+new bool:ok;
+for (new j = 0; j < g_iArHN536 && !ok; j++)
+{
+k = (start + j) % g_iArHN536;
+ok = Arena536_Put(p, g_fArH536[k]);
+}
+start = (k + 1) % g_iArHN536;
+if (ok) { g_iArTp536[p] = 1; moved++; }
+}
+log_amx("[Vexmira] boss arenasi: %d oyuncu isinlandi (%d nokta)", moved, g_iArHN536);
+if (!moved) return;
+ChatAll("BOSS_ARENA_TP");
+HudAll(SL_ALERT, CLR_DANGER, 3.0, "BOSS_ARENA_HUD");
+set_task(0.35, "task_Arena536Fix", TASK_INTRO + 3);
+}
+public task_Arena536Fix()
+{
+static const Float:OFFS[][3] =
+{
+{0.0, 0.0, 18.0}, {32.0, 0.0, 0.0}, {-32.0, 0.0, 0.0}, {0.0, 32.0, 0.0}, {0.0, -32.0, 0.0},
+{32.0, 32.0, 18.0}, {-32.0, -32.0, 18.0}, {32.0, -32.0, 18.0}, {-32.0, 32.0, 18.0}, {0.0, 0.0, 48.0},
+{64.0, 0.0, 0.0}, {-64.0, 0.0, 0.0}, {0.0, 64.0, 0.0}, {0.0, -64.0, 0.0}
+};
+new Float:o[3], Float:t[3];
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!g_iArTp536[p] || !is_user_alive(p) || !IsStuck(p)) continue;
+get_entvar(p, var_origin, o);
+for (new i = 0; i < sizeof OFFS; i++)
+{
+t[0] = o[0] + OFFS[i][0]; t[1] = o[1] + OFFS[i][1]; t[2] = o[2] + OFFS[i][2];
+if (IsHullFree(p, t)) { engfunc(EngFunc_SetOrigin, p, t); break; }
+}
+}
+}
 BDoor536_Init()
 {
+g_pArenaTp536 = register_cvar("vex_boss_arena_tp", "1");
 g_pNoUrban536 = register_cvar("vex_no_urban", "1");
 RegisterHookChain(RG_HandleMenu_ChooseAppearance, "Urban536_Appearance", false);
 RegisterHam(Ham_Spawn, "player", "Urban536_SpawnPost", 1);
@@ -32371,7 +32474,7 @@ set_task(1.0, "BDoor536_Scan");
 public BDoor536_Scan()
 {
 g_iBdNum536 = 0;
-g_iBdGib536 = engfunc(EngFunc_ModelIndex, "models/woodgibs.mdl");
+g_iBdGib536 = 0;
 new ent = -1, nm[16];
 while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "func_door")) > 0 && g_iBdNum536 < BD536_MAX)
 {
@@ -32379,6 +32482,9 @@ pev(ent, pev_netname, nm, charsmax(nm));
 if (!equal(nm, "vxbd")) continue;
 g_iBdEnt536[g_iBdNum536++] = ent;
 }
+// gibs only when the map itself precached them (EngFunc_ModelIndex on a missing model = server shutdown)
+if (g_iBdNum536 && g_tPcAll531 != Invalid_Trie && TrieKeyExists(g_tPcAll531, "models/woodgibs.mdl"))
+g_iBdGib536 = engfunc(EngFunc_ModelIndex, "models/woodgibs.mdl");
 BDoor536_RestoreAll();
 if (g_iBdNum536) log_amx("[Vexmira] kirilabilir kapi: %d", g_iBdNum536);
 }

@@ -1,0 +1,48 @@
+VEXMIRA ZOMBIE 5.3.7 - zm_vexmira_dust2zm (yeni isim) + boss meydani isinlanma + daha hizli giris
+=================================================================================================
+
+ONCE: sunucudan eski harita dosyalarini sil (artik kullanilmiyor):
+   cstrike/maps/zm_vexmira_dust2v1.bsp / .nav
+   cstrike/addons/amxmodx/configs/vexmira_maps/zm_vexmira_dust2v1.ini
+   (FastDL'deki maps/zm_vexmira_dust2v1.bsp de silinebilir)
+
+1) HARITA: zm_vexmira_dust2zm  (MapBy: SmurfSexy)
+   Duzeltilenler:
+   - B tuneli girisi, long girisi ve B penceresi ACIK (eski kale/depo/kuleler yolu kapatiyordu, kaldirildi).
+   - Kapilar kaldirildi (acilir kapi yok). Bayraklar / tabelalar / celenkler artik GECILEBILIR (takilma yok).
+   - Kapi, buyuk kapi ve pencere dokulari orijinal dust2 olculerine gore yeniden yapildi (bozuk/yamuk doku yok).
+   - Tum harita koyu ZOMBI temasi: soguk gri-yesil, karanlik, pas/kan tonlu duvar ve zeminler.
+   Yeni yerler:
+   - A LONG: iki duvarin ICI oyuldu -> karsilikli 2 KATLI camli savunma odalari (ust kat neredeyse tamamen cam).
+   - CT -> A yolu (rampa koridoru) sag duvarin ici: 3 KATLI SIGINAK (merdivenle kat kat, camli ust katlar, ic bolme).
+   - Mid -> T yolu, tunelin ilerisindeki sagdaki kapi: 2 KATLI MID USSU (ic bolme, ust kattan iki koridora camli bakis).
+   - A short merdiveninin yanindaki kucuk yer: GIZLI TUNEL (duvarin icinden CT rampa koridoruna iner).
+   - A short kutularinin ortasindan gecen KASA TUNELI.
+   - Long kapilari (T base cift kapi) onunde 2 adet ve B kasalarinda 1 adet FENERLI CAM SAVUNMA KULUBESI;
+     B'deki buyuk kasa yiginin ustunde cam korkuluk.
+   - B tunelleri: kirmizi fenerler, kan izleri, karantina bayraklari, siper kasalari.
+   - Mid: sus isiklari, bayraklar, celenk, 2. VEXMIRA tabelasi.
+   - BOSS MEYDANI gelistirildi: giris kemer kapisi (BOSS ARENASI + MUTLU YILLAR), 4 fener diregi, siperler,
+     isikli halka, 2 yilbasi agaci, buyuk isikli VEXMIRA / by SmurfSexy tabelasi, teras cephesi.
+   - NOEL SUSLERI (kar YOK): agaclar + hediye kutulari, renkli ampul dizileri, celenkler, "Mutlu Yillar" bayraklari.
+   - 2 adet isikli "VEXMIRA by SmurfSexy" tabelasi: boss meydani ve mid. Tum tabela/levhalar yeniden tasarlandi.
+   - FPS: en kotu gorunum ~1300 r_speeds, ortalama ~635 (onceki surum 619) - yeni yapilara ragmen ayni seviye.
+   - 32 CT + 32 T dogus, bot nav dosyasi hazir.
+
+2) BOSS MEYDANI ISINLANMA (vexmira_core.sma)
+   Boss roundu baslayinca boss ve YASAYAN TUM INSANLAR meydana isinlanir (haritanin ini [arena] bolumu).
+   Takilma kontrolu var: dolu noktada yan noktalara bakar, 0.35 sn sonra sikisan oyuncuyu kurtarir.
+   Kapatmak icin: vex_boss_arena_tp 0. Testte 16 oyuncu sorunsuz isinlandi.
+
+3) DAHA HIZLI GIRIS
+   Kullanilmayan indirmeler kaldirildi (kullanilmayan kazanma/giris kartlari, pet doku dosyalari, 5.3.5 seslerinin
+   ustune ikinci kez calan eski epic sesleri). 7 dosya ve 3 model slotu daha az.
+   NOT: en buyuk kalan yuk sound/vexmira/arena52/native/default/ altindaki ~95 silah skin sesi (vexmira_ze silah
+   skinleri). Istersen bunlari kaldirip skinleri stok CS sesine cevirebilirim - giris belirgin hizlanir.
+
+4) COKME DUZELTMESI
+   5.3.6'da kirilabilir kapi kodu bazi haritalarda (kirilabilir tahta olmayan haritalar, ornek 7door) sunucuyu
+   kapatabiliyordu ("woodgibs.mdl not precached"). Duzeltildi - 5.3.6 kullaniyorsan bu paketi mutlaka kur.
+
+KURULUM: zip'teki cstrike klasorunu sunucudaki cstrike'in ustune at, "Eklenti Yukle" ile vexmira_core.sma ve
+vexmira_gear.sma'yi birlikte derle, haritayi degistir. FastDL'e: maps/zm_vexmira_dust2zm.bsp
