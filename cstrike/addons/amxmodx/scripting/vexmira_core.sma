@@ -2957,8 +2957,7 @@ static const paths[][]={
 "sound/vexmira/community/jetpack/blow.wav",
 "sound/vexmira/community/jetpack/fly47.wav",
 "sound/vexmira/community/jetpack/rocket.wav",
-"sound/vexmira/community/jetpack/travel.wav",
-"sound/vexmira/meme/discord.wav"
+"sound/vexmira/community/jetpack/travel.wav"
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
@@ -10710,7 +10709,8 @@ for (new f = 0; f < IF_TOTAL; f++)
 formatex(key, charsmax(key), "ITEM_SND_%s", IF_NAME533[f]);
 if (!TrieGetString(g_tRes, key, path, charsmax(path)))
 {
-formatex(path, charsmax(path), "vexmira/item533/%s.wav", IF_NAME533[f]);
+{ static const IF_S535[][] = { "power", "heal", "shield", "roar", "roar2", "whoosh", "whoosh", "speed", "shield", "heal", "", "heal", "acid" };
+if (f == IF_AMMO) copy(path, charsmax(path), "items/9mmclip1.wav"); else formatex(path, charsmax(path), "vexmira/s534/%s.wav", IF_S535[f]); }
 TrieSetString(g_tRes, key, path);
 }
 PrecacheSoundKeyEx(key, false);
@@ -30544,8 +30544,7 @@ return true;
 }
 CommunityExtraEventPrecache()
 {
-ZcPcGeneric("sound/vexmira/meme/oof.wav");
-ZcPcGeneric("sound/vexmira/meme/taco.wav");
+// 5.3.5: the old meme achievement / daily sounds are no longer downloaded (vex_res ACH_UNLOCK / DAILY use the s534 set)
 }
 CommunityAdminEquipment(id)
 {
@@ -31582,7 +31581,8 @@ for(new kind=0;kind<3;kind++) for(new j=0;j<(kind==0?MODE_TOTAL:(kind==1?EV_TOTA
 formatex(key,charsmax(key),"AMBIENT_%s%d",kind==0?"MODE":(kind==1?"EVENT":"BOSS"),j);
 if(!TrieGetString(g_tRes,key,path,charsmax(path))) {
 new bed=kind==2?6:(kind==0?AMB_MODE[min(j,sizeof AMB_MODE-1)]:AMB_EVENT[min(j,sizeof AMB_EVENT-1)]);
-formatex(path,charsmax(path),"sound/vexmira/amb532/%s.wav",AMB_BED[bed]);
+formatex(path,charsmax(path),"sound/vexmira/s534/amb_%s.wav",AMB_BED[bed]);          // 5.3.5 music beds
+if(!file_exists(path,true)) formatex(path,charsmax(path),"sound/vexmira/amb532/%s.wav",AMB_BED[bed]);
 if(!file_exists(path,true)) formatex(path,charsmax(path),"sound/vexmira/arena52/ambience/%s%d.wav",kind==0?"mode":(kind==1?"event":"boss"),j);
 TrieSetString(g_tRes,key,path);
 }

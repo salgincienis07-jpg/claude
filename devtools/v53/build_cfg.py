@@ -29,7 +29,7 @@ PAIN_POOL = 'zombie_plague/zombie_pain1.wav|zombie_plague/zombie_pain2.wav|zombi
 DIE_POOL = 'zombie_plague/zombie_die1.wav|zombie_plague/zombie_die2.wav|zombie_plague/zombie_die3.wav'
 
 OVERRIDE = [
-    ('vex_hostname "VEXMIRA ZOMBIE PLAGUE | 9 BOSS | 18 EVENT | CSO SILAH | LAZER"', 'sunucu adi (oyun listesinde gorunen, en fazla 63 harf). Oneriler: "VEXMIRA ZOMBIE [TR] 9 BOSS | CSO SILAH | LAZER | JETPACK | LVL" / "VEXMIRA ZP | DEV BOSS + HELIKOPTER HARITA | CSO | 7/24"'),
+    ('vex_hostname "Vexmira Zombie Plague | 9 Boss + 18 Event | CSO Weapons | TR"', 'sunucu adi (en fazla 63 harf, Turkce harf YOK). Arastirma: listede en cok aranan kelimeler "Zombie Plague" / "ZM"; ozellik yazan adlar (boss, event, CSO) daha cok tiklaniyor; [TR] etiketi Turk oyuncuyu, Ingilizce kelimeler yabanciyi ceker. Alternatifler: "[ZM] Vexmira Zombie Plague | 9 Boss | CSO Silah | Lazer | FDL" / "Vexmira Zombie Plague [TR] | Boss + Event | CSO | Level | FDL"'),
     ('vex_hostname_dynamic 0', '1 = adin sonuna round / mod bilgisi eklenir, 0 = sabit ad'),
     ('vex_res BOSS_PRELOAD "3"', 'haritada yuklenen boss sayisi (her boss ~6 ses + model; 3 = 512 ses sinirindan guvenli pay, bosslar haritadan haritaya doner)'),
     ('vex_res BOSS_PRELOAD_LIST ""', 'bos = bosslar haritadan haritaya sirayla doner (hepsi zamanla gelir)'),
@@ -96,6 +96,7 @@ OVERRIDE = [
     ('vex_lm_human_break_mult 1.0', 'insanlarin zombi lazerine verdigi hasar carpani (mermiyle kirma; zombiler icin vex_lm_zombie_mult)'),
     ('vex_lm_beam_width 14', 'lazer isini kalinligi (5.3.2 dokusu: ince parlak cekirdek + yumusak isik hali)'),
 ]
+S535_ABIL = {'BURST': 'roar', 'LEAP': 'whoosh', 'SHIELD': 'shield', 'DRAIN': 'heal', 'CLOAK': 'whoosh', 'TOXIC': 'acid', 'FROST': 'ice'}
 # 5.3.2 ambience: 8 looping beds (sound/vexmira/amb532) shared by every round type
 _BED = ['calm', 'tension', 'hunt', 'hope', 'storm', 'frost', 'boss', 'chaos']
 _MODE_N = ['Enfeksiyon', 'Coklu', 'Nemesis', 'Assassin', 'Survivor', 'Sniper', 'Swarm', 'Plague', 'Armageddon', 'Boss']
@@ -103,20 +104,54 @@ _EV_N = ['Normal', 'Kan Ayi', 'Yogun Sis', 'Hiz', 'Dusuk Yercekimi', 'Cift Hasar
          'Malzeme', 'Delilik', 'Adrenalin', 'Meteor', 'Zombi Surusu', 'Titan', 'Altin', 'Vampir Gecesi',
          'Kafa Avi', 'Firtina', 'Elektrik Kesintisi']
 for _j, _b in enumerate([0, 1, 2, 2, 3, 3, 1, 1, 7, 6]):
-    OVERRIDE.append(('vex_res AMBIENT_MODE%d "sound/vexmira/amb532/%s.wav"' % (_j, _BED[_b]),
+    OVERRIDE.append(('vex_res AMBIENT_MODE%d "sound/vexmira/s534/amb_%s.wav"' % (_j, _BED[_b]),
                      'ambiyans: %s roundu (calm/tension/hunt/hope/storm/frost/boss/chaos ya da kendi wav dosyan; mono 22kHz alti; "" = sessiz)' % _MODE_N[_j]))
 for _j, _b in enumerate([0, 4, 5, 1, 3, 1, 5, 1, 0, 7, 1, 7, 7, 7, 3, 5, 2, 4, 5]):
-    OVERRIDE.append(('vex_res AMBIENT_EVENT%d "sound/vexmira/amb532/%s.wav"' % (_j, _BED[_b]), 'ambiyans: %s eventi' % _EV_N[_j]))
+    OVERRIDE.append(('vex_res AMBIENT_EVENT%d "sound/vexmira/s534/amb_%s.wav"' % (_j, _BED[_b]), 'ambiyans: %s eventi' % _EV_N[_j]))
 for _j in range(9):
-    OVERRIDE.append(('vex_res AMBIENT_BOSS%d "sound/vexmira/amb532/boss.wav"' % _j, 'ambiyans: boss %d roundu' % _j))
+    OVERRIDE.append(('vex_res AMBIENT_BOSS%d "sound/vexmira/s534/amb_boss.wav"' % _j, 'ambiyans: boss %d roundu' % _j))
 for _k, _d in (('BURST', 'patlama'), ('LEAP', 'sicrama'), ('SHIELD', 'kemik kalkan'), ('DRAIN', 'can emme'),
                ('CLOAK', 'gorunmezlik'), ('TOXIC', 'zehir puskurtme'), ('FROST', 'buz patlamasi')):
-    OVERRIDE.append(('vex_res ABILITY_%s "vexmira/skill532/%s.wav"' % (_k, _k.lower()),
+    OVERRIDE.append(('vex_res ABILITY_%s "vexmira/s534/%s.wav"' % (_k, S535_ABIL[_k]),
                      'zombi yetenegi sesi: %s (5.3.2 ozel ses; eskiden hepsi ayni silah sesiydi)' % _d))
 OVERRIDE += [
     ('vex_ambience_volume 0.55', 'ambiyans muzik/ses seviyesi (0.05 - 1.0)'),
     ('vex_ambience_restart 120', 'ambiyans kac saniyede bir tazelenir (parcalar zaten kendi kendine doner; baglanan / sesi kesilen oyuncu icin)'),
 ]
+# 5.3.5 sound set (devtools/sfx534/build534.py): royalty-free music + CC0 effects, shared between similar events;
+# stock CS 1.6 sounds where one fits (no download at all). Radio, special knives / weapons, boss voices untouched.
+S5 = lambda n: 'vexmira/s534/%s.wav' % n
+S535 = {
+ 'ROUND_START': S5('round_start'), 'MODE_START': S5('mode_start'), 'EVENT_START': S5('event_start'), 'WELCOME': S5('bell'),
+ 'MAP_END': S5('bell'), 'COUNTDOWN_BEEP': S5('tick'), 'LAST_HUMAN': S5('last_human'), 'FINAL_ROUND': S5('final_round'),
+ 'HUMAN_WIN': S5('human_win'), 'ZOMBIE_WIN': S5('zombie_win'), 'BOSS_WARN': S5('boss_warn'), 'BOSS_SOON': S5('boss_warn'),
+ 'UI_BOSS_BAR': S5('boss_warn'), 'NEMESIS_INTRO': S5('mode_start'), 'ASSASSIN_INTRO': S5('mode_start'), 'NEM_RAGE': S5('roar'),
+ 'LIGHTNING': S5('thunder'), 'THUNDER': S5('thunder'), 'STORM_STRIKE': S5('thunder'), 'ZOMBIE_SHOCK': S5('zap'), 'VOLT_ZAP': S5('zap'),
+ 'ZAP': S5('zap'), 'METEOR': S5('fire'), 'BURN': S5('fire'), 'NADE_FIRE': S5('fire'), 'NADE_FROST': S5('ice'), 'FROST_NOVA': S5('ice'),
+ 'FREEZE': S5('ice'), 'BLACKOUT': S5('dark'), 'ECLIPSE': S5('dark'), 'SPEED_START': S5('speed'),
+ 'KILL_MULTI': S5('kill'), 'KILL_MEGA': S5('kill'), 'KILL_MONSTER': S5('kill'), 'MVP': S5('mvp'), 'QUEST_DONE': S5('reward'),
+ 'LEVEL_UP': S5('reward'), 'ACH_UNLOCK': S5('reward'), 'SKILL_UNLOCK': S5('reward'), 'SHOP_BUY': S5('coin'), 'DAILY': S5('coin'),
+ 'UI_OPEN': S5('click'), 'UI_MENU_SELECT': S5('click'), 'UI_CLASS_SELECT': S5('click'), 'UI_VOTE_START': S5('vote'), 'UI_VOTE_END': S5('vote'),
+ 'AIRDROP_INCOMING': S5('event_start'), 'AIRDROP_LAND': S5('impact'), 'AIRDROP_LOOT': S5('coin'),
+ 'NADE_MODE': 'items/nvg_on.wav', 'NADE_BEEP': 'weapons/c4_beep1.wav', 'NADE_ARM': 'weapons/c4_beep2.wav',
+ 'LM_DEPLOY': 'weapons/c4_plant.wav', 'LM_PICKUP': 'items/gunpickup2.wav', 'LM_CHARGE': S5('beep'), 'LM_ACTIVATE': S5('beep'),
+ 'LM_HIT': S5('zap'), 'LM_BREAK': S5('boom'), 'LM_DENY': S5('deny'),
+ 'EVOLVE': S5('roar2'), 'ANTIDOTE': S5('heal'), 'ZOMBIE_ACID': S5('acid'), 'ZOMBIE_HEAL': S5('heal'), 'ZOMBIE_BLINK': S5('whoosh'),
+ 'HUNTER_IMPACT': S5('impact'), 'CHARGER_IMPACT': S5('impact'), 'ARACHNE_WEBHIT': S5('acid'), 'BURROWER_ERUPT': S5('impact'),
+ 'SPOREMOTHER_BURST': S5('acid'), 'MIMIC_REVEAL': S5('dark'), 'HOOK_THROW': S5('whoosh'), 'HOOK_CHAIN': S5('chain'),
+ 'HOOK_HIT': S5('impact'), 'HOOK_PULL': S5('chain'), 'HOOK_MISS': S5('whoosh'), 'ABILITY_SCREAM': S5('roar2'),
+}
+S535_CLASS = ['roar', 'speed', 'impact', 'roar2', 'heal', 'whoosh', 'boom', 'ice', 'acid', 'impact', 'dark', 'whoosh', 'roar', 'whoosh',
+              'impact', 'acid', 'fire', 'zap', 'dark', 'impact', 'roar2', 'shield', 'acid', 'dark']
+S535_ITEM = {'power': 'power', 'heal': 'heal', 'armor': 'shield', 'madness': 'roar', 'rage': 'roar2', 'cloak': 'whoosh', 'jump': 'whoosh',
+             'speed': 'speed', 'shield': 'shield', 'regen': 'heal', 'antidote': 'heal', 'serum': 'acid'}
+for _k, _v in S535.items():
+    OVERRIDE.append(('vex_res %s "%s"' % (_k, _v), ''))
+for _j, _n in enumerate(S535_CLASS):
+    OVERRIDE.append(('vex_res Z%d_ABILITY "%s"' % (_j, S5(_n)), ''))
+for _k, _n in S535_ITEM.items():
+    OVERRIDE.append(('vex_res ITEM_SND_%s "%s"' % (_k, S5(_n)), 'market esyasi sesi: %s' % _k))
+OVERRIDE.append(('vex_res ITEM_SND_ammo "items/9mmclip1.wav"', 'market esyasi sesi: mermi (CS 1.6 kendi sesi, indirme yok)'))
 # keys whose old value must go (meme sounds on zombies, per-class overrides that hid the pools)
 DROP_VALUE_RE = [re.compile(r'^vex_res Z\d+_(DIE|PAIN)$'), re.compile(r'^vex_res SW4_')]
 DROP_KEYS = {('vex_restore', 'LASERMINE_MODEL')}

@@ -1,0 +1,57 @@
+VEXMIRA ZOMBIE 5.3.5 - YENI SESLER + MUZIKLER + SUNUCU ADI
+==========================================================
+Sadece degisen dosyalar (5.3.4 TAM paketin ustune kurulur).
+
+KURULUM
+-------
+1) Eklentiler -> Eklenti Yukle: addons/amxmodx/scripting/vexmira_core.sma, vexmira_gear.sma, vx42_jetpack.sma
+   (Panel derleyemezse addons/amxmodx/plugins/ icindeki hazir .amxx dosyalarini at.)
+2) Dosya Yonetici ile kopyala (ustune yaz):
+      addons/amxmodx/configs/vexmira.cfg
+      sound/vexmira/s534/            (YENI: 8 muzik + 34 efekt, toplam ~6 MB)
+3) FastDL: sound/vexmira/s534/ klasorunun TAMAMINI FastDL'e de at. Tam liste: FASTDL_LISTESI.txt
+4) Haritayi degistir.
+5) Artik kullanilmiyor, silebilirsin (sunucu + FastDL):
+      sound/vexmira/amb532/  sound/vexmira/skill532/  sound/vexmira/item533/  sound/vexmira/meme/
+      sound/vexmira/arena51/classes/
+
+NE DEGISTI
+----------
+* ROUND / EVENT / BOSS MUZIKLERI: 8 yeni gercek muzik (24 sn, kendiliginden donen, herkeste calar -
+  mp3 degil wav, "MP3 sesi kapali" oyuncular da duyar):
+      enfeksiyon: Dark Fog | coklu/suru/veba: Gathering Darkness | nemesis/suikastci: Unseen Horrors
+      kurtulan/keskin nisanci: Heroic Age | firtina/kan ayi/sis: Volatile Reaction
+      gece/karanlik/vampir/elektrik kesintisi: Ice Flow | boss: Five Armies | armageddon/meteor: Clash Defiant
+* EFEKTLER: meme ve yer tutucu sesler (vine boom, wow, discord, taco, oof, 15 farkli yetenekte ayni silah
+  sesi...) yerine gercek sesler: round baslangici gong, ozel mod canavar kukremesi, boss uyari kukremesi,
+  son round siren, son insan kalp atisi, insan zafer fanfari, zombi zafer inlemesi, gok gurultusu, ates,
+  buz, elektrik, karanlik, ruzgar, sifa, kalkan, asit, zincir, darbe, odul / seviye, para, menu tiklama...
+* BENZER OLAYLAR AYNI SESI KULLANIR: 260+ ses ayari artik 34 efekt + 8 muzige bagli.
+  24 zombi sinifinin 24 ayri sesi -> temasina gore 10 ortak ses; 13 market sesi -> 6 ortak ses.
+  7door'da yuklenen ses sayisi 498 -> 458 (512 sinir), meme sesleri hic indirilmiyor.
+* CS 1.6'NIN KENDI SESLERI (indirme yok): bomba bip sesi (C4 bip), lazer mayin kurma (C4 kurma),
+  mayin toplama + jetpack alma (silah alma sesi), mermi (sarjor sesi), bomba modu (gece gorusu sesi).
+  Normal silahlar zaten CS'nin kendi seslerini kullanir.
+* DOKUNULMAYANLAR: telsiz (radio) sesleri, ozel bicaklar, ozel silahlar, boss sesleri, zombi aci/olum.
+* Her ses config'ten degistirilebilir (vex_res ... satirlari, yanlarinda aciklama var).
+
+SUNUCU ADI
+----------
+  vex_hostname "Vexmira Zombie Plague | 9 Boss + 18 Event | CSO Weapons | TR"
+Neden: sunucu listelerinde oyuncularin en cok aradigi kelimeler "Zombie Plague" ve "ZM"; dolu
+sunucularin adlari (ornek: "Carbon Zombie Plague", "AUABYSS | ZM | Zombie Plague") marka + mod + ozellik
+seklinde. Ozellik yazan ad (boss, event, CSO) daha cok tiklaniyor; Ingilizce kelimeler yabanci oyuncuyu,
+[TR]/TR etiketi Turk oyuncuyu ceker. Hepsi buyuk harf degil (okunakli, "spam" gibi gorunmez).
+Alternatifler config'te: "[ZM] Vexmira Zombie Plague | 9 Boss | CSO Silah | Lazer | FDL" /
+                         "Vexmira Zombie Plague [TR] | Boss + Event | CSO | Level | FDL"
+Not: panelde "sunucu adi" ayari varsa config'tekini ezer - panelden de ayni adi yaz.
+
+KAYNAKLAR / LISANS
+------------------
+Muzikler: Kevin MacLeod (incompetech.com), Creative Commons Attribution 4.0 - "Dark Fog", "Gathering
+  Darkness", "Unseen Horrors", "Heroic Age", "Volatile Reaction", "Ice Flow", "Five Armies", "Clash Defiant".
+  Lisans geregi isim belirtilmeli: bu satir sunucu MOTD / web sitesinde "Music: Kevin MacLeod
+  (incompetech.com), CC BY 4.0" seklinde durabilir.
+Efektler: OpenGameArt.org, CC0 (serbest, isim gerekmez) - rubberduck, Kenney, bart, artisticdude,
+  spring-spring, darsycho, trazzz123, someoneman, zane-little-music, wobbleboxx, aquinn, faxcorp, starninjas,
+  pyranostudios, sketchman3, qubodup.

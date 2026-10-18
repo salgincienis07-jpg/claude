@@ -12,7 +12,7 @@ new Float:fFuelClock[33], Float:fFuelRemainder[33];
 #define SoundTravel "vexmira/community/jetpack/travel.wav"
 #define SoundFly "vexmira/community/jetpack/fly.wav"
 #define SoundBlow "vexmira/community/jetpack/blow.wav"
-#define SoundPickup "vexmira/meme/discord.wav"
+#define SoundPickup "items/gunpickup2.wav"
 #define ModelRocket "models/vexmira/community/jetpack/rpgrocket.mdl"
 #define ModelJetpack_P "models/vexmira/community/jetpack/p_jetpack.mdl"
 #define ModelJetpack_W "models/vexmira/community/jetpack/w_jetpack.mdl"
