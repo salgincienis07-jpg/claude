@@ -3806,7 +3806,7 @@ new const BOSS_FILE[NUM_BOSSES][] = { "brute", "banshee", "overlord", "inferno",
 new const CLASS_MDL_DEF[NUM_CLASSES][] = { "walker", "runner", "tank", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "tank", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "tank", "spitter", "phantom" };
 new const CLASS_CLAW_DEF[NUM_CLASSES][] = { "walker", "runner", "hulk", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "hulk", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "hulk", "spitter", "phantom" };
 new const BOSS_MDL_DEF[NUM_BOSSES][] = { "tank", "banshee", "hulk", "bomber", "phantom", "frost", "voodoo", "spitter", "stalker" };
-new const BOSS_OLDMODEL[NUM_BOSSES][] = { "terror", "vip", "leet", "arctic", "gsg9", "sas", "gign", "guerilla", "urban" };
+new const BOSS_OLDMODEL[NUM_BOSSES][] = { "terror", "vip", "leet", "arctic", "gsg9", "sas", "gign", "guerilla", "gsg9" };  // 5.3.6: no urban (urbanT.mdl crash)
 new bool:g_bBossLoaded[NUM_BOSSES], g_iBossLoadN, g_iBossLoadList[NUM_BOSSES];
 new g_szPreBossRounds[128], g_iPreBossEvery, g_iPreRoundsTotal;
 #define MAX_HMODELS 6
@@ -3818,6 +3818,7 @@ new g_iPcSnd, g_iPcMdl, g_iPcGen, g_iMySnd, g_iMyMdl, g_iMyGen, g_iSndBudget, g_
 new g_iLzOwned531[33], g_iLzSel531[33], g_pLzPrices531;
 new Trie:g_tSndSeen531, Trie:g_tGenSeen531, g_iSndTop531, g_iGenTop531, g_iSndRefused531, g_iGenRefused531, g_iMapSnd531;
 new g_pAutoHit531, g_pBlackLight531, g_pCosFollow531, g_pSwDmg531, g_pInfAmmo531;
+new g_pNoUrban536, g_pBdHp536, g_pBdBoss536, g_iBdGib536, g_pGunDmg536, g_pKBMax536, g_pHsSnd536, Float:g_fHsSnd536[33];
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
 new g_szInfV531[96] = "models/vexmira/nades/v_infect.mdl", g_szInfP531[96] = "models/vexmira/nades/p_infect.mdl", g_szInfW531[96] = "models/vexmira/nades/w_infect.mdl";
 new Trie:g_tPcAll531, bool:g_bPcReady531, bool:g_bPcHook531, Float:g_fGuardTime531, g_iGuardV531[33], g_iGuardP531[33], g_iGuardLog531;
@@ -21591,6 +21592,7 @@ return HC_SUPERCEDE;
 }
 public rg_RestartRound()
 {
+set_task(0.2, "BDoor536_RestoreAll");
 SkyNextRound531();
 g_bModePicked47 = false;
 g_bForcedRound47 = false;
@@ -24312,6 +24314,9 @@ m *= 1.0 + float(max(0, ITEM_VAL[IT_DMGAMP])) / 100.0;
 new sw = SpecialIndex(attacker, wid);
 if (sw >= 0 && inflictor == attacker && (bits & DMG_BULLET))
 m *= SW_MULT[sw] * floatclamp(get_pcvar_float(g_pSwDmg531), 0.1, 20.0);
+else if (bulletHit && ms < 0)
+m *= floatclamp(get_pcvar_float(g_pGunDmg536), 0.1, 10.0);
+if (bulletHit && headshot && g_bZombie[victim]) Polish536_HeadshotSnd(attacker);
 dmg *= m;
 if (g_bBoss[victim] || g_bNemesis[victim] || g_bAssassin[victim])
 dmg = floatmin(dmg, floatmax(100.0, get_pcvar_float(g_pSpecCap)));
@@ -24528,7 +24533,7 @@ dir[2] = 0.0;
 new Float:len = floatsqroot(dir[0] * dir[0] + dir[1] * dir[1]);
 if (len < 1.0)
 return;
-new Float:force = floatmin(damage * power * 0.35, 450.0);
+new Float:force = floatmin(damage * power * 0.35, floatclamp(get_pcvar_float(g_pKBMax536), 100.0, 2000.0));
 get_entvar(victim, var_velocity, vel);
 vel[0] += dir[0] / len * force;
 vel[1] += dir[1] / len * force;
@@ -29798,7 +29803,7 @@ g_pWeather       = register_cvar("vex_weather", "1");
 g_pZHPPer = register_cvar("vex_zombie_hp_per_player", "40");
 g_pNemHPPer = register_cvar("vex_nemesis_hp_per_player", "1200");
 g_pAsnHPPer = register_cvar("vex_assassin_hp_per_player", "800");
-g_pKBMult = register_cvar("vex_knockback_mult", "0.75");
+g_pKBMult = register_cvar("vex_knockback_mult", "1.6");
 g_pSpecCap = register_cvar("vex_special_dmg_cap", "1500");
 g_pNemOneShot    = register_cvar("vex_nemesis_oneshot", "1");
 g_pAsnOneShot    = register_cvar("vex_assassin_oneshot", "1");
@@ -31122,6 +31127,7 @@ static const GUNS531[][] = { "weapon_p228", "weapon_scout", "weapon_xm1014", "we
 "weapon_deagle", "weapon_sg552", "weapon_ak47", "weapon_p90" };
 for (new g531 = 0; g531 < sizeof GUNS531; g531++) RegisterHam(Ham_Weapon_Reload, GUNS531[g531], "VxHamReloadPre531", 0);
 ZcCore_plugin_init();
+BDoor536_Init();
 log_to_file("vexmira_startup.log","[530 core] base init READY");
 set_task(30.0,"VexStability51",781951,_,_,"b");
 VxRegisterHam524(Ham_Item_AddToPlayer,"weapon_ak47","VxAddToPlayerPost",1);
@@ -32316,4 +32322,123 @@ stock RegisterTexture530(const path[]) {
 new length=strlen(path);if(length<5 || !equali(path[length-4],".mdl")) return;
 new tex[192];copy(tex,charsmax(tex),path);tex[length-4]=0;add(tex,charsmax(tex),"T.mdl");
 if(file_exists(tex,true)) ZcPcGeneric(tex);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// 5.3.6: breakable camp doors. Map doors with "netname" "vxbd" (zm_vexmira_dust2v1 and later maps):
+// humans open / close them with E, zombies smash them (knife / skills). Back every round.
+//   vex_bdoor_hp 1200          door HP
+//   vex_bdoor_boss_mult 4.0    boss / nemesis / assassin damage multiplier
+#define BD536_MAX 48
+new g_iBdEnt536[BD536_MAX], Float:g_fBdHp536[BD536_MAX], g_iBdNum536, Float:g_fBdHud536[33];
+// 5.3.6 feedback: stronger stock-gun damage + knockback, headshot tick sound for the shooter
+public Polish536_HeadshotSnd(id)
+{
+new Float:now = get_gametime();
+if (now - g_fHsSnd536[id] < 0.12 || is_user_bot(id)) return;
+g_fHsSnd536[id] = now;
+static snd[64]; get_pcvar_string(g_pHsSnd536, snd, charsmax(snd));
+if (snd[0]) client_cmd(id, "spk %s", snd);
+}
+// 5.3.6: many players have a broken custom models/player/urban/urban.mdl from other ZP servers (it wants an
+// urbanT.mdl they do not have -> "urbanT.mdl" error, game closes). Never give anyone the urban look:
+// CT appearance 1 (Seal Team 6 / urban) and auto-select become GSG9 / SAS / GIGN.
+public Urban536_Appearance(id, slot)
+{
+if (!get_pcvar_num(g_pNoUrban536) || get_member(id, m_iTeam) != 2) return HC_CONTINUE;
+if (slot < 2 || slot > 4) SetHookChainArg(2, ATYPE_INTEGER, random_num(2, 4));
+return HC_CONTINUE;
+}
+public Urban536_SpawnPost(id)
+{
+if (!get_pcvar_num(g_pNoUrban536) || !is_user_alive(id)) return;
+new mdl[32]; cs_get_user_model(id, mdl, charsmax(mdl));
+if (equali(mdl, "urban")) cs_set_user_model(id, "gign");
+}
+BDoor536_Init()
+{
+g_pNoUrban536 = register_cvar("vex_no_urban", "1");
+RegisterHookChain(RG_HandleMenu_ChooseAppearance, "Urban536_Appearance", false);
+RegisterHam(Ham_Spawn, "player", "Urban536_SpawnPost", 1);
+g_pGunDmg536 = register_cvar("vex_gun_damage_mult", "1.35");
+g_pKBMax536 = register_cvar("vex_knockback_max", "650");
+g_pHsSnd536 = register_cvar("vex_headshot_sound", "buttons/blip1");
+g_pBdHp536 = register_cvar("vex_bdoor_hp", "1200");
+g_pBdBoss536 = register_cvar("vex_bdoor_boss_mult", "4.0");
+RegisterHam(Ham_TakeDamage, "func_door", "BDoor536_TakeDamage", 0);
+set_task(1.0, "BDoor536_Scan");
+}
+public BDoor536_Scan()
+{
+g_iBdNum536 = 0;
+g_iBdGib536 = engfunc(EngFunc_ModelIndex, "models/woodgibs.mdl");
+new ent = -1, nm[16];
+while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "func_door")) > 0 && g_iBdNum536 < BD536_MAX)
+{
+pev(ent, pev_netname, nm, charsmax(nm));
+if (!equal(nm, "vxbd")) continue;
+g_iBdEnt536[g_iBdNum536++] = ent;
+}
+BDoor536_RestoreAll();
+if (g_iBdNum536) log_amx("[Vexmira] kirilabilir kapi: %d", g_iBdNum536);
+}
+BDoor536_Index(ent)
+{
+for (new i = 0; i < g_iBdNum536; i++) if (g_iBdEnt536[i] == ent) return i;
+return -1;
+}
+public BDoor536_RestoreAll()
+{
+new Float:hp = get_pcvar_float(g_pBdHp536);
+for (new i = 0; i < g_iBdNum536; i++)
+{
+new ent = g_iBdEnt536[i];
+if (!pev_valid(ent)) continue;
+g_fBdHp536[i] = hp;
+set_pev(ent, pev_solid, SOLID_BSP);
+set_pev(ent, pev_effects, pev(ent, pev_effects) & ~EF_NODRAW);
+set_pev(ent, pev_takedamage, DAMAGE_YES);
+set_pev(ent, pev_health, 100000.0);
+new Float:o[3]; pev(ent, pev_origin, o); engfunc(EngFunc_SetOrigin, ent, o);
+}
+}
+public BDoor536_TakeDamage(ent, inflictor, attacker, Float:dmg, bits)
+{
+new i = BDoor536_Index(ent);
+if (i < 0) return HAM_IGNORED;
+set_pev(ent, pev_health, 100000.0);
+if (attacker < 1 || attacker > 32 || !is_user_alive(attacker) || !g_bZombie[attacker] || g_fBdHp536[i] <= 0.0) return HAM_SUPERCEDE;
+if (g_bBoss[attacker] || g_bNemesis[attacker] || g_bAssassin[attacker]) dmg *= get_pcvar_float(g_pBdBoss536);
+g_fBdHp536[i] -= dmg;
+if (g_fBdHp536[i] <= 0.0) { BDoor536_Break(ent); return HAM_SUPERCEDE; }
+static const HIT536[][] = { "debris/wood1.wav", "debris/wood2.wav", "debris/wood3.wav" };
+emit_sound(ent, CHAN_BODY, HIT536[random(3)], 0.8, ATTN_NORM, 0, 90 + random(20));
+new Float:now = get_gametime();
+if (now - g_fBdHud536[attacker] > 0.4)
+{
+g_fBdHud536[attacker] = now;
+client_print(attacker, print_center, "KAPI / DOOR  %d%%", floatround(100.0 * g_fBdHp536[i] / floatmax(1.0, get_pcvar_float(g_pBdHp536))));
+}
+return HAM_SUPERCEDE;
+}
+BDoor536_Break(ent)
+{
+new Float:mn[3], Float:mx[3], Float:c[3];
+pev(ent, pev_absmin, mn); pev(ent, pev_absmax, mx);
+for (new k = 0; k < 3; k++) c[k] = (mn[k] + mx[k]) * 0.5;
+set_pev(ent, pev_solid, SOLID_NOT);
+set_pev(ent, pev_effects, pev(ent, pev_effects) | EF_NODRAW);
+set_pev(ent, pev_takedamage, DAMAGE_NO);
+emit_sound(ent, CHAN_BODY, random(2) ? "debris/bustcrate1.wav" : "debris/bustcrate2.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+if (g_iBdGib536)
+{
+engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, c, 0);
+write_byte(TE_BREAKMODEL);
+engfunc(EngFunc_WriteCoord, c[0]); engfunc(EngFunc_WriteCoord, c[1]); engfunc(EngFunc_WriteCoord, c[2]);
+engfunc(EngFunc_WriteCoord, mx[0] - mn[0]); engfunc(EngFunc_WriteCoord, mx[1] - mn[1]); engfunc(EngFunc_WriteCoord, mx[2] - mn[2]);
+engfunc(EngFunc_WriteCoord, 0.0); engfunc(EngFunc_WriteCoord, 0.0); engfunc(EngFunc_WriteCoord, 40.0);
+write_byte(20); write_short(g_iBdGib536); write_byte(14); write_byte(30); write_byte(0x08);
+message_end();
+}
+client_print(0, print_center, "Bir kapi kirildi! / A door was smashed!");
 }

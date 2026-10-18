@@ -807,7 +807,7 @@ PILOT = 'zm_vex_pilot'
 
 
 def repo_maps(include_pilot=True, only=None):
-    names = sorted(os.path.splitext(os.path.basename(f))[0] for f in glob.glob(os.path.join(REPO_MAPS, 'zm_vex_*.bsp')))
+    names = sorted(os.path.splitext(os.path.basename(f))[0] for f in glob.glob(os.path.join(REPO_MAPS, 'zm_vex*.bsp')))
     if not include_pilot:
         names = [n for n in names if n != PILOT]
     if only:

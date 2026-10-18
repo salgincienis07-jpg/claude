@@ -3,7 +3,7 @@
 // Sunucuda olmayan bir dosya varsa atla (o model/ses o haritada kullanilmiyordur).
 // Haritalarin .res dosyasi varsa, .res icinde yazan dosyalari da kopyala.
 // Sunucu her harita acilisinda kendi listesini de yazar: addons/amxmodx/data/vexmira_fastdl_hepsi.txt
-// Toplam 855 dosya
+// Toplam 856 dosya
 
 
 // ---- gfx ----
@@ -56,6 +56,7 @@ maps/zm_vexmira_7door.bsp
 maps/zm_vexmira_7door.res
 maps/zm_vexmira_dust.bsp
 maps/zm_vexmira_dust.res
+maps/zm_vexmira_dust2v1.bsp
 maps/zm_vexmira_icefy.bsp
 maps/zm_vexmira_icefy.res
 

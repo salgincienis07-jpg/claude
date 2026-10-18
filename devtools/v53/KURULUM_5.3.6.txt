@@ -1,0 +1,41 @@
+VEXMIRA ZOMBIE 5.3.6 - zm_vexmira_dust2v1 + oyuncu geri bildirimi + urbanT.mdl cokme duzeltmesi
+=====================================================================================
+
+1) YENI HARITA: zm_vexmira_dust2v1  (MapBy: SmurfSexy)
+   Senin gonderdigin de_dust2.rmf kaynagindan yapildi; dust2 yerlesimi aynen duruyor.
+   - CT dogusundan B'ye giderken sagdaki kayaliklar KALDIRILDI -> BOSS MEYDANI:
+     heykel (3 katli kaide), 4 ates mangali, sutunlu galeri, zombi bannerlari, VEXMIRA / BOSS ARENASI tabelalari,
+     siper duvarlari, merdivenli yuksek SAVUNMA TERASI + 2 LAZER BOLGESI.
+   - 3 adet 2 KATLI KALE (T, B, A siginagi): celik on kapi + ic bolme duvari + tahta ic kapi,
+     merdiven + tavan kapagi ile ust kata cikis, ust katta HER YONU CAMLI SAVUNMA ODASI,
+     kapi onunde iki yani duvarli LAZER KURMA girisi, cam pencereler.
+   - DEPO (long): celik kapi + kirilabilir tahta barikat, camlar, kasa platformu, cati + merdiven.
+   - 4 GOZETLEME KULESI (camli kabin, ic merdiven), 3 kasa siper / saklanma yeri.
+   - KAPILAR: insanlar E ile acar/kapatir, ZOMBILER VURARAK KIRAR (kapi %'si ekranda gorunur),
+     her round geri gelir. Can: vex_bdoor_hp 1200, boss x4 (vex_bdoor_boss_mult).
+   - Zombi temali tabelalar: KARANTINA / ZOMBIE ZONE bannerlari, TEHLIKE levhalari, kan izleri,
+     VEXMIRA + "MapBy: SmurfSexy" tabelalari.
+   - FPS: dekorlar func_detail (gorunurluk bolmez), dust2 lambalari/kasalari birlestirildi.
+     Tahmini r_speeds en kotu ~1065, ortalama ~620 (orijinal dust2 seviyesi). 32 CT + 32 T dogus. Bot nav dosyasi hazir.
+   - Dokular haritanin icine gomulu (wad indirmesi yok). Doku dust2'ye benzer ama bizim cizimimiz;
+     istersen cs_dust.wad gonder, orijinal dokularla yeniden derlerim.
+
+   Dosyalar:  cstrike/maps/zm_vexmira_dust2v1.bsp  (+ .nav)
+              cstrike/addons/amxmodx/configs/vexmira_maps/zm_vexmira_dust2v1.ini  (heykel modeli + isaretler + hikaye)
+   Harita oylama havuzunda ve mapcycle'da EN BASTA. FastDL'e: maps/zm_vexmira_dust2v1.bsp
+   (heykel models/vexmira/world/cd_statue.mdl ve sprites/vexmira/fire.spr zaten paketteydi).
+
+2) OYUNCU GERI BILDIRIMI (vexmira_core.sma)
+   - Geri tepme (zombiyi geri itme) guclendi: vex_knockback_mult 0.75 -> 1.6, vex_knockback_max 650
+   - Normal CS silahlarinin zombiye hasari: vex_gun_damage_mult 1.35 (ozel silahlar etkilenmez)
+   - Kafadan vurus sesi (vuran oyuncuya, stok ses, indirme yok): vex_headshot_sound "buttons/blip1"
+
+3) urbanT.mdl HATASI / OYUN KAPANMASI
+   Sebep: bircok oyuncuda baska ZP sunucularindan kalma bozuk models/player/urban/urban.mdl var;
+   o dosya urbanT.mdl istiyor, oyuncuda yok -> oyun kapaniyor. Config'de yazmiyordu cunku urban
+   CS'nin kendi CT gorunumu (Seal Team 6) ve 9. bossun yedek modeliydi.
+   Cozum: vex_no_urban 1 -> kimseye urban gorunumu verilmez (GSG9/SAS/GIGN), boss yedegi gsg9.
+   Sunucunda models/player/urban/ klasorunde ozel bir model varsa orijinal CS dosyasiyla degistir.
+
+KURULUM: zip icindeki cstrike klasorunu sunucudaki cstrike'in ustune at, "Eklenti Yukle" ile
+vexmira_core.sma ve vexmira_gear.sma'yi derle (ikisi birlikte), haritayi degistir.

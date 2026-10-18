@@ -2258,7 +2258,7 @@ _CACHE_DIR = os.environ.get('MAPKIT_TEXCACHE', os.path.join(os.path.dirname(os.p
 def _src_hash():
     h = hashlib.md5()
     here = os.path.dirname(os.path.abspath(__file__))
-    for f in ('textures.py', 'texgen.py', 'wad.py'):
+    for f in ('textures.py', 'texgen.py', 'wad.py', 'dust2tex.py'):
         with open(os.path.join(here, f), 'rb') as fh:
             h.update(fh.read())
     return h.hexdigest()[:12]
