@@ -1,4 +1,4 @@
-"""Zombie-plague additions for zm_vexmira_dust2zm (v3; was zm_vexmira_dust2v1).
+"""Zombie-plague additions for zm_vexmira_dust2vexfix (v3; was zm_vexmira_dust2v1).
 
   * boss plaza: the rock field right of the CT -> B road is removed (world brushes clipped) and replaced by a
     paved battle square with a statue, braziers, colonnade, a raised defense terrace and laser zones
@@ -20,7 +20,7 @@ from ..rmf import Ent, clip_outside_box, solid_bbox
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vexmira_dust2zm'
+NAME = 'zm_vexmira_dust2vexfix'
 INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', NAME + '.ini')
 BASE_BSP = os.environ.get('D2_BASE_BSP', '')
 
@@ -472,10 +472,8 @@ def plaza():
     world.append(bx((PX1, PY0, -416), (PX1 + 16, PY1, ZSKY), W))
     # no full west wall: the B site wall (with the B window) is the plaza's west side now; only a screen ABOVE
     # the B wall top (z 96) keeps B and the plaza out of each other's view (FPS)
-    world.append(bx((WFACE, PY0, 96), (PX0, PY1, ZSKY), W))
     # terrace south facade (to the sky lid): blocks the long sight line B doors -> road -> plaza (FPS),
     # the terrace keeps its west entrance (x PX0..PX0+112) and the square keeps its gate
-    world.append(bx((PX0 + 112, PY0 - 16, ZTE), (TEX - 16, PY0, ZSKY), {'s': 'd2_window', 'n': WALL2, 'all': WALL}))
     # trim courses on the walls
     for zt in (ZPL + 160, ZPL + 320):
         DET.append(bx((PX0, PY1 - 8, zt), (PX1, PY1, zt + 16), TRIM))
@@ -510,7 +508,7 @@ def plaza():
     k = 0
     for x in range(TEX + 64, PX1 - 32, 128):
         DET.extend(prism((x, PY1 - 40), 18, 6, ZPL, ZPL + 288, STONE))
-        DET.append(bx((x - 26, PY1 - 66, ZPL + 288), (x + 26, PY1 - 14, ZPL + 304), MARBLE))
+        pass
         if x + 128 < PX1 - 32:
             tex = 'd2_ban_bio' if k % 2 == 0 else 'd2_ban_zm'
             b = bx((x + 32, PY1 - 2, ZPL + 112), (x + 96, PY1, ZPL + 240), {'s': tex, 'all': NULL})
@@ -745,7 +743,8 @@ def wall_room(name, F, a0, a1, z0, floors=2, H=120, depth=176, W=32, t=16, entr=
         world.append(bx(*F.box(pu - 8, pu + 8, dw[0], dw[1], z0 + 104, z0 + H - 8), WALL))
     # inside dressing: crates (cover), blood, a banner on the back wall
     cu = a0 + 40 if e0 > (a0 + a1) / 2 else a1 - 104
-    b = bx(*F.box(cu, cu + 64, w1 - 64, w1, z0, z0 + 64), {'all': CRATE, 'top': CTOP}); b.fit_faces(('n', 's', 'e', 'w', 'top')); DET.append(b)
+    b = bx(*F.box(cu, cu + 64, w1 - 64, w1, z0, z0 + 64), {'all': CRATE, 'top': CTOP}); b.fit_faces(('n', 's', 'e', 'w', 'top'))
+    ents.append(breakable([b], material=1, health=80))        # v4: breakable (players asked)
     MARKS.append((mark or 'Defense base | Savunma ussu', *[int(c) for c in F.pt((a0 + a1) / 2, -48, z0 + 200)]))
     PLACED.append((name, *[int(c) for c in F.box(a0, a1, w0, w1, z0, top)[0][:2]], *[int(c) for c in F.box(a0, a1, w0, w1, z0, top)[1][:2]], int(z0), label))
     LOG.append('%-12s wall room %s face %d u %d..%d z %d floors %d' % (name, F.axis, F.face, a0, a1, z0, floors))
@@ -920,8 +919,9 @@ def wreath(F_or_pos, size=48):
 
 
 def on_wall(x, y, z, d, w, h, tex, out=1.5):
-    """non-solid decal/sign on the wall found from open point (x, y, z) in direction d, centred there."""
-    f = probe(int(x), int(y), int(z), d[0], d[1], 800)
+    """non-solid decal/sign on the wall found from open point (x, y, z) in direction d, centred there.
+    v4: only placed when the whole sign area is a flat solid wall (never into a doorway / window / corner)."""
+    f = wall_flat(x, y, z, d, w, h)
     if f is None:
         LOG.append('on_wall miss %s at %d %d' % (tex, x, y))
         return None
@@ -969,13 +969,8 @@ def plaza_extra():
     """v3 boss plaza dressing: VEXMIRA marquee, two xmas trees, glowing ring on the plinth, lanterns."""
     ents = []
     cx, cy = (TEX + PX1) // 2, 1420
-    for i in range(8):
-        a = i * 2 * math.pi / 8
-        x, y = cx + math.cos(a) * 140, cy + math.sin(a) * 140
-        DET.append(bx((x - 4, y - 4, ZPL), (x + 4, y + 4, ZPL + 6), BULBS[1 if i % 2 else 0]))
     for p in ((TEX + 110, PY1 - 190), (PX1 - 110, PY0 + 150)):
-        w, e = xmas_tree(p[0], p[1], ZPL, 220)
-        ents += e
+        ents.append(tree_spot(p[0], p[1], ZPL, 0))
     mx_ = (TEX + PX1) // 2
     b = bx((mx_ - 160, PY1 - 2, ZPL + 330), (mx_ + 160, PY1, ZPL + 490), {'s': 'd2_vexsign', 'all': NULL}); b.fit_faces(('s',)); MASKED.append(b)
     ents.append(light((mx_, PY1 - 80, ZPL + 410), (140, 255, 120), 140))
@@ -995,9 +990,6 @@ def plaza_extra():
         px, py = cx + dx * 220, cy + dy * 300
         if not (TEX + 40 < px < PX1 - 40 and PY0 + 80 < py < PY1 - 80):
             continue
-        DET.append(bx((px - 6, py - 6, ZPL), (px + 6, py + 6, ZPL + 224), METAL))
-        DET.append(bx((px - 14, py - 14, ZPL + 224), (px + 14, py + 14, ZPL + 248), LAMP))
-        DET.append(bx((px - 18, py - 18, ZPL + 248), (px + 18, py + 18, ZPL + 254), METAL))
         ents.append(light((px, py, ZPL + 210), (255, 190, 120), 170))
     # barricades (crates + low steel) for dodging boss skills
     for (x0b, y0b) in ((cx - 260, cy - 40), (cx + 196, cy - 40)):
@@ -1029,7 +1021,7 @@ def decorations():
         on_wall(x, y, z, d, 48, 48, '{d2_wreath', out=1)
     for (x, y, z, d) in ((-1300, -2050, 120, (0, -1)), (400, 1150, -120, (0, 1)), (-1750, 1000, 20, (-1, 0))):
         on_wall(x, y, z, d, 256, 64, 'd2_xmas_ban')
-    ents += vexsign(-232, 520, -150, (1, 0), 256, 128)                # mid, second marquee
+    ents += vexsign(-232, 572, -170, (1, 0), 256, 128)                # mid, second marquee (flat wall found by scan)
     # B tunnels: lanterns, blood, quarantine banners (creepy red light)
     for y in (140, 300, 460):
         l_ = lantern(-1824, y, -60, (-1, 0) if y % 320 else (1, 0), (255, 60, 40), 80)
@@ -1051,11 +1043,10 @@ def decorations():
         if z is not None and area_ok(x - 32, y - 32, x + 32, y + 32, z, 80):
             b = bx((x - 32, y - 32, z), (x + 32, y + 32, z + 64), {'all': CRATE, 'top': CTOP}); b.fit_faces(('n', 's', 'e', 'w', 'top')); DET.append(b)
     # trees in the big open areas
-    for (x, y) in ((-1948, -1944), (700, 1330), (380, -1616)):
+    for (x, y) in ((-1150, -1800), (700, 1330), (-1784, 1284)):
         z = floor_at(x, y)
-        if z is not None and area_ok(x - 80, y - 80, x + 80, y + 80, z, 240) and free_of_others(x - 80, y - 80, x + 80, y + 80):
-            w, e = xmas_tree(x, y, z, 200)
-            ents += e
+        if z is not None and area_ok(x - 64, y - 64, x + 64, y + 64, z, 220) and free_of_others(x - 64, y - 64, x + 64, y + 64):
+            ents.append(tree_spot(x, y, z, 0))
         else:
             LOG.append('tree skipped at %d %d' % (x, y))
     return [], ents
@@ -1070,6 +1061,363 @@ def arena_points():
         for x in (-1060, -980, -900, -820, -740):
             hum.append((x, y, ZTE + 37, 0))
     return boss, hum[:32]
+
+
+# ---------------------------------------------------------------- v4 (dust2vexfix) additions
+TREE_MDL = 'models/vexmira/538/world/xmas_tree.mdl'      # internet model (assets worker); placed via ini [models]
+TREE_SPOTS = []
+
+
+def tree_spot(x, y, z, yaw=0):
+    """xmas tree MODEL spot (no brushes): ini [models] line + a soft light; footprint kept free of spawns."""
+    TREE_SPOTS.append((x, y, z, yaw))
+    OCC.append((x - 64, y - 64, x + 64, y + 64))
+    return light((x, y, z + 120), (255, 200, 120), 110)
+
+
+def wall_flat(x, y, z, d, w, h):
+    """True when a w x h sign centred at (x, y, z) on the wall found in direction d sits on a flat, solid wall
+    (no doorway / window / corner behind it): samples 5x3 points just in front (open) and just behind (solid)."""
+    f = probe(int(x), int(y), int(z), d[0], d[1], 800)
+    if f is None:
+        return None
+    for i in range(5):
+        for j in range(3):
+            u = -w / 2 + 4 + (w - 8) * i / 4
+            zz = z - h / 2 + 4 + (h - 8) * j / 2
+            if d[0]:
+                fx, bx_, py = f - d[0] * 6, f + d[0] * 6, y + u
+                if not empty(fx, py, zz) or empty(bx_, py, zz):
+                    return None
+            else:
+                fy, by_, px = f - d[1] * 6, f + d[1] * 6, x + u
+                if not empty(px, fy, zz) or empty(px, by_, zz):
+                    return None
+    return f
+
+
+def tunnel_path(name, pts, zs, start_face, end_face, width=64, height=112, t=16, light_col=(255, 60, 40)):
+    """secret tunnel along an axis-aligned polyline pts (x, y) with floor heights zs at each point.
+    pts[0] / pts[-1] lie ON the corridor wall faces (start_face / end_face: 'n','s','e','w' = which side of the
+    tunnel is open there). Each segment = carved box with its own shell; open ends get no shell (the corridor is
+    there); stairs inside segments that change height."""
+    world, ents = [], []
+    hw = width / 2
+    nseg = len(pts) - 1
+    for i in range(nseg):
+        (xa, ya), (xb, yb) = pts[i], pts[i + 1]
+        za, zb = zs[i], zs[i + 1]
+        zlo, zhi = min(za, zb), max(za, zb)
+        ext_a = 0 if i == 0 else hw                 # overlap into the neighbour at inner corners
+        ext_b = 0 if i == nseg - 1 else hw
+        if xa == xb:     # along y
+            s = 1 if yb > ya else -1
+            y0, y1 = sorted((ya - s * ext_a, yb + s * ext_b))
+            mn, mx = (xa - hw, y0, zlo), (xa + hw, y1, zhi + height)
+            axis = 'y'
+        else:
+            s = 1 if xb > xa else -1
+            x0, x1 = sorted((xa - s * ext_a, xb + s * ext_b))
+            mn, mx = (x0, ya - hw, zlo), (x1, ya + hw, zhi + height)
+            axis = 'x'
+        carve(mn, mx)
+        open_lo = (i == 0 and ((axis == 'x' and start_face == 'w' and s > 0) or (axis == 'x' and start_face == 'e' and s < 0) or
+                               (axis == 'y' and start_face == 's' and s > 0) or (axis == 'y' and start_face == 'n' and s < 0)))
+        open_hi_first = (i == 0 and ((axis == 'x' and start_face == 'e' and s < 0) or (axis == 'y' and start_face == 'n' and s < 0)))
+        # which ends of this box are open
+        lo_open = hi_open = False
+        if i == 0:
+            if s > 0:
+                lo_open = True
+            else:
+                hi_open = True
+        if i == nseg - 1:
+            if s > 0:
+                hi_open = True
+            else:
+                lo_open = True
+        ex_lo = 0 if lo_open else t
+        ex_hi = 0 if hi_open else t
+        if axis == 'x':
+            shell_box((mn[0] - ex_lo, mn[1] - t, mn[2] - t), (mx[0] + ex_hi, mx[1] + t, mn[2]), CC)
+            shell_box((mn[0] - ex_lo, mn[1] - t, mx[2]), (mx[0] + ex_hi, mx[1] + t, mx[2] + t), CC)
+            shell_box((mn[0] - ex_lo, mn[1] - t, mn[2]), (mx[0] + ex_hi, mn[1], mx[2]), 'd2_rock')
+            shell_box((mn[0] - ex_lo, mx[1], mn[2]), (mx[0] + ex_hi, mx[1] + t, mx[2]), 'd2_rock')
+            if not lo_open:
+                shell_box((mn[0] - t, mn[1], mn[2]), (mn[0], mx[1], mx[2]), 'd2_rock')
+            if not hi_open:
+                shell_box((mx[0], mn[1], mn[2]), (mx[0] + t, mx[1], mx[2]), 'd2_rock')
+        else:
+            shell_box((mn[0] - t, mn[1] - ex_lo, mn[2] - t), (mx[0] + t, mx[1] + ex_hi, mn[2]), CC)
+            shell_box((mn[0] - t, mn[1] - ex_lo, mx[2]), (mx[0] + t, mx[1] + ex_hi, mx[2] + t), CC)
+            shell_box((mn[0] - t, mn[1] - ex_lo, mn[2]), (mn[0], mx[1] + ex_hi, mx[2]), 'd2_rock')
+            shell_box((mx[0], mn[1] - ex_lo, mn[2]), (mx[0] + t, mx[1] + ex_hi, mx[2]), 'd2_rock')
+            if not lo_open:
+                shell_box((mn[0], mn[1] - t, mn[2]), (mx[0], mn[1], mx[2]), 'd2_rock')
+            if not hi_open:
+                shell_box((mn[0], mx[1], mn[2]), (mx[0], mx[1] + t, mx[2]), 'd2_rock')
+        # floor: stairs in the middle of the segment, flat raised floor on the high side
+        if zb != za:
+            rise = zhi - zlo
+            n = max(1, int(math.ceil(rise / 12)))
+            run = 20
+            L = n * run
+            if axis == 'x':
+                mid = (xa + xb) / 2
+                up = 1 if (zb > za) == (xb > xa) else -1          # +x direction climbs?
+                start = mid - up * L / 2
+                world += stairs((start, ya, zlo), '+x' if up > 0 else '-x', width, rise, rise=rise / n, run=run,
+                                tex={'top': PLANK, 'all': TRIM})
+                hi_x0, hi_x1 = (start + up * L, mx[0]) if up > 0 else (mn[0], start + up * L)
+                if hi_x1 - hi_x0 > 1:
+                    world.append(bx((hi_x0, mn[1], zlo), (hi_x1, mx[1], zhi), {'top': CC, 'all': CC}))
+            else:
+                mid = (ya + yb) / 2
+                up = 1 if (zb > za) == (yb > ya) else -1
+                start = mid - up * L / 2
+                world += stairs((xa, start, zlo), '+y' if up > 0 else '-y', width, rise, rise=rise / n, run=run,
+                                tex={'top': PLANK, 'all': TRIM})
+                hi_y0, hi_y1 = (start + up * L, mx[1]) if up > 0 else (mn[1], start + up * L)
+                if hi_y1 - hi_y0 > 1:
+                    world.append(bx((mn[0], hi_y0, zlo), (mx[0], hi_y1, zhi), {'top': CC, 'all': CC}))
+        cxm, cym = (mn[0] + mx[0]) / 2, (mn[1] + mx[1]) / 2
+        ents.append(light((cxm, cym, zhi + height - 20), light_col, 90))
+        DET.append(bx((cxm - 6, cym - 6, zhi + height - 6), (cxm + 6, cym + 6, zhi + height), LAMP))
+        if (mx[0] - mn[0]) > 200 or (mx[1] - mn[1]) > 200:
+            b = bx((mn[0], cym - 32, zlo + 8), (mn[0] + 1, cym + 32, zlo + 72), {'e': '{d2_blood', 'all': NULL}) if axis == 'y' else \
+                bx((cxm - 32, mn[1], zlo + 8), (cxm + 32, mn[1] + 1, zlo + 72), {'n': '{d2_blood', 'all': NULL})
+            b.fit_faces(('e',) if axis == 'y' else ('n',)); MASKED.append(b)
+    MARKS.append(('Secret tunnel | Gizli tunel', int(pts[len(pts) // 2][0]), int(pts[len(pts) // 2][1]), int(max(zs)) + 160))
+    LOG.append('%-12s tunnel %s z %s' % (name, pts, zs))
+    return world, ents
+
+
+def tunnel_sign(x, y, z, d):
+    if wall_flat(x, y, z, d, 160, 20):
+        on_wall(x, y, z, d, 160, 20, 'd2_s_tunel')
+
+
+def tunnel_b_upper():
+    """B site south wall <-> upper tunnels (north wall), straight N-S."""
+    x = -1440
+    yb = probe(x, 600, -120, 0, -1)          # B south wall face
+    yt = probe(x, -80, -90, 0, 1)            # upper tunnel north wall face
+    if yb is None or yt is None or yb - yt < 120:
+        LOG.append('tunnel_b_upper probe failed %s %s' % (yb, yt))
+        return [], []
+    zb = floor_at(x, yb + 24, 0)
+    zt = floor_at(x, yt - 24, 0)
+    if zb is None or zt is None:
+        LOG.append('tunnel_b_upper floor probe failed')
+        return [], []
+    r = tunnel_path('tun_b_up', [(x, yb), (x, (yb + yt) // 2), (x, yt)], [zb, (zb + zt) / 2, zt], 'n', 's')
+    tunnel_sign(x, yb + 40, zb + 130, (0, -1))
+    tunnel_sign(x, yt - 40, zt + 130, (0, 1))
+    return r
+
+
+def tunnel_ldoor_t():
+    """outside long: through the closed door (door block south face line) down to T spawn east."""
+    x0 = 784                                   # door centre x (block 672..928)
+    yd = probe(x0, -1560, -100, 0, -1)         # door block north face (outside long side)
+    xs = probe(420, -1950, -20, 1, 0)          # T spawn east wall face
+    if yd is None or xs is None:
+        LOG.append('tunnel_ldoor_t probe failed %s %s' % (yd, xs))
+        return [], []
+    zd = floor_at(x0, yd + 24, 0)
+    zs_ = floor_at(xs - 24, -1950, 100)
+    ymid = -1950
+    r = tunnel_path('tun_ld_t', [(x0, yd), (x0, ymid), (xs, ymid)], [zd, zd, zs_], 'n', 'w')
+    tunnel_sign(xs - 40, -1950, zs_ + 130, (1, 0))
+    return r
+
+
+def balcony_base():
+    """unbreakable glass balcony base above the closed door on the way to T (outside long, east side):
+    platform over the door block, fully enclosed in glass (walls + roof, func_wall = cannot be broken),
+    reached by stairs along the corridor side."""
+    world, ents = [], []
+    zf = floor_at(560, -1500, 0)
+    if zf is None:
+        return [], []
+    btop = floor_at(800, -1664, 260)
+    zt = max(zf + 176, (btop + 12) if btop is not None else 0)   # balcony floor (over the door block)
+    bx0, bx1, by0, by1 = 656, 944, -1690, -1530
+    world.append(bx((bx0, by0, zt - 12), (bx1, by1, zt), {'top': PLANK, 'bottom': METAL, 'all': METAL}))
+    for px, py in ((bx0, by1 - 16), (bx1 - 16, by1 - 16)):
+        world.append(bx((px, py, zf), (px + 16, py + 16, zt - 12), METAL))      # support posts (north edge)
+    # stairs: west of the balcony, climbing south (-y) from the corridor floor to the landing
+    sx = 600
+    n = 11
+    run = 18
+    rise = (zt - zf) / n
+    ys = by0 + 64 + n * run
+    world += stairs((sx, ys, zf), '-y', 64, zt - zf, rise=rise, run=run, tex={'top': PLANK, 'all': METAL})
+    world.append(bx((sx - 32, by0, zt - 12), (bx0, by0 + 64, zt), {'top': PLANK, 'all': METAL}))   # landing
+    # glass enclosure (walls + roof) - unbreakable
+    G = []
+    zr = zt + 112
+    G.append(bx((bx0, by0, zt), (bx0 + 4, by1, zr), GLASS))                       # west (doorway on the landing side below)
+    G.append(bx((bx1 - 4, by0, zt), (bx1, by1, zr), GLASS))
+    G.append(bx((bx0, by1 - 4, zt), (bx1, by1, zr), GLASS))
+    G.append(bx((bx0, by0, zt), (bx1, by0 + 4, zr), GLASS))
+    G.append(bx((bx0, by0, zr), (bx1, by1, zr + 4), GLASS))
+    # doorway: the west pane gets an opening at the landing (y by0..by0+64)
+    G[0] = bx((bx0, by0 + 72, zt), (bx0 + 4, by1, zr), GLASS)
+    G.append(bx((bx0, by0, zt + 104), (bx0 + 4, by0 + 72, zr), GLASS))
+    ents.append(glass(G, breakable=False, renderamt=100))
+    for xa in (bx0, bx1 - 8):
+        for ya in (by0, by1 - 8):
+            DET.append(bx((xa, ya, zt), (xa + 8, ya + 8, zr), METAL))
+    ents.append(light(((bx0 + bx1) / 2, (by0 + by1) / 2, zr - 20), (200, 230, 255), 150))
+    DET.append(bx(((bx0 + bx1) / 2 - 12, (by0 + by1) / 2 - 12, zr - 6), ((bx0 + bx1) / 2 + 12, (by0 + by1) / 2 + 12, zr), LAMP))
+    b = bx((bx0 + 40, by1, zt - 34), (bx1 - 40, by1 + 1.5, zt - 14), {'n': 'd2_s_balkon', 'all': NULL}); b.fit_faces(('n',)); MASKED.append(b)
+    OCC.append((sx - 40, by0, bx1, ys))
+    MARKS.append(('Glass balcony | Cam balkon', (bx0 + bx1) // 2, (by0 + by1) // 2, int(zt + 200)))
+    LOG.append('balcony base z %d..%d' % (zf, zt))
+    return world, ents
+
+
+def b_cave():
+    """B site west wall door -> scary rock cave carved into the rock mass (laser-defendable entrance)."""
+    xf = probe(-1900, 928, -100, -1, 0)        # face of the door wall (x ~ -1966)
+    if xf is None:
+        return [], []
+    z0 = floor_at(xf + 24, 928, 0)
+    F = WallFrame('x', xf, -1)
+    world, ents = [], []
+    # remove the door: the entrance is 128 wide in the door's span
+    e0, e1 = 864, 992
+    # cave = 3 chambers stepping deeper + a small upper niche
+    rooms = [(e0, e1, 0, 96, z0, z0 + 128),                  # entrance throat (through the wall)
+             (780, 1080, 96, 360, z0 - 16, z0 + 160)]          # chamber (one step lower)
+    for (u0, u1, w0, w1, za, zb) in rooms:
+        mn, mx = F.box(u0, u1, w0, w1, za, zb)
+        carve(mn, mx)
+    # one shell around the union (bounding box) + lining around the throat through the wall
+    U0, U1, W0, W1 = 780, 1080, 96, 360
+    zl, zh = z0 - 16, z0 + 160
+    t = 16
+    for (a, b_, c, d, e, f, tex) in ((U0 - t, U1 + t, W0, W1 + t, zl - t, zl, 'd2_rock'),
+                                     (U0 - t, U1 + t, W0, W1 + t, zh, zh + t, 'd2_rock'),
+                                     (U0 - t, U0, W0, W1, zl, zh, 'd2_rock'), (U1, U1 + t, W0, W1, zl, zh, 'd2_rock'),
+                                     (U0 - t, U1 + t, W1, W1 + t, zl, zh, 'd2_rock'),
+                                     (U0 - t, e0, W0 - t, W0, zl, zh, 'd2_rock'), (e1, U1 + t, W0 - t, W0, zl, zh, 'd2_rock'),
+                                     (e0, e1, W0 - t, W0, z0 + 128, zh, 'd2_rock')):
+        shell_box(*F.box(a, b_, c, d, e, f), tex)
+    opening(F, e0, e1, z0, z0 + 128, 96)
+    # step down into the chamber + fill the back chamber floor difference
+    # rocks / stalagmites / stalactites (detail, cheap prisms)
+    import random
+    rnd = random.Random(538)
+    for k in range(9):
+        u = rnd.uniform(800, 1060); w = rnd.uniform(120, 340)
+        if e0 - 20 < u < e1 + 20 and w < 160:
+            continue
+        x, y, _ = F.pt(u, w, 0)
+        r = rnd.uniform(10, 22)
+        if k % 2:
+            DET.extend(prism((x, y), r, 5, zl, zl + rnd.uniform(24, 60), 'd2_rock', rot=k))
+        else:
+            DET.extend(prism((x, y), r * 0.8, 5, zh - rnd.uniform(24, 56), zh, 'd2_rock', rot=k))
+    for (u, w) in ((930, 300), (850, 200), (1020, 180)):
+        x, y, _ = F.pt(u, w, 0)
+        ents.append(light((x, y, zh - 30), (255, 40, 30), 70))
+    x, y, _ = F.pt(930, 30, 0)
+    ents.append(light((x, y, z0 + 100), (255, 90, 40), 60))
+    for (u, w) in ((800, 140), (1060, 300)):
+        mn, mx = F.box(u, u + 64, w, w + 1, zl + 8, zl + 72)
+        b = bx(mn, mx, {('e' if F.sgn < 0 else 'w'): '{d2_blood', 'all': NULL})
+        MASKED.append(b)
+    wall_sign(F, e0 - 16, e1 + 16, z0 + 132, z0 + 152, 'd2_s_cave')
+    MARKS.append(('Dark cave | Karanlik magara', *[int(c) for c in F.pt(930, 200, z0 + 200)]))
+    LOG.append('b_cave face %d z %d' % (xf, z0))
+    return world, ents
+
+
+def b_back_base():
+    """B back dead-end corridor (crates, map edge): front wall with doorway + glass, 2 floors, roof."""
+    x = -2230
+    yn = probe(x, 2300, -60, 0, 1)
+    ys = probe(x, 2300, -60, 0, -1)
+    xw = probe(-2150, 2300, -60, -1, 0)
+    if None in (yn, ys, xw):
+        LOG.append('b_back_base probe failed %s %s %s' % (yn, ys, xw))
+        return [], []
+    z0 = floor_at(-2200, (yn + ys) // 2, 100)
+    xf = xw + 240                              # front wall plane
+    world, ents = [], []
+    H = 120
+    top = z0 + 2 * H
+    # check the side walls are tall enough for the roof
+    t = 16
+    for (a_, b_) in (((xw - t, ys - t, z0), (xf + t, ys, top + t)), ((xw - t, yn, z0), (xf + t, yn + t, top + t)),
+                     ((xw - t, ys, z0), (xw, yn, top + t))):
+        world.append(bx(a_, b_, WALL2))           # own side + back walls up to the roof (the corridor walls are low)
+    # front wall with doorway + ground windows, upper floor glass band
+    yd0 = (ys + yn) / 2 - 32
+    segs = [(ys, yd0), (yd0 + 64, yn)]
+    for a, b_ in segs:
+        world.append(bx((xf, a, z0), (xf + t, b_, z0 + 112), WALL2))
+    world.append(bx((xf, ys, z0 + 112), (xf + t, yn, z0 + H), WALL2))
+    world.append(bx((xf, ys, z0 + H), (xf + t, yn, z0 + H + 36), WALL2))
+    world.append(bx((xf, ys, z0 + H + 108), (xf + t, yn, top + t), WALL2))
+    gp = [bx((xf + 6, ys, z0 + H + 36), (xf + 10, yn, z0 + H + 108), GLASS)]
+    ents.append(glass(gp, health=400, renderamt=110))
+    # upper floor with hatch + ladder, roof
+    hy0 = yn - 64
+    world.append(bx((xw, ys, z0 + H - 8), (xf, hy0, z0 + H), {'top': PLANK, 'bottom': PLANK, 'all': TRIM}))
+    world.append(bx((xw + 56, hy0, z0 + H - 8), (xf, yn, z0 + H), {'top': PLANK, 'bottom': PLANK, 'all': TRIM}))
+    world.append(bx((xw, ys, top), (xf + t, yn, top + t), {'bottom': CC, 'all': CC}))
+    lad, vis = ladder((xw, hy0 + 32, z0), '-x', H + 28)
+    ents.append(lad); MASKED.extend(vis)
+    for zz in (z0 + H - 20, top - 20):
+        ents.append(light(((xw + xf) / 2, (ys + yn) / 2, zz), (255, 200, 150), 170))
+        DET.append(bx(((xw + xf) / 2 - 10, (ys + yn) / 2 - 10, zz + 14), ((xw + xf) / 2 + 10, (ys + yn) / 2 + 10, zz + 20), LAMP))
+    b = bx((xf + t, (ys + yn) / 2 - 80, z0 + 116), (xf + t + 1.5, (ys + yn) / 2 + 80, z0 + 136), {'e': 'd2_s_bkale', 'all': NULL}); b.fit_faces(('e',)); MASKED.append(b)
+    MARKS.append(('B fort | B kalesi', int((xw + xf) / 2), int((ys + yn) / 2), int(top + 120)))
+    OCC.append((xw, ys, xf + t, yn))
+    LOG.append('b_back_base x %d..%d y %d..%d z %d' % (xw, xf, ys, yn, z0))
+    return world, ents
+
+
+def plaza_markers():
+    """boss spawn ring + human teleport ring on the floor (masked decals, cheap)."""
+    boss, hum = arena_points()
+    bx_, by_, bz, _ = boss
+    zf = ZPL
+    b = bx((bx_ - 72, by_ - 72, zf + 0.5), (bx_ + 72, by_ + 72, zf + 1), {'top': '{d2_ring_boss', 'all': NULL}); b.fit_faces(('top',)); MASKED.append(b)
+    # human rings: 3 big rings on the terrace (cover the 32 points area)
+    for yy in (1300, 1530, 1760):
+        b = bx((-980 - 96, yy - 96, ZTE + 0.5), (-980 + 96, yy + 96, ZTE + 1), {'top': '{d2_ring_hum', 'all': NULL}); b.fit_faces(('top',)); MASKED.append(b)
+    return [], [light((bx_, by_, zf + 40), (255, 40, 30), 120)]
+
+
+def deco_bases():
+    """CT spawn + T spawn decoration: banners, wreaths, lanterns, crate stacks with gifts, tree models."""
+    ents = []
+    for (x, y, z, d, tex, w, h) in ((442, 1150, -200, (0, 1), 'd2_xmas_ban', 256, 64), (-492, -2050, 40, (0, -1), 'd2_xmas_ban', 256, 64),
+                                    (500, 1180, -200, (0, 1), 'd2_ban_bio', 48, 96), (260, 1180, -200, (0, 1), 'd2_ban_zm', 48, 96),
+                                    (-900, -2100, 40, (0, -1), 'd2_ban_zm', 48, 96), (-500, -2100, 40, (0, -1), 'd2_ban_bio', 48, 96),
+                                    (-600, -2100, 60, (0, -1), '{d2_wreath', 48, 48), (640, 1180, -170, (0, 1), '{d2_wreath', 48, 48)):
+        if wall_flat(x, y, z, d, w, h):
+            on_wall(x, y, z, d, w, h, tex, out=1.5 if not tex.startswith('{') else 1)
+        else:
+            LOG.append('deco sign skipped (not flat) %s at %d %d' % (tex, x, y))
+    for (x, y, z, d) in ((300, 1180, -120, (0, 1)), (560, 1180, -120, (0, 1)), (-800, -2100, 80, (0, -1)), (-400, -2100, 80, (0, -1))):
+        l_ = lantern(x, y, z, d, (255, 180, 90), 110)
+        if l_:
+            ents.append(l_)
+    # gift piles (detail boxes) in the corners
+    for (gx, gy) in ((120, 1220), (-260, -2160)):
+        z = floor_at(gx, gy)
+        if z is None or not area_ok(gx - 40, gy - 40, gx + 40, gy + 40, z, 60):
+            continue
+        for k, (dx, dy, s_) in enumerate(((-20, -10, 28), (16, 12, 22), (6, -26, 18))):
+            tex = ('d2_gift_r', 'd2_gift_g', 'd2_gift_b')[k % 3]
+            b = bx((gx + dx - s_ / 2, gy + dy - s_ / 2, z), (gx + dx + s_ / 2, gy + dy + s_ / 2, z + s_), tex)
+            b.fit_faces(('n', 's', 'e', 'w', 'top')); DET.append(b)
+    return [], ents
 
 
 # ---------------------------------------------------------------- spawns
@@ -1119,7 +1467,7 @@ def apply_carves(m):
 def additions(m):
     global _b
     _b = None
-    for l in (PLACED, OCC, LOG, DET, MASKED, MODELS, MARKS, SHELLS, CARVES, TREES):
+    for l in (PLACED, OCC, LOG, DET, MASKED, MODELS, MARKS, SHELLS, CARVES, TREES, TREE_SPOTS):
         l.clear()
     world, ents = [], []
 
@@ -1160,10 +1508,13 @@ def additions(m):
     add(tunnel_ashort())
     add(crate_tunnel())
     # lantern-lit glass booths at the long doors and on B (crates)
-    add(booth('booth_ld_w', 344, -1260, 504, -1100, open_side='s'))
-    add(booth('booth_ld_e', 760, -1260, 920, -1100, open_side='s'))
-    add(booth('booth_b', -1470, 1400, -1336, 1530, open_side='w'))
-    add(crate_rail(-1312, 1360, -1184, 1488, -96, 'nse'))
+    add(balcony_base())
+    add(tunnel_ldoor_t())
+    add(tunnel_b_upper())
+    add(b_cave())
+    add(b_back_base())
+    add(plaza_markers())
+    add(deco_bases())
     add(decorations())
     apply_carves(m)
     ct_have = [e for e in m.ents if e.classname == 'info_player_start']
@@ -1204,7 +1555,7 @@ LABELS = {'d2_s_kale': 'Fort | Kale', 'd2_s_bunk': 'A Bunker | A Siginagi', 'd2_
 def write_ini(m, bsp_path=None):
     marks = []                       # the plugin shows at most 4 markers (MS_MAXMK)
     for lab, x, y, z in MARKS:
-        if lab.startswith(('Boss arena', 'Long defense', 'CT shelter', 'Mid base')):
+        if lab.startswith(('Boss arena', 'Long defense', 'B fort', 'Dark cave')):
             marks.append('%s = %d %d %d' % (lab, x, y, z))
     boss, hum = arena_points()
     if bsp_path:                     # keep only points where a player fits in the compiled map
@@ -1214,7 +1565,7 @@ def write_ini(m, bsp_path=None):
         hum = [p for p in hum if ok(p)]
         print('  [d2 ini] arena human points ok %d, boss point ok %s' % (len(hum), ok(boss)))
     arena = ['boss = %d %d %d %d' % boss] + ['human = %d %d %d %d' % p for p in hum]
-    txt = """; zm_vexmira_dust2zm - de_dust2 zombie camp edition (latin-1, Turkce harfsiz) - MapBy:SmurfSexy
+    txt = """; zm_vexmira_dust2vexfix - de_dust2 zombie camp edition (v4) (latin-1, Turkce harfsiz) - MapBy:SmurfSexy
 [info]
 name_en = Vexmira Dust II ZM
 name_tr = Vexmira Dust II ZM
@@ -1231,7 +1582,7 @@ line = Duvarlarin icinde kamp kur: long A camli savunma odalari, 3 katli CT sigi
 line = Long kapisi ve B'de fenerli cam kulubeler. Bosslar heykel meydaninda - herkes oraya isinlanir. Harita: SmurfSexy.
 
 [markers]
-""" + '\n'.join(marks) + '\n\n[arena]\n' + '\n'.join(arena) + '\n\n[models]\n' + '\n'.join(MODELS) + '\n'
+""" + '\n'.join(marks) + '\n\n[arena]\n' + '\n'.join(arena) + '\n\n[models]\n' + '\n'.join(MODELS + ['model = %s %d %d %d %d' % (TREE_MDL, x, y, z, yw) for x, y, z, yw in TREE_SPOTS]) + '\n'
     os.makedirs(os.path.dirname(INI), exist_ok=True)
     with open(INI, 'w', encoding='latin-1') as f:
         f.write(txt)

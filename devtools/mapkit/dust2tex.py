@@ -632,3 +632,42 @@ def _graded_copy(new, src, amt=0.8):
 
 for _n, _s in (('d2_stone', 'vx_stone_carved'), ('d2_pave', 'vx_temple_flr'), ('d2_marble', 'vx_marble')):
     _graded_copy(_n, _s)
+
+
+def _ring(rng, w, h, color, txt):
+    """masked floor marker: glowing ring + label (rendermode 4 decal brush on the floor)."""
+    from .textures import _ss_mask
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    r = np.hypot(xs - w / 2 + 0.5, ys - h / 2 + 0.5)
+    ring = ((r > w * 0.40) & (r < w * 0.48)).astype(F)
+    ticks = ((np.abs(((np.arctan2(ys - h / 2, xs - w / 2) / (2 * math.pi) * 16) % 1) - 0.5) < 0.12) &
+             (r > w * 0.30) & (r < w * 0.38)).astype(F)
+    m = _ss_mask(w, h, lambda d, k: _ctext(d, k, w, txt, h * 0.42, 16))
+    a = np.clip(ring + ticks + m, 0, 1)
+    img = fill(h, w, color) * (0.8 + 0.3 * fbm(h, w, 8, rng, 3))[..., None]
+    return np.concatenate([img, (a > 0.5).astype(F)[..., None]], -1)
+
+
+@tex('{d2_ring_boss', 128, 128, 'dust2', desc='floor marker: BOSS spawn ring (masked)')
+def t_ring_boss(rng, w, h):
+    return _ring(rng, w, h, (230, 30, 24), 'BOSS')
+
+
+@tex('{d2_ring_hum', 128, 128, 'dust2', desc='floor marker: human teleport ring (masked)')
+def t_ring_hum(rng, w, h):
+    return _ring(rng, w, h, (60, 230, 90), 'INSAN')
+
+
+@tex('d2_s_cave', 256, 32, 'dust2', desc='plate: MAGARA / CAVE')
+def t_s_cave(rng, w, h):
+    return _plate(rng, w, h, 'KARANLIK MAGARA  DARK CAVE', (230, 40, 30))
+
+
+@tex('d2_s_bkale', 256, 32, 'dust2', desc='plate: B KALESI / B FORT')
+def t_s_bkale(rng, w, h):
+    return _plate(rng, w, h, 'B KALESI  B FORT', (90, 230, 60))
+
+
+@tex('d2_s_balkon', 256, 32, 'dust2', desc='plate: CAM BALKON / GLASS BALCONY')
+def t_s_balkon(rng, w, h):
+    return _plate(rng, w, h, 'CAM BALKON  GLASS BALCONY', (120, 200, 255))
