@@ -190,6 +190,21 @@ def build_plugin(server=SERVER, retries=0, wait=60):
         if ok and not changed:
             os.replace(tmp, out)
             write_snapshot(snap)
+            # 5.3.8: the other main plugins (gear, extra) are built + installed alongside
+            T = '/tmp/claude-0/-home-user-claude/75b34835-cf97-54a7-be23-70299b8b0f9d/scratchpad/tools/bin'
+            for nm in ('vexmira_gear', 'vexmira_extra'):
+                src = os.path.join(SCRIPTING, nm + '.sma')
+                if not os.path.exists(src):
+                    continue
+                dst = os.path.join(server, 'cstrike', 'addons', 'amxmodx', 'plugins', nm + '.amxx')
+                q = subprocess.run([os.path.join(T, 'amxxpc'), src, '-i' + os.path.join(T, 'include'), '-o' + dst],
+                                   capture_output=True, text=True, cwd=T)
+                e2 = [l for l in (q.stdout + q.stderr).splitlines() if re.search(r'\berror\b', l, re.I)]
+                print('[build] %s.amxx: %s' % (nm, 'OK' if not e2 and os.path.exists(dst) else 'FAILED'))
+                for l in e2[:20]:
+                    print('   ' + l)
+                if e2:
+                    return False
             return True
         if not ok:
             print(log[-3000:])

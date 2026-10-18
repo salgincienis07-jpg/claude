@@ -1,8 +1,3 @@
-/* VEXMIRA 5.3.1-Stable | vexcore
-Derived from Vexmira 4.4.0-Full. Core: SmurfSexy & Capital.
-ReAPI SDK: s1lent / rehlds contributors (original API declarations embedded).
-CSO item authors preserved in component AUTHOR constants; see existing package KAYNAKLAR.md.
-Both vexmira_core and vexmira_gear are required. AMXX 1.10 / ReAPI >=5.24. */
 #include <amxmodx>
 #include <amxmisc>
 #include <engine>
@@ -15,6 +10,12 @@ Both vexmira_core and vexmira_gear are required. AMXX 1.10 / ReAPI >=5.24. */
 #include <nvault>
 #include <geoip>
 #pragma dynamic 32768
+native vxe_boss_giant(const name[], out[], len, Float:k, tex);
+native vxe_gs_slim(const a[], const b[], t);
+native vxe_default_resources();
+native vxe_modern_events();
+native vxe_native_precache();
+native vxe_version();
 new g_iIsolation526;
 new bool:g_bRun526;
 new bool:g_bCameraReady529;
@@ -2617,362 +2618,6 @@ return containi(path,".mdl")!=-1 || containi(path,".spr")!=-1;
 stock bool:VexAssetGuard(const scope[])
 {
 new required[192],sample[4];
-if(equal(scope,"vx42_salamander")) {
-static const paths[][]={
-"models/p_salamander.mdl",
-"models/v_salamander.mdl",
-"models/w_salamander.mdl",
-"sound/weapons/flamegun-1.wav",
-"sound/weapons/flamegun_clipin1.wav",
-"sound/weapons/flamegun_clipin2.wav",
-"sound/weapons/flamegun_clipout1.wav",
-"sound/weapons/flamegun_clipout2.wav",
-"sound/weapons/flamegun_draw.wav",
-"sprites/vex_community/salamander/640hud59_2.spr",
-"sprites/vex_community/salamander/640hud60_2.spr",
-"sprites/vex_community/salamander/640hud7_2.spr",
-"sprites/vex_community/salamander/flame_burn01.spr",
-"sprites/vex_community/salamander/flame_puff01.spr",
-"sprites/weapon_flamethrower.txt"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_janus7")) {
-static const paths[][]={
-"models/p_janus7.mdl",
-"models/v_janus7.mdl",
-"models/w_janus7.mdl",
-"sound/weapons/change1_ready.wav",
-"sound/weapons/janus7_change1.wav",
-"sound/weapons/janus7_change2.wav",
-"sound/weapons/janus7_shoot.wav",
-"sound/weapons/janus7_shoot2.wav",
-"sound/weapons/mg3_clipin.wav",
-"sound/weapons/mg3_clipout.wav",
-"sound/weapons/mg3_close.wav",
-"sound/weapons/mg3_open.wav",
-"sprites/vex_community/janus7/640hud12_2.spr",
-"sprites/vex_community/janus7/640hud7_2.spr",
-"sprites/vex_community/janus7/640hud99_2.spr",
-"sprites/weapon_janus7.txt"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_hev")) {
-static const paths[][]={
-"models/hev_weapons/p_wrench.mdl",
-"models/hev_weapons/v_ak47.mdl",
-"models/hev_weapons/v_aug.mdl",
-"models/hev_weapons/v_awp.mdl",
-"models/hev_weapons/v_deagle.mdl",
-"models/hev_weapons/v_famas.mdl",
-"models/hev_weapons/v_g3sg1.mdl",
-"models/hev_weapons/v_galil.mdl",
-"models/hev_weapons/v_glock18.mdl",
-"models/hev_weapons/v_m249.mdl",
-"models/hev_weapons/v_m3.mdl",
-"models/hev_weapons/v_m4a1.mdl",
-"models/hev_weapons/v_mp5.mdl",
-"models/hev_weapons/v_p228.mdl",
-"models/hev_weapons/v_p90.mdl",
-"models/hev_weapons/v_sg550.mdl",
-"models/hev_weapons/v_tmp.mdl",
-"models/hev_weapons/v_ump45.mdl",
-"models/hev_weapons/v_usp.mdl",
-"models/hev_weapons/v_wrench.mdl",
-"models/hev_weapons/v_xm1014.mdl",
-"models/player/hev_zombie/hev_zombie.mdl",
-"models/v_hev.mdl",
-"models/v_hev_adrenaline_injector.mdl",
-"models/v_hev_zombie.mdl",
-"sound/Zombi/Zombi_Female_Headdown.wav",
-"sound/Zombi/Zombi_Female_Headup.wav",
-"sound/Zombi/Zombi_Female_Laugh.wav",
-"sound/fvox/flatline.wav",
-"sound/fvox/health_critical.wav",
-"sound/fvox/hevSuit_get_infected_alert2.wav",
-"sound/fvox/hev_logon.wav",
-"sound/fvox/morphine_shot.wav",
-"sound/fvox/power_restored.wav",
-"sound/items/cliprelease1.wav",
-"sound/jb_engine_b1/shop/syringe_hit.wav",
-"sound/jb_engine_b1/shop/syringe_use.wav",
-"sound/player/pl_long_jump_1.wav",
-"sound/weapons/G_MZC_MP7_CLIPIN.wav",
-"sound/weapons/G_MZC_MP7_CLIPOUT.wav",
-"sound/weapons/G_RELOAD_MP7.wav",
-"sound/weapons/boltpull1.wav",
-"sound/weapons/clipin1.wav",
-"sound/weapons/clipout1.wav",
-"sound/weapons/de_deploy.wav",
-"sound/weapons/g36_boltback.wav",
-"sound/weapons/g36_boltforward.wav",
-"sound/weapons/g36_draw.wav",
-"sound/weapons/g36_magin.wav",
-"sound/weapons/g36_magout.wav",
-"sound/weapons/movement1.wav",
-"sound/weapons/movement2.wav",
-"sound/weapons/movement3.wav",
-"sound/weapons/null.wav",
-"sound/weapons/p345/p345_magin.wav",
-"sound/weapons/p345/p345_magout.wav",
-"sound/weapons/p345/p345_magplace.wav",
-"sound/weapons/p345/p345_slide.wav",
-"sound/weapons/slideback1.wav",
-"sound/weapons/wrench_deploy.wav",
-"sound/weapons/wrench_hit.wav",
-"sound/weapons/wrench_hitwall.wav",
-"sound/weapons/wrench_slash.wav",
-"sound/weapons/wrench_stab.wav"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_ethereal")) {
-static const paths[][]={
-"models/p_ethereal.mdl",
-"models/v_ethereal2.mdl",
-"models/w_ethereal.mdl",
-"sound/weapons/ethereal-1.wav",
-"sound/weapons/ethereal_draw.wav",
-"sound/weapons/ethereal_idle1.wav",
-"sound/weapons/ethereal_reload.wav",
-"sprites/vex_community/ethereal/640hud74_2.spr",
-"sprites/vex_community/ethereal/640hud7_2.spr",
-"sprites/vex_community/ethereal/muzzleflash7.spr",
-"sprites/weapon_ethereal.txt"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_plasma")) {
-static const paths[][]={
-"models/p_plasmagun.mdl",
-"models/v_plasmagun2.mdl",
-"models/w_plasmagun.mdl",
-"sound/weapons/plasmagun-1.wav",
-"sound/weapons/plasmagun_clipin1.wav",
-"sound/weapons/plasmagun_clipin2.wav",
-"sound/weapons/plasmagun_clipout.wav",
-"sound/weapons/plasmagun_draw.wav",
-"sound/weapons/plasmagun_exp.wav",
-"sound/weapons/plasmagun_idle.wav",
-"sprites/vex_community/plasma/640hud3_2.spr",
-"sprites/vex_community/plasma/640hud91_2.spr",
-"sprites/vex_community/plasma/muzzleflash27.spr",
-"sprites/vex_community/plasma/plasmaball.spr",
-"sprites/vex_community/plasma/plasmabomb.spr",
-"sprites/weapon_plasmagun.txt"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_katana")) {
-static const paths[][]={
-"models/p_katanad.mdl",
-"models/v_katanad.mdl",
-"sound/weapons/katanad_draw.wav",
-"sound/weapons/katanad_hit1.wav",
-"sound/weapons/katanad_hit2.wav",
-"sound/weapons/katanad_hitwall.wav",
-"sound/weapons/katanad_slash1.wav",
-"sound/weapons/katanad_slash2.wav",
-"sound/weapons/katanad_slash3.wav",
-"sound/weapons/katanad_stab.wav",
-"sound/weapons/katanad_stab_miss.wav"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_bow")) {
-static const paths[][]={
-"models/arrow.mdl",
-"models/p_bow.mdl",
-"models/p_bow_empty.mdl",
-"models/v_bow.mdl",
-"models/w_bow.mdl",
-"sound/weapons/bow_charge_finish1.wav",
-"sound/weapons/bow_charge_shoot1_empty.wav",
-"sound/weapons/bow_charge_shoot2.wav",
-"sound/weapons/bow_charge_start1.wav",
-"sound/weapons/bow_charge_start2.wav",
-"sound/weapons/bow_draw.wav",
-"sound/weapons/bow_shoot1.wav",
-"sprites/vex_community/bow/640hud12_2.spr",
-"sprites/vex_community/bow/640hud98_2.spr",
-"sprites/weapon_bow.txt"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_lightsaber")) {
-static const paths[][]={
-"models/p_sfsword_off.mdl",
-"models/p_sfsword_on.mdl",
-"models/v_sfsword.mdl",
-"sound/weapons/sfsword_draw.wav",
-"sound/weapons/sfsword_hit1.wav",
-"sound/weapons/sfsword_hit2.wav",
-"sound/weapons/sfsword_idle.wav",
-"sound/weapons/sfsword_midslash1.wav",
-"sound/weapons/sfsword_midslash2.wav",
-"sound/weapons/sfsword_midslash3.wav",
-"sound/weapons/sfsword_off.wav",
-"sound/weapons/sfsword_off_hit.wav",
-"sound/weapons/sfsword_off_slash1.wav",
-"sound/weapons/sfsword_on.wav",
-"sound/weapons/sfsword_stab.wav",
-"sound/weapons/sfsword_wall1.wav",
-"sound/weapons/sfsword_wall2.wav"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_minigun")) {
-static const paths[][]={
-"models/p_m134x.mdl",
-"models/shell2x.mdl",
-"models/shellx.mdl",
-"models/v_m134x.mdl",
-"models/w_m134x.mdl",
-"sound/weapons/m134-1.wav",
-"sound/weapons/m134_clipoff.wav",
-"sound/weapons/m134_clipon.wav",
-"sound/weapons/m134_pinpull.wav",
-"sound/weapons/m134_spindown.wav",
-"sound/weapons/m134_spinup.wav",
-"sprites/640hud26_2.spr",
-"sprites/640hud35_2.spr"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_jetpack")) {
-static const paths[][]={
-"models/vexmira/community/jetpack/p_jetpack.mdl",
-"models/vexmira/community/jetpack/rpgrocket.mdl",
-"models/vexmira/community/jetpack/v_jetpack.mdl",
-"models/vexmira/community/jetpack/w_jetpack.mdl",
-"sound/vexmira/community/jetpack/blow.wav",
-"sound/vexmira/community/jetpack/fly47.wav",
-"sound/vexmira/community/jetpack/rocket.wav",
-"sound/vexmira/community/jetpack/travel.wav"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
 if(equal(scope,"vexmira_core")) {
 static const paths[][]={
 "models/player/vex_gign/vex_gign.mdl",
@@ -2995,92 +2640,6 @@ static const paths[][]={
 "models/vexmira_ze/skins/vexmira_v_sg552.mdl",
 "models/vexmira_ze/skins/vexmira_v_xm1014.mdl",
 "models/zombie_plague/v_grenade_infect.mdl"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_dragonsword")) {
-static const paths[][]={
-"models/p_dragonsword.mdl",
-"models/v_dragonsword2.mdl",
-"sound/weapons/dragonsword_draw.wav",
-"sound/weapons/dragonsword_hit1.wav",
-"sound/weapons/dragonsword_hit2.wav",
-"sound/weapons/dragonsword_idle.wav",
-"sound/weapons/dragonsword_slash1.wav",
-"sound/weapons/dragonsword_slash2.wav",
-"sound/weapons/dragonsword_stab.wav",
-"sound/weapons/dragonsword_stab_hit.wav",
-"sound/weapons/dragonsword_wall.wav"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_thunderbolt")) {
-static const paths[][]={
-"models/p_sfsniper.mdl",
-"models/v_sfsightB.mdl",
-"models/v_sfsightR.mdl",
-"models/v_sfsniperF.mdl",
-"models/w_sfsniper.mdl",
-"sound/weapons/sfsniper-1.wav",
-"sound/weapons/sfsniper_draw.wav",
-"sound/weapons/sfsniper_idle.wav",
-"sound/weapons/sfsniper_insight1.wav",
-"sound/weapons/sfsniper_zoom.wav",
-"sprites/vex_community/thunderbolt/640hud10_2.spr",
-"sprites/vex_community/thunderbolt/640hud2_2.spr",
-"sprites/vex_community/thunderbolt/640hud81_2.spr",
-"sprites/weapon_sfsniperF.txt"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
-}
-}
-}
-if(equal(scope,"vx42_horseaxe")) {
-static const paths[][]={
-"models/p_horseaxe.mdl",
-"models/v_horseaxe.mdl",
-"sound/weapons/tomahawk_draw.wav",
-"sound/weapons/tomahawk_slash1.wav",
-"sound/weapons/tomahawk_slash1_hit.wav",
-"sound/weapons/tomahawk_slash2.wav",
-"sound/weapons/tomahawk_slash2_hit.wav",
-"sound/weapons/tomahawk_stab_hit.wav",
-"sound/weapons/tomahawk_stab_miss.wav",
-"sound/weapons/tomahawk_wall.wav"
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
@@ -3136,7 +2695,6 @@ new g_pUi52,g_pRadio52,g_pRadioInterval52,g_iUiPage52[33],g_iUiPriority52[33];
 new Float:g_fRadioBusy52,Float:g_fRadioNext52,Float:g_fRadioAt52[15];new g_iRadioLast52=-1;
 new bool:g_bRadioReady52[15];
 new const RADIO_FILE52[][]={"start","hazard","boss","supply","last","win","loss","fire","ice","storm","night","chatter1","chatter2","chatter3","chatter4"};
-// 5.3.2: chat subtitle for every radio line (who speaks + what), TR / EN
 new const RADIO_WHO52[15]={0,1,0,2,0,0,0,3,3,1,1,4,4,4,4};
 new const RADIO_WHO_TR52[][]={"MERKEZ","GOZCU","LOJISTIK","ISTIHKAM","DEVRIYE"};
 new const RADIO_WHO_EN52[][]={"COMMAND","SPOTTER","LOGISTICS","ENGINEER","PATROL"};
@@ -3173,14 +2731,12 @@ new const RADIO_TXT_EN52[15][]={
 "Do you hear that? They are getting closer...",
 "Channel open, standing by. Eyes on us."};
 new const Float:RADIO_LENGTH52[15]={3.200,4.480,4.320,3.360,4.880,2.320,3.520,3.360,3.360,5.440,4.080,3.040,3.360,3.280,4.000};
-
 new bool:g_bUiHudFiles52[64],bool:g_bUiHudActive52[33];
 new g_iUiHudWpn52[33],g_iUiHudFrame52[33],g_iUiHudUid52[33];new Float:g_fUiHudNext52[33];
 new bool:g_bRadioEn521[10];
 new const RADIO_EN_MAP521[15]={0,1,2,3,4,5,6,7,8,9,9,9,9,9,9};
 new const RADIO_EN_FILES521[][]={"start","hazard","boss","supply","last","win","loss","fire","ice","chatter"};
 new const Float:RADIO_EN_LENGTH521[10]={3.520,5.520,4.720,3.200,6.800,3.360,3.520,3.840,4.480,4.560};
-
 native vx521_pair_version();
 #define VERSION  "5.3.1-Stable"
 #define AUTHOR   "SmurfSexy & Capital"
@@ -3380,12 +2936,6 @@ new CLASS_RGB[NUM_CLASSES][3]     =
 {180, 30, 30}, {90, 90, 110}, {200, 120, 60}, {140, 0, 200},
 {255, 90, 0}, {80, 180, 255}, {160, 160, 160}, {140, 100, 50},
 {255, 90, 200}, {120, 140, 120}, {110, 200, 60}, {120, 0, 0}
-};
-new const CLASS_FILE[NUM_CLASSES][] =
-{
-"walker", "runner", "tank", "banshee", "leech", "stalker", "bomber", "frost",
-"spitter", "hulk", "voodoo", "phantom", "butcher", "hunter", "charger", "arachne",
-"magma", "volt", "mimic", "burrower", "siren", "bulwark", "sporemother", "nightmare"
 };
 new const CLASS_OLDMODEL[NUM_CLASSES][] =
 {
@@ -3608,10 +3158,6 @@ new g_szReplyBase[24];
 new Float:g_fPetRel49[33][2],Float:g_fPetFloor49[33],Float:g_fPetWall49[33],Float:g_fPetMove49[33];
 new g_szCosModel49[33][32],bool:g_bCosAnchor49[33][2],g_iCosBone50[33][2];
 new Float:g_fCosAt50[33],Float:g_fCosAnchor50[33][2][3];
-
-
-
-
 new g_szAmbient49[160],g_iAmbientEpoch49,g_iAmbientUser49[33];
 new g_szAmbientPlaying52[33][160];
 new Trie:g_tAmbientReady52;
@@ -3803,10 +3349,7 @@ new g_iMapExtends, g_iMapExtendTo, bool:g_bRtv[MAX_PLAYERS + 1], g_iRtvCount;
 #define CLR_COOL    180, 180, 180
 #define CLR_GOOD    0, 255, 140
 new const BOSS_FILE[NUM_BOSSES][] = { "brute", "banshee", "overlord", "inferno", "reaper", "frostlord", "stormcaller", "hivequeen", "void" };
-new const CLASS_MDL_DEF[NUM_CLASSES][] = { "walker", "runner", "tank", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "tank", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "tank", "spitter", "phantom" };
-new const CLASS_CLAW_DEF[NUM_CLASSES][] = { "walker", "runner", "hulk", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "hulk", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "hulk", "spitter", "phantom" };
-new const BOSS_MDL_DEF[NUM_BOSSES][] = { "tank", "banshee", "hulk", "bomber", "phantom", "frost", "voodoo", "spitter", "stalker" };
-new const BOSS_OLDMODEL[NUM_BOSSES][] = { "terror", "vip", "leet", "arctic", "gsg9", "sas", "gign", "guerilla", "gsg9" };  // 5.3.6: no urban (urbanT.mdl crash)
+new const BOSS_OLDMODEL[NUM_BOSSES][] = { "terror", "vip", "leet", "arctic", "gsg9", "sas", "gign", "guerilla", "gsg9" };
 new bool:g_bBossLoaded[NUM_BOSSES], g_iBossLoadN, g_iBossLoadList[NUM_BOSSES];
 new g_szPreBossRounds[128], g_iPreBossEvery, g_iPreRoundsTotal;
 #define MAX_HMODELS 6
@@ -3823,7 +3366,6 @@ new g_pNoUrban536, g_pBdHp536, g_pBdBoss536, g_iBdGib536, g_pGunDmg536, g_pKBMax
 new g_iFwPcSnd, g_iFwPcMdl, g_iFwPcGen, g_iTotSnd, g_iTotMdl, g_iTotGen;
 new g_szInfV531[96] = "models/vexmira/nades/v_infect.mdl", g_szInfP531[96] = "models/vexmira/nades/p_infect.mdl", g_szInfW531[96] = "models/vexmira/nades/w_infect.mdl";
 new Trie:g_tPcAll531, bool:g_bPcReady531, bool:g_bPcHook531, Float:g_fGuardTime531, g_iGuardV531[33], g_iGuardP531[33], g_iGuardLog531;
-
 #define MAX_AMB 64
 new g_iAmbEnt[MAX_AMB], g_szAmbSnd[MAX_AMB][64], Float:g_fAmbVol[MAX_AMB], Float:g_fAmbAttn[MAX_AMB];
 new g_iAmbPitch[MAX_AMB], bool:g_bAmbOn[MAX_AMB], g_iAmbN, g_iAmbRestored, bool:g_bAmbReplay, bool:g_bAmbMuted;
@@ -3839,16 +3381,17 @@ new g_pOvhEnable, g_pBossBarW, g_pSmallBarW, g_pIconSize, g_pIcons, g_pOvhSelf, 
 new g_pHudStyle, g_pHudTop, g_pHudRight, g_pHudMvp, g_pHudXp, g_pHudOvh, g_pHudObjective;
 enum { CN_KM1 = 0, CN_KM2, CN_KM3, CN_KM4, CN_KM5, CN_HS, CN_KNIFE, CN_NADE, CN_MVP, CN_HWIN, CN_ZWIN, CN_BOSS,
 CN_INFECT, CN_NEMESIS, CN_ASSASSIN, CN_SURVIVOR, CN_LAST, CN_LEVEL, CN_ROUND,
-CN_FIRST, CN_BKILL, CN_INFD, CN_TEN, CN_TOTAL };
-
-// 5.3.1: Vexmira CSO card set (sprites/vexmira/cso, animated: a intro streak -> b flash -> m main / g glint
-// pulse -> c outro). vex_res CSO_CARDSET "vexmira" (default) or "cards" (old 5.3 single-frame card0-5).
+CN_FIRST, CN_BKILL, CN_INFD, CN_TEN, CN_UPGRADE, CN_ITEM, CN_ARENA, CN_TOTAL };
 new const CSO_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "knife", "nade", "mvp", "hwin", "zwin", "boss",
-    "infect", "nemesis", "assassin", "survivor", "last", "level", "rnd", "fb", "bkill", "infd", "ten" };
-new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1 };
-new const CSO_LAY[CN_TOTAL] = { 'k', 'l', 'l', 'l', 'l', 'k', 'l', 'k', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'l', 'l', 'r', 'c', 'c', 'c', 'c' };
+    "infect", "nemesis", "assassin", "survivor", "last", "level", "rnd", "fb", "bkill", "infd", "ten", "upgrade", "item", "ar" };
+new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
+new const CSO_LAY[CN_TOTAL] = { 'k', 'l', 'l', 'l', 'l', 'k', 'l', 'k', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'l', 'l', 'r', 'c', 'c', 'c', 'c', 'c', 'l', 'c' };
 new const CSO_SHEETS[][] = { "m", "g", "fx", "rnd", "cdtr", "cden" };
-new bool:g_bCsoVex531 = true, g_iCsoLang531;   // 0 both, 1 tr only, 2 en only
+new bool:g_bCsoVex531 = true, g_iCsoLang531, g_szCsoDir[8] = "c538";
+#define UI_R 120
+#define UI_G 200
+#define UI_B 235
+new g_pHudMin538;
 #define CSO_ROUNDS  30
 #define CSO_QMAX    4
 #define TASK_CSO    41500
@@ -4163,8 +3706,6 @@ fog[i] = ENV_BOSS_FOG[g_iBossType][i];
 weather = ENV_BOSS_WEATHER[g_iBossType];
 return;
 }
-// 5.3.1: Blackout = darkness for the WHOLE round, whatever the mode (it used to lose to the mode light
-// table, so only the 1.5 s black fade was dark and the round stayed lit)
 if (g_iEvent == EV_BLACKOUT)
 {
 new bl[4]; get_pcvar_string(g_pBlackLight531, bl, charsmax(bl));
@@ -4179,7 +3720,6 @@ light = ENV_MODE_LIGHT[g_iMode];
 for (new i = 0; i < 4; i++)
 fog[i] = ENV_MODE_FOG[g_iMode][i];
 weather = ENV_MODE_WEATHER[g_iMode];
-// an event on top of a mode: the darker light and the event's own fog/weather win
 if (g_iEvent > EV_NONE && g_iEvent < EV_TOTAL && ENV_EV_LIGHT[g_iEvent])
 {
 if (ENV_EV_LIGHT[g_iEvent] < light) light = ENV_EV_LIGHT[g_iEvent];
@@ -4222,9 +3762,6 @@ return;
 }
 g_iCalmPreset = 0;
 }
-
-// 5.3.1: map lights with their own style (switchable "light" entities, style 32-63) stay off during a
-// Blackout round even when a map trigger switches them on; their real state is restored afterwards.
 new g_szStyle531[64][16], bool:g_bStyleDark531;
 public fw_LightStyle531(style, const val[])
 {
@@ -4683,7 +4220,6 @@ case EL_TOXIC: spr = g_sprFx[FXS_EXTOXIC];
 case EL_VOID:  spr = g_sprFx[FXS_EXVOID];
 default:       spr = g_sprFx[FXS_SHOCK];
 }
-// 5.3.2: smooth 128px element bursts for every skill explosion (bosses, zombie classes, items)
 new s532;
 switch (el)
 {
@@ -4812,8 +4348,6 @@ if (now < g_fSixMemeNext[id]) return false;
 g_fSixMemeNext[id] = now + floatmax(2.0, get_pcvar_float(g_pSixMemeCD));
 return true;
 }
-// 5.3.1: sound pools - a vex_res sound value may list several files separated by '|'; one is picked at
-// random each time it plays (zombie claws, pains, deaths, ... sound different every hit)
 stock SndPick531(path[], len)
 {
 if (contain(path, "|") == -1) return;
@@ -5415,8 +4949,6 @@ case 1: return 2;
 }
 return 0;
 }
-// 5.3.2 CSO style top board. Three blocks that are all centred strings of the same padded width, so
-// they line up at every resolution: [HUMAN  wins / alive]   ROUND r/t  m:ss  mode   [wins / alive  ZOMBIE]
 TopBoard532(id, humans, zombies, total, const lineC[])
 {
 static const PAD[] = "                                                            ";
@@ -5427,11 +4959,9 @@ new hw = get_member_game(m_iNumCTWins), zw = get_member_game(m_iNumTerroristWins
 new Float:y = get_pcvar_float(g_pTopY532);
 new lab[24], alive[24];
 formatex(alive, charsmax(alive), "%L", id, "TB532_ALIVE");
-// left block: humans
 formatex(lab, charsmax(lab), "%L", id, "TB532_HUM");
 set_dhudmessage(70, 195, 255, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
 show_dhudmessage(id, "%s   [ %d ]%s^n%s %d%s", lab, hw, sp, alive, humans, sp);
-// right block: zombies (boss HP in boss rounds)
 formatex(lab, charsmax(lab), "%L", id, "TB532_ZOM");
 if (g_iMode == MODE_BOSS && g_iBoss && is_user_alive(g_iBoss))
 {
@@ -5444,7 +4974,6 @@ else
 set_dhudmessage(255, 70, 55, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
 show_dhudmessage(id, "%s[ %d ]   %s^n%s%d %s", sp, zw, lab, sp, zombies, alive);
 }
-// centre: round + clock (gold), mode / event (soft)
 set_dhudmessage(255, 212, 80, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
 show_dhudmessage(id, "%L^n%d:%02d^n%s", id, "TB532_ROUND", g_iRound, total, left / 60, left % 60, lineC);
 }
@@ -5477,8 +5006,6 @@ formatex(ev, charsmax(ev), "%L", id, key);
 }
 if (g_iRound >= total)
 formatex(lineC, charsmax(lineC), "%L", id, "TOP_C_FINAL", mn, ev);
-else if (toBoss > 0 && toBoss <= 3 && g_iMode != MODE_BOSS)
-formatex(lineC, charsmax(lineC), "%L", id, "TOP_C_BOSSIN", mn, ev, toBoss);
 else
 formatex(lineC, charsmax(lineC), "%L", id, "TOP_C", mn, ev);
 if (get_pcvar_num(g_pTop532))
@@ -5809,11 +5336,11 @@ if (is_user_connected(id) && !is_user_bot(id))
 HudToS(id, slot, r, g, b, hold, key, sVal);
 }
 }
-new const CSO_PRIO[CN_TOTAL] = { 1, 2, 2, 2, 2, 1, 2, 1, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9, 2, 8, 7, 5 };
-new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16, 16, 32, 64, 4, 128, 128, 128, 128 };
+new const CSO_PRIO[CN_TOTAL] = { 1, 2, 2, 2, 2, 1, 2, 1, 6, 8, 8, 7, 5, 7, 7, 7, 6, 4, 9, 2, 8, 7, 5, 6, 2, 9 };
+new const CSO_BIT[CN_TOTAL] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 8, 8, 16, 16, 16, 16, 16, 32, 64, 4, 128, 128, 128, 128, 64, 1, 16 };
 new const CSO_SND[CN_TOTAL][] = { "CSO_KM", "KILL_DOUBLE", "KILL_TRIPLE", "KILL_MULTI", "KILL_MEGA", "CSO_KM_SP", "CSO_KM_SP", "CSO_KM_SP",
 "CSO_MVP", "CSO_WIN", "CSO_WIN", "CSO_ALERT", "CSO_ALERT", "CSO_BANNER", "CSO_BANNER", "CSO_BANNER", "CSO_ALERT",
-"CSO_LEVEL", "CSO_BANNER", "CSO_FB", "CSO_BKILL", "CSO_INFD", "CSO_TEN" };
+"CSO_LEVEL", "CSO_BANNER", "CSO_FB", "CSO_BKILL", "CSO_INFD", "CSO_TEN", "LEVEL_UP", "CSO_KM", "COUNTDOWN_BEEP" };
 CsoPrecacheVex531()
 {
     g_iCsoRounds = 0;
@@ -5861,7 +5388,7 @@ CsoPrecacheVex531()
         g_iCsoRounds = r;
     }
     g_bCsoFile[CN_ROUND] = (g_iCsoRounds > 0 && fxok) ? true : false;
-    for (new l = 0; l < 2; l++)                 // round-start countdown cards (10..1)
+    for (new l = 0; l < 2; l++)
         for (new c = 1; c <= 10; c++)
         {
             if (g_iCsoLang531 && l != (g_iCsoLang531 == 1 ? 1 : 0)) continue;
@@ -5871,7 +5398,7 @@ CsoPrecacheVex531()
 }
 CsoPrecache()
 {
-    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c533"));
+    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c538"));
     g_bCsoC532 = false;
     if (equali(set, "off"))
     {
@@ -5879,8 +5406,9 @@ CsoPrecache()
         for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = false;
         return;
     }
-    if (equali(set, "c533") || equali(set, "c532"))
+    if (equali(set, "c538") || equali(set, "c533") || equali(set, "c532"))
     {
+        copy(g_szCsoDir, charsmax(g_szCsoDir), equali(set, "c538") ? "c538" : "c533");
         CsoPrecache533();
         return;
     }
@@ -5911,10 +5439,8 @@ CsoPrecache()
     if (ok)
         for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = true;
 }
-// 5.3.2 big cards: one 256x128 picture per card (2 download slots each), text card always shown too
-// 5.3.3: every notification has a picture card (sprites/vexmira/c533, sheets of two 256x128 cells)
 new const C533_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "knife", "nade", "mvp", "hwin", "zwin", "boss",
-    "infect", "nemesis", "assassin", "survivor", "last", "level", "round", "fb", "bkill", "infd", "cd" };
+    "infect", "nemesis", "assassin", "survivor", "last", "level", "round", "fb", "bkill", "infd", "cd", "upgrade", "item", "ar" };
 new bool:g_bHp533;
 CsoPrecache533()
 {
@@ -5922,7 +5448,7 @@ CsoPrecache533()
     g_bCsoC532 = true;
     g_iCsoRounds = 30;
     new lm[8]; copy(lm, charsmax(lm), GetResString("CSO_LANG", "tr"));
-    g_iCsoLang531 = equali(lm, "en") ? 2 : 1;          // one language only (download list)
+    g_iCsoLang531 = equali(lm, "en") ? 2 : 1;
     new lg[3]; copy(lg, charsmax(lg), g_iCsoLang531 == 2 ? "en" : "tr");
     new path[96], sheet[96], line[160], n533, Trie:sheets = TrieCreate();
     for (new n = 0; n < CN_TOTAL; n++)
@@ -5930,10 +5456,12 @@ CsoPrecache533()
         g_bCsoFile[n] = false;
         if (g_iPreCso <= 0) continue;
         new ok = 1;
-        for (new c = 1; c <= (n == CN_TEN ? 10 : 1); c++)
+        if (!equal(g_szCsoDir, "c538") && (n == CN_UPGRADE || n == CN_ITEM || n == CN_ARENA)) continue;
+        for (new c = 1; c <= ((n == CN_TEN || n == CN_ARENA) ? 10 : 1); c++)
         {
-            if (n == CN_TEN) formatex(path, charsmax(path), "sprites/vexmira/c533/cd%d_%s.txt", c, lg);
-            else formatex(path, charsmax(path), "sprites/vexmira/c533/%s_%s.txt", C533_FILE[n], lg);
+            if (n == CN_TEN) formatex(path, charsmax(path), "sprites/vexmira/%s/cd%d_%s.txt", g_szCsoDir, c, lg);
+            else if (n == CN_ARENA) formatex(path, charsmax(path), "sprites/vexmira/%s/ar%d_%s.txt", g_szCsoDir, c, lg);
+            else formatex(path, charsmax(path), "sprites/vexmira/%s/%s_%s.txt", g_szCsoDir, C533_FILE[n], lg);
             if (!Txt533Sheet(path, sheet, charsmax(sheet))) { ok = 0; continue; }
             if (ZcPcGeneric(path) > 0) n533++; else ok = 0;
             if (!TrieKeyExists(sheets, sheet)) { TrieSetCell(sheets, sheet, 1); if (ZcPcGeneric(sheet) > 0) n533++; else ok = 0; }
@@ -5943,16 +5471,15 @@ CsoPrecache533()
     g_bHp533 = true;
     for (new l = 0; l <= 10; l++)
     {
-        formatex(path, charsmax(path), "sprites/vexmira/c534/bh_%d.txt", l);
+        formatex(path, charsmax(path), "sprites/vexmira/%s/bh_%d.txt", equal(g_szCsoDir, "c538") ? "c538" : "c534", l);
         if (!Txt533Sheet(path, sheet, charsmax(sheet)) || ZcPcGeneric(path) <= 0) { g_bHp533 = false; continue; }
         n533++;
         if (!TrieKeyExists(sheets, sheet)) { TrieSetCell(sheets, sheet, 1); if (ZcPcGeneric(sheet) > 0) n533++; else g_bHp533 = false; }
     }
     TrieDestroy(sheets);
     #pragma unused line
-    log_amx("[Vexmira] 5.3.3 ekran kartlari: %d dosya (sprites/vexmira/c533, dil %s, boss can bari %s)", n533, lg, g_bHp533 ? "var" : "YOK");
+    log_amx("[Vexmira] ekran kartlari: %d dosya (sprites/vexmira/%s, dil %s, boss can bari %s)", n533, g_szCsoDir, lg, g_bHp533 ? "var" : "YOK");
 }
-// sheet sprite named in a card .txt (3rd column of the first crosshair line)
 bool:Txt533Sheet(const txt[], out[], len)
 {
     out[0] = 0;
@@ -5968,7 +5495,7 @@ bool:Txt533Sheet(const txt[], out[], len)
     return out[0] ? file_exists(out, true) : false;
 }
 new const C532_FILE[CN_TOTAL][] = { "", "", "", "", "", "", "", "", "mvp", "hwin", "zwin", "boss",
-    "", "", "", "", "last", "", "", "", "", "", "" };
+    "", "", "", "", "last", "", "", "", "", "", "", "", "", "" };
 CsoPrecache532()
 {
     g_bCsoVex531 = true;
@@ -6083,8 +5610,9 @@ stock CsoName(id, note, arg, frm, out[], len)
     if (g_bCsoC532)
     {
         new bool:tr2 = (g_iCsoLang531 != 2);
-        if (note == CN_TEN) formatex(out, len, "vexmira/c533/cd%d_%s", clamp(arg, 1, 10), tr2 ? "tr" : "en");
-        else formatex(out, len, "vexmira/c533/%s_%s", C533_FILE[note], tr2 ? "tr" : "en");
+        if (note == CN_TEN) formatex(out, len, "vexmira/%s/cd%d_%s", g_szCsoDir, clamp(arg, 1, 10), tr2 ? "tr" : "en");
+        else if (note == CN_ARENA) formatex(out, len, "vexmira/%s/ar%d_%s", g_szCsoDir, clamp(arg, 1, 10), tr2 ? "tr" : "en");
+        else formatex(out, len, "vexmira/%s/%s_%s", g_szCsoDir, C533_FILE[note], tr2 ? "tr" : "en");
         #pragma unused id
         return;
     }
@@ -6120,7 +5648,6 @@ stock CsoFrameAt(note, Float:t, Float:dur, cur)
 {
     if (!g_bCsoVex531 || g_bCsoC532 || get_pcvar_num(g_pCsoAnim) <= 0)
         return CF_M;
-    // a (0-0.08 s) -> b (-0.18) -> body: g glint (0.2 s) / m (0.6 s) pulse -> last 0.2 s c
     if (t < 0.08)
         return CF_A;
     if (t < 0.18)
@@ -6147,7 +5674,6 @@ stock bool:CsoNoteOn(note)
 {
 return (note >= 0 && note < CN_TOTAL && (CsoNotesMask533() & CSO_BIT[note])) ? true : false;
 }
-// vex_cso_notes: big numbers (2147483647) overflow the float cvar -> 0; anything <= 0 or >= 65536 = all cards
 stock CsoNotesMask533()
 {
 new v = get_pcvar_num(g_pCsoNotes);
@@ -6170,24 +5696,21 @@ if (CSO_PRIO[note] <= 2 ? (g_iSet[id] & SET_NO_STREAK) : (g_iSet[id] & SET_NO_AM
 return;
 PlayKey(id, CSO_SND[note]);
 }
-// 5.3.2 text card: big notes = framed title (with a dark under-layer for depth) + white detail line,
-// short colour pulse on screen; small notes (kills, headshot ...) = compact line under the crosshair.
 VexCardText532(id, note, const title[], const detail[], r, g, b, Float:hold)
 {
 new bool:big = !(note <= CN_NADE || note == CN_FIRST || note == CN_INFD || note == CN_TEN || note == CN_HS);
-// MVP sits one row lower than the win card (both come at round end); max 2 DHUD per card (client limit 8)
 new Float:y = big ? (g_bCapLow532[id] ? (note == CN_MVP ? 0.74 : 0.665) : (note == CN_MVP ? 0.36 : 0.25)) : 0.62;
 new framed[160];
-if (big) formatex(framed, charsmax(framed), "--==[   %s   ]==--", title);
-else formatex(framed, charsmax(framed), "+  %s  +", title);
+copy(framed, charsmax(framed), title);
+if (get_pcvar_num(g_pHudMin538)) { r = UI_R; g = UI_G; b = UI_B; hold = floatmin(hold, 2.5); }
 set_dhudmessage(r, g, b, -1.0, y, 0, 0.0, hold, 0.06, 0.35);
 show_dhudmessage(id, "%s", framed);
 if (detail[0])
 {
-set_dhudmessage(235, 235, 235, -1.0, y + (big ? 0.045 : 0.035), 0, 0.0, hold, 0.12, 0.35);
+set_dhudmessage(200, 205, 210, -1.0, y + (big ? 0.045 : 0.035), 0, 0.0, hold, 0.12, 0.35);
 show_dhudmessage(id, "%s", detail);
 }
-if (big && !g_bCapLow532[id] && is_user_connected(id) && !is_user_bot(id))
+if (big && !get_pcvar_num(g_pHudMin538) && !g_bCapLow532[id] && is_user_connected(id) && !is_user_bot(id))
 {
 message_begin(MSG_ONE_UNRELIABLE, g_msgFade, _, id);
 write_short(1 << 10); write_short(0); write_short(0x0000);
@@ -6254,8 +5777,8 @@ case CN_KNIFE: { VexCopy(title,charsmax(title),tr,"KNIFE ELIMINATION","BICAK ELE
 case CN_NADE: { VexCopy(title,charsmax(title),tr,"GRENADE ELIMINATION","BOMBA ELEMESI"); VexCopy(detail,charsmax(detail),tr,"EXPLOSIVE HIT","PATLAYICI ISABETI"); r=255; g=145; b=65; hold=1.2; }
 default:
 {
-static const EN[CN_TOTAL][] = {"ELIMINATION","DOUBLE ELIMINATION","TRIPLE ELIMINATION","MULTI ELIMINATION","DOMINATING","HEADSHOT","KNIFE ELIMINATION","GRENADE ELIMINATION","ROUND MVP","HUMANS VICTORIOUS","ZOMBIES VICTORIOUS","BOSS ROUND","INFECTION","NEMESIS","ASSASSIN","SURVIVOR","LAST HUMAN","LEVEL UP","ROUND","FIRST BLOOD","BOSS DEFEATED","INFECTED","10 SECONDS LEFT"};
-static const TR[CN_TOTAL][] = {"ELEME","CIFT ELEME","UC LU ELEME","COKLU ELEME","EZICI SERI","KAFA VURUSU","BICAK ELEMESI","BOMBA ELEMESI","TURUN YILDIZI","INSANLAR KAZANDI","ZOMBILER KAZANDI","BOSS TURU","ENFEKSIYON","NEMESIS","SUIKASTCI","KURTULAN","SON INSAN","SEVIYE ATLANDI","TUR","ILK KAN","BOSS YENILDI","BULASTI","SON 10 SANIYE"};
+static const EN[CN_TOTAL][] = {"ELIMINATION","DOUBLE ELIMINATION","TRIPLE ELIMINATION","MULTI ELIMINATION","DOMINATING","HEADSHOT","KNIFE ELIMINATION","GRENADE ELIMINATION","ROUND MVP","HUMANS VICTORIOUS","ZOMBIES VICTORIOUS","BOSS ROUND","INFECTION","NEMESIS","ASSASSIN","SURVIVOR","LAST HUMAN","LEVEL UP","ROUND","FIRST BLOOD","BOSS DEFEATED","INFECTED","10 SECONDS LEFT", "CLASS UPGRADE","ITEM","BOSS ARENA" };
+static const TR[CN_TOTAL][] = {"ELEME","CIFT ELEME","UC LU ELEME","COKLU ELEME","EZICI SERI","KAFA VURUSU","BICAK ELEMESI","BOMBA ELEMESI","TURUN YILDIZI","INSANLAR KAZANDI","ZOMBILER KAZANDI","BOSS TURU","ENFEKSIYON","NEMESIS","SUIKASTCI","KURTULAN","SON INSAN","SEVIYE ATLANDI","TUR","ILK KAN","BOSS YENILDI","BULASTI","SON 10 SANIYE", "SINIF GELISTI","ESYA","BOSS ARENASI" };
 if (tr) copy(title,charsmax(title),TR[note]); else copy(title,charsmax(title),EN[note]);
 VexCopy(detail,charsmax(detail),tr,"CONFIRMED","BASARILI"); r=255; g=190; b=55; hold=1.25;
 }
@@ -6269,8 +5792,6 @@ if (g_szCsoOverride[id][0])
 VexCardText532(id, note, title, detail, r, g, b, hold);
 return true;
 }
-
-
 bool:CsoApply(id, note, arg, Float:dur, bool:sound, Float:elapsed = 0.0)
 {
     new clip, ammo, w = get_user_weapon(id, clip, ammo);
@@ -6278,7 +5799,6 @@ bool:CsoApply(id, note, arg, Float:dur, bool:sound, Float:elapsed = 0.0)
         return false;
     if (g_iCsoCur[id] >= 0 && g_iCsoWpn[id] != w)
         CsoRestore(id, false);
-
     g_iCsoCur[id] = note;
     g_iCsoArg[id] = arg;
     g_iCsoWpn[id] = w;
@@ -6299,8 +5819,6 @@ bool:CsoApply(id, note, arg, Float:dur, bool:sound, Float:elapsed = 0.0)
         log_amx("[CSO] show %s -> #%d wpn=%s(%d) fov=%d %.1fs", nm, id, g_szWL[w], w, get_pcvar_num(g_pCsoFov), dur);
     return true;
 }
-
-// Gercek silah HUD'unu geri yukle (orijinal WeaponList + gercek FOV + CurWeapon)
 CsoRestore(id, bool:refresh = true)
 {
     new w = g_iCsoWpn[id];
@@ -6308,7 +5826,6 @@ CsoRestore(id, bool:refresh = true)
     g_iCsoWpn[id] = 0;
     if (w < 1 || w > 30 || !is_user_connected(id))
         return;
-
     CsoSendWL(id, g_szWL[w], w);
     new fov = is_user_alive(id) ? get_member(id, m_iFOV) : 90;
     CsoFov(id, fov > 0 ? fov : 90);
@@ -6322,7 +5839,6 @@ CsoRestore(id, bool:refresh = true)
     if (get_pcvar_num(g_pCsoLog))
         log_amx("[CSO] restore WeaponList %s(%d) -> #%d fov=%d", g_szWL[w], w, id, fov > 0 ? fov : 90);
 }
-
 stock CsoClear(id)
 {
     if (g_iCsoCur[id] >= 0)
@@ -6330,8 +5846,6 @@ stock CsoClear(id)
     g_iCsoCur[id] = -1;
     g_iCsoQn[id] = 0;
 }
-
-// Round sonu / yeniden baslama: herkesin aktif gorseli kalkar, kuyruk bosalir
 CsoFlushAll()
 {
     for (new id = 1; id <= g_iMax; id++)
@@ -6340,14 +5854,12 @@ CsoFlushAll()
             CsoClear(id);
     }
 }
-
 stock Float:CsoDur(note)
 {
     if (note == CN_TEN)
         return 1.0;
     return (CSO_PRIO[note] <= 2) ? floatclamp(get_pcvar_float(g_pCsoKmTime), 0.5, 5.0) : floatclamp(get_pcvar_float(g_pCsoTime), 1.0, 6.0);
 }
-
 CsoQueue(id, note, arg)
 {
     new n = g_iCsoQn[id];
@@ -6370,10 +5882,6 @@ CsoQueue(id, note, arg)
     g_fCsoQT[id][pos] = get_gametime();
     g_iCsoQn[id] = n + 1;
 }
-
-// true: ekranda sprite olarak gosterilecek (hemen ya da kuyrukta) -> cagiran yazi gostermez.
-// false: bu oyuncuya sprite gidemez (stil kapali / bot / olu / izleyici / dosya yok) -> eski yazi.
-// 5.3.2: every notification ALWAYS shows: picture card when possible, otherwise the styled text card
 bool:CsoNotify(id, note, arg = 0)
 {
     if (CsoNotifyImg(id, note, arg))
@@ -6387,7 +5895,7 @@ bool:CsoNotifyImg(id, note, arg = 0)
     if (get_pcvar_num(g_pCsoLog)) log_amx("[CSO] istek not=%d #%d on=%d dosya=%d bit=%d canli=%d", note, id, CsoOn(), g_bCsoFile[note], (CsoNotesMask533() & CSO_BIT[note]) ? 1 : 0, is_user_alive(id));
     if (!CsoOn() || !g_bCsoFile[note] || !(CsoNotesMask533() & CSO_BIT[note]))
         return false;
-    if (g_bCsoC532 && note == CN_TEN && arg <= 0)      // "10 seconds left" (round end) stays a text card
+    if (g_bCsoC532 && note == CN_TEN && arg <= 0)
         return false;
     if (note == CN_ROUND && (arg < 1 || arg > g_iCsoRounds))
         return false;
@@ -6396,9 +5904,7 @@ bool:CsoNotifyImg(id, note, arg = 0)
     new clip, ammo, w = get_user_weapon(id, clip, ammo);
     if (w < 1 || w > 30 || !g_bWL[w])
         return false;
-
     new cur = g_iCsoCur[id];
-    // Countdown ticks replace their own card immediately instead of queuing stale numbers.
     if (note == CN_TEN && cur == CN_TEN)
     {
         CsoRestore(id, false);
@@ -6410,7 +5916,6 @@ bool:CsoNotifyImg(id, note, arg = 0)
     new bool:km = CSO_PRIO[note] <= 2;
     if (cur >= 0 && CSO_PRIO[cur] > 2)
     {
-        // Bant ekranda: killmark sadece ses, bant siraya girer
         if (km)
             CsoSound(id, note);
         else
@@ -6427,8 +5932,6 @@ bool:CsoNotifyImg(id, note, arg = 0)
         CsoQueue(id, note, arg);
         return true;
     }
-    // v3.3: ekranda killmark varken yenisi: daha dusuk oncelikli olan combo'nun yerini almaz;
-    // once orijinal WeaponList geri gonderilir (istemci yeni betigi kesin yeniden yukler)
     if (cur >= 0)
     {
         if (CSO_PRIO[cur] > CSO_PRIO[note] && g_fCsoEnd[id] - get_gametime() > 0.3)
@@ -6443,8 +5946,6 @@ bool:CsoNotifyImg(id, note, arg = 0)
         CsoSub(id, note, arg);
     return shown;
 }
-
-// Herkese: sprite gidemeyen oyuncuya eski yazi (HudTo)
 stock CsoHudAll(note, arg, slot, r, g, b, Float:hold, const key[], iVal = 0)
 {
     #pragma unused slot, r, g, b, hold, key, iVal
@@ -6455,20 +5956,13 @@ stock CsoHudAll(note, arg, slot, r, g, b, Float:hold, const key[], iVal = 0)
         CsoNotify(id, note, arg);
     }
 }
-
-// Custom card caption: localized title/detail sits with the generated sprite plate.
 CsoSub(id, note, arg)
 {
-    if (g_bCsoC532) return;     // 5.3.3: the picture card IS the notification (no text under it)
+    if (g_bCsoC532) return;
     g_bCapLow532[id] = g_bCsoC532 && C532_FILE[note][0] != 0;
     VexNotify(id, note, arg);
     g_bCapLow532[id] = false;
 }
-
-// 0.1 sn: yalniz aktif / kuyrugu olan oyuncular islenir
-// 5.3.3 BOSS HP CARD: during a boss fight every living player (not the boss) sees a picture boss HP bar
-// above the crosshair (crosshair drawn inside the card). Paused while a notification card is shown,
-// never on scoped weapons (their scope uses the same client slot).
 new g_iHpLvl533[33] = { -1, ... }, g_iHpWpn533[33], g_pHpCard533;
 HpRestore533(id)
 {
@@ -6489,14 +5983,14 @@ BossHpTick533()
     for (new id = 1; id <= g_iMax; id++)
     {
         if (!is_user_connected(id) || is_user_bot(id)) { g_iHpLvl533[id] = -1; continue; }
-        if (g_iCsoCur[id] >= 0) { g_iHpLvl533[id] = -1; g_iHpWpn533[id] = 0; continue; }     // card on screen
+        if (g_iCsoCur[id] >= 0) { g_iHpLvl533[id] = -1; g_iHpWpn533[id] = 0; continue; }
         new clip, ammo, w = is_user_alive(id) ? get_user_weapon(id, clip, ammo) : 0;
         new bool:want = fight && id != boss && is_user_alive(id) && w >= 1 && w <= 30 && g_bWL[w] && CsoFovOk(id) && !(g_iSet[id] & SET_NO_FX)
             && w != CSW_AWP && w != CSW_SCOUT && w != CSW_SG550 && w != CSW_G3SG1 && w != CSW_AUG && w != CSW_SG552;
         if (!want) { if (g_iHpLvl533[id] >= 0) HpRestore533(id); continue; }
         if (lvl == g_iHpLvl533[id] && w == g_iHpWpn533[id]) continue;
         if (g_iHpWpn533[id] && g_iHpWpn533[id] != w) CsoSendWL(id, g_szWL[g_iHpWpn533[id]], g_iHpWpn533[id]);
-        new nm[32]; formatex(nm, charsmax(nm), "vexmira/c534/bh_%d", lvl);
+        new nm[32]; formatex(nm, charsmax(nm), "vexmira/%s/bh_%d", equal(g_szCsoDir, "c538") ? "c538" : "c534", lvl);
         CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 89));
         CsoSendWL(id, nm, w); CsoCurW(id, w, clip);
         g_iHpLvl533[id] = lvl; g_iHpWpn533[id] = w;
@@ -6526,13 +6020,11 @@ public task_CsoTick()
         {
             if (!CsoFovOk(id))
             {
-                // durbun acildi: gercek durbun HUD'u geri gelir, kalan sure atilir
                 CsoRestore(id);
                 continue;
             }
             if (w != g_iCsoWpn[id])
             {
-                // silah degisti: eski silahin HUD'u geri, kalan sure yeni silahta
                 new note = g_iCsoCur[id], arg = g_iCsoArg[id];
                 new Float:left = g_fCsoEnd[id] - now;
                 new Float:el = now - g_fCsoStart[id], Float:tot = g_fCsoEnd[id] - g_fCsoStart[id];
@@ -6543,7 +6035,6 @@ public task_CsoTick()
             }
             if (now < g_fCsoEnd[id])
             {
-                // v3.4: animasyon karesi degistiyse yeni betik
                 new frm = CsoFrameAt(g_iCsoCur[id], now - g_fCsoStart[id], g_fCsoEnd[id] - g_fCsoStart[id], g_iCsoFrm[id]);
                 if (frm != g_iCsoFrm[id])
                     CsoSendFrame(id, frm, w, clip);
@@ -6551,7 +6042,6 @@ public task_CsoTick()
             }
             CsoRestore(id, g_iCsoQn[id] == 0);
         }
-        // Kuyruk
         while (g_iCsoQn[id] > 0 && g_iCsoCur[id] < 0)
         {
             if (!CsoFovOk(id))
@@ -6569,19 +6059,15 @@ public task_CsoTick()
                 continue;
             if (!CsoApply(id, note, arg, CsoDur(note), true))
             {
-                // gosterilemedi: kalan kuyruk da gecersiz
                 g_iCsoQn[id] = 0;
                 break;
             }
         }
     }
 }
-
 VexLocalizedAnnounce(id, const key[], r, g, b, Float:hold)
 {
     if (id < 1 || id > g_iMax || !is_user_connected(id) || is_user_bot(id) || (g_iSet[id] & SET_NO_FX)) return;
-    // 5.3.1: the translation may contain %d/%s (filled elsewhere) -> read it raw (no format error) and drop
-    // the specifiers; shown as caption only (it used to pop the "INFECTED" card for every announcement)
     new txt[192];
     LookupLangKey(txt, charsmax(txt), key, id);
     replace_all(txt, charsmax(txt), "%d", ""); replace_all(txt, charsmax(txt), "%s", ""); replace_all(txt, charsmax(txt), "%i", "");
@@ -6604,11 +6090,10 @@ VexPlainAnnounce(id,const en[],const tu[],r,g,b,Float:hold)
 {
     if (id < 1 || id > g_iMax || !is_user_connected(id) || is_user_bot(id) || (g_iSet[id] & SET_NO_FX)) return;
     VexCopy(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), g_iLang[id] == 2, en, tu);
-    VexNotify(id, CN_INFD, 0);      // 5.3.4: text only (the picture card is "ENFEKTE ETTIN" -> it popped for every announcement)
+    VexNotify(id, CN_INFD, 0);
     g_szCsoOverride[id][0] = 0;
     #pragma unused r, g, b, hold
 }
-
 VexCountdown(id, seconds)
 {
     if (id < 1 || id > g_iMax || !is_user_connected(id) || is_user_bot(id) || (g_iSet[id] & SET_NO_FX)) return;
@@ -6616,12 +6101,17 @@ VexCountdown(id, seconds)
         formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "TUR BASLAMASINA %d^nSAVASA HAZIR OL", seconds);
     else
         formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "ROUND STARTS IN %d^nPREPARE FOR COMBAT", seconds);
-    if (g_bCsoC532) { if (seconds >= 1 && seconds <= 10) CsoNotify(id, CN_TEN, seconds); }
+    if (g_bCsoC532 && seconds >= 1 && seconds <= 10 && g_bModePicked47 && g_iMode == MODE_BOSS && g_bArB536 && g_iArHN536 > 0 && get_pcvar_num(g_pArenaTp536) && g_bCsoFile[CN_ARENA])
+    {
+        if (g_iLang[id] == 2) formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "%d SANIYE SONRA BOSS ARENASINA ISINLANACAKSIN", seconds);
+        else formatex(g_szCsoOverride[id], charsmax(g_szCsoOverride[]), "TELEPORT TO THE BOSS ARENA IN %d", seconds);
+        CsoNotify(id, CN_ARENA, seconds);
+    }
+    else if (g_bCsoC532) { if (seconds >= 1 && seconds <= 10) CsoNotify(id, CN_TEN, seconds); }
     else if (seconds <= 10 || !g_bCsoVex531) CsoNotify(id, CN_TEN, seconds);
     else VexNotify(id, CN_TEN, seconds);
     g_szCsoOverride[id][0] = 0;
 }
-
 new const CSO_ICON[][] = { "", "suithelmet_full", "dmg_bio", "dmg_rad", "dmg_heat" };
 new const CSO_ICON_RGB[][3] = { { 0, 0, 0 }, { 0, 220, 255 }, { 120, 255, 40 }, { 255, 40, 40 }, { 255, 200, 60 } };
 CsoRoleIcon(id)
@@ -6759,7 +6249,7 @@ formatex(key, charsmax(key), "BOSS_NAME_%d", g_iBossType);
 AsciiBar(bar, 20, pct);
 for (new id = 1; id <= g_iMax; id++)
 {
-if (!is_user_connected(id) || is_user_bot(id) || g_iHpLvl533[id] >= 0)     // 5.3.3: picture HP card shown instead
+if (!is_user_connected(id) || is_user_bot(id) || g_iHpLvl533[id] >= 0)
 continue;
 formatex(nm, charsmax(nm), "%L", id, key);
 SpaceOut(nm, spaced, charsmax(spaced));
@@ -6930,7 +6420,7 @@ if (wantEmb && !g_iOvhEmb[id])
 new sz = max(g_iOvhWidth[OVS_BOSSICON], g_iOvhHeight[OVS_BOSSICON]);
 g_iOvhEmb[id] = OvhSpawn(id, OVS_BOSSICON, 28.0 / float(max(1, sz)));
 if (g_iOvhEmb[id])
-set_entvar(g_iOvhEmb[id], var_frame, float(clamp(g_iBossType, 0, g_iOvhFrames[OVS_BOSSICON] - 1)));
+set_entvar(g_iOvhEmb[id], var_frame, float(clamp(Ovh538(OVS_BOSSICON) ? 12 + g_iBossType : g_iBossType, 0, g_iOvhFrames[OVS_BOSSICON] - 1)));
 }
 if (icon != g_iOvhIconType[id] || (g_iOvhIcon[id] && !OvhValid(g_iOvhIcon[id], id)))
 {
@@ -6946,6 +6436,21 @@ if (g_iOvhIcon[id])
 g_iOvhIconType[id] = icon;
 }
 }
+}
+stock bool:Ovh538(slot) return (contain(g_szOvhSpr[slot], "538") != -1) ? true : false;
+new Float:g_fOvhShown[33], Float:g_fOvhPrevHp[33], Float:g_fOvhFlash[33];
+Ovh538Frame(id, slot, Float:pct)
+{
+new Float:now = get_gametime();
+new Float:hp = Float:get_entvar(id, var_health);
+if (hp < g_fOvhPrevHp[id] - 0.5) g_fOvhFlash[id] = now + 0.25;
+g_fOvhPrevHp[id] = hp;
+if (g_fOvhShown[id] <= 0.0 || pct > g_fOvhShown[id]) g_fOvhShown[id] = pct;
+else g_fOvhShown[id] = floatmax(pct, g_fOvhShown[id] - 3.0);
+new p = clamp(floatround(g_fOvhShown[id]), 0, 100);
+if (pct > 0.0 && p < 1) p = 1;
+if (slot == OVS_BOSSBAR) return (g_fOvhFlash[id] > now) ? 26 + p / 10 : p / 4;
+return (g_fOvhFlash[id] > now) ? 51 + p / 10 : p / 2;
 }
 OvhIconFor(id)
 {
@@ -7085,6 +6590,7 @@ set_entvar(ent, var_movetype, MOVETYPE_NOCLIP);
 set_entvar(ent, var_iuser1, id);
 set_entvar(ent, var_iuser2, OVH_MAGIC);
 g_iOvhSent[id] = -1;
+if (1 <= id <= 32) { g_fOvhShown[id] = 0.0; g_fOvhPrevHp[id] = Float:get_entvar(id, var_health); }
 set_entvar(ent, var_rendermode, g_iOvhMode[slot]);
 set_entvar(ent, var_renderamt, 255.0);
 set_entvar(ent, var_rendercolor, Float:{255.0, 255.0, 255.0});
@@ -7169,6 +6675,8 @@ if (hp0 > 0.0 && frameNow < 1 && last0 > 0)
 frameNow = 1;
 if (slot0 == OVS_ZOMBIE47 || (slot0 == OVS_BOSSBAR && g_iOvhFrames[slot0] == 104))
 frameNow = clamp(floatround(hp0 / floatmax(1.0, mx0) * 25.0), 0, 25) * 4 + ((g_iOvhTick / 2) % 4);
+if (Ovh538(slot0))
+frameNow = min(Ovh538Frame(id, slot0, floatclamp(hp0 / floatmax(1.0, mx0) * 100.0, 0.0, 100.0)), g_iOvhFrames[slot0] - 1);
 }
 new Float:gap = floatclamp(get_pcvar_float(g_pOvhGap), 0.0, 32.0);
 new Float:z = floatmax(14.0,floatclamp(get_pcvar_float(g_pOvhMargin), 0.0, 64.0));
@@ -7226,7 +6734,7 @@ p[1] = o[1];
 p[2] = o[2] + head + g_fOvhDz[ents[i]];
 engfunc(EngFunc_SetOrigin, ents[i], p);
 }
-if(icon && g_iOvhIconType[id]>=0) set_entvar(icon,var_frame,float((g_iOvhTick/2)%max(1,g_iOvhFrames[g_iOvhIconType[id]])));
+if(icon && g_iOvhIconType[id]>=0) { new it=g_iOvhIconType[id]; if(Ovh538(it)) { static const IF538[OVS_TOTAL]={8,8,0,1,0,3,2,4,0,0}; set_entvar(icon,var_frame,float(min(IF538[it],g_iOvhFrames[it]-1))); } else set_entvar(icon,var_frame,float((g_iOvhTick/2)%max(1,g_iOvhFrames[it]))); }
 new sig = (frameNow + 1) | (hidden ? 0x1000 : 0) | (bar << 13);
 if (sig == g_iOvhSent[id])
 return;
@@ -7260,377 +6768,11 @@ o[2] += OverheadTop52(id) + g_fOvhDz[ent];
 set_es(es, ES_Origin, o);
 return FMRES_IGNORED;
 }
-SetDefaultResources()
-{
-DefSound("ZOMBIE_INFECT",  "vexmira/infect.wav",          "zombie/zo_alert20.wav");
-DefSound("ZOMBIE_PAIN",    "zombie/zo_pain1.wav",        "player/pl_pain2.wav");
-DefSound("ZOMBIE_DIE",     "zombie/zo_pain2.wav",        "player/die3.wav");
-DefSound("ROUND_START",    "vexmira/round_start.wav",     "ambience/the_horror2.wav");
-DefSound("EVENT_START",    "vexmira/event_start.wav",     "ambience/thunder_clap.wav");
-DefSound("MODE_START",     "vexmira/mode_start.wav",      "ambience/the_horror4.wav");
-DefSound("BOSS_SPAWN",     "vexmira/boss_spawn.wav",      "ambience/the_horror4.wav");
-DefSound("BOSS_SLAM",      "vexmira/boss_slam.wav",       "weapons/c4_explode1.wav");
-DefSound("BOSS_SCREAM",    "vexmira/boss_scream.wav",     "ambience/the_horror1.wav");
-DefSound("BOSS_SUMMON",    "vexmira/boss_summon.wav",     "ambience/the_horror3.wav");
-DefSound("BOSS_DEATH",     "vexmira/boss_death.wav",      "weapons/c4_explode1.wav");
-DefSound("COUNTDOWN_BEEP", "vexmira/tick.wav",            "buttons/blip1.wav");
-DefSound("LEVEL_UP",       "vexmira/levelup.wav",         "plats/elevbell1.wav");
-DefSound("LAST_HUMAN",     "vexmira/last_human.wav",      "ambience/the_horror3.wav");
-DefSound("LIGHTNING",      "vexmira/thunder_crack.wav",   "ambience/thunder_clap.wav");
-DefSound("AMBIENT",        "vexmira/ambient.wav",         "ambience/the_horror3.wav");
-DefSound("HEARTBEAT",      "vexmira/heartbeat.wav",       "");
-DefSound("METEOR",         "vexmira/meteor.wav",          "weapons/c4_explode1.wav");
-DefSound("ABILITY_BURST",  "vexmira/z_burst.wav",         "zombie/zo_alert30.wav");
-DefSound("ABILITY_LEAP",   "vexmira/z_leap.wav",          "zombie/zo_attack1.wav");
-DefSound("ABILITY_SHIELD", "vexmira/z_shield.wav",        "items/suitchargeok1.wav");
-DefSound("ABILITY_SCREAM", "vexmira/z_scream.wav",        "ambience/the_horror2.wav");
-DefSound("ABILITY_DRAIN",  "vexmira/z_drain.wav",         "zombie/zo_attack2.wav");
-DefSound("ABILITY_CLOAK",  "vexmira/z_cloak.wav",         "buttons/blip1.wav");
-DefSound("ABILITY_TOXIC",  "vexmira/z_toxic.wav",         "bullchicken/bc_acid1.wav");
-DefSound("ABILITY_FROST",  "vexmira/z_frost.wav",         "debris/glass1.wav");
-DefSound("HUMAN_WIN",      "vexmira/win_humans.wav",      "radio/ctwin.wav");
-DefSound("ZOMBIE_WIN",     "vexmira/win_zombies.wav",     "radio/terwin.wav");
-DefSound("ACH_UNLOCK",     "vexmira/achievement.wav",     "plats/elevbell1.wav");
-DefSound("SHOP_BUY",       "vexmira/buy.wav",             "items/gunpickup2.wav");
-DefSound("DAILY",          "vexmira/daily.wav",           "items/suitchargeok1.wav");
-DefSound("HEADSHOT",       "vexmira/vox_headshot.wav",    "player/headshot1.wav");
-DefSound("KILL_DOUBLE",    "vexmira/vox_double.wav",      "buttons/bell1.wav");
-DefSound("KILL_TRIPLE",    "vexmira/vox_triple.wav",      "buttons/bell1.wav");
-DefSound("KILL_MULTI",     "vexmira/vox_multi.wav",       "buttons/bell1.wav");
-DefSound("KILL_MEGA",      "vexmira/vox_mega.wav",        "buttons/bell1.wav");
-DefSound("KILL_MONSTER",   "vexmira/vox_monster.wav",     "buttons/bell1.wav");
-DefSound("STREAK_5",       "vexmira/vox_rampage.wav",     "ambience/thunder_clap.wav");
-DefSound("STREAK_10",      "vexmira/vox_unstoppable.wav", "ambience/thunder_clap.wav");
-DefSound("STREAK_15",      "vexmira/vox_godlike.wav",     "ambience/thunder_clap.wav");
-DefSound("NADE_FIRE",      "vexmira/nade_fire.wav",       "ambience/flameburst1.wav");
-DefSound("NADE_FROST",     "vexmira/nade_frost.wav",      "debris/glass2.wav");
-DefSound("NADE_INFECT",    "vexmira/nade_infect.wav",     "bullchicken/bc_spithit1.wav");
-DefSound("FREEZE",         "vexmira/freeze.wav",          "debris/glass1.wav");
-DefSound("BURN",           "vexmira/burn.wav",            "ambience/flameburst1.wav");
-DefSound("ANTIDOTE",       "vexmira/antidote.wav",        "items/smallmedkit1.wav");
-DefSound("MADNESS",        "vexmira/madness.wav",         "ambience/the_horror1.wav");
-DefSound("SW_FIRE",        "vexmira/sw_fire.wav",         "weapons/electro5.wav");
-for (new swi = 0; swi < NUM_SPECIAL; swi++)
-{
-new swkey[24];
-formatex(swkey, charsmax(swkey), "SW%d_FIRE", swi);
-TrieSetString(g_tRes, swkey, "");
-}
-DefSound("ZAP",            "vexmira/zap.wav",             "weapons/electro4.wav");
-DefSound("MVP",            "vexmira/mvp.wav",             "events/task_complete.wav");
-DefSound("CSO_KM",         "vexmira/cso/km.wav",          "buttons/blip1.wav");
-DefSound("CSO_KM_SP",      "vexmira/cso/km_sp.wav",       "buttons/blip2.wav");
-DefSound("CSO_MVP",        "vexmira/cso/mvp.wav",         "events/task_complete.wav");
-DefSound("CSO_BANNER",     "vexmira/cso/banner.wav",      "ambience/the_horror2.wav");
-DefSound("CSO_WIN",        "vexmira/cso/win.wav",         "events/task_complete.wav");
-DefSound("CSO_ALERT",      "vexmira/cso/alert.wav",       "buttons/blip2.wav");
-DefSound("CSO_LEVEL",      "vexmira/cso/levelup.wav",     "plats/elevbell1.wav");
-DefSound("CSO_FB",         "vexmira/cso/firstblood.wav",  "buttons/blip2.wav");
-DefSound("CSO_BKILL",      "vexmira/cso/bosskill.wav",    "events/task_complete.wav");
-DefSound("CSO_INFD",       "vexmira/cso/infected.wav",    "buttons/blip2.wav");
-DefSound("CSO_TEN",        "vexmira/cso/tensec.wav",      "buttons/blip1.wav");
-DefSound("VIP_JOIN",       "vexmira/vip_join.wav",        "buttons/bell1.wav");
-DefSound("BOSS_WARN",      "vexmira/boss_warn.wav",       "buttons/blip2.wav");
-DefSound("BOSS_ROAR",      "garg/gar_alert1.wav",         "ambience/the_horror1.wav");
-DefSound("BOSS_ABILITY",   "",                            "");
-DefSound("ZOMBIE_IDLE",    "zombie/zo_idle1.wav",         "");
-DefSound("ZOMBIE_SLASH",   "zombie/claw_miss1.wav",       "");
-DefSound("ZOMBIE_HITWALL", "zombie/claw_miss2.wav",       "");
-DefSound("ZOMBIE_HIT",     "zombie/claw_strike1.wav",     "");
-DefSound("ZOMBIE_STAB",    "zombie/claw_strike2.wav",     "");
-DefSound("ZOMBIE_ACID",    "vexmira/z_acid.wav",          "bullchicken/bc_acid2.wav");
-DefSound("ZOMBIE_HEAL",    "vexmira/z_heal.wav",          "items/smallmedkit1.wav");
-DefSound("ZOMBIE_BLINK",   "vexmira/z_blink.wav",         "weapons/electro4.wav");
-DefSound("ZOMBIE_SHOCK",   "vexmira/z_shock.wav",         "garg/gar_stomp1.wav");
-DefSound("WELCOME",          "vexmira/welcome.wav",          "events/tutor_msg.wav");
-DefSound("PLAYER_JOIN",      "vexmira/join.wav",             "buttons/bell1.wav");
-DefSound("PLAYER_LEAVE",     "vexmira/leave.wav",            "buttons/blip2.wav");
-DefSound("BOSS_SOON",        "vexmira/boss_soon.wav",        "ambience/the_horror2.wav");
-DefSound("BOSS_INTRO",       "vexmira/boss_intro.wav",       "ambience/the_horror4.wav");
-DefSound("BOSS_STEP",        "vexmira/boss_step.wav",        "garg/gar_step1.wav");
-DefSound("BOSS_PHASE",       "vexmira/boss_phase.wav",       "ambience/thunder_clap.wav");
-DefSound("BOSS_ENRAGE",      "vexmira/boss_enrage.wav",      "garg/gar_alert3.wav");
-DefSound("LM_DEPLOY",        "vexmira/lm_deploy.wav",        "weapons/mine_deploy.wav");
-DefSound("LM_CHARGE",        "vexmira/lm_charge.wav",        "weapons/c4_click.wav");
-DefSound("LM_ACTIVATE",      "vexmira/lm_activate.wav",      "weapons/mine_activate.wav");
-DefSound("LM_HIT",           "vexmira/lm_hit.wav",           "weapons/electro4.wav");
-DefSound("LM_BREAK",         "vexmira/lm_break.wav",         "weapons/explode3.wav");
-DefSound("LM_PICKUP",        "vexmira/lm_pickup.wav",        "items/gunpickup2.wav");
-DefSound("NADE_MODE",        "vexmira/nade_mode.wav",        "buttons/lightswitch2.wav");
-DefSound("NADE_BEEP",        "vexmira/nade_beep.wav",        "weapons/c4_beep1.wav");
-DefSound("NADE_ARM",         "vexmira/nade_arm.wav",         "weapons/c4_click.wav");
-DefSound("NADE_CLUSTER",     "vexmira/nade_cluster.wav",     "weapons/explode4.wav");
-DefSound("AIRDROP_INCOMING", "vexmira/airdrop_incoming.wav", "items/suitchargeok1.wav");
-DefSound("AIRDROP_LAND",     "vexmira/airdrop_land.wav",     "debris/metal2.wav");
-DefSound("AIRDROP_LOOT",     "vexmira/airdrop_loot.wav",     "items/ammopickup2.wav");
-DefSound("QUEST_DONE",       "vexmira/quest_done.wav",       "events/task_complete.wav");
-DefSound("EVOLVE",           "vexmira/evolve.wav",           "zombie/zo_alert30.wav");
-DefSound("SPEED_START",      "vexmira/speed_start.wav",      "weapons/rocketfire1.wav");
-DefSound("SPEED_WIND",       "vexmira/wind.wav",             "");
-DefSound("STORM_STRIKE",     "vexmira/thunder_crack.wav",    "ambience/thunder_clap.wav");
-DefSound("BLACKOUT",         "vexmira/blackout.wav",         "buttons/lightswitch2.wav");
-DefSound("FINAL_ROUND",      "vexmira/final_round.wav",      "ambience/the_horror4.wav");
-DefSound("MAP_END",          "vexmira/map_end.wav",          "events/task_complete.wav");
-DefSound("FROST_NOVA",       "vexmira/frost_nova.wav",       "debris/glass2.wav");
-DefSound("THUNDER",          "vexmira/thunder.wav",          "ambience/thunder_clap.wav");
-DefSound("ACID_POOL",        "vexmira/acid_pool.wav",        "bullchicken/bc_acid1.wav");
-DefSound("GRAVITY_WELL",     "vexmira/gravity_well.wav",     "x/x_teleattack1.wav");
-DefSound("ECLIPSE",          "vexmira/eclipse.wav",          "x/x_laugh1.wav");
-DefSound("ZONE_WARN",        "vexmira/zone_warn.wav",        "buttons/blip2.wav");
-DefSound("SKILL_UNLOCK",     "vexmira/skill_unlock.wav",     "plats/elevbell1.wav");
-DefSound("NEM_RAGE",         "vexmira/nem_rage.wav",         "garg/gar_alert3.wav");
-DefSound("ASN_VEIL",         "vexmira/asn_veil.wav",         "x/x_teleattack1.wav");
-DefSound("LM_KILL",          "vexmira/lm_kill.wav",          "weapons/electro5.wav");
-DefSound("NADE_TRIGGER",     "vexmira/nade_trigger.wav",     "weapons/c4_beep2.wav");
-DefSound("UI_OPEN",          "vexmira/ui_open.wav",          "");
-DefSound("LM_DENY",          "vexmira/deny.wav",             "buttons/button10.wav");
-static const BSND[NUM_BOSSES][5][] =
-{
-{ "garg/gar_alert1.wav", "garg/gar_attack1.wav", "garg/gar_alert2.wav", "garg/gar_stomp1.wav", "garg/gar_die1.wav" },
-{ "controller/con_alert1.wav", "controller/con_attack1.wav", "controller/con_attack2.wav", "ambience/the_horror1.wav", "controller/con_die1.wav" },
-{ "x/x_laugh1.wav", "x/x_attack1.wav", "x/x_pain1.wav", "x/x_teleattack1.wav", "x/x_die1.wav" },
-{ "garg/gar_flameon1.wav", "garg/gar_attack2.wav", "garg/gar_alert3.wav", "ambience/flameburst1.wav", "garg/gar_die2.wav" },
-{ "x/x_laugh2.wav", "agrunt/ag_alert1.wav", "x/x_pain3.wav", "x/x_teleattack1.wav", "x/x_die1.wav" },
-{ "agrunt/ag_alert3.wav", "agrunt/ag_alert4.wav", "agrunt/ag_attack1.wav", "debris/glass3.wav", "agrunt/ag_die1.wav" },
-{ "ambience/thunder_clap.wav", "x/x_attack2.wav", "x/x_shoot1.wav", "weapons/electro5.wav", "x/x_die1.wav" },
-{ "bullchicken/bc_attackgrowl1.wav", "bullchicken/bc_attackgrowl2.wav", "bullchicken/bc_pain1.wav", "bullchicken/bc_acid1.wav", "bullchicken/bc_die1.wav" },
-{ "x/x_recharge1.wav", "x/x_attack3.wav", "tentacle/te_roar1.wav", "x/x_ballattack1.wav", "x/x_die1.wav" }
-};
-static const BRSND[NUM_BOSSES][3][] =
-{
-{ "vexmira/brute_stomp.wav",     "vexmira/brute_shatter.wav",   "vexmira/brute_wrath.wav" },
-{ "vexmira/banshee_lance.wav",   "vexmira/banshee_shriek.wav",  "vexmira/banshee_requiem.wav" },
-{ "vexmira/overlord_prison.wav", "vexmira/overlord_legion.wav", "vexmira/overlord_nova.wav" },
-{ "vexmira/inferno_breath.wav",  "vexmira/inferno_pillar.wav",  "vexmira/inferno_nova.wav" },
-{ "vexmira/reaper_step.wav",     "vexmira/reaper_chains.wav",   "vexmira/reaper_mark.wav" },
-{ "vexmira/frost_shards.wav",    "vexmira/frost_tomb.wav",      "vexmira/frost_zero.wav" },
-{ "vexmira/storm_orb.wav",       "vexmira/storm_dash.wav",      "vexmira/storm_tempest.wav" },
-{ "vexmira/hive_spit.wav",       "vexmira/hive_cloud.wav",      "vexmira/hive_eggs.wav" },
-{ "vexmira/void_bolt.wav",       "vexmira/void_singularity.wav", "vexmira/void_horizon.wav" }
-};
-static const BEVN[][] = { "INTRO", "IDLE", "PAIN", "PAIN2", "DEATH", "STEP", "ATTACK", "PHASE", "KILL" };
-static const BEVF[][] = { "intro", "idle", "pain1", "pain2", "death", "step", "attack", "phase", "kill" };
-static const BEVO[]   = { 0, 1, -1, -1, 4, -1, 3, 2, -1 };
-new key[24], snd[96];
-for (new b = 0; b < NUM_BOSSES; b++)
-{
-for (new e = 0; e < sizeof BEVN; e++)
-{
-formatex(key, charsmax(key), "B%d_%s", b, BEVN[e]);
-formatex(snd, charsmax(snd), "vexmira/boss/%s_%s.wav", BOSS_FILE[b], BEVF[e]);
-DefSound(key, snd, BEVO[e] >= 0 ? BSND[b][BEVO[e]] : "");
-}
-for (new p = 0; p < 3; p++)
-{
-formatex(key, charsmax(key), "B%d_R%d", b, p + 1);
-DefSound(key, BRSND[b][p], BSND[b][3]);
-}
-}
-static const SEV[][] = { "INTRO", "IDLE", "PAIN", "DEATH", "ATTACK" };
-static const SEVF[][] = { "intro", "idle", "pain", "death", "attack" };
-for (new e = 0; e < sizeof SEV; e++)
-{
-formatex(key, charsmax(key), "NEMESIS_%s", SEV[e]);
-formatex(snd, charsmax(snd), "vexmira/special/nemesis_%s.wav", SEVF[e]);
-DefSound(key, snd, "");
-formatex(key, charsmax(key), "ASSASSIN_%s", SEV[e]);
-formatex(snd, charsmax(snd), "vexmira/special/assassin_%s.wav", SEVF[e]);
-DefSound(key, snd, "");
-}
-DefSound("UI_VOTE_START",   "vexmira/ui/vote_start.wav",   "buttons/bell1.wav");
-DefSound("UI_VOTE_END",     "vexmira/ui/vote_end.wav",     "buttons/blip2.wav");
-DefSound("UI_BOSS_BAR",     "vexmira/ui/boss_bar.wav",     "");
-DefSound("UI_MENU_SELECT",  "vexmira/ui/menu_select.wav",  "");
-DefSound("UI_CLASS_SELECT", "vexmira/ui/class_select.wav", "");
-DefSound("MODE9_MUSIC", "sound/vexmira/boss_theme.mp3", "");
-DefSound("MODE2_MUSIC", "sound/vexmira/nemesis_theme.mp3", "");
-DefSound("MODE3_MUSIC", "sound/vexmira/nemesis_theme.mp3", "");
-DefSound("MODE8_MUSIC", "sound/vexmira/boss_theme.mp3", "");
-TrieSetString(g_tRes, "VOX_BOSS",     "vox/warning _comma hostile presence detected");
-TrieSetString(g_tRes, "VOX_BOSSDOWN", "vox/target destroyed");
-TrieSetString(g_tRes, "VOX_FINAL",    "vox/final round");
-TrieSetString(g_tRes, "VOX_INFECT",   "vox/biohazard detected");
-TrieSetString(g_tRes, "VOX_LAST",     "vox/one remaining");
-TrieSetString(g_tRes, "VOX_AIRDROP",  "vox/supply deployed");
-TrieSetString(g_tRes, "VOX_BLACKOUT", "vox/power failure");
-TrieSetString(g_tRes, "VOX_STORM",    "vox/danger _comma electric field detected");
-TrieSetString(g_tRes, "VOX_SPEED",    "vox/warning _comma high speed");
-TrieSetString(g_tRes, "VOX_MAPEND",   "vox/all objective secured");
-SetClassResources();
-SetModelResources();
-TrieSetString(g_tRes, "SKY_MODE", "1");
-TrieSetString(g_tRes, "SKY_LIST", "night de_storm tornsky black space hav office cx backalley city");
-TrieSetString(g_tRes, "SPR_ZONE",   "sprites/vexmira/zone.spr");
-TrieSetString(g_tRes, "SPR_TARGET", "sprites/vexmira/target.spr");
-TrieSetString(g_tRes, "SPR_BEACON", "sprites/vexmira/beacon.spr");
-TrieSetString(g_tRes, "SPR_ORB",    "sprites/vexmira/orb.spr");
-TrieSetString(g_tRes, "SPR_MARK",   "sprites/vexmira/mark.spr");
-TrieSetString(g_tRes, "SPR_FIRE",   "sprites/vexmira/fire.spr");
-TrieSetString(g_tRes, "SPR_LASER",  "sprites/vexmira/laser.spr");
-}
-SetModelResources()
-{
-new key[24], val[96];
-for (new b = 0; b < NUM_BOSSES; b++)
-{
-formatex(key, charsmax(key), "B%d_MODEL", b);
-formatex(val, charsmax(val), "vex_z_%s", BOSS_MDL_DEF[b]);
-TrieSetString(g_tRes, key, val);
-formatex(key, charsmax(key), "B%d_CLAW", b);
-copy(val, charsmax(val), "models/vexmira/claws/v_hulk.mdl");
-TrieSetString(g_tRes, key, val);
-}
-TrieSetString(g_tRes, "NEMESIS_MODEL",  "vex_z_hulk");
-TrieSetString(g_tRes, "ASSASSIN_MODEL", "vex_z_phantom");
-TrieSetString(g_tRes, "NEMESIS_CLAW",   "models/vexmira/claws/v_hulk.mdl");
-TrieSetString(g_tRes, "ASSASSIN_CLAW",  "models/vexmira/claws/v_phantom.mdl");
-TrieSetString(g_tRes, "SURVIVOR_MODEL", "sp_halo_admins");
-TrieSetString(g_tRes, "SNIPER_MODEL",   "sp_halo_admins");
-TrieSetString(g_tRes, "VIP_MODEL",      "sp_halo_admins");
-TrieSetString(g_tRes, "ADMIN_MODEL",    "sp_halo_admins");
-TrieSetString(g_tRes, "HUMAN_MODELS",   "sp_halo_admins");
-TrieSetString(g_tRes, "V_KNIFE",        "models/vexmira/weapons/v_vexblade.mdl");
-TrieSetString(g_tRes, "V_HEGRENADE",    "models/vexmira_ze/grenades/vexmira_v_hegrenade.mdl");
-TrieSetString(g_tRes, "V_SMOKEGRENADE", "models/vexmira_ze/grenades/vexmira_v_smokegrenade.mdl");
-TrieSetString(g_tRes, "V_FLASHBANG",    "models/vexmira_ze/grenades/vexmira_v_flashbang.mdl");
-new lower[24];
-for (new w = 1; w < sizeof WEAPON_KEYNAME; w++)
-{
-if (!WEAPON_KEYNAME[w][0] || equal(WEAPON_KEYNAME[w], "C4") || equal(WEAPON_KEYNAME[w], "GLOCK"))
-continue;
-copy(lower, charsmax(lower), WEAPON_KEYNAME[w]);
-strtolower(lower);
-formatex(key, charsmax(key), "P_%s", WEAPON_KEYNAME[w]);
-formatex(val, charsmax(val), "models/vexmira/weapons/p_%s.mdl", lower);
-if (!file_exists(val, true))
-val[0] = 0;
-TrieSetString(g_tRes, key, val);
-}
-DefModel("P_KNIFE",        "models/vexmira/weapons/p_vexblade.mdl",  "models/vexmira/weapons/p_knife.mdl");
-DefModel("P_HEGRENADE",    "models/vexmira_ze/grenades/vexmira_p_hegrenade.mdl",  "models/vexmira/weapons/p_hegrenade.mdl");
-DefModel("P_SMOKEGRENADE", "models/vexmira_ze/grenades/vexmira_p_smokegrenade.mdl", "models/vexmira/weapons/p_smokegrenade.mdl");
-DefModel("P_FLASHBANG",    "models/vexmira_ze/grenades/vexmira_p_flashbang.mdl",     "models/vexmira/weapons/p_flashbang.mdl");
-for (new i = 0; i < NUM_SPECIAL; i++)
-{
-formatex(key, charsmax(key), "SW%d_VMODEL", i);
-formatex(val, charsmax(val), "models/vexmira/weapons/v_sw%d.mdl", i % 8);
-TrieSetString(g_tRes, key, val);
-formatex(key, charsmax(key), "SW%d_PMODEL", i);
-formatex(val, charsmax(val), "models/vexmira/weapons/p_sw%d.mdl", i);
-if (!file_exists(val, true))
-val[0] = 0;
-TrieSetString(g_tRes, key, val);
-}
-TrieSetString(g_tRes, "LASERMINE_MODEL", "models/vexmira/world/lasermine.mdl");
-TrieSetString(g_tRes, "LASERMINE_MODEL_HUMAN", "models/v_tripmine.mdl");
-TrieSetString(g_tRes, "LASERMINE_MODEL_ZOMBIE", "models/vexmira/world/lasermine.mdl");
-TrieSetString(g_tRes, "AIRDROP_MODEL",   "models/vexmira/world/supply_crate.mdl");
-TrieSetString(g_tRes, "EGG_MODEL",       "");
-TrieSetString(g_tRes, "W_HEGRENADE",     "models/vexmira_ze/grenades/vexmira_w_hegrenade.mdl");
-TrieSetString(g_tRes, "W_SMOKEGRENADE",  "models/vexmira_ze/grenades/vexmira_w_smokegrenade.mdl");
-TrieSetString(g_tRes, "W_FLASHBANG",     "models/vexmira_ze/grenades/vexmira_w_flashbang.mdl");
-TrieSetString(g_tRes, "SPR_BOSSBAR",     "sprites/vexmira/bossbar.spr");
-TrieSetString(g_tRes, "SPR_BOSSICON",    "sprites/vexmira/bossicon.spr");
-TrieSetString(g_tRes, "SPR_HPBAR",       "sprites/vexmira/hpbar_small.spr");
-TrieSetString(g_tRes, "SPR_ICON_VIP",    "sprites/vexmira/icon_vip.spr");
-TrieSetString(g_tRes, "SPR_ICON_ADMIN",  "sprites/vexmira/icon_admin.spr");
-TrieSetString(g_tRes, "SPR_ICON_MVP",    "sprites/vexmira/icon_mvp.spr");
-TrieSetString(g_tRes, "SPR_ICON_LAST",   "sprites/vexmira/icon_lasthuman.spr");
-TrieSetString(g_tRes, "SPR_ICON_ALPHA",  "sprites/vexmira/icon_alpha.spr");
-TrieSetString(g_tRes, "BOSS_PRELOAD",      "4");
-TrieSetString(g_tRes, "BOSS_PRELOAD_LIST", "");
-TrieSetString(g_tRes, "BOSS_GIANT_TEX",    "256");
-TrieSetString(g_tRes, "BOSS_GIANT_ALL",    "1");
-TrieSetString(g_tRes, "SOUND_BUDGET",      "200");
-TrieSetString(g_tRes, "MODEL_BUDGET",      "250");
-TrieSetString(g_tRes, "SOUND_BLOCK_STOCK", "1");
-TrieSetString(g_tRes, "SOUND_BLOCK_EXTRA", "");
-TrieSetString(g_tRes, "SPR_EXPLO_FIRE",  "sprites/vexmira/explo_fire.spr");
-TrieSetString(g_tRes, "SPR_EXPLO_ICE",   "sprites/vexmira/explo_ice.spr");
-TrieSetString(g_tRes, "SPR_EXPLO_TOXIC", "sprites/vexmira/explo_toxic.spr");
-TrieSetString(g_tRes, "SPR_EXPLO_VOID",  "sprites/vexmira/explo_void.spr");
-TrieSetString(g_tRes, "SPR_HEAL",        "sprites/vexmira/heal.spr");
-TrieSetString(g_tRes, "SPR_LEVELUP",     "sprites/vexmira/levelup.spr");
-TrieSetString(g_tRes, "SPR_INFECT",      "sprites/vexmira/infect.spr");
-TrieSetString(g_tRes, "SPR_SHOCK",       "sprites/vexmira/shock.spr");
-TrieSetString(g_tRes, "SPR_SLASH",       "sprites/vexmira/slash.spr");
-TrieSetString(g_tRes, "SPR_ICE",         "sprites/vexmira/ice.spr");
-TrieSetString(g_tRes, "SPR_VOID",        "sprites/vexmira/void.spr");
-TrieSetString(g_tRes, "SPR_TOXIC",       "sprites/vexmira/toxic.spr");
-}
-DefModel(const key[], const first[], const second[])
-{
-if (first[0] && file_exists(first, true))
-TrieSetString(g_tRes, key, first);
-else if (second[0] && file_exists(second, true))
-TrieSetString(g_tRes, key, second);
-else
-TrieSetString(g_tRes, key, first);
-}
-SetClassResources()
-{
-new key[24], val[96], snd[96];
-static const CEV[][] = { "pain", "die", "idle", "ability" };
-static const CEVKEY[][] = { "PAIN", "DIE", "IDLE", "ABILITY" };
-for (new i = 0; i < NUM_CLASSES; i++)
-{
-formatex(key, charsmax(key), "Z%d_MODEL", i);
-formatex(val, charsmax(val), "vex_z_%s", CLASS_MDL_DEF[i]);
-TrieSetString(g_tRes, key, val);
-formatex(key, charsmax(key), "Z%d_CLAW", i);
-formatex(val, charsmax(val), "models/vexmira/claws/v_%s.mdl", CLASS_CLAW_DEF[i]);
-TrieSetString(g_tRes, key, val);
-for (new e = 0; e < sizeof CEV; e++)
-{
-formatex(key, charsmax(key), "Z%d_%s", i, CEVKEY[e]);
-formatex(snd, charsmax(snd), "vexmira/class/%s_%s.wav", CLASS_FILE[i], CEV[e]);
-DefSound(key, snd, "");
-}
-}
-DefSound("HUNTER_IMPACT",     "vexmira/class/hunter_impact.wav",     "garg/gar_stomp1.wav");
-DefSound("CHARGER_IMPACT",    "vexmira/class/charger_impact.wav",    "garg/gar_stomp1.wav");
-DefSound("ARACHNE_WEBHIT",    "vexmira/class/arachne_webhit.wav",    "bullchicken/bc_spithit1.wav");
-DefSound("BURROWER_ERUPT",    "vexmira/class/burrower_erupt.wav",    "garg/gar_stomp1.wav");
-DefSound("SPOREMOTHER_BURST", "vexmira/class/sporemother_burst.wav", "bullchicken/bc_acid1.wav");
-DefSound("MIMIC_REVEAL",      "vexmira/class/mimic_reveal.wav",      "zombie/zo_alert30.wav");
-DefSound("VOLT_ZAP",          "vexmira/class/volt_zap.wav",          "weapons/electro4.wav");
-DefSound("HOOK_THROW", "vexmira/hook/throw.wav", "zombie/claw_miss1.wav");
-DefSound("HOOK_CHAIN", "vexmira/hook/chain.wav", "");
-DefSound("HOOK_HIT",   "vexmira/hook/hit.wav",   "zombie/claw_strike1.wav");
-DefSound("HOOK_PULL",  "vexmira/hook/pull.wav",  "");
-DefSound("HOOK_MISS",  "vexmira/hook/miss.wav",  "zombie/claw_miss2.wav");
-TrieSetString(g_tRes, "HOOK_MODEL",  "");
-TrieSetString(g_tRes, "SPORE_MODEL", "");
-TrieSetString(g_tRes, "SPR_CHAIN",   "sprites/vexmira/chain.spr");
-TrieSetString(g_tRes, "SPR_WEB",     "sprites/vexmira/web.spr");
-TrieSetString(g_tRes, "SPR_SPORE",   "sprites/vexmira/spore.spr");
-TrieSetString(g_tRes, "SPR_EMP",     "sprites/vexmira/emp.spr");
-}
 new const SOUND_KEYS_V3[][] =
 {
 "HUNTER_IMPACT", "CHARGER_IMPACT", "ARACHNE_WEBHIT", "BURROWER_ERUPT", "SPOREMOTHER_BURST", "MIMIC_REVEAL", "VOLT_ZAP",
 "HOOK_THROW", "HOOK_CHAIN", "HOOK_HIT", "HOOK_PULL", "HOOK_MISS"
 };
-bool:SoundExists(const path[])
-{
-if (!path[0])
-return false;
-new full[160];
-if (containi(path, ".mp3") != -1)
-copy(full, charsmax(full), path);
-else
-formatex(full, charsmax(full), "sound/%s", path);
-return file_exists(full, true) ? true : false;
-}
-DefSound(const key[], const first[], const second[])
-{
-if (SoundExists(first))
-TrieSetString(g_tRes, key, first);
-else if (SoundExists(second))
-TrieSetString(g_tRes, key, second);
-else
-TrieSetString(g_tRes, key, "");
-}
 PlayerModelFallback(const name[], out[], len)
 {
 out[0] = 0;
@@ -7646,13 +6788,7 @@ copy(out, len, name);
 MdlHeadTops(name);
 }
 }
-// 5.3.1 SKY_MODE 3: rotation. All SKY_LIST skies are downloaded on connect; every map starts with the next
-// one of the list and every new round switches to the next sky (sv_skyname is sent to clients with the
-// movevars each frame; clients that cannot reload the sky mid-map show the new one from the next map).
 new g_szSkyRot531[8][32], g_iSkyRotN531, g_iSkyRotPos531;
-
-// 5.3.1: unlimited reserve ammo for every normal weapon in every mode/event; special weapons
-// (/ozel arsenal + CSO gear guns) keep their limited ammo.
 bool:VxIsSpecialWeapon531(id, weapon)
 {
 if (VxIndex(weapon) >= 0) return true;
@@ -7686,7 +6822,6 @@ if (!tmp[0] || !SkyExists(tmp)) { if (tmp[0]) log_amx("[Vexmira] gokyuzu dosyasi
 copy(g_szSkyRot531[g_iSkyRotN531++], charsmax(g_szSkyRot531[]), tmp);
 }
 if (!g_iSkyRotN531) return;
-// only SKY_PER_MAP skies are downloaded per map (512-download limit); the window moves every map
 new per = clamp(str_to_num(GetResString("SKY_PER_MAP", "3")), 1, 8);
 if (per < g_iSkyRotN531)
 {
@@ -7835,7 +6970,6 @@ if (!TrieGetString(g_tRes, key, path, charsmax(path)) || !path[0])
 return;
 if (contain(path, "|") != -1)
 {
-// pool: precache each member, keep only the ones that made it
 new src[256], tmp[96], pos, keep[256], one[96];
 copy(src, charsmax(src), path);
 for (new i = 0; src[i]; i++) if (src[i] == '|') src[i] = ' ';
@@ -8439,345 +7573,8 @@ if (!TrieGetString(g_tRes, key, out, charsmax(out)) || !out[0])
 copy(out, charsmax(out), def);
 return out;
 }
-
-// ===================== 5.3.1 giant boss models =====================
-// GoldSrc clients ignore pev->scale on player models, so the plugin builds a scaled copy of each loaded
-// boss model at map load: models/player/<name>_xNN/<name>_xNN.mdl (NN = scale*10). Bone positions, their
-// animation scales, translation controllers, vertices, hitboxes, attachments, bounding boxes, eye
-// position and root motion are multiplied by k and the root bones are lifted so the feet stay on the floor
-// (CS player origin = hull centre, feet at -36). The hitboxes are part of the model, so they grow with it.
-// Generated once, reused on later maps; clients download it like any other model.
 new Float:g_fBossScale531 = 1.0;
 #define GM_OK(%1) (%1)
-stock Float:GmRdF(fp, off) { new v; fseek(fp, off, SEEK_SET); fread(fp, v, BLOCK_INT); return Float:v; }
-stock GmRdI(fp, off) { new v; fseek(fp, off, SEEK_SET); fread(fp, v, BLOCK_INT); return v; }
-stock GmWrF(fp, off, Float:v) { fseek(fp, off, SEEK_SET); fwrite(fp, _:v, BLOCK_INT); }
-stock GmScale(fp, off, Float:k, Float:add = 0.0) { GmWrF(fp, off, GmRdF(fp, off) * k + add); }
-stock GmScale3(fp, off, Float:k, Float:addz = 0.0) { GmScale(fp, off, k); GmScale(fp, off + 4, k); GmScale(fp, off + 8, k, addz); }
-bool:GmCopy(const src[], const dst[])
-{
-new in = fopen(src, "rb", true);
-if (!in) return false;
-new out = fopen(dst, "wb");
-if (!out) { fclose(in); return false; }
-new buf[2048], n;
-while ((n = fread_blocks(in, buf, sizeof buf, BLOCK_CHAR)) > 0)
-fwrite_blocks(out, buf, n, BLOCK_CHAR);
-fclose(in); fclose(out);
-return true;
-}
-bool:GmPatch(const path[], Float:k)
-{
-new fp = fopen(path, "r+b");
-if (!fp) return false;
-if (GmRdI(fp, 0) != 0x54534449 || GmRdI(fp, 4) != 10) { fclose(fp); return false; }
-new Float:lift = 36.0 * (k - 1.0);
-GmScale3(fp, 76, k, lift);  GmScale3(fp, 88, k, lift); GmScale3(fp, 100, k, lift);   // eye, min, max
-GmScale3(fp, 112, k, lift); GmScale3(fp, 124, k, lift);                              // bbmin, bbmax
-new nb = GmRdI(fp, 140), bi = GmRdI(fp, 144);
-if (nb < 1 || nb > 256) { fclose(fp); return false; }
-for (new b = 0; b < nb; b++)
-{
-new o = bi + b * 112;
-new parent = GmRdI(fp, o + 32);
-GmScale(fp, o + 64, k); GmScale(fp, o + 68, k); GmScale(fp, o + 72, k, parent < 0 ? lift : 0.0);  // value[0..2]
-GmScale(fp, o + 88, k); GmScale(fp, o + 92, k); GmScale(fp, o + 96, k);                            // scale[0..2]
-}
-new nc = GmRdI(fp, 148), ci = GmRdI(fp, 152);
-for (new c = 0; c < nc && c < 64; c++)
-{
-new o = ci + c * 24;
-if (GmRdI(fp, o + 4) & 7) { GmScale(fp, o + 8, k); GmScale(fp, o + 12, k); }
-}
-new nh = GmRdI(fp, 156), hi = GmRdI(fp, 160);
-for (new h = 0; h < nh && h < 256; h++) { new o = hi + h * 32; GmScale3(fp, o + 8, k); GmScale3(fp, o + 20, k); }
-new ns = GmRdI(fp, 164), si = GmRdI(fp, 168);
-for (new q = 0; q < ns && q < 1024; q++) { new o = si + q * 176; GmScale3(fp, o + 76, k); GmScale3(fp, o + 96, k, lift); GmScale3(fp, o + 108, k, lift); }
-new na = GmRdI(fp, 212), ai = GmRdI(fp, 216);
-for (new a = 0; a < na && a < 16; a++) GmScale3(fp, ai + a * 88 + 40, k);
-new nbp = GmRdI(fp, 204), bpi = GmRdI(fp, 208);
-for (new p = 0; p < nbp && p < 32; p++)
-{
-new o = bpi + p * 76, nm = GmRdI(fp, o + 64), mi = GmRdI(fp, o + 72);
-for (new m = 0; m < nm && m < 64; m++)
-{
-new mo = mi + m * 112;
-GmScale(fp, mo + 68, k);                                    // bounding radius
-new nv = GmRdI(fp, mo + 80), vi = GmRdI(fp, mo + 88);
-for (new v = 0; v < nv && v < 32768; v++) GmScale3(fp, vi + v * 12, k);
-}
-}
-fclose(fp);
-return true;
-}
-stock bool:GsMarked(const path[], const mark[])
-{
-new fp = fopen(path, "rb");
-if (!fp) return false;
-new buf[33]; fseek(fp, 8, SEEK_SET); fread_blocks(fp, buf, 32, BLOCK_CHAR); fclose(fp); buf[32] = 0;
-return equal(buf, mark) ? true : false;
-}
-stock GsMark(const path[], const mark[])
-{
-new fp = fopen(path, "r+b");
-if (!fp) return;
-new buf[64], n = strlen(mark);
-for (new i = 0; i < 64; i++) buf[i] = i < n ? mark[i] : 0;
-fseek(fp, 8, SEEK_SET); fwrite_blocks(fp, buf, 64, BLOCK_CHAR); fclose(fp);
-}
-// 5.3.4 SLIM GIANT COPY (reference: devtools/mdlkit/giant_slim.py). Every player downloads the giant boss
-// copy, so it is made ~3x smaller: the weapon aim/shoot/reload sequences the boss never plays keep their
-// names (indices unchanged) but use the knife animation, their animation blocks are cut out, and textures
-// larger than BOSS_GIANT_TEX are downscaled (s/t of the meshes scaled with them). All file offsets remapped.
-#define GS_MAXP 4096
-#define GS_MAXQ 400
-#define GS_MAXS 512
-#define GS_MAXT 64
-new g_GsPos[GS_MAXP], g_GsVal[GS_MAXP], g_GsNP;
-new g_GsSeqO[GS_MAXQ], g_GsSeqAi[GS_MAXQ], g_GsRed[GS_MAXQ], g_GsLab[GS_MAXQ][33];
-new g_GsSegA[GS_MAXS], g_GsSegB[GS_MAXS], g_GsSegN[GS_MAXS], g_GsSegT[GS_MAXS], g_GsNS;
-new g_GsTexF[GS_MAXT], g_GsTexW[GS_MAXT], g_GsTexH[GS_MAXT];
-stock GsRdS(fp, off) { new v; fseek(fp, off, SEEK_SET); fread(fp, v, BLOCK_SHORT); v &= 0xFFFF; if (v & 0x8000) v |= 0xFFFF0000; return v; }
-stock GsWrI(fp, off, v) { fseek(fp, off, SEEK_SET); fwrite(fp, v, BLOCK_INT); }
-stock GsP(fp, pos, len)
-{
-if (pos <= 0 || pos + 4 > len || g_GsNP >= GS_MAXP) return;
-new v = GmRdI(fp, pos);
-if (v > 0 && v <= len) { g_GsPos[g_GsNP] = pos; g_GsVal[g_GsNP++] = v; }
-}
-stock GsEnd(a, len, nq)
-{
-new e = len;
-for (new i = 0; i < g_GsNP; i++) if (g_GsVal[i] > a && g_GsVal[i] < e) e = g_GsVal[i];
-for (new q = 0; q < nq; q++) if (g_GsSeqAi[q] > a && g_GsSeqAi[q] < e) e = g_GsSeqAi[q];
-return e;
-}
-stock GsRemap(off)
-{
-new r = off;
-for (new s = 0; s < g_GsNS; s++)
-{
-if (g_GsSegB[s] <= off) r -= (g_GsSegB[s] - g_GsSegA[s]) - g_GsSegN[s];
-else break;
-}
-return r;
-}
-stock GsCopyRange(in, out, a, b)
-{
-static buf[2048];
-fseek(in, a, SEEK_SET);
-while (a < b)
-{
-new n = min(b - a, sizeof buf);
-n = fread_blocks(in, buf, n, BLOCK_CHAR);
-if (n <= 0) return;
-fwrite_blocks(out, buf, n, BLOCK_CHAR);
-a += n;
-}
-}
-stock GsFindSeq(const lab[], nq) { for (new q = 0; q < nq; q++) if (equal(g_GsLab[q], lab)) return q; return -1; }
-// weapon sequence -> knife sequence index, -1 = keep
-stock GsKnifeOf(q, nq)
-{
-new l[33]; copy(l, charsmax(l), g_GsLab[q]);
-new pre[8], p;
-if (equal(l, "ref_", 4)) { copy(pre, charsmax(pre), "ref"); p = 4; }
-else if (equal(l, "crouch_", 7)) { copy(pre, charsmax(pre), "crouch"); p = 7; }
-else return -1;
-new kind[8];
-if (equal(l[p], "aim_", 4)) { copy(kind, charsmax(kind), "aim"); p += 4; }
-else if (equal(l[p], "shoot2_", 7)) { copy(kind, charsmax(kind), "shoot"); p += 7; }
-else if (equal(l[p], "shoot_", 6)) { copy(kind, charsmax(kind), "shoot"); p += 6; }
-else if (equal(l[p], "reload_", 7)) { copy(kind, charsmax(kind), "aim"); p += 7; }
-else return -1;
-new wl = strlen(l[p]);
-if (!wl || (wl >= 5 && equal(l[p + wl - 5], "knife"))) return -1;
-new t[40]; formatex(t, charsmax(t), "%s_%s_knife", pre, kind);
-new k = GsFindSeq(t, nq);
-return (k >= 0 && g_GsSeqAi[k] != g_GsSeqAi[q]) ? k : -1;
-}
-// in = patched giant file, out = new slim file. false = not possible (caller keeps the plain giant)
-bool:GsSlim(const inPath[], const outPath[], maxTex)
-{
-new in = fopen(inPath, "rb");
-if (!in) return false;
-new len = GmRdI(in, 72);
-if (GmRdI(in, 0) != 0x54534449 || GmRdI(in, 4) != 10 || len != file_size(inPath, 0)) { fclose(in); return false; }
-g_GsNP = 0; g_GsNS = 0;
-new nq = GmRdI(in, 164), si = GmRdI(in, 168), nsg = GmRdI(in, 172), sgi = GmRdI(in, 176);
-new nt = GmRdI(in, 180), ti = GmRdI(in, 184), nsr = GmRdI(in, 192), nsf = GmRdI(in, 196);
-new nbp = GmRdI(in, 204), bpi = GmRdI(in, 208);
-if (nq < 1 || nq > GS_MAXQ || nt < 0 || nt > GS_MAXT || nbp < 0 || nbp > 32) { fclose(in); return false; }
-if (nsg >= 1 && GmRdI(in, sgi + 100) != 0) { fclose(in); return false; }
-static const HDRP[] = { 144, 152, 160, 168, 176, 184, 188, 200, 208, 216, 224, 232, 240 };
-for (new i = 0; i < sizeof HDRP; i++) GsP(in, HDRP[i], len);
-for (new q = 0; q < nq; q++)
-{
-new o = si + q * 176;
-if (GmRdI(in, o + 156) != 0) { fclose(in); return false; }   // external sequence group
-g_GsSeqO[q] = o; g_GsSeqAi[q] = GmRdI(in, o + 124); g_GsRed[q] = -1;
-fseek(in, o, SEEK_SET); fread_blocks(in, g_GsLab[q], 32, BLOCK_CHAR); g_GsLab[q][32] = 0; strtolower(g_GsLab[q]);
-if (GmRdI(in, o + 48) > 0) GsP(in, o + 52, len);
-if (GmRdI(in, o + 60) > 0) GsP(in, o + 64, len);
-GsP(in, o + 88, len); GsP(in, o + 92, len);
-}
-for (new b = 0; b < nbp; b++)
-{
-new o = bpi + b * 76, nm = GmRdI(in, o + 64), mi = GmRdI(in, o + 72);
-GsP(in, o + 72, len);
-for (new m = 0; m < nm && m < 64; m++)
-{
-new mo = mi + m * 112;
-GsP(in, mo + 76, len); GsP(in, mo + 84, len); GsP(in, mo + 88, len); GsP(in, mo + 96, len); GsP(in, mo + 100, len); GsP(in, mo + 108, len);
-new nme = GmRdI(in, mo + 72), mei = GmRdI(in, mo + 76);
-for (new k = 0; k < nme && k < 256; k++) { GsP(in, mei + k * 20 + 4, len); GsP(in, mei + k * 20 + 16, len); }
-}
-}
-for (new t = 0; t < nt; t++) GsP(in, ti + t * 80 + 76, len);
-if (g_GsNP >= GS_MAXP) { fclose(in); return false; }
-// 1) weapon sequences -> knife; cut blocks nobody uses any more
-for (new q = 0; q < nq; q++) g_GsRed[q] = GsKnifeOf(q, nq);
-for (new q = 0; q < nq; q++)
-{
-if (g_GsRed[q] < 0) continue;
-new a = g_GsSeqAi[q], bool:used = false, bool:dup = false;
-for (new r = 0; r < nq && !used; r++) if (g_GsRed[r] < 0 && g_GsSeqAi[r] == a) used = true;
-for (new s = 0; s < g_GsNS && !dup; s++) if (g_GsSegA[s] == a) dup = true;
-if (used || dup || a <= 0 || a >= len || g_GsNS >= GS_MAXS) continue;
-g_GsSegA[g_GsNS] = a; g_GsSegB[g_GsNS] = GsEnd(a, len, nq); g_GsSegN[g_GsNS] = 0; g_GsSegT[g_GsNS++] = -1;
-}
-// 2) textures (chrome stays; several skin families -> one common factor)
-new fmin = 1 << 20;
-for (new t = 0; t < nt; t++)
-{
-new o = ti + t * 80, fl = GmRdI(in, o + 64), w = GmRdI(in, o + 68), h = GmRdI(in, o + 72), ix = GmRdI(in, o + 76), f = 1;
-g_GsTexW[t] = w; g_GsTexH[t] = h;
-if (maxTex >= 16 && !(fl & 2) && w > 0 && h > 0 && w <= 2048)
-while (max(w, h) / f > maxTex && w / (f * 2) >= 16 && h / (f * 2) >= 16) f *= 2;
-if (ix <= 0 || ix + w * h + 768 > GsEnd(ix, len, nq)) f = 1;
-g_GsTexF[t] = f;
-if (f < fmin) fmin = f;
-}
-for (new t = 0; t < nt; t++)
-{
-if (nsf > 1) g_GsTexF[t] = fmin;
-new f = g_GsTexF[t];
-if (f <= 1 || g_GsNS >= GS_MAXS) { g_GsTexF[t] = 1; continue; }
-new ix = GmRdI(in, ti + t * 80 + 76), w = g_GsTexW[t], h = g_GsTexH[t];
-g_GsSegA[g_GsNS] = ix; g_GsSegB[g_GsNS] = ix + w * h + 768; g_GsSegN[g_GsNS] = (w / f) * (h / f) + 768; g_GsSegT[g_GsNS++] = t;
-}
-if (!g_GsNS) { fclose(in); return false; }
-// sort segments, refuse overlaps
-for (new i = 1; i < g_GsNS; i++)
-for (new j = i; j > 0 && g_GsSegA[j - 1] > g_GsSegA[j]; j--)
-{
-new x;
-x = g_GsSegA[j]; g_GsSegA[j] = g_GsSegA[j - 1]; g_GsSegA[j - 1] = x;
-x = g_GsSegB[j]; g_GsSegB[j] = g_GsSegB[j - 1]; g_GsSegB[j - 1] = x;
-x = g_GsSegN[j]; g_GsSegN[j] = g_GsSegN[j - 1]; g_GsSegN[j - 1] = x;
-x = g_GsSegT[j]; g_GsSegT[j] = g_GsSegT[j - 1]; g_GsSegT[j - 1] = x;
-}
-for (new i = 1; i < g_GsNS; i++) if (g_GsSegB[i - 1] > g_GsSegA[i]) { fclose(in); return false; }
-// 3) write
-new out = fopen(outPath, "wb");
-if (!out) { fclose(in); return false; }
-static row[2048], dst[2048];
-new pos = 0;
-for (new s = 0; s < g_GsNS; s++)
-{
-GsCopyRange(in, out, pos, g_GsSegA[s]);
-new t = g_GsSegT[s];
-if (t >= 0)
-{
-new f = g_GsTexF[t], w = g_GsTexW[t], h = g_GsTexH[t], nw = w / f, nh = h / f, ix = g_GsSegA[s];
-for (new y = 0; y < nh; y++)
-{
-fseek(in, ix + y * f * w, SEEK_SET);
-fread_blocks(in, row, w, BLOCK_CHAR);
-for (new x = 0; x < nw; x++) dst[x] = row[x * f];
-fwrite_blocks(out, dst, nw, BLOCK_CHAR);
-}
-GsCopyRange(in, out, ix + w * h, ix + w * h + 768);
-}
-pos = g_GsSegB[s];
-}
-GsCopyRange(in, out, pos, len);
-fclose(out);
-// 4) patch offsets / redirected seqdescs / texture sizes
-out = fopen(outPath, "r+b");
-if (!out) { fclose(in); return false; }
-new nlen = GsRemap(len);
-for (new i = 0; i < g_GsNP; i++) GsWrI(out, GsRemap(g_GsPos[i]), GsRemap(g_GsVal[i]));
-static blk[40];
-for (new q = 0; q < nq; q++)
-{
-new no = GsRemap(g_GsSeqO[q]), r = g_GsRed[q];
-if (r >= 0)
-{
-new to = g_GsSeqO[r];
-fseek(in, to + 32, SEEK_SET); fread_blocks(in, blk, 4, BLOCK_CHAR); fseek(out, no + 32, SEEK_SET); fwrite_blocks(out, blk, 4, BLOCK_CHAR);
-fseek(in, to + 56, SEEK_SET); fread_blocks(in, blk, 4, BLOCK_CHAR); fseek(out, no + 56, SEEK_SET); fwrite_blocks(out, blk, 4, BLOCK_CHAR);
-fseek(in, to + 120, SEEK_SET); fread_blocks(in, blk, 36, BLOCK_CHAR); fseek(out, no + 120, SEEK_SET); fwrite_blocks(out, blk, 36, BLOCK_CHAR);
-}
-GsWrI(out, no + 124, GsRemap(g_GsSeqAi[r >= 0 ? r : q]));
-}
-new bool:anyTex = false;
-for (new t = 0; t < nt; t++)
-{
-if (g_GsTexF[t] <= 1) continue;
-anyTex = true;
-new no = GsRemap(ti + t * 80);
-GsWrI(out, no + 68, g_GsTexW[t] / g_GsTexF[t]); GsWrI(out, no + 72, g_GsTexH[t] / g_GsTexF[t]);
-}
-GsWrI(out, 72, nlen);
-fclose(in);
-// 5) mesh s/t for downscaled textures (skin family 0), read from the new file
-if (anyTex)
-{
-new nbpi = GmRdI(out, 208), nski = GmRdI(out, 200), done[256], nd;
-for (new b = 0; b < nbp; b++)
-{
-new o = nbpi + b * 76, nm = GmRdI(out, o + 64), mi = GmRdI(out, o + 72);
-for (new m = 0; m < nm && m < 64; m++)
-{
-new mo = mi + m * 112, nme = GmRdI(out, mo + 72), mei = GmRdI(out, mo + 76);
-for (new k = 0; k < nme && k < 256; k++)
-{
-new tri = GmRdI(out, mei + k * 20 + 4), sref = GmRdI(out, mei + k * 20 + 8), bool:seen = false;
-if (sref < 0 || sref >= nsr) continue;
-new tx = GsRdS(out, nski + sref * 2);
-if (tx < 0 || tx >= nt || g_GsTexF[tx] <= 1) continue;
-for (new z = 0; z < nd && !seen; z++) if (done[z] == tri) seen = true;
-if (seen) continue;
-if (nd < sizeof done) done[nd++] = tri;
-new Float:rs = float(g_GsTexW[tx] / g_GsTexF[tx]) / float(g_GsTexW[tx]);
-new Float:rt = float(g_GsTexH[tx] / g_GsTexF[tx]) / float(g_GsTexH[tx]);
-new p = tri, guard = 0;
-while (p > 0 && p + 2 <= nlen && guard++ < 65536)
-{
-new n = GsRdS(out, p); p += 2;
-if (!n) break;
-n = abs(n);
-for (new v = 0; v < n; v++, p += 8)
-{
-new s0 = GsRdS(out, p + 4), t0 = GsRdS(out, p + 6);
-fseek(out, p + 4, SEEK_SET);
-fwrite(out, floatround(float(s0) * rs, floatround_tozero), BLOCK_SHORT);
-fwrite(out, floatround(float(t0) * rt, floatround_tozero), BLOCK_SHORT);
-}
-}
-}
-}
-}
-}
-fclose(out);
-return true;
-}
-// 5.3.2 GIANT BOSS WITHOUT DOWNLOADS (vex_res BOSS_GIANT "clone"): the CS client ignores the scale of
-// player models, but it does scale normal entities. So the boss player is hidden (only on the clients, in
-// AddToFullPack) and a "body" entity with the SAME model file (already on every client) is drawn at
-// BOSS_SCALE size every server frame: same position (feet on the ground), same yaw, the player's
-// movement / attack animation. No new model files -> nothing extra to download on any map.
 GiantRemove532()
 {
 if (g_iGiantEnt532 && pev_valid(g_iGiantEnt532)) engfunc(EngFunc_RemoveEntity, g_iGiantEnt532);
@@ -8788,7 +7585,6 @@ public GiantFrame532()
 if (g_iGiantMode532 != 1 || g_fBossScale531 <= 1.01) { if (g_iGiantEnt532) GiantRemove532(); return; }
 new id = g_iBoss;
 new bool:have = g_iGiantEnt532 && pev_valid(g_iGiantEnt532);
-// keep the giant body through the boss' death animation (until the round restarts)
 if (!(g_iMode == MODE_BOSS && id >= 1 && id <= g_iMax && is_user_connected(id) && g_iBossType >= 0 && g_iBossType < NUM_BOSSES && g_szBModel[g_iBossType][0]
 && ((is_user_alive(id) && g_bBoss[id]) || have)))
 {
@@ -8831,14 +7627,12 @@ g_iGiantSeq532 = seq;
 set_entvar(ent, var_sequence, seq); set_entvar(ent, var_frame, 0.0);
 set_entvar(ent, var_animtime, get_gametime()); set_entvar(ent, var_framerate, 1.0);
 }
-// boss effects (glow shell, colour) are copied to the body
 set_entvar(ent, var_renderfx, get_entvar(id, var_renderfx));
 new Float:c[3]; get_entvar(id, var_rendercolor, c); set_entvar(ent, var_rendercolor, c);
 set_entvar(ent, var_rendermode, get_entvar(id, var_rendermode));
 set_entvar(ent, var_renderamt, Float:get_entvar(id, var_renderamt));
 set_entvar(ent, var_skin, get_entvar(id, var_skin)); set_entvar(ent, var_body, get_entvar(id, var_body));
 }
-// AddToFullPack (post): hide the real boss, hide the body from the boss himself (first person)
 GiantPack532(es, ent, host)
 {
 if (!g_iGiantEnt532) return FMRES_IGNORED;
@@ -8851,43 +7645,6 @@ if (ent == g_iGiantEnt532 && host == g_iBoss && !(g_iCamera47[host] && !is_nulle
 set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
 return FMRES_IGNORED;
 }
-// name -> giant name (built if needed); false = keep the original
-bool:GmBossGiant(const name[], out[], len)
-{
-new Float:k = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
-g_fBossScale531 = k;
-if (k < 1.05) return false;
-new gname[48], src[160], dst[160], dir[96], t1[160], t2[160];
-formatex(gname, charsmax(gname), "%s_x%d", name, floatround(k * 10.0));
-formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
-formatex(dir, charsmax(dir), "models/player/%s", gname);
-formatex(dst, charsmax(dst), "%s/%s.mdl", dir, gname);
-// 5.3.4: slim copy (see GsSlim). The header name field carries a build mark, so the fat 5.3.3 copies and
-// copies made with another BOSS_GIANT_TEX are rebuilt once. Same file name -> nothing new to download for
-// players that already have it.
-new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX", "256")), 0, 4096), mark[32];
-formatex(mark, charsmax(mark), "vexgiant534 t%d", tex);
-if (!file_exists(dst, true) || !GsMarked(dst, mark))
-{
-if (!file_exists(src, true)) return false;
-if (!dir_exists(dir)) mkdir(dir);
-if (!GmCopy(src, dst) || !GmPatch(dst, k)) { delete_file(dst); log_amx("[GiantBoss] %s olusturulamadi (dosya/klasor izni?) - normal boyut", dst); return false; }
-new tmp[168], s0 = file_size(dst, 0), bool:slim;
-formatex(tmp, charsmax(tmp), "%s.tmp", dst);
-if (GsSlim(dst, tmp, tex) && GmCopy(tmp, dst)) slim = true;
-delete_file(tmp);
-GsMark(dst, mark);
-formatex(t1, charsmax(t1), "models/player/%s/%sT.mdl", name, name);
-formatex(t2, charsmax(t2), "%s/%sT.mdl", dir, gname);
-if (file_exists(t1, true) && !file_exists(t2, true)) GmCopy(t1, t2);
-log_amx("[GiantBoss] dev model uretildi: %s (x%.1f) %d KB%s", dst, k, file_size(dst, 0) / 1024, slim ? "" : " (inceltilemedi, tam kopya)");
-if (slim) log_amx("[GiantBoss] inceltildi: %d KB -> %d KB (kullanilmayan silah animasyonlari + doku %d px)", s0 / 1024, file_size(dst, 0) / 1024, tex);
-}
-if (!CommunityLegacyFileOk(dst)) return false;
-copy(out, len, gname);
-return true;
-}
-// ===================== end giant boss models =====================
 GetPlayerModel(const key[], out[], len)
 {
 out[0] = 0;
@@ -8930,18 +7687,12 @@ return;
 if (!PcModel(out))
 out[0] = 0;
 }
-// 5.3.3: config entries whose file is not on the server (shown by the console command vex_kontrol)
 new Trie:g_tResMiss533;
 ResMiss533(const key[], const path[])
 {
 if (g_tResMiss533 == Invalid_Trie) g_tResMiss533 = TrieCreate();
 TrieSetString(g_tResMiss533, key, path);
 }
-// 5.3.4 vex_fastdl: every custom file players download on THIS map (plugin models / sprites / sounds / generic
-// files + the map and its .res list), largest first, written to addons/amxmodx/data/vexmira_fastdl.txt. Copy
-// exactly these files to the FastDL web folder (same paths): with FastDL a player downloads them in seconds,
-// without it the game's own download is very slow (the "long wait on join"). Startup warns when
-// sv_downloadurl is empty.
 #define FDL_MAX 900
 new g_szFdl534[FDL_MAX][96], g_iFdlSz534[FDL_MAX], g_iFdlN534;
 stock FdlAdd534(const path[])
@@ -8949,7 +7700,7 @@ stock FdlAdd534(const path[])
 if (g_iFdlN534 >= FDL_MAX || !path[0]) return;
 for (new i = 0; i < g_iFdlN534; i++) if (equali(g_szFdl534[i], path)) return;
 new sz = file_size(path, 0);
-if (sz <= 0) return;                                      // not in cstrike/ (stock content in valve/ or missing)
+if (sz <= 0) return;
 copy(g_szFdl534[g_iFdlN534], charsmax(g_szFdl534[]), path);
 g_iFdlSz534[g_iFdlN534++] = sz;
 }
@@ -8986,7 +7737,6 @@ fclose(fp);
 FdlTrie534(g_tMdlDone, false);
 FdlTrie534(g_tSnd2D, true);
 FdlTrie534(g_tSnd3D, true);
-// largest first
 for (new i = 1; i < g_iFdlN534; i++)
 for (new j = i; j > 0 && g_iFdlSz534[j - 1] < g_iFdlSz534[j]; j--)
 {
@@ -9010,7 +7760,6 @@ console_print(id, "[Vexmira] FastDL: %s", url[0] ? url : "YOK (sv_downloadurl bo
 for (new i = 0; i < min(12, g_iFdlN534); i++) console_print(id, "   %5d KB  %s", g_iFdlSz534[i] / 1024, g_szFdl534[i]);
 return PLUGIN_HANDLED;
 }
-// list of this map + one merged list of every map played so far (vexmira_fastdl_hepsi.txt)
 FdlWrite534(total)
 {
 new dir[96], out[128], all[128], map[48], l[140];
@@ -9072,7 +7821,6 @@ if(!key[0]) return;
 if(equali(key,"VOX_COUNTDOWN")) {g_bVoxCountdown=(str_to_num(value)!=0);g_iEpicCountdown=clamp(str_to_num(value),0,2);return;}
 new normalized[256];copy(normalized,charsmax(normalized),value);
 if(contain(value,"|")!=-1 && containi(value,".wav")!=-1) {
-// 5.3.1 sound pool: keep the members that exist on the server
 new src[256],tmp[128],pos,keep[256],full2[160];copy(src,charsmax(src),value);
 for(new i=0;src[i];i++) if(src[i]=='|') src[i]=' ';
 while((pos=argparse(src,pos,tmp,charsmax(tmp)))!=-1) {
@@ -9150,8 +7898,6 @@ trim(line);
 LoadMainConfig(bool:precache)
 {
 new file[128]; CfgPath(file,charsmax(file));
-// 5.3.1: ONE config. A 5.3.1 vexmira.cfg (first line "...TEK AYAR DOSYASI...") already contains everything
-// that vexmira_epic.cfg used to override, so an old epic file is renamed to .old and ignored.
 new bool:single=false;
 new fp531=fopen(file,"rt");
 if(fp531) {new first[160];fgets(fp531,first,charsmax(first));fclose(fp531);single=(containi(first,"TEK AYAR DOSYASI")!=-1);}
@@ -10409,7 +9155,6 @@ new menu = VexMenuCreate(title, "menu_shop_handler");
 if (!isZ) {
 formatex(item,charsmax(item),"%L \d(%L)",id,"ZC_SPECIAL",id,"ZC_GUNS6"); MenuAdd(menu,item,202);
 formatex(item,charsmax(item),"%L [80 AP]",id,"ZC_JETPACK"); MenuAdd(menu,item,200);
-
 }
 for (new i = 0; i < NUM_ITEMS; i++)
 {
@@ -10676,8 +9421,6 @@ Chat(id, "SHOP_BOUGHT", nm, cost);
 if (ITEM_ANNOUNCE[i])
 AnnounceBuy(id, key);
 }
-
-// 5.3.1: every shop item has its own colour burst (ring at the feet, rising implosion, light, screen tint)
 static const ITEM_RGB531[][3] = {
 {60,255,120},{80,160,255},{255,120,30},{90,200,255},{255,240,140},{200,120,255},
 {160,255,255},{255,80,160},{255,200,40},{255,60,40},{255,255,255},
@@ -10696,10 +9439,8 @@ get_entvar(id, var_origin, o);
 if (i == IT_MEDKIT) FxHeal(id);
 ItemFx533(id, i, o);
 }
-// 5.3.3: every shop item family has its own sound + effect (vex_res ITEM_SND_<family> = own .wav)
 enum { IF_POWER = 0, IF_HEAL, IF_ARMOR, IF_MADNESS, IF_RAGE, IF_CLOAK, IF_JUMP, IF_SPEED, IF_SHIELD, IF_REGEN, IF_AMMO, IF_ANTIDOTE, IF_SERUM, IF_TOTAL };
 new const IF_NAME533[IF_TOTAL][] = { "power", "heal", "armor", "madness", "rage", "cloak", "jump", "speed", "shield", "regen", "ammo", "antidote", "serum" };
-// item id -> family (order of the IT_ enum)
 new const ITEM_FAM533[] = { IF_HEAL, IF_ARMOR, IF_POWER, IF_POWER, IF_POWER, IF_JUMP, IF_SPEED, IF_REGEN, IF_AMMO, IF_RAGE,
     IF_POWER, IF_ANTIDOTE, IF_MADNESS, IF_SERUM, IF_SERUM, IF_RAGE, IF_POWER, IF_ARMOR, IF_SPEED, IF_CLOAK, IF_POWER, IF_SHIELD,
     IF_AMMO, IF_SPEED, IF_CLOAK, IF_JUMP, IF_REGEN, IF_SHIELD };
@@ -11251,7 +9992,7 @@ new menu=VexMenuCreate(title,"menu_cos_handler");
 formatex(item,charsmax(item),"%L \d(5, %L) [VC]",id,"ZC_SKINS",id,"ZC_PERM"); MenuAdd(menu,item,21);
 formatex(item,charsmax(item),"%L \d(5, %L) [VC]",id,"ZC_KNIVES",id,"ZC_PERM"); MenuAdd(menu,item,22);
 for(new c=0;c<CM_CATS;c++) {
-if(c==2) continue;      // 5.3.3: no hat market
+if(c==2) continue;
 formatex(item,charsmax(item),"%L \d(%d) [VC]",id,CM_CATKEY[c],g_iCmN[c]);
 MenuAdd(menu,item,3+c);
 }
@@ -11390,7 +10131,7 @@ for (new k = 0; k < CM_CATS; k++)
 if (equali(args[0], CM_TABLE[k])) c = k;
 if (c < 0 || argc < 5)
 return;
-if (c == 2)      // 5.3.3: hats removed (no hat market, no hat downloads)
+if (c == 2)
 return;
 new i = str_to_num(args[1]) - 1;
 if (i < 0 || i >= CM_MAX)
@@ -12239,7 +10980,6 @@ TrieSetString(g_tRes, key, "");
 }
 TrieSnapshotDestroy(it);
 }
-// 5.3.3: special weapon 4 (Dark Knight) removed: no files precached, not in any menu
 #define SW_REMOVED533 4
 VxDisableSW533()
 {
@@ -12263,7 +11003,6 @@ stock VxPrecache()
 {
 new key[24], path[128], full[160];
 if(file_exists(VX_ORB)) g_iVxOrbModel=PcModel(VX_ORB);
-
 for(new sw;sw<NUM_SPECIAL;sw++)
 {
 if(sw==SW_REMOVED533) {g_bVxReady[sw]=false;g_szSWView[sw][0]=0;g_szSWPlayer[sw][0]=0;g_szVxWorld[sw][0]=0;continue;}
@@ -12281,7 +11020,6 @@ formatex(full,charsmax(full),"sound/%s",path);
 if(!file_exists(full) || !PcSound(path))g_bVxReady[sw]=false;
 }
 if((sw==2||sw==6)&&!g_iVxOrbModel)g_bVxReady[sw]=false;
-
 formatex(key,charsmax(key),"SW%d_FIRE",sw);PrecacheSoundKeyEx(key,false);
 log_amx("[Arsenal8] slot=%d ready=%d",sw,g_bVxReady[sw]);
 }
@@ -12671,7 +11409,6 @@ new WeaponIdType:wid = get_member(weapon, m_iId);
 if (g_bZombie[id])
 {
 if (wid == WEAPON_HEGRENADE) {
-// 5.3.1: infection bomb models only when they are really loaded (missing model = server crash)
 if (VxModelOk(g_szInfV531)) SetHookChainArg(2, ATYPE_STRING, g_szInfV531);
 if (VxModelOk(g_szInfP531)) SetHookChainArg(3, ATYPE_STRING, g_szInfP531);
 return HC_CONTINUE;
@@ -12858,13 +11595,7 @@ FxTrail(ent, 255, 60, 60);
 }
 NadeOnThrow(id, ent, 2);
 }
-
-// ===================== 5.3.1 epic grenade explosions =====================
-// Layered + staged (0 / 0.15 / 0.4 / 0.8 / 1.3 s) temp-entity effects. One PVS message per layer, so
-// 32 players cost the same as one. vex_nade_fx 0 = old simple effects, 1 = epic (default).
 new g_sprGlow531, g_sprHot531, g_sprSteam531, g_sprShock531, g_iDecScorch531 = -1, g_pNadeFx531;
-// 5.3.2: own smooth additive sprites (sprites/vexmira/fx532/). Additive = black is see-through, so no
-// black squares behind any effect; built from soft gradients, so no pixel blocks when scaled up.
 NadeFxPrecache531()
 {
 g_sprGlow531  = VxPcStock531("sprites/glow01.spr");
@@ -12883,7 +11614,6 @@ stock bool:Fx532Ok() { return g_iFx532[X_FIREBALL] && g_iFx532[X_FROSTBURST] && 
 VxPcStock531(const path[])
 {
 if (!file_exists(path, true)) return 0;
-// 5.3.2: optional effect sprites never take the last model slots (map + other plugins come first)
 if (contain(path, "/fx532/") != -1 && max(g_iTotMdl, g_iPcMdl) >= 430) { log_amx("[AssetGuard] model listesi dolu, efekt sprite'i atlandi: %s", path); return 0; }
 new idx = (!VxPcOk531()) ? 0 : precache_model(path);
 if (idx > g_iPcMdl) g_iPcMdl = idx;
@@ -12919,7 +11649,6 @@ if (get_cvar_num("vex_dbg_nxmask") & 8) return;
 NxBegin(o); write_byte(TE_DLIGHT); NxCoord(o, 8.0); write_byte(radius); write_byte(r); write_byte(g); write_byte(b);
 write_byte(life); write_byte(decay); message_end();
 }
-// TE_FIREFIELD: a field of sprites on the ground (burning ground / frost mist / spark carpet)
 stock NxField(const Float:o[3], spr, radius, count, flags, life)
 {
 if (get_cvar_num("vex_dbg_nxmask") & 16) return;
@@ -12927,7 +11656,6 @@ if (spr <= 0) return;
 NxBegin(o); write_byte(TE_FIREFIELD); NxCoord(o, 4.0); write_short(radius); write_short(spr);
 write_byte(count); write_byte(flags); write_byte(life); message_end();
 }
-// TE_SPRITETRAIL: shower of sprites flying out (embers / ice shards / sparks)
 stock NxShower(const Float:o[3], spr, count, life, scale, speed, rnd, Float:up = 40.0)
 {
 if (get_cvar_num("vex_dbg_nxmask") & 32) return;
@@ -12968,7 +11696,6 @@ message_begin(MSG_ONE_UNRELIABLE, g_msgShake, _, p);
 write_short(a << 12); write_short(1 << 12); write_short(10 << 12); message_end();
 }
 }
-// ground point under a grenade (effects sit on the floor, not in the air)
 NxGround(const Float:o[3], Float:out[3])
 {
 new Float:e[3]; out = o; e = o; e[2] -= 64.0;
@@ -12999,7 +11726,6 @@ public task_NadeStage531(const data[])
 new Float:o[3]; o[0] = float(data[0]); o[1] = float(data[1]); o[2] = float(data[2]);
 NadeFxStage531(o, data[3], data[4]);
 }
-// kind: 0 fire, 1 frost, 2 flare, 3 infection
 NadeFxEpic531(const Float:origin[3], kind)
 {
 if (!get_pcvar_num(g_pNadeFx531)) return false;
@@ -13016,14 +11742,12 @@ NadeFxStage531(const Float:o[3], kind, stage)
 if (Fx532Ok()) { NadeFx532(o, kind, stage); return; }
 NadeFxOld531(o, kind, stage);
 }
-// 5.3.2 explosions: every sprite is additive and soft (fireball / frost burst / flare star / toxic burst,
-// ring texture for the shock waves, INDEXALPHA smoke for TE_SMOKE). Stage 0 = blast, 1-4 = aftermath.
 NadeFx532(const Float:o[3], kind, stage)
 {
 new ring = g_iFx532[X_RING];
 switch (kind)
 {
-case 0: // FIRE: white-hot flash, rolling fireball, double shock ring, ember fountain, burning ground, smoke column
+case 0:
 {
 switch (stage)
 {
@@ -13043,7 +11767,7 @@ NxDecal(o, g_iDecScorch531);
 }
 case 1:
 {
-NxExplo(o, g_iFx532[X_FIREBALL], 20, 16, 78.0);           // mushroom head rising
+NxExplo(o, g_iFx532[X_FIREBALL], 20, 16, 78.0);
 NxField(o, g_iFx532[X_FLAME], 120, 16, TEFIRE_ADD532 | TEFIRE_FLAG_LOOP, 34);
 NxRing(o, ring, 255, 80, 10, 170, 20, 6, 170, 2.0);
 }
@@ -13052,7 +11776,7 @@ case 3: { NxField(o, g_iFx532[X_FLAME], 90, 10, TEFIRE_ADD532 | TEFIRE_FLAG_LOOP
 case 4: { NxSmoke(o, g_iFx532[X_SMOKE], 52, 6, 140.0); NxLight(o, 200, 70, 20, 20, 10, 16); }
 }
 }
-case 1: // FROST: blue-white flash, crystal star burst, double shock ring, ice shard shower, cold mist carpet
+case 1:
 {
 switch (stage)
 {
@@ -13078,7 +11802,7 @@ case 3: { NxField(o, g_iFx532[X_FROSTMIST], 120, 12, TEFIRE_ADD532 | TEFIRE_FLAG
 case 4: { NxSprite(o, g_iFx532[X_GLOW], 16, 120, 10.0); }
 }
 }
-case 2: // FLARE: magnesium star (rotating lens flare), spark fountain, spark carpet
+case 2:
 {
 switch (stage)
 {
@@ -13097,7 +11821,7 @@ case 3: { NxShower(o, g_iFx532[X_SPARK], 14, 10, 2, 40, 16, 30.0); }
 case 4: { NxSprite(o, g_iFx532[X_GLOW], 14, 160, 18.0); }
 }
 }
-case 3: // INFECTION: toxic burst with bubbles, green shock ring, acid mist
+case 3:
 {
 switch (stage)
 {
@@ -13119,7 +11843,6 @@ case 4: { NxField(o, g_iFx532[X_TOXICMIST], 100, 10, TEFIRE_ADD532 | TEFIRE_FLAG
 }
 NadeFxOld531(const Float:o[3], kind, stage)
 {
-// fallback when the fx532 sprites are not on the server: only additive draws (no fields / smoke = no squares)
 new ring = g_sprShock531 ? g_sprShock531 : g_sprRing;
 if (stage) return;
 switch (kind)
@@ -13130,7 +11853,6 @@ case 2: { NxLight(o, 255, 240, 220, 60, 6, 40); NxRing(o, g_sprRing, 255, 70, 60
 case 3: { NxExplo(o, g_sprFx[FXS_EXTOXIC] ? g_sprFx[FXS_EXTOXIC] : g_sprExplode, 26, 14, 24.0); NxLight(o, 60, 255, 40, 44, 12, 24); NxRing(o, ring, 40, 255, 40, 320, 40, 4, 220, 8.0); }
 }
 }
-// ===================== end epic grenade explosions =====================
 public rg_ExplodeHe(ent, tracehandle, bits)
 {
 NadeCleanup(ent);
@@ -13476,8 +12198,6 @@ g_iLmBlockMask |= (1 << m);
 }
 return (g_iLmBlockMask & (1 << mode)) ? true : false;
 }
-// vex_giant_build: builds the giant copy of EVERY boss now (models/player/<boss>_x<k>/), so the whole set
-// can be copied to FastDL once; players then download each giant only once, fast.
 public srv_GiantBuild533()
 {
 new key[24], nm[32], out[48], ok, all;
@@ -13492,7 +12212,6 @@ else server_print("[GiantBoss] %s: olusturulamadi (model yok / klasor izni)", nm
 server_print("[GiantBoss] %d / %d dev boss modeli hazir. Bu klasorleri FastDL'e de kopyala.", ok, all);
 return PLUGIN_HANDLED;
 }
-// vex_debug_slim <in.mdl> <out.mdl> <max_tex>: run only the slim step (test against devtools/mdlkit/giant_slim.py)
 public srv_DbgSlim534()
 {
 new a[160], b[160], t[8]; read_argv(1, a, charsmax(a)); read_argv(2, b, charsmax(b)); read_argv(3, t, charsmax(t));
@@ -13530,7 +12249,7 @@ public srv_DbgCard532()
 new a[8]; read_argv(1, a, charsmax(a)); new note = str_to_num(a); read_argv(2, a, charsmax(a)); new arg = str_to_num(a);
 for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && !is_user_bot(p)) log_amx("[Vexmira] debug kart %d -> #%d : %d", note, p, CsoNotify(p, note, arg));
 read_argv(3, a, charsmax(a));
-if (equal(a, "shot")) { new d[2]; d[0] = note; d[1] = arg; set_task(0.35, "task_DbgCardShot533", 0, d, 2); }   // test client only
+if (equal(a, "shot")) { new d[2]; d[0] = note; d[1] = arg; set_task(0.35, "task_DbgCardShot533", 0, d, 2); }
 return PLUGIN_HANDLED;
 }
 public task_DbgCardShot533(const d[])
@@ -13548,7 +12267,7 @@ new a[16], Float:o[3];
 read_argv(1, a, charsmax(a)); new kind = str_to_num(a);
 for (new k = 0; k < 3; k++) { read_argv(2 + k, a, charsmax(a)); o[k] = str_to_float(a); }
 read_argv(2, a, charsmax(a));
-if (equal(a, "aim"))      // at the point the first real player looks at (max 260 units)
+if (equal(a, "aim"))
 {
 for (new p = 1; p <= g_iMax; p++)
 {
@@ -14201,10 +12920,6 @@ new ent = CreateSafe51("info_target");
 if (is_nullent(ent))
 return 0;
 set_entvar(ent, var_classname, LM_CLASS);
-// The stock tripmine has a different model axis and wall pose than the Vexmira zombie mine.
-// Select its fixed HL world pose per human mine; read configurable offsets for zombie mines.
-// 5.3.2: only the stock HL tripmine model needs the old tripmine pose; the Vexmira mine models
-// (lm_human / lm_zombie) sit flush on the wall with the config values (LASERMINE_OFFSET / ANGLES / EMITTER)
 new bool:stockTrip = containi(model, "tripmine") != -1;
 MinePreset(stockTrip, false, stockTrip);
 VxSM(ent, model);
@@ -14363,7 +13078,6 @@ public fw_MineThink(ent)
 if (is_nullent(ent))
 return;
 new owner = get_entvar(ent, var_iuser1);
-// 5.3.4: the mine stays when its owner dies / is infected (vex_lm_keep 1); its side is the one it was planted for
 if (!is_user_connected(owner) || (!get_pcvar_num(g_pLmKeep534) && !is_user_alive(owner)))
 {
 MineDestroy(ent, false);
@@ -14397,7 +13111,6 @@ if (beam)
     set_entvar(beam, var_iuser1, BEAM_MARK_LM);
     set_entvar(beam, var_iuser2, get_entvar(ent, var_iuser4));
     set_entvar(beam, var_fuser1, float(clamp(get_pcvar_num(g_pLmBeamWidth), 1, 100)));
-    // 5.3.2: continuous soft beam texture (core + glow, flowing streaks) instead of the dashed one
     new bt = g_iFx532[get_entvar(ent, var_iuser4) ? X_BEAMW : X_BEAM];
     if (bt > 0)
     {
@@ -14457,11 +13170,6 @@ FxLight(o, r, g, b, 6, 5, 10);
 }
 set_entvar(ent, var_nextthink, now + 0.1);
 }
-
-// ===================== 5.3.1 laser beam styles (VexCoin market) =====================
-// 4 buyable beams for the player's own laser mines: plasma stream, blood pulse, toxic arc, rainbow prism.
-// Beam entity fields: rendercolor/renderamt = colour/brightness, scale = width, body = noise amplitude,
-// animtime = texture scroll speed.
 new const LZ_EN531[4][] = { "Plasma Stream", "Blood Pulse", "Toxic Arc", "Rainbow Prism" };
 new const LZ_TR531[4][] = { "Plazma Akimi", "Kan Nabzi", "Toksik Ark", "Gokkusagi Prizmasi" };
 LzPrice531(i)
@@ -14483,25 +13191,25 @@ new Float:width = Float:get_entvar(beam, var_fuser1);
 new r, g, b, bright = 230, noise = 0, Float:scroll = 0.0, Float:w = width;
 switch (style)
 {
-case 1: // plasma stream: cyan core, fast scrolling texture, breathing width, sparks at the wall
+case 1:
 {
 new Float:pl = 0.5 + 0.5 * floatsin(now * 9.0);
 r = 40 + floatround(60.0 * pl); g = 200 + floatround(55.0 * pl); b = 255;
 scroll = 60.0; w = width + 3.0 * pl; bright = 200 + floatround(55.0 * pl);
 }
-case 2: // blood pulse: heart-beat brightness, thick dark red, light noise
+case 2:
 {
 new Float:t = now * 1.6 - float(floatround(now * 1.6, floatround_floor));
 new Float:beat = (t < 0.12) ? 1.0 : ((t > 0.22 && t < 0.32) ? 0.75 : 0.25);
 r = 255; g = 10 + floatround(40.0 * beat); b = 20;
 bright = 120 + floatround(135.0 * beat); w = width + 4.0 * beat; noise = 2;
 }
-case 3: // toxic arc: jittering acid-green electric arc
+case 3:
 {
 r = 120 + random_num(0, 60); g = 255; b = 30 + random_num(0, 40);
 noise = 10 + random_num(0, 8); scroll = 25.0; bright = 210;
 }
-default: // rainbow prism: hue cycle along time
+default:
 {
 new Float:h = (now * 0.35 - float(floatround(now * 0.35, floatround_floor))) * 6.0;
 new hi = floatround(h, floatround_floor), Float:f = h - float(hi);
@@ -14515,7 +13223,6 @@ set_entvar(beam, var_scale, floatclamp(w, 1.0, 100.0));
 set_entvar(beam, var_body, noise);
 set_entvar(beam, var_animtime, scroll);
 BeamColor(beam, r, g, b, bright);
-// end-point flourish every ~0.6 s
 if (Float:get_entvar(beam, var_fuser2) <= now)
 {
 set_entvar(beam, var_fuser2, now + 0.6);
@@ -14562,7 +13269,6 @@ SaveData(id);
 ShowLaserShop531(id);
 return PLUGIN_HANDLED;
 }
-// ===================== end laser beam styles =====================
 MineBeamAnimate(mine, beam, Float:now)
 {
     if (Float:get_entvar(mine, var_fuser2) > now)
@@ -14570,7 +13276,6 @@ MineBeamAnimate(mine, beam, Float:now)
         BeamColor(beam, 255, 255, 255, 255);
         return;
     }
-
     new bool:zombieMine = get_entvar(beam, var_iuser2) ? true : false;
     new owner531 = get_entvar(mine, var_iuser1);
     if (1 <= owner531 <= g_iMax && g_iLzSel531[owner531] > 0 && (g_iLzOwned531[owner531] & (1 << (g_iLzSel531[owner531] - 1))))
@@ -14578,8 +13283,6 @@ MineBeamAnimate(mine, beam, Float:now)
         LzStyle531(mine, beam, g_iLzSel531[owner531], now);
         return;
     }
-    // 5.3.2 default beams: no noise (noise breaks the beam into zig-zag pieces), texture flows
-    // from the mine to the wall, soft breathing glow, small light + sparks where it hits the wall.
     set_entvar(beam, var_body, 0);
     set_entvar(beam, var_animtime, zombieMine ? 22.0 : 45.0);
     new Float:rate = zombieMine ? 3.2 : 5.0;
@@ -14632,8 +13335,8 @@ else if (oneshot)
 dmg = 999999.0;
 else
 dmg = get_pcvar_float(g_pLmDamage);
-if (mz) dmg = get_pcvar_float(g_pLmZDmg534);            // 5.3.4: zombie mine on humans (was a fixed 35)
-if (!is_user_connected(owner) || (g_bZombie[owner] ? true : false) != mz) owner = 0;  // owner switched side: no team kill credit
+if (mz) dmg = get_pcvar_float(g_pLmZDmg534);
+if (!is_user_connected(owner) || (g_bZombie[owner] ? true : false) != mz) owner = 0;
 new r, g, b;
 MineColor(ent, r, g, b);
 FxSparks(point);
@@ -14719,7 +13422,6 @@ if (equal(cls, SPORE_CLASS))
 return SporeTakeDamage(ent, attacker, damage);
 if (!equal(cls, LM_CLASS))
 return HAM_IGNORED;
-// 5.3.4: both sides break the OTHER side's mines (zombies claw/skills, humans shoot them)
 new bool:mz = get_entvar(ent, var_iuser4) ? true : false;
 if (!(1 <= attacker <= g_iMax) || !is_user_connected(attacker) || (g_bZombie[attacker] ? true : false) == mz)
 return HAM_SUPERCEDE;
@@ -15902,7 +14604,6 @@ return FMRES_IGNORED;
 new owner = get_entvar(ent, var_owner);
 if (1 <= owner <= g_iMax && g_bZombie[owner])
 {
-// 5.3.1: thrown infection bomb uses its own world model
 if (slot == 0 && g_szInfW531[0] && !equal(model, g_szInfW531) && VxModelOk(g_szInfW531))
 {
 new Float:zmins[3], Float:zmaxs[3];
@@ -16133,7 +14834,6 @@ ChatAllS("ANTIDOTE_ALL", name);
 }
 ApplyHumanModel(id)
 {
-
 new v = g_iCommunitySel[id][0];
 if (v > 0 && v <= 5 && (g_iCommunityOwned[id][0] & (1 << (v-1))) && CommunityCtReady(v-1)) { VxSetUserModel(id, COMMUNITY_CT[v-1], true); return; }
 new flags = get_user_flags(id);
@@ -16306,7 +15006,7 @@ HealTo(attacker, 400, g_iMaxHP[attacker]);
 Reward(attacker, get_pcvar_num(g_pInfectXP), get_pcvar_num(g_pInfectAP));
 PayBounty(attacker, victim);
 Chat(victim, "YOU_INFECTED", aname);
-CsoNotify(attacker, CN_INFD);      // 5.3.4: "ENFEKTE ETTIN" belongs to the infector, not the victim
+CsoNotify(attacker, CN_INFD);
 Chat(attacker, "YOU_INFECTOR", vname);
 if (!g_bFirstInfect)
 {
@@ -18550,7 +17250,6 @@ FxDisk(o, r, g, b, 350, 10);
 FxExplosion(o);
 FxLight(o, r, g, b, 60, 30, 10);
 ShakeAll(14, 3.0, 6);
-// 5.3.1: three aftershocks in the boss colour (0.5 / 1.1 / 1.8 s): ground rings, flash, spark fountain
 for (new k531 = 0; k531 < 3; k531++)
 {
 new d531[6]; d531[0] = floatround(o[0]); d531[1] = floatround(o[1]); d531[2] = floatround(o[2]); d531[3] = r; d531[4] = g; d531[5] = b;
@@ -18584,8 +17283,6 @@ else
 formatex(txt, charsmax(txt), "%s^n%L", spaced, p, key);
 HudText(p, SL_ANN, r, g, b, 4.0, txt);
 }
-formatex(key, charsmax(key), "BOSS_START_%d", g_iBossType);
-HudAll(SL_ALERT, CLR_DANGER, 3.0, key);
 if (!PlayBossSound("INTRO"))
 PlayKey(0, "BOSS_INTRO");
 VoiceReset(boss);
@@ -18716,7 +17413,6 @@ case 1:
 {
 if (g_iFrame % 6 == 0)
 {
-// Idle sound is handled by the shared, rate-limited voice clock.
 for (new p = 1; p <= g_iMax; p++)
 {
 if (!is_user_alive(p) || g_bZombie[p])
@@ -19801,8 +18497,8 @@ if (!is_user_connected(p) || is_user_bot(p))
 continue;
 formatex(nm, charsmax(nm), "%L", p, key);
 formatex(tip, charsmax(tip), "%L", p, tkey);
-formatex(txt, charsmax(txt), "-=[  %s  ]=-^n%s", nm, tip);
-HudText(p, SL_ALERT, BOSS_RGB[g_iBossType][0], BOSS_RGB[g_iBossType][1], BOSS_RGB[g_iBossType][2], 2.2, txt);
+formatex(txt, charsmax(txt), "%s^n%s", nm, tip);
+HudText(p, SL_ALERT, UI_R, UI_G, UI_B, 1.6, txt);
 }
 formatex(key, charsmax(key), "B%d_R%d", g_iBossType, ph);
 EmitKey(g_iBoss, key, CHAN_STATIC, ATTN_NONE);
@@ -19878,7 +18574,7 @@ show_hudmessage(g_iBoss, "%L", g_iBoss, "BSK_NO_TARGET");
 return false;
 }
 new Float:now = get_gametime();
-BskAnnounce(ph);UiAll52(63,1.6,6);
+BskAnnounce(ph);
 EpicBossCastFx();
 rg_set_animation(g_iBoss,PLAYER_ATTACK1);
 if (setCool)
@@ -21768,11 +20464,6 @@ return m;
 }
 return MODE_INFECTION;
 }
-// 5.3.4 FULL ROTATION (vex_full_rotation 1): at round 1 a plan is made for the whole map (vex_rounds_total /
-// mp_maxrounds) so EVERY special mode (nemesis, assassin, survivor, sniper, swarm, plague, armageddon) and EVERY
-// event is played once, plus multi-infection rounds; boss rounds stay where vex_boss_rounds puts them.
-// Specials are spread evenly over the map, events fill the other rounds in random order. Too few rounds ->
-// specials first, then as many events as fit (a different random set every map).
 stock Shuffle534(arr[], n) { for (new i = n - 1; i > 0; i--) { new j = random(i + 1), t = arr[i]; arr[i] = arr[j]; arr[j] = t; } }
 BuildPlan534()
 {
@@ -21801,9 +20492,9 @@ for (new idx = 0; idx < n; idx++)
 if (used[idx]) continue;
 new r = list[idx];
 if (k < ne) g_iPlanEv534[r] = ev[k++];
-if (slot++ % 4 == 1) g_iPlanMode534[r] = MODE_MULTI;          // every 4th normal round is multi-infection
+if (slot++ % 4 == 1) g_iPlanMode534[r] = MODE_MULTI;
 }
-if (k < ne) g_iPlanEv534[1] = ev[k++];                           // short map: round 1 gets an event too
+if (k < ne) g_iPlanEv534[1] = ev[k++];
 new txt[512], len;
 for (new r = 1; r <= total && len < charsmax(txt) - 12; r++)
 len += formatex(txt[len], charsmax(txt) - len, "%d:%s%d ", r, IsBossRound(r) ? "B" : (g_iPlanMode534[r] >= MODE_NEMESIS ? "S" : (g_iPlanMode534[r] == MODE_MULTI ? "M" : "I")),
@@ -21940,19 +20631,10 @@ EventColor(g_iEvent, r, g, b);
 VexLocalizedAnnounceAll(key, r, g, b, 3.6);
 EventStartFx();
 }
-else VexLocalizedAnnounceAll("ROUND_CALM", 55, 205, 255, 3.0);
 BossTeaser();
 }
 BossTeaser()
 {
-new left = RoundsToBoss();
-if (left == 1)
-{
-ChatAll("BOSS_SOON_1");
-PlayKey(0, "BOSS_SOON");
-}
-else if (left == 2)
-ChatAll("BOSS_SOON_2", left);
 }
 EventColor(ev, &r, &g, &b)
 {
@@ -24869,7 +23551,6 @@ public fw_EmitSound(ent, channel, const sample[], Float:volume, Float:attn, flag
 if(!g_bEmitting && ent>=1 && ent<=g_iMax && !g_bZombie[ent] && equal(sample,"weapons/zoom.wav")) {
 EmitSafe(ent,channel,"vexmira/arena52/foley/scope.wav",0.6,attn,flags,pitch);return FMRES_SUPERCEDE;
 }
-// Human weapon animation sounds use their model-specific native event paths.
 if (g_bEmitting || !(1 <= ent <= g_iMax) || !g_bZombie[ent] || !is_user_connected(ent))
 return FMRES_IGNORED;
 new ev[12], fallback[20];
@@ -29265,6 +27946,8 @@ log_amx("[Vexmira] UYARI: mapchooser.amxx yuklu ve vex_map_vote 1: iki ayri hari
 public plugin_natives()
 {
 register_library("vexmira_core45");
+register_native("vxc_res_set","VxcResSet");
+register_native("vxc_pc_generic","VxcPcGeneric");
 register_native("vx45_corezombie","VxNativeZombie");
 register_native("vx45_coreweapon","VxNativeWeapon");
 register_native("vx45_corerestore","VxNativeRestore");
@@ -29296,7 +27979,6 @@ set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx 
 return;
 }
 CommunityPrecache();
-
 CommunityNormalPrecache();
 CommunityEventPrecache();
 CommunityExtraEventPrecache();
@@ -29313,7 +27995,6 @@ v48cache[0]=68.248;v48cache[1]=43.533;TrieSetArray(g_tMdlTop,"vex_boss648",v48ca
 v48cache[0]=41.794;v48cache[1]=38.217;TrieSetArray(g_tMdlTop,"vex_boss748",v48cache,2);
 v48cache[0]=46.493;v48cache[1]=37.655;TrieSetArray(g_tMdlTop,"vex_boss848",v48cache,2);
 v48cache[0]=90.587;v48cache[1]=60.575;TrieSetArray(g_tMdlTop,"vex_titan48",v48cache,2);
-
 g_tSndInfo = TrieCreate();
 g_tSnd2D = TrieCreate();
 g_tSnd3D = TrieCreate();
@@ -29327,13 +28008,10 @@ VxDisableSW533();
 CsoPrecache();
 VxInfPrecache531();
 NadeFxPrecache531();
-
 register_forward(FM_EmitAmbientSound, "fw_AmbientPost", 1);
 g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET", "200")), 40, 480);
-// 5.3.1: leave room for the map's own sounds + CS stock sounds (~230) so the map never hits 512
 g_iSndBudget = clamp(min(g_iSndBudget, 500 - 230 - g_iMapSnd531), 40, 480);
 ItemSndPrecache533();
-// 5.2.5: let GameDLL precache stock sounds; no Spawn-time unregistration.
 g_bSndBlockWin=false;
 g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET", "250")), 40, 480);
 new criticalKey[24];
@@ -29528,8 +28206,6 @@ g_sprChain = PrecacheResSprite("SPR_CHAIN", g_szSprChain, charsmax(g_szSprChain)
 g_sprWeb   = PrecacheResSprite("SPR_WEB", g_szSprWeb, charsmax(g_szSprWeb));
 g_sprSpore = PrecacheResSprite("SPR_SPORE", g_szSprSpore, charsmax(g_szSprSpore));
 g_sprEmp   = PrecacheResSprite("SPR_EMP", g_szSprEmp, charsmax(g_szSprEmp));
-// 5.3.1: a missing sprite file must never reach a client as model index 0 (client crash):
-// fall back to Half-Life stock sprites every client has.
 if (!g_sprRing)      g_sprRing      = VxPcStock531("sprites/shockwave.spr");
 if (!g_sprBeam)      g_sprBeam      = VxPcStock531("sprites/laserbeam.spr");
 if (!g_sprLightning) g_sprLightning = VxPcStock531("sprites/lgtning.spr");
@@ -29584,15 +28260,12 @@ g_szBClaw[i][0] = 0;
 formatex(key, charsmax(key), "B%d_MODEL", i);
 if (!g_bBossLoaded[i])
 {
-// 5.3.4 BOSS_GIANT_ALL 1: the giant copies of the bosses NOT on this map are precached too, so the set is
-// the same on every map -> each player downloads every giant once (first join) and never again.
 new bn[32], gn[48], gp[128];
 if (str_to_num(GetResString("BOSS_GIANT_ALL", "1")) && !equali(GetResString("BOSS_GIANT", "file"), "off") && !equali(GetResString("BOSS_GIANT", "file"), "clone")
 && TrieGetString(g_tRes, key, bn, charsmax(bn)) && bn[0] && GmBossGiant(bn, gn, charsmax(gn)))
 { formatex(gp, charsmax(gp), "models/player/%s/%s.mdl", gn, gn); if (PcModel(gp)) PcPlayerTex(gn); }
 continue;
 }
-// 5.3.1: giant copy first (vex_res BOSS_SCALE), original as fallback
 new bname[32], giant[48];
 g_fBossScale531 = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
 g_iGiantMode532 = equali(GetResString("BOSS_GIANT", "file"), "clone") ? 1 : (equali(GetResString("BOSS_GIANT", "file"), "off") ? 0 : 2);
@@ -29987,6 +28660,7 @@ CsoInitWL();
 register_message(g_msgWL, "msg_WeaponList");
 set_task(0.1, "task_CsoTick", TASK_CSO, _, _, "b");
 g_pBossBarW      = register_cvar("vex_bossbar_width", "110");
+g_pHudMin538 = register_cvar("vex_hud_minimal", "1");
 g_pSmallBarW     = register_cvar("vex_hpbar_width", "44");
 g_pIconSize      = register_cvar("vex_head_icon_size", "18");
 g_pIcons         = register_cvar("vex_head_icons", "31");
@@ -30188,7 +28862,6 @@ VexDuplicateGuard();
 log_to_file("vexmira_startup.log","[530 core] duplicate guard READY");
 server_print("[Vexmira] Vexmira Zombie Core v%s yuklendi (iki eklenti: core + gear, modul: %d/14 acik)", VERSION, ZcModulesOn());
 log_amx("[Vexmira] Vexmira Zombie Core v%s", VERSION);
-// 5.2.1: no forced startup map change.
 new n = LoadMainConfig(false);
 log_amx("[Vexmira] vexmira.cfg yuklendi (%d satir).", n);
 log_to_file("vexmira_startup.log","[530 core] LoadTop BEGIN");
@@ -30206,7 +28879,6 @@ set_task(1.0, "task_MsRoundStart", TASK_MSRS);
 public plugin_end()
 {
 if(!g_bRun526) return;
-// Map teardown: engine owns entity removal; do not SetView/remove edicts here.
 log_to_file("vexmira_startup.log","[5.3.0] END map unload");
 if(g_tZcModelsReady!=Invalid_Trie) TrieDestroy(g_tZcModelsReady);
 if (g_hVault != INVALID_HANDLE)
@@ -30268,7 +28940,6 @@ CommunityBuyGear(id,i)
 {
 if(i!=0) return;
 if(!CommunityAlive(id)) { Chat(id,"ZC_ALIVE_HUMAN"); return; }
-
 new price=80;
 if(g_iAP[id]<price) { Chat(id,"SHOP_NOAP"); return; }
 new comp=ZC_JETPACK;
@@ -30334,29 +29005,20 @@ else { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_wea
 }
 CommunityPrecache()
 {
-
 MeleePrecache48();
 g_iSupplySigil47=ZcPcModel("models/vexmira/epic/supply_sigil47.mdl");
 for(new sg47=0;sg47<2;sg47++) g_iSigil47[sg47]=ZcPcModel(SIGIL47[sg47]);
-// 5.3.6: kinds 0-2 (victory / intro banners) are never shown any more (CSO cards replaced them) -> no download
 for(new b47=3;b47<5;b47++) g_iBannerModel47[b47]=ZcPcModel(BANNER47[b47]);
 g_bTitan47 = ZcPcModel("models/player/vex_titan48/vex_titan48.mdl") > 0;
 new path[128];
 for(new i=0;i<5;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); if(file_exists(path,true)) g_bCommunityCtOk[i] = ZcPcModel(path)>0; else log_amx("[Community] EKSIK model: %s (bu CT gorunumu kapali)",path); }
 ZcPcGeneric("models/player/vex_halo/vex_haloT.mdl");
-// 5.3.6: pet texture files removed (pets are gone, their models were never loaded)
 for (new k47 = 0; k47 < 3; k47++) g_bKnife47[k47] = ZcPcModel(KNIFE47[k47]) > 0;
 g_bCommunityButterflyOk = ZcPcModel("models/vexmira/arena48/v_balrog.mdl")>0;
-
 }
 CommunityCosOrigin(ent,id,c,i)
 {
 new Float:o[3],Float:a[3],Float:owner[3];
-// 5.3.1: wings + hats are glued with MOVETYPE_FOLLOW (client renders them in the same frame as the
-// player and bone-merges them onto the skeleton): no lag, no teleport, follows crouch/run animation.
-// 5.3.2: only wings use FOLLOW (their models bone-merge on the back). Hats go back to the head-bone
-// anchor of 5.3 (FOLLOW drew them at the player's centre = inside the body); their lag is removed in
-// CmPack (sent with the same client interpolation as players).
 if(c==0 && get_pcvar_num(g_pCosFollow531)) {
 if(get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW || get_entvar(ent,var_aiment)!=id) {
 set_entvar(ent,var_movetype,MOVETYPE_FOLLOW);set_entvar(ent,var_aiment,id);
@@ -30406,16 +29068,13 @@ new tr=create_tr2();engfunc(EngFunc_TraceLine,start,down,IGNORE_MONSTERS,id,tr);
 if(z<0.0 && frac<1.0 && !get_tr2(tr,TR_StartSolid)) {get_tr2(tr,TR_vecEndPos,down);o[2]=down[2]+1.5;}
 else {o[2]+=z>=0.0?z+2.0*floatsin(get_gametime()*2.4+float(id)):(duck?-18.0:-36.0);}
 free_tr2(tr);
-// If a wall lies between owner and companion, keep the pet on the visible side.
 new Float:owner[3],Float:stop[3];get_entvar(id,var_origin,owner);owner[2]=o[2]+12.0;stop=o;stop[2]+=12.0;
 tr=create_tr2();engfunc(EngFunc_TraceLine,owner,stop,IGNORE_MONSTERS,id,tr);get_tr2(tr,TR_flFraction,frac);
 if(frac<1.0) {g_fPetWall49[id]=frac*0.8;get_tr2(tr,TR_vecEndPos,stop);o[0]=owner[0]+(stop[0]-owner[0])*0.8;o[1]=owner[1]+(stop[1]-owner[1])*0.8;}
 free_tr2(tr);
 } else o[2]+=z;
 a[0]=g_fCmAng[c][i][0];a[1]+=g_fCmAng[c][i][1];a[2]=g_fCmAng[c][i][2];
-// Mounted hats follow the head; Homer is no longer rotated independently.
 }
-
 CommunityNativeJetpack(id) { return id>=1 && id<=32 ? ZcCall(ZC_JETPACK, ZCOP_has,id):0; }
 CommunityRemoveShots(id)
 {
@@ -30440,12 +29099,10 @@ ModernEvents50();
 }
 CommunityNormalPrecache()
 {
-// Normal views are precached from vexmira_epic.cfg by the standard loader.
 }
 CommunityWorldModel(ent,const model[])
 {
 #pragma unused ent, model
-// Stock normal world models remain unchanged; special weaponboxes are handled below.
 return 0;
 }
 CommunitySetWorld(ent,const path[])
@@ -30548,7 +29205,7 @@ bool:CommunityLightNotify(id,note,arg)
 if(!is_user_connected(id) || is_user_bot(id) || !(CsoNotesMask533()&CSO_BIT[note])) return false;
 if(get_gametime()<g_fLightNoteReady[id]) return true;
 new text[96];
-static const labels[CN_TOTAL][]={"KILL","DOUBLE KILL","TRIPLE KILL","MULTI KILL","MEGA KILL","HEADSHOT","KNIFE KILL","GRENADE KILL","MVP","HUMANS WIN","ZOMBIES WIN","BOSS INCOMING","INFECTION","NEMESIS","ASSASSIN","SURVIVOR","LAST HUMAN","LEVEL UP","ROUND","FIRST BLOOD","BOSS DEFEATED","INFECTED","LAST 10 SECONDS"};
+static const labels[CN_TOTAL][]={"KILL","DOUBLE KILL","TRIPLE KILL","MULTI KILL","MEGA KILL","HEADSHOT","KNIFE KILL","GRENADE KILL","MVP","HUMANS WIN","ZOMBIES WIN","BOSS INCOMING","INFECTION","NEMESIS","ASSASSIN","SURVIVOR","LAST HUMAN","LEVEL UP","ROUND","FIRST BLOOD","BOSS DEFEATED","INFECTED","LAST 10 SECONDS", "UPGRADE","ITEM","ARENA" };
 if(note<0 || note>=CN_TOTAL) return false;
 if(note==CN_ROUND) formatex(text,charsmax(text),"ROUND %d",arg);
 else copy(text,charsmax(text),labels[note]);
@@ -30558,7 +29215,6 @@ return true;
 }
 CommunityExtraEventPrecache()
 {
-// 5.3.5: the old meme achievement / daily sounds are no longer downloaded (vex_res ACH_UNLOCK / DAILY use the s534 set)
 }
 CommunityAdminEquipment(id)
 {
@@ -30567,7 +29223,6 @@ new title[320],line[96]; VexHead(id,title,charsmax(title),"ADMM_4");
 new menu=VexMenuCreate(title,"CommunityAdminEquipmentHandler");
 for(new i=0;i<NUM_SPECIAL;i++) { if(i==SW_REMOVED533) continue; formatex(line,charsmax(line),"%s [%L]",V50_NAMES[i],id,"ZC_FREE"); MenuAdd(menu,line,i); }
 formatex(line,charsmax(line),"%L [%L]",id,"ZC_JETPACK",id,"ZC_FREE"); MenuAdd(menu,line,10);
-
 formatex(line,charsmax(line),"Survivor Minigun \d(%L)",id,"ZC_NEED_SURV"); MenuAdd(menu,line,12); MenuFinish(id,menu);
 }
 public CommunityAdminEquipmentHandler(id,menu,item)
@@ -30594,7 +29249,7 @@ CommunityCosMetadata(c,i)
 new fp=fopen(g_szCmMdl[c][i],"rb"); if(!fp) return;
 new count,offset,frames,Float:fps,nctl;
 fseek(fp,148,SEEK_SET); fread(fp,nctl,BLOCK_INT);
-g_bCmCtl[c][i]=false; // Only validated Vexmira anchor rigs may bone-merge.
+g_bCmCtl[c][i]=false;
 fseek(fp,164,SEEK_SET); fread(fp,count,BLOCK_INT); fread(fp,offset,BLOCK_INT);
 if(count<1 || count>256) { fclose(fp); return; }
 g_iCmSeq[c][i]=clamp(g_iCmSeq[c][i],0,count-1);
@@ -30686,7 +29341,6 @@ public CommunityBootMap() { server_cmd("changelevel zm_vexmira_icefy"); }
 EpicPrecache()
 {
 new path[160];
-// 5.3.3: arena48/event*.wav + mode*.wav were downloaded but never played (arena51/cues are used) -> removed
 AmbientPrecache49();
 EpicGrenadeEvents();
 if(file_exists("sprites/vexmira/arena51/gren_flare.spr",true)) g_iEpicFlare=ZcPcModel("sprites/vexmira/arena51/gren_flare.spr");
@@ -30694,14 +29348,12 @@ for(new i=0;i<9;i++) {
 formatex(path,charsmax(path),"sprites/vexmira/arena48/boss%d_cast.spr",i);
 if(file_exists(path,true) && CommunityLegacyFileOk(path)) g_iEpicGlyph[i]=ZcPcModel(path);
 copy(path,charsmax(path),"sprites/vexmira/arena49/bossbar.spr");
-g_bEpicBar[i]=file_exists(path,true) && CommunityLegacyFileOk(path) && ZcPcModel(path)>0;
-// Legacy boss music is replaced by the shared ambience scheduler.
+g_bEpicBar[i]=!Ovh538(OVS_BOSSBAR) && file_exists(path,true) && CommunityLegacyFileOk(path) && ZcPcModel(path)>0;
 }
 for(new i=1;i<=10;i++) {
 formatex(path,charsmax(path),"sound/vexmira/epic/count/%s.wav",VOX_NUM[i]);
 if(file_exists(path,true)) ZcPcGeneric(path);
 }
-// 5.3.6: round_start / human_win / zombie_win played on top of the 5.3.5 ROUND_START / HUMAN_WIN / ZOMBIE_WIN sounds (double sound), ice was unused
 static const cues[][]={"flare"};
 for(new i=0;i<sizeof cues;i++) {
 formatex(path,charsmax(path),"sound/vexmira/epic/%s.wav",cues[i]);
@@ -30766,7 +29418,6 @@ EpicRoundStart()
 {
 Radio52(g_iMode==MODE_BOSS?2:0);
 if(!g_bRoundActive) return;
-// 5.3.6: round start sound = ROUND_START (no second cue)
 remove_task(TASK_EPIC_MUSIC);set_task(3.0,"EpicBossMusic",TASK_EPIC_MUSIC);
 for(new p=1;p<=g_iMax;p++) if(is_user_alive(p) && IsVip(p) && (g_iSet[p]&E46_VIP_SPAWN)) EpicVipFx(p);
 }
@@ -30859,11 +29510,6 @@ public VxNativeRestore(plugin, params) { if(!g_bRun526) return 0; return Communi
 public VxNativePrepareJet(plugin, params) { if(!g_bRun526) return 0; return CommunityNativePrepareJet(get_param(1)); }
 public VxNativeSurvivor(plugin, params) { if(!g_bRun526) return 0; return CommunityNativeSurvivor(get_param(1)); }
 public VxNativeJetpack(plugin, params) { if(!g_bRun526) return 0; return CommunityNativeJetpack(get_param(1)); }
-
-// ===================== 5.3.1 model guard =====================
-// Every model the engine precaches (game + map + all plugins) is remembered here. A model that is NOT
-// in this list is never given to a player/entity: the engine would shut the server down with
-// "SV_ModelIndex: model X not precached" / "no precache". Bad values fall back to the stock CS model.
 VxPcRemember(const m[])
 {
 if (g_tPcAll531 == Invalid_Trie) g_tPcAll531 = TrieCreate();
@@ -30875,11 +29521,9 @@ stock bool:VxModelOk(const m[])
 {
 if (!m[0]) return true;
 if (!g_bPcHook531 || !g_bPcReady531 || g_tPcAll531 == Invalid_Trie) return true;
-// stock CS models (models/x.mdl, sprites/x.spr) are not ours to judge
-if (equal(m, "models/", 7) && contain(m[7], "/") == -1 && !equal(m[7], "zombie", 6)) return true;   // no data (hook missing): do not block anything
+if (equal(m, "models/", 7) && contain(m[7], "/") == -1 && !equal(m[7], "zombie", 6)) return true;
 new k[96]; copy(k, charsmax(k), m); strtolower(k);
 if (TrieKeyExists(g_tPcAll531, k)) return true;
-// 5.3.2: not seen by our engine hook -> maybe vexmira_gear precached it before this plugin was loaded
 return VxGearKnows532(m);
 }
 new g_iGearPl532 = -2, g_iGearFn532 = -1;
@@ -30898,13 +29542,11 @@ new bool:ok = callfunc_end() == 1;
 if (ok)
 {
 new k[96]; copy(k, charsmax(k), m); strtolower(k);
-TrieSetCell(g_tPcAll531, k, 1);          // cache: ask the gear plugin only once per model
+TrieSetCell(g_tPcAll531, k, 1);
 }
 return ok;
 }
 public VxModelOkPublic(const m[]) return VxModelOk(m) ? 1 : 0;
-// ReHLDS engine hook: sees EVERY model precache (game, map, AMXX natives of every plugin loaded after this one)
-
 #define PC_SAFE_LIMIT531 509
 public VxRhPcSoundPre531(const s[])
 {
@@ -30940,7 +29582,6 @@ TrieSetCell(g_tGenSeen531, s, idx);
 if (idx > g_iGenTop531) g_iGenTop531 = idx;
 return HC_CONTINUE;
 }
-// how many different .wav files the current map's entities will precache after us (BSP entity lump)
 MapSoundCount531()
 {
 new map[64], path[96]; get_mapname(map, charsmax(map));
@@ -30979,10 +29620,9 @@ return n;
 VxGuardInit531()
 {
 if (g_tPcAll531 == Invalid_Trie) g_tPcAll531 = TrieCreate();
-register_forward(FM_LightStyle, "fw_LightStyle531", 0);    // map light entities set their styles while spawning
+register_forward(FM_LightStyle, "fw_LightStyle531", 0);
 if (RegisterHookChain(RH_PF_precache_model_I, "VxRhPcModel531", 1)) g_bPcHook531 = true;
 else log_amx("[ModelGuard] ReHLDS precache kancasi yok: model korumasi pasif");
-// precache safety net: sounds / generic files never pass 505 (the 512 overflow is a Host_Error = crash)
 RegisterHookChain(RH_PF_precache_sound_I, "VxRhPcSoundPre531", 0);
 RegisterHookChain(RH_PF_precache_sound_I, "VxRhPcSoundPost531", 1);
 RegisterHookChain(RH_PF_precache_generic_I, "VxRhPcGenPre531", 0);
@@ -30998,7 +29638,6 @@ VxGuardLog(const what[], const m[])
 {
 if (g_iGuardLog531 < 60) { g_iGuardLog531++; log_amx("[ModelGuard] %s: '%s' sunucuda yuklu (precache) degil -> orijinal CS modeli kullanildi (cokme onlendi)", what, m); }
 }
-// stock model of the player's current weapon: models/v_<x>.mdl / models/p_<x>.mdl (always precached by CS)
 VxStockWeaponModel(id, bool:view, out[], len)
 {
 new w = get_member(id, m_pActiveItem), cls[32];
@@ -31009,8 +29648,6 @@ if (!equal(cls, "weapon_", 7)) return;
 formatex(out, len, "models/%s_%s.mdl", view ? "v" : "p", cls[7]);
 if (!VxModelOk(out)) out[0] = 0;
 }
-// called once per server frame (first UpdateClientData of the frame), before CS turns the model
-// strings into indexes for the network
 VxGuardFrame()
 {
 new Float:t = get_gametime();
@@ -31041,10 +29678,8 @@ public VxGuardClientData(id, sendweapons, cd)
 VxGuardFrame();
 return FMRES_IGNORED;
 }
-// safe replacements for engfunc(EngFunc_SetModel) / entity_set_model / rg_set_user_model / cs_set_user_model
 VxInfPrecache531()
 {
-// 5.3.1 infection bomb: vexmira.cfg vex_res NADE_INFECT_V / _P / _W; zombie_plague model as 2nd choice, stock CS model last
 copy(g_szInfV531, charsmax(g_szInfV531), GetResString("NADE_INFECT_V", "models/vexmira/nades/v_infect.mdl"));
 copy(g_szInfP531, charsmax(g_szInfP531), GetResString("NADE_INFECT_P", "models/vexmira/nades/p_infect.mdl"));
 copy(g_szInfW531, charsmax(g_szInfW531), GetResString("NADE_INFECT_W", "models/vexmira/nades/w_infect.mdl"));
@@ -31076,14 +29711,12 @@ if (!VxPlayerModelOk(name)) return 0;
 rg_set_user_model(id, name, upd);
 return 1;
 }
-// ===================== end model guard =====================
 public plugin_precache()
 {
 g_iIsolation526=ReadIsolation526();
 log_to_file("vexmira_groups.log","[530 vexcore] selected profile=%d",g_iIsolation526);g_bRun526=(g_iIsolation526==1 || g_iIsolation526>=3);
 log_to_file("vexmira_isolation.log","[530 vexcore] stage=%d full_module=%d precache BEGIN",g_iIsolation526,g_bRun526);
 if(!g_bRun526) {log_to_file("vexmira_isolation.log","[530 vexcore] baseline precache READY: no custom resources/hooks");return;}
-
 VxGuardInit531();
 RegisterHookChain(RH_Con_Printf,"VxConsole524",0);
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePre524",0);
@@ -31091,16 +29724,15 @@ RegisterHookChain(RH_SV_ActivateServer,"VxActivatePost524",1);
 g_iFwPcSnd = register_forward(FM_PrecacheSound, "fw_PcSoundPost", 1);
 g_iFwPcMdl = register_forward(FM_PrecacheModel, "fw_PcModelPost", 1);
 g_iFwPcGen = register_forward(FM_PrecacheGeneric, "fw_PcGenericPost", 1);
-// Engine set_view requires this exact model path, including group test profiles.
 if(file_exists("models/rpgrocket.mdl",true) && CommunityLegacyFileOk("models/rpgrocket.mdl")) g_bCameraReady529=(!VxPcOk531()) ? 0 : precache_model("models/rpgrocket.mdl")>0;
 log_to_file("vexmira_startup.log","[5.3.0] BEGIN map preload");
 if(vx521_pair_version()!=530) {set_fail_state("VEXMIRA: core + gear version mismatch. Install both v5.3.0 files together.");return;}
+if(vxe_version()!=538) {set_fail_state("VEXMIRA: vexmira_extra.amxx (5.3.8) eksik/eski. core + gear + extra birlikte kurulmali.");return;}
 g_pZcRewrite=register_cvar("zc_rewrite_configs","0");
 new bool:force=get_pcvar_num(g_pZcRewrite)>0;
 vx45_write(force);
 if(force) set_pcvar_num(g_pZcRewrite,0);
 if(cvar_exists("sv_auto_precache_sounds_in_models")) set_cvar_num("sv_auto_precache_sounds_in_models",0);
-// Do not rename game sound files during map loading.
 ZcCore_plugin_precache();
 if(g_zcGuardFail) log_amx("[Vexmira] Optional core asset skipped; see AssetGuard log.");
 log_to_file("vexmira_startup.log","[5.3.0] core ready; epic begin");
@@ -31110,7 +29742,6 @@ VxPrecache();PrecacheContexts51();
 log_to_file("vexmira_startup.log","[5.3.0] COMPLETE map preload");
 log_amx("[Vex530] Precache complete: sound=%d model=%d generic=%d",max(g_iTotSnd,g_iPcSnd),max(g_iTotMdl,g_iPcMdl),max(g_iTotGen,g_iPcGen));
 }
-// 5.3.1: precache after map load = engine Host_Error (server shutdown) -> refuse instead
 new bool:g_bPcClosed531, g_iPcLate531;
 stock bool:VxPcOk531()
 {
@@ -31125,12 +29756,10 @@ set_task(0.1, "VxPcClose531");
 log_to_file("vexmira_isolation.log","[530 vexcore] plugin_init BEGIN stage=%d full=%d",g_iIsolation526,g_bRun526);
 register_clcmd("vex_test","IsolationStatus526");
 if(!g_bRun526) {register_plugin("Vexmira vexcore Baseline Test","5.3.1-Stable","Vexmira");log_to_file("vexmira_isolation.log","[530 vexcore] baseline plugin_init COMPLETE");return;}
-
 log_to_file("vexmira_startup.log","[530 vexcore] plugin_init BEGIN");
 register_forward(FM_UpdateClientData, "VxGuardClientData", 0);
 RegisterHookChain(RG_CBasePlayerWeapon_DefaultReload, "VxReloadPre531", false);
 RegisterHookChain(RG_CBasePlayerWeapon_DefaultShotgunReload, "VxShotgunReloadPre531", false);
-// weapon Reload() returns early when the reserve is empty, so refill before it runs too
 static const GUNS531[][] = { "weapon_p228", "weapon_scout", "weapon_xm1014", "weapon_mac10", "weapon_aug", "weapon_elite",
 "weapon_fiveseven", "weapon_ump45", "weapon_sg550", "weapon_galil", "weapon_famas", "weapon_usp", "weapon_glock18",
 "weapon_awp", "weapon_mp5navy", "weapon_m249", "weapon_m3", "weapon_m4a1", "weapon_tmp", "weapon_g3sg1",
@@ -31187,7 +29816,6 @@ if(max(g_iTotGen,g_iPcGen)>=448) {log_amx("[AssetGuard] generic reserve: %s",pat
 if (!file_exists(path, true)) { log_amx("[AssetGuard] UYARI eksik dosya %s (atlandi)", path); return 0; }
 return (!VxPcOk531()) ? 0 : precache_generic(path);
 }
-
 public cmd_Third47(id)
 {
 if(!g_bCameraReady529) {client_print(id,print_chat,"[VEXMIRA] Kamera modeli hazir degil; models/rpgrocket.mdl dosyasini yukleyip harita degistirin.");return PLUGIN_HANDLED;}
@@ -31217,9 +29845,7 @@ while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","VexdCam"))>0) {
 if(get_entvar(ent,var_owner)==id) {g_iCamera47[id]=ent;break;}
 }
 }
-
 bool:KnifeReady47(i) { if(i<0 || i>7) return false; if(i<4) return ZcCompOn(i+7); if(i==4) return g_bCommunityButterflyOk; return g_bKnife47[i-5]; }
-
 BannerRemove47(id)
 {
 UiHudRestore52(id);
@@ -31297,7 +29923,6 @@ set_es(es,ES_RenderAmt,floatround(Float:get_entvar(ent,var_renderamt)));
 }
 return FMRES_IGNORED;
 }
-
 SigilSpawn47(id,kind,Float:duration)
 {
 if(!is_user_alive(id) || kind<0 || kind>1 || !g_iSigil47[kind]) return;
@@ -31321,7 +29946,6 @@ o[2]+=OvhTopOf(id)+30.0+floatsin(now*3.0,radian)*4.0;
 engfunc(EngFunc_SetOrigin,ent,o);a[1]=float(floatround(now*95.0)%360);set_entvar(ent,var_angles,a);
 set_entvar(ent,var_nextthink,now+0.05);
 }
-
 new Float:g_fJetBar48[33];
 public VxGaugeNative47(plugin,params)
 {
@@ -31355,7 +29979,6 @@ GaugeTick47(id)
 {
 if(g_fGaugeEnd47[id]>0.0 && (!is_user_alive(id)||get_gametime()>g_fGaugeEnd47[id])) GaugeRemove47(id);
 }
-
 TitanStomp47(id)
 {
 new Float:now=get_gametime();
@@ -31389,15 +30012,13 @@ ExecuteHamB(Ham_TakeDamage,victim,ent,id,45.0*(1.0-dist/480.0),DMG_SONIC);
 }
 engfunc(EngFunc_RemoveEntity,ent);
 }
-
 public msg_WinText47(msg,dest,id)
 {
 if(get_msg_args()<2 || get_msg_argtype(2)!=ARG_STRING) return PLUGIN_CONTINUE;
 new text[64];get_msg_arg_string(2,text,charsmax(text));
-if(equal(text,"#CTs_Win") || equal(text,"#Terrorists_Win")) return PLUGIN_HANDLED;   // CSO win cards show it
+if(equal(text,"#CTs_Win") || equal(text,"#Terrorists_Win")) return PLUGIN_HANDLED;
 return PLUGIN_CONTINUE;
 }
-
 CommunityCosState48(ent,id,c,i)
 {
 if(c!=1) return;
@@ -31405,7 +30026,6 @@ new Float:v[3];get_entvar(id,var_velocity,v);
 new seq=v[0]*v[0]+v[1]*v[1]>1600.0?g_iCmMove48[c][i]:g_iCmIdle48[c][i];
 if(get_entvar(ent,var_sequence)!=seq) {set_entvar(ent,var_sequence,seq);set_entvar(ent,var_frame,0.0);set_entvar(ent,var_animtime,get_gametime());}
 }
-
 new const Float:B48_RADIUS[]={73.335,53.709,48.229,60.847,64.140,31.390,99.053,39.908,51.787,119.421};
 new const Float:B48_TOP[]={67.444,42.342,42.549,62.244,54.408,46.006,76.248,49.794,54.493,98.587};
 new const Float:B48_DUCK[]={66.067,40.659,43.843,58.077,58.834,38.945,51.533,46.217,45.655,68.575};
@@ -31416,8 +30036,6 @@ new idx=-1;if(g_bBoss[id] && id==g_iBoss && g_iBossType>=0 && g_iBossType<9) idx
 else if(g_iEvent==EV_TITAN && g_bFirst[id] && g_bZombie[id]) idx=9;
 if(idx<0)
 {
-// 5.3.1 auto hit box: every player model taller than the 72-unit hull (CSO zombies, giants...) gets its
-// trace box raised to the model's real top (read from the .mdl), so head shots above the hull register
 if(!get_pcvar_num(g_pAutoHit531)) return FMRES_IGNORED;
 OvhModelTops(id);
 new bool:duck531=(get_entvar(id,var_flags)&FL_DUCKING)?true:false;
@@ -31438,8 +30056,6 @@ hi[2]=o[2]+((get_entvar(id,var_flags)&FL_DUCKING)?B48_DUCK[idx]:B48_TOP[idx])*gk
 set_entvar(id,var_absmin,lo);set_entvar(id,var_absmax,hi);
 return FMRES_IGNORED;
 }
-
-
 MeleeIndex48(id)
 {
 if(id<1||id>g_iMax||!CommunityAlive(id)||get_user_weapon(id)!=CSW_KNIFE) return -1;
@@ -31488,7 +30104,6 @@ new Float:dmg=heavy?220.0:75.0;
 ExecuteHamB(Ham_TakeDamage,target,weapon,id,dmg,DMG_SLASH);
 if(!(g_iSet[id]&SET_NO_FX)) FxRingSmall(hit,idx==0?255:70,idx==1?210:120,idx==2?255:80);
 if(!heavy) return HAM_SUPERCEDE;
-// Elemental procs use the existing immunity and boss caps; no recursive knife hook.
 if(is_user_alive(target)) {
 switch(idx) {
 case 0: {Ignite(target,id,2);FxExploEl(hit,EL_FIRE,5,16);}
@@ -31499,7 +30114,6 @@ case 3: {new Float:v[3];for(new j=0;j<3;j++) v[j]=f[j]*180.0;v[2]=120.0;set_entv
 }
 return HAM_SUPERCEDE;
 }
-
 MeleePrecache48()
 {
 ZcPcModel("models/vexmira/arena48/p_balrog.mdl");
@@ -31532,7 +30146,6 @@ ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changeb_2.wav");
 ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_drawa.wav");
 ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_shootb_end.wav");
 }
-
 ArenaAnnouncement48(kind,index)
 {
 UiAll52(kind==0?clamp(index,0,9):10+clamp(index,0,18),3.2,5);
@@ -31540,9 +30153,6 @@ if(kind==1) RadioEvent52(index);
 new path[96];formatex(path,charsmax(path),"vexmira/arena51/cues/%s%d.wav",kind==0?"mode":"event",index);
 for(new p=1;p<=g_iMax;p++) if(is_user_connected(p)&&!is_user_bot(p)&&!(g_iSet[p]&SET_NO_AMB)) VxClientCmd527(p,"spk ^"%s^"",path);
 }
-
-
-// 4.9: stable bone attachments, nearby ground companions and one ambience player.
 bool:CosCanFollow49(id,c)
 {
 if(!equal(g_szCosModel49[id],g_szOvhMdl[id])) {
@@ -31586,9 +30196,6 @@ return file_exists(path,true)?true:false;
 AmbientPrecache49()
 {
 if(g_tAmbientReady52==Invalid_Trie) g_tAmbientReady52=TrieCreate();
-// 5.3.2: 8 looping ambience beds (sound/vexmira/amb532, mono 11 kHz = plays on every client) shared by all
-// modes / events / bosses -> 8 sound slots instead of 44. Config: vex_res AMBIENT_MODE<n> / AMBIENT_EVENT<n> /
-// AMBIENT_BOSS<n> "sound/....wav" overrides one entry ("" = silence for that round type).
 static const AMB_MODE[]={0,1,2,2,3,3,1,1,7,6}, AMB_EVENT[]={0,4,5,1,3,1,5,1,0,7,1,7,7,7,3,5,2,4,5};
 static const AMB_BED[][]={"calm","tension","hunt","hope","storm","frost","boss","chaos"};
 new path[160],key[32];
@@ -31596,7 +30203,7 @@ for(new kind=0;kind<3;kind++) for(new j=0;j<(kind==0?MODE_TOTAL:(kind==1?EV_TOTA
 formatex(key,charsmax(key),"AMBIENT_%s%d",kind==0?"MODE":(kind==1?"EVENT":"BOSS"),j);
 if(!TrieGetString(g_tRes,key,path,charsmax(path))) {
 new bed=kind==2?6:(kind==0?AMB_MODE[min(j,sizeof AMB_MODE-1)]:AMB_EVENT[min(j,sizeof AMB_EVENT-1)]);
-formatex(path,charsmax(path),"sound/vexmira/s534/amb_%s.wav",AMB_BED[bed]);          // 5.3.5 music beds
+formatex(path,charsmax(path),"sound/vexmira/s534/amb_%s.wav",AMB_BED[bed]);
 if(!file_exists(path,true)) formatex(path,charsmax(path),"sound/vexmira/amb532/%s.wav",AMB_BED[bed]);
 if(!file_exists(path,true)) formatex(path,charsmax(path),"sound/vexmira/arena52/ambience/%s%d.wav",kind==0?"mode":(kind==1?"event":"boss"),j);
 TrieSetString(g_tRes,key,path);
@@ -31608,7 +30215,6 @@ RadioPrecache52();
 NativePrecache52();
 ZcPcSound("vexmira/arena52/foley/scope.wav");
 }
-
 AmbientPath49()
 {
 new key[32],path[160];
@@ -31642,8 +30248,6 @@ if(dbg) log_amx("[AudioDbg] ambiyans #%d CAL %s",id,g_szAmbient49);
 copy(g_szAmbientPlaying52[id],charsmax(g_szAmbientPlaying52[]),g_szAmbient49);
 g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+(containi(g_szAmbient49,".mp3")!=-1?3600.0:get_pcvar_float(g_pAmbRe532));
 }
-
-
 CosTick50(id)
 {
 if(id<1 || id>g_iMax || !is_user_alive(id) || (!g_iCmEnt[id][0] && !g_iCmEnt[id][2])) return;
@@ -31659,7 +30263,6 @@ new ent=g_iCmEnt[id][c];if(!ent || !CmValid(ent,id)) continue;
 new i=g_iCmInfo[ent]%16;if(i<CM_MAX) CommunityCosOrigin(ent,id,c,i);
 }
 }
-
 bool:StockModel50(const path[])
 {
 if(!equal(path,"models/p_",9) && !equal(path,"models/w_",9)) return false;
@@ -31689,150 +30292,6 @@ set_entvar(w,var_fuser2,0.0);new clip=get_member(w,m_Weapon_iClip),bp=rg_get_use
 set_member(w,m_Weapon_iClip,clip+add);rg_set_user_bpammo(id,WEAPON_AK47,bp-add);
 }
 public VxHolster50(w) {if(VxIndex(w)>=0) set_entvar(w,var_fuser2,0.0);return HAM_IGNORED;}
-
-ModernEvents50()
-{
-static const paths[][]={"sound/vexmira/arena52/native/default/usp/0.wav",
-"sound/vexmira/arena52/native/default/usp/1.wav",
-"sound/vexmira/arena52/native/default/usp/2.wav",
-"sound/vexmira/arena52/native/default/usp/3.wav",
-"sound/vexmira/arena52/native/default/usp/4.wav",
-"sound/vexmira/arena52/native/default/usp/5.wav",
-"sound/vexmira/arena52/native/default/usp/6.wav",
-"sound/vexmira/arena52/native/default/elite/0.wav",
-"sound/vexmira/arena52/native/default/elite/1.wav",
-"sound/vexmira/arena52/native/default/elite/2.wav",
-"sound/vexmira/arena52/native/default/elite/3.wav",
-"sound/vexmira/arena52/native/default/elite/4.wav",
-"sound/vexmira/arena52/native/default/elite/5.wav",
-"sound/vexmira/arena52/native/default/m249/0.wav",
-"sound/vexmira/arena52/native/default/m249/1.wav",
-"sound/vexmira/arena52/native/default/m249/2.wav",
-"sound/vexmira/arena52/native/default/m249/3.wav",
-"sound/vexmira/arena52/native/default/m249/4.wav",
-"sound/vexmira/arena52/native/default/m249/5.wav",
-"sound/vexmira/arena52/native/default/famas/0.wav",
-"sound/vexmira/arena52/native/default/famas/1.wav",
-"sound/vexmira/arena52/native/default/famas/2.wav",
-"sound/vexmira/arena52/native/default/g3sg1/0.wav",
-"sound/vexmira/arena52/native/default/g3sg1/1.wav",
-"sound/vexmira/arena52/native/default/g3sg1/2.wav",
-"sound/vexmira/arena52/native/default/ak47/0.wav",
-"sound/vexmira/arena52/native/default/ak47/1.wav",
-"sound/vexmira/arena52/native/default/ak47/2.wav",
-"sound/vexmira/arena52/native/default/ump45/0.wav",
-"sound/vexmira/arena52/native/default/ump45/1.wav",
-"sound/vexmira/arena52/native/default/ump45/2.wav",
-"sound/vexmira/arena52/native/default/sg552/0.wav",
-"sound/vexmira/arena52/native/default/sg552/1.wav",
-"sound/vexmira/arena52/native/default/sg552/2.wav",
-"sound/vexmira/arena52/native/default/scout/0.wav",
-"sound/vexmira/arena52/native/default/scout/1.wav",
-"sound/vexmira/arena52/native/default/scout/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/0.wav",
-"sound/vexmira/arena52/native/default/m4a1/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/3.wav",
-"sound/vexmira/arena52/native/default/m4a1/4.wav",
-"sound/vexmira/arena52/native/default/m4a1/5.wav",
-"sound/vexmira/arena52/native/default/knife/0.wav",
-"sound/vexmira/arena52/native/default/mac10/0.wav",
-"sound/vexmira/arena52/native/default/mac10/1.wav",
-"sound/vexmira/arena52/native/default/mac10/2.wav",
-"sound/vexmira/arena52/native/default/mac10/3.wav",
-"sound/vexmira/arena52/native/default/fiveseven/0.wav",
-"sound/vexmira/arena52/native/default/fiveseven/1.wav",
-"sound/vexmira/arena52/native/default/fiveseven/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/3.wav",
-"sound/vexmira/arena52/native/default/mp5/0.wav",
-"sound/vexmira/arena52/native/default/mp5/1.wav",
-"sound/vexmira/arena52/native/default/mp5/2.wav",
-"sound/vexmira/arena52/native/default/deagle/0.wav",
-"sound/vexmira/arena52/native/default/deagle/1.wav",
-"sound/vexmira/arena52/native/default/deagle/2.wav",
-"sound/vexmira/arena52/native/default/c4/0.wav",
-"sound/vexmira/arena52/native/default/sg550/0.wav",
-"sound/vexmira/arena52/native/default/sg550/1.wav",
-"sound/vexmira/arena52/native/default/sg550/2.wav",
-"sound/vexmira/arena52/native/default/galil/0.wav",
-"sound/vexmira/arena52/native/default/galil/1.wav",
-"sound/vexmira/arena52/native/default/galil/2.wav",
-"sound/vexmira/arena52/native/default/p90/0.wav",
-"sound/vexmira/arena52/native/default/p90/1.wav",
-"sound/vexmira/arena52/native/default/p90/2.wav",
-"sound/vexmira/arena52/native/default/p90/3.wav",
-"sound/vexmira/arena52/native/default/xm1014/0.wav",
-"sound/vexmira/arena52/native/default/xm1014/1.wav",
-"sound/vexmira/arena52/native/default/aug/0.wav",
-"sound/vexmira/arena52/native/default/aug/1.wav",
-"sound/vexmira/arena52/native/default/aug/2.wav",
-"sound/vexmira/arena52/native/default/aug/3.wav",
-"sound/vexmira/arena52/native/default/aug/4.wav",
-"sound/vexmira/arena52/native/default/m3/0.wav",
-"sound/vexmira/arena52/native/default/m3/1.wav",
-"sound/vexmira/arena52/native/default/awp/0.wav",
-"sound/vexmira/arena52/native/default/awp/1.wav",
-"sound/vexmira/arena52/native/default/awp/2.wav",
-"sound/vexmira/arena52/native/default/awp/3.wav",
-"sound/vexmira/arena52/native/default/awp/4.wav",
-"sound/vexmira/arena52/native/default/glock18/0.wav",
-"sound/vexmira/arena52/native/default/glock18/1.wav",
-"sound/vexmira/arena52/native/default/glock18/2.wav",
-"sound/vexmira/arena52/native/default/glock18/3.wav",
-"sound/vexmira/arena52/native/default/p228/0.wav",
-"sound/vexmira/arena52/native/default/p228/1.wav",
-"sound/vexmira/arena52/native/default/p228/2.wav",
-"sound/vexmira/arena52/native/default/p228/3.wav",
-"sound/vexmira/arena52/native/default/p228/4.wav",
-"sound/vexmira/arena52/native/default/tmp/0.wav",
-"sound/vexmira/arena52/native/default/tmp/1.wav",
-"sound/vexmira/arena52/native/default/tmp/2.wav",
-"sound/vexmira/arena51/native/arsenal/1/0.wav",
-"sound/vexmira/arena51/native/arsenal/1/1.wav",
-"sound/vexmira/arena51/native/arsenal/1/2.wav",
-"sound/vexmira/arena51/native/arsenal/5/0.wav",
-"sound/vexmira/arena51/native/arsenal/5/1.wav",
-"sound/vexmira/arena51/native/arsenal/5/2.wav",
-"sound/vexmira/arena51/native/arsenal/5/3.wav",
-"sound/vexmira/arena51/native/arsenal/5/4.wav",
-"sound/vexmira/arena51/native/arsenal/5/5.wav",
-"sound/vexmira/arena51/native/arsenal/5/6.wav",
-"sound/vexmira/arena51/native/arsenal/5/7.wav",
-"sound/vexmira/arena51/native/arsenal/5/8.wav",
-"sound/vexmira/arena51/native/arsenal/5/9.wav",
-"sound/vexmira/arena51/native/arsenal/3/0.wav",
-"sound/vexmira/arena51/native/arsenal/3/1.wav",
-"sound/vexmira/arena51/native/arsenal/3/2.wav",
-"sound/vexmira/arena51/native/arsenal/3/3.wav",
-"sound/vexmira/arena51/native/arsenal/2/0.wav",
-"sound/vexmira/arena51/native/arsenal/2/1.wav",
-"sound/vexmira/arena51/native/arsenal/2/2.wav",
-"sound/vexmira/arena51/native/arsenal/7/0.wav",
-"sound/vexmira/arena51/native/arsenal/7/1.wav",
-"sound/vexmira/arena51/native/arsenal/7/2.wav",
-"sound/vexmira/arena51/native/arsenal/7/3.wav",
-"sound/vexmira/arena51/native/arsenal/7/4.wav",
-"sound/vexmira/arena51/native/arsenal/7/5.wav",
-"sound/vexmira/arena51/native/arsenal/7/6.wav",
-"sound/vexmira/arena51/native/arsenal/0/0.wav",
-"sound/vexmira/arena51/native/arsenal/0/1.wav",
-"sound/vexmira/arena51/native/arsenal/6/0.wav",
-"sound/vexmira/arena51/native/arsenal/6/1.wav",
-"sound/vexmira/arena51/native/arsenal/6/2.wav",
-"sound/vexmira/arena51/native/arsenal/6/3.wav",
-"sound/vexmira/arena51/native/arsenal/6/4.wav",
-"sound/vexmira/arena51/native/arsenal/6/5.wav",
-"sound/vexmira/arena51/native/arsenal/6/6.wav",
-"sound/vexmira/arena51/native/arsenal/6/7.wav",
-"sound/vexmira/arena51/native/arsenal/6/8.wav",
-"sound/vexmira/arena51/native/arsenal/4/0.wav",
-"sound/vexmira/arena51/native/arsenal/4/1.wav",
-"sound/vexmira/arena51/native/arsenal/4/2.wav",
-"sound/vexmira/arena51/native/arsenal/4/3.wav"};
-for(new i;i<sizeof paths;i++) ZcPcGeneric(paths[i]);
-ZcPcGeneric("sound/vexmira/arena52/foley/pin.wav");
-}
-
 VxPierce51(id) {
 new victim=g_iVxHit51[id];if(victim<1||victim>g_iMax||!g_bZombie[victim])return;
 new Float:start[3],Float:dir[3],Float:end[3];xs_vec_sub(g_fVxEnd[id],g_fVxStart[id],dir);xs_vec_normalize(dir,dir);xs_vec_mul_scalar(dir,2.0,start);xs_vec_add(start,g_fVxEnd[id],start);xs_vec_mul_scalar(dir,320.0,end);xs_vec_add(start,end,end);
@@ -31846,7 +30305,6 @@ VxGunkata51(id,const Float:a[3]) {
 new Float:p[3],n;VxSound(id,7,6,CHAN_ITEM);FxRingEx(a,255,185,55,240,8,3);FxSprite(a,g_iSkillSpr51[7],12,200);
 for(new v=1;v<=g_iMax&&n<8;v++) {if(!is_user_alive(v)||!g_bZombie[v])continue;get_entvar(v,var_origin,p);p[2]+=16.0;if(get_distance_f(a,p)>240.0||!VxLOS(a,v,id))continue;FxBeamEx(a,p,g_sprBeam,255,185,55,5,0,2,175);VxDamage(v,id,id,165.0);n++;}
 }
-
 CreateSafe51(const classname[],const bool:useHashTable=false) {
 new cap=global_get(glb_maxEntities),used=engfunc(EngFunc_NumberOfEntities);
 if(cap>128&&used>=cap-32) {static Float:warn51;new Float:now=get_gametime();if(now>=warn51){warn51=now+5.0;log_to_file("vexmira_stability.log","SPAWN_DENIED used=%d capacity=%d classname=%s",used,cap,classname);}return NULLENT;}
@@ -31857,12 +30315,10 @@ new players,cos,projectiles;for(new i=1;i<=g_iMax;i++)if(is_user_connected(i)){p
 for(new j;j<VX_MAX_PROJECTILES;j++)if(VxOwnedEntity(g_iVxProjectiles[j]))projectiles++;
 log_to_file("vexmira_stability.log","players=%d mode=%d event=%d boss=%d entities=%d/%d cosmetics=%d projectiles=%d",players,g_iMode,g_iEvent,g_iBossType,engfunc(EngFunc_NumberOfEntities),global_get(glb_maxEntities),cos,projectiles);
 }
-
 PrecacheContexts51() {
 new key[32],path[128];for(new kind;kind<2;kind++)for(new i;i<(kind?EV_TOTAL:MODE_TOTAL);i++){formatex(path,charsmax(path),"sound/vexmira/arena51/cues/%s%d.wav",kind?"event":"mode",i);ZcPcGeneric(path);}
 for(new i;i<24;i++){formatex(key,charsmax(key),"Z%d_ABILITY",i);PrecacheSoundKeyEx(key,false);}
 }
-
 new const STOCK51_PATH[][]={"weapons/ak47_boltpull.wav",
 "weapons/ak47_clipin.wav",
 "weapons/ak47_clipout.wav",
@@ -32031,8 +30487,6 @@ RestoreStock51() {
 new data51[128],dir51[160],dirw51[176],path51[160],bak51[224],hash51[34];get_datadir(data51,charsmax(data51));formatex(dir51,charsmax(dir51),"%s/vex51_stock_backup",data51);mkdir(dir51);formatex(dirw51,charsmax(dirw51),"%s/weapons",dir51);mkdir(dirw51);
 for(new i;i<sizeof STOCK51_PATH;i++) {formatex(path51,charsmax(path51),"sound/%s",STOCK51_PATH[i]);formatex(bak51,charsmax(bak51),"%s/%s",dir51,STOCK51_PATH[i]);if(!file_exists(path51)||file_exists(bak51))continue;md5_file(path51,hash51);if(!equali(hash51,STOCK51_HASH[i]))continue;if(!rename_file(path51,bak51,0))continue;if(file_exists(path51,true))log_to_file("vex_restore.log","Stock fallback restored: %s",path51);else rename_file(bak51,path51,0);}
 }
-
-// v5.2: one bounded notification entity per client, dedicated music channel.
 Float:OverheadTop52(id)
 {
 new Float:top=(get_entvar(id,var_flags)&FL_DUCKING)?g_fOvhDuck[id]:g_fOvhStand[id];
@@ -32048,6 +30502,7 @@ bool:UiShow52(id,page,Float:duration,priority)
 if(id<1 || id>g_iMax || !is_user_connected(id) || is_user_bot(id) || !get_pcvar_num(g_pUi52) || (g_iSet[id]&SET_NO_FX)) return false;
 new key[32], r=55, g=205, b=255;
 page=clamp(page,0,63);
+if(get_pcvar_num(g_pHudMin538) && ((page>=29 && page<=37) || page==58 || page==59 || page==60 || page==62 || page==63)) return false;
 if(page<=9) { formatex(key,charsmax(key),"MODE_ANN_%d",page); r=255; g=170; b=55; }
 else if(page<=28) { formatex(key,charsmax(key),"EV_ANN_%d",page-9); r=90; g=210; b=255; }
 else if(page<=37) { formatex(key,charsmax(key),"BOSS_ANN_%d",page-29); r=220; g=90; b=255; }
@@ -32116,114 +30571,8 @@ RadioTick52()
 if(!g_bRoundActive || g_bRoundEnded || get_gametime()<g_fRadioNext52 || !get_pcvar_num(g_pRadio52)) return;
 new i=random_num(11,14);if(i==g_iRadioLast52)i=11+(i-10)%4;Radio52(i);
 }
-
-NativePrecache52() {
-new const paths[][]={
-"sound/vexmira/arena52/native/default/ak47/0.wav",
-"sound/vexmira/arena52/native/default/ak47/1.wav",
-"sound/vexmira/arena52/native/default/ak47/2.wav",
-"sound/vexmira/arena52/native/default/aug/0.wav",
-"sound/vexmira/arena52/native/default/aug/1.wav",
-"sound/vexmira/arena52/native/default/aug/2.wav",
-"sound/vexmira/arena52/native/default/aug/3.wav",
-"sound/vexmira/arena52/native/default/aug/4.wav",
-"sound/vexmira/arena52/native/default/awp/0.wav",
-"sound/vexmira/arena52/native/default/awp/1.wav",
-"sound/vexmira/arena52/native/default/awp/2.wav",
-"sound/vexmira/arena52/native/default/awp/3.wav",
-"sound/vexmira/arena52/native/default/awp/4.wav",
-"sound/vexmira/arena52/native/default/c4/0.wav",
-"sound/vexmira/arena52/native/default/deagle/0.wav",
-"sound/vexmira/arena52/native/default/deagle/1.wav",
-"sound/vexmira/arena52/native/default/deagle/2.wav",
-"sound/vexmira/arena52/native/default/elite/0.wav",
-"sound/vexmira/arena52/native/default/elite/1.wav",
-"sound/vexmira/arena52/native/default/elite/2.wav",
-"sound/vexmira/arena52/native/default/elite/3.wav",
-"sound/vexmira/arena52/native/default/elite/4.wav",
-"sound/vexmira/arena52/native/default/elite/5.wav",
-"sound/vexmira/arena52/native/default/famas/0.wav",
-"sound/vexmira/arena52/native/default/famas/1.wav",
-"sound/vexmira/arena52/native/default/famas/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/0.wav",
-"sound/vexmira/arena52/native/default/fiveseven/1.wav",
-"sound/vexmira/arena52/native/default/fiveseven/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/3.wav",
-"sound/vexmira/arena52/native/default/g3sg1/0.wav",
-"sound/vexmira/arena52/native/default/g3sg1/1.wav",
-"sound/vexmira/arena52/native/default/g3sg1/2.wav",
-"sound/vexmira/arena52/native/default/galil/0.wav",
-"sound/vexmira/arena52/native/default/galil/1.wav",
-"sound/vexmira/arena52/native/default/galil/2.wav",
-"sound/vexmira/arena52/native/default/glock18/0.wav",
-"sound/vexmira/arena52/native/default/glock18/1.wav",
-"sound/vexmira/arena52/native/default/glock18/2.wav",
-"sound/vexmira/arena52/native/default/glock18/3.wav",
-"sound/vexmira/arena52/native/default/knife/0.wav",
-"sound/vexmira/arena52/native/default/m249/0.wav",
-"sound/vexmira/arena52/native/default/m249/1.wav",
-"sound/vexmira/arena52/native/default/m249/2.wav",
-"sound/vexmira/arena52/native/default/m249/3.wav",
-"sound/vexmira/arena52/native/default/m249/4.wav",
-"sound/vexmira/arena52/native/default/m249/5.wav",
-"sound/vexmira/arena52/native/default/m3/0.wav",
-"sound/vexmira/arena52/native/default/m3/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/0.wav",
-"sound/vexmira/arena52/native/default/m4a1/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/3.wav",
-"sound/vexmira/arena52/native/default/m4a1/4.wav",
-"sound/vexmira/arena52/native/default/m4a1/5.wav",
-"sound/vexmira/arena52/native/default/mac10/0.wav",
-"sound/vexmira/arena52/native/default/mac10/1.wav",
-"sound/vexmira/arena52/native/default/mac10/2.wav",
-"sound/vexmira/arena52/native/default/mac10/3.wav",
-"sound/vexmira/arena52/native/default/mp5/0.wav",
-"sound/vexmira/arena52/native/default/mp5/1.wav",
-"sound/vexmira/arena52/native/default/mp5/2.wav",
-"sound/vexmira/arena52/native/default/p228/0.wav",
-"sound/vexmira/arena52/native/default/p228/1.wav",
-"sound/vexmira/arena52/native/default/p228/2.wav",
-"sound/vexmira/arena52/native/default/p228/3.wav",
-"sound/vexmira/arena52/native/default/p228/4.wav",
-"sound/vexmira/arena52/native/default/p90/0.wav",
-"sound/vexmira/arena52/native/default/p90/1.wav",
-"sound/vexmira/arena52/native/default/p90/2.wav",
-"sound/vexmira/arena52/native/default/p90/3.wav",
-"sound/vexmira/arena52/native/default/scout/0.wav",
-"sound/vexmira/arena52/native/default/scout/1.wav",
-"sound/vexmira/arena52/native/default/scout/2.wav",
-"sound/vexmira/arena52/native/default/sg550/0.wav",
-"sound/vexmira/arena52/native/default/sg550/1.wav",
-"sound/vexmira/arena52/native/default/sg550/2.wav",
-"sound/vexmira/arena52/native/default/sg552/0.wav",
-"sound/vexmira/arena52/native/default/sg552/1.wav",
-"sound/vexmira/arena52/native/default/sg552/2.wav",
-"sound/vexmira/arena52/native/default/tmp/0.wav",
-"sound/vexmira/arena52/native/default/tmp/1.wav",
-"sound/vexmira/arena52/native/default/tmp/2.wav",
-"sound/vexmira/arena52/native/default/ump45/0.wav",
-"sound/vexmira/arena52/native/default/ump45/1.wav",
-"sound/vexmira/arena52/native/default/ump45/2.wav",
-"sound/vexmira/arena52/native/default/usp/0.wav",
-"sound/vexmira/arena52/native/default/usp/1.wav",
-"sound/vexmira/arena52/native/default/usp/2.wav",
-"sound/vexmira/arena52/native/default/usp/3.wav",
-"sound/vexmira/arena52/native/default/usp/4.wav",
-"sound/vexmira/arena52/native/default/usp/5.wav",
-"sound/vexmira/arena52/native/default/usp/6.wav",
-"sound/vexmira/arena52/native/default/xm1014/0.wav",
-"sound/vexmira/arena52/native/default/xm1014/1.wav",
-"sound/vexmira/arena52/foley/draw.wav",
-"sound/vexmira/arena52/foley/pin.wav",
-"sound/vexmira/arena52/foley/throw.wav"
-};
-for(new i=0;i<sizeof paths;i++) if(containi(paths[i],"/arsenal/4/")==-1) ZcPcGeneric(paths[i]);
-}
-
 UiHudPrecache52()
 {
-// Legacy CSO WeaponList sprite pages were replaced by text-only DHUD notices.
 for(new page=0;page<64;page++) g_bUiHudFiles52[page]=false;
 }
 UiHudRestore52(id)
@@ -32249,8 +30598,6 @@ if(w==g_iUiHudWpn52[id] && frame==g_iUiHudFrame52[id] && now<g_fUiHudNext52[id])
 new name[40];formatex(name,charsmax(name),"vexmira/arena52/hud/n%02d%d",g_iUiPage52[id],frame);
 CsoSendWL(id,name,w);CsoCurW(id,w,clip);g_iUiHudWpn52[id]=w;g_iUiHudFrame52[id]=frame;g_fUiHudNext52[id]=now+0.4;
 }
-
-
 stock HamHook:VxRegisterHam524(Ham:fn,const cls[],const cb[],post=0,bool:specialbot=false) {
 log_to_file("vexmira_startup.log","[530 vexcore] HAM begin fn=%d class=%s callback=%s",fn,cls,cb);
 new HamHook:h=RegisterHam(fn,cls,cb,post,specialbot);
@@ -32271,7 +30618,6 @@ public VxActivatePost524(runPhysics) {
 log_to_file("vexmira_startup.log","[530 vexcore] ServerActivate POST");
 return HC_CONTINUE;
 }
-
 new bool:g_bConsole524;
 public VxConsole524(const line[]) {
 if(g_bConsole524) return HC_CONTINUE;
@@ -32281,7 +30627,6 @@ log_to_file("vex_engine_console.log","%s",line);
 g_bConsole524=false;
 return HC_CONTINUE;
 }
-
 stock ReadIsolation526() {
 new p[192];get_configsdir(p,charsmax(p));add(p,charsmax(p),"/vexmira_isolation.ini");
 new fp=fopen(p,"rt");if(!fp) return 0;
@@ -32292,7 +30637,6 @@ public IsolationStatus526(id) {
 console_print(id,"[530 vexcore] stage=%d full_module=%d; 4=assets off; 5=models only; 6=audio only; 7=sprites only",g_iIsolation526,g_bRun526);
 return PLUGIN_HANDLED;
 }
-
 stock bool:StockAsset527(const path[]) {
 if(StockModel50(path)) return true;
 new candidate[96];
@@ -32301,13 +30645,11 @@ static const players[][]={"gign","gsg9","sas","urban","leet","terror","arctic","
 for(new j=0;j<sizeof players;j++) {formatex(candidate,charsmax(candidate),"models/player/%s/%s.mdl",players[j],players[j]);if(equali(path,candidate)) return true;}
 return false;
 }
-
 stock VxClientCmd527(id,const fmt[],any:...) {
 new text[512];vformat(text,charsmax(text),fmt,3);
 if(!AllowAudio528() && (containi(text,"spk ")!=-1 || containi(text,"mp3 play")!=-1)) return 0;
 return client_cmd(id,"%s",text);
 }
-
 stock bool:GroupProfile528() { return g_iIsolation526>=4 && g_iIsolation526<=10; }
 stock bool:AllowAudio528() { return !GroupProfile528() || g_iIsolation526==6 || g_iIsolation526==8 || g_iIsolation526==10; }
 stock bool:HasSuffix528(const path[],const suffix[]) {
@@ -32326,21 +30668,13 @@ if(equal(path,"sprites/",8) || HasSuffix528(path,".spr")) return g_iIsolation526
 if(HasSuffix528(path,".mdl")) return g_iIsolation526==5 || g_iIsolation526==8 || g_iIsolation526==9;
 return equal(path,"events/",7)?true:false;
 }
-
 stock RegisterTexture530(const path[]) {
 new length=strlen(path);if(length<5 || !equali(path[length-4],".mdl")) return;
 new tex[192];copy(tex,charsmax(tex),path);tex[length-4]=0;add(tex,charsmax(tex),"T.mdl");
 if(file_exists(tex,true)) ZcPcGeneric(tex);
 }
-
-// ---------------------------------------------------------------------------------------------------------------
-// 5.3.6: breakable camp doors. Map doors with "netname" "vxbd" (zm_vexmira_dust2v1 and later maps):
-// humans open / close them with E, zombies smash them (knife / skills). Back every round.
-//   vex_bdoor_hp 1200          door HP
-//   vex_bdoor_boss_mult 4.0    boss / nemesis / assassin damage multiplier
 #define BD536_MAX 48
 new g_iBdEnt536[BD536_MAX], Float:g_fBdHp536[BD536_MAX], g_iBdNum536, Float:g_fBdHud536[33];
-// 5.3.6 feedback: stronger stock-gun damage + knockback, headshot tick sound for the shooter
 public Polish536_HeadshotSnd(id)
 {
 new Float:now = get_gametime();
@@ -32349,9 +30683,6 @@ g_fHsSnd536[id] = now;
 static snd[64]; get_pcvar_string(g_pHsSnd536, snd, charsmax(snd));
 if (snd[0]) client_cmd(id, "spk %s", snd);
 }
-// 5.3.6: many players have a broken custom models/player/urban/urban.mdl from other ZP servers (it wants an
-// urbanT.mdl they do not have -> "urbanT.mdl" error, game closes). Never give anyone the urban look:
-// CT appearance 1 (Seal Team 6 / urban) and auto-select become GSG9 / SAS / GIGN.
 public Urban536_Appearance(id, slot)
 {
 if (!get_pcvar_num(g_pNoUrban536) || get_member(id, m_iTeam) != 2) return HC_CONTINUE;
@@ -32364,8 +30695,6 @@ if (!get_pcvar_num(g_pNoUrban536) || !is_user_alive(id)) return;
 new mdl[32]; cs_get_user_model(id, mdl, charsmax(mdl));
 if (equali(mdl, "urban")) cs_set_user_model(id, "gign");
 }
-// 5.3.6: boss arena. Map ini [arena]: "boss = x y z [yaw]" + "human = x y z [yaw]" (up to 32).
-// When a boss round starts, the boss and every living human are teleported there (hull checked, unstuck after).
 bool:Arena536_Parse(const key[], const val[])
 {
 new sx[16], sy[16], sz[16], sa[16];
@@ -32383,7 +30712,6 @@ return true;
 }
 return false;
 }
-// try the point, then rings of offsets around it; true + moved when a free spot was found
 bool:Arena536_Put(id, const Float:p[4])
 {
 static const Float:OFF[][3] =
@@ -32482,7 +30810,6 @@ pev(ent, pev_netname, nm, charsmax(nm));
 if (!equal(nm, "vxbd")) continue;
 g_iBdEnt536[g_iBdNum536++] = ent;
 }
-// gibs only when the map itself precached them (EngFunc_ModelIndex on a missing model = server shutdown)
 if (g_iBdNum536 && g_tPcAll531 != Invalid_Trie && TrieKeyExists(g_tPcAll531, "models/woodgibs.mdl"))
 g_iBdGib536 = engfunc(EngFunc_ModelIndex, "models/woodgibs.mdl");
 BDoor536_RestoreAll();
@@ -32548,3 +30875,18 @@ message_end();
 }
 client_print(0, print_center, "Bir kapi kirildi! / A door was smashed!");
 }
+
+bool:GmBossGiant(const name[], out[], len)
+{
+new Float:k = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
+g_fBossScale531 = k;
+if (k < 1.05) return false;
+new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX", "256")), 0, 4096);
+return vxe_boss_giant(name, out, len, k, tex) ? true : false;
+}
+bool:GsSlim(const inPath[], const outPath[], maxTex) return vxe_gs_slim(inPath, outPath, maxTex) ? true : false;
+SetDefaultResources() vxe_default_resources();
+ModernEvents50() vxe_modern_events();
+NativePrecache52() vxe_native_precache();
+public VxcResSet(plugin, params) { new k[64], v[192]; get_string(1, k, charsmax(k)); get_string(2, v, charsmax(v)); TrieSetString(g_tRes, k, v); return 1; }
+public VxcPcGeneric(plugin, params) { new p[192]; get_string(1, p, charsmax(p)); return ZcPcGeneric(p); }
