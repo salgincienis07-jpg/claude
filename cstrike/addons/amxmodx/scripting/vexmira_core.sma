@@ -16,6 +16,8 @@ native vxe_default_resources();
 native vxe_modern_events();
 native vxe_native_precache();
 native vxe_version();
+native vxe_giant_new();
+native vxe_late_precache();
 native vxe_unprecache_count(kind);
 native vxe_zup_level(id, cls);
 native vxe_zup_add(id, pts);
@@ -7784,9 +7786,9 @@ ResSet(const key[], const value[])
 {
 if(!key[0]) return;
 if(equali(key,"VOX_COUNTDOWN")) {g_bVoxCountdown=(str_to_num(value)!=0);g_iEpicCountdown=clamp(str_to_num(value),0,2);return;}
-new normalized[256];copy(normalized,charsmax(normalized),value);
+new normalized[512];copy(normalized,charsmax(normalized),value);
 if(contain(value,"|")!=-1 && containi(value,".wav")!=-1) {
-new src[256],tmp[128],pos,keep[256],full2[160];copy(src,charsmax(src),value);
+new src[512],tmp[128],pos,keep[512],full2[160];copy(src,charsmax(src),value);
 for(new i=0;src[i];i++) if(src[i]=='|') src[i]=' ';
 while((pos=argparse(src,pos,tmp,charsmax(tmp)))!=-1) {
 if(!tmp[0]||contain(tmp,"..")!=-1||tmp[0]=='/') continue;
@@ -7853,7 +7855,7 @@ if (!precache)
 log_amx("[Vexmira] %s bulunamadi, varsayilan ayarlar kullaniliyor.", file);
 return 0;
 }
-new line[768], args[CFG_MAXARGS][256], argc, pos, count, value[256];
+static line[1024], args[CFG_MAXARGS][512]; new argc, pos, count; static value[512];
 while (!feof(fp))
 {
 fgets(fp, line, charsmax(line));
@@ -12136,7 +12138,7 @@ return (g_iLmBlockMask & (1 << mode)) ? true : false;
 }
 public srv_GiantBuild533()
 {
-new key[24], nm[128], out[48], ok, all;
+new key[24], nm[128], out[48], ok, all, before = vxe_giant_new();
 for (new i = 0; i < NUM_BOSSES; i++)
 {
 formatex(key, charsmax(key), "B%d_MODEL", i);
@@ -12145,8 +12147,24 @@ all++;
 if (GmBossGiant(nm, out, charsmax(out))) { ok++; server_print("[GiantBoss] %s -> models/player/%s/%s.mdl", nm, out, out); }
 else server_print("[GiantBoss] %s: olusturulamadi (model yok / klasor izni)", nm);
 }
-server_print("[GiantBoss] %d / %d dev boss modeli hazir. Simdi sunucuyu restart et: panel bunlari FastDL'e kopyalar.", ok, all);
+new made = vxe_giant_new() - before;
+server_print("[GiantBoss] %d / %d dev boss modeli hazir (%d yeni uretildi, %d zaten vardi - var olan dosyaya DOKUNULMAZ).", ok, all, made, ok - made);
+if (made > 0)
+{
+// 5.4.2: new files are loaded automatically: the current map is reloaded in 5 s (players reconnect and get them)
+new map[64]; get_mapname(map, charsmax(map));
+server_print("[GiantBoss] yeni dosyalar 5 sn sonra otomatik yuklenecek: harita yeniden aciliyor (%s)", map);
+log_amx("[GiantBoss] %d yeni dev boss -> harita yeniden aciliyor (%s)", made, map);
+client_print(0, print_chat, "[VEXMIRA] Boss modelleri guncellendi, harita 5 sn icinde yeniden aciliyor.");
+set_task(5.0, "task_GiantReload542");
+}
+else server_print("[GiantBoss] yeni dosya yok, harita degismeyecek.");
 return PLUGIN_HANDLED;
+}
+public task_GiantReload542()
+{
+new map[64]; get_mapname(map, charsmax(map));
+server_cmd("changelevel %s", map);
 }
 public srv_DbgSlim534()
 {
@@ -27981,6 +27999,7 @@ log_amx("[Vexmira] mapchooser.amxx yuklu: cift harita oylamasi olmasin diye DURA
 else
 log_amx("[Vexmira] UYARI: mapchooser.amxx yuklu ve vex_map_vote 1: iki ayri harita oylamasi olabilir. plugins.ini'den kaldirin.");
 }
+public VxcPcReady542(plugin, params) return (g_tMdlDone != Invalid_Trie && g_tRes != Invalid_Trie) ? 1 : 0;
 public plugin_natives()
 {
 register_library("vexmira_core45");
@@ -27992,6 +28011,7 @@ register_native("vxc_restore_model","VxcRestoreModel");
 register_native("vxc_card","VxcCard");
 register_native("vxc_class","VxcClass");
 register_native("vxc_pc_model","VxcPcModel");
+register_native("vxc_pc_ready","VxcPcReady542");
 register_native("vxc_pc_sound","VxcPcSound");
 register_native("vx45_corezombie","VxNativeZombie");
 register_native("vx45_coreweapon","VxNativeWeapon");
@@ -29837,6 +29857,7 @@ log_to_file("vexmira_startup.log","[5.3.0] core ready; epic begin");
 EpicPrecache();
 log_to_file("vexmira_startup.log","[5.3.0] epic ready; arsenal begin");
 VxPrecache();PrecacheContexts51();
+vxe_late_precache(); // 5.4.2: extra plugin loaded before core -> its files are precached now
 log_to_file("vexmira_startup.log","[5.3.0] COMPLETE map preload");
 log_amx("[Vex530] Precache complete: sound=%d model=%d generic=%d",max(g_iTotSnd,g_iPcSnd),max(g_iTotMdl,g_iPcMdl),max(g_iTotGen,g_iPcGen));
 }
@@ -30827,7 +30848,7 @@ ModernEvents50() vxe_modern_events();
 NativePrecache52() vxe_native_precache();
 public VxcResSet(plugin, params) { new k[64], v[192]; get_string(1, k, charsmax(k)); get_string(2, v, charsmax(v)); TrieSetString(g_tRes, k, v); return 1; }
 public VxcPcGeneric(plugin, params) { new p[192]; get_string(1, p, charsmax(p)); return ZcPcGeneric(p); }
-public VxcResGet(plugin, params) { new k[64], v[256]; get_string(1, k, charsmax(k)); if (g_tRes == Invalid_Trie || !TrieGetString(g_tRes, k, v, charsmax(v))) v[0] = 0; set_string(2, v, get_param(3)); return v[0] != 0; }
+public VxcResGet(plugin, params) { new k[64], v[512]; get_string(1, k, charsmax(k)); if (g_tRes == Invalid_Trie || !TrieGetString(g_tRes, k, v, charsmax(v))) v[0] = 0; set_string(2, v, get_param(3)); return v[0] != 0; }
 public VxcPcModel(plugin, params) { new p[192]; get_string(1, p, charsmax(p)); return PcModel(p, false); }
 public VxcPcSound(plugin, params) { new p[192]; get_string(1, p, charsmax(p)); return PcSound(p); }
 // 5.3.8: special knives push zombies hard (boss / nemesis / assassin reduced), throttled per victim

@@ -1,0 +1,29 @@
+VEXMIRA 5.4.2
+=============
+1) DEV BOSS GERI ACIK + KORUMA
+   - Buyutulmus boss dosyasi BIR KEZ uretilir. Dosya varsa ve saglamsa bir daha ASLA yeniden uretilmez /
+     ustune yazilmaz -> ayni isim + ayni dosya -> oyuncular bir kere indirir, bir daha indirmez.
+   - Sadece eksik ya da bozuk dev boss dosyasi yeniden uretilir.
+   - vex_boss_build: eksik dev bosslari uretir. Yeni dosya uretildiyse 5 sn sonra harita KENDILIGINDEN yeniden
+     acilir ve dosyalar yuklenir (restart gerekmez). Yeni dosya yoksa hicbir sey yapmaz.
+
+2) FASTDL EKLENTISI (yeni: vexmira_fastdl.sma)
+   - FastDL adresini kendisi ayarlar: http://f16.oyunyoneticisi.biz/cstrike/  (degistirmek: vex_fastdl_url "...";
+     kapatmak: vex_fastdl 0). sv_allowdownload 1 de yapar.
+   - Haritada oyunculara giden TUM dosyalari listeler (dev bosslar dahil), tam FastDL linkleriyle:
+       addons/amxmodx/data/vexmira_fastdl/<harita>.txt   ve   ALL.txt (tum haritalar)
+   - Sunucuda olmayan ama oyuncuya gonderilen dosyayi logs/vexmira_fastdl.log'a yazar (cokme sebebi).
+   - Konsol: vex_fastdl_files
+   - plugins ini'de EN USTTE olmali (her dosyayi gorebilmesi icin):
+       vexmira_fastdl.amxx
+       vexmira_core.amxx
+       vexmira_gear.amxx
+       vexmira_extra.amxx
+
+3) LOG DUZELTMELERI
+   - vexmira_extra core'dan once yuklenince (panel sirasi) hicbir dosyasini yukleyemiyordu
+     ("0 / 8 ozel silah hazir", maske/zirh modeli, zombi gelistirme halkasi). Artik sira farketmez.
+   - Uzun ses listeleri 255 harfte kesiliyordu ("charger7_clipin3.wa yok"). Artik 511 harf.
+
+KURULUM: 4 .sma'yi panelden derle (core, gear, extra, fastdl), plugins ini'ye vexmira_fastdl.amxx'i en uste ekle,
+restart. Sonra bir kez: vex_boss_build

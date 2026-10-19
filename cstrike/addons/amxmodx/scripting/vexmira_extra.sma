@@ -37,10 +37,13 @@ new const CLASS_MDL_DEF[NUM_CLASSES][] = { "walker", "runner", "tank", "banshee"
 new const CLASS_CLAW_DEF[NUM_CLASSES][] = { "walker", "runner", "hulk", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "hulk", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "hulk", "spitter", "phantom" };
 new const BOSS_MDL_DEF[NUM_BOSSES][] = { "tank", "banshee", "hulk", "bomber", "phantom", "frost", "voodoo", "spitter", "stalker" };
 
+new g_iGiantNew542;
 public plugin_natives()
 {
 register_library("vexmira_extra");
 register_native("vxe_boss_giant","N_BossGiant");
+register_native("vxe_giant_new","N_GiantNew542");
+register_native("vxe_late_precache","N_LatePrecache542");
 register_native("vxe_gs_slim","N_GsSlim");
 register_native("vxe_default_resources","N_DefRes");
 register_native("vxe_modern_events","N_Modern");
@@ -63,6 +66,7 @@ register_native("vxe_sw_active","N_SwActive");
 register_native("vxe_sw_rgb","N_SwRgb");
 }
 public N_Version(plugin, params) return VXE_VERSION;
+public N_GiantNew542(plugin, params) return g_iGiantNew542;
 public N_BossGiant(plugin, params)
 {
 new name[128], out[64];
@@ -805,9 +809,13 @@ formatex(dir, charsmax(dir), "models/player/%s", gname);
 formatex(dst, charsmax(dst), "%s/%s.mdl", dir, gname);
 new mark[32];
 formatex(mark, charsmax(mark), "vexgiant534 t%d", tex);
-if (!file_exists(dst, true) || !GsMarked(dst, mark))
+// 5.4.2 PROTECTION: a giant file that already exists and is valid is NEVER rebuilt or rewritten
+// (same name + same bytes -> players never download it again). Only a missing / broken file is built.
+if (file_exists(dst, true) && !CommunityLegacyFileOk(dst)) { log_amx("[GiantBoss] bozuk dev model siliniyor, yeniden uretilecek: %s", dst); delete_file(dst); }
+if (!file_exists(dst, true))
 {
 if (!file_exists(src, true)) return false;
+g_iGiantNew542++;
 if (!dir_exists(dir)) mkdir(dir);
 if (!GmCopy(src, dst) || !GmPatch(dst, k)) { delete_file(dst); log_amx("[GiantBoss] %s olusturulamadi (dosya/klasor izni?) - normal boyut", dst); return false; }
 new tmp[168], s0 = file_size(dst, 0), bool:slim;
@@ -1137,7 +1145,7 @@ if (!out[0]) copy(out, len, def);
 }
 SgList(const list[])
 {
-new rest[256], one[96]; copy(rest, charsmax(rest), list);
+new rest[512], one[96]; copy(rest, charsmax(rest), list);
 while (rest[0]) { strtok(rest, one, charsmax(one), rest, charsmax(rest), '|'); trim(one); if (one[0]) vxc_pc_sound(one); }
 }
 SgPick(const list[], out[], len)
@@ -1146,11 +1154,24 @@ new n = 1; for (new k = 0; list[k]; k++) if (list[k] == '|') n++;
 new want = random(n), rest[200], c; copy(rest, charsmax(rest), list); out[0] = 0;
 while (rest[0]) { strtok(rest, out, len, rest, charsmax(rest), '|'); trim(out); if (c++ == want) break; }
 }
+// 5.4.2 LOAD ORDER FIX: if this plugin is listed before vexmira_core (panel order), core is not ready yet
+// (no config, no precache cache) and every file here was skipped ("0 / 8 ozel silah hazir").
+// Then core calls vxe_late_precache() at the end of its own precache and everything is loaded there.
+native vxc_pc_ready();
+new bool:g_bPcDone542;
 public plugin_precache()
 {
+if (!vxc_pc_ready()) { log_amx("[Vexmira] extra: core henuz hazir degil, yuklemeyi core yapacak (eklenti sirasi)"); return; }
+ExtraPrecache542();
+}
+public N_LatePrecache542(plugin, params) { ExtraPrecache542(); return 1; }
+ExtraPrecache542()
+{
+if (g_bPcDone542) return;
+g_bPcDone542 = true;
 UnpcSetup();
 ItemsPrecache538();
-new key[24], val[256], a[6][8];
+new key[24], val[512], a[6][8];
 for (new i = 0; i < SG_MAX; i++)
 {
 g_bSgOk[i] = false;
