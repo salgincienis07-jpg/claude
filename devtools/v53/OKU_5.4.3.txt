@@ -1,0 +1,15 @@
+VEXMIRA 5.4.3 - FASTDL LISTESI DUZELTMESI
+=========================================
+Sorun: liste sadece oyunun kendi (stok) dosyalarini gosteriyordu, Vexmira'nin ozel model/ses/sprite'lari yoktu.
+Sebep: eklentilerin kendi yukledigi dosyalar eski yontemle gorunmuyordu.
+Cozum: vexmira_fastdl artik sunucunun oyunculara gonderdigi GERCEK listeyi okuyor (ReAPI); stok dosyalari
+(oyuncularda zaten var) atliyor.
+
+DOSYALAR
+- addons/amxmodx/scripting/vexmira_fastdl.sma  -> panelden derle
+- addons/amxmodx/data/vexmira_fastdl_stock.txt -> stok dosya listesi (sunucuya at)
+
+KONTROL: harita degisince konsola  vex_fastdl_files
+  "oyuncuya giden X dosya: Y OZEL, Z stok, 0 EKSIK" yazmali.
+  data/vexmira_fastdl/<harita>.txt icinde sadece ozel dosyalar olur (models/player/..., sound/vexmira/..., sprites/vexmira/...).
+  Eski (stoklu) liste dosyasini ve ALL.txt'yi bir kez silebilirsin, yeniden olusur.
