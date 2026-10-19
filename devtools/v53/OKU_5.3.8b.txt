@@ -9,7 +9,7 @@ BU SURUMDE DUZELENLER
 - Duvara konan lazerin surekli yanip sonmesi / kendini tekrar kurmasi duzeltildi.
 - CSO tarzi bildirim kartlarinin arkasindaki gri dikdortgen kaldirildi, tamamen seffaf.
   (Kartlar yeni klasorde: sprites/vexmira/c538t - oyuncular yeni kartlari otomatik indirir.)
-- zm_vexmira_dust2vexfix: T base yolundaki cam balkonun girisi acildi. Merdivenden cikinca
+- zm_vexmira_dust2newv3: T base yolundaki cam balkonun girisi acildi. Merdivenden cikinca
   soldaki cam tamamen kaldirildi. Balkon, eski duvarin icinde kalan kismindan kurtarildi
   (sahanlik duvarin icindeydi, giris bu yuzden yoktu).
 
@@ -25,10 +25,9 @@ KURULUM (sirayla)
    dosyalari sunucu kendisi gonderir (daha yavas ama eksik dosya sorunu olmaz).
 4) Sunucuyu restart et.
 
-OYUNCULAR ICIN (sadece daha once dust2vexfix haritasina girmis olanlar)
-- Harita ayni isimle guncellendi. "Your map differs from the server's" (harita farkli) hatasi
-  alan oyuncu, oyun klasorunde cstrike_downloads/maps/zm_vexmira_dust2vexfix.bsp dosyasini
-  silip tekrar girsin.
+HARITA ADI
+- Harita artik zm_vexmira_dust2newv3 (yeni isim = herkes yeni haritayi indirir, "harita farkli" hatasi olmaz).
+- Sunucudan eski zm_vexmira_dust2vexfix.bsp / .nav / vexmira_maps/zm_vexmira_dust2vexfix.ini silinebilir.
 
 SUNUCUDAN SILINEBILECEK ESKI DOSYALAR (artik kullanilmiyor)
 - sprites/vexmira/c538/ klasorunun tamami (yerine c538t geldi)

@@ -1,4 +1,4 @@
-"""Zombie-plague additions for zm_vexmira_dust2vexfix (v3; was zm_vexmira_dust2v1).
+"""Zombie-plague additions for zm_vexmira_dust2newv3 (v3; was zm_vexmira_dust2v1).
 
   * boss plaza: the rock field right of the CT -> B road is removed (world brushes clipped) and replaced by a
     paved battle square with a statue, braziers, colonnade, a raised defense terrace and laser zones
@@ -20,7 +20,7 @@ from ..rmf import Ent, clip_outside_box, solid_bbox
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vexmira_dust2vexfix'
+NAME = 'zm_vexmira_dust2newv3'
 INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', NAME + '.ini')
 BASE_BSP = os.environ.get('D2_BASE_BSP', '')
 
@@ -1580,7 +1580,7 @@ def write_ini(m, bsp_path=None):
         hum = [p for p in hum if ok(p)]
         print('  [d2 ini] arena human points ok %d, boss point ok %s' % (len(hum), ok(boss)))
     arena = ['boss = %d %d %d %d' % boss] + ['human = %d %d %d %d' % p for p in hum]
-    txt = """; zm_vexmira_dust2vexfix - de_dust2 zombie camp edition (v4) (latin-1, Turkce harfsiz) - MapBy:SmurfSexy
+    txt = """; zm_vexmira_dust2newv3 - de_dust2 zombie camp edition (v4) (latin-1, Turkce harfsiz) - MapBy:SmurfSexy
 [info]
 name_en = Vexmira Dust II ZM
 name_tr = Vexmira Dust II ZM
