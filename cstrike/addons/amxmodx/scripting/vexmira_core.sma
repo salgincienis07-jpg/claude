@@ -12136,16 +12136,7 @@ return (g_iLmBlockMask & (1 << mode)) ? true : false;
 }
 public srv_GiantBuild533()
 {
-new key[24], nm[128], out[48], ok, all;
-for (new i = 0; i < NUM_BOSSES; i++)
-{
-formatex(key, charsmax(key), "B%d_MODEL", i);
-if (!TrieGetString(g_tRes, key, nm, charsmax(nm)) || !nm[0]) continue;
-all++;
-if (GmBossGiant(nm, out, charsmax(out))) { ok++; server_print("[GiantBoss] %s -> models/player/%s/%s.mdl", nm, out, out); }
-else server_print("[GiantBoss] %s: olusturulamadi (model yok / klasor izni)", nm);
-}
-server_print("[GiantBoss] %d / %d dev boss modeli hazir. Simdi sunucuyu restart et: panel bunlari FastDL'e kopyalar.", ok, all);
+server_print("[Vexmira] Dev boss dosyalari kaldirildi (5.4.1): bosslar normal modelleriyle oynar, ekstra indirme yok.");
 return PLUGIN_HANDLED;
 }
 public srv_DbgSlim534()
@@ -28306,14 +28297,14 @@ formatex(key, charsmax(key), "B%d_MODEL", i);
 if (!g_bBossLoaded[i])
 {
 new bn[128], gn[48], gp[128];
-if (str_to_num(GetResString("BOSS_GIANT_ALL", "0")) && !equali(GetResString("BOSS_GIANT", "file"), "off") && !equali(GetResString("BOSS_GIANT", "file"), "clone")
+if (false
 && TrieGetString(g_tRes, key, bn, charsmax(bn)) && bn[0] && GmBossGiant(bn, gn, charsmax(gn)))
 { formatex(gp, charsmax(gp), "models/player/%s/%s.mdl", gn, gn); if (PcModel(gp)) PcPlayerTex(gn); }
 continue;
 }
 new bname[128], giant[48];
 g_fBossScale531 = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
-g_iGiantMode532 = equali(GetResString("BOSS_GIANT", "file"), "clone") ? 1 : (equali(GetResString("BOSS_GIANT", "file"), "off") ? 0 : 2);
+g_iGiantMode532 = equali(GetResString("BOSS_GIANT", "off"), "clone") ? 1 : 0; // 5.4.1: giant boss files (extra download) removed; bosses use their normal model
 if (g_iGiantMode532 == 2 && TrieGetString(g_tRes, key, bname, charsmax(bname)) && bname[0] && GmBossGiant(bname, giant, charsmax(giant)))
 {
 new gpath[128]; formatex(gpath, charsmax(gpath), "models/player/%s/%s.mdl", giant, giant);
@@ -30815,11 +30806,17 @@ client_print(0, print_center, "Bir kapi kirildi! / A door was smashed!");
 
 bool:GmBossGiant(const name[], out[], len)
 {
+#pragma unused name
+#pragma unused out
+#pragma unused len
+return false; // 5.4.1: giant boss copies removed (they forced an extra download)
+#if 0
 new Float:k = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
 g_fBossScale531 = k;
 if (k < 1.05) return false;
 new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX", "128")), 0, 4096);
 return vxe_boss_giant(name, out, len, k, tex) ? true : false;
+#endif
 }
 bool:GsSlim(const inPath[], const outPath[], maxTex) return vxe_gs_slim(inPath, outPath, maxTex) ? true : false;
 SetDefaultResources() vxe_default_resources();

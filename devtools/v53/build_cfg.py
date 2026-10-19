@@ -80,7 +80,7 @@ OVERRIDE = [
     ('vex_chat_prefix_boss "^3[^4BOSS^3]^1"', 'boss / boss yetenekleri etiketi'),
     ('vex_chat_prefix_event "^4[^3EVENT^4]^1"', 'event / hava olayi etiketi'),
     ('vex_chat_prefix_admin "^3[^4ADMIN^3]^1"', 'admin islemleri etiketi'),
-    ('vex_res BOSS_GIANT "file"', 'DEV BOSS: file = boss modelinin buyutulmus + inceltilmis kopyasi kendiliginden uretilir (models/player/<boss>_x16, orijinalin ~3te1 i boyutunda) | off = normal boyut, hic indirme yok | clone = sadece Xash istemcisi (Steam de boss buyumez - KULLANMA)'),
+    ('vex_res BOSS_GIANT "off"', 'buyutulmus boss dosyasi uretilmez / indirilmez, bosslar normal modelleriyle'),
     ('vex_res BOSS_GIANT_TEX "128"', 'dev boss kopyasinda doku boyutu siniri (px). 128 = en kucuk indirme, giris hizli (onerilen) | 256 = daha net ama 3-4 kat buyuk | 512 = daha net ama daha buyuk dosya | 0 = dokulara dokunma'),
     ('vex_res BOSS_GIANT_ALL "0"', '0 = sadece o haritanin 3 bossu indirilir (giris HIZLI, onerilen) | 1 = 9 dev bossun hepsi ilk giriste indirilir (giris COK UZUN) | dev boss istemiyorsan BOSS_GIANT "off" = hic indirme yok'),
     ('vex_topboard 1', 'UST SKOR PANELI (CSO tarzi): 1 = acik  [INSAN galibiyet/canli]  TUR + sure + mod  [ZOMBI galibiyet/canli]'),

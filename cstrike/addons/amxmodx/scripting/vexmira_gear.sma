@@ -15959,7 +15959,7 @@ new const ZC_F_CFG[][] = {
 "vex_res BOSS_PAIN2 ^"^"                                        // boss pain2 (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res BOSS_ATTACK ^"^"                                       // boss attack (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res BOSS_SCALE ^"1.6^"                                     // BOSS BUYUKLUGU: 1.0 = normal, 1.6 = 1.6 kat dev (model + hitbox kodla buyutulur)",
-"vex_res BOSS_GIANT ^"file^"                                    // DEV BOSS: file = boss modelinin buyutulmus + inceltilmis kopyasi kendiliginden uretilir (models/player/<boss>_x16, orijinalin ~3te1 i boyutunda) | off = normal boyut, hic indirme yok | clone = sadece Xash istemcisi (Steam de boss buyumez - KULLANMA)",
+"vex_res BOSS_GIANT ^"off^"                                     // buyutulmus boss dosyasi uretilmez / indirilmez, bosslar normal modelleriyle",
 "vex_res BOSS_GIANT_TEX ^"128^"                                 // dev boss kopyasinda doku boyutu siniri (px). 128 = en kucuk indirme, giris hizli (onerilen) | 256 = daha net ama 3-4 kat buyuk | 512 = daha net ama daha buyuk dosya | 0 = dokulara dokunma",
 "vex_res BOSS_GIANT_ALL ^"0^"                                   // 0 = sadece o haritanin 3 bossu indirilir (giris HIZLI, onerilen) | 1 = 9 dev bossun hepsi ilk giriste indirilir (giris COK UZUN) | dev boss istemiyorsan BOSS_GIANT ^"off^" = hic indirme yok",
 "",
