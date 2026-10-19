@@ -52,7 +52,7 @@ OVERRIDE = [
     ('vex_res SKY_PER_MAP "3"', 'bir haritada donen gokyuzu sayisi (her harita sonraki 3 lu gruba gecer; indirme limiti icin)'),
     ('vex_res CSO_CARDSET "c539"', 'ekran kartlari: c538 = 5.3.8 yeni net kartlar (onerilen; sadece CSO_LANG dili indirilir), c533 = eski kart seti, off = sadece yazi kart'),
     ('vex_res MODEL_GUARD "1"', '1 = bozuk model/sprite (eksik doku, GL_Upload16 dokusu, kesik dosya) oyuncuya GONDERILMEZ, eski/varsayilan model kullanilir; sebep logs/vexmira_modelguard.log'),
-    ('vex_res MODEL_UNIQUE "1"', '1 = sadece T dosyasi olmayan oyuncu modelleri benzersiz isimle kopyalanir; model ekleyince: vex_model_build -> restart'),
+    ('vex_res MODEL_PATH_INFO "0"', 'oyuncu modeli: klasor adi (vexbos1) veya tam yol (models/player/vexmira/admin.mdl, T aranmaz). Dev boss: vex_boss_build -> restart'),
     ('vex_res ZOMBIE_HIT "zombie/claw_strike1.wav|zombie/claw_strike2.wav|zombie/claw_strike3.wav"',
      'pence ile vurus (| ile birden fazla ses: her vurusta rastgele biri)'),
     ('vex_res ZOMBIE_STAB "zombie/claw_strike2.wav|zombie/claw_strike3.wav"', 'agir pence (sag tik) vurusu'),
@@ -573,7 +573,7 @@ def auto_comment(key, value):
     v = value.lower()
     known = {'MODEL_BUDGET': 'eklentinin yukleyebilecegi en fazla model/sprite sayisi (512 sinirina karsi koruma)',
              'SOUND_BUDGET': 'eklentinin yukleyebilecegi en fazla 3D ses sayisi (512 sinirina karsi koruma)',
-             'HUMAN_MODELS': 'insan oyuncu modelleri (birden fazla: bosluk ile; models/player/AD/AD.mdl -> AD)',
+             'HUMAN_MODELS': 'insan oyuncu modelleri (birden fazla: bosluk ile; klasor adi AD veya tam yol models/player/vexmira/x.mdl)',
              'ADMIN_MODEL': 'admin oyuncu modeli', 'VIP_MODEL': 'VIP oyuncu modeli', 'SURVIVOR_MODEL': 'Survivor modeli',
              'SNIPER_MODEL': 'Sniper modeli', 'NEMESIS_MODEL': 'Nemesis modeli', 'ASSASSIN_MODEL': 'Assassin modeli',
              'VOX_COUNTDOWN': 'geri sayim anonsu: 0 kapali, 1 sayilar, 2 sayilar + efekt',

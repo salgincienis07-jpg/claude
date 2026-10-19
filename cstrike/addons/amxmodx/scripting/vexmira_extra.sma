@@ -65,7 +65,7 @@ register_native("vxe_sw_rgb","N_SwRgb");
 public N_Version(plugin, params) return VXE_VERSION;
 public N_BossGiant(plugin, params)
 {
-new name[64], out[64];
+new name[128], out[64];
 get_string(1, name, charsmax(name));
 new ok = GmBossGiant(name, out, charsmax(out), get_param_f(4), get_param(5)) ? 1 : 0;
 if (ok) set_string(2, out, get_param(3));
@@ -783,10 +783,24 @@ return true;
 bool:GmBossGiant(const name[], out[], len, Float:k, tex)
 {
 if (k < 1.05) return false;
-new gname[48], src[160], dst[160], dir[96], t1[160], t2[160];
+new gname[48], src[160], dst[160], dir[96], t1[160], t2[160], bn[32];
+// 5.4.0: the boss model may be a folder name ("vexbos1") or a full path ("models/player/vexmira/boss1.mdl")
+if (contain(name, "/") != -1 || containi(name, ".mdl") != -1)
+{
+if (equali(name, "models/", 7)) copy(src, charsmax(src), name); else formatex(src, charsmax(src), "models/%s", name);
+if (containi(src, ".mdl") == -1) add(src, charsmax(src), ".mdl");
+new st = 0, n = 0; for (new i = 0; src[i]; i++) if (src[i] == '/') st = i + 1;
+for (new i = st; src[i] && src[i] != '.' && n < 13; i++) if (isalnum(src[i]) || src[i] == '_') bn[n++] = src[i];
+bn[n] = 0;
+copy(t1, charsmax(t1), src); t1[strlen(t1) - 4] = 0; add(t1, charsmax(t1), "T.mdl");
+}
+else
+{
+copy(bn, charsmax(bn), name);
 formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
-formatex(gname, charsmax(gname), "%.13s_g%d", name, (floatround(k * 10.0) * 131 + tex * 7 + file_size(src, 0)) % 10000); // 5.3.9c: short name (engine path limit 63 chars: models/player/N/N.mdl) + tag from scale/texture/source size -> changed model = new file
-formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
+formatex(t1, charsmax(t1), "models/player/%s/%sT.mdl", name, name);
+}
+formatex(gname, charsmax(gname), "%.13s_g%d", bn, (floatround(k * 10.0) * 131 + tex * 7 + file_size(src, 0)) % 10000); // 5.3.9c: short name (engine path limit 63 chars: models/player/N/N.mdl) + tag from scale/texture/source size -> changed model = new file
 formatex(dir, charsmax(dir), "models/player/%s", gname);
 formatex(dst, charsmax(dst), "%s/%s.mdl", dir, gname);
 new mark[32];
@@ -803,7 +817,6 @@ if (GsSlim(dst, tmp, tex) && GmCopy(tmp, dst)) slim = true;
 g_bGsBoss539 = false;
 delete_file(tmp);
 GsMark(dst, mark);
-formatex(t1, charsmax(t1), "models/player/%s/%sT.mdl", name, name);
 formatex(t2, charsmax(t2), "%s/%sT.mdl", dir, gname);
 if (file_exists(t1, true) && !file_exists(t2, true)) GmCopy(t1, t2);
 log_amx("[GiantBoss] dev model uretildi: %s (x%.1f) %d KB%s", dst, k, file_size(dst, 0) / 1024, slim ? "" : " (inceltilemedi, tam kopya)");

@@ -1,0 +1,25 @@
+VEXMIRA 5.4.0 (5.3.9c / 5.3.9d'nin ustune kurulur)
+=================================================
+
+1) OYUNCU MODELLERI ARTIK HIC KOPYALANMAZ
+   Klasorde ne varsa o yuklenir. 5.3.9c/d'de olusan, adi _u ile biten kopya klasorleri silinebilir
+   (models/player/*_u1234).
+
+2) OYUNCU MODELI TAM YOLLA YAZILABILIR (silah modeli gibi)
+   vexmira.cfg'de her oyuncu modeli satiri iki sekilde yazilabilir:
+     vex_res ADMIN_MODEL "vexvipnew"                          -> models/player/vexvipnew/vexvipnew.mdl (eski yontem)
+     vex_res ADMIN_MODEL "models/player/vexmira/admin.mdl"    -> dosya oldugu gibi yuklenir
+   Tam yol yazilinca oyun o dosyayi dogrudan oyuncuya giydirir; oyuncunun bilgisayari ayni isimli bir klasor
+   veya ...T.mdl ARAMAZ. Tek dosyali modeller icin T hatasi bu yolla tamamen biter.
+   Gecerli satirlar: HUMAN_MODELS (bosluk ile birden fazla), ADMIN_MODEL, VIP_MODEL, SURVIVOR_MODEL,
+   SNIPER_MODEL, NEMESIS_MODEL, ASSASSIN_MODEL, Z0_MODEL..., B0_MODEL...
+   Ornek: vex_res HUMAN_MODELS "models/player/vexmira/ct1.mdl models/player/vexmira/ct2.mdl"
+   Not: yol 62 karakteri gecmesin (oyun sinir).
+
+3) DEV BOSS: vex_boss_build
+   Sadece boss buyutulmus kopyalari uretilir (boss tam yolla yazilmis olsa da calisir).
+   Boss ekleyince/degistirince: sunucu konsoluna  vex_boss_build  -> sunucuyu restart et (FastDL'e duser).
+   Eski adlar da calisir: vex_giant_build, vex_model_build, vex_mode_build.
+
+KURULUM: vexmira_core.sma, vexmira_extra.sma, vexmira_gear.sma panelden derle; vexmira.cfg'deki model
+satirlarini istersen tam yola cevir; restart.
