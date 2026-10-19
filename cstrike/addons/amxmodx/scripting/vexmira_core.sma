@@ -4982,7 +4982,7 @@ DrawHud()
 new humans = CountHumans(true), zombies = CountZombies(true);
 new total = RoundsTotal();
 new bool:top = (g_iFrame % 2 == 0) ? true : false;
-new toBoss = RoundsToBoss();
+// 5.3.8: boss teaser removed from the top line
 new l1[96], l2[96], l3[96], l4[96], l5[96], head[96];
 new tname[32], key[16], ev[32], mn[32], cn[32], lineC[96];
 for (new id = 1; id <= g_iMax; id++)
