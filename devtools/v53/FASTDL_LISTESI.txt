@@ -56,7 +56,7 @@ maps/zm_vexmira_7door.bsp
 maps/zm_vexmira_7door.res
 maps/zm_vexmira_dust.bsp
 maps/zm_vexmira_dust.res
-maps/zm_vexmira_dust2newv5.bsp
+maps/zm_vexmira_dust2fixed.bsp
 maps/zm_vexmira_dust2zm.bsp
 maps/zm_vexmira_icefy.bsp
 maps/zm_vexmira_icefy.res

@@ -12,9 +12,9 @@ KURULUM:
      plugins-vexmira.ini uc eklentiyi de yukler (sirasi: core, gear, extra). Ucu ayni surum olmali.
   3) FastDL: FASTDL_LISTESI.txt'teki tum dosyalari ayni klasor yapisiyla FastDL'e kopyala
      (yeni: models/vexmira/538, models/player/vex538_*, sprites/vexmira/c538, sound/vexmira/538,
-      maps/zm_vexmira_dust2newv5.bsp).
+      maps/zm_vexmira_dust2fixed.bsp).
 
-HARITA zm_vexmira_dust2newv5 (MapBy: SmurfSexy)
+HARITA zm_vexmira_dust2fixed (MapBy: SmurfSexy)
   - Long'dan T base yolundaki 2 kucuk kule ve yolun ortasindaki agac kaldirildi.
   - T base'e giderken soldaki kapali kapinin ustunde merdivenle cikilan, etrafi + ustu KIRILMAZ CAM balkon ussu.
   - 2 yeni gizli tunel: kapali kapinin icinden T spawn'a, B'den ust tunellere (A short tuneli de duruyor).

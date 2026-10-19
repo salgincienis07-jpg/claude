@@ -570,8 +570,27 @@ a += n;
 }
 }
 stock GsFindSeq(const lab[], nq) { for (new q = 0; q < nq; q++) if (equal(g_GsLab[q], lab)) return q; return -1; }
+new bool:g_bGsBoss539;
+// 5.3.9c: a giant boss never crouches, swims, flinches or plays 5 different deaths - those sequences now reuse
+// the animation data of the basic ones (idle1 / walk / run / knife aim+shoot / death1 / jump) -> much smaller file
+stock GsBossRed539(q, nq)
+{
+new l[33]; copy(l, charsmax(l), g_GsLab[q]);
+new t[24]; t[0] = 0;
+if (equal(l, "idle1") || equal(l, "walk") || equal(l, "run") || equal(l, "jump") || equal(l, "death1") || equal(l, "ref_aim_knife") || equal(l, "ref_shoot_knife")) return -1;
+if (equal(l, "crouch_idle") || equal(l, "swim") || equal(l, "treadwater") || containi(l, "flinch") != -1 || containi(l, "gesture") != -1) copy(t, charsmax(t), "idle1");
+else if (equal(l, "crouchrun") || equal(l, "crouch_walk") || equal(l, "crouchwalk")) copy(t, charsmax(t), "walk");
+else if (equal(l, "longjump") || equal(l, "superjump")) copy(t, charsmax(t), "jump");
+else if (equal(l, "crouch_aim_", 11) || (equal(l, "ref_aim_", 8) && !equal(l, "ref_aim_knife"))) copy(t, charsmax(t), "ref_aim_knife");
+else if (equal(l, "crouch_shoot", 12) || equal(l, "ref_shoot", 9) || containi(l, "reload") != -1) copy(t, charsmax(t), "ref_shoot_knife");
+else if (containi(l, "death") != -1 || containi(l, "die") != -1) copy(t, charsmax(t), "death1");
+if (!t[0]) return -1;
+new k = GsFindSeq(t, nq);
+return (k >= 0 && k != q && g_GsSeqAi[k] != g_GsSeqAi[q]) ? k : -1;
+}
 stock GsKnifeOf(q, nq)
 {
+if (g_bGsBoss539) { new r = GsBossRed539(q, nq); if (r >= 0) return r; }
 new l[33]; copy(l, charsmax(l), g_GsLab[q]);
 new pre[8], p;
 if (equal(l, "ref_", 4)) { copy(pre, charsmax(pre), "ref"); p = 4; }
@@ -765,7 +784,8 @@ bool:GmBossGiant(const name[], out[], len, Float:k, tex)
 {
 if (k < 1.05) return false;
 new gname[48], src[160], dst[160], dir[96], t1[160], t2[160];
-formatex(gname, charsmax(gname), "%s_x%dt%d", name, floatround(k * 10.0), tex); // 5.3.9b: texture limit in the name -> smaller copy is a NEW file (no stale big download)
+formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
+formatex(gname, charsmax(gname), "%.13s_g%d", name, (floatround(k * 10.0) * 131 + tex * 7 + file_size(src, 0)) % 10000); // 5.3.9c: short name (engine path limit 63 chars: models/player/N/N.mdl) + tag from scale/texture/source size -> changed model = new file
 formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
 formatex(dir, charsmax(dir), "models/player/%s", gname);
 formatex(dst, charsmax(dst), "%s/%s.mdl", dir, gname);
@@ -778,7 +798,9 @@ if (!dir_exists(dir)) mkdir(dir);
 if (!GmCopy(src, dst) || !GmPatch(dst, k)) { delete_file(dst); log_amx("[GiantBoss] %s olusturulamadi (dosya/klasor izni?) - normal boyut", dst); return false; }
 new tmp[168], s0 = file_size(dst, 0), bool:slim;
 formatex(tmp, charsmax(tmp), "%s.tmp", dst);
+g_bGsBoss539 = true;
 if (GsSlim(dst, tmp, tex) && GmCopy(tmp, dst)) slim = true;
+g_bGsBoss539 = false;
 delete_file(tmp);
 GsMark(dst, mark);
 formatex(t1, charsmax(t1), "models/player/%s/%sT.mdl", name, name);

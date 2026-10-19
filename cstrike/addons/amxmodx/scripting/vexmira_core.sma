@@ -3638,6 +3638,8 @@ new info[8], t[192];
 num_to_str(value, info, charsmax(info));
 ZcStyleItem(text, t, charsmax(t));
 if (MenuPlain538()) { replace_string(t, charsmax(t), "\r", "\d"); replace_string(t, charsmax(t), "\y", "\w"); }
+// 5.3.9c: amounts in [brackets] (prices, counts, AP / VC) are red
+if (contain(t, "[") != -1) { new r539[192], o539; for (new c = 0; t[c] && o539 < charsmax(r539) - 4; c++) { if (t[c] == '[') { r539[o539++] = '\'; r539[o539++] = 'r'; } r539[o539++] = t[c]; if (t[c] == ']' && t[c + 1] && t[c + 1] != '\') { r539[o539++] = '\'; r539[o539++] = 'w'; } } r539[o539] = 0; copy(t, charsmax(t), r539); }
 // 5.3.9b: one empty line under every option (vex_menu_gap 1) so the list is easier to read
 if (g_pMenuGap539 && get_pcvar_num(g_pMenuGap539) && t[0] && t[strlen(t) - 1] != '^n') add(t, charsmax(t), "^n");
 g_iMenuItemBytes += strlen(t) + 9;
@@ -6506,28 +6508,33 @@ fseek(fp, 164, SEEK_SET);
 fread(fp, numseq, BLOCK_INT);
 fread(fp, seqidx, BLOCK_INT);
 numseq = clamp(numseq, 0, 512);
-for (new i = 0; i < numseq && (idle < 0.0 || duck < 0.0); i++)
+// 5.3.9c: the overhead bar must sit ABOVE the model: tallest standing sequence box (idle / walk / run /
+// ref_aim ...; jumps, deaths, crouch ignored) + eye height, not only idle1 (many CSO zombies report a short idle1)
+new Float:tallest = -1.0, Float:eyeZ;
+fseek(fp, 84, SEEK_SET); fread(fp, raw, BLOCK_INT); eyeZ = Float:raw;
+for (new i = 0; i < numseq; i++)
 {
 fseek(fp, seqidx + i * 176, SEEK_SET);
 fread_blocks(fp, lab, 32, BLOCK_CHAR);
 lab[31] = 0;
-new bool:isIdle = equali(lab, "idle1") ? true : false;
-if (!isIdle && !equali(lab, "crouch_idle"))
-continue;
 fseek(fp, seqidx + i * 176 + 116, SEEK_SET);
 fread(fp, raw, BLOCK_INT);
 z = Float:raw;
 if (z < 4.0 || z > 400.0)
 continue;
-if (isIdle)
-idle = z;
-else
-duck = z;
+if (equali(lab, "idle1")) idle = z;
+else if (equali(lab, "crouch_idle")) duck = z;
+if (containi(lab, "crouch") != -1 || containi(lab, "jump") != -1 || containi(lab, "death") != -1 || containi(lab, "die") != -1 || containi(lab, "swim") != -1 || containi(lab, "treadwater") != -1)
+continue;
+if (containi(lab, "idle") != -1 || containi(lab, "walk") != -1 || containi(lab, "run") != -1 || containi(lab, "ref_") != -1 || containi(lab, "shoot") != -1)
+tallest = floatmax(tallest, z);
 }
 if (hdrTop > 8.0 && hdrTop < 400.0 && floatabs(hdrTop - 36.0) > 0.5)
 stand = hdrTop;
 else if (idle > 0.0)
 stand = idle;
+if (tallest > 0.0) stand = floatmax(stand, floatmin(tallest, (idle > 0.0 ? idle : stand) * 1.6));
+if (eyeZ > 8.0 && eyeZ < 300.0) stand = floatmax(stand, eyeZ + 8.0);
 }
 fclose(fp);
 }
@@ -7045,6 +7052,9 @@ if(!AllowModel528(path)) return 0;
 if(g_tMdlDone==Invalid_Trie) {log_amx("[VexInit] PcModel before cache initialization: %s",path);return 0;}
 if (!path[0])
 return 0;
+// 5.3.9c: the engine keeps only 63 characters of a resource path; a longer one reaches the client cut short
+// ("...not found" fatal error). Such a file is never sent (the old / default model is used).
+if (strlen(path) > 62) { log_to_file("vexmira_modelguard.log", "ENGELLENDI %s -> yol 62 karakterden uzun (oyun keser, 'not found' cokmesi); klasor/dosya adini kisalt", path); return 0; }
 new idx;
 if (TrieGetCell(g_tMdlDone, path, idx))
 return idx;
@@ -7260,11 +7270,13 @@ if (!file_exists(model, true))
 log_amx("[Vexmira] Model bulunamadi: %s - varsayilan kullanilacak", model);
 return;
 }
+new u539[48]; UniqModel539(name, u539, charsmax(u539));
+if (!equal(u539, name)) formatex(model, charsmax(model), "models/player/%s/%s.mdl", u539, u539);
 if (PcModel(model))
 {
-copy(out, len, name);
-MdlHeadTops(name);
-PcPlayerTex(name);
+copy(out, len, u539);
+MdlHeadTops(u539);
+PcPlayerTex(u539);
 }
 }
 LoadWorldModels()
@@ -7554,6 +7566,54 @@ if (ent == g_iGiantEnt532 && host == g_iBoss && !(g_iCamera47[host] && !is_nulle
 set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
 return FMRES_IGNORED;
 }
+// 5.3.9c UNIQUE PLAYER MODELS: common names (nemesis, zombie_source, cso_heavy ...) exist with other content
+// on other ZP servers; a client that cached such a copy never downloads ours and crashes ("...T.mdl not found").
+// Every custom player model is copied once to "<name>_u<size>" (+ its T / 01.. files) and that copy is used,
+// so every client downloads exactly our file. vex_res MODEL_UNIQUE "0" turns it off.
+stock bool:CopyFile539(const src[], const dst[])
+{
+new in = fopen(src, "rb", true);
+if (!in) return false;
+new o = fopen(dst, "wb");
+if (!o) { fclose(in); return false; }
+new buf[1024], n;
+while ((n = fread_blocks(in, buf, sizeof buf, BLOCK_CHAR)) > 0) fwrite_blocks(o, buf, n, BLOCK_CHAR);
+fclose(in); fclose(o);
+return true;
+}
+stock UniqModel539(const name[], out[], len)
+{
+copy(out, len, name);
+if (!name[0] || equal(GetResString("MODEL_UNIQUE", "1"), "0")) return;
+static const ST[][] = { "gign", "sas", "gsg9", "urban", "terror", "leet", "arctic", "guerilla", "vip", "spetsnaz", "militia", "player" };
+for (new i = 0; i < sizeof ST; i++) if (equali(name, ST[i])) return;
+new l = strlen(name);
+if (l > 2 && containi(name, "_u") != -1 && isdigit(name[l - 1])) return;
+new src[128], base[160], dst[160], nn[48], sz;
+formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
+sz = file_size(src, FSOPT_BYTES_COUNT, true);
+if (sz <= 0) return;
+formatex(nn, charsmax(nn), "%.14s_u%d", name, sz % 10000); // max 20 chars: the engine cuts paths over 63 chars ("not found")
+if (strlen(nn) >= len) return;
+formatex(dst, charsmax(dst), "models/player/%s/%s.mdl", nn, nn);
+if (!file_exists(dst, true) || file_size(dst, FSOPT_BYTES_COUNT, true) != sz)
+{
+formatex(base, charsmax(base), "models/player/%s", nn);
+if (!dir_exists(base)) mkdir(base);
+if (!CopyFile539(src, dst)) { log_amx("[Vexmira] model kopyalanamadi (klasor izni?): %s - orijinal ad kullaniliyor", dst); return; }
+new s2[160], d2[160];
+formatex(s2, charsmax(s2), "models/player/%s/%sT.mdl", name, name); formatex(d2, charsmax(d2), "models/player/%s/%sT.mdl", nn, nn);
+if (file_exists(s2, true)) CopyFile539(s2, d2);
+for (new g = 1; g < 10; g++)
+{
+formatex(s2, charsmax(s2), "models/player/%s/%s%02d.mdl", name, name, g);
+if (!file_exists(s2, true)) break;
+formatex(d2, charsmax(d2), "models/player/%s/%s%02d.mdl", nn, nn, g); CopyFile539(s2, d2);
+}
+log_amx("[Vexmira] oyuncu modeli benzersiz kopya: %s -> %s (baska sunucudan kalma ayni isimli dosya ile cakisma olmaz)", name, nn);
+}
+copy(out, len, nn);
+}
 GetPlayerModel(const key[], out[], len)
 {
 out[0] = 0;
@@ -7567,6 +7627,7 @@ log_amx("[Vexmira] Model bulunamadi: %s (%s) - varsayilan kullanilacak", model, 
 out[0] = 0;
 return;
 }
+{ new u539[48]; UniqModel539(out, u539, charsmax(u539)); if (!equal(u539, out) && strlen(u539) < len) { copy(out, len, u539); formatex(model, charsmax(model), "models/player/%s/%s.mdl", out, out); } }
 if (!PcModel(model))
 out[0] = 0;
 else
@@ -23625,7 +23686,7 @@ return HC_CONTINUE;
 #define HUB_VIPADM   205
 #define HUB_BACK     99
 new const HUB_MARKET_ITEMS[] = { 1, 2, 18, 19 };
-new const HUB_CLASS_ITEMS[]  = { 4, 5 };
+new const HUB_CLASS_ITEMS[]  = { 4, 5, 23 };
 new const HUB_CHAR_ITEMS[]   = { 31, 20, 32, 33, 34, 16, 22 };
 new const HUB_FUN_ITEMS[]    = { 6, 9, 14, 15, 13 };
 new const HUB_VIPADM_ITEMS[] = { 8, 17 };
@@ -23734,6 +23795,7 @@ case 19: ShowNadeMenu(id);
 case 20: cmd_quest(id);
 case 21: ShowCosmeticMenu(id);
 case 22: ShowTop10(id);
+case 23: amxclient_cmd(id, "vex_zup"); // 5.3.9c: zombie class upgrade menu (vexmira_extra)
 case 31: ShowCard(id, id);
 case 32: ShowAchMenu(id);
 case 33: ShowTitleMenu(id);
@@ -26568,6 +26630,24 @@ g_iRdLastChat = pick;
 MsRadio(pick);
 }
 }
+MdlBounds539(const path[], Float:mn[3], Float:mx[3])
+{
+mn[0] = -40.0; mn[1] = -40.0; mn[2] = 0.0; mx[0] = 40.0; mx[1] = 40.0; mx[2] = 160.0;
+new fp = fopen(path, "rb", true);
+if (!fp) return;
+new id, raw, Float:v[12];
+fread(fp, id, BLOCK_INT);
+if (id == 0x54534449)
+{
+fseek(fp, 88, SEEK_SET);
+for (new i = 0; i < 12; i++) { fread(fp, raw, BLOCK_INT); v[i] = Float:raw; }   // min max bbmin bbmax
+new Float:a[3], Float:b[3];
+for (new k = 0; k < 3; k++) { a[k] = floatmin(v[k], v[6 + k]); b[k] = floatmax(v[3 + k], v[9 + k]); }
+if (b[0] - a[0] > 1.0 && b[2] - a[2] > 1.0 && b[2] - a[2] < 2000.0)
+for (new k = 0; k < 3; k++) { mn[k] = a[k] - 8.0; mx[k] = b[k] + 8.0; }
+}
+fclose(fp);
+}
 MsModelsSpawn()
 {
 new Float:o[3], Float:ang[3], Float:col[3], tgt;
@@ -26619,6 +26699,11 @@ ang[1] = g_fMmPos[m][3];
 set_pev(e, pev_angles, ang);
 set_pev(e, pev_movetype, MOVETYPE_NONE);
 }
+// 5.3.9c: real model bounds (was a 0-size point at the base -> the engine dropped the model whenever its base
+// left the PVS = xmas trees / props blinking)
+{ new Float:bmn[3], Float:bmx[3]; MdlBounds539(g_szMmPath[m], bmn, bmx); new Float:sc = g_fMmScale[m] > 0.01 ? g_fMmScale[m] : 1.0;
+for (new k = 0; k < 3; k++) { bmn[k] *= sc; bmx[k] *= sc; }
+engfunc(EngFunc_SetSize, e, bmn, bmx); }
 engfunc(EngFunc_SetOrigin, e, o);
 set_pev(e, pev_sequence, g_iMmSeq[m]);
 set_pev(e, pev_framerate, g_fMmFr[m]);
@@ -30643,7 +30728,7 @@ g_pGunDmg536 = register_cvar("vex_gun_damage_mult", "1.35");
 g_pHudCalm538 = register_cvar("vex_hud_calm", "1");
 ZupMarks538();
 g_pMenuPlain538 = register_cvar("vex_menu_plain", "1");
-g_pMenuGap539 = register_cvar("vex_menu_gap", "1");
+g_pMenuGap539 = register_cvar("vex_menu_gap", "0");
 g_pSkDmg538 = register_cvar("vex_sknife_damage_mult", "2.5");
 g_pSkKb538 = register_cvar("vex_sknife_knockback", "430");
 g_pSkBoss538 = register_cvar("vex_sknife_boss_kb", "0.25");
