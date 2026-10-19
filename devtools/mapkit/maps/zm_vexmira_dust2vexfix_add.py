@@ -1074,7 +1074,7 @@ def tree_spot(x, y, z, yaw=0):
     TREE_SPOTS.append((x, y, z + 3, yaw))             # model base is at z=-3
     OCC.append((x - 100, y - 100, x + 100, y + 100))
     for k, (dx, dy) in enumerate(((70, 40), (-60, 55), (30, -75))):        # gift box models around the tree
-        MODELS.append('model = models/vexmira/538/world/xmas_gift%d.mdl %d %d %d %d' % (1 + k % 2, x + dx, y + dy, z, 30 * k))
+        MODELS.append('model = models/vexmira/538/world/xmas_gift%db.mdl %d %d %d %d' % (1 + k % 2, x + dx, y + dy, z, 30 * k))
     return light((x, y, z + 180), (255, 200, 120), 120)
 
 
@@ -1245,7 +1245,7 @@ def balcony_base():
         return [], []
     btop = floor_at(800, -1664, 260)
     zt = max(zf + 176, (btop + 12) if btop is not None else 0)   # balcony floor (over the door block)
-    bx0, bx1, by0, by1 = 656, 944, -1690, -1530
+    bx0, bx1, by0, by1 = 656, 940, -1636, -1476   # 5.3.8a: moved north out of the old wall (landing was inside it)
     world.append(bx((bx0, by0, zt - 12), (bx1, by1, zt), {'top': PLANK, 'bottom': METAL, 'all': METAL}))
     for px, py in ((bx0, by1 - 16), (bx1 - 16, by1 - 16)):
         world.append(bx((px, py, zf), (px + 16, py + 16, zt - 12), METAL))      # support posts (north edge)
@@ -1265,11 +1265,10 @@ def balcony_base():
     G.append(bx((bx0, by1 - 4, zt), (bx1, by1, zr), GLASS))
     G.append(bx((bx0, by0, zt), (bx1, by0 + 4, zr), GLASS))
     G.append(bx((bx0, by0, zr), (bx1, by1, zr + 4), GLASS))
-    # doorway: the west pane gets an opening at the landing (y by0..by0+64)
-    G[0] = bx((bx0, by0 + 72, zt), (bx0 + 4, by1, zr), GLASS)
-    G.append(bx((bx0, by0, zt + 104), (bx0 + 4, by0 + 72, zr), GLASS))
+    # 5.3.8a: the whole west pane (left side when you reach the top of the stairs) is open = the entrance
+    G.pop(0)
     ents.append(glass(G, breakable=False, renderamt=100))
-    for xa in (bx0, bx1 - 8):
+    for xa in (bx1 - 8,):
         for ya in (by0, by1 - 8):
             DET.append(bx((xa, ya, zt), (xa + 8, ya + 8, zr), METAL))
     ents.append(light(((bx0 + bx1) / 2, (by0 + by1) / 2, zr - 20), (200, 230, 255), 150))

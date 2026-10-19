@@ -147,6 +147,8 @@ class Canvas:
     # composite helpers -----------------------------------------------------------------------------
     def panel(self, x0, y0, x1, y1, r=6, accent=None, stripe='left'):
         m = self.rrect(x0, y0, x1, y1, r)
+        if NO_PANEL:          # 5.3.8a: owner wants fully transparent cards (no grey box behind)
+            return m
         self.paint(self.grow(m, 1), RIM)
         self.paint(m, self.vgrad(PANEL_TOP, PANEL_BOT, y0, y1))
         inner = self.rrect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, max(1, r - 1))
@@ -164,6 +166,8 @@ class Canvas:
         return m
 
     def label(self, mask, col, rim=True, shadow=True):
+        if NO_PANEL:          # no box behind -> every text gets at least a dark drop shadow to stay readable
+            shadow = True
         if shadow:
             self.paint(np.roll(np.roll(mask, int(0.8 * SS), 0), int(0.6 * SS), 1), (0, 0, 0), 0.55)
         if rim:
@@ -180,6 +184,9 @@ class Canvas:
         pm = (self.rgb * self.a[..., None]).reshape(h, s, w, s, 3).mean((1, 3))
         rgb = np.where(a[..., None] > 1e-6, pm / np.maximum(a[..., None], 1e-6), 0)
         return np.clip(rgb, 0, 255), a
+
+
+NO_PANEL = True
 
 
 # sprite writers ------------------------------------------------------------------------------------

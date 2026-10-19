@@ -31,8 +31,8 @@ import glyphs538 as G  # noqa: E402
 from hud538 import (ACC, FONT_B, FONT_N, FONT_R, PANEL_BOT, RIM, TEXT, TEXT_SUB, Canvas, write_additive,  # noqa: E402
                     write_alphatest, write_hud_txt)
 
-OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'cstrike', 'sprites', 'vexmira', 'c538'))
-REL = 'vexmira/c538'
+OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'cstrike', 'sprites', 'vexmira', 'c538t'))
+REL = 'vexmira/c538t'
 
 
 def dim(c, k):
