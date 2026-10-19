@@ -1,0 +1,21 @@
+VEXMIRA 5.4.4 - BOSS INDIRMESI NEDEN 30 SN?
+==========================================
+Oyuncu bir dosyayi FastDL'de BULAMAZSA o dosyayi oyunun kendi (yavas) indirmesiyle ceker: ~20-25 KB/sn.
+700 KB'lik bir dev boss = ~30 sn. Dev boss dosyalarini SUNUCU kendisi uretir (models/player/<boss>_g1234/);
+panelin FastDL'i genelde sadece SENIN yukledigin dosyalari kopyalar, sunucunun urettiklerini kopyalamayabilir.
+
+1) KONTROL ET (yeni komut):  vex_fastdl_check boss
+   Her oyuncu/boss modelini FastDL sitesine tek tek sorar. Sonuc: logs/vexmira_fastdl.log
+     "FASTDL'DE YOK (404) -> oyuncu bunu YAVAS indirir: models/player/xxx_g1234/xxx_g1234.mdl"
+   Tum ozel dosyalar icin:  vex_fastdl_check
+   (Konsolda "kontrol bitti: X var, Y YOK" yazar.)
+
+2) YOK cikan dev boss dosyalari icin COZUM:
+   Panel dosya yoneticisinden models/player/ icindeki _g ile biten klasorleri bilgisayarina indir ve
+   ayni yere TEKRAR YUKLE (panel yuklenen dosyayi FastDL'e kopyalar). Dev boss dosyalari bir daha
+   uretilmedigi icin (5.4.2 korumasi) bunu bir kez yapman yeter. Sonra tekrar: vex_fastdl_check boss -> 0 YOK.
+
+3) YEDEK HIZ: vex_fastdl_rate 100000 (varsayilan). FastDL'de olmayan bir dosya olsa bile oyun ici indirme
+   ~4 kat hizli olur (sv_minrate / sv_maxrate 100000).
+
+KURULUM: vexmira_fastdl.sma'yi panelden derle, restart.
