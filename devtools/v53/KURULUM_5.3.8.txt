@@ -1,0 +1,57 @@
+VEXMIRA ZOMBIE 5.3.8 - buyuk guncelleme
+========================================
+
+ONCE SIL (artik kullanilmiyor):
+  cstrike/maps/zm_vexmira_dust2zm.bsp / .nav  ve  configs/vexmira_maps/zm_vexmira_dust2zm.ini
+  (5.3.6 kaldiysa zm_vexmira_dust2v1 dosyalari da)
+
+KURULUM:
+  1) Zip'teki cstrike klasorunu sunucudaki cstrike'in ustune at.
+  2) "Eklenti Yukle" ile UC dosyayi derle (hepsi 1 MB altinda):
+       vexmira_core.sma (956 KB), vexmira_gear.sma (854 KB), vexmira_extra.sma (88 KB - YENI)
+     plugins-vexmira.ini uc eklentiyi de yukler (sirasi: core, gear, extra). Ucu ayni surum olmali.
+  3) FastDL: FASTDL_LISTESI.txt'teki tum dosyalari ayni klasor yapisiyla FastDL'e kopyala
+     (yeni: models/vexmira/538, models/player/vex538_*, sprites/vexmira/c538, sound/vexmira/538,
+      maps/zm_vexmira_dust2vexfix.bsp).
+
+HARITA zm_vexmira_dust2vexfix (MapBy: SmurfSexy)
+  - Long'dan T base yolundaki 2 kucuk kule ve yolun ortasindaki agac kaldirildi.
+  - T base'e giderken soldaki kapali kapinin ustunde merdivenle cikilan, etrafi + ustu KIRILMAZ CAM balkon ussu.
+  - 2 yeni gizli tunel: kapali kapinin icinden T spawn'a, B'den ust tunellere (A short tuneli de duruyor).
+  - B: camlar kaldirildi; tunele girerken sagdaki kapi -> korkutucu KARANLIK MAGARA (girisi lazerle savunulur);
+    harita disina giden kutulu cikmazda 2 katli B KALESI.
+  - Siginak merdivenlerinin altindaki kutular kirilabilir.
+  - Gercek yilbasi agaci modelleri + hediye kutulari + mumluklar + fenerler (kar yok).
+  - Meydan: bosta duran duvar ve B penceresinin ustundeki yama duvar kaldirildi; buyuk arena dairesi, ampul
+    dizileri, bayraklar, fener direkleri; BOSS dogus halkasi (kirmizi) + INSAN isinlanma halkalari (yesil).
+  - Tabelalar sadece duz duvara konur (kapi/pencere icine giren tabela kalmadi).
+  - CT ve T base susleri. FPS: en kotu ~1240 r_speeds, ortalama ~620.
+
+EKLENTI
+  - "Boss geliyor" yazilari kalkti; boss roundunda "X saniye sonra boss arenasina isinlanacaksin" geri sayimi,
+    sonra boss + tum yasayan insanlar meydana isinlanir (vex_boss_arena_tp).
+  - HUD sade: bos yazilar kalkti, tum HUD tek sakin renk (vex_hud_calm 1). Menuler sade (vex_menu_plain 1).
+  - Yeni CSO kartlari (puruzsuz, net), yeni can / boss can cubuklari (animasyonlu, model boyuna hizali),
+    yeni kafa ustu ikonlari, vurus / kafadan vurus / oldurme isaretleri + sesleri.
+  - Lazerler: sahibi zombi olunca silinir (vex_lm_keep 0); "bir sure sonra gorunmez olma" hatasi duzeltildi
+    (isin kaybolursa mayin her 0.5 sn kontrol edip yeniden olusturuyor).
+  - Spor zombi kendi yetenegine takilmiyor (spor/yumurta icinde kimse yokken kati olur).
+  - "player model" yuzunden atilma: mp_consistency 0.
+  - Thanos 9 ve Skull 9 kaldirildi. 4 yeni ozel bicak: Magma Blade, Tomahawk, Pickaxe, Crowbar.
+    Eski ozel bicaklar 2.5x hasar + guclu itme. Hepsi kendi eklentimizde (harici eklenti yok).
+  - 7 yeni ozel silah: Portal Gun, Balrog-VII, Balrog-XI, MP7 Nemesis, Charger-7, Chicken USP, Skull-2
+    (ozel silah menusunde, AP ile; ayarlar vex_res SG<n>_*).
+  - Enfeksiyon maskesi (1 enfeksiyonu engeller) ve zombi zirhi (-%40 hasar, 1500'e kadar) markette.
+  - Yeni modeller: 9 zombi sinifi + Nemesis + pencelere, CT karakterleri, 11 varsayilan silah gorunumu,
+    ADMIN'e ozel CT modeli (chief), VIP'e ozel CT modeli (deadpool).
+  - Zombi sinifi gelistirme: her sinif 0-5 seviye, enfekte (+1) / insan oldurme (+2) ile zor kazanilir;
+    her seviye -%6 bekleme, +%6 menzil, +%8 hasar, 3+ seviyede renkli halka efekti; seviye atlayinca kart + ses.
+    Menu: say /upgrade veya /yukselt.
+  - Unprecacher: kullanilmayan 36 stok ses yuklenmiyor. Indeksleme: tum dosyalar tek kayittan yuklenir,
+    ayni dosyalar birlestirildi, telsiz sesleri sadece sunucu dilinde iner, ortam muzikleri 11 kHz (2.1 MB az).
+  - Harita acilisindaki 1.2 sn donma ve her saniyedeki dosya kontrolu kaldirildi (performans).
+
+NOT - INDIRME BOYUTU: yeni oyuncu modelleri yuzunden ilk giriste indirme ~37 MB (7door). Bir kere iner,
+  sonra tekrar inmez. Daha hafif istersen config'te kullanilmayan CT / zombi modellerini kapatabilirsin.
+NOT - Kalan 15 zombi sinifina internette kucuk ve uygun model bulunamadi, mevcut modelleriyle kaldi.
+  gamebanana ve all-cs.ru sunucu agindan engelliydi; modeller gamemodd.com'dan (yapimcilari kayitta).
