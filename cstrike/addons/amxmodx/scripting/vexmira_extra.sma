@@ -48,6 +48,14 @@ register_native("vxe_native_precache","N_NatPre");
 register_native("vxe_version","N_Version");
 register_native("vxe_sw_hit","N_SwHit");
 register_native("vxe_unprecache_count","N_Unpc");
+register_native("vxe_zup_level","N_ZupLevel");
+register_native("vxe_zup_add","N_ZupAdd");
+register_native("vxe_zup_used","N_ZupUsed");
+register_native("vxe_mask_block","N_MaskBlock");
+register_native("vxe_zarmor_hit","N_ZArmorHit");
+register_native("vxe_item_count","N_ItemCount");
+register_native("vxe_item_info","N_ItemInfo");
+register_native("vxe_item_buy","N_ItemBuy");
 register_native("vxe_sw_count","N_SwCount");
 register_native("vxe_sw_info","N_SwInfo");
 register_native("vxe_sw_give","N_SwGive");
@@ -75,6 +83,10 @@ public N_NatPre(plugin, params) { NativePrecache52(); return 1; }
 public plugin_init()
 {
 register_plugin("Vexmira Extra", "5.3.8", "Vexmira");
+ZupInit();
+register_concmd("vex_538_test", "Cmd538Test", ADMIN_RCON, "[upgrade points]");
+register_logevent("ItemsReset538", 2, "1=Round_Start");
+RegisterHam(Ham_Spawn, "player", "ItemsSpawn538", 1);
 }
 bool:SoundExists(const path[])
 {
@@ -1100,6 +1112,7 @@ while (rest[0]) { strtok(rest, out, len, rest, charsmax(rest), '|'); trim(out); 
 public plugin_precache()
 {
 UnpcSetup();
+ItemsPrecache538();
 new key[24], val[256], a[6][8];
 for (new i = 0; i < SG_MAX; i++)
 {
@@ -1438,7 +1451,7 @@ set_rendering(v, kRenderFxGlowShell, 60, 230, 60, kRenderNormal, 12);
 remove_task(v + 538600); set_task(3.0, "SgGlowOff", v + 538600);
 }
 public SgGlowOff(t) { new v = t - 538600; if (is_user_connected(v)) set_rendering(v); }
-public client_disconnected(id) { g_iSgPoison[id] = 0; g_bSgDual[id] = false; remove_task(id + 538600); }
+public client_disconnected(id) { Disc538(id); g_iSgPoison[id] = 0; g_bSgDual[id] = false; remove_task(id + 538600); }
 public N_SwCount(plugin, params) return SG_MAX;
 public N_SwInfo(plugin, params)
 {
@@ -1503,3 +1516,200 @@ if (g_iFwUnS) { unregister_forward(FM_PrecacheSound, g_iFwUnS, 0); g_iFwUnS = 0;
 if (g_iFwUnSpawn) { unregister_forward(FM_Spawn, g_iFwUnSpawn, 0); g_iFwUnSpawn = 0; }
 }
 public N_Unpc(plugin, params) { UnpcEnd(); new k = get_param(1); return (k == 0 || k == 1) ? g_iUnpc[k] : 0; }
+// ============================================================================================
+// 5.3.8 ZOMBIE CLASS UPGRADES: every class levels up separately (0..5), points only from
+// infections (+1) and zombie kills on humans (+2); bosses / nemesis / assassin earn nothing.
+// Thresholds vex_res ZUP_STEPS (hard by default). Per level the core gives the ability
+// -6 % cooldown, +6 % range, +8 % damage; level 3+ adds a coloured shock ring on every use.
+// Saved per SteamID in nvault "vexmira_zup". Menu: say /upgrade, /yukselt (or console vex_zup).
+// ============================================================================================
+native vxc_class(id);
+native vxc_card(id, arg);
+new const ZUP_NAME[24][] = { "Walker", "Runner", "Tank", "Banshee", "Leech", "Stalker", "Bomber", "Frost", "Spitter", "Hulk",
+"Voodoo", "Phantom", "Kasap", "Avci", "Boga", "Orumcek", "Magma", "Volt", "Taklitci", "Kostebek", "Siren", "Kale", "Spor Ana", "Kabus" };
+#define ZUP_MAX 5
+new g_iZupVault = INVALID_HANDLE, g_iZupPts[33][24], g_iZupLvl[33][24], g_iZupStep[ZUP_MAX], bool:g_bZupLoaded[33];
+new g_sprZupRing;
+ZupInit()
+{
+new v[64]; vxc_res_get("ZUP_STEPS", v, charsmax(v)); if (!v[0]) copy(v, charsmax(v), "40 110 220 380 600");
+new a[ZUP_MAX][8]; parse(v, a[0], 7, a[1], 7, a[2], 7, a[3], 7, a[4], 7);
+for (new i = 0; i < ZUP_MAX; i++) g_iZupStep[i] = max(1, str_to_num(a[i]));
+for (new i = 1; i < ZUP_MAX; i++) if (g_iZupStep[i] <= g_iZupStep[i - 1]) g_iZupStep[i] = g_iZupStep[i - 1] * 2;
+g_iZupVault = nvault_open("vexmira_zup");
+register_clcmd("say /upgrade", "ZupMenu"); register_clcmd("say /yukselt", "ZupMenu"); register_clcmd("say_team /upgrade", "ZupMenu");
+register_clcmd("say_team /yukselt", "ZupMenu"); register_clcmd("vex_zup", "ZupMenu");
+}
+ZupKey(id, out[], len) { new a[36]; get_user_authid(id, a, charsmax(a)); if (!a[0] || equal(a, "BOT") || contain(a, "LAN") != -1 || contain(a, "PENDING") != -1) get_user_name(id, a, charsmax(a)); formatex(out, len, "zup_%s", a); }
+ZupLoad(id)
+{
+g_bZupLoaded[id] = true;
+for (new c = 0; c < 24; c++) { g_iZupPts[id][c] = 0; g_iZupLvl[id][c] = 0; }
+if (g_iZupVault == INVALID_HANDLE || is_user_bot(id)) return;
+new key[64], data[256]; ZupKey(id, key, charsmax(key));
+if (!nvault_get(g_iZupVault, key, data, charsmax(data))) return;
+new tok[12], c, pos;
+while (c < 24 && (pos = argparse(data, pos, tok, charsmax(tok))) != -1) { g_iZupPts[id][c] = str_to_num(tok); g_iZupLvl[id][c] = ZupLevelOf(g_iZupPts[id][c]); c++; }
+}
+ZupSave(id)
+{
+if (g_iZupVault == INVALID_HANDLE || is_user_bot(id) || !g_bZupLoaded[id]) return;
+new key[64], data[256], n[12]; ZupKey(id, key, charsmax(key));
+for (new c = 0; c < 24; c++) { formatex(n, charsmax(n), c ? " %d" : "%d", g_iZupPts[id][c]); add(data, charsmax(data), n); }
+nvault_set(g_iZupVault, key, data);
+}
+ZupLevelOf(pts) { new l; while (l < ZUP_MAX && pts >= g_iZupStep[l]) l++; return l; }
+public client_putinserver(id) ZupLoad(id);
+public N_ZupLevel(plugin, params) { new id = get_param(1), c = get_param(2); if (id < 1 || id > 32 || c < 0 || c >= 24) return 0; if (!g_bZupLoaded[id]) ZupLoad(id); return g_iZupLvl[id][c]; }
+public N_ZupAdd(plugin, params)
+{
+new id = get_param(1), pts = get_param(2), c = vxc_class(id);
+if (id < 1 || id > 32 || c < 0 || c >= 24 || pts <= 0 || !is_user_connected(id)) return 0;
+if (!g_bZupLoaded[id]) ZupLoad(id);
+new old = g_iZupLvl[id][c];
+g_iZupPts[id][c] = min(g_iZupPts[id][c] + pts, 100000);
+g_iZupLvl[id][c] = ZupLevelOf(g_iZupPts[id][c]);
+if (g_iZupLvl[id][c] > old) ZupLevelUp(id, c);
+ZupSave(id);
+return g_iZupLvl[id][c];
+}
+ZupLevelUp(id, c)
+{
+new lv = g_iZupLvl[id][c];
+client_print_color(id, print_team_default, "^4[VEXMIRA]^1 %s sinifi ^4Seviye %d^1! Bekleme -%d%%, menzil +%d%%, hasar +%d%%", ZUP_NAME[c], lv, 6 * lv, 6 * lv, 8 * lv);
+vxc_card(id, lv);
+client_cmd(id, "spk ^"items/suitchargeok1^"");
+new Float:o[3]; pev(id, pev_origin, o);
+ZupRing(o, lv, 260);
+message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("ScreenFade"), _, id);
+write_short(1 << 11); write_short(1 << 10); write_short(0); write_byte(255); write_byte(200); write_byte(60); write_byte(70); message_end();
+}
+ZupRing(const Float:o[3], lv, radius)
+{
+if (!g_sprZupRing) return;
+static const RGB[6][3] = { {120, 255, 40}, {120, 255, 40}, {80, 220, 255}, {255, 210, 60}, {255, 120, 40}, {220, 60, 255} };
+new k = clamp(lv, 0, 5);
+engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, o, 0); write_byte(TE_BEAMCYLINDER);
+engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]); engfunc(EngFunc_WriteCoord, o[2] - 16.0);
+engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]); engfunc(EngFunc_WriteCoord, o[2] - 16.0 + float(radius));
+write_short(g_sprZupRing); write_byte(0); write_byte(0); write_byte(6); write_byte(12 + 4 * k); write_byte(0);
+write_byte(RGB[k][0]); write_byte(RGB[k][1]); write_byte(RGB[k][2]); write_byte(200); write_byte(0); message_end();
+}
+public N_ZupUsed(plugin, params)
+{
+new id = get_param(1), lv = get_param(2);
+if (lv < 3 || !is_user_alive(id)) return 0;
+new Float:o[3]; pev(id, pev_origin, o); ZupRing(o, lv, 180 + 40 * (lv - 3));
+return 1;
+}
+public ZupMenu(id)
+{
+if (!g_bZupLoaded[id]) ZupLoad(id);
+new title[160], line[96], cur = vxc_class(id);
+formatex(title, charsmax(title), "\wZombi Sinif Yukseltme  \d(enfekte +1, insan oldur +2)");
+new m = menu_create(title, "ZupMenuH");
+for (new c = 0; c < 24; c++)
+{
+new lv = g_iZupLvl[id][c], need = lv < ZUP_MAX ? g_iZupStep[lv] : 0;
+if (lv < ZUP_MAX) formatex(line, charsmax(line), "\w%s %s\d Sv %d  %d/%d", ZUP_NAME[c], c == cur ? "\w*" : "", lv, g_iZupPts[id][c], need);
+else formatex(line, charsmax(line), "\w%s %s\d Sv %d  MAKS", ZUP_NAME[c], c == cur ? "\w*" : "", lv);
+menu_additem(m, line);
+}
+menu_setprop(m, MPROP_NUMBER_COLOR, "\w");
+menu_display(id, m, 0);
+return PLUGIN_HANDLED;
+}
+public ZupMenuH(id, m, item) { menu_destroy(m); return PLUGIN_HANDLED; }
+// ============================================================================================
+// 5.3.8 SHOP ITEMS (core shop menu, AP): 0 = infection mask (human: blocks one infection hit,
+// worn model vex_res ITEM_MASK_MODEL), 1 = zombie armor (zombie: -40 % damage until the armor
+// pool is gone, worn model vex_res ITEM_ZARMOR_MODEL). Prices / values in vexmira.cfg.
+// ============================================================================================
+native vxc_set_model(id, const model[]);
+native vxc_restore_model(id);
+new g_szItMask[32], g_szItArmor[32], g_iItCost[2], g_iItArmorHp, Float:g_fItArmorCut, bool:g_bItOk[2];
+new bool:g_bMask[33], Float:g_fZArmor[33];
+ItemsPrecache538()
+{
+new v[96], mdl[128];
+vxc_res_get("ITEM_MASK_MODEL", g_szItMask, charsmax(g_szItMask)); if (!g_szItMask[0]) copy(g_szItMask, charsmax(g_szItMask), "vex538_gasmask");
+vxc_res_get("ITEM_ZARMOR_MODEL", g_szItArmor, charsmax(g_szItArmor)); if (!g_szItArmor[0]) copy(g_szItArmor, charsmax(g_szItArmor), "vex538_phoenix_heavy");
+v[0] = 0; vxc_res_get("ITEM_MASK_COST", v, charsmax(v)); g_iItCost[0] = v[0] ? str_to_num(v) : 30;
+v[0] = 0; vxc_res_get("ITEM_ZARMOR_COST", v, charsmax(v)); g_iItCost[1] = v[0] ? str_to_num(v) : 25;
+v[0] = 0; vxc_res_get("ITEM_ZARMOR_HP", v, charsmax(v)); g_iItArmorHp = v[0] ? clamp(str_to_num(v), 50, 50000) : 1500;
+v[0] = 0; vxc_res_get("ITEM_ZARMOR_CUT", v, charsmax(v)); g_fItArmorCut = v[0] ? floatclamp(str_to_float(v), 0.05, 0.9) : 0.4;
+for (new k = 0; k < 2; k++)
+{
+new nm[32]; copy(nm, charsmax(nm), k ? g_szItArmor : g_szItMask);
+g_bItOk[k] = false;
+if (g_iItCost[k] <= 0) continue;
+formatex(mdl, charsmax(mdl), "models/player/%s/%s.mdl", nm, nm);
+if (file_exists(mdl, true) && vxc_pc_model(mdl)) g_bItOk[k] = true;
+}
+g_sprZupRing = vxc_pc_model("sprites/shockwave.spr");
+}
+public N_ItemCount(plugin, params) return 2;
+public N_ItemInfo(plugin, params)
+{
+new k = get_param(1), team = get_param(2);
+if (k < 0 || k > 1 || !g_bItOk[k] || team != k) return -1;
+set_string(3, k ? "Zombi Zirhi / Zombie Armor" : "Enfeksiyon Maskesi / Infection Mask", get_param(4));
+return g_iItCost[k];
+}
+public N_ItemBuy(plugin, params)
+{
+new id = get_param(1), k = get_param(2);
+if (id < 1 || id > 32 || !is_user_alive(id) || k < 0 || k > 1 || !g_bItOk[k]) return 0;
+new z = vx45_corezombie(id);
+if (k == 0) { if (z || g_bMask[id]) return 0; g_bMask[id] = true; vxc_set_model(id, g_szItMask); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Maske takildi: ^4bir sonraki enfeksiyonu engeller^1."); }
+else { if (!z || g_fZArmor[id] > 0.0) return 0; g_fZArmor[id] = float(g_iItArmorHp); vxc_set_model(id, g_szItArmor); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Zirh giyildi: ^4%d^1 hasar boyunca %%%d daha az hasar.", g_iItArmorHp, floatround(g_fItArmorCut * 100.0)); }
+emit_sound(id, CHAN_ITEM, "items/ammopickup2.wav", 0.8, ATTN_NORM, 0, PITCH_NORM);
+return 1;
+}
+public N_MaskBlock(plugin, params)
+{
+new v = get_param(1);
+if (v < 1 || v > 32 || !g_bMask[v]) return 0;
+g_bMask[v] = false;
+emit_sound(v, CHAN_BODY, "player/bhit_helmet-1.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("ScreenFade"), _, v);
+write_short(1 << 11); write_short(1 << 9); write_short(0); write_byte(60); write_byte(255); write_byte(90); write_byte(90); message_end();
+client_print_color(v, print_team_default, "^4[VEXMIRA]^1 Maske enfeksiyonu ^4engelledi^1 ve kirildi!");
+vxc_restore_model(v);
+return 1;
+}
+public Float:N_ZArmorHit(plugin, params)
+{
+new v = get_param(1); new Float:d = get_param_f(2);
+if (v < 1 || v > 32 || g_fZArmor[v] <= 0.0) return d;
+new Float:cut = d * g_fItArmorCut;
+g_fZArmor[v] -= cut;
+if (g_fZArmor[v] <= 0.0) { g_fZArmor[v] = 0.0; emit_sound(v, CHAN_BODY, "debris/metal2.wav", 0.9, ATTN_NORM, 0, PITCH_NORM); client_print(v, print_center, "ZIRH KIRILDI"); vxc_restore_model(v); }
+return d - cut;
+}
+public ItemsReset538() { for (new i = 1; i <= 32; i++) { g_bMask[i] = false; g_fZArmor[i] = 0.0; } }
+public ItemsSpawn538(id) { if (is_user_alive(id)) { g_bMask[id] = false; g_fZArmor[id] = 0.0; } }
+Disc538(id) { g_bZupLoaded[id] = false; g_bMask[id] = false; g_fZArmor[id] = 0.0; }
+// test helper (rcon): humans get the mask, zombies the armor and +N upgrade points on their class
+public Cmd538Test(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+new a[8]; read_argv(1, a, charsmax(a)); new pts = max(0, str_to_num(a)), m, z, up;
+for (new p = 1; p <= 32; p++)
+{
+if (!is_user_alive(p)) continue;
+new z0 = vx45_corezombie(p);
+if (!z0 && g_bItOk[0] && !g_bMask[p]) { g_bMask[p] = true; vxc_set_model(p, g_szItMask); m++; }
+if (z0 && g_bItOk[1] && g_fZArmor[p] <= 0.0) { g_fZArmor[p] = float(g_iItArmorHp); vxc_set_model(p, g_szItArmor); z++; }
+new c = z0 ? vxc_class(p) : -1;
+if (pts && c >= 0)
+{
+if (!g_bZupLoaded[p]) ZupLoad(p);
+new old = g_iZupLvl[p][c]; g_iZupPts[p][c] += pts; g_iZupLvl[p][c] = ZupLevelOf(g_iZupPts[p][c]);
+if (g_iZupLvl[p][c] > old) { ZupLevelUp(p, c); up++; }
+}
+}
+console_print(id, "[538test] mask=%d armor=%d levelups=%d", m, z, up);
+log_amx("[538test] mask=%d armor=%d levelups=%d", m, z, up);
+return PLUGIN_HANDLED;
+}

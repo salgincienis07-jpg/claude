@@ -17,6 +17,14 @@ native vxe_modern_events();
 native vxe_native_precache();
 native vxe_version();
 native vxe_unprecache_count(kind);
+native vxe_zup_level(id, cls);
+native vxe_zup_add(id, pts);
+native vxe_zup_used(id, lvl);
+native vxe_mask_block(victim, attacker);
+native Float:vxe_zarmor_hit(victim, Float:dmg);
+native vxe_item_count();
+native vxe_item_info(k, team, name[], len);
+native vxe_item_buy(id, k);
 native Float:vxe_sw_hit(attacker, victim, wid, head, boss);
 native vxe_sw_count();
 native vxe_sw_info(i, name[], len);
@@ -7044,10 +7052,8 @@ return 0;
 }
 if(!StockModel50(path) && (!file_exists(path,true) || !CommunityLegacyFileOk(path))) { log_amx("[VexAsset] Model skipped (missing/incomplete): %s",path); return 0; }
 if(max(g_iTotMdl,g_iPcMdl)>=448) {log_amx("[AssetGuard] model reserve: %s",path);return 0;}
-log_to_file("vexmira_startup.log","MODEL begin: %s",path);
 idx = (!VxPcOk531()) ? 0 : precache_model(path);
 RegisterTexture530(path);
-log_to_file("vexmira_startup.log","MODEL ready: %s [%d]",path,idx);
 g_iMyMdl++;
 g_iPcMdl = max(g_iPcMdl, idx);
 TrieSetCell(g_tMdlDone, path, idx);
@@ -7666,10 +7672,15 @@ get_datadir(dir, charsmax(dir));
 get_mapname(map, charsmax(map));
 formatex(out, charsmax(out), "%s/vexmira_fastdl.txt", dir);
 formatex(all, charsmax(all), "%s/vexmira_fastdl_hepsi.txt", dir);
-delete_file(out);
-formatex(l, charsmax(l), "// Vexmira - %s: oyuncunun indirdigi %d ozel dosya, %.1f MB (buyukten kucuge). FastDL klasorune AYNI yollarla kopyala.", map, g_iFdlN534, float(total) / 1048576.0);
-write_file(out, l);
-for (new i = 0; i < g_iFdlN534; i++) { formatex(l, charsmax(l), "%s   // %d KB", g_szFdl534[i], g_iFdlSz534[i] / 1024); write_file(out, l); }
+// 5.3.8: one open per file instead of write_file() per line (was a ~1.2 s hitch 10 s after map start)
+new fo = fopen(out, "wt");
+if (fo)
+{
+fprintf(fo, "// Vexmira - %s: oyuncunun indirdigi %d ozel dosya, %.1f MB (buyukten kucuge). FastDL klasorune AYNI yollarla kopyala.^n", map, g_iFdlN534, float(total) / 1048576.0);
+for (new i = 0; i < g_iFdlN534; i++) fprintf(fo, "%s   // %d KB^n", g_szFdl534[i], g_iFdlSz534[i] / 1024);
+fclose(fo);
+}
+#pragma unused l
 new Trie:seen = TrieCreate(), line[140];
 new fp = fopen(all, "rt");
 if (fp)
@@ -7677,10 +7688,11 @@ if (fp)
 while (!feof(fp)) { fgets(fp, line, charsmax(line)); trim(line); if (line[0] && line[0] != '/') TrieSetCell(seen, line, 1); }
 fclose(fp);
 }
-else write_file(all, "// Vexmira - oynanan BUTUN haritalarin indirme dosyalari (her harita acilisinda eklenir). Hepsini FastDL'e AYNI yollarla koy.");
-new added;
+new added, fa = fopen(all, "at");
+if (fa && !fp) fprintf(fa, "// Vexmira - oynanan BUTUN haritalarin indirme dosyalari (her harita acilisinda eklenir). Hepsini FastDL'e AYNI yollarla koy.^n");
 for (new i = 0; i < g_iFdlN534; i++)
-if (!TrieKeyExists(seen, g_szFdl534[i])) { write_file(all, g_szFdl534[i]); TrieSetCell(seen, g_szFdl534[i], 1); added++; }
+if (!TrieKeyExists(seen, g_szFdl534[i])) { if (fa) fprintf(fa, "%s^n", g_szFdl534[i]); TrieSetCell(seen, g_szFdl534[i], 1); added++; }
+if (fa) fclose(fa);
 TrieDestroy(seen);
 return added;
 }
@@ -9023,6 +9035,12 @@ if (!isZ) {
 formatex(item,charsmax(item),"%L \d(%L)",id,"ZC_SPECIAL",id,"ZC_GUNS6"); MenuAdd(menu,item,202);
 formatex(item,charsmax(item),"%L [80 AP]",id,"ZC_JETPACK"); MenuAdd(menu,item,200);
 }
+for (new k = 0, nk = vxe_item_count(); k < nk; k++)
+{
+new c538 = vxe_item_info(k, isZ, n1, charsmax(n1));
+if (c538 < 0) continue;
+formatex(item, charsmax(item), "\y%s \r[%d AP]", n1, c538); MenuAdd(menu, item, 300 + k);
+}
 for (new i = 0; i < NUM_ITEMS; i++)
 {
 if (ITEM_TEAM[i] != isZ)
@@ -9067,7 +9085,9 @@ menu_destroy(menu);
 if (sel == 999) { ShowMainMenu(id); return PLUGIN_HANDLED; }
 if (sel == 202) { CommunityWeaponMenu(id); return PLUGIN_HANDLED; }
 if (sel == 210 || sel == 211) { CommunityCoinMenu(id, sel - 210); return PLUGIN_HANDLED; }
-if (sel == 200 || sel == 201)
+if (sel >= 300 && sel < 340)
+BuyItem538(id, sel - 300);
+else if (sel == 200 || sel == 201)
 CommunityBuyGear(id, sel - 200);
 else if (sel == 100)
 Exchange(id);
@@ -11995,6 +12015,7 @@ GiveNadeStack(id, "weapon_smokegrenade", WEAPON_SMOKEGRENADE);
 }
 #define LM_CLASS     "vex_lasermine"
 #define BEAM_MARK_LM 7776
+new bool:g_bHm538, Float:g_fHmEnd538[33], g_iHmW538[33];
 new g_iLmRepair538;
 #define BEAM_MARK_NADE 7777
 #define BEAM_MARK_DROP 7778
@@ -14878,6 +14899,7 @@ set_user_rendering(id);
 }
 Infect(victim, attacker)
 {
+if (attacker != victim && 1 <= attacker <= g_iMax && g_bZombie[attacker] && !g_bBoss[attacker] && !g_bNemesis[attacker]) vxe_zup_add(attacker, 1);
 new vname[32], aname[32];
 get_user_name(victim, vname, charsmax(vname));
 get_user_name(attacker, aname, charsmax(aname));
@@ -15131,7 +15153,7 @@ hf = fwd; hf[2] = 0.0;
 DirCheck(DIR_LEAP, "leap", hv, hf);
 }
 }
-UseAbility(id)
+UseAbility538(id)
 {
 if(g_iEvent==EV_TITAN && g_bFirst[id] && !g_bBoss[id]) {TitanStomp47(id);return;}
 new Float:now = get_gametime();
@@ -15501,9 +15523,34 @@ get_user_name(id, name, charsmax(name));
 ChatAllS("EVOLVE_CHAT", name);
 HudTo(id, SL_PERS, CLR_ZOMBIE, 3.0, "EVOLVE_HUD");
 }
+new g_iZupCtx538, Float:g_fZupMul538[2], g_iZcKind538[ZCV_TOTAL];
 Float:ZcF(c)
 {
-return get_pcvar_float(g_pZc[c]);
+new Float:v = get_pcvar_float(g_pZc[c]);
+if (g_iZupCtx538 && g_iZcKind538[c]) v *= g_fZupMul538[g_iZcKind538[c] - 1];
+return v;
+}
+// 5.3.8 zombie class upgrades (levels kept by vexmira_extra): cooldown -6 % / range +6 % / damage +8 % per level
+ZupMarks538()
+{
+static const RAD[] = { ZCV_HOOK_RANGE, ZCV_HUNT_RAD, ZCV_WEB_RANGE, ZCV_MAG_RAD, ZCV_VOLT_RAD, ZCV_BUR_RAD, ZCV_SIR_RAD, ZCV_SPO_RAD, ZCV_NM_RAD };
+static const DMG[] = { ZCV_HOOK_DMG, ZCV_HUNT_DMG, ZCV_CHG_DMG, ZCV_WEB_DMG, ZCV_MAG_DMG, ZCV_VOLT_DMG, ZCV_BUR_DMG };
+for (new i = 0; i < sizeof RAD; i++) g_iZcKind538[RAD[i]] = 1;
+for (new i = 0; i < sizeof DMG; i++) g_iZcKind538[DMG[i]] = 2;
+}
+UseAbility(id)
+{
+new lvl = (g_bBoss[id] || g_bNemesis[id] || g_bAssassin[id]) ? 0 : clamp(vxe_zup_level(id, clamp(g_iClass[id], 0, NUM_CLASSES - 1)), 0, 10);
+new Float:before = g_fCool[id];
+g_fZupMul538[0] = 1.0 + 0.06 * float(lvl); g_fZupMul538[1] = 1.0 + 0.08 * float(lvl);
+g_iZupCtx538 = lvl ? id : 0;
+UseAbility538(id);
+g_iZupCtx538 = 0;
+if (g_fCool[id] > before && is_user_alive(id))
+{
+if (lvl) g_fCool[id] = get_gametime() + (g_fCool[id] - get_gametime()) * floatmax(0.4, 1.0 - 0.06 * float(lvl));
+vxe_zup_used(id, lvl);
+}
 }
 ZcN(c)
 {
@@ -20896,7 +20943,9 @@ if (g_bVoxCountdown)
 {
 new snd[32];
 formatex(snd, charsmax(snd), "vexmira/epic/count/%s.wav", VOX_NUM[g_iCountdown]);
-if(g_iEpicCountdown==1 || !file_exists(fmt("sound/%s",snd),true)) formatex(snd,charsmax(snd),"vox/%s.wav",VOX_NUM[g_iCountdown]);
+static cdHave[11]; new cdi = clamp(g_iCountdown, 0, 10);
+if(!cdHave[cdi]) cdHave[cdi] = file_exists(fmt("sound/%s",snd),true) ? 1 : 2;
+if(g_iEpicCountdown==1 || cdHave[cdi]==2) formatex(snd,charsmax(snd),"vox/%s.wav",VOX_NUM[g_iCountdown]);
 for (new p = 1; p <= g_iMax; p++)
 {
 if (is_user_connected(p) && !(g_iSet[p] & SET_NO_AMB))
@@ -22832,6 +22881,11 @@ Chat(victim, "LUCKY_DODGE");
 SetHookChainReturn(ATYPE_INTEGER, 0);
 return HC_SUPERCEDE;
 }
+if (vxe_mask_block(victim, attacker))
+{
+SetHookChainReturn(ATYPE_INTEGER, 0);
+return HC_SUPERCEDE;
+}
 new ArmorType:atype;
 new armor = rg_get_user_armor(victim, atype);
 if (get_pcvar_num(g_pArmorProtect) && armor > 0)
@@ -22908,6 +22962,7 @@ SkKnock538(victim, attacker, g_iCommunitySel[attacker][1] >= 5 ? g_fMkKb[g_iComm
 }
 if (bulletHit && headshot && g_bZombie[victim]) Polish536_HeadshotSnd(attacker);
 dmg *= m;
+if (g_bZombie[victim] && !g_bBoss[victim]) dmg = vxe_zarmor_hit(victim, dmg);
 if (g_bBoss[victim] || g_bNemesis[victim] || g_bAssassin[victim])
 dmg = floatmin(dmg, floatmax(100.0, get_pcvar_float(g_pSpecCap)));
 }
@@ -22963,6 +23018,8 @@ return HC_CONTINUE;
 }
 public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 {
+if (g_bHm538 && damage > 0.0 && 1 <= attacker <= g_iMax && attacker != victim && 1 <= victim <= g_iMax && g_bZombie[victim] && !g_bZombie[attacker] && is_user_alive(victim))
+HitMark538(attacker, (bits & DMG_BULLET) && get_member(victim, m_LastHitGroup) == HIT_HEAD ? 1 : 0);
 if (1 <= victim <= g_iMax && g_iPlantAction[victim] == 2 && damage > 0.0)
 LmTakeCancel(victim, "LM_TAKE_HURT");
 if (g_iReflVictim && g_iReflVictim == victim && g_iReflAttacker == attacker)
@@ -23170,6 +23227,8 @@ return HC_CONTINUE;
 }
 public rg_PlayerKilled(victim, attacker, gib)
 {
+if (g_bHm538 && 1 <= attacker <= g_iMax && attacker != victim && g_bZombie[victim] && !g_bZombie[attacker]) HitMark538(attacker, 2);
+if (1 <= attacker <= g_iMax && attacker != victim && g_bZombie[attacker] && !g_bZombie[victim] && !g_bBoss[attacker] && !g_bNemesis[attacker] && !g_bAssassin[attacker]) vxe_zup_add(attacker, 2);
 CameraRemove47(victim);
 GaugeRemove47(victim);
 BannerShow47(victim,3,3.5);
@@ -26344,11 +26403,14 @@ new r = g_iRdN, a[MS_LEN], b[MS_LEN];
 MsTok(val, tok, charsmax(tok));
 g_bRdLow[r] = tok[0] == '-';
 g_fRdLen[r] = floatclamp(floatabs(str_to_float(tok)), 0.5, 15.0);
+// 5.3.8 lazy: only the server language (vex_res CSO_LANG tr / en / both) of every map radio line is downloaded
+new rl[8]; copy(rl, charsmax(rl), GetResString("CSO_LANG", "tr"));
+new keep = equali(rl, "both") ? 3 : (equali(rl, "en") ? 1 : 2);
 for (new l = 0; l < 2; l++)
 {
 MsTok(val, tok, charsmax(tok));
 formatex(full, charsmax(full), "sound/vexmira/radio/%s", tok);
-if (tok[0] && file_exists(full))
+if (tok[0] && (keep & (1 << l)) && file_exists(full))
 {
 copy(g_szRdFile[r][l], charsmax(g_szRdFile[][]), tok);
 PcGeneric(full);
@@ -27840,6 +27902,10 @@ register_library("vexmira_core45");
 register_native("vxc_res_set","VxcResSet");
 register_native("vxc_pc_generic","VxcPcGeneric");
 register_native("vxc_res_get","VxcResGet");
+register_native("vxc_set_model","VxcSetModel");
+register_native("vxc_restore_model","VxcRestoreModel");
+register_native("vxc_card","VxcCard");
+register_native("vxc_class","VxcClass");
 register_native("vxc_pc_model","VxcPcModel");
 register_native("vxc_pc_sound","VxcPcSound");
 register_native("vx45_corezombie","VxNativeZombie");
@@ -27895,6 +27961,7 @@ VxDefaults();
 VxLeanResources();
 LoadMainConfig(true);
 VxDisableSW533();
+HitMarkPrecache538();
 CommunityPrecache();
 CommunityNormalPrecache();
 CommunityEventPrecache();
@@ -29666,10 +29733,8 @@ return 0;
 }
 new known51;if(g_tZcModelsReady!=Invalid_Trie && TrieGetCell(g_tZcModelsReady,path,known51)) return known51;
 if(max(g_iTotMdl,g_iPcMdl)>=448) {g_zcGuardFail=true;log_amx("[AssetGuard] model limit reserve: %s",path);return 0;}
-log_to_file("vexmira_startup.log","MODEL begin: %s",path);
 new modelIndex = (!VxPcOk531()) ? 0 : precache_model(path);
 RegisterTexture530(path);
-log_to_file("vexmira_startup.log","MODEL ready: %s [%d]",path,modelIndex);
 if(g_tZcModelsReady==Invalid_Trie) g_tZcModelsReady=TrieCreate();
 TrieSetCell(g_tZcModelsReady,path,modelIndex);
 return modelIndex;
@@ -30111,8 +30176,11 @@ new key[32],path[160];
 if(g_iMode==MODE_BOSS && g_iBossType>=0 && g_iBossType<9) {formatex(key,charsmax(key),"AMBIENT_BOSS%d",g_iBossType);}
 else if(g_iEvent>EV_NONE && g_iEvent<EV_TOTAL) {formatex(key,charsmax(key),"AMBIENT_EVENT%d",g_iEvent);}
 else {formatex(key,charsmax(key),"AMBIENT_MODE%d",g_iMode);}
-if(!TrieGetString(g_tRes,key,path,charsmax(path)) || !AmbientValid49(path)) path[0]=0;
-if(!AmbientValid49(path)) path[0]=0;
+// 5.3.8: file_exists() through the game file system cost ~9 ms per call every second; validate once per path
+static lastKey[32], lastRaw[160], lastOk[160];
+if(!TrieGetString(g_tRes,key,path,charsmax(path))) path[0]=0;
+if(!equal(key,lastKey) || !equal(path,lastRaw)) {copy(lastKey,charsmax(lastKey),key);copy(lastRaw,charsmax(lastRaw),path);if(!AmbientValid49(path)) path[0]=0;copy(lastOk,charsmax(lastOk),path);}
+else copy(path,charsmax(path),lastOk);
 if(!equal(path,g_szAmbient49)) {copy(g_szAmbient49,charsmax(g_szAmbient49),path);g_iAmbientEpoch49++;}
 }
 AmbientStop52(id)
@@ -30307,15 +30375,11 @@ new name[40];formatex(name,charsmax(name),"vexmira/arena52/hud/n%02d%d",g_iUiPag
 CsoSendWL(id,name,w);CsoCurW(id,w,clip);g_iUiHudWpn52[id]=w;g_iUiHudFrame52[id]=frame;g_fUiHudNext52[id]=now+0.4;
 }
 stock HamHook:VxRegisterHam524(Ham:fn,const cls[],const cb[],post=0,bool:specialbot=false) {
-log_to_file("vexmira_startup.log","[530 vexcore] HAM begin fn=%d class=%s callback=%s",fn,cls,cb);
 new HamHook:h=RegisterHam(fn,cls,cb,post,specialbot);
-log_to_file("vexmira_startup.log","[530 vexcore] HAM ready callback=%s handle=%d",cb,h);
 return h;
 }
 stock HookChain:VxRegisterChain524(ReAPIFunc:fn,const cb[],post=0) {
-log_to_file("vexmira_startup.log","[530 vexcore] REAPI begin fn=%d callback=%s",fn,cb);
 new HookChain:h=RegisterHookChain(fn,cb,post);
-log_to_file("vexmira_startup.log","[530 vexcore] REAPI ready callback=%s handle=%d",cb,h);
 return h;
 }
 public VxActivatePre524(runPhysics) {
@@ -30501,6 +30565,7 @@ RegisterHookChain(RG_HandleMenu_ChooseAppearance, "Urban536_Appearance", false);
 RegisterHam(Ham_Spawn, "player", "Urban536_SpawnPost", 1);
 g_pGunDmg536 = register_cvar("vex_gun_damage_mult", "1.35");
 g_pHudCalm538 = register_cvar("vex_hud_calm", "1");
+ZupMarks538();
 g_pMenuPlain538 = register_cvar("vex_menu_plain", "1");
 g_pSkDmg538 = register_cvar("vex_sknife_damage_mult", "2.5");
 g_pSkKb538 = register_cvar("vex_sknife_knockback", "430");
@@ -30643,4 +30708,54 @@ if(g_iAP[id]<cost) {Chat(id,"SHOP_NOAP");return;}
 if(!vxe_sw_give(id,i)) {Chat(id,"SHOP_UNAVAIL");return;}
 AddAP(id,-cost,false,false);PlayKey(id,"SHOP_BUY");
 new rgb=vxe_sw_rgb(i);VxItemFxRGB531(id,(rgb>>16)&255,(rgb>>8)&255,rgb&255);
+}
+BuyItem538(id, k)
+{
+new name[40], cost = vxe_item_info(k, g_bZombie[id] ? 1 : 0, name, charsmax(name));
+if (cost < 0 || !is_user_alive(id)) { Chat(id, "SHOP_UNAVAIL"); return; }
+if (g_iAP[id] < cost) { Chat(id, "SHOP_NOAP"); return; }
+if (!vxe_item_buy(id, k)) { Chat(id, "SHOP_ALREADY"); return; }
+AddAP(id, -cost, false, false); PlayKey(id, "SHOP_BUY");
+}
+public VxcSetModel(plugin, params) { new id = get_param(1), m[32]; get_string(2, m, charsmax(m)); if (1 <= id <= g_iMax && is_user_alive(id)) VxSetUserModel(id, m, true); return 1; }
+public VxcRestoreModel(plugin, params)
+{
+new id = get_param(1);
+if (id < 1 || id > g_iMax || !is_user_alive(id)) return 0;
+if (!g_bZombie[id]) ApplyHumanModel(id);
+else if (!g_bBoss[id] && !g_bNemesis[id] && !g_bAssassin[id]) VxSetUserModel(id, g_szZModel[clamp(g_iClass[id], 0, NUM_CLASSES - 1)], true);
+return 1;
+}
+public VxcCard(plugin, params) { new id = get_param(1); return (1 <= id <= g_iMax && is_user_connected(id)) ? CsoNotify(id, CN_UPGRADE, get_param(2)) : false; }
+public VxcClass(plugin, params) { new id = get_param(1); return (1 <= id <= g_iMax) ? (g_bZombie[id] ? clamp(g_iClass[id], 0, NUM_CLASSES - 1) : -1) : -1; }
+// 5.3.8 hit / headshot / kill feel: c538 hitmarker crosshair (hm_hit / hm_hs / hm_kill, 0.18 s) + short stock sound.
+// Never over a running CSO card or the boss HP card; vex_hitmarker 0 = off.
+HitMarkPrecache538()
+{
+g_bHm538 = false;
+if (!equal(g_szCsoDir, "c538") || !str_to_num(GetResString("HITMARKER", "1"))) return;
+static const F[][] = { "sprites/vexmira/c538/hm_hit.txt", "sprites/vexmira/c538/hm_hs.txt", "sprites/vexmira/c538/hm_kill.txt", "sprites/vexmira/c538/shm0.spr" };
+for (new i = 0; i < sizeof F; i++) { if (!file_exists(F[i], true)) return; }
+for (new i = 0; i < sizeof F; i++) PcGeneric(F[i]);
+g_bHm538 = true;
+}
+HitMark538(id, kind)
+{
+if (!is_user_connected(id) || is_user_bot(id) || (g_iSet[id] & SET_NO_FX) || g_iCsoCur[id] >= 0 || g_iHpLvl533[id] >= 0) return;
+static const SND[3][] = { "player/bhit_flesh-1", "buttons/blip1", "buttons/bell1" };
+client_cmd(id, "spk ^"%s^"", SND[clamp(kind, 0, 2)]);
+new clip, ammo, w = get_user_weapon(id, clip, ammo);
+if (w < 1 || w > 30 || !g_bWL[w]) return;
+static const NM[3][] = { "vexmira/c538/hm_hit", "vexmira/c538/hm_hs", "vexmira/c538/hm_kill" };
+CsoSendWL(id, NM[clamp(kind, 0, 2)], w); CsoCurW(id, w, clip);
+g_iHmW538[id] = w; g_fHmEnd538[id] = get_gametime() + (kind == 2 ? 0.35 : 0.18);
+remove_task(id + 538700); set_task(kind == 2 ? 0.35 : 0.18, "HitMarkOff538", id + 538700);
+}
+public HitMarkOff538(t)
+{
+new id = t - 538700, w = g_iHmW538[id];
+g_iHmW538[id] = 0;
+if (!is_user_connected(id) || w < 1 || w > 30 || g_iCsoCur[id] >= 0 || g_iHpLvl533[id] >= 0) return;
+CsoSendWL(id, g_szWL[w], w);
+if (is_user_alive(id)) { new clip, ammo, cw = get_user_weapon(id, clip, ammo); if (cw >= 1 && cw <= 30) CsoCurW(id, cw, clip); }
 }
