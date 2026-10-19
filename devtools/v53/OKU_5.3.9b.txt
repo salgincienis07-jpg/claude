@@ -20,9 +20,11 @@ VEXMIRA 5.3.9b - (5.3.9a'nin ustune kurulur)
    - Kucultulen dokular artik hep 4'un kati (dev bosslarda da GL_Upload16 cokmesi olmaz).
    - Hic dev boss indirmesi istemezsen: vex_res BOSS_GIANT "off" (bosslar normal boyutta).
 
-4) HARITA FPS (zm_vexmira_dust2newv4)
+4) HARITA FPS (zm_vexmira_dust2newv5)
    Meydandaki model yuku yaklasik 25.000 ucgenden 11.000'e indi: isik zinciri 3 sira -> 1 sira,
-   meydanda 2 agac -> 1 agac (+hediyeleri). Harita dosyasi (bsp) DEGISMEDI, sadece ini.
+   meydanda 2 agac -> 1 agac (+hediyeleri).
+   Harita adi artik zm_vexmira_dust2newv5 (yeni isim = cakisma yok, herkes temiz indirir).
+   Sunucudan eski zm_vexmira_dust2newv3 / newv4 .bsp .nav .ini dosyalari silinebilir.
 
 KURULUM
 1) Zipteki "cstrike" klasorunu sunucuya at (ustune yaz).

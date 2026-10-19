@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """5.3.8 before/after precache + download table from test-server probe files.
 
-    python3 devtools/v53/precache_table.py BEFORE_RUN_DIR AFTER_RUN_DIR zm_vexmira_7door zm_vexmira_dust2newv4
+    python3 devtools/v53/precache_table.py BEFORE_RUN_DIR AFTER_RUN_DIR zm_vexmira_7door zm_vexmira_dust2newv5
 
 Each run dir holds vexprobe_precache_<map>.txt (every precached name with its slot). Download = files of
 the precache list (models + sounds + generic) that ship in the repo cstrike/ tree (= custom content a
