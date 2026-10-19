@@ -3118,19 +3118,17 @@ new g_iClass[33], g_iClassPicked[33], g_iMaxHP[33];
 new const COMMUNITY_WN[6][] = {"JANUS VII", "Plasma Gun", "Thunderbolt", "Ethereal", "Salamander", "Compound Bow"};
 new bool:g_bCommunityCtOk[5], bool:g_bCommunityButterflyOk;
 new const COMMUNITY_COST[6] = {35, 30, 45, 30, 35, 35};
-new const MELEE_P48[][]={"models/vexmira/arena48/p_balrog.mdl","models/vexmira/arena48/p_janus.mdl","models/vexmira/arena48/p_thanatos.mdl","models/vexmira/arena48/p_skull.mdl"};
-new const MELEE_NAME48[][]={"balrog","janus","thanatos","skull"};
-new const MELEE_DRAW48[]={6,9,0,3};
-new const MELEE_IDLE48[]={0,0,5,0};
-new const MELEE_SLASH48[]={1,3,7,1};
-new const MELEE_STAB48[]={11,11,8,4};
+// 5.3.8: data-driven special melee knives (vex_res MK<n>_*), Thanatos-9 + Skull-9 removed (broken models)
+#define MK_MAX 6
+#define KN_TOTAL (4 + MK_MAX)
 new Float:g_fMelee48[33];
-new const COMMUNITY_KN[8][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe", "Balrog-9 / Ates Yumrugu", "Janus-9 / Yildirim", "Thanatos-9 / Buz Bicagi", "Skull-9 / Darbe Baltasi"};
-new bool:g_bKnife47[3];
-new const KNIFE47[3][] = {"models/vexmira/arena48/v_janus.mdl", "models/vexmira/arena48/v_thanatos.mdl", "models/vexmira/arena48/v_skull.mdl"};
+new const COMMUNITY_KN[4][] = {"Dragon Sword", "Dual Katana", "Light Saber", "Horse Axe"};
+new g_szMkName[MK_MAX][40], g_szMkV[MK_MAX][96], g_szMkP[MK_MAX][96], g_szMkSnd[MK_MAX][72], g_iMkAnim[MK_MAX][4];
+new Float:g_fMkDmg[MK_MAX][2], Float:g_fMkKb[MK_MAX], Float:g_fMkRange[MK_MAX], g_iMkFx[MK_MAX], g_iMkCost[MK_MAX], bool:g_bMkOk[MK_MAX];
+new g_pSkDmg538, g_pSkKb538, g_pSkBoss538, Float:g_fSkKbAt538[33];
 new const COMMUNITY_CT[5][] = {"vex_masterchief47", "vex_batman47", "vex_ironman47", "vex_spiderman47", "vex_wolverine47"};
 new const COMMUNITY_CN[5][] = {"Halo Master Chief", "Batman", "Iron Man", "Spider-Man", "Wolverine"};
-new const COMMUNITY_COIN[2][8] = {{750,900,1000,850,900,0,0,0},{250,300,400,350,500,650,700,750}};
+new const COMMUNITY_COIN[2][5] = {{750,900,1000,850,900},{250,300,400,350,0}};
 new g_iCommunityOwned[33][2], g_iCommunitySel[33][2];
 new g_iXP[33], g_iLevel[33], g_iAP[33], g_iVC[33];
 new g_iKills[33], g_iInfects[33], g_iWins[33], g_iBossK[33], g_iHS[33];
@@ -7569,7 +7567,7 @@ return idx;
 GetResString(const key[], const def[])
 {
 static out[128];
-if (!TrieGetString(g_tRes, key, out, charsmax(out)) || !out[0])
+if (g_tRes == Invalid_Trie || !TrieGetString(g_tRes, key, out, charsmax(out)) || !out[0])
 copy(out, charsmax(out), def);
 return out;
 }
@@ -11429,11 +11427,10 @@ SetHookChainArg(3, ATYPE_STRING, "");
 return HC_CONTINUE;
 }
 if (CommunityExtra(id) && VxIndex(weapon)<0) return HC_CONTINUE;
-if (wid == WEAPON_KNIFE && g_iCommunitySel[id][1] >= 5 && g_iCommunitySel[id][1] <= 8 && KnifeReady47(g_iCommunitySel[id][1]-1) && CommunityAlive(id)
+if (wid == WEAPON_KNIFE && g_iCommunitySel[id][1] >= 5 && g_iCommunitySel[id][1] <= KN_TOTAL && KnifeReady47(g_iCommunitySel[id][1]-1) && CommunityAlive(id)
 && !ZcCall(ZC_HEV, ZCOP_has,id) && !ZcCall(ZC_JETPACK, ZCOP_has,id)) {
-if(g_iCommunitySel[id][1] == 5) SetHookChainArg(2,ATYPE_STRING,"models/vexmira/arena48/v_balrog.mdl");
-else SetHookChainArg(2,ATYPE_STRING,KNIFE47[g_iCommunitySel[id][1]-6]);
-SetHookChainArg(3,ATYPE_STRING,MELEE_P48[g_iCommunitySel[id][1]-5]);
+SetHookChainArg(2,ATYPE_STRING,g_szMkV[g_iCommunitySel[id][1]-5]);
+SetHookChainArg(3,ATYPE_STRING,g_szMkP[g_iCommunitySel[id][1]-5]);
 return HC_CONTINUE;
 }
 new mm = ModeOf(id), ms = (mm >= 0) ? ModeSlot(mm, wid) : -1;
@@ -23002,6 +22999,11 @@ if (sw >= 0 && inflictor == attacker && (bits & DMG_BULLET))
 m *= SW_MULT[sw] * floatclamp(get_pcvar_float(g_pSwDmg531), 0.1, 20.0);
 else if (bulletHit && ms < 0)
 m *= floatclamp(get_pcvar_float(g_pGunDmg536), 0.1, 10.0);
+else if (!bulletHit && wid == WEAPON_KNIFE && g_iCommunitySel[attacker][1] >= 1 && g_iCommunitySel[attacker][1] <= KN_TOTAL)
+{
+if (g_iCommunitySel[attacker][1] <= 4) m *= floatclamp(get_pcvar_float(g_pSkDmg538), 0.1, 20.0);
+SkKnock538(victim, attacker, g_iCommunitySel[attacker][1] >= 5 ? g_fMkKb[g_iCommunitySel[attacker][1] - 5] : 1.0);
+}
 if (bulletHit && headshot && g_bZombie[victim]) Polish536_HeadshotSnd(attacker);
 dmg *= m;
 if (g_bBoss[victim] || g_bNemesis[victim] || g_bAssassin[victim])
@@ -27978,10 +27980,6 @@ if (!is_regamedll())
 set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx modules");
 return;
 }
-CommunityPrecache();
-CommunityNormalPrecache();
-CommunityEventPrecache();
-CommunityExtraEventPrecache();
 g_tRes = TrieCreate();
 g_tMdlTop = TrieCreate();
 new Float:v48cache[2];
@@ -28005,6 +28003,10 @@ VxDefaults();
 VxLeanResources();
 LoadMainConfig(true);
 VxDisableSW533();
+CommunityPrecache();
+CommunityNormalPrecache();
+CommunityEventPrecache();
+CommunityExtraEventPrecache();
 CsoPrecache();
 VxInfPrecache531();
 NadeFxPrecache531();
@@ -28956,11 +28958,12 @@ new menu=VexMenuCreate(title,"CommunityCoinHandler");
 if(g_iCommunitySel[id][c]==0) formatex(line,charsmax(line),"%L [%L]",id,"ZC_STANDARD",id,"ZC_EQUIPPED");
 else formatex(line,charsmax(line),"%L",id,"ZC_STANDARD");
 MenuAdd(menu,line,c*10);
-for(new i=0;i<(c ? 8 : 5);i++) {
+for(new i=0;i<(c ? KN_TOTAL : 5);i++) {
 if ((!c && !g_bCommunityCtOk[i]) || (c && !KnifeReady47(i))) continue;
-if(g_iCommunitySel[id][c]==i+1) formatex(line,charsmax(line),"%s [%L]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],id,"ZC_EQUIPPED");
-else if(g_iCommunityOwned[id][c]&(1<<i)) formatex(line,charsmax(line),"%s [%L]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],id,"ZC_OWNED");
-else formatex(line,charsmax(line),"%s [%d VC]",c?COMMUNITY_KN[i]:COMMUNITY_CN[i],COMMUNITY_COIN[c][i]);
+new knm[48]; KnifeName538(c, i, knm, charsmax(knm));
+if(g_iCommunitySel[id][c]==i+1) formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_EQUIPPED");
+else if(g_iCommunityOwned[id][c]&(1<<i)) formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_OWNED");
+else formatex(line,charsmax(line),"%s [%d VC]",knm,KnifeCost538(c, i));
 MenuAdd(menu,line,c*10+i+1);
 }
 formatex(line,charsmax(line),"%L",id,"MENU_BACK"); MenuAdd(menu,line,999);
@@ -28972,16 +28975,16 @@ if(item<0) { menu_destroy(menu); return PLUGIN_HANDLED; }
 new sel=MenuInfo(menu,item); menu_destroy(menu);
 if(sel==999) { ShowCosmeticMenu(id); return PLUGIN_HANDLED; }
 new c=sel/10,v=sel%10;
-if(c<0 || c>1 || v<0 || v>(c ? 8 : 5)) return PLUGIN_HANDLED;
+if(c<0 || c>1 || v<0 || v>(c ? KN_TOTAL : 5)) return PLUGIN_HANDLED;
 CommunityCoinSelect(id,c,v);
 CommunityCoinMenu(id,c); return PLUGIN_HANDLED;
 }
 CommunityCoinSelect(id,c,v)
 {
-if(c<0 || c>1 || v<0 || v>(c ? 8 : 5)) return 0;
+if(c<0 || c>1 || v<0 || v>(c ? KN_TOTAL : 5)) return 0;
 if(v && ((!c && !g_bCommunityCtOk[v-1]) || (c && !KnifeReady47(v-1)))) { Chat(id,"ZC_MISSING_COLLECTION"); return 0; }
 if(v && !(g_iCommunityOwned[id][c] & (1<<(v-1)))) {
-new cost=COMMUNITY_COIN[c][v-1];
+new cost=KnifeCost538(c, v-1);
 if(g_iVC[id]<cost) { Chat(id,"COS_NOVC",cost); return 0; }
 g_iVC[id]-=cost; g_iCommunityOwned[id][c]|=1<<(v-1); PlayKey(id,"SHOP_BUY"); VxItemFxRGB531(id,255,215,0);
 }
@@ -28999,7 +29002,7 @@ if(id<1 || id>32 || !CommunityAlive(id)) return;
 CommunityRemoveKnives(id);
 if(ZcCall(ZC_JETPACK, ZCOP_has,id) || ZcCall(ZC_HEV, ZCOP_has,id)) return;
 new v=g_iCommunitySel[id][1];
-if(v>=5 && v<=8) { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_weapon(id)==CSW_KNIFE) ExecuteHamB(Ham_Item_Deploy,ent); }
+if(v>=5 && v<=KN_TOTAL) { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_weapon(id)==CSW_KNIFE) ExecuteHamB(Ham_Item_Deploy,ent); }
 else if(v && (g_iCommunityOwned[id][1] & (1<<(v-1)))) ZcCall((v-1)+7, ZCOP_give,id);
 else { new ent=get_member(id,m_pActiveItem); if(!is_nullent(ent) && get_user_weapon(id)==CSW_KNIFE) ExecuteHamB(Ham_Item_Deploy,ent); }
 }
@@ -29013,8 +29016,7 @@ g_bTitan47 = ZcPcModel("models/player/vex_titan48/vex_titan48.mdl") > 0;
 new path[128];
 for(new i=0;i<5;i++) { formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]); if(file_exists(path,true)) g_bCommunityCtOk[i] = ZcPcModel(path)>0; else log_amx("[Community] EKSIK model: %s (bu CT gorunumu kapali)",path); }
 ZcPcGeneric("models/player/vex_halo/vex_haloT.mdl");
-for (new k47 = 0; k47 < 3; k47++) g_bKnife47[k47] = ZcPcModel(KNIFE47[k47]) > 0;
-g_bCommunityButterflyOk = ZcPcModel("models/vexmira/arena48/v_balrog.mdl")>0;
+g_bCommunityButterflyOk = g_bMkOk[0];
 }
 CommunityCosOrigin(ent,id,c,i)
 {
@@ -29845,7 +29847,9 @@ while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","VexdCam"))>0) {
 if(get_entvar(ent,var_owner)==id) {g_iCamera47[id]=ent;break;}
 }
 }
-bool:KnifeReady47(i) { if(i<0 || i>7) return false; if(i<4) return ZcCompOn(i+7); if(i==4) return g_bCommunityButterflyOk; return g_bKnife47[i-5]; }
+bool:KnifeReady47(i) { if(i<0 || i>=KN_TOTAL) return false; if(i<4) return ZcCompOn(i+7); return g_bMkOk[i-4]; }
+KnifeName538(c, i, out[], len) { if(!c) copy(out,len,COMMUNITY_CN[i]); else if(i<4) copy(out,len,COMMUNITY_KN[i]); else copy(out,len,g_szMkName[i-4]); }
+KnifeCost538(c, i) { if(!c || i<4) return COMMUNITY_COIN[c][i]; return g_iMkCost[i-4]; }
 BannerRemove47(id)
 {
 UiHudRestore52(id);
@@ -30059,7 +30063,7 @@ return FMRES_IGNORED;
 MeleeIndex48(id)
 {
 if(id<1||id>g_iMax||!CommunityAlive(id)||get_user_weapon(id)!=CSW_KNIFE) return -1;
-new sel=g_iCommunitySel[id][1];if(sel<5||sel>8||!(g_iCommunityOwned[id][1]&(1<<(sel-1)))||!KnifeReady47(sel-1)) return -1;
+new sel=g_iCommunitySel[id][1];if(sel<5||sel>KN_TOTAL||!(g_iCommunityOwned[id][1]&(1<<(sel-1)))||!KnifeReady47(sel-1)) return -1;
 if(ZcCall(ZC_HEV,ZCOP_has,id)||ZcCall(ZC_JETPACK,ZCOP_has,id)) return -1;
 return sel-5;
 }
@@ -30071,14 +30075,14 @@ message_begin(MSG_ONE,SVC_WEAPONANIM,_,id);write_byte(seq);write_byte(0);message
 public MeleeDeploy48(weapon)
 {
 new id=get_member(weapon,m_pPlayer),idx=MeleeIndex48(id);if(idx<0) return HAM_IGNORED;
-MeleeAnim48(id,MELEE_DRAW48[idx]);set_member(id,m_flNextAttack,0.75);set_member(weapon,m_Weapon_flTimeWeaponIdle,1.1);return HAM_IGNORED;
+MeleeAnim48(id,g_iMkAnim[idx][0]);set_member(id,m_flNextAttack,0.75);set_member(weapon,m_Weapon_flTimeWeaponIdle,1.1);return HAM_IGNORED;
 }
 public MeleePrimary48(weapon) {return MeleeAttack48(weapon,false);}
 public MeleeSecondary48(weapon) {return MeleeAttack48(weapon,true);}
 public MeleeIdle48(weapon)
 {
 new id=get_member(weapon,m_pPlayer),idx=MeleeIndex48(id);if(idx<0) return HAM_IGNORED;
-if(Float:get_member(weapon,m_Weapon_flTimeWeaponIdle)<=0.0) {MeleeAnim48(id,MELEE_IDLE48[idx]);set_member(weapon,m_Weapon_flTimeWeaponIdle,6.0);}
+if(Float:get_member(weapon,m_Weapon_flTimeWeaponIdle)<=0.0) {MeleeAnim48(id,g_iMkAnim[idx][1]);set_member(weapon,m_Weapon_flTimeWeaponIdle,6.0);}
 return HAM_SUPERCEDE;
 }
 MeleeAttack48(weapon,bool:heavy)
@@ -30089,62 +30093,67 @@ if(heavy && now<g_fMelee48[id]) {set_member(weapon,m_Weapon_flNextSecondaryAttac
 new Float:delay=heavy?1.2:0.65;
 set_member(weapon,m_Weapon_flNextPrimaryAttack,delay);set_member(weapon,m_Weapon_flNextSecondaryAttack,delay);set_member(weapon,m_Weapon_flTimeWeaponIdle,delay+0.5);
 if(heavy) g_fMelee48[id]=now+4.0;
-MeleeAnim48(id,heavy?MELEE_STAB48[idx]:MELEE_SLASH48[idx]);rg_set_animation(id,PLAYER_ATTACK1);
-new snd[96];formatex(snd,charsmax(snd),"vexmira/arena48/melee/%s_swing.wav",MELEE_NAME48[idx]);EmitSafe(id,CHAN_WEAPON,snd,0.65,ATTN_NORM);
+MeleeAnim48(id,heavy?g_iMkAnim[idx][3]:g_iMkAnim[idx][2]);rg_set_animation(id,PLAYER_ATTACK1);
+new snd[96];formatex(snd,charsmax(snd),"%s_swing.wav",g_szMkSnd[idx]);EmitSafe(id,CHAN_WEAPON,snd,0.65,ATTN_NORM);
 new Float:a[3],Float:o[3],Float:ofs[3],Float:f[3],Float:end[3],Float:hit[3];get_entvar(id,var_origin,o);get_entvar(id,var_view_ofs,ofs);get_entvar(id,var_v_angle,a);
 for(new j=0;j<3;j++) o[j]+=ofs[j];engfunc(EngFunc_MakeVectors,a);global_get(glb_v_forward,f);
-for(new j=0;j<3;j++) end[j]=o[j]+f[j]*(heavy?96.0:80.0);
+new Float:rng=g_fMkRange[idx]*(heavy?1.2:1.0);
+for(new j=0;j<3;j++) end[j]=o[j]+f[j]*rng;
 new tr=create_tr2();engfunc(EngFunc_TraceLine,o,end,DONT_IGNORE_MONSTERS,id,tr);
 new target=get_tr2(tr,TR_pHit);new Float:frac;get_tr2(tr,TR_flFraction,frac);
 if(frac==1.0) {engfunc(EngFunc_TraceHull,o,end,DONT_IGNORE_MONSTERS,HULL_HEAD,id,tr);target=get_tr2(tr,TR_pHit);}
 get_tr2(tr,TR_vecEndPos,hit);free_tr2(tr);
 if(target<1||target>g_iMax||!is_user_alive(target)||!g_bZombie[target]) return HAM_SUPERCEDE;
-formatex(snd,charsmax(snd),"vexmira/arena48/melee/%s_hit.wav",MELEE_NAME48[idx]);EmitSafe(id,CHAN_ITEM,snd,0.7,ATTN_NORM);
-new Float:dmg=heavy?220.0:75.0;
-ExecuteHamB(Ham_TakeDamage,target,weapon,id,dmg,DMG_SLASH);
-if(!(g_iSet[id]&SET_NO_FX)) FxRingSmall(hit,idx==0?255:70,idx==1?210:120,idx==2?255:80);
-if(!heavy) return HAM_SUPERCEDE;
-if(is_user_alive(target)) {
-switch(idx) {
+formatex(snd,charsmax(snd),"%s_hit.wav",g_szMkSnd[idx]);EmitSafe(id,CHAN_ITEM,snd,0.7,ATTN_NORM);
+ExecuteHamB(Ham_TakeDamage,target,weapon,id,g_fMkDmg[idx][heavy?1:0],DMG_SLASH);
+if(!(g_iSet[id]&SET_NO_FX)) FxRingSmall(hit,255,120,60);
+if(!heavy || !is_user_alive(target)) return HAM_SUPERCEDE;
+switch(g_iMkFx[idx]) {
 case 0: {Ignite(target,id,2);FxExploEl(hit,EL_FIRE,5,16);}
 case 1: {ChainLightning(target,id,35.0);FxSparks(hit);}
 case 2: {if(!g_bBoss[target]&&!g_bNemesis[target]&&!g_bAssassin[target]) Freeze(target,0.6);FxExploEl(hit,EL_ICE,5,16);}
 case 3: {new Float:v[3];for(new j=0;j<3;j++) v[j]=f[j]*180.0;v[2]=120.0;set_entvar(target,var_velocity,v);FxRingEx(hit,255,185,80,130,6,5);}
-}
+case 4: {FxExploEl(hit,EL_TOXIC,5,16);for(new k=1;k<=g_iMax;k++) if(k!=target&&is_user_alive(k)&&g_bZombie[k]&&entity_range(k,target)<140.0) ExecuteHamB(Ham_TakeDamage,k,weapon,id,g_fMkDmg[idx][1]*0.4,DMG_SLASH);}
+case 5: {FxExploEl(hit,EL_VOID,5,16);for(new k=1;k<=g_iMax;k++) if(is_user_alive(k)&&g_bZombie[k]&&!g_bBoss[k]&&entity_range(k,target)<220.0) {new Float:kp[3],Float:d[3],Float:vv[3];get_entvar(k,var_origin,kp);for(new j=0;j<3;j++) d[j]=hit[j]-kp[j];new Float:l=vector_length(d);if(l>1.0){for(new j=0;j<2;j++) vv[j]=d[j]/l*320.0;vv[2]=160.0;set_entvar(k,var_velocity,vv);}}}
 }
 return HAM_SUPERCEDE;
 }
+// 5.3.8: knife table from vex_res MK<n>_* (n = 1..MK_MAX); a slot without a v_ model file is hidden
 MeleePrecache48()
 {
-ZcPcModel("models/vexmira/arena48/p_balrog.mdl");
-ZcPcModel("models/vexmira/arena48/p_janus.mdl");
-ZcPcModel("models/vexmira/arena48/p_thanatos.mdl");
-ZcPcModel("models/vexmira/arena48/p_skull.mdl");
-ZcPcSound("vexmira/arena48/melee/balrog_balrog9_charge_finish1.wav");
-ZcPcSound("vexmira/arena48/melee/balrog_balrog9_charge_start1.wav");
-ZcPcSound("vexmira/arena48/melee/balrog_balrog9_draw.wav");
-ZcPcSound("vexmira/arena48/melee/balrog_hit.wav");
-ZcPcSound("vexmira/arena48/melee/balrog_swing.wav");
-ZcPcSound("vexmira/arena48/melee/janus_hit.wav");
-ZcPcSound("vexmira/arena48/melee/janus_janus9_stab1.wav");
-ZcPcSound("vexmira/arena48/melee/janus_janus9_stab2.wav");
-ZcPcSound("vexmira/arena48/melee/janus_swing.wav");
-ZcPcSound("vexmira/arena48/melee/skull_hit.wav");
-ZcPcSound("vexmira/arena48/melee/skull_skullaxe_draw.wav");
-ZcPcSound("vexmira/arena48/melee/skull_skullaxe_slash1.wav");
-ZcPcSound("vexmira/arena48/melee/skull_skullaxe_slash_hit.wav");
-ZcPcSound("vexmira/arena48/melee/skull_skullaxe_slash_miss.wav");
-ZcPcSound("vexmira/arena48/melee/skull_swing.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_hit.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_swing.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changea_1.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changea_2.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changea_3.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changea_4.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changeb_1.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_changeb_2.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_drawa.wav");
-ZcPcSound("vexmira/arena48/melee/thanatos_thanatos9_shootb_end.wav");
+static const DEF[MK_MAX][][] = {
+{"Balrog-9 / Ates Yumrugu", "models/vexmira/arena48/v_balrog.mdl", "models/vexmira/arena48/p_balrog.mdl", "vexmira/arena48/melee/balrog", "6 0 1 11", "500", "0"},
+{"Janus-9 / Yildirim", "models/vexmira/arena48/v_janus.mdl", "models/vexmira/arena48/p_janus.mdl", "vexmira/arena48/melee/janus", "9 0 3 11", "650", "1"},
+{"", "", "", "", "0 0 1 2", "700", "2"}, {"", "", "", "", "0 0 1 2", "750", "3"}, {"", "", "", "", "0 0 1 2", "800", "4"}, {"", "", "", "", "0 0 1 2", "850", "5"} };
+static const EXTRA_SND[][] = {"vexmira/arena48/melee/balrog_balrog9_charge_finish1.wav","vexmira/arena48/melee/balrog_balrog9_charge_start1.wav",
+"vexmira/arena48/melee/balrog_balrog9_draw.wav","vexmira/arena48/melee/janus_janus9_stab1.wav","vexmira/arena48/melee/janus_janus9_stab2.wav"};
+new key[24], val[160], parts[4][8], path[96];
+for (new i = 0; i < MK_MAX; i++)
+{
+formatex(key, charsmax(key), "MK%d_NAME", i + 1); copy(g_szMkName[i], charsmax(g_szMkName[]), GetResString(key, DEF[i][0]));
+formatex(key, charsmax(key), "MK%d_V", i + 1); copy(g_szMkV[i], charsmax(g_szMkV[]), GetResString(key, DEF[i][1]));
+formatex(key, charsmax(key), "MK%d_P", i + 1); copy(g_szMkP[i], charsmax(g_szMkP[]), GetResString(key, DEF[i][2]));
+formatex(key, charsmax(key), "MK%d_SND", i + 1); copy(g_szMkSnd[i], charsmax(g_szMkSnd[]), GetResString(key, DEF[i][3]));
+formatex(key, charsmax(key), "MK%d_ANIM", i + 1); copy(val, charsmax(val), GetResString(key, DEF[i][4]));
+parse(val, parts[0], 7, parts[1], 7, parts[2], 7, parts[3], 7);
+for (new k = 0; k < 4; k++) g_iMkAnim[i][k] = str_to_num(parts[k]);
+formatex(key, charsmax(key), "MK%d_COST", i + 1); g_iMkCost[i] = str_to_num(GetResString(key, DEF[i][5]));
+formatex(key, charsmax(key), "MK%d_FX", i + 1); g_iMkFx[i] = str_to_num(GetResString(key, DEF[i][6]));
+formatex(key, charsmax(key), "MK%d_DMG", i + 1); copy(val, charsmax(val), GetResString(key, "1.0"));
+new Float:mult = floatclamp(str_to_float(val), 0.1, 10.0);
+g_fMkDmg[i][0] = 170.0 * mult; g_fMkDmg[i][1] = 520.0 * mult;
+formatex(key, charsmax(key), "MK%d_RANGE", i + 1); g_fMkRange[i] = floatclamp(str_to_float(GetResString(key, "90")), 48.0, 200.0);
+formatex(key, charsmax(key), "MK%d_KB", i + 1); g_fMkKb[i] = floatclamp(str_to_float(GetResString(key, "1.0")), 0.0, 5.0);
+g_bMkOk[i] = false;
+if (!g_szMkV[i][0] || !g_szMkName[i][0] || !file_exists(g_szMkV[i], true)) { g_szMkV[i][0] = 0; continue; }
+g_bMkOk[i] = ZcPcModel(g_szMkV[i]) > 0;
+if (g_szMkP[i][0] && file_exists(g_szMkP[i], true)) ZcPcModel(g_szMkP[i]); else g_szMkP[i][0] = 0;
+for (new k = 0; k < 2; k++) { formatex(path, charsmax(path), k ? "%s_hit.wav" : "%s_swing.wav", g_szMkSnd[i]); ZcPcSound(path); }
+formatex(key, charsmax(key), "MK%d_SOUNDS", i + 1); copy(val, charsmax(val), GetResString(key, ""));
+new rest[160], one[96]; copy(rest, charsmax(rest), val);
+while (rest[0]) { strtok(rest, one, charsmax(one), rest, charsmax(rest), '|'); trim(one); if (one[0]) ZcPcSound(one); }
+}
+if (g_bMkOk[0] || g_bMkOk[1]) for (new k = 0; k < sizeof EXTRA_SND; k++) ZcPcSound(EXTRA_SND[k]);
 }
 ArenaAnnouncement48(kind,index)
 {
@@ -30792,6 +30801,9 @@ g_pNoUrban536 = register_cvar("vex_no_urban", "1");
 RegisterHookChain(RG_HandleMenu_ChooseAppearance, "Urban536_Appearance", false);
 RegisterHam(Ham_Spawn, "player", "Urban536_SpawnPost", 1);
 g_pGunDmg536 = register_cvar("vex_gun_damage_mult", "1.35");
+g_pSkDmg538 = register_cvar("vex_sknife_damage_mult", "2.5");
+g_pSkKb538 = register_cvar("vex_sknife_knockback", "430");
+g_pSkBoss538 = register_cvar("vex_sknife_boss_kb", "0.25");
 g_pKBMax536 = register_cvar("vex_knockback_max", "650");
 g_pHsSnd536 = register_cvar("vex_headshot_sound", "buttons/blip1");
 g_pBdHp536 = register_cvar("vex_bdoor_hp", "1200");
@@ -30890,3 +30902,20 @@ ModernEvents50() vxe_modern_events();
 NativePrecache52() vxe_native_precache();
 public VxcResSet(plugin, params) { new k[64], v[192]; get_string(1, k, charsmax(k)); get_string(2, v, charsmax(v)); TrieSetString(g_tRes, k, v); return 1; }
 public VxcPcGeneric(plugin, params) { new p[192]; get_string(1, p, charsmax(p)); return ZcPcGeneric(p); }
+// 5.3.8: special knives push zombies hard (boss / nemesis / assassin reduced), throttled per victim
+SkKnock538(victim, attacker, Float:mult)
+{
+new Float:now = get_gametime();
+if (now < g_fSkKbAt538[victim] || g_bNoKB[victim]) return;
+g_fSkKbAt538[victim] = now + 0.2;
+new Float:p = get_pcvar_float(g_pSkKb538) * mult;
+if (g_bBoss[victim] || g_bNemesis[victim] || g_bAssassin[victim]) p *= floatclamp(get_pcvar_float(g_pSkBoss538), 0.0, 1.0);
+if (p <= 1.0) return;
+new Float:vo[3], Float:ao[3], Float:v[3];
+get_entvar(victim, var_origin, vo); get_entvar(attacker, var_origin, ao);
+new Float:dx = vo[0] - ao[0], Float:dy = vo[1] - ao[1], Float:l = floatsqroot(dx * dx + dy * dy);
+if (l < 1.0) return;
+get_entvar(victim, var_velocity, v);
+v[0] = dx / l * p; v[1] = dy / l * p; v[2] = floatmax(v[2], 140.0);
+set_entvar(victim, var_velocity, v);
+}
