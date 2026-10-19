@@ -388,7 +388,7 @@ vxc_res_set("SPR_ICON_LAST",   "sprites/vexmira/icon_lasthuman.spr");
 vxc_res_set("SPR_ICON_ALPHA",  "sprites/vexmira/icon_alpha.spr");
 vxc_res_set("BOSS_PRELOAD",      "4");
 vxc_res_set("BOSS_PRELOAD_LIST", "");
-vxc_res_set("BOSS_GIANT_TEX",    "256");
+vxc_res_set("BOSS_GIANT_TEX",    "128");
 vxc_res_set("BOSS_GIANT_ALL",    "1");
 vxc_res_set("SOUND_BUDGET",      "200");
 vxc_res_set("MODEL_BUDGET",      "250");
@@ -589,6 +589,8 @@ new t[40]; formatex(t, charsmax(t), "%s_%s_knife", pre, kind);
 new k = GsFindSeq(t, nq);
 return (k >= 0 && g_GsSeqAi[k] != g_GsSeqAi[q]) ? k : -1;
 }
+// 5.3.9b: shrunk texture sides are multiples of 4 (odd sizes crash clients: GL_Upload16 s&3)
+stock GsDim539(v, f) { new d = v / f; if (f > 1 && d >= 8) d &= ~3; return d; }
 bool:GsSlim(const inPath[], const outPath[], maxTex)
 {
 new in = fopen(inPath, "rb");
@@ -654,7 +656,7 @@ if (nsf > 1) g_GsTexF[t] = fmin;
 new f = g_GsTexF[t];
 if (f <= 1 || g_GsNS >= GS_MAXS) { g_GsTexF[t] = 1; continue; }
 new ix = GmRdI(in, ti + t * 80 + 76), w = g_GsTexW[t], h = g_GsTexH[t];
-g_GsSegA[g_GsNS] = ix; g_GsSegB[g_GsNS] = ix + w * h + 768; g_GsSegN[g_GsNS] = (w / f) * (h / f) + 768; g_GsSegT[g_GsNS++] = t;
+g_GsSegA[g_GsNS] = ix; g_GsSegB[g_GsNS] = ix + w * h + 768; g_GsSegN[g_GsNS] = GsDim539(w, f) * GsDim539(h, f) + 768; g_GsSegT[g_GsNS++] = t;
 }
 if (!g_GsNS) { fclose(in); return false; }
 for (new i = 1; i < g_GsNS; i++)
@@ -677,7 +679,7 @@ GsCopyRange(in, out, pos, g_GsSegA[s]);
 new t = g_GsSegT[s];
 if (t >= 0)
 {
-new f = g_GsTexF[t], w = g_GsTexW[t], h = g_GsTexH[t], nw = w / f, nh = h / f, ix = g_GsSegA[s];
+new f = g_GsTexF[t], w = g_GsTexW[t], h = g_GsTexH[t], nw = GsDim539(w, f), nh = GsDim539(h, f), ix = g_GsSegA[s];
 for (new y = 0; y < nh; y++)
 {
 fseek(in, ix + y * f * w, SEEK_SET);
@@ -714,7 +716,7 @@ for (new t = 0; t < nt; t++)
 if (g_GsTexF[t] <= 1) continue;
 anyTex = true;
 new no = GsRemap(ti + t * 80);
-GsWrI(out, no + 68, g_GsTexW[t] / g_GsTexF[t]); GsWrI(out, no + 72, g_GsTexH[t] / g_GsTexF[t]);
+GsWrI(out, no + 68, GsDim539(g_GsTexW[t], g_GsTexF[t])); GsWrI(out, no + 72, GsDim539(g_GsTexH[t], g_GsTexF[t]));
 }
 GsWrI(out, 72, nlen);
 fclose(in);
@@ -736,8 +738,8 @@ if (tx < 0 || tx >= nt || g_GsTexF[tx] <= 1) continue;
 for (new z = 0; z < nd && !seen; z++) if (done[z] == tri) seen = true;
 if (seen) continue;
 if (nd < sizeof done) done[nd++] = tri;
-new Float:rs = float(g_GsTexW[tx] / g_GsTexF[tx]) / float(g_GsTexW[tx]);
-new Float:rt = float(g_GsTexH[tx] / g_GsTexF[tx]) / float(g_GsTexH[tx]);
+new Float:rs = float(GsDim539(g_GsTexW[tx], g_GsTexF[tx])) / float(g_GsTexW[tx]);
+new Float:rt = float(GsDim539(g_GsTexH[tx], g_GsTexF[tx])) / float(g_GsTexH[tx]);
 new p = tri, guard = 0;
 while (p > 0 && p + 2 <= nlen && guard++ < 65536)
 {
@@ -763,7 +765,7 @@ bool:GmBossGiant(const name[], out[], len, Float:k, tex)
 {
 if (k < 1.05) return false;
 new gname[48], src[160], dst[160], dir[96], t1[160], t2[160];
-formatex(gname, charsmax(gname), "%s_x%d", name, floatround(k * 10.0));
+formatex(gname, charsmax(gname), "%s_x%dt%d", name, floatround(k * 10.0), tex); // 5.3.9b: texture limit in the name -> smaller copy is a NEW file (no stale big download)
 formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
 formatex(dir, charsmax(dir), "models/player/%s", gname);
 formatex(dst, charsmax(dst), "%s/%s.mdl", dir, gname);
@@ -1615,7 +1617,7 @@ if (lv < ZUP_MAX) formatex(line, charsmax(line), "\w%s %s\d Sv %d  %d/%d", ZUP_N
 else formatex(line, charsmax(line), "\w%s %s\d Sv %d  MAKS", ZUP_NAME[c], c == cur ? "\w*" : "", lv);
 menu_additem(m, line);
 }
-menu_setprop(m, MPROP_NUMBER_COLOR, "\w");
+menu_setprop(m, MPROP_NUMBER_COLOR, "\r");
 menu_display(id, m, 0);
 return PLUGIN_HANDLED;
 }

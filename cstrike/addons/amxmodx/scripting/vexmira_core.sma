@@ -3504,6 +3504,7 @@ else
 formatex(dst, len, "%s%s", lead, src);
 }
 new g_szMenuLast[512];
+new g_pMenuGap539;
 new g_iMenuTitleLen, g_iMenuItemBytes, g_iMenuItemCnt;
 new bool:g_bMenuNoPage;
 stock VexMenuCreate(const title[], const handler[])
@@ -3515,7 +3516,7 @@ g_iMenuTitleLen = strlen(t);
 g_iMenuItemBytes = 0;
 g_iMenuItemCnt = 0;
 g_bMenuNoPage = false;
-new menu51=menu_create(t,handler);menu_setprop(menu51,MPROP_NUMBER_COLOR,MenuPlain538()?"\w":"\r");return menu51;
+new menu51=menu_create(t,handler);menu_setprop(menu51,MPROP_NUMBER_COLOR,"\r");return menu51;
 }
 // 5.3.8 plain menus (owner's sample): one title line, white numbers + items, grey for prices / disabled
 stock bool:MenuPlain538() return (g_pMenuPlain538 && get_pcvar_num(g_pMenuPlain538)) ? true : false;
@@ -3637,6 +3638,8 @@ new info[8], t[192];
 num_to_str(value, info, charsmax(info));
 ZcStyleItem(text, t, charsmax(t));
 if (MenuPlain538()) { replace_string(t, charsmax(t), "\r", "\d"); replace_string(t, charsmax(t), "\y", "\w"); }
+// 5.3.9b: one empty line under every option (vex_menu_gap 1) so the list is easier to read
+if (g_pMenuGap539 && get_pcvar_num(g_pMenuGap539) && t[0] && t[strlen(t) - 1] != '^n') add(t, charsmax(t), "^n");
 g_iMenuItemBytes += strlen(t) + 9;
 g_iMenuItemCnt++;
 menu_additem(menu, t, info);
@@ -3651,7 +3654,7 @@ stock VexHead(id, out[], len, const key[], const sub[] = "")
 new t[64]; formatex(t,charsmax(t),"%L",id,key);
 replace_string(t,charsmax(t),"\y",""); replace_string(t,charsmax(t),"\r","");
 g_iMenuFor = id;
-if(MenuPlain538()) formatex(out,len,"\w%s  \dAP %d  VC %d  LV %d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
+if(MenuPlain538()) formatex(out,len,"\rVEXMIRA \d| \w%s^n\dAP \w%d   \dVC \w%d   \dLV \w%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
 else formatex(out,len,"\rVEXMIRA  \d/ \y%s^n\d---------------------------^n\wAP \y%d  \wVC \y%d  \wLV \y%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
 if(sub[0]) { add(out,len,"\d"); add(out,len,sub); add(out,len,"^n"); }
 }
@@ -3671,8 +3674,8 @@ stock MenuProps(id, menu)
 new t[32];
 formatex(t, charsmax(t), "\w%L", id, "MENU_BACK");  menu_setprop(menu, MPROP_BACKNAME, t);
 formatex(t, charsmax(t), "\w%L", id, "MENU_NEXT");  menu_setprop(menu, MPROP_NEXTNAME, t);
-formatex(t, charsmax(t), MenuPlain538() ? "\w%L" : "\r%L", id, "MENU_EXIT");  menu_setprop(menu, MPROP_EXITNAME, t);
-menu_setprop(menu, MPROP_NUMBER_COLOR, MenuPlain538() ? "\w" : "\r");
+formatex(t, charsmax(t), "\w%L", id, "MENU_EXIT");  menu_setprop(menu, MPROP_EXITNAME, t);
+menu_setprop(menu, MPROP_NUMBER_COLOR, "\r");
 }
 stock MenuFinish(id, menu)
 {
@@ -28229,7 +28232,7 @@ formatex(key, charsmax(key), "B%d_MODEL", i);
 if (!g_bBossLoaded[i])
 {
 new bn[32], gn[48], gp[128];
-if (str_to_num(GetResString("BOSS_GIANT_ALL", "1")) && !equali(GetResString("BOSS_GIANT", "file"), "off") && !equali(GetResString("BOSS_GIANT", "file"), "clone")
+if (str_to_num(GetResString("BOSS_GIANT_ALL", "0")) && !equali(GetResString("BOSS_GIANT", "file"), "off") && !equali(GetResString("BOSS_GIANT", "file"), "clone")
 && TrieGetString(g_tRes, key, bn, charsmax(bn)) && bn[0] && GmBossGiant(bn, gn, charsmax(gn)))
 { formatex(gp, charsmax(gp), "models/player/%s/%s.mdl", gn, gn); if (PcModel(gp)) PcPlayerTex(gn); }
 continue;
@@ -29242,12 +29245,77 @@ if(stored>bytes || stored<244 || groups<1 || groups>32) return false;
 new sibling[192],base[160]; copy(base,charsmax(base),path); base[strlen(base)-4]=0;
 if(!textures) { formatex(sibling,charsmax(sibling),"%sT.mdl",base); if(!file_exists(sibling,true)) return false; }
 for(new n=1;n<groups;n++) { formatex(sibling,charsmax(sibling),"%s%02d.mdl",base,n); if(!file_exists(sibling,true)) return false; }
+if(!MdlTexOk539(path, bytes)) return false;
+if(!textures) { formatex(sibling,charsmax(sibling),"%sT.mdl",base); if(!MdlTexOk539(sibling, 0)) return false; }
 return true;
 }
 fclose(fp);
-if(containi(path,".spr")!=-1) return magic==0x50534449 && version==2 && bytes>42;
+if(containi(path,".spr")!=-1) return magic==0x50534449 && version==2 && bytes>42 && SprFramesOk539(path, bytes);
 if(containi(path,".wav")!=-1) return magic==0x46464952 && bytes>44;
 return bytes>0;
+}
+// 5.3.9b model guard: a model / sprite that would crash a client (texture outside the file, odd texture
+// area -> "GL_Upload16: s&3", missing T.mdl textures) is never sent to players; the caller falls back
+// to the old / default model. Reasons go to logs/vexmira_modelguard.log.
+stock ModelGuardLog539(const path[], const why[])
+{
+log_to_file("vexmira_modelguard.log", "ENGELLENDI %s -> %s (oyuncuya gonderilmedi, eski/varsayilan model kullanilir)", path, why);
+}
+bool:MdlTexOk539(const path[], bytes)
+{
+if (equal(GetResString("MODEL_GUARD", "1"), "0")) return true;
+new fp = fopen(path, "rb", true);
+if (!fp) { ModelGuardLog539(path, "dosya acilamadi"); return false; }
+if (bytes <= 0) { fseek(fp, 0, SEEK_END); bytes = ftell(fp); }
+new magic, nt, ti, nbp, bpi;
+fseek(fp, 0, SEEK_SET); fread(fp, magic, BLOCK_INT);
+if (magic != 0x54534449 || bytes < 244) { fclose(fp); ModelGuardLog539(path, "gecersiz model basligi"); return false; }
+fseek(fp, 180, SEEK_SET); fread(fp, nt, BLOCK_INT); fread(fp, ti, BLOCK_INT);
+fseek(fp, 204, SEEK_SET); fread(fp, nbp, BLOCK_INT); fread(fp, bpi, BLOCK_INT);
+if (nt < 0 || nt > 256 || (nt > 0 && (ti < 244 || ti + nt * 80 > bytes))) { fclose(fp); ModelGuardLog539(path, "doku tablosu bozuk"); return false; }
+if (nbp < 0 || nbp > 64 || (nbp > 0 && (bpi < 244 || bpi + nbp * 76 > bytes))) { fclose(fp); ModelGuardLog539(path, "govde tablosu bozuk"); return false; }
+new w, h, idx, why[64];
+for (new i = 0; i < nt; i++)
+{
+fseek(fp, ti + i * 80 + 68, SEEK_SET);
+fread(fp, w, BLOCK_INT); fread(fp, h, BLOCK_INT); fread(fp, idx, BLOCK_INT);
+if (w < 1 || h < 1 || w > 4096 || h > 4096) { formatex(why, charsmax(why), "doku %d boyutu %dx%d gecersiz", i, w, h); break; }
+if ((w * h) & 3) { formatex(why, charsmax(why), "doku %d boyutu %dx%d (GL_Upload16 cokmesi)", i, w, h); break; }
+if (idx < 0 || idx + w * h + 768 > bytes) { formatex(why, charsmax(why), "doku %d dosya disinda (eksik/kesik dosya)", i); break; }
+}
+fclose(fp);
+if (why[0]) { ModelGuardLog539(path, why); return false; }
+return true;
+}
+bool:SprFramesOk539(const path[], bytes)
+{
+if (equal(GetResString("MODEL_GUARD", "1"), "0")) return true;
+new fp = fopen(path, "rb", true);
+if (!fp) return false;
+new nf, pc, o, t, n, x, y, w, h, why[64];
+fseek(fp, 28, SEEK_SET); fread(fp, nf, BLOCK_INT);
+fseek(fp, 40, SEEK_SET); fread(fp, pc, BLOCK_SHORT);
+o = 42 + pc * 3;
+if (nf < 1 || nf > 2048 || pc < 0 || pc > 256) { fclose(fp); ModelGuardLog539(path, "gecersiz sprite basligi"); return false; }
+for (new f = 0; f < nf && !why[0]; f++)
+{
+fseek(fp, o, SEEK_SET); fread(fp, t, BLOCK_INT); o += 4;
+n = 1;
+if (t != 0) { fread(fp, n, BLOCK_INT); o += 4 + n * 4; if (n < 1 || n > 512) { copy(why, charsmax(why), "kare grubu bozuk"); break; } }
+for (new k = 0; k < n; k++)
+{
+if (o + 16 > bytes) { copy(why, charsmax(why), "kare dosya disinda (kesik dosya)"); break; }
+fseek(fp, o, SEEK_SET); fread(fp, x, BLOCK_INT); fread(fp, y, BLOCK_INT); fread(fp, w, BLOCK_INT); fread(fp, h, BLOCK_INT);
+o += 16;
+if (w < 1 || h < 1 || w > 2048 || h > 2048) { formatex(why, charsmax(why), "kare %d boyutu %dx%d gecersiz", f, w, h); break; }
+if ((w * h) & 3) { formatex(why, charsmax(why), "kare %d boyutu %dx%d (GL_Upload16 cokmesi)", f, w, h); break; }
+o += w * h;
+if (o > bytes) { formatex(why, charsmax(why), "kare %d dosya disinda (kesik dosya)", f); break; }
+}
+}
+fclose(fp);
+if (why[0]) { ModelGuardLog539(path, why); return false; }
+return true;
 }
 stock bool:VexIsOldCopy(const title[], const ver[], plugin)
 {
@@ -30575,6 +30643,7 @@ g_pGunDmg536 = register_cvar("vex_gun_damage_mult", "1.35");
 g_pHudCalm538 = register_cvar("vex_hud_calm", "1");
 ZupMarks538();
 g_pMenuPlain538 = register_cvar("vex_menu_plain", "1");
+g_pMenuGap539 = register_cvar("vex_menu_gap", "1");
 g_pSkDmg538 = register_cvar("vex_sknife_damage_mult", "2.5");
 g_pSkKb538 = register_cvar("vex_sknife_knockback", "430");
 g_pSkBoss538 = register_cvar("vex_sknife_boss_kb", "0.25");
@@ -30667,7 +30736,7 @@ bool:GmBossGiant(const name[], out[], len)
 new Float:k = floatclamp(str_to_float(GetResString("BOSS_SCALE", "1.6")), 1.0, 3.0);
 g_fBossScale531 = k;
 if (k < 1.05) return false;
-new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX", "256")), 0, 4096);
+new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX", "128")), 0, 4096);
 return vxe_boss_giant(name, out, len, k, tex) ? true : false;
 }
 bool:GsSlim(const inPath[], const outPath[], maxTex) return vxe_gs_slim(inPath, outPath, maxTex) ? true : false;
