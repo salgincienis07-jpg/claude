@@ -671,3 +671,18 @@ def t_s_bkale(rng, w, h):
 @tex('d2_s_balkon', 256, 32, 'dust2', desc='plate: CAM BALKON / GLASS BALCONY')
 def t_s_balkon(rng, w, h):
     return _plate(rng, w, h, 'CAM BALKON  GLASS BALCONY', (120, 200, 255))
+
+
+@tex('{d2_arena', 256, 256, 'dust2', desc='floor decal: big boss-arena circle with runes and biohazard (masked)')
+def t_arena(rng, w, h):
+    from .textures import _ss_mask
+    ys, xs = np.mgrid[0:h, 0:w].astype(F)
+    r = np.hypot(xs - w / 2 + 0.5, ys - h / 2 + 0.5) / (w / 2)
+    ang = np.arctan2(ys - h / 2, xs - w / 2)
+    rings = ((np.abs(r - 0.96) < 0.025) | (np.abs(r - 0.80) < 0.015) | (np.abs(r - 0.62) < 0.012)).astype(F)
+    runes = (((np.abs(((ang / (2 * math.pi)) * 24) % 1 - 0.5) < 0.18) & (r > 0.83) & (r < 0.93)) &
+             (fbm(h, w, 24, rng, 2) > 0.45)).astype(F)
+    spokes = ((np.abs(((ang / (2 * math.pi)) * 8) % 1 - 0.5) < 0.02) & (r > 0.62) & (r < 0.80)).astype(F)
+    m = np.clip(rings + runes + spokes, 0, 1) * (r <= 1.0)
+    img = fill(h, w, (170, 24, 18)) * (0.75 + 0.35 * fbm(h, w, 10, rng, 3))[..., None]
+    return np.concatenate([img, (m > 0.5).astype(F)[..., None]], -1)

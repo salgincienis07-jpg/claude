@@ -990,7 +990,8 @@ def plaza_extra():
         px, py = cx + dx * 220, cy + dy * 300
         if not (TEX + 40 < px < PX1 - 40 and PY0 + 80 < py < PY1 - 80):
             continue
-        ents.append(light((px, py, ZPL + 210), (255, 190, 120), 170))
+        MODELS.append('model = models/vexmira/538/world/lamp_euro.mdl %d %d %d 0' % (px, py, ZPL))
+        ents.append(light((px, py, ZPL + 150), (255, 190, 120), 170))
     # barricades (crates + low steel) for dodging boss skills
     for (x0b, y0b) in ((cx - 260, cy - 40), (cx + 196, cy - 40)):
         for i, (dx, tex, top) in enumerate(((0, MIL, MILT), (64, CRS, CRS))):
@@ -1045,7 +1046,7 @@ def decorations():
     # trees in the big open areas
     for (x, y) in ((-1150, -1800), (700, 1330), (-1784, 1284)):
         z = floor_at(x, y)
-        if z is not None and area_ok(x - 64, y - 64, x + 64, y + 64, z, 220) and free_of_others(x - 64, y - 64, x + 64, y + 64):
+        if z is not None and area_ok(x - 96, y - 96, x + 96, y + 96, z, 370) and free_of_others(x - 96, y - 96, x + 96, y + 96):
             ents.append(tree_spot(x, y, z, 0))
         else:
             LOG.append('tree skipped at %d %d' % (x, y))
@@ -1070,9 +1071,11 @@ TREE_SPOTS = []
 
 def tree_spot(x, y, z, yaw=0):
     """xmas tree MODEL spot (no brushes): ini [models] line + a soft light; footprint kept free of spawns."""
-    TREE_SPOTS.append((x, y, z, yaw))
-    OCC.append((x - 64, y - 64, x + 64, y + 64))
-    return light((x, y, z + 120), (255, 200, 120), 110)
+    TREE_SPOTS.append((x, y, z + 3, yaw))             # model base is at z=-3
+    OCC.append((x - 100, y - 100, x + 100, y + 100))
+    for k, (dx, dy) in enumerate(((70, 40), (-60, 55), (30, -75))):        # gift box models around the tree
+        MODELS.append('model = models/vexmira/538/world/xmas_gift%d.mdl %d %d %d %d' % (1 + k % 2, x + dx, y + dy, z, 30 * k))
+    return light((x, y, z + 180), (255, 200, 120), 120)
 
 
 def wall_flat(x, y, z, d, w, h):
@@ -1382,7 +1385,16 @@ def b_back_base():
 
 
 def plaza_markers():
-    """boss spawn ring + human teleport ring on the floor (masked decals, cheap)."""
+    """boss spawn ring + human teleport ring on the floor (masked decals, cheap) + v4 plaza dressing that costs
+    no brush faces: one big arena circle decal, xmas light strings (models), flags at the gate (models)."""
+    cx, cy = (TEX + PX1) // 2, 1420
+    b = bx((cx - 270, cy - 270, ZPL + 0.25), (cx + 270, cy + 270, ZPL + 0.5), {'top': '{d2_arena', 'all': NULL}); b.fit_faces(('top',)); MASKED.append(b)
+    for yy in (1240, 1560, 1840):                      # light strings across the square (2 x 256 each)
+        for x0 in (TEX + 8, TEX + 8 + 264):
+            MODELS.append('model = models/vexmira/world/cd_lights.mdl %d %d %d 0 body:0' % (x0, yy, ZPL + 300))
+            MODELS.append('model = models/vexmira/world/cd_lights.mdl %d %d %d 0 body:1 rm:5 ra:230 fx:9' % (x0, yy, ZPL + 300))
+    for gx in (TEX + 64, PX1 - 64):                     # flags next to the gate pillars
+        MODELS.append('model = models/vexmira/world/cd_flag.mdl %d %d %d 90 fr:1' % (gx, PY0 + 96, ZPL))
     boss, hum = arena_points()
     bx_, by_, bz, _ = boss
     zf = ZPL
@@ -1408,6 +1420,10 @@ def deco_bases():
         l_ = lantern(x, y, z, d, (255, 180, 90), 110)
         if l_:
             ents.append(l_)
+    for (cx_, cy_) in ((180, 1220), (-330, -2160)):
+        z = floor_at(cx_, cy_)
+        if z is not None:
+            MODELS.append('model = models/vexmira/538/world/xmas_candle.mdl %d %d %d 0' % (cx_, cy_, z))
     # gift piles (detail boxes) in the corners
     for (gx, gy) in ((120, 1220), (-260, -2160)):
         z = floor_at(gx, gy)
