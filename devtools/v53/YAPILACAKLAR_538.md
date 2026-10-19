@@ -47,8 +47,8 @@ SPRITES = done (cstrike/sprites/vexmira/c538, layout devtools/sprkit/c538_layout
 
 ## Assets (ASSETS)
 - [x] xmas tree + xmas props (MAP_PROPS_READY.txt)
-- [ ] zombie models (all classes) + claws
-- [ ] CT default characters + admin + VIP models
-- [ ] default weapon models (v_) where sensible + sounds
-- [ ] 4 special knives, 7 special guns, infection mask, zombie armor
-- [ ] manifest.json with integration notes, total MB
+- [ ] zombie models (all classes) + claws - PARTIAL: 9 new class models (Z0,Z1,Z2,Z6,Z9,Z13,Z18,Z21,Z23) + nemesis + 2 claws (v_claw_tank, v_claw_source); the other 15 classes keep their current models (no small, downloadable fits found)
+- [x] CT default characters + admin + VIP models (5 CT defaults cso2_gign/sas/arctic, csoct, re_leon; admin vex538_chief; VIP vex538_deadpool; + sakura, xmas santa) - weapon anims kept (seqchk 111+ unique)
+- [x] default weapon models (v_) where sensible + sounds (11 v_ skins: ak47 awp m4a1 deagle famas galil glock18 usp m249 m3 xm1014; stock anim order + stock sounds, 3.1 MB)
+- [x] 4 special knives (magmablade, tomahawk, pickaxe, crowbar + alt dragonknife), 7 special guns (portalgun, balrog7, balrog11, mp7nemesis, charger7, chickenusp, skull2 + alt thanatos1), infection mask (vex538_gasmask), zombie armor (vex538_phoenix_heavy worn; stock w_assault.mdl for pickup)
+- [x] manifest.json with integration notes, total MB (scratchpad/assets538/final/manifest.json, 31.6 MB / 125 files, anim indices + sounds per event + suggested stats)
