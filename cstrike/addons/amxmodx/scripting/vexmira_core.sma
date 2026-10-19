@@ -3402,7 +3402,7 @@ new const CSO_FILE[CN_TOTAL][] = { "km1", "km2", "km3", "km4", "km5", "hs", "kni
 new const CSO_LANG[CN_TOTAL] = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
 new const CSO_LAY[CN_TOTAL] = { 'k', 'l', 'l', 'l', 'l', 'k', 'l', 'k', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'l', 'l', 'r', 'c', 'c', 'c', 'c', 'c', 'l', 'c' };
 new const CSO_SHEETS[][] = { "m", "g", "fx", "rnd", "cdtr", "cden" };
-new bool:g_bCsoVex531 = true, g_iCsoLang531, g_szCsoDir[8] = "c538t";
+new bool:g_bCsoVex531 = true, g_iCsoLang531, g_szCsoDir[8] = "c539";
 #define UI_R 120
 #define UI_G 200
 #define UI_B 235
@@ -5423,8 +5423,8 @@ CsoPrecacheVex531()
 }
 CsoPrecache()
 {
-    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c538t"));
-    if (equali(set, "c538")) copy(set, charsmax(set), "c538t"); // 5.3.8a: transparent card set (new folder so clients re-download)
+    new set[16]; copy(set, charsmax(set), GetResString("CSO_CARDSET", "c539"));
+    if (equali(set, "c538")) copy(set, charsmax(set), "c539"); // 5.3.8a: transparent card set (new folder so clients re-download)
     g_bCsoC532 = false;
     if (equali(set, "off"))
     {
@@ -5432,9 +5432,9 @@ CsoPrecache()
         for (new i = 0; i < CN_TOTAL; i++) g_bCsoFile[i] = false;
         return;
     }
-    if (equali(set, "c538t") || equali(set, "c533") || equali(set, "c532"))
+    if (equali(set, "c539") || equali(set, "c533") || equali(set, "c532"))
     {
-        copy(g_szCsoDir, charsmax(g_szCsoDir), equali(set, "c538t") ? "c538t" : "c533");
+        copy(g_szCsoDir, charsmax(g_szCsoDir), equali(set, "c539") ? "c539" : "c533");
         CsoPrecache533();
         return;
     }
@@ -5482,7 +5482,7 @@ CsoPrecache533()
         g_bCsoFile[n] = false;
         if (g_iPreCso <= 0) continue;
         new ok = 1;
-        if (!equal(g_szCsoDir, "c538t") && (n == CN_UPGRADE || n == CN_ITEM || n == CN_ARENA)) continue;
+        if (!equal(g_szCsoDir, "c539") && (n == CN_UPGRADE || n == CN_ITEM || n == CN_ARENA)) continue;
         for (new c = 1; c <= ((n == CN_TEN || n == CN_ARENA) ? 10 : 1); c++)
         {
             if (n == CN_TEN) formatex(path, charsmax(path), "sprites/vexmira/%s/cd%d_%s.txt", g_szCsoDir, c, lg);
@@ -5497,7 +5497,7 @@ CsoPrecache533()
     g_bHp533 = true;
     for (new l = 0; l <= 10; l++)
     {
-        formatex(path, charsmax(path), "sprites/vexmira/%s/bh_%d.txt", equal(g_szCsoDir, "c538t") ? "c538t" : "c534", l);
+        formatex(path, charsmax(path), "sprites/vexmira/%s/bh_%d.txt", equal(g_szCsoDir, "c539") ? "c539" : "c534", l);
         if (!Txt533Sheet(path, sheet, charsmax(sheet)) || ZcPcGeneric(path) <= 0) { g_bHp533 = false; continue; }
         n533++;
         if (!TrieKeyExists(sheets, sheet)) { TrieSetCell(sheets, sheet, 1); if (ZcPcGeneric(sheet) > 0) n533++; else g_bHp533 = false; }
@@ -5990,7 +5990,7 @@ BossHpTick533()
         if (!want) { if (g_iHpLvl533[id] >= 0) HpRestore533(id); continue; }
         if (lvl == g_iHpLvl533[id] && w == g_iHpWpn533[id]) continue;
         if (g_iHpWpn533[id] && g_iHpWpn533[id] != w) CsoSendWL(id, g_szWL[g_iHpWpn533[id]], g_iHpWpn533[id]);
-        new nm[32]; formatex(nm, charsmax(nm), "vexmira/%s/bh_%d", equal(g_szCsoDir, "c538t") ? "c538t" : "c534", lvl);
+        new nm[32]; formatex(nm, charsmax(nm), "vexmira/%s/bh_%d", equal(g_szCsoDir, "c539") ? "c539" : "c534", lvl);
         CsoFov(id, clamp(get_pcvar_num(g_pCsoFov), 10, 89));
         CsoSendWL(id, nm, w); CsoCurW(id, w, clip);
         g_iHpLvl533[id] = lvl; g_iHpWpn533[id] = w;
@@ -30742,8 +30742,8 @@ public VxcClass(plugin, params) { new id = get_param(1); return (1 <= id <= g_iM
 HitMarkPrecache538()
 {
 g_bHm538 = false;
-if (!equal(g_szCsoDir, "c538t") || !str_to_num(GetResString("HITMARKER", "1"))) return;
-static const F[][] = { "sprites/vexmira/c538t/hm_hit.txt", "sprites/vexmira/c538t/hm_hs.txt", "sprites/vexmira/c538t/hm_kill.txt", "sprites/vexmira/c538t/shm0.spr" };
+if (!equal(g_szCsoDir, "c539") || !str_to_num(GetResString("HITMARKER", "1"))) return;
+static const F[][] = { "sprites/vexmira/c539/hm_hit.txt", "sprites/vexmira/c539/hm_hs.txt", "sprites/vexmira/c539/hm_kill.txt", "sprites/vexmira/c539/shm0.spr" };
 for (new i = 0; i < sizeof F; i++) { if (!file_exists(F[i], true)) return; }
 for (new i = 0; i < sizeof F; i++) PcGeneric(F[i]);
 g_bHm538 = true;
@@ -30755,7 +30755,7 @@ static const SND[3][] = { "player/bhit_flesh-1", "buttons/blip1", "buttons/bell1
 client_cmd(id, "spk ^"%s^"", SND[clamp(kind, 0, 2)]);
 new clip, ammo, w = get_user_weapon(id, clip, ammo);
 if (w < 1 || w > 30 || !g_bWL[w]) return;
-static const NM[3][] = { "vexmira/c538t/hm_hit", "vexmira/c538t/hm_hs", "vexmira/c538t/hm_kill" };
+static const NM[3][] = { "vexmira/c539/hm_hit", "vexmira/c539/hm_hs", "vexmira/c539/hm_kill" };
 CsoSendWL(id, NM[clamp(kind, 0, 2)], w); CsoCurW(id, w, clip);
 g_iHmW538[id] = w; g_fHmEnd538[id] = get_gametime() + (kind == 2 ? 0.35 : 0.18);
 remove_task(id + 538700); set_task(kind == 2 ? 0.35 : 0.18, "HitMarkOff538", id + 538700);

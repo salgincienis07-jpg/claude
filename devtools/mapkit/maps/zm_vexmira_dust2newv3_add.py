@@ -990,7 +990,7 @@ def plaza_extra():
         px, py = cx + dx * 220, cy + dy * 300
         if not (TEX + 40 < px < PX1 - 40 and PY0 + 80 < py < PY1 - 80):
             continue
-        MODELS.append('model = models/vexmira/538/world/lamp_eurob.mdl %d %d %d 0' % (px, py, ZPL))
+        MODELS.append('model = models/vexmira/v539/world/lamp_eurob.mdl %d %d %d 0' % (px, py, ZPL))
         ents.append(light((px, py, ZPL + 150), (255, 190, 120), 170))
     # barricades (crates + low steel) for dodging boss skills
     for (x0b, y0b) in ((cx - 260, cy - 40), (cx + 196, cy - 40)):
@@ -1065,7 +1065,7 @@ def arena_points():
 
 
 # ---------------------------------------------------------------- v4 (dust2vexfix) additions
-TREE_MDL = 'models/vexmira/538/world/xmas_treeb.mdl'      # internet model (assets worker); placed via ini [models]
+TREE_MDL = 'models/vexmira/v539/world/xmas_treeb.mdl'      # internet model (assets worker); placed via ini [models]
 TREE_SPOTS = []
 
 
@@ -1074,7 +1074,7 @@ def tree_spot(x, y, z, yaw=0):
     TREE_SPOTS.append((x, y, z + 3, yaw))             # model base is at z=-3
     OCC.append((x - 100, y - 100, x + 100, y + 100))
     for k, (dx, dy) in enumerate(((70, 40), (-60, 55), (30, -75))):        # gift box models around the tree
-        MODELS.append('model = models/vexmira/538/world/xmas_gift%db.mdl %d %d %d %d' % (1 + k % 2, x + dx, y + dy, z, 30 * k))
+        MODELS.append('model = models/vexmira/v539/world/xmas_gift%db.mdl %d %d %d %d' % (1 + k % 2, x + dx, y + dy, z, 30 * k))
     return light((x, y, z + 180), (255, 200, 120), 120)
 
 
@@ -1422,7 +1422,7 @@ def deco_bases():
     for (cx_, cy_) in ((180, 1220), (-330, -2160)):
         z = floor_at(cx_, cy_)
         if z is not None:
-            MODELS.append('model = models/vexmira/538/world/xmas_candle.mdl %d %d %d 0' % (cx_, cy_, z))
+            MODELS.append('model = models/vexmira/v539/world/xmas_candle.mdl %d %d %d 0' % (cx_, cy_, z))
     # gift piles (detail boxes) in the corners
     for (gx, gy) in ((120, 1220), (-260, -2160)):
         z = floor_at(gx, gy)

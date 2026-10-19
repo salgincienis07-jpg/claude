@@ -1,0 +1,30 @@
+VEXMIRA 5.3.9 - TAM PAKET (garanti indirme surumu)
+==================================================
+
+NE DEGISTI
+- 5.3.8'de gelen TUM yeni dosyalarin yolu/ismi degisti. Oyuncunun bilgisayarinda kalmis eski,
+  yarim ya da bozuk hicbir dosya artik kullanilmaz; herkes her seyi temiz indirir:
+    models/vexmira/538/      ->  models/vexmira/v539/
+    sound/vexmira/538/       ->  sound/vexmira/v539/
+    models/player/vex538_*   ->  models/player/vx539_*
+    sprites/vexmira/c538t/   ->  sprites/vexmira/c539/   (seffaf CSO kartlari)
+- vexmira.cfg icine FastDL adresi yazildi:
+    sv_downloadurl "http://f16.oyunyoneticisi.biz/cstrike/"
+- Onceki duzeltmeler dahil: GL_Upload16 cokmesi, seffaf kartlar, lazer yanip sonme,
+  zm_vexmira_dust2newv3 balkon girisi.
+
+KURULUM
+1) Bu zipteki "cstrike" klasorunu sunucuya at (ustune yaz).
+2) Panel "Eklenti Yukle" ile derle: vexmira_core.sma, vexmira_gear.sma, vexmira_extra.sma
+3) Sunucuyu restart et. Panel FastDL'ye dosyalari otomatik kopyalar.
+4) Kontrol (tarayicida acilip inmeli):
+   http://f16.oyunyoneticisi.biz/cstrike/models/player/vx539_zgign/vx539_zgign.mdl
+   http://f16.oyunyoneticisi.biz/cstrike/sprites/vexmira/c539/hp538.spr
+   Iniyorsa tamam, oyuncular girebilir.
+
+SUNUCUDAN SILINEBILECEK ESKI KLASORLER (artik kullanilmiyor, yer kaplar)
+- models/vexmira/538/
+- sound/vexmira/538/
+- models/player/ icindeki vex538_ ile baslayan tum klasorler
+- sprites/vexmira/c538/ ve sprites/vexmira/c538t/
+- maps/zm_vexmira_dust2vexfix.bsp / .nav, configs/vexmira_maps/zm_vexmira_dust2vexfix.ini
