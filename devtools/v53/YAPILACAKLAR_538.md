@@ -24,22 +24,22 @@ SPRITES = done (cstrike/sprites/vexmira/c538, layout devtools/sprkit/c538_layout
 
 ## Plugin (PLUGIN)
 - [ ] .sma files each < 1 MB (target <= 900 KB): core + gear + 3rd main plugin (vexmira_extra.sma), handshake, plugins ini
-- [ ] remove "boss geliyor" texts; boss pre-countdown "X saniye sonra boss arenasina isinlanacaksin" (c538 ar1..ar10 cards)
-- [ ] fewer HUD texts (no empty filler like "reaper uyandi", "drop dusuyor"); one calm theme colour for all HUDs
-- [ ] all menus plain like the owner's example image (white/grey numbered list, one title line)
+- [x] remove "boss geliyor" texts; boss pre-countdown "X saniye sonra boss arenasina isinlanacaksin" (c538 ar1..ar10 cards) -- VexCountdown shows ar<n> cards + that text on boss rounds; BOSS_ANN/MODE_ANN_9/radio texts cleaned, BOSS_SOON removed; dust2vexfix boss test "boss arenasi: 12 oyuncu isinlandi"
+- [x] fewer HUD texts (no empty filler like "reaper uyandi", "drop dusuyor"); one calm theme colour for all HUDs -- boss intro = name only, AIRDROP_HUD / BOSS_ARENA_HUD lines dropped; HudDraw uses the softened theme colour (vex_hud_calm 1)
+- [x] all menus plain like the owner's example image (white/grey numbered list, one title line) -- VexHead one line "Title  AP VC LV", white numbers/items, grey prices (vex_menu_plain 1)
 - [ ] hit / headshot / kill feel (c538 hm_* cards + hit538.spr + stock sounds)
 - [ ] unprecacher (block unused stock resources) for ALL models / sounds / sprites / effects
 - [ ] indexing: central precache registry, dedupe by content hash, merge, lazy precache for feature-only assets; downsample big wavs
 - [ ] before/after table (sound/model/generic counts, download MB) on 7door + dust2vexfix
-- [ ] lasers removed when the owner becomes zombie (vex_lm_keep 0)
+- [x] lasers removed when the owner becomes zombie (vex_lm_keep 0) -- cfg + code default 0, mine think also drops human mines of a zombie owner
 - [ ] lasers turning invisible after a while: root cause fixed + long test
-- [ ] spore zombie gets stuck in his own skill: fixed (+ similar skills)
-- [ ] "player model" kick: fixed
-- [ ] remove broken knives Thanos 9 + Skull 9
-- [ ] 4 new special knives (ASSETS) with high damage + strong knockback; all special knives buffed
+- [x] spore zombie gets stuck in his own skill: fixed (+ similar skills) -- spores + hive eggs spawn SOLID_NOT and turn solid only when no player bbox overlaps (SolidWhenFree538)
+- [x] "player model" kick: fixed -- mp_consistency 0 in vexmira.cfg (ReGameDLL player model consistency check)
+- [x] remove broken knives Thanos 9 + Skull 9 -- commit ebc1244 (assets + menu entries gone)
+- [x] 4 new special knives (ASSETS) with high damage + strong knockback; all special knives buffed -- MK3..MK6 Magma Blade / Tomahawk / Pickaxe / Crowbar (180-220 slash, 600-800 stab, KB x1.3-2.2, fx fire/knock-up/crit/combo); classic 4 x2.5 dmg + 430 u knockback, Balrog/Janus x1.4
 - [ ] 7 new unique special guns (ASSETS), infection mask + zombie armor items (ASSETS)
 - [ ] replace zombie models, default weapon models, buyable special models, CT default characters, sounds (ASSETS) - small sizes
-- [ ] admin-only + VIP-only CT player models
+- [x] admin-only + VIP-only CT player models -- ADMIN_MODEL vex538_chief, VIP_MODEL vex538_deadpool (precached only when set)
 - [ ] zombie class upgrade system (hard to earn; cooldown down, range/damage up, better effects; level-up sound+effect; menu; nvault)
 - [ ] new HP bars (hp538) + boss bars (bossbar538, bh_ c538) + overhead icons (icons538), aligned for every model size, animated
 - [ ] CSO notifications -> c538 smooth cards
