@@ -5513,32 +5513,6 @@ bool:Txt533Sheet(const txt[], out[], len)
 }
 new const C532_FILE[CN_TOTAL][] = { "", "", "", "", "", "", "", "", "mvp", "hwin", "zwin", "boss",
     "", "", "", "", "last", "", "", "", "", "", "", "", "", "" };
-CsoPrecache532()
-{
-    g_bCsoVex531 = true;
-    g_bCsoC532 = true;
-    g_iCsoRounds = 0;
-    new lm[8]; copy(lm, charsmax(lm), GetResString("CSO_LANG", "tr"));
-    g_iCsoLang531 = equali(lm, "both") ? 0 : (equali(lm, "en") ? 2 : 1);
-    new path[96], n532;
-    for (new n = 0; n < CN_TOTAL; n++)
-    {
-        g_bCsoFile[n] = false;
-        if (!C532_FILE[n][0] || g_iPreCso <= 0) continue;
-        new ok = 1;
-        for (new l = 0; l < 2; l++)
-        {
-            if (g_iCsoLang531 && l != (g_iCsoLang531 == 1 ? 1 : 0)) continue;
-            for (new e = 0; e < 2; e++)
-            {
-                formatex(path, charsmax(path), "sprites/vexmira/c532/%s_%s.%s", C532_FILE[n], l ? "tr" : "en", e ? "txt" : "spr");
-                if (file_exists(path, true) && ZcPcGeneric(path) > 0) n532++; else ok = 0;
-            }
-        }
-        g_bCsoFile[n] = ok ? true : false;
-    }
-    log_amx("[Vexmira] 5.3.2 ekran kartlari: %d dosya (sprites/vexmira/c532)", n532);
-}
 CsoInitWL()
 {
 static const D[31][8] =
@@ -6193,13 +6167,6 @@ dst[j++] = ' ';
 dst[j++] = src[i];
 }
 dst[j] = 0;
-}
-stock HpColor(pct, &r, &g, &b)
-{
-if (pct > 66)      { r = 80;  g = 255; b = 120; }
-else if (pct > 40) { r = 230; g = 230; b = 60; }
-else if (pct > 20) { r = 255; g = 140; b = 30; }
-else               { r = 255; g = 40;  b = 40; }
 }
 stock Translate(out[], len, const key[], id)
 {
@@ -7231,25 +7198,6 @@ set_localinfo("vex_bossrot", info);
 }
 g_iBossBagPos = NUM_BOSSES;
 }
-stock PlanBossRoundCount()
-{
-new total = g_iPreRoundsTotal > 0 ? g_iPreRoundsTotal : 30;
-new list[128], tmp[8], pos, n;
-copy(list, charsmax(list), g_szPreBossRounds);
-trim(list);
-if (list[0])
-{
-while ((pos = argparse(list, pos, tmp, charsmax(tmp))) != -1)
-{
-new r = str_to_num(tmp);
-if (r >= 1 && r <= total)
-n++;
-}
-return n;
-}
-new every = g_iPreBossEvery > 0 ? g_iPreBossEvery : 6;
-return total / every;
-}
 BossClearKeys(b)
 {
 static const EV[][] = { "INTRO", "IDLE", "PAIN", "PAIN2", "DEATH", "STEP", "ATTACK", "PHASE", "KILL", "R1", "R2", "R3",
@@ -7792,38 +7740,6 @@ if(!file_exists(full,true)) {log_amx("[Vexmira] Ses bulunamadi: %s (%s) - varsay
 if(containi(value,".mp3")!=-1 || equal(key,"AMBIENT_",8)) copy(normalized,charsmax(normalized),full);
 }
 TrieSetString(g_tRes,key,normalized);
-}
-stock LoadResourceIni()
-{
-new file[96], line[256], key[32], value[192];
-get_configsdir(file, charsmax(file));
-add(file, charsmax(file), "/vexmira_resources.ini");
-new fp = fopen(file, "rt");
-if (!fp)
-return;
-while (!feof(fp))
-{
-fgets(fp, line, charsmax(line));
-trim(line);
-if (!line[0] || line[0] == ';' || line[0] == '#' || line[0] == '/')
-continue;
-new eq = contain(line, "=");
-if (eq <= 0)
-continue;
-line[eq] = 0;
-copy(key, charsmax(key), line);
-copy(value, charsmax(value), line[eq + 1]);
-trim(key);
-trim(value);
-new sc = contain(value, ";");
-if (sc >= 0)
-{
-value[sc] = 0;
-trim(value);
-}
-ResSet(key, value);
-}
-fclose(fp);
 }
 CfgPath(out[], len)
 {
@@ -9464,12 +9380,6 @@ client_print_color(p, id, "%s %L", CHAT_PREFIX, p, g_bZombie[id] ? "BUY_ALL_Z" :
 ShowSpecialMenu(id)
 {
 CommunityWeaponMenu(id);
-}
-stock SwPrice(id, i)
-{
-new c = SW_COST[i];
-c = c * (100 - VipDiscPct(id)) / 100;
-return c;
 }
 public menu_special_handler(id, menu, item)
 {
@@ -24535,16 +24445,6 @@ vformat(msg, charsmax(msg), fmt, 4);
 client_print_color(p, sender, "^4Vexmira^1: %s", msg);
 }
 }
-stock LiveTo(id, const base[], count, any:...)
-{
-if (!is_user_connected(id) || is_user_bot(id))
-return;
-new key[24], fmt[191], msg[191];
-formatex(key, charsmax(key), "%s_%d", base, random_num(1, count));
-Translate(fmt, charsmax(fmt), key, id);
-vformat(msg, charsmax(msg), fmt, 4);
-client_print_color(id, print_team_default, "^4Vexmira^1: %s", msg);
-}
 LiveJoin(id)
 {
 if (is_user_bot(id))
@@ -28906,9 +28806,6 @@ return VxActive(id)>=0;
 }
 CommunityNativeZombie(id) { return id<1 || id>32 || !is_user_connected(id) || g_bZombie[id]; }
 CommunityNativeWeapon(id) { return id>=1 && id<=32 ? CommunityExtra(id):0; }
-stock CommunityNativeKnife(id) {
-return id>=1 && id<=32 && CommunityAlive(id) && !ZcCall(ZC_JETPACK, ZCOP_has,id) && !ZcCall(ZC_HEV, ZCOP_has,id);
-}
 CommunityNativeRestore(id) {
 if (id>=1 && id<=32 && is_user_alive(id) && !g_bZombie[id]) { ApplyHumanModel(id); remove_task(id+64000); set_task(0.2,"CommunityApplyKnife",id+64000); }
 return 1;
@@ -29100,12 +28997,6 @@ CommunityWorldModel(ent,const model[])
 #pragma unused ent, model
 return 0;
 }
-CommunitySetWorld(ent,const path[])
-{
-if(g_tZcModelsReady==Invalid_Trie || !TrieKeyExists(g_tZcModelsReady,path)) return;
-new Float:mins[3],Float:maxs[3]; get_entvar(ent,var_mins,mins); get_entvar(ent,var_maxs,maxs);
-VxSM(ent,path); engfunc(EngFunc_SetSize,ent,mins,maxs);
-}
 new g_iInspectSeq[31][2], Float:g_fInspectTime[31][2], Float:g_fInspectReady[33];
 new g_iButterflyInspect=-1, Float:g_fButterflyInspect;
 new Float:g_fLightNoteReady[33];
@@ -29194,19 +29085,6 @@ set_entvar(id,var_weaponanim,seq);
 message_begin(MSG_ONE,SVC_WEAPONANIM,_,id); write_byte(seq); write_byte(get_entvar(weapon,var_body)); message_end();
 set_member(weapon,m_Weapon_flTimeWeaponIdle,dur); g_fInspectReady[id]=get_gametime()+0.7;
 return 1;
-}
-bool:CommunityLightNotify(id,note,arg)
-{
-if(!is_user_connected(id) || is_user_bot(id) || !(CsoNotesMask533()&CSO_BIT[note])) return false;
-if(get_gametime()<g_fLightNoteReady[id]) return true;
-new text[96];
-static const labels[CN_TOTAL][]={"KILL","DOUBLE KILL","TRIPLE KILL","MULTI KILL","MEGA KILL","HEADSHOT","KNIFE KILL","GRENADE KILL","MVP","HUMANS WIN","ZOMBIES WIN","BOSS INCOMING","INFECTION","NEMESIS","ASSASSIN","SURVIVOR","LAST HUMAN","LEVEL UP","ROUND","FIRST BLOOD","BOSS DEFEATED","INFECTED","LAST 10 SECONDS", "UPGRADE","ITEM","ARENA" };
-if(note<0 || note>=CN_TOTAL) return false;
-if(note==CN_ROUND) formatex(text,charsmax(text),"ROUND %d",arg);
-else copy(text,charsmax(text),labels[note]);
-set_hudmessage(255,190,50,-1.0,CSO_PRIO[note]<=2?0.36:0.22,0,0.0,1.8,0.15,0.4,3);
-show_hudmessage(id,"%s",text); g_fLightNoteReady[id]=get_gametime()+0.8;
-return true;
 }
 CommunityExtraEventPrecache()
 {
@@ -29849,17 +29727,6 @@ UiHudRestore52(id);
 if(g_iBanner47[id]>0 && !is_nullent(g_iBanner47[id])) engfunc(EngFunc_RemoveEntity,g_iBanner47[id]);
 g_iBanner47[id]=0;
 }
-BannerAll47(kind,Float:duration)
-{
-for(new id=1;id<=g_iMax;id++) {
-if(!is_user_connected(id) || is_user_bot(id)) continue;
-if(kind==0) CsoNotify(id,CN_HWIN);
-else if(kind==1) CsoNotify(id,CN_ZWIN);
-else if(kind==2) CsoNotify(id,CN_BOSS);
-else if(kind==3) CsoNotify(id,CN_NEMESIS);
-else if(kind==4) CsoNotify(id,CN_ASSASSIN);
-}
-}
 BannerShow47(id,kind,Float:duration)
 {
 BannerRemove47(id);
@@ -30176,13 +30043,6 @@ new want = random(n), rest[200], c; copy(rest, charsmax(rest), list); out[0] = 0
 while (rest[0]) { strtok(rest, out, len, rest, charsmax(rest), '|'); trim(out); if (c++ == want) break; }
 if (equali(out, "off")) out[0] = 0;
 }
-ArenaAnnouncement48(kind,index)
-{
-UiAll52(kind==0?clamp(index,0,9):10+clamp(index,0,18),3.2,5);
-if(kind==1) RadioEvent52(index);
-new path[96];formatex(path,charsmax(path),"vexmira/arena51/cues/%s%d.wav",kind==0?"mode":"event",index);
-for(new p=1;p<=g_iMax;p++) if(is_user_connected(p)&&!is_user_bot(p)&&!(g_iSet[p]&SET_NO_AMB)) VxClientCmd527(p,"spk ^"%s^"",path);
-}
 bool:CosCanFollow49(id,c)
 {
 if(!equal(g_szCosModel49[id],g_szOvhMdl[id])) {
@@ -30349,174 +30209,6 @@ PrecacheContexts51() {
 new key[32],path[128];for(new kind;kind<2;kind++)for(new i;i<(kind?EV_TOTAL:MODE_TOTAL);i++){formatex(path,charsmax(path),"sound/vexmira/arena51/cues/%s%d.wav",kind?"event":"mode",i);ZcPcGeneric(path);}
 for(new i;i<24;i++){formatex(key,charsmax(key),"Z%d_ABILITY",i);PrecacheSoundKeyEx(key,false);}
 }
-new const STOCK51_PATH[][]={"weapons/ak47_boltpull.wav",
-"weapons/ak47_clipin.wav",
-"weapons/ak47_clipout.wav",
-"weapons/aug_boltpull.wav",
-"weapons/aug_boltslap.wav",
-"weapons/aug_clipin.wav",
-"weapons/aug_clipout.wav",
-"weapons/aug_forearm.wav",
-"weapons/awp_clipin.wav",
-"weapons/awp_clipout.wav",
-"weapons/boltdown.wav",
-"weapons/boltpull1.wav",
-"weapons/boltup.wav",
-"weapons/c4_click.wav",
-"weapons/clipin1.wav",
-"weapons/clipout1.wav",
-"weapons/de_clipin.wav",
-"weapons/de_clipout.wav",
-"weapons/elite_clipout.wav",
-"weapons/elite_leftclipin.wav",
-"weapons/elite_reloadstart.wav",
-"weapons/elite_rightclipin.wav",
-"weapons/elite_sliderelease.wav",
-"weapons/famas_clipin.wav",
-"weapons/famas_clipout.wav",
-"weapons/famas_forearm.wav",
-"weapons/fiveseven_clipin.wav",
-"weapons/fiveseven_clipout.wav",
-"weapons/fiveseven_sliderelease.wav",
-"weapons/g3sg1_clipin.wav",
-"weapons/g3sg1_clipout.wav",
-"weapons/g3sg1_slide.wav",
-"weapons/galil_boltpull.wav",
-"weapons/galil_clipin.wav",
-"weapons/galil_clipout.wav",
-"weapons/m249_boxin.wav",
-"weapons/m249_boxout.wav",
-"weapons/m249_chain.wav",
-"weapons/m249_coverdown.wav",
-"weapons/m249_coverup.wav",
-"weapons/m3_insertshell.wav",
-"weapons/m3_pump.wav",
-"weapons/m4a1_boltpull.wav",
-"weapons/m4a1_clipin.wav",
-"weapons/m4a1_clipout.wav",
-"weapons/m4a1_silencer_off.wav",
-"weapons/m4a1_silencer_on.wav",
-"weapons/mac10_boltpull.wav",
-"weapons/mac10_clipin.wav",
-"weapons/mac10_clipout.wav",
-"weapons/mp5_clipin.wav",
-"weapons/mp5_clipout.wav",
-"weapons/mp5_slideback.wav",
-"weapons/p228_clipin.wav",
-"weapons/p228_clipout.wav",
-"weapons/p228_sliderelease.wav",
-"weapons/p90_boltpull.wav",
-"weapons/p90_clipin.wav",
-"weapons/p90_clipout.wav",
-"weapons/p90_cliprelease.wav",
-"weapons/pinpull.wav",
-"weapons/scout_bolt.wav",
-"weapons/scout_clipin.wav",
-"weapons/scout_clipout.wav",
-"weapons/sg550_boltpull.wav",
-"weapons/sg550_clipin.wav",
-"weapons/sg550_clipout.wav",
-"weapons/sg552_boltpull.wav",
-"weapons/sg552_clipin.wav",
-"weapons/sg552_clipout.wav",
-"weapons/slideback1.wav",
-"weapons/sliderelease1.wav",
-"weapons/ump45_boltslap.wav",
-"weapons/ump45_clipin.wav",
-"weapons/ump45_clipout.wav",
-"weapons/usp_clipin.wav",
-"weapons/usp_clipout.wav",
-"weapons/usp_silencer_off.wav",
-"weapons/usp_silencer_on.wav",
-"weapons/usp_slideback.wav",
-"weapons/usp_sliderelease.wav"};
-new const STOCK51_HASH[][]={
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"6d9d729ecc2b1f4ab77faf26d0da28e1",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"439438a309050e24f332b7c42376a197",
-"2f23ebe16d187b3aa4f45aaf7f48475b",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"b2e68dd18298176eaefb9c82b995dece",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"6d9d729ecc2b1f4ab77faf26d0da28e1",
-"b2e68dd18298176eaefb9c82b995dece",
-"b2e68dd18298176eaefb9c82b995dece",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"4ab9e6963af4ea3c54623a64f0e26381",
-"603d562884b022f0071b65e0dc2f846d",
-"603d562884b022f0071b65e0dc2f846d",
-"b2e68dd18298176eaefb9c82b995dece",
-"b2e68dd18298176eaefb9c82b995dece"
-};
-RestoreStock51() {
-new data51[128],dir51[160],dirw51[176],path51[160],bak51[224],hash51[34];get_datadir(data51,charsmax(data51));formatex(dir51,charsmax(dir51),"%s/vex51_stock_backup",data51);mkdir(dir51);formatex(dirw51,charsmax(dirw51),"%s/weapons",dir51);mkdir(dirw51);
-for(new i;i<sizeof STOCK51_PATH;i++) {formatex(path51,charsmax(path51),"sound/%s",STOCK51_PATH[i]);formatex(bak51,charsmax(bak51),"%s/%s",dir51,STOCK51_PATH[i]);if(!file_exists(path51)||file_exists(bak51))continue;md5_file(path51,hash51);if(!equali(hash51,STOCK51_HASH[i]))continue;if(!rename_file(path51,bak51,0))continue;if(file_exists(path51,true))log_to_file("vex_restore.log","Stock fallback restored: %s",path51);else rename_file(bak51,path51,0);}
-}
 Float:OverheadTop52(id)
 {
 new Float:top=(get_entvar(id,var_flags)&FL_DUCKING)?g_fOvhDuck[id]:g_fOvhStand[id];
@@ -30552,20 +30244,6 @@ VexLocalizedAnnounce(id,key,r,g,b,duration);
 return true;
 }
 UiAll52(page,Float:duration,priority) {for(new id=1;id<=g_iMax;id++) UiShow52(id,page,duration,priority);}
-bool:UiCso52(id,note,arg)
-{
-switch(note) {
-case CN_HWIN:return UiShow52(id,53,4.0,9);
-case CN_ZWIN:return UiShow52(id,54,4.0,9);
-case CN_BOSS:return UiShow52(id,29+clamp(g_iBossType,0,8),3.0,8);
-case CN_INFECT:return UiShow52(id,55,2.5,7);
-case CN_LAST:return UiShow52(id,56,3.0,8);
-case CN_LEVEL:return UiShow52(id,57,2.0,3);
-case CN_ROUND:return UiShow52(id,clamp(g_iMode,0,9),2.0,5);
-case CN_HS:return UiShow52(id,61,0.7,1);
-}
-return false;
-}
 RadioPrecache52()
 {
 new path[128];for(new i=0;i<15;i++) {
