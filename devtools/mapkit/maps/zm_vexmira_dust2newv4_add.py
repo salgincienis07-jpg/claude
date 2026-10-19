@@ -969,8 +969,8 @@ def plaza_extra():
     """v3 boss plaza dressing: VEXMIRA marquee, two xmas trees, glowing ring on the plinth, lanterns."""
     ents = []
     cx, cy = (TEX + PX1) // 2, 1420
-    for p in ((TEX + 110, PY1 - 190), (PX1 - 110, PY0 + 150)):
-        ents.append(tree_spot(p[0], p[1], ZPL, 0))
+    for i, p in enumerate(((TEX + 110, PY1 - 190), (PX1 - 110, PY0 + 150))):
+        ents.append(tree_spot(p[0], p[1], ZPL, 0, model=(i == 0)))     # 5.3.9b FPS: one tree model in the plaza
     mx_ = (TEX + PX1) // 2
     b = bx((mx_ - 160, PY1 - 2, ZPL + 330), (mx_ + 160, PY1, ZPL + 490), {'s': 'd2_vexsign', 'all': NULL}); b.fit_faces(('s',)); MASKED.append(b)
     ents.append(light((mx_, PY1 - 80, ZPL + 410), (140, 255, 120), 140))
@@ -1069,10 +1069,13 @@ TREE_MDL = 'models/vexmira/v539/world/xmas_treeb.mdl'      # internet model (ass
 TREE_SPOTS = []
 
 
-def tree_spot(x, y, z, yaw=0):
-    """xmas tree MODEL spot (no brushes): ini [models] line + a soft light; footprint kept free of spawns."""
-    TREE_SPOTS.append((x, y, z + 3, yaw))             # model base is at z=-3
+def tree_spot(x, y, z, yaw=0, model=True):
+    """xmas tree MODEL spot (no brushes): ini [models] line + a soft light; footprint kept free of spawns.
+    5.3.9b FPS: model=False keeps only the light (each tree = 1904 tris, each gift 148 tris)."""
     OCC.append((x - 100, y - 100, x + 100, y + 100))
+    if not model:
+        return light((x, y, z + 180), (255, 200, 120), 120)
+    TREE_SPOTS.append((x, y, z + 3, yaw))             # model base is at z=-3
     for k, (dx, dy) in enumerate(((70, 40), (-60, 55), (30, -75))):        # gift box models around the tree
         MODELS.append('model = models/vexmira/v539/world/xmas_gift%db.mdl %d %d %d %d' % (1 + k % 2, x + dx, y + dy, z, 30 * k))
     return light((x, y, z + 180), (255, 200, 120), 120)
@@ -1388,7 +1391,7 @@ def plaza_markers():
     no brush faces: one big arena circle decal, xmas light strings (models), flags at the gate (models)."""
     cx, cy = (TEX + PX1) // 2, 1420
     b = bx((cx - 270, cy - 270, ZPL + 0.25), (cx + 270, cy + 270, ZPL + 0.5), {'top': '{d2_arena', 'all': NULL}); b.fit_faces(('top',)); MASKED.append(b)
-    for yy in (1240, 1560, 1840):                      # light strings across the square (2 x 256 each)
+    for yy in (1560,):                                  # light strings across the square (2 x 256 each); 5.3.9b FPS: 1 row (was 3 = 12 models, 10k tris)
         for x0 in (TEX + 8, TEX + 8 + 264):
             MODELS.append('model = models/vexmira/world/cd_lights.mdl %d %d %d 0 body:0' % (x0, yy, ZPL + 300))
             MODELS.append('model = models/vexmira/world/cd_lights.mdl %d %d %d 0 body:1 rm:5 ra:230 fx:9' % (x0, yy, ZPL + 300))

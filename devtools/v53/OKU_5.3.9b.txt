@@ -1,0 +1,32 @@
+VEXMIRA 5.3.9b - (5.3.9a'nin ustune kurulur)
+============================================
+
+1) MODEL KORUMASI (vex_res MODEL_GUARD "1")
+   Sunucu, oyuncuya gondermeden once her ozel model / sprite dosyasini kontrol eder:
+   eksik T.mdl / parca dosyasi, dosya disina tasan doku (kesik / yarim dosya), 4'e bolunmeyen doku
+   (GL_Upload16 s&3 cokmesi). Bozuk dosya OYUNCUYA GONDERILMEZ, eski / varsayilan model kullanilir.
+   Hangi dosyanin neden engellendigi: addons/amxmodx/logs/vexmira_modelguard.log
+   Not: oyuncunun kendi bilgisayarinda bozuk inmis bir dosyayi sunucu goremez; o oyuncu
+   cstrike_downloads icindeki o dosyayi silip tekrar girmeli.
+
+2) MENU TASARIMI
+   Numaralar kirmizi, her secenegin altinda bos satir (arasi acik), baslik: VEXMIRA | Menu adi,
+   altinda AP / VC / LV. Sik liste istersen: vexmira.cfg -> vex_menu_gap 0
+
+3) DEV BOSS INDIRMESI KISALDI
+   - Sadece o haritada yuklu 3 boss indirilir (BOSS_GIANT_ALL "0"), eskiden 9'u birden.
+   - Dev boss dokulari 128 px (BOSS_GIANT_TEX "128"), dosyalar yaklasik 3-4 kat kucuk.
+   - Dev boss dosya adi yeni (ornek: <boss>_x16t128): herkes kucuk dosyayi indirir.
+   - Kucultulen dokular artik hep 4'un kati (dev bosslarda da GL_Upload16 cokmesi olmaz).
+   - Hic dev boss indirmesi istemezsen: vex_res BOSS_GIANT "off" (bosslar normal boyutta).
+
+4) HARITA FPS (zm_vexmira_dust2newv4)
+   Meydandaki model yuku yaklasik 25.000 ucgenden 11.000'e indi: isik zinciri 3 sira -> 1 sira,
+   meydanda 2 agac -> 1 agac (+hediyeleri). Harita dosyasi (bsp) DEGISMEDI, sadece ini.
+
+KURULUM
+1) Zipteki "cstrike" klasorunu sunucuya at (ustune yaz).
+2) Panel "Eklenti Yukle" ile derle: vexmira_core.sma, vexmira_gear.sma, vexmira_extra.sma
+3) Sunucuyu restart et.
+
+SILINEBILIR: models/player/ icindeki eski dev boss klasorleri (adi _x16 ile bitenler, sonunda t128 olmayanlar).
