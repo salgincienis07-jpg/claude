@@ -16301,7 +16301,7 @@ new const ZC_F_CFG[][] = {
 "vex_res CSO_LANG ^"tr^"                                        // kart dili: tr / en / both (both = oyuncunun diline gore, ~30 dosya daha indirilir)",
 "vex_res CSO_CARDSET ^"c539^"                                   // ekran kartlari: c538 = 5.3.8 yeni net kartlar (onerilen; sadece CSO_LANG dili indirilir), c533 = eski kart seti, off = sadece yazi kart",
 "vex_res MODEL_GUARD ^"1^"                                        // 1 = bozuk model/sprite (eksik doku, GL_Upload16 dokusu, kesik dosya) oyuncuya GONDERILMEZ, eski/varsayilan model kullanilir; sebep logs/vexmira_modelguard.log",
-"vex_res MODEL_UNIQUE ^"1^"                                    // 1 = oyuncu modelleri benzersiz isimle kopyalanir (eski kopya cakismasi / T.mdl cokmesi olmaz)",
+"vex_res MODEL_UNIQUE ^"1^"                                    // 1 = sadece T dosyasi olmayan oyuncu modelleri benzersiz isimle kopyalanir; model ekleyince: vex_model_build -> restart",
 "vex_res UNPRECACHE ^"1^"                                       // UNPRECACHER: 1 = oyunun kullanilmayan stok dosyalarini sesleri (C4 / bomba, rehine, tutor, geiger, bot telsizi, sprey) yukleme -> precache slotu + giris hizi; 0 = kapali",
 "vex_res UNPRECACHE_EXTRA ^"^"                                  // ek engellenecek stok dosyalar sesleri (bosluk ile, ornek: ^"weapons/c4_beep1.wav^"); model engellenmez (oyun bazi stok modelleri oyun icinde tekrar yukler)",
 "vex_res HITMARKER ^"1^"                                        // vur / kafadan vur / oldur hissi: c538 nisangah isareti (hm_hit / hm_hs / hm_kill) + kisa stok ses; 0 = kapali",

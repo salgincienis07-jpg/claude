@@ -1,0 +1,20 @@
+VEXMIRA 5.3.9d (5.3.9c'nin ustune kurulur)
+==========================================
+
+1) T DOSYALI MODELLER ARTIK KOPYALANMAZ
+   - Yaninda T.mdl (veya 01.mdl ...) olan modeller oldugu gibi, kendi adiyla kullanilir.
+   - Sadece tek dosyali (T dosyasi olmayan) modeller kisa benzersiz isimle kopyalanir (ornek vexbos1_u3421).
+
+2) TEK KOMUT: vex_model_build   (ayni komut: vex_mode_build)
+   - vexmira.cfg'deki TUM modelleri kendisi bulur: insan modelleri, VIP / admin / survivor / sniper /
+     nemesis / assassin, tum zombi siniflari, 9 boss.
+   - Gerekli butun kopyalari VE dev boss dosyalarini tek seferde uretir (vex_giant_build'i de kendisi calistirir).
+   - Konsolda her model icin ne yaptigini yazar, sonunda "BITTI" der.
+
+KULLANIM (her yeni model / boss ekledikten sonra)
+1) Sunucu konsoluna:  vex_model_build
+2) Sunucuyu restart et -> panel yeni dosyalari FastDL'e kopyalar, oyuncular hizli indirir.
+
+KURULUM
+- vexmira_core.sma'yi panelden yeniden derle. (cfg'deki MODEL_UNIQUE aciklamasi guncellendi, istersen cfg'yi de at.)
+SILINEBILIR: models/player icinde, T dosyali modellerin 5.3.9c'de olusmus _u ile biten kopya klasorleri.

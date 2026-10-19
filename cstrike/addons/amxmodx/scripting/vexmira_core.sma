@@ -7593,6 +7593,11 @@ new src[128], base[160], dst[160], nn[48], sz;
 formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
 sz = file_size(src, FSOPT_BYTES_COUNT, true);
 if (sz <= 0) return;
+// 5.3.9d: models that come with their own T / 01.. files are used as they are (never copied)
+formatex(base, charsmax(base), "models/player/%s/%sT.mdl", name, name);
+if (file_exists(base, true)) return;
+formatex(base, charsmax(base), "models/player/%s/%s01.mdl", name, name);
+if (file_exists(base, true)) return;
 formatex(nn, charsmax(nn), "%.14s_u%d", name, sz % 10000); // max 20 chars: the engine cuts paths over 63 chars ("not found")
 if (strlen(nn) >= len) return;
 formatex(dst, charsmax(dst), "models/player/%s/%s.mdl", nn, nn);
@@ -7601,15 +7606,6 @@ if (!file_exists(dst, true) || file_size(dst, FSOPT_BYTES_COUNT, true) != sz)
 formatex(base, charsmax(base), "models/player/%s", nn);
 if (!dir_exists(base)) mkdir(base);
 if (!CopyFile539(src, dst)) { log_amx("[Vexmira] model kopyalanamadi (klasor izni?): %s - orijinal ad kullaniliyor", dst); return; }
-new s2[160], d2[160];
-formatex(s2, charsmax(s2), "models/player/%s/%sT.mdl", name, name); formatex(d2, charsmax(d2), "models/player/%s/%sT.mdl", nn, nn);
-if (file_exists(s2, true)) CopyFile539(s2, d2);
-for (new g = 1; g < 10; g++)
-{
-formatex(s2, charsmax(s2), "models/player/%s/%s%02d.mdl", name, name, g);
-if (!file_exists(s2, true)) break;
-formatex(d2, charsmax(d2), "models/player/%s/%s%02d.mdl", nn, nn, g); CopyFile539(s2, d2);
-}
 log_amx("[Vexmira] oyuncu modeli benzersiz kopya: %s -> %s (baska sunucudan kalma ayni isimli dosya ile cakisma olmaz)", name, nn);
 }
 copy(out, len, nn);
@@ -12144,6 +12140,37 @@ g_iLmBlockMask |= (1 << m);
 }
 }
 return (g_iLmBlockMask & (1 << mode)) ? true : false;
+}
+// 5.3.9d vex_model_build (= vex_mode_build): finds every model in vexmira.cfg by itself and creates all
+// generated files (unique player model copies + giant boss copies) at once. Restart afterwards so the
+// panel FastDL picks them up before players join.
+new Trie:g_tMb539;
+ModelBuildOne539(const name[], &made, &same)
+{
+if (!name[0] || TrieKeyExists(g_tMb539, name)) return;
+TrieSetCell(g_tMb539, name, 1);
+new src[128]; formatex(src, charsmax(src), "models/player/%s/%s.mdl", name, name);
+if (!file_exists(src, true)) { server_print("[ModelBuild] YOK: %s", src); return; }
+new u[48]; UniqModel539(name, u, charsmax(u));
+if (equal(u, name)) { same++; server_print("[ModelBuild] %s -> kopya yok (T dosyali / standart / kapali), orijinali kullanilir", name); }
+else { made++; server_print("[ModelBuild] %s -> models/player/%s/%s.mdl", name, u, u); }
+}
+public srv_ModelBuild539()
+{
+new made, same, list[512], tmp[32], pos, key[24], nm[32];
+g_tMb539 = TrieCreate();
+copy(list, charsmax(list), GetResString("HUMAN_MODELS", "")); add(list, charsmax(list), " "); add(list, charsmax(list), GetResString("HUMAN_MODEL", ""));
+while ((pos = argparse(list, pos, tmp, charsmax(tmp))) != -1) if (tmp[0]) ModelBuildOne539(tmp, made, same);
+static const KEYS[][] = { "VIP_MODEL", "ADMIN_MODEL", "SURVIVOR_MODEL", "SNIPER_MODEL", "NEMESIS_MODEL", "ASSASSIN_MODEL" };
+for (new i = 0; i < sizeof KEYS; i++) if (TrieGetString(g_tRes, KEYS[i], nm, charsmax(nm)) && nm[0]) ModelBuildOne539(nm, made, same);
+for (new i = 0; i < NUM_CLASSES; i++) { formatex(key, charsmax(key), "Z%d_MODEL", i); if (TrieGetString(g_tRes, key, nm, charsmax(nm)) && nm[0]) ModelBuildOne539(nm, made, same); }
+for (new i = 0; i < NUM_BOSSES; i++) { formatex(key, charsmax(key), "B%d_MODEL", i); if (TrieGetString(g_tRes, key, nm, charsmax(nm)) && nm[0]) ModelBuildOne539(nm, made, same); }
+TrieDestroy(g_tMb539);
+server_print("[ModelBuild] oyuncu modelleri: %d kopya hazir, %d model oldugu gibi kullaniliyor", made, same);
+if (!equali(GetResString("BOSS_GIANT", "file"), "off") && !equali(GetResString("BOSS_GIANT", "file"), "clone")) srv_GiantBuild533();
+server_print("[ModelBuild] BITTI. Simdi sunucuyu restart et: panel yeni dosyalari FastDL'e kopyalar.");
+log_amx("[ModelBuild] %d oyuncu modeli kopyasi + dev bosslar hazirlandi", made);
+return PLUGIN_HANDLED;
 }
 public srv_GiantBuild533()
 {
@@ -28737,7 +28764,7 @@ register_srvcmd("vex_debug_lmtest", "srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest", "srv_DbgSwTest");
 register_srvcmd("vex_debug_buy", "srv_DbgBuy");
 register_srvcmd("vex_debug_nadefx", "srv_DbgNadeFx");register_srvcmd("vex_debug_card", "srv_DbgCard532");register_srvcmd("vex_debug_lmwall", "srv_DbgLmWall532");register_srvcmd("vex_debug_radio", "srv_DbgRadio532");
-register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_debug_slim", "srv_DbgSlim534");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_concmd("vex_plan", "cmd_Plan534", ADMIN_BAN, "- bu haritanin 30 round mod/event plani");register_concmd("vex_fastdl", "cmd_FastDl534", ADMIN_BAN, "- FastDL icin indirilecek dosya listesi");set_task(20.0, "task_FastDlWarn534");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
+register_srvcmd("vex_debug_giant", "srv_DbgGiant");register_srvcmd("vex_debug_slim", "srv_DbgSlim534");register_srvcmd("vex_giant_build", "srv_GiantBuild533");register_srvcmd("vex_model_build", "srv_ModelBuild539");register_srvcmd("vex_mode_build", "srv_ModelBuild539");register_concmd("vex_plan", "cmd_Plan534", ADMIN_BAN, "- bu haritanin 30 round mod/event plani");register_concmd("vex_fastdl", "cmd_FastDl534", ADMIN_BAN, "- FastDL icin indirilecek dosya listesi");set_task(20.0, "task_FastDlWarn534");register_concmd("vex_kontrol", "cmd_Kontrol533", ADMIN_BAN, "- eksik ayar dosyalari, kartlar, limitler");
 register_srvcmd("vex_debug_gravtest", "srv_DbgGravTest");
 register_srvcmd("vex_debug_hooktest", "srv_DbgHookTest");
 register_forward(FM_SetModel, "fw_SetModelPost", 1);

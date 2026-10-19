@@ -52,7 +52,7 @@ OVERRIDE = [
     ('vex_res SKY_PER_MAP "3"', 'bir haritada donen gokyuzu sayisi (her harita sonraki 3 lu gruba gecer; indirme limiti icin)'),
     ('vex_res CSO_CARDSET "c539"', 'ekran kartlari: c538 = 5.3.8 yeni net kartlar (onerilen; sadece CSO_LANG dili indirilir), c533 = eski kart seti, off = sadece yazi kart'),
     ('vex_res MODEL_GUARD "1"', '1 = bozuk model/sprite (eksik doku, GL_Upload16 dokusu, kesik dosya) oyuncuya GONDERILMEZ, eski/varsayilan model kullanilir; sebep logs/vexmira_modelguard.log'),
-    ('vex_res MODEL_UNIQUE "1"', '1 = oyuncu modelleri benzersiz isimle kopyalanir (eski kopya cakismasi / T.mdl cokmesi olmaz)'),
+    ('vex_res MODEL_UNIQUE "1"', '1 = sadece T dosyasi olmayan oyuncu modelleri benzersiz isimle kopyalanir; model ekleyince: vex_model_build -> restart'),
     ('vex_res ZOMBIE_HIT "zombie/claw_strike1.wav|zombie/claw_strike2.wav|zombie/claw_strike3.wav"',
      'pence ile vurus (| ile birden fazla ses: her vurusta rastgele biri)'),
     ('vex_res ZOMBIE_STAB "zombie/claw_strike2.wav|zombie/claw_strike3.wav"', 'agir pence (sag tik) vurusu'),
