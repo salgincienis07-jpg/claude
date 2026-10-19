@@ -990,7 +990,7 @@ def plaza_extra():
         px, py = cx + dx * 220, cy + dy * 300
         if not (TEX + 40 < px < PX1 - 40 and PY0 + 80 < py < PY1 - 80):
             continue
-        MODELS.append('model = models/vexmira/538/world/lamp_euro.mdl %d %d %d 0' % (px, py, ZPL))
+        MODELS.append('model = models/vexmira/538/world/lamp_eurob.mdl %d %d %d 0' % (px, py, ZPL))
         ents.append(light((px, py, ZPL + 150), (255, 190, 120), 170))
     # barricades (crates + low steel) for dodging boss skills
     for (x0b, y0b) in ((cx - 260, cy - 40), (cx + 196, cy - 40)):
@@ -1065,7 +1065,7 @@ def arena_points():
 
 
 # ---------------------------------------------------------------- v4 (dust2vexfix) additions
-TREE_MDL = 'models/vexmira/538/world/xmas_tree.mdl'      # internet model (assets worker); placed via ini [models]
+TREE_MDL = 'models/vexmira/538/world/xmas_treeb.mdl'      # internet model (assets worker); placed via ini [models]
 TREE_SPOTS = []
 
 

@@ -1632,7 +1632,7 @@ new bool:g_bMask[33], Float:g_fZArmor[33];
 ItemsPrecache538()
 {
 new v[96], mdl[128];
-vxc_res_get("ITEM_MASK_MODEL", g_szItMask, charsmax(g_szItMask)); if (!g_szItMask[0]) copy(g_szItMask, charsmax(g_szItMask), "vex538_gasmask");
+vxc_res_get("ITEM_MASK_MODEL", g_szItMask, charsmax(g_szItMask)); if (!g_szItMask[0]) copy(g_szItMask, charsmax(g_szItMask), "vex538_gasmaskb");
 vxc_res_get("ITEM_ZARMOR_MODEL", g_szItArmor, charsmax(g_szItArmor)); if (!g_szItArmor[0]) copy(g_szItArmor, charsmax(g_szItArmor), "vex538_phoenix_heavy");
 v[0] = 0; vxc_res_get("ITEM_MASK_COST", v, charsmax(v)); g_iItCost[0] = v[0] ? str_to_num(v) : 30;
 v[0] = 0; vxc_res_get("ITEM_ZARMOR_COST", v, charsmax(v)); g_iItCost[1] = v[0] ? str_to_num(v) : 25;
