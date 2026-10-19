@@ -5856,7 +5856,7 @@ CsoFlushAll()
 }
 stock Float:CsoDur(note)
 {
-    if (note == CN_TEN)
+    if (note == CN_TEN || note == CN_ARENA)
         return 1.0;
     return (CSO_PRIO[note] <= 2) ? floatclamp(get_pcvar_float(g_pCsoKmTime), 0.5, 5.0) : floatclamp(get_pcvar_float(g_pCsoTime), 1.0, 6.0);
 }
@@ -5905,7 +5905,7 @@ bool:CsoNotifyImg(id, note, arg = 0)
     if (w < 1 || w > 30 || !g_bWL[w])
         return false;
     new cur = g_iCsoCur[id];
-    if (note == CN_TEN && cur == CN_TEN)
+    if ((note == CN_TEN && cur == CN_TEN) || note == CN_ARENA) // 5.3.9a: arena countdown replaces itself every second (was queued -> 2 s per card, out of sync with the voice)
     {
         CsoRestore(id, false);
         if (!CsoApply(id, note, arg, CsoDur(note), false))
@@ -5941,7 +5941,7 @@ bool:CsoNotifyImg(id, note, arg = 0)
         }
         CsoRestore(id, false);
     }
-    new bool:shown = CsoApply(id, note, arg, CsoDur(note), note == CN_TEN ? false : true);
+    new bool:shown = CsoApply(id, note, arg, CsoDur(note), (note == CN_TEN || note == CN_ARENA) ? false : true);
     if (shown && note == CN_TEN)
         CsoSub(id, note, arg);
     return shown;
@@ -9033,7 +9033,7 @@ new isZ = g_bZombie[id] ? 1 : 0;
 if (isZ) VexHead(id, title, charsmax(title), "MENU_SHOP_Z"); else VexHead(id, title, charsmax(title), "MENU_SHOP_H");
 new menu = VexMenuCreate(title, "menu_shop_handler");
 if (!isZ) {
-formatex(item,charsmax(item),"%L \d(%L)",id,"ZC_SPECIAL",id,"ZC_GUNS6"); MenuAdd(menu,item,202);
+formatex(item,charsmax(item),"%L",id,"ZC_SPECIAL"); MenuAdd(menu,item,202);
 formatex(item,charsmax(item),"%L [80 AP]",id,"ZC_JETPACK"); MenuAdd(menu,item,200);
 }
 for (new k = 0, nk = vxe_item_count(); k < nk; k++)
@@ -9871,15 +9871,15 @@ ShowCosmeticMenu(id)
 {
 new title[320],item[128]; VexHead(id,title,charsmax(title),"E46_COIN");
 new menu=VexMenuCreate(title,"menu_cos_handler");
-formatex(item,charsmax(item),"%L \d(5, %L) [VC]",id,"ZC_SKINS",id,"ZC_PERM"); MenuAdd(menu,item,21);
-formatex(item,charsmax(item),"%L \d(5, %L) [VC]",id,"ZC_KNIVES",id,"ZC_PERM"); MenuAdd(menu,item,22);
+formatex(item,charsmax(item),"%L \d[VC]",id,"ZC_SKINS"); MenuAdd(menu,item,21);
+formatex(item,charsmax(item),"%L \d[VC]",id,"ZC_KNIVES"); MenuAdd(menu,item,22);
 for(new c=0;c<CM_CATS;c++) {
 if(c==2) continue;
-formatex(item,charsmax(item),"%L \d(%d) [VC]",id,CM_CATKEY[c],g_iCmN[c]);
+formatex(item,charsmax(item),"%L \d[VC]",id,CM_CATKEY[c]);
 MenuAdd(menu,item,3+c);
 }
 formatex(item,charsmax(item),"%L",id,"ZC_FX"); MenuAdd(menu,item,23);
-formatex(item,charsmax(item),"%s \d(4) [VC]",LzTr531(id)?"Lazer Isinlari":"Laser Beams"); MenuAdd(menu,item,26);
+formatex(item,charsmax(item),"%s \d[VC]",LzTr531(id)?"Lazer Isinlari":"Laser Beams"); MenuAdd(menu,item,26);
 formatex(item,charsmax(item),"\w%L \d[%L]",id,"COS_HIDE_OTHERS",id,(g_iSet[id]&SET_NO_COS)?"COS_HIDDEN":"COS_VISIBLE");
 MenuAdd(menu,item,9);
 formatex(item,charsmax(item),"%L",id,"MENU_PERKS");MenuAdd(menu,item,24);
@@ -13005,11 +13005,10 @@ set_entvar(ent, var_nextthink, now + 0.1);
 return;
 }
 new beam = get_entvar(ent, var_iuser3);
-// 5.3.8 invisible-laser fix: the beam entity can be lost (entity cap reached when the mine armed, cleanup, slot reused);
-// the mine kept hurting with nothing drawn. Every 0.5 s the beam is checked by its back-link and rebuilt.
-if (now >= Float:get_entvar(ent, var_fuser3))
+// the mine kept hurting with nothing drawn. Every 0.5 s the beam is checked and rebuilt. 5.3.9a: timer moved fuser3 -> fuser4 (fuser3 is the EMP timer: sharing it blinked the beam + replayed LM_ACTIVATE every 0.5 s)
+if (now >= Float:get_entvar(ent, var_fuser4))
 {
-set_entvar(ent, var_fuser3, now + 0.5);
+set_entvar(ent, var_fuser4, now + 0.5);
 // 5.3.8a: rebuild ONLY when the beam entity is really gone (no flicker from repeated rebuilds); old beam removed; max 3 per mine
 new bool:lost = (beam <= 0 || is_nullent(beam) || (get_entvar(beam, var_flags) & FL_KILLME)) ? true : false;
 if (!lost)

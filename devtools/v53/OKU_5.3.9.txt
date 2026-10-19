@@ -11,7 +11,7 @@ NE DEGISTI
 - vexmira.cfg icine FastDL adresi yazildi:
     sv_downloadurl "http://f16.oyunyoneticisi.biz/cstrike/"
 - Onceki duzeltmeler dahil: GL_Upload16 cokmesi, seffaf kartlar, lazer yanip sonme,
-  zm_vexmira_dust2newv3 balkon girisi.
+  zm_vexmira_dust2newv4 balkon girisi.
 
 KURULUM
 1) Bu zipteki "cstrike" klasorunu sunucuya at (ustune yaz).

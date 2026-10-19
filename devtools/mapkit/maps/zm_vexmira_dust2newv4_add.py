@@ -1,4 +1,4 @@
-"""Zombie-plague additions for zm_vexmira_dust2newv3 (v3; was zm_vexmira_dust2v1).
+"""Zombie-plague additions for zm_vexmira_dust2newv4 (v3; was zm_vexmira_dust2v1).
 
   * boss plaza: the rock field right of the CT -> B road is removed (world brushes clipped) and replaced by a
     paved battle square with a statue, braziers, colonnade, a raised defense terrace and laser zones
@@ -20,7 +20,7 @@ from ..rmf import Ent, clip_outside_box, solid_bbox
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-NAME = 'zm_vexmira_dust2newv3'
+NAME = 'zm_vexmira_dust2newv4'
 INI = os.path.join(REPO, 'cstrike', 'addons', 'amxmodx', 'configs', 'vexmira_maps', NAME + '.ini')
 BASE_BSP = os.environ.get('D2_BASE_BSP', '')
 
@@ -1245,7 +1245,7 @@ def balcony_base():
         return [], []
     btop = floor_at(800, -1664, 260)
     zt = max(zf + 176, (btop + 12) if btop is not None else 0)   # balcony floor (over the door block)
-    bx0, bx1, by0, by1 = 656, 940, -1636, -1476   # 5.3.8a: moved north out of the old wall (landing was inside it)
+    bx0, bx1, by0, by1 = 656, 912, -1620, -1476   # 5.3.9a: 16-28 units clear of the old walls (glass was flush with the wall = flicker)
     world.append(bx((bx0, by0, zt - 12), (bx1, by1, zt), {'top': PLANK, 'bottom': METAL, 'all': METAL}))
     for px, py in ((bx0, by1 - 16), (bx1 - 16, by1 - 16)):
         world.append(bx((px, py, zf), (px + 16, py + 16, zt - 12), METAL))      # support posts (north edge)
@@ -1580,7 +1580,7 @@ def write_ini(m, bsp_path=None):
         hum = [p for p in hum if ok(p)]
         print('  [d2 ini] arena human points ok %d, boss point ok %s' % (len(hum), ok(boss)))
     arena = ['boss = %d %d %d %d' % boss] + ['human = %d %d %d %d' % p for p in hum]
-    txt = """; zm_vexmira_dust2newv3 - de_dust2 zombie camp edition (v4) (latin-1, Turkce harfsiz) - MapBy:SmurfSexy
+    txt = """; zm_vexmira_dust2newv4 - de_dust2 zombie camp edition (v4) (latin-1, Turkce harfsiz) - MapBy:SmurfSexy
 [info]
 name_en = Vexmira Dust II ZM
 name_tr = Vexmira Dust II ZM

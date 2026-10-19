@@ -1,0 +1,26 @@
+VEXMIRA 5.3.9a - DUZELTME PAKETI (5.3.9'un ustune kurulur)
+=========================================================
+
+DUZELENLER
+1) Oyuncu / zombi modelleri ESKI haline dondu (5.3.8 oncesi): zombi siniflari, nemesis, CT/admin/VIP/
+   survivor/sniper modelleri, zombi pencesi ve normal silah gorunumleri (v_ak47, v_m4a1 ...).
+   "Mod_NumForName: ...T.mdl not found" cokmesi bu modellerden geliyordu; artik yuklenmiyorlar.
+   Indirme sistemi de eskisi gibi (cfg'de sv_downloadurl satiri YOK, panel ayari gecerli).
+   Yeni ozel bicaklar / ozel silahlar ve yilbasi suslerinin modelleri duruyor.
+2) Lazer yanip sonmesi + surekli tekrarlayan lazer sesi: 5.3.8'deki "isin kontrolu" zamanlayicisi
+   EMP sisteminin degiskenini kullaniyordu; her 0.5 sn isini gizleyip "aktif" sesini caliyordu. Duzeldi.
+3) Boss arenasi geri sayimi: kart her saniye degisiyor (eskiden 2 sn'de bir -> ses ile uyusmuyordu),
+   kartin kendi sesi kaldirildi, sadece sayi sesi var.
+4) Market: Enfeksiyon Maskesi (insan) ve Zombi Zirhi (zombi) model dosyasi olmasa da satiliyor.
+5) Menulerdeki sayi yazilari kaldirildi: "Ozel Silahlar (6 silah)", "(5, kalici)", "(6)", "(4)".
+6) Harita: cam balkonun camlari bina duvarlarina yapisikti (titreme / bug). Camlar duvarlardan
+   ayrildi. Harita adi: zm_vexmira_dust2newv4 (yeni isim = herkes temiz indirir).
+
+KURULUM
+1) Zipteki "cstrike" klasorunu sunucuya at (ustune yaz).
+2) Panel "Eklenti Yukle" ile derle: vexmira_core.sma, vexmira_gear.sma, vexmira_extra.sma
+3) Sunucuyu restart et.
+
+SILINEBILIR (artik kullanilmiyor)
+- models/player/vx539_* klasorleri, models/vexmira/v539/claws, models/vexmira/v539/skins
+- maps/zm_vexmira_dust2newv3.bsp/.nav, configs/vexmira_maps/zm_vexmira_dust2newv3.ini

@@ -1627,13 +1627,13 @@ public ZupMenuH(id, m, item) { menu_destroy(m); return PLUGIN_HANDLED; }
 // ============================================================================================
 native vxc_set_model(id, const model[]);
 native vxc_restore_model(id);
-new g_szItMask[32], g_szItArmor[32], g_iItCost[2], g_iItArmorHp, Float:g_fItArmorCut, bool:g_bItOk[2];
+new g_szItMask[32], g_szItArmor[32], g_iItCost[2], g_iItArmorHp, Float:g_fItArmorCut, bool:g_bItOk[2], bool:g_bItMdl[2];
 new bool:g_bMask[33], Float:g_fZArmor[33];
 ItemsPrecache538()
 {
 new v[96], mdl[128];
-vxc_res_get("ITEM_MASK_MODEL", g_szItMask, charsmax(g_szItMask)); if (!g_szItMask[0]) copy(g_szItMask, charsmax(g_szItMask), "vx539_gasmask");
-vxc_res_get("ITEM_ZARMOR_MODEL", g_szItArmor, charsmax(g_szItArmor)); if (!g_szItArmor[0]) copy(g_szItArmor, charsmax(g_szItArmor), "vx539_phoenix_heavy");
+vxc_res_get("ITEM_MASK_MODEL", g_szItMask, charsmax(g_szItMask)); 
+vxc_res_get("ITEM_ZARMOR_MODEL", g_szItArmor, charsmax(g_szItArmor)); 
 v[0] = 0; vxc_res_get("ITEM_MASK_COST", v, charsmax(v)); g_iItCost[0] = v[0] ? str_to_num(v) : 30;
 v[0] = 0; vxc_res_get("ITEM_ZARMOR_COST", v, charsmax(v)); g_iItCost[1] = v[0] ? str_to_num(v) : 25;
 v[0] = 0; vxc_res_get("ITEM_ZARMOR_HP", v, charsmax(v)); g_iItArmorHp = v[0] ? clamp(str_to_num(v), 50, 50000) : 1500;
@@ -1641,10 +1641,12 @@ v[0] = 0; vxc_res_get("ITEM_ZARMOR_CUT", v, charsmax(v)); g_fItArmorCut = v[0] ?
 for (new k = 0; k < 2; k++)
 {
 new nm[32]; copy(nm, charsmax(nm), k ? g_szItArmor : g_szItMask);
-g_bItOk[k] = false;
-if (g_iItCost[k] <= 0) continue;
+// 5.3.9a: the item is sold even without a model (model = optional look only)
+g_bItOk[k] = g_iItCost[k] > 0;
+g_bItMdl[k] = false;
+if (!nm[0]) continue;
 formatex(mdl, charsmax(mdl), "models/player/%s/%s.mdl", nm, nm);
-if (file_exists(mdl, true) && vxc_pc_model(mdl)) g_bItOk[k] = true;
+if (file_exists(mdl, true) && vxc_pc_model(mdl)) g_bItMdl[k] = true;
 }
 g_sprZupRing = vxc_pc_model("sprites/shockwave.spr");
 }
@@ -1661,8 +1663,8 @@ public N_ItemBuy(plugin, params)
 new id = get_param(1), k = get_param(2);
 if (id < 1 || id > 32 || !is_user_alive(id) || k < 0 || k > 1 || !g_bItOk[k]) return 0;
 new z = vx45_corezombie(id);
-if (k == 0) { if (z || g_bMask[id]) return 0; g_bMask[id] = true; vxc_set_model(id, g_szItMask); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Maske takildi: ^4bir sonraki enfeksiyonu engeller^1."); }
-else { if (!z || g_fZArmor[id] > 0.0) return 0; g_fZArmor[id] = float(g_iItArmorHp); vxc_set_model(id, g_szItArmor); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Zirh giyildi: ^4%d^1 hasar boyunca %%%d daha az hasar.", g_iItArmorHp, floatround(g_fItArmorCut * 100.0)); }
+if (k == 0) { if (z || g_bMask[id]) return 0; g_bMask[id] = true; if (g_bItMdl[0]) vxc_set_model(id, g_szItMask); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Maske takildi: ^4bir sonraki enfeksiyonu engeller^1."); }
+else { if (!z || g_fZArmor[id] > 0.0) return 0; g_fZArmor[id] = float(g_iItArmorHp); if (g_bItMdl[1]) vxc_set_model(id, g_szItArmor); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Zirh giyildi: ^4%d^1 hasar boyunca %%%d daha az hasar.", g_iItArmorHp, floatround(g_fItArmorCut * 100.0)); }
 emit_sound(id, CHAN_ITEM, "items/ammopickup2.wav", 0.8, ATTN_NORM, 0, PITCH_NORM);
 return 1;
 }
@@ -1675,7 +1677,7 @@ emit_sound(v, CHAN_BODY, "player/bhit_helmet-1.wav", 1.0, ATTN_NORM, 0, PITCH_NO
 message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("ScreenFade"), _, v);
 write_short(1 << 11); write_short(1 << 9); write_short(0); write_byte(60); write_byte(255); write_byte(90); write_byte(90); message_end();
 client_print_color(v, print_team_default, "^4[VEXMIRA]^1 Maske enfeksiyonu ^4engelledi^1 ve kirildi!");
-vxc_restore_model(v);
+if (g_bItMdl[0]) vxc_restore_model(v);
 return 1;
 }
 public Float:N_ZArmorHit(plugin, params)
@@ -1684,7 +1686,7 @@ new v = get_param(1); new Float:d = get_param_f(2);
 if (v < 1 || v > 32 || g_fZArmor[v] <= 0.0) return d;
 new Float:cut = d * g_fItArmorCut;
 g_fZArmor[v] -= cut;
-if (g_fZArmor[v] <= 0.0) { g_fZArmor[v] = 0.0; emit_sound(v, CHAN_BODY, "debris/metal2.wav", 0.9, ATTN_NORM, 0, PITCH_NORM); client_print(v, print_center, "ZIRH KIRILDI"); vxc_restore_model(v); }
+if (g_fZArmor[v] <= 0.0) { g_fZArmor[v] = 0.0; emit_sound(v, CHAN_BODY, "debris/metal2.wav", 0.9, ATTN_NORM, 0, PITCH_NORM); client_print(v, print_center, "ZIRH KIRILDI"); if (g_bItMdl[1]) vxc_restore_model(v); }
 return d - cut;
 }
 public ItemsReset538() { for (new i = 1; i <= 32; i++) { g_bMask[i] = false; g_fZArmor[i] = 0.0; } }
@@ -1699,8 +1701,8 @@ for (new p = 1; p <= 32; p++)
 {
 if (!is_user_alive(p)) continue;
 new z0 = vx45_corezombie(p);
-if (!z0 && g_bItOk[0] && !g_bMask[p]) { g_bMask[p] = true; vxc_set_model(p, g_szItMask); m++; }
-if (z0 && g_bItOk[1] && g_fZArmor[p] <= 0.0) { g_fZArmor[p] = float(g_iItArmorHp); vxc_set_model(p, g_szItArmor); z++; }
+if (!z0 && g_bItOk[0] && !g_bMask[p]) { g_bMask[p] = true; if (g_bItMdl[0]) vxc_set_model(p, g_szItMask); m++; }
+if (z0 && g_bItOk[1] && g_fZArmor[p] <= 0.0) { g_fZArmor[p] = float(g_iItArmorHp); if (g_bItMdl[1]) vxc_set_model(p, g_szItArmor); z++; }
 new c = z0 ? vxc_class(p) : -1;
 if (pts && c >= 0)
 {
