@@ -88,15 +88,12 @@ public plugin_cfg()
 // core must be loaded AND running (a paused core makes every native call an error)
 bool:CoreRunning()
 {
-	if (!LibraryExists("vexmira_core45", LibType_Library)) return false;
+	// by plugin title (panel renames the .amxx files), and only when it is really running
+	new ix = is_plugin_loaded("Vexmira Zombie Core");
+	if (ix < 0) return false;
 	new file[64], name[64], ver[16], author[32], status[16];
-	for (new i = 0, n = get_pluginsnum(); i < n; i++)
-	{
-		get_plugin(i, file, charsmax(file), name, charsmax(name), ver, charsmax(ver), author, charsmax(author), status, charsmax(status));
-		if (containi(file, "core") != -1 && (containi(file, "vx") != -1 || containi(file, "vexmira") != -1))
-			return (equali(status, "running") || equali(status, "debug")) ? true : false;
-	}
-	return false;
+	get_plugin(ix, file, charsmax(file), name, charsmax(name), ver, charsmax(ver), author, charsmax(author), status, charsmax(status));
+	return (equali(status, "running") || equali(status, "debug")) ? true : false;
 }
 
 // ------------------------------------------------------------------ helpers
@@ -256,7 +253,8 @@ public task_Fast()
 // ------------------------------------------------------------------ top: team counters (2 per second)
 public task_Slow()
 {
-	if (!get_pcvar_num(g_pOn) || !g_bCore) return;
+	if (!get_pcvar_num(g_pOn)) return;
+	if (!g_bCore) { static tries; if (++tries % 5 == 0 && CoreRunning()) { g_bCore = true; vxc_hud(0, 99); } return; }
 	new humans, zombies;
 	for (new p = 1; p <= g_iMax; p++)
 	{

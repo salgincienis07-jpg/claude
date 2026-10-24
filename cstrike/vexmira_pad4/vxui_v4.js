@@ -817,7 +817,7 @@ document.addEventListener('click', function (e) {
   if (GAME && GAME.flap && e.target && e.target.id === 'gcv') { GAME.flap(); return; }
   if (GAME && GAME.tap && e.target && e.target.id === 'scv') { GAME.tap(); return; }
   var ov = findAttr(e.target, ['id']);
-  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-openc', 'data-daily', 'data-eq', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs', 'data-chat', 'data-send', 'data-fadd', 'data-facc', 'data-fdel', 'data-block', 'data-unblock', 'data-toffer', 'data-tgive', 'data-tacc', 'data-tdec', 'data-admtab', 'data-admp', 'data-adm', 'data-map','data-zperk','data-achclaim','data-marketcode','data-marketlist','data-marketbuy','data-marketcancel','data-marketconfirm','data-marketabort','data-linktest']);
+  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-openc', 'data-daily', 'data-eq', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs', 'data-chat', 'data-send', 'data-fadd', 'data-facc', 'data-fdel', 'data-block', 'data-unblock', 'data-toffer', 'data-tgive', 'data-tacc', 'data-tdec', 'data-admtab', 'data-admp', 'data-adm', 'data-map','data-zperk','data-achclaim','data-marketcode','data-mktab','data-mkcat','data-mkstep','data-mkpick','data-marketlist','data-marketbuy','data-marketcancel','data-marketconfirm','data-marketabort','data-linktest']);
   if (!el) {
     var t = e.target;
     if (t && t.className && typeof t.className === 'string' && t.className.indexOf('ov ') === 0) { closeOv(t.id); if (t.id === 'cc') SND.close(); }
@@ -826,12 +826,16 @@ document.addEventListener('click', function (e) {
   }
   var v;
   if(el.getAttribute('data-linktest')!==null){act('ping');return;}
+  if((v=el.getAttribute('data-mktab'))!==null){MK_TAB=v;MARKET_CONFIRM=0;mkRender(true);return;}
+  if((v=el.getAttribute('data-mkcat'))!==null){MK_CAT=v;mkRender(false);return;}
+  if((v=el.getAttribute('data-mkpick'))!==null){MARKET_CODE=MARKET_CODE===v?'':v;mkRender(false);return;}
+  if((v=el.getAttribute('data-mkstep'))!==null){var pi=$('marketPrice');MK_PRICE=Math.max(1,Math.min(100000000,(v.charAt(0)==='='?num(v.slice(1)):num(pi?pi.value:MK_PRICE)+num(v))));mkRender(false);return;}
   if((v=el.getAttribute('data-achclaim'))!==null){act('claimach',num(v));return;}
-  if((v=el.getAttribute('data-marketcode'))!==null){MARKET_CODE=v;$('appBody').innerHTML=R.market();colors($('appBody'));return;}
-  if((v=el.getAttribute('data-marketlist'))!==null){var price=$('marketPrice');if(MARKET_CODE&&price){if(!/^[0-9]{1,9}$/.test(price.value)){toast(tr('Fiyat pozitif bir tam sayı olmalı.','Price must be a positive integer.'),false);return;}act('marketlist',MARKET_CODE,price.value);}return;}
-  if((v=el.getAttribute('data-marketbuy'))!==null){MARKET_CONFIRM=num(v);$('appBody').innerHTML=R.market();colors($('appBody'));$('appBody').scrollTop=0;return;}
-  if((v=el.getAttribute('data-marketconfirm'))!==null){if(act('marketbuy',MARKET_CONFIRM)){MARKET_CONFIRM=0;$('appBody').innerHTML=R.market();colors($('appBody'));}return;}
-  if((v=el.getAttribute('data-marketabort'))!==null){MARKET_CONFIRM=0;$('appBody').innerHTML=R.market();colors($('appBody'));return;}
+  if((v=el.getAttribute('data-marketcode'))!==null){MARKET_CODE=v;mkRender(false);return;}
+  if((v=el.getAttribute('data-marketlist'))!==null){var price=$('marketPrice');if(price)MK_PRICE=num(price.value,MK_PRICE);if(MARKET_CODE&&price){if(!/^[0-9]{1,9}$/.test(price.value)){toast(tr('Fiyat pozitif bir tam sayı olmalı.','Price must be a positive integer.'),false);return;}act('marketlist',MARKET_CODE,price.value);}return;}
+  if((v=el.getAttribute('data-marketbuy'))!==null){MARKET_CONFIRM=num(v);mkRender(false);return;}
+  if((v=el.getAttribute('data-marketconfirm'))!==null){if(act('marketbuy',MARKET_CONFIRM)){MARKET_CONFIRM=0;mkRender(false);}return;}
+  if((v=el.getAttribute('data-marketabort'))!==null){MARKET_CONFIRM=0;mkRender(false);return;}
   if((v=el.getAttribute('data-marketcancel'))!==null){act('marketcancel',num(v));return;}
   if((v=el.getAttribute('data-zperk'))!==null){var zp=v.split('.');act('zperk',zp[0],zp[1]);return;}
   if ((v = el.getAttribute('data-rm')) !== null) { if (CORE.indexOf(v) >= 0) return; INST = INST.filter(function (x) { return x !== v; }); saveInst(); SND.close(); if (cur === 'store') $('appBody').innerHTML = R.store(); renderHome(); if ($('fold') && $('fold').className.indexOf('show') >= 0) openFolder(); return; }
@@ -914,7 +918,7 @@ $('status').addEventListener('click', function (e) { if ($('lock').className.ind
 // runs the action, and writes the result + live data to u/<token>.js, which the tablet re-reads every
 // 2 seconds. No account, no secret stored in the page. Tablet & mod: smurfsexy
 var MARKET=[],MARKET_CODE='',MARKET_CONFIRM=0;
-var LIVE = { tk: dec(RAW.tk), uid: num(RAW.uid), rt: dec(RAW.rt), rh: dec(RAW.rh), on: num(RAW.rl) === 1, seq: 0, pend: {}, fileOk: false, polls: 0, fast: 0, sent: 0 };
+var LIVE = { tk: dec(RAW.tk), uid: num(RAW.uid), rt: dec(RAW.rt), rh: dec(RAW.rh), on: num(RAW.rl) === 1, seq: 0, pend: {}, fileOk: false, polls: 0, fast: 0, sent: 0, rx: 0, sse: 0 };
 var PL = [], FR = [], MS = [], NT = [], OF = [], MAPS = [];
 function hexs(str) { var u = unescape(encodeURIComponent(str)), h = ''; for (var i = 0; i < u.length; i++) { var c = u.charCodeAt(i).toString(16); h += (c.length < 2 ? '0' : '') + c; } return h; }
 function nextSeq() { var s = Math.floor(Date.now() / 100) % 1000000000; if (s <= LIVE.seq) s = LIVE.seq + 1; LIVE.seq = s; return s; }
@@ -922,13 +926,13 @@ function toast(t, ok) { banner(ok === false ? (D.lang === 'tr' ? 'İşlem yapıl
 function relayBase(){return (location.protocol==='https:'?'https://':'http://')+LIVE.rh.replace(location.protocol==='https:'?/:80$/:/$^/,'')+'/'+LIVE.rt;}
 // One GET "image beacon" per command (ntfy publish endpoint). The game server listens on the same
 // topic and runs the command; the fresh data comes back inside the tablet address (#hash).
-function beacon(msg){var img=new Image();img.onerror=img.onload=function(){img=null;};img.src=relayBase()+'/publish?message='+encodeURIComponent(msg)+'&title=vx&cache=no&t='+Date.now();LIVE.sent++;}
+function beacon(msg){var url=relayBase()+'/publish?message='+encodeURIComponent(msg)+'&title=vx&cache=no&t='+Date.now();LIVE.sent++;try{var x=new XMLHttpRequest();x.open('GET',url,true);x.onreadystatechange=function(){if(x.readyState!==4)return;if(x.status>=200&&x.status<300)LIVE.okSend=Date.now();else if(x.status===429)LIVE.rate=Date.now();else{var img=new Image();img.src=url;}};x.send();}catch(e){var img=new Image();img.src=url;}}
 function sendRaw(name,a,b,c){if(!LIVE.on||!LIVE.tk||!LIVE.rt)return 0;var s=nextSeq();beacon(['vx1',LIVE.tk,s,name,a==null?'':a,b==null?'':b,c==null?'':c].join('~'));return s;}
 function act(name, a, b, c, cmdHint) {
   if (!LIVE.on || !LIVE.tk || !LIVE.rt) { toast(tr('Tablet oyundan açılmadı. Oyunda /ipad yaz.','Open the tablet in game with /ipad.'), false); return 0; }
   var now=Date.now();for(var pk in LIVE.pend){if(now-LIVE.pend[pk].t<5000){toast(tr('Önceki işlem bekleniyor…','Waiting for the previous action…'),false);return 0;}delete LIVE.pend[pk];}
   var s=sendRaw(name,a,b,c);LIVE.pend[s]={name:name,hint:cmdHint,t:now};store('pend',s+'~'+name+'~'+now);busy(true);
-  setTimeout(function(){if(LIVE.pend[s]){var t=LIVE.pend[s];delete LIVE.pend[s];busy(false);toast(tr('Sunucu cevap vermedi.','The server did not answer.')+(t.hint?' '+tr('Oyunda şunu yaz: ','Type in game: ')+t.hint:''),false);}},6000);
+  setTimeout(function(){if(LIVE.pend[s]){var t=LIVE.pend[s];delete LIVE.pend[s];busy(false);if(LIVE.rate&&Date.now()-LIVE.rate<10000)toast(tr('Çok hızlı işlem yapıldı, birkaç saniye bekle.','Too many actions, wait a few seconds.'),false);else if(LIVE.okSend&&LIVE.okSend>=t.t)banner('iPad',tr('İşlem sunucuya iletildi, sonuç birazdan gelecek.','Sent to the server, the result is on its way.'),'bell','#0a84ff');else toast(tr('Bağlantı kurulamadı.','No connection.')+(t.hint?' '+tr('Oyunda şunu yaz: ','Type in game: ')+t.hint:''),false);}},9000);
   return s;
 }
 function busy(on) { var b = $('busy'); if (!b) { b = document.createElement('div'); b.id = 'busy'; b.className = 'busy'; b.innerHTML = '<i class="ring"></i>'; $('screen').appendChild(b); } b.style.display = on ? 'block' : 'none'; }
@@ -963,9 +967,24 @@ function takeHash(first){
   LIVE.fileOk=true;applyU(u);
 }
 window.addEventListener('hashchange',function(){takeHash(false);},false);
+// ---- live replies: the open MOTD window ignores new addresses, so the server answers on this tablet's
+// own relay channel (<topic>_<token>). EventSource push; polling fallback for old browsers.
+function hashStr(str){var o={};String(str||'').replace(/^#/,'').split('&').forEach(function(p){var i=p.indexOf('=');if(i>0)o[p.slice(0,i)]=p.slice(i+1);});return o;}
+function takeReply(str){var o=hashStr(str);if(!o.n||(o.tk&&dec(o.tk)!==LIVE.tk))return;var u=hashU(o);if(u.pg)GOT[u.pg]=Date.now();LIVE.fileOk=true;LIVE.rx++;if(u.ack){var pend=String(store('pend')||'').split('~');if(num(pend[0])&&u.ack>=num(pend[0]))store('pend','');}applyU(u);}
+function replyUrl(kind){return relayBase()+'_'+LIVE.tk+'/'+kind;}
+function listen(){
+  if(DEMO||!LIVE.on||!LIVE.tk||!LIVE.rt)return;
+  if(window.EventSource){try{var es=new EventSource(replyUrl('sse'));LIVE.es=es;
+    es.onopen=function(){LIVE.sse=1;linkDot();};
+    es.onmessage=function(e){var d;try{d=JSON.parse(e.data);}catch(x){return;}if(d.event&&d.event!=='message')return;if(d.id)LIVE.lastId=d.id;takeReply(d.message||'');};
+    es.onerror=function(){LIVE.sse=0;linkDot();};
+    return;}catch(err){}}
+  (function poll(){var x;try{x=new XMLHttpRequest();x.open('GET',replyUrl('json')+'?poll=1&since='+(LIVE.lastId||Math.floor(Date.now()/1000)-2),true);x.onreadystatechange=function(){if(x.readyState!==4)return;if(x.status===200)String(x.responseText||'').split('\n').forEach(function(l){if(!l)return;try{var d=JSON.parse(l);if(d.event==='message'){LIVE.lastId=d.id;takeReply(d.message);}}catch(e){}});};x.send();}catch(e){}
+    var busyNow=false;for(var k in LIVE.pend)busyNow=true;setTimeout(poll,busyNow?900:3000);})();
+}
 var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
 function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<15000)return;sendRaw('view',a);}
-function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 4.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
+function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 4.1 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 var HOME_SIG='', LIVE_SIG='';
@@ -1104,12 +1123,43 @@ R.adm = function () {
 
 document.addEventListener('click',function(){setTimeout(function(){colors(document);},0);});
 IC.market=IC.trade;
-R.market=function(){var h='<div class="marketintro"><b>'+tr('Oyuncu pazarı','Player market')+'</b><p>'+tr('Çevrimiçi oyuncuların eşyalarını VexCoin ile al. İlanlar harita ve bağlantı oturumu boyunca geçerlidir.','Buy online players’ items with VexCoin. Listings last for the map and connection session.')+'</p></div>';
-var selected=MARKET.filter(function(m){return m[0]===MARKET_CONFIRM;})[0];if(selected)h+=card(tr('Satın almayı onayla','Confirm purchase'),'<p>'+esc(itemName(selected[3]))+' · <b>'+fmt(selected[4])+' VC</b></p><div style="margin-top:12px"><button class="gbtn" data-marketconfirm="1">'+tr('Satın al','Confirm')+'</button> <button class="tchip" data-marketabort="1">'+tr('Vazgeç','Cancel')+'</button></div>');
-var own='';['k','c','w','p','f','t','z'].forEach(function(c){catList(c).forEach(function(x,i){if((D.iv[c]||0)&(1<<i)){var code=c+(i+1);own+='<button class="tchip '+(MARKET_CODE===code?'on':'')+'" data-marketcode="'+code+'">'+esc(itemName(code))+'</button>';}});});
-h+=card(tr('Satışa koy','Create listing'),'<div class="marketitems">'+(own||esc(tr('Satılabilir eşyan yok.','No tradable items.')))+'</div><div class="marketform"><input id="marketPrice" type="number" min="1" max="100000000" value="100" aria-label="VexCoin"><span>VC</span><button class="gbtn" data-marketlist="1" '+(MARKET_CODE?'':'disabled')+'>'+tr('İlan oluştur','List item')+'</button></div>');
-var cards=MARKET.map(function(m){var mine=m[1]===LIVE.uid;return '<div class="marketcard"><div class="marketicon">'+svg('inv')+'</div><div class="marketdetail"><b>'+esc(itemName(m[3]))+'</b><small>'+esc(m[2])+'</small><strong>'+fmt(m[4])+' VC</strong></div><button class="gbtn" '+(mine?'data-marketcancel':'data-marketbuy')+'="'+m[0]+'">'+tr(mine?'Kaldır':'Satın al',mine?'Cancel':'Buy')+'</button></div>';}).join('');return h+card(tr('Aktif ilanlar','Active listings'),cards||'<p class="muted">'+tr('Henüz ilan yok.','No listings yet.')+'</p>');};
-var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p class="muted">VEXMIRA PAD 4.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+var MK_TAB='shop',MK_CAT='all',MK_PRICE=250;
+var MK_CATS=['k','c','w','p','f','t','z'];
+var MK_META={k:['Bıçak','Knife'],c:['Karakter','Skin'],w:['Kanat','Wings'],p:['Pet','Pet'],f:['Öldürme efekti','Kill FX'],t:['İz','Trail'],z:['Lazer','Laser']};
+var MK_ICO={k:'<path d="M3 21l7-7"/><path d="M9.5 14.5l9-9c1.6 2.4 1.2 5.6-.9 7.7l-4.6 4.6z"/>',c:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',w:'<path d="M12 10C9 6 5 4.5 2 5.5c1 5 4.5 8 10 8.5 5.5-.5 9-3.5 10-8.5-3-1-7 .5-10 4.5z"/><path d="M12 10v9"/>',p:'<circle cx="7.5" cy="8" r="2"/><circle cx="16.5" cy="8" r="2"/><circle cx="4.5" cy="13" r="1.8"/><circle cx="19.5" cy="13" r="1.8"/><path d="M12 12.5c-3 0-5 3.2-5 5.2 0 1.8 2 2.8 5 2.8s5-1 5-2.8c0-2-2-5.2-5-5.2z"/>',f:'<path d="M12 2l2.4 7.2L22 12l-7.6 2.6L12 22l-2.4-7.4L2 12l7.6-2.8z"/>',t:'<path d="M3 17c4 0 4.5-10 9-10s5 10 9 10"/><path d="M3 21h18" opacity=".5"/>',z:'<path d="M2 12h17"/><circle cx="3" cy="12" r="1.6"/><path d="M16 7l5 5-5 5"/>'};
+var MK_RAR=[['#8e8e93','#3a3a3c'],['#30d158','#0f3d1c'],['#0a84ff','#0b2c55'],['#bf5af2','#3a1450'],['#ff9f0a','#4d2c00']];
+function mkRar(code){var l=catList(code.charAt(0)),it=l[num(code.slice(1))-1];return it&&it.r!=null?Math.max(0,Math.min(4,num(it.r))):0;}
+function mkIcon(code,size){var c=code.charAt(0),r=MK_RAR[mkRar(code)];return '<span class="mkic" style="width:'+size+'px;height:'+size+'px;background:-webkit-linear-gradient(135deg,'+r[0]+','+r[1]+');background:linear-gradient(135deg,'+r[0]+','+r[1]+')"><svg viewBox="0 0 24 24">'+(MK_ICO[c]||MK_ICO.k)+'</svg></span>';}
+function mkRarName(code){var n=(T[D.lang]&&T[D.lang].rar)||T.tr.rar;return n[mkRar(code)]||'';}
+function mkOwned(){var o=[];MK_CATS.forEach(function(c){catList(c).forEach(function(x,i){if((D.iv[c]||0)&(1<<i))o.push(c+(i+1));});});return o;}
+function mkRender(top){var b=$('appBody');if(!b||cur!=='market')return;var st=b.scrollTop;b.innerHTML=R.market();colors(b);b.scrollTop=top?0:st;}
+R.market=function(){
+  var tr2=function(a,b){return D.lang==='tr'?a:b;},mine=MARKET.filter(function(m){return m[1]===LIVE.uid;}),shop=MARKET.filter(function(m){return m[1]!==LIVE.uid;});
+  var h='<div class="mk"><div class="mkhero"><div class="mkhl"><span class="mkapp">'+svg('market')+'</span><div><h1>'+tr2('Pazar','Market')+'</h1><p>'+tr2('Oyuncular arası VexCoin pazarı','Player-to-player VexCoin market')+'</p></div></div><div class="mkbal"><small>'+tr2('Bakiyen','Balance')+'</small><b>'+fmt(D.vc)+' <i>VC</i></b></div></div>';
+  h+='<div class="mkseg">'+[['shop',tr2('Vitrin','Browse'),shop.length],['sell',tr2('Satış yap','Sell'),0],['mine',tr2('İlanlarım','My listings'),mine.length]].map(function(t){return '<span class="'+(MK_TAB===t[0]?'on':'')+'" data-mktab="'+t[0]+'">'+esc(t[1])+(t[2]?' <em>'+t[2]+'</em>':'')+'</span>';}).join('')+'</div>';
+  function chips(list){var cnt={all:list.length};list.forEach(function(code){var c=code.charAt(0);cnt[c]=(cnt[c]||0)+1;});return '<div class="mkchips">'+['all'].concat(MK_CATS).filter(function(c){return c==='all'||cnt[c];}).map(function(c){return '<span class="'+(MK_CAT===c?'on':'')+'" data-mkcat="'+c+'">'+(c==='all'?'':'<svg viewBox="0 0 24 24">'+MK_ICO[c]+'</svg>')+esc(c==='all'?tr2('Tümü','All'):MK_META[c][D.lang==='tr'?0:1])+' <em>'+cnt[c]+'</em></span>';}).join('')+'</div>';}
+  if(MK_TAB==='shop'){
+    var codes=shop.map(function(m){return m[3];});if(MK_CAT!=='all'&&codes.join(',').indexOf(MK_CAT)<0)MK_CAT='all';
+    h+=chips(codes);
+    var list=shop.filter(function(m){return MK_CAT==='all'||m[3].charAt(0)===MK_CAT;});
+    h+=list.length?'<div class="mkgrid">'+list.map(function(m){var poor=D.vc<m[4];return '<div class="mkc"><div class="mktop">'+mkIcon(m[3],52)+'<span class="mkr" style="color:'+MK_RAR[mkRar(m[3])][0]+'">'+esc(mkRarName(m[3]))+'</span></div><b class="mkn">'+esc(itemName(m[3]))+'</b><small class="mkm">'+esc(MK_META[m[3].charAt(0)]?MK_META[m[3].charAt(0)][D.lang==='tr'?0:1]:'')+'</small><div class="mks"><span class="mka" style="'+avaColor(m[1])+'">'+esc(initials(m[2]))+'</span>'+esc(m[2])+'</div><div class="mkf"><b>'+fmt(m[4])+' <i>VC</i></b><button class="mkbuy'+(poor?' dis':'')+'" '+(poor?'disabled':'data-marketbuy="'+m[0]+'"')+'>'+esc(poor?tr2('Yetersiz','Too pricey'):tr2('Satın al','Buy'))+'</button></div></div>';}).join('')+'</div>'
+      :'<div class="mkempty">'+mkIcon('k1',64)+'<b>'+tr2('Vitrin şu an boş','Nothing for sale yet')+'</b><p>'+tr2('Çevrimiçi oyuncular eşya koyduğunda burada görünür. İlk ilanı sen ver!','Items appear here when online players list them. Be the first!')+'</p><button class="mkbtn" data-mktab="sell">'+tr2('Satış yap','Sell an item')+'</button></div>';
+  } else if(MK_TAB==='sell'){
+    var own=mkOwned();if(MK_CAT!=='all'&&own.join(',').indexOf(MK_CAT)<0)MK_CAT='all';
+    h+=chips(own);
+    var ol=own.filter(function(code){return MK_CAT==='all'||code.charAt(0)===MK_CAT;});
+    h+=ol.length?'<div class="mkpick">'+ol.map(function(code){return '<div class="mkp'+(MARKET_CODE===code?' on':'')+'" data-mkpick="'+code+'">'+mkIcon(code,44)+'<b>'+esc(itemName(code))+'</b><small style="color:'+MK_RAR[mkRar(code)][0]+'">'+esc(mkRarName(code))+'</small>'+(MARKET_CODE===code?'<span class="mkok">✓</span>':'')+'</div>';}).join('')+'</div>'
+      :'<div class="mkempty">'+mkIcon('w1',64)+'<b>'+tr2('Satılabilir eşyan yok','No items to sell')+'</b><p>'+tr2('Kasa açarak ya da mağazadan eşya kazan.','Win items from cases or the shop.')+'</p><button class="mkbtn" data-app="case">'+tr2('Kasalara git','Open cases')+'</button></div>';
+    if(ol.length){var sel=MARKET_CODE;h+='<div class="mkprice"><div class="mkpl"><small>'+tr2('Seçilen eşya','Selected item')+'</small><b>'+esc(sel?itemName(sel):tr2('Yukarıdan bir eşya seç','Pick an item above'))+'</b></div><div class="mkstep"><span data-mkstep="-100">−</span><input id="marketPrice" type="number" min="1" max="100000000" value="'+MK_PRICE+'"><span data-mkstep="100">+</span><i>VC</i></div><div class="mkq">'+[100,250,500,1000,2500].map(function(q){return '<span class="'+(MK_PRICE===q?'on':'')+'" data-mkstep="='+q+'">'+fmt(q)+'</span>';}).join('')+'</div><button class="mkbtn big'+(sel?'':' dis')+'" '+(sel?'data-marketlist="1"':'disabled')+'>'+tr2('İlana koy','List for sale')+'</button><p class="mknote">'+tr2('İlanlar sen çevrimiçiyken görünür · en fazla 8 ilan · satış olunca bildirim gelir','Listings show while you are online · max 8 · you get a notification on sale')+'</p></div>';}
+  } else {
+    h+=mine.length?'<div class="mklist">'+mine.map(function(m){return '<div class="mkrow">'+mkIcon(m[3],44)+'<div class="mkrd"><b>'+esc(itemName(m[3]))+'</b><small>'+fmt(m[4])+' VC · '+esc(mkRarName(m[3]))+'</small></div><button class="mkcancel" data-marketcancel="'+m[0]+'">'+tr2('Kaldır','Remove')+'</button></div>';}).join('')+'</div>'
+      :'<div class="mkempty">'+mkIcon('p1',64)+'<b>'+tr2('Aktif ilanın yok','No active listings')+'</b><p>'+tr2('Satış yap sekmesinden bir eşya listele.','List an item from the Sell tab.')+'</p><button class="mkbtn" data-mktab="sell">'+tr2('Satış yap','Sell an item')+'</button></div>';
+  }
+  var sel2=MARKET.filter(function(m){return m[0]===MARKET_CONFIRM;})[0];
+  if(sel2)h+='<div class="mksheet"><div class="mksh">'+mkIcon(sel2[3],64)+'<b>'+esc(itemName(sel2[3]))+'</b><small>'+esc(sel2[2])+' · '+esc(mkRarName(sel2[3]))+'</small><div class="mkshp"><span>'+tr2('Fiyat','Price')+'</span><b>'+fmt(sel2[4])+' VC</b></div><div class="mkshp"><span>'+tr2('Sonra kalan','Balance after')+'</span><b>'+fmt(D.vc-sel2[4])+' VC</b></div><button class="mkbtn big" data-marketconfirm="1">'+tr2('Satın al','Buy now')+'</button><button class="mkbtn big ghost" data-marketabort="1">'+tr2('Vazgeç','Cancel')+'</button></div></div>';
+  return h+'</div>';
+};
+var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA PAD 4.1</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
 // Drag the content, preserving clicks until a movement threshold is crossed.
 (function(){var drag=null,suppress=0,inertia=0;document.addEventListener('mousedown',function(e){if(e.button!==0)return;inertia++;var el=e.target;if(/^(INPUT|TEXTAREA|SELECT|CANVAS)$/.test(el.tagName))return;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight+4&&(el.id==='appBody'||el.className==='hbody'||String(el.className).indexOf('hbody ')===0||el.className==='bubbles')){drag={el:el,y:e.clientY,last:e.clientY,t:Date.now(),v:0,moved:false};break;}el=el.parentNode;}},false);
 document.addEventListener('mousemove',function(e){if(!drag)return;var dy=e.clientY-drag.last,dt=Math.max(1,Date.now()-drag.t);if(Math.abs(e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){clearTimeout(LP.t);drag.el.scrollTop-=dy;drag.v=-dy/dt;drag.last=e.clientY;drag.t=Date.now();e.preventDefault();}},false);
@@ -1120,6 +1170,7 @@ applyTheme(); applyAccent(); applyBright(); setWall(); $('screen').className = '
 $('lockNote').textContent = D.claimed ? '' : L('dailyReady');
 $('demo').style.display='none';
 takeHash(true);
+setTimeout(listen,150);
 renderHome(); clock(); setInterval(clock, 10000);
 $('home').className = 'home hide';
 if (GAMES.indexOf(D.page)>=0)D.page='home';

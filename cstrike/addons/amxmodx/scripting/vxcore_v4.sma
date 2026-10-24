@@ -19,7 +19,7 @@ native vxe_market_finish(buyer,seller);
 native vxe_zup_snapshot(id,cls,field);
 native vxe_zup_spend(id,cls,perk);
 native vxe_market_str(id,out[],len);
-new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4;
+new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4,g_fwReply4;
 new bool:g_bRlReady621;
 new g_iRlOpenErr623;
 new g_iRelayRx624,g_iActionRx624,g_iStateWrites624,g_iStateErr624;
@@ -5138,6 +5138,7 @@ show_dhudmessage(id,"%s",r);
 }
 DrawHud()
 {
+if(g_iFrame%8==0){new hp4=is_plugin_loaded("VEXMIRA HUD v4");g_bHud4=(hp4>=0&&get_cvar_num("vx_hud4")>0);}
 new humans = CountHumans(true),zombies = CountZombies(true);
 new total = RoundsTotal();
 new bool:top =(g_iFrame % 2 == 0)? true : false;
@@ -31848,14 +31849,15 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=4#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=41#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)
 {
 if(!(1<=id<=g_iMax)||!is_user_connected(id)||is_user_bot(id)||!g_szTok62[id][0])return;
-if(!force&&(g_fTabSeen62[id]<=0.0||get_gametime()-g_fTabSeen62[id]>45.0||!is_user_alive(id)||GetActiveWeaponId(id)!=WEAPON_C4))return;
-OpenTablet60(id,g_szApp4[id][0]?g_szApp4[id]:"home","",true);
+if(!force&&(g_fTabSeen62[id]<=0.0||get_gametime()-g_fTabSeen62[id]>120.0))return;
+// the open MOTD ignores a new address until it is closed, so the reply goes to the tablet's own relay channel
+static h[H4LEN+8],tp[64];Snap4(id,g_szApp4[id][0]?g_szApp4[id]:"home",h);formatex(tp,63,"%s_%s",g_szTopic62,g_szTok62[id]);new r4;ExecuteForward(g_fwReply4,r4,id,tp,h);
 }
 JsStr60(const s[],out[],len)
 {
@@ -32200,7 +32202,7 @@ g_pRlPort62 = register_cvar("vex_tablet_relay_port","80");
 g_pRlTopic62 = register_cvar("vex_tablet_topic","");
 g_pWebBase62 = register_cvar("vex_pad4_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad4/");
 g_pWebPage62 = register_cvar("vex_pad4_page","vexmira_pad_v4.html");
-g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);
+g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);g_fwReply4=CreateMultiForward("vxc_reply",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
 register_clcmd("vex_tablet_action","cmd_TabAction621");
@@ -32299,7 +32301,7 @@ g_iNotTime62[id][g_iNotN62[id]]= get_systime();
 g_iNotN62[id]++;
 g_iUnread62[id]++;
 if(g_bHud4){new r4;ExecuteForward(g_fwNote4,r4,id,text);}else if(sound)client_cmd(id,"spk buttons/bell1");
-if(id!=g_iActor4&&App4(g_szApp4[id],"msg","notif","friends","trade"))TabPush4(id);
+if(id!=g_iActor4)TabPush4(id);
 }
 public task_TabTick62()
 {
@@ -32411,7 +32413,7 @@ if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new host[64];get_pcvar_string(g_pRlHost62,host,charsmax(host));
 console_print(id,"[VEXMIRA] tablet link: relay=%s:%d topic=%s state=%d (0 bos,1 baglaniyor,2 akis) deneme=%d",host,get_pcvar_num(g_pRlPort62),g_szTopic62,g_iRlState62,g_iRlFails62);
 console_print(id,"[PAD4] komut kanali dinleniyor=%d (1 olmali) socket=%d",g_bRlReady621,g_iRlOpenErr623);
-new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);console_print(id,"[PAD4] sayfa=%s%s | tabletten gelen komut (rx)=%d | oyuncuya eslesen=%d | veri yolu: MOTD adresi (FastDL gerekmez)",base,page,g_iRelayRx624,g_iActionRx624);
+new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);console_print(id,"[PAD4] sayfa=%s%s | tabletten gelen komut (rx)=%d | oyuncuya eslesen=%d | veri yolu: MOTD adresi (FastDL gerekmez)",base,page,g_iRelayRx624,g_iActionRx624);for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&g_szTok62[p][0])console_print(id,"[PAD4] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
 return PLUGIN_HANDLED;
 }
 TabAction62(const msg[])

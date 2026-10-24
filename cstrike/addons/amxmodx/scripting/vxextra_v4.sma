@@ -3,6 +3,9 @@
    5.3.8 systems (kill feel, unprecacher, zombie class upgrades, special knife/gun slots).
    Load order (plugins-vexmira.ini): vexmira_core.amxx, vexmira_gear.amxx, vexmira_extra.amxx */
 #include <amxmodx>
+#include <sockets>
+#define RQ64 32
+new g_rq64Topic[RQ64][64],g_rq64Body[RQ64][1500],g_rq64Head,g_rq64N,g_rq64Sock,g_rq64State,Float:g_rq64T,g_rq64Sent,g_rq64Fail;
 new g_hPlus622=INVALID_HANDLE,g_acMask622[33],bool:g_acReady622[33];
 #define MARKET622_MAX 64
 new g_mSerial622,g_mId622[MARKET622_MAX],g_mOwner622[MARKET622_MAX],g_mUid622[MARKET622_MAX],g_mCat622[MARKET622_MAX],g_mItem622[MARKET622_MAX],g_mPrice622[MARKET622_MAX];
@@ -2685,6 +2688,7 @@ public N_Modern(plugin, params) { ModernEvents50(); return 1; }
 public N_NatPre(plugin, params) { NativePrecache52(); return 1; }
 public plugin_init()
 {
+set_task(0.1,"task_Reply64",7406400,_,_,"b");
 PlusInit622();
 register_plugin("Vexmira Extra", "5.6.4", "Vexmira");
 ZupInit();
@@ -4397,6 +4401,7 @@ return PLUGIN_HANDLED;
 }
 public plugin_end()
 {
+if(g_rq64Sock>0)socket_close(g_rq64Sock);
 if(g_hPlus622!=INVALID_HANDLE)nvault_close(g_hPlus622);
 for(new id=1;id<=32;id++) if(is_user_connected(id)) ZupSave(id);
 if(g_iZupVault!=INVALID_HANDLE) nvault_close(g_iZupVault);
@@ -4593,3 +4598,48 @@ public N_MarketPrepare622(plugin,params){new buyer=get_param(1),seller=get_param
 new bk[64],sk[64],tmp[160];MarketKey622(buyer,bk,63);MarketKey622(seller,sk,63);if(nvault_get(g_hPlus622,bk,tmp,159)||nvault_get(g_hPlus622,sk,tmp,159))return 0;
 new bv=vxc_tab_value(buyer,0),sv=vxc_tab_value(seller,0);if(price<1||price>100000000||bv<price||sv<0||sv>2000000000-price)return 0;new tx=nvault_get(g_hPlus622,"marketseq");if(tx>=2000000000)return 0;tx++;num_to_str(tx,tmp,159);nvault_set(g_hPlus622,"marketseq",tmp);new marker[32];formatex(marker,31,"t_%d",tx);nvault_set(g_hPlus622,marker,"0");formatex(tmp,159,"%d %d %d %d %d 0 1",tx,bv,bv-price,cat,ix);nvault_set(g_hPlus622,bk,tmp);formatex(tmp,159,"%d %d %d %d %d 1 0",tx,sv,sv+price,cat,ix);nvault_set(g_hPlus622,sk,tmp);nvault_set(g_hPlus622,marker,"1");return 1;}
 public N_MarketFinish622(plugin,params){new buyer=get_param(1),seller=get_param(2),bk[64],sk[64],val[160],tx[16],marker[32];MarketKey622(buyer,bk,63);MarketKey622(seller,sk,63);if(nvault_get(g_hPlus622,bk,val,159)){parse(val,tx,15);formatex(marker,31,"t_%d",str_to_num(tx));}nvault_remove(g_hPlus622,bk);nvault_remove(g_hPlus622,sk);if(marker[0])nvault_remove(g_hPlus622,marker);return 1;}
+
+// ---------------------------------------------------------------- 6.4 tablet replies
+// The open MOTD ignores a new address until it is closed, so the core hands every tablet reply here
+// (vxc_reply forward) and it is published to the tablet's own relay channel (same relay the tablet
+// already uses for its commands). One short HTTP request at a time, never blocks the game loop.
+public vxc_reply(id,const topic[],const body[])
+{
+if(!topic[0]||!body[0])return;
+for(new k=0;k<g_rq64N;k++){new q=(g_rq64Head+k)%RQ64;if(equal(g_rq64Topic[q],topic)){copy(g_rq64Body[q],1499,body);return;}} // newest data wins
+if(g_rq64N>=RQ64){g_rq64Head=(g_rq64Head+1)%RQ64;g_rq64N--;}
+new q=(g_rq64Head+g_rq64N)%RQ64;copy(g_rq64Topic[q],63,topic);copy(g_rq64Body[q],1499,body);g_rq64N++;
+}
+public task_Reply64()
+{
+new Float:now=get_gametime();
+switch(g_rq64State)
+{
+case 0:
+{
+if(!g_rq64N||now<g_rq64T)return;
+new host[64],err;get_cvar_string("vex_tablet_relay_host",host,63);if(!host[0])copy(host,63,"ntfy.sh");
+new port=get_cvar_num("vex_tablet_relay_port");if(port<=0)port=80;
+g_rq64Sock=socket_open(host,port,SOCKET_TCP,err,SOCK_NON_BLOCKING);
+if(g_rq64Sock<=0){g_rq64Sock=0;g_rq64Fail++;g_rq64T=now+2.0;return;}
+g_rq64State=1;g_rq64T=now;
+}
+case 1:
+{
+if(socket_is_writable(g_rq64Sock,0))
+{
+static req[1800];new host[64];get_cvar_string("vex_tablet_relay_host",host,63);if(!host[0])copy(host,63,"ntfy.sh");
+new q=g_rq64Head,bl=strlen(g_rq64Body[q]);
+new n=formatex(req,charsmax(req),"POST /%s HTTP/1.0^r^nHost: %s^r^nContent-Type: text/plain^r^nContent-Length: %d^r^nConnection: close^r^n^r^n%s",g_rq64Topic[q],host,bl,g_rq64Body[q]);
+socket_send2(g_rq64Sock,req,n);
+g_rq64Head=(g_rq64Head+1)%RQ64;g_rq64N--;g_rq64Sent++;
+g_rq64State=2;g_rq64T=now;
+}
+else if(now-g_rq64T>4.0){socket_close(g_rq64Sock);g_rq64Sock=0;g_rq64State=0;g_rq64Fail++;g_rq64T=now+1.0;}
+}
+case 2:
+{
+if(socket_is_readable(g_rq64Sock,0)||now-g_rq64T>2.5){new junk[256];if(socket_is_readable(g_rq64Sock,0))socket_recv(g_rq64Sock,junk,255);socket_close(g_rq64Sock);g_rq64Sock=0;g_rq64State=0;g_rq64T=now;}
+}
+}
+}
