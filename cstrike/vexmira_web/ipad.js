@@ -2,6 +2,23 @@
    item / achievement names from items.js (written by the server). Tablet & Mod: smurfsexy */
 (function () {
 'use strict';
+// ---------------------------------------------------------------- CS 1.6 MOTD (Chromium 18) compatibility
+(function () {
+  var w = window;
+  if (!w.requestAnimationFrame) w.requestAnimationFrame = w.webkitRequestAnimationFrame || function (f) { return setTimeout(function () { f(Date.now()); }, 16); };
+  if (!w.AudioContext && w.webkitAudioContext) w.AudioContext = w.webkitAudioContext;
+  var AC = w.AudioContext;
+  if (AC) {
+    var P = AC.prototype;
+    if (!P.createGain && P.createGainNode) P.createGain = P.createGainNode;
+    ['createOscillator', 'createBufferSource'].forEach(function (fn) {
+      var orig = P[fn]; if (!orig) return;
+      P[fn] = function () { var n = orig.call(this); if (!n.start && n.noteOn) n.start = function (t) { this.noteOn(t || 0); }; if (!n.stop && n.noteOff) n.stop = function (t) { this.noteOff(t || 0); }; return n; };
+    });
+  }
+  var C2 = w.CanvasRenderingContext2D;
+  if (C2 && !C2.prototype.ellipse) C2.prototype.ellipse = function (x, y, rx, ry, r, a0, a1, ccw) { this.save(); this.translate(x, y); this.rotate(r); this.scale(rx, ry); this.arc(0, 0, 1, a0, a1, ccw); this.restore(); };
+})();
 var $ = function (id) { return document.getElementById(id); };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function num(v, d) { var n = parseInt(v, 10); return isNaN(n) ? (d || 0) : n; }
@@ -160,7 +177,9 @@ var ICOL = {
   snake: '#56e07a,#147a30', g2048: '#ffbf5a,#cf6a0c', whack: '#c75cff,#5c0f9c', games: '#3b3346,#15111c'
 };
 function svg(k) { return '<svg viewBox="0 0 24 24">' + (IC[k] || IC.about) + '</svg>'; }
-function grad(k) { var c = (ICOL[k] || ICOL.about).split(','); return 'background:linear-gradient(160deg,' + c[0] + ' 0%,' + c[1] + ' 100%)'; }
+function lg(a, c0, c1) { return 'background:' + c1 + ';background:-webkit-linear-gradient(' + (90 - a) + 'deg,' + c0 + ',' + c1 + ')'; }
+function rgba(hex, a) { var h = hex.replace('#', ''); if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2); return 'rgba(' + parseInt(h.substr(0, 2), 16) + ',' + parseInt(h.substr(2, 2), 16) + ',' + parseInt(h.substr(4, 2), 16) + ',' + a + ')'; }
+function grad(k) { var c = (ICOL[k] || ICOL.about).split(','); return lg(160, c[0], c[1]); }
 // ------------------------------------------------------------------ VEXMIRA logo (emblem tile + wordmark, no subtitle)
 var LGN = 0;
 function emblem() {
@@ -213,7 +232,22 @@ var SND = {
 
 // ------------------------------------------------------------------ theme / wallpaper
 var WP = num(store('wp'), 7) % 8;
-function applyTheme() { document.documentElement.setAttribute('data-theme', store('theme') === 'light' ? 'light' : 'dark'); document.documentElement.lang = D.lang; }
+var THEME = {
+  dark: { bg: '#07070a', card: 'rgba(22,20,26,.86)', card2: 'rgba(38,34,44,.9)', line: 'rgba(255,255,255,.09)', txt: '#ece7ee', sub: '#9a90a0', acc: '#e3243b', acc2: '#7cff3a', gold: '#ffc23a', glass: 'rgba(18,16,22,.72)', shadow: '0 8px 24px rgba(0,0,0,.5)' },
+  light: { bg: '#f2eef2', card: 'rgba(255,255,255,.9)', card2: 'rgba(244,240,246,.96)', line: 'rgba(0,0,0,.09)', txt: '#1d1820', sub: '#6c6270', acc: '#c8102e', acc2: '#2d9c12', gold: '#b37800', glass: 'rgba(255,255,255,.78)', shadow: '0 8px 20px rgba(40,0,10,.16)' }
+};
+var ACC_NOW = '#e3243b';
+function applyTheme() {
+  var light = store('theme') === 'light', t = THEME[light ? 'light' : 'dark'], a = store('acc'), vals = {};
+  for (var k in t) vals[k] = t[k];
+  if (a && /^#[0-9a-fA-F]{6}$/.test(a)) vals.acc = a;
+  ACC_NOW = vals.acc;
+  document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark'); document.documentElement.lang = D.lang;
+  var css = (window.VXCSS || '').replace(/var\(--([a-z0-9]+)\)/g, function (m, k) { return vals[k] != null ? vals[k] : m; });
+  var st = document.getElementById('vxcss');
+  if (!st) { st = document.createElement('style'); st.id = 'vxcss'; document.getElementsByTagName('head')[0].appendChild(st); }
+  st.textContent = css;
+}
 function applyWall() { $('wall').className = 'wall wp' + WP + ($('lock').className.indexOf('off') >= 0 ? '' : ''); }
 
 // ------------------------------------------------------------------ clock / status
@@ -232,7 +266,7 @@ function banner(title, text, icon, color, delay) {
   if (!notifOn) return;
   setTimeout(function () {
     var b = document.createElement('div'); b.className = 'bn';
-    b.innerHTML = '<div class="bi" style="background:' + (color || 'var(--acc)') + '">' + svg(icon || 'bell') + '</div><div><b>' + esc(title) + '</b><span>' + esc(text) + '</span></div>';
+    b.innerHTML = '<div><div class="bi" style="background:' + (color || ACC_NOW) + '">' + svg(icon || 'bell') + '</div></div><div class="bt"><b>' + esc(title) + '</b><span>' + esc(text) + '</span></div>';
     $('banners').appendChild(b); SND.notif();
     setTimeout(function () { b.className = 'bn out'; setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 450); }, 4200);
   }, delay || 0);
@@ -251,8 +285,8 @@ var APPS = CATALOG;
 var DOCK = ['prof', 'case', 'store', 'set'];
 function cmd(c) { return '<div class="cmd">' + esc(L('type')) + ': <b>' + esc(c) + '</b></div>'; }
 function card(t, body) { return '<div class="card">' + (t ? '<h3>' + esc(t) + '</h3>' : '') + body + '</div>'; }
-function stat(v, l) { return '<div class="stat"><b>' + esc(v) + '</b><span>' + esc(l) + '</span></div>'; }
-function avaColor(lv) { var c = lv >= 75 ? '#ffb000,#a33a00' : lv >= 50 ? '#b04aff,#3d0a6e' : lv >= 25 ? '#2f80ed,#0b2c66' : '#c8102e,#4a0510'; c = c.split(','); return 'background:linear-gradient(145deg,' + c[0] + ',' + c[1] + ')'; }
+function stat(v, l) { return '<div class="stat"><div><b>' + esc(v) + '</b><span>' + esc(l) + '</span></div></div>'; }
+function avaColor(lv) { var c = lv >= 75 ? '#ffb000,#a33a00' : lv >= 50 ? '#b04aff,#3d0a6e' : lv >= 25 ? '#2f80ed,#0b2c66' : '#c8102e,#4a0510'; c = c.split(','); return lg(145, c[0], c[1]); }
 function initials(n) { var p = n.replace(/[^A-Za-z0-9 ]/g, '').trim().split(/\s+/); return ((p[0] || '?').charAt(0) + (p[1] ? p[1].charAt(0) : '')).toUpperCase(); }
 function medal(i) { return '<span class="medal ' + (i < 3 ? 'm' + (i + 1) : '') + '">' + (i + 1) + '</span>'; }
 function board(rows, cols, valFn) {
@@ -261,27 +295,55 @@ function board(rows, cols, valFn) {
   rows.forEach(function (r, i) { h += '<tr class="' + (r.n === D.name ? 'me' : '') + '"><td>' + medal(i) + '</td><td class="n">' + esc(r.n) + '</td>' + valFn(r).map(function (v) { return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; });
   return h + '</table>';
 }
-function ichip(ic, label, val, col) { return '<div class="ichip"><span class="ii" style="background:' + col + '22;color:' + col + '">' + svg(ic) + '</span><span><small>' + esc(label) + '</small><b>' + esc(val) + '</b></span></div>'; }
+function ichip(ic, label, val, col) { return '<div class="ichip"><span class="ii" style="background:' + rgba(col, 0.16) + ';color:' + col + '">' + svg(ic) + '</span><span class="iv"><small>' + esc(label) + '</small><b>' + esc(val) + '</b></span></div>'; }
 var R = {};
 R.prof = function () {
   var pct = Math.max(0, Math.min(100, D.xn > 0 ? Math.round(D.xp * 100 / D.xn) : 100));
   var steam = D.sid ? '<a class="lnk" href="https://steamcommunity.com/profiles/' + esc(D.sid) + '" target="_blank">' + esc(L('steam')) + ' &rsaquo;</a>' : '';
-  return card('', '<div class="prof"><div class="ava" style="' + avaColor(D.lv) + '">' + esc(initials(D.name)) + '</div><div style="flex:1"><h2>' + esc(D.name) + (D.vip ? '<span class="vip">' + (D.vip === 2 ? 'ELITE' : 'VIP') + '</span>' : '') +
+  return card('', '<div class="prof"><div><div class="ava" style="' + avaColor(D.lv) + '">' + esc(initials(D.name)) + '</div></div><div class="pi"><h2>' + esc(D.name) + (D.vip ? '<span class="vip">' + (D.vip === 2 ? 'ELITE' : 'VIP') + '</span>' : '') +
     '</h2><div class="sub">' + esc(L('level')) + ' ' + D.lv + (D.rank ? ' &middot; #' + D.rank + ' ' + esc(L('rank')) : '') + (D.vip && D.vd ? ' &middot; ' + esc(F('vipDays', D.vd)) : '') + '</div>' +
     '<div class="bar"><i style="width:' + pct + '%"></i></div><div class="sub">XP ' + fmt(D.xp) + ' / ' + fmt(D.xn) + ' &nbsp; ' + steam + '</div></div></div>') +
     card('', '<div class="stats">' + stat(fmt(D.k), L('kills')) + stat(fmt(D.inf), L('infs')) + stat(fmt(D.hs), L('hs')) + stat(fmt(D.w), L('wins')) + stat(fmt(D.b), L('boss')) + stat(fmt(D.d), L('deaths')) +
       stat(Math.floor(D.pt / 60) + ' ' + L('hours'), L('play')) + stat(achCount() + '/' + achList().length, L('ach')) + '</div>') +
     card('', '<div class="stats">' + stat(fmt(D.ap), 'AP') + stat(fmt(D.vc), 'VexCoin') + stat(D.streak, L('streak')) + stat(D.on + '/' + D.mx, L('online')) + '</div>' + cmd('/istatistik'));
 };
-R.top = function () { return card(L('top'), board(D.top, [L('level'), L('kills')], function (r) { return [r.lv, fmt(r.k)]; })) + cmd('/top15'); };
-R.time = function () { return card(L('time'), board(D.tt, [L('play')], function (r) { var m = num(r.v); return [Math.floor(m / 60) + ' ' + L('hours') + ' ' + (m % 60) + ' ' + L('min')]; })) + cmd('/toptime'); };
-R.achtop = function () { return card(L('achtop'), board(D.at, [L('ach')], function (r) { return [r.v + ' / ' + achList().length]; })) + cmd('/basarimtop'); };
+var CROWN = '<svg viewBox="0 0 30 22"><path d="M2 19 L4 6 L10 12 L15 3 L20 12 L26 6 L28 19 Z" fill="#ffd25a" stroke="#a86a00" stroke-width="1.4" stroke-linejoin="round"/><circle cx="15" cy="3" r="2" fill="#fff3c4"/><rect x="3" y="18" width="24" height="3" rx="1" fill="#e0a400"/></svg>';
+var TOPM = 'top';
+function topRows(mode) {
+  if (mode === 'time') return D.tt.map(function (r) { var m = num(r.v); return { n: r.n, v: m, main: Math.floor(m / 60) + ' ' + L('hours'), sub: (m % 60) + ' ' + L('min'), lv: '' }; });
+  if (mode === 'achtop') return D.at.map(function (r) { return { n: r.n, v: num(r.v), main: r.v + '/' + achList().length, sub: L('ach'), lv: '' }; });
+  return D.top.map(function (r) { return { n: r.n, v: num(r.k) + num(r.lv) * 1000, main: fmt(r.k), sub: L('kills'), lv: r.lv }; });
+}
+function leader(mode) {
+  var rows = topRows(mode), h = '';
+  var titles = { top: L('top'), time: L('time'), achtop: L('achtop') };
+  h += '<div class="seasonbar"><div><h2>' + esc(titles[mode]) + '<small>' + esc(D.lang === 'tr' ? 'Sezon yarisi - ilk 3 her hafta duyurulur' : 'Season race - top 3 announced every week') + '</small></h2></div><div class="tabsw">' +
+    ['top', 'time', 'achtop'].map(function (m) { return '<span class="tab' + (m === mode ? ' on' : '') + '" data-top="' + m + '">' + esc(m === 'top' ? 'Top 15' : m === 'time' ? (D.lang === 'tr' ? 'Sure' : 'Time') : L('ach')) + '</span>'; }).join('') + '</div></div>';
+  if (!rows.length) return h + card('', '<p class="muted">' + esc(L('noData')) + '</p>');
+  var pod = '<div class="podium">';
+  [1, 0, 2].forEach(function (i) {
+    var r = rows[i]; if (!r) return;
+    pod += '<div class="pod p' + (i + 1) + '"><div class="pa" style="' + avaColor(i === 0 ? 80 : i === 1 ? 55 : 30) + '">' + (i === 0 ? '<span class="crown">' + CROWN + '</span>' : '') + esc(initials(r.n)) + '</div><b>' + esc(r.n) + (r.n === D.name ? ' &#9733;' : '') + '</b><small>' + esc(r.main) + (r.lv ? ' &middot; Lv ' + esc(r.lv) : '') + '</small><div class="ped">' + (i + 1) + '</div></div>';
+  });
+  pod += '</div>';
+  var max = rows[0].v || 1, list = '<div class="race">';
+  rows.forEach(function (r, i) {
+    if (i < 3) return;
+    var pct = Math.max(4, Math.round(r.v * 100 / max));
+    list += '<div class="rw' + (r.n === D.name ? ' me' : '') + '"><div class="rk">' + (i + 1) + '</div><div class="ra"><div style="' + avaColor(i < 6 ? 40 : 10) + '">' + esc(initials(r.n)) + '</div></div><div class="rn"><b>' + esc(r.n) + (r.lv ? '<span class="lvchip">Lv ' + esc(r.lv) + '</span>' : '') + '</b><div class="rbar"><i style="width:' + pct + '%"></i></div></div><div class="rv"><strong>' + esc(r.main) + '</strong>' + esc(r.sub) + '</div></div>';
+  });
+  list += '</div>';
+  return h + pod + list + cmd(mode === 'top' ? '/top15' : mode === 'time' ? '/toptime' : '/basarimtop');
+}
+R.top = function () { return leader(TOPM = 'top'); };
+R.time = function () { return leader(TOPM = 'time'); };
+R.achtop = function () { return leader(TOPM = 'achtop'); };
 function achCount() { var n = 0; for (var i = 0; i < 31; i++) if (D.ach & (1 << i)) n++; return n; }
 R.ach = function () {
   var a = achList(), h = '<div class="achs">';
   a.forEach(function (x, i) {
     var on = (D.ach & (1 << i)) !== 0;
-    h += '<div class="ach' + (on ? ' on' : '') + '"><div class="ai">' + (on ? '&#9733;' : '&#128274;') + '</div><div><b>' + esc(x.n) + '</b><small>' + esc(x.d) + '</small>' + (x.vc ? '<em>+' + x.vc + ' VC' + (x.ap ? ' +' + x.ap + ' AP' : '') + '</em>' : '') + '</div></div>';
+    h += '<div class="ach' + (on ? ' on' : '') + '"><div class="ac"><div class="ai">' + (on ? '&#9733;' : '&#9679;') + '</div><div class="at"><b>' + esc(x.n) + '</b><small>' + esc(x.d) + '</small>' + (x.vc ? '<em>+' + x.vc + ' VC' + (x.ap ? ' +' + x.ap + ' AP' : '') + '</em>' : '') + '</div></div></div>';
   });
   return card(achCount() + ' / ' + a.length + ' ' + L('unlocked'), h + '</div>') + cmd('/basarim');
 };
@@ -295,58 +357,92 @@ R.inv = function () {
   for (var i = 0; i < n; i++) {
     var it = list[i] || {}, own = ((D.iv[invTab] | 0) & (1 << i)) !== 0, eq = (D.eq[invTab] | 0) === i + 1, r = it.r | 0;
     if (it.ok === 0 && !own) continue;
-    h += '<div class="it' + (own ? '' : ' no') + '">' + (eq ? '<span class="eq">' + esc(L('equipped')) + '</span>' : '') + '<div class="ib" style="' + grad(invTab === 'k' ? 'case' : invTab === 'w' ? 'ach' : invTab === 'p' ? 'daily' : 'inv') + '">' + svg(invTab === 'k' ? 'blade' : invTab === 'p' ? 'prof' : 'inv') + '</div><b>' + esc(itemName(invTab + (i + 1))) + '</b><small class="t' + r + '">' + esc(L('rar')[r]) + (it.vc ? ' &middot; ' + it.vc + ' VC' : '') + '</small><div class="rb r' + r + '"></div></div>';
+    h += '<div class="it' + (own ? '' : ' no') + '"><div class="ic">' + (eq ? '<span class="eq">' + esc(L('equipped')) + '</span>' : '') + '<div class="ib" style="' + grad(invTab === 'k' ? 'case' : invTab === 'w' ? 'ach' : invTab === 'p' ? 'daily' : 'inv') + '">' + svg(invTab === 'k' ? 'blade' : invTab === 'p' ? 'prof' : 'inv') + '</div><b>' + esc(itemName(invTab + (i + 1))) + '</b><small class="t' + r + '">' + esc(L('rar')[r]) + (it.vc ? ' &middot; ' + it.vc + ' VC' : '') + '</small><div class="rb r' + r + '"></div></div></div>';
   }
   return card(L('inv'), h + '</div>' + cmd(D.lang === 'tr' ? '/envanter  /kozmetik  /bicak' : '/inventory  /cosmetic  /knife'));
 };
 var caseSel = 0;
-function caseColors(c) { return ['#b06a2e,#4a2408', '#c9ced6,#5a6068', '#ffd34a,#a06400', '#7a0018,#14000a'][c]; }
+var TIERS = [
+  { c0: '#d28a48', c1: '#6a3510', band: '#8a8f99', glow: 'rgba(210,138,72,.55)', tag: 'BRONZE', tagc: '#b06a2e' },
+  { c0: '#e9edf3', c1: '#6f7884', band: '#3e444c', glow: 'rgba(200,215,235,.5)', tag: 'SILVER', tagc: '#7d8794' },
+  { c0: '#ffd968', c1: '#a86400', band: '#5a3a00', glow: 'rgba(255,200,60,.6)', tag: 'GOLD', tagc: '#c98a00' },
+  { c0: '#ff3b5c', c1: '#2a0008', band: '#111', glow: 'rgba(255,40,70,.7)', tag: 'NIGHTMARE', tagc: '#b0102c' }];
+function caseColors(c) { var t = TIERS[c] || TIERS[0]; return t.c0 + ',' + t.c1; }
+function crate(i) {
+  var t = TIERS[i] || TIERS[0], u = 'cr' + (++LGN);
+  return '<svg viewBox="0 0 120 98"><defs><linearGradient id="' + u + 'a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + t.c0 + '"/><stop offset="1" stop-color="' + t.c1 + '"/></linearGradient>' +
+    '<linearGradient id="' + u + 'b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient></defs>' +
+    '<ellipse cx="60" cy="92" rx="46" ry="5" fill="#000" opacity=".45"/>' +
+    '<path d="M14 40 L106 40 L100 88 L20 88 Z" fill="url(#' + u + 'a)" stroke="#000" stroke-opacity=".4"/>' +
+    '<path d="M14 40 L106 40 L100 88 L20 88 Z" fill="url(#' + u + 'b)"/>' +
+    '<path d="M10 26 Q60 12 110 26 L110 42 L10 42 Z" fill="url(#' + u + 'a)" stroke="#000" stroke-opacity=".4"/>' +
+    '<path d="M10 26 Q60 12 110 26" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="2"/>' +
+    '<rect x="26" y="26" width="9" height="62" fill="' + t.band + '" opacity=".85"/><rect x="85" y="26" width="9" height="62" fill="' + t.band + '" opacity=".85"/>' +
+    '<rect x="10" y="40" width="100" height="5" fill="' + t.band + '" opacity=".9"/>' +
+    '<rect x="48" y="44" width="24" height="24" rx="5" fill="#15121a" stroke="' + t.c0 + '" stroke-width="2"/>' +
+    '<path d="M53 49 h4.5 L60 59 L62.5 49 H67 L62 64 H58 Z" fill="#fff"/>' +
+    '<path d="M18 46 L30 46 M90 46 L102 46" stroke="#fff" stroke-opacity=".25" stroke-width="2"/></svg>';
+}
+var RAYS = '<svg viewBox="0 0 420 420">' + (function () { var p = ''; for (var i = 0; i < 18; i++) { var a = i * 20 * Math.PI / 180, b = (i * 20 + 8) * Math.PI / 180; p += '<path d="M210 210 L' + (210 + 210 * Math.cos(a)).toFixed(1) + ' ' + (210 + 210 * Math.sin(a)).toFixed(1) + ' L' + (210 + 210 * Math.cos(b)).toFixed(1) + ' ' + (210 + 210 * Math.sin(b)).toFixed(1) + ' Z" fill="#fff" opacity=".08"/>'; } return p; })() + '</svg>';
 function caseData() {
   var c = (VX.cases && VX.cases.length) ? VX.cases : [{ tr: 'Bronz Kasa', en: 'Bronze Case', vc: 150, loot: [] }, { tr: 'Gumus Kasa', en: 'Silver Case', vc: 350, loot: [] }, { tr: 'Altin Kasa', en: 'Gold Case', vc: 700, loot: [] }, { tr: 'Kabus Kasasi', en: 'Nightmare Case', vc: 1200, loot: [] }];
   return c;
 }
+var RCOL = ['#9aa0a8', '#3c8cff', '#a646ff', '#ffbe28', '#ff2a2a'];
 R['case'] = function () {
   var cs = caseData(), h = '<div class="cases">';
-  cs.forEach(function (c, i) { var col = caseColors(i).split(','); h += '<div class="case' + (i === caseSel ? ' sel' : '') + '" data-case="' + i + '"><div class="cb" style="background:linear-gradient(160deg,' + col[0] + ',' + col[1] + ')"></div><b>' + esc(c[D.lang] || c.en) + '</b><small>' + c.vc + ' VC</small></div>'; });
+  cs.forEach(function (c, i) {
+    var t = TIERS[i] || TIERS[0];
+    h += '<div class="case' + (i === caseSel ? ' sel' : '') + '" data-case="' + i + '"><div class="ci"><span class="tier" style="background:' + t.tagc + '">' + t.tag + '</span><div class="cbx"><div class="glow" style="background:-webkit-radial-gradient(50% 50%,circle closest-side,' + t.glow + ',rgba(0,0,0,0))"></div>' + crate(i) + '</div><b>' + esc(c[D.lang] || c.en) + '</b><small>' + c.vc + ' VC</small></div></div>';
+  });
   h += '</div>';
-  var reel = D.cr ? '<div class="reelbox"><div class="needle"></div><div id="reel" class="reel"></div></div><div id="winBox"></div>' : '';
+  var stage = '';
+  if (D.cr) {
+    stage = card(L('opening'), '<div id="cstage" class="casestage shake"><div class="rays">' + RAYS + '</div><div class="big">' + crate(D.cr.c) + '</div></div><div class="reelbox" id="rbox" style="display:none"><div class="needle"></div><div id="reel" class="reel"></div></div><div id="winBox"></div>');
+  }
   var c = cs[caseSel], loot = (c.loot || []).slice().sort(function (a, b) { return b[1] - a[1]; }), lh = '<div class="loot">';
-  loot.forEach(function (l) { lh += '<div style="border-left-color:' + ['#9aa0a8', '#3c8cff', '#a646ff', '#ffbe28', '#ff2a2a'][l[1]] + '"><span class="t' + l[1] + '">' + esc(itemName(l[0])) + '</span><b>' + Number(l[2]).toFixed(2) + '%</b></div>'; });
+  loot.forEach(function (l) { lh += '<div><p style="border-left-color:' + RCOL[l[1]] + '"><span class="t' + l[1] + '">' + esc(itemName(l[0])) + '</span><b>' + Number(l[2]).toFixed(2) + '%</b></p></div>'; });
   lh += '</div>';
-  return (D.cr ? card(L('opening'), reel) : '') + card(L('case'), h + cmd('/kasa')) + card(L('chances') + ' - ' + (c[D.lang] || c.en), (loot.length ? lh : '<p class="muted">' + esc(L('noData')) + '</p>') + '<p class="muted" style="margin-top:8px">' + esc(L('vipDrop')) + '</p>');
+  return stage + card(L('case'), h + cmd(D.lang === 'tr' ? '/kasa' : '/case')) + card(L('chances') + ' - ' + (c[D.lang] || c.en), (loot.length ? lh : '<p class="muted">' + esc(L('noData')) + '</p>') + '<p class="muted" style="margin-top:8px">' + esc(L('vipDrop')) + '</p>');
 };
 function runReel() {
   if (!D.cr || !$('reel')) return;
-  var cs = caseData(), c = cs[D.cr.c] || cs[0], pool = (c.loot && c.loot.length) ? c.loot : [[D.cr.code, D.cr.r, 1]], items = [], WIN = 38;
-  for (var i = 0; i < 46; i++) { var p = pool[Math.floor(Math.random() * pool.length)]; items.push(i === WIN ? [D.cr.code, D.cr.r] : [p[0], p[1]]); }
-  var reel = $('reel'); reel.innerHTML = items.map(function (x) { return '<div class="it"><div class="ib" style="' + grad('case') + '">' + svg(x[0].charAt(0) === 'k' ? 'blade' : 'gift') + '</div><b>' + esc(itemName(x[0])) + '</b><small class="t' + x[1] + '">' + esc(L('rar')[x[1]]) + '</small><div class="rb r' + x[1] + '"></div></div>'; }).join('');
-  var box = reel.parentNode, W = 128, target = WIN * W + 60 - box.clientWidth / 2 + Math.floor(Math.random() * 60) - 30, start = null, dur = 5200, last = -1;
-  function ease(t) { return 1 - Math.pow(1 - t, 4); }
-  function step(ts) {
-    if (!start) start = ts; var t = Math.min(1, (ts - start) / dur), x = target * ease(t);
-    reel.style.transform = 'translateX(' + (-x) + 'px)'; var idx = Math.floor((x + box.clientWidth / 2) / W); if (idx !== last) { last = idx; SND.tick(); }
-    if (t < 1) requestAnimationFrame(step); else done();
+  var st = $('cstage');
+  tone(90, 1.1, 'sawtooth', 0.04, 0, 140);
+  setTimeout(function () { if (!$('cstage')) return; st.className = 'casestage open'; tone(880, 0.25, 'sine', 0.08, 0, 1760); }, 1100);
+  setTimeout(function () { if (!$('cstage')) return; st.style.display = 'none'; $('rbox').style.display = 'block'; spin(); }, 1700);
+  function spin() {
+    var cs = caseData(), c = cs[D.cr.c] || cs[0], pool = (c.loot && c.loot.length) ? c.loot : [[D.cr.code, D.cr.r, 1]], items = [], WIN = 38;
+    for (var i = 0; i < 46; i++) { var p = pool[Math.floor(Math.random() * pool.length)]; items.push(i === WIN ? [D.cr.code, D.cr.r] : [p[0], p[1]]); }
+    var reel = $('reel'); reel.innerHTML = items.map(function (x) { return '<div class="it"><div class="ic"><div class="ib" style="' + lg(160, RCOL[x[1]], '#15121a') + '">' + svg(x[0].charAt(0) === 'k' ? 'blade' : 'gift') + '</div><b>' + esc(itemName(x[0])) + '</b><small class="t' + x[1] + '">' + esc(L('rar')[x[1]]) + '</small><div class="rb r' + x[1] + '"></div></div></div>'; }).join('');
+    var box = reel.parentNode, W = 128, target = WIN * W + 60 - box.clientWidth / 2 + Math.floor(Math.random() * 60) - 30, start = null, dur = 5200, last = -1;
+    function ease(t) { return 1 - Math.pow(1 - t, 4); }
+    function step(ts) {
+      if (!start) start = ts; var t = Math.min(1, (ts - start) / dur), x = target * ease(t);
+      reel.style.webkitTransform = reel.style.transform = 'translateX(' + (-x) + 'px)'; var idx = Math.floor((x + box.clientWidth / 2) / W); if (idx !== last) { last = idx; SND.tick(); }
+      if (t < 1) requestAnimationFrame(step); else done();
+    }
+    requestAnimationFrame(step);
   }
   function done() {
-    var r = D.cr.r, col = ['#9aa0a8', '#3c8cff', '#a646ff', '#ffbe28', '#ff2a2a'][r];
-    $('winBox').innerHTML = '<div class="win" style="background:linear-gradient(160deg,' + col + '33,transparent);border:1px solid ' + col + '"><div class="rr t' + r + '">' + esc(L('rar')[r]) + '</div><h2>' + esc(L('got')) + ': ' + esc(itemName(D.cr.code)) + '</h2></div>';
-    SND.win(r); if (r >= 3) confetti(col);
+    var r = D.cr.r, col = RCOL[r];
+    $('winBox').innerHTML = '<div class="win" style="background:' + rgba(col, 0.18) + ';border:1px solid ' + col + '"><div class="rr t' + r + '">' + esc(L('rar')[r]) + '</div><h2>' + esc(L('got')) + ': ' + esc(itemName(D.cr.code)) + '</h2></div>';
+    SND.win(r); if (r >= 2) confetti(col);
     banner(L('got'), itemName(D.cr.code), 'gift', col);
   }
-  setTimeout(function () { requestAnimationFrame(step); }, 350);
 }
 R.daily = function () {
   var h = '<div class="days">', today = D.claimed ? Math.max(1, D.streak) : D.streak + 1;
   for (var i = 1; i <= 7; i++) {
     var ap = 20 + 10 * i, vc = 1 + Math.floor(i / 2), cls = i < today || (i === today && D.claimed) ? 'done' : i === today ? 'now' : '';
-    h += '<div class="day ' + cls + '"><b>' + esc(L('day')) + ' ' + i + '</b><strong>' + ap + ' AP</strong><small>+' + vc + ' VC</small></div>';
+    h += '<div class="day ' + cls + '"><div><b>' + esc(L('day')) + ' ' + i + '</b><strong>' + ap + ' AP</strong><small>+' + vc + ' VC</small></div></div>';
   }
   h += '</div>';
   return card(L('daily') + ' - ' + L('streak') + ': ' + D.streak, h + '<p style="margin-top:12px">' + esc(D.claimed ? L('claimed') + ' - ' + F('dailyWait', hms(D.next)) : L('dailyReady')) + '</p>' + cmd(D.lang === 'tr' ? '/gunluk' : '/daily'));
 };
 R.zup = function () {
   var names = ZCLS[D.lang], h = '<div class="zups">';
-  names.forEach(function (n, i) { var lv = D.zlv[i] | 0, p = ''; for (var k = 0; k < 5; k++) p += '<i' + (k < lv ? ' class="on"' : '') + '></i>'; h += '<div class="zu' + (i === D.zc ? ' cur' : '') + '"><b>' + esc(n) + '</b> <span class="muted">' + esc(L('level')) + ' ' + lv + '/5</span><div class="pips">' + p + '</div></div>'; });
+  names.forEach(function (n, i) { var lv = D.zlv[i] | 0, p = ''; for (var k = 0; k < 5; k++) p += '<i' + (k < lv ? ' class="on"' : '') + '></i>'; h += '<div class="zu' + (i === D.zc ? ' cur' : '') + '"><div class="z"><b>' + esc(n) + '</b> <span class="muted">' + esc(L('level')) + ' ' + lv + '/5</span><div class="pips">' + p + '</div></div></div>'; });
   return card(L('zup'), '<p class="muted" style="margin-bottom:10px">' + esc(L('zupHow')) + '</p>' + h + '</div>' + cmd('/yukselt'));
 };
 R.trade = function () { return card(L('trade'), '<p>' + esc(L('tradeHow')) + '</p>' + cmd(D.lang === 'tr' ? '/takas' : '/trade')) + R.inv(); };
@@ -356,7 +452,7 @@ R.set = function () {
   h += '<div class="set"><span>' + esc(L('sound')) + '</span><div class="sw' + (soundOn ? ' on' : '') + '" data-set="snd"></div></div>';
   h += '<div class="set"><span>' + esc(L('notif')) + '</span><div class="sw' + (notifOn ? ' on' : '') + '" data-set="ntf"></div></div>';
   h += '<div class="set"><span>' + esc(L('lang')) + '</span><div class="seg"><span data-set="tr" class="' + (D.lang === 'tr' ? 'on' : '') + '">Turkce</span><span data-set="en" class="' + (D.lang === 'en' ? 'on' : '') + '">English</span></div></div>';
-  var w = '<div class="wps">'; L('wpNames').forEach(function (n, i) { w += '<div class="wpt wp' + i + (i === WP ? ' on' : '') + '" data-wp="' + i + '">' + (i === 7 ? emblem() : '') + '<small>' + esc(n) + '</small></div>'; }); w += '</div>';
+  var w = '<div class="wps">'; L('wpNames').forEach(function (n, i) { w += '<div class="wpt' + (i === WP ? ' on' : '') + '" data-wp="' + i + '"><div class="w wp' + i + '">' + (i === 7 ? emblem() : '') + '<small>' + esc(n) + '</small></div></div>'; }); w += '</div>';
   var acc = store('acc') || ACCS[0]; w += '<div class="ccl" style="margin-top:12px">' + esc(L('accent')) + '</div><div class="ccacc">' + ACCS.map(function (c) { return '<span data-acc="' + c + '" class="' + (c === acc ? 'on' : '') + '" style="background:' + c + '"></span>'; }).join('') + '</div>';
   return card(L('set'), h) + card(L('wall'), w) + '<div class="cce" data-app="about" style="margin:0 0 12px">' + svg('about') + esc(L('about')) + '</div>' + card('', '<p class="muted">' + (D.lang === 'tr' ? 'Oyun ici ayarlar' : 'In-game settings') + '</p>' + cmd(D.lang === 'tr' ? '/ayarlar  /dil  /stil' : '/settings  /lang  /style'));
 };
@@ -364,21 +460,21 @@ R.adm = function () {
   if (D.role < 1) return card('', '<p>' + esc(L('adminOnly')) + '</p>');
   var h = card('', '<div class="stats">' + stat(Math.floor(D.up / 60) + ' ' + L('hours') + ' ' + (D.up % 60) + ' ' + L('min'), L('uptime')) + stat(D.svp + '/' + D.mx, L('players')) + stat(D.map, L('map')) + stat(D.round, L('round')) + '</div>');
   var a = [['amx_menu', D.lang === 'tr' ? 'oyuncu islemleri' : 'player actions'], ['/yonetim', D.lang === 'tr' ? 'Vexmira yonetim menusu (modlar, boss, event)' : 'Vexmira admin menu (modes, boss, events)'], ['amx_kick <isim>', 'kick'], ['amx_ban <isim> <dk>', 'ban'], ['amx_slay <isim>', 'slay'], ['amx_map <harita>', D.lang === 'tr' ? 'harita degistir' : 'change map'], ['vex_plan', D.lang === 'tr' ? 'bu haritanin round plani' : "this map's round plan"], ['vex_fastdl_files', 'FastDL']];
-  h += card(L('cmds'), '<div class="cmds">' + a.map(function (x) { return '<div><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</div>'; }).join('') + '</div>');
+  h += card(L('cmds'), '<div class="cmds">' + a.map(function (x) { return '<div><p><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>');
   if (D.role >= 2) {
     var f = [['vex_reset_top', D.lang === 'tr' ? 'Top15 sifirla' : 'reset Top15'], ['vex_reset_time', D.lang === 'tr' ? 'sure siralamasini sifirla' : 'reset playtime top'], ['vex_reset_ach', D.lang === 'tr' ? 'basarim siralamasini sifirla' : 'reset achievement top'],
       ['vex_give_vc <isim> <miktar>', 'VexCoin'], ['vex_give_ap <isim> <miktar>', 'AP'], ['vex_give_ach <isim> <0-29>', L('ach')], ['vex_give_case <isim> <0-3>', L('case')], ['vex_vip_add <isim> <gun> <1|2>', 'VIP / ELITE'], ['vex_boss_build', D.lang === 'tr' ? 'dev boss dosyalari' : 'giant boss files']];
-    h += card(L('founder'), '<div class="warn">' + (D.lang === 'tr' ? 'Bu islemler geri alinamaz. Konsoldan (rcon) calistir.' : 'These actions cannot be undone. Run them from the console (rcon).') + '</div><div class="cmds">' + f.map(function (x) { return '<div><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</div>'; }).join('') + '</div>');
+    h += card(L('founder'), '<div class="warn">' + (D.lang === 'tr' ? 'Bu islemler geri alinamaz. Konsoldan (rcon) calistir.' : 'These actions cannot be undone. Run them from the console (rcon).') + '</div><div class="cmds">' + f.map(function (x) { return '<div><p><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>');
   }
   return h;
 };
 R.about = function () { return card('', '<div class="about"><div class="lg">' + LOGO() + '</div><p><b>VEXMIRA</b> &middot; iPad 6.0</p><p class="muted" style="margin:6px 0">' + esc(L('credit')) + ': <b style="color:var(--acc)">smurfsexy</b></p><p class="muted">' + esc(D.map) + ' &middot; ' + esc(L('round')) + ' ' + esc(D.round) + '</p>' + (D.ts ? '<p class="muted">' + esc(F('updated', Math.max(0, Math.round((Date.now() / 1000 - D.ts) / 60)))) + '</p>' : '') + '</div>'); };
 
 R.store = function () {
-  var h = '<div class="feat"><div class="sq" style="' + grad('g2048') + '">' + svg('g2048') + '</div><div><small>' + esc(L('featured')) + '</small><h2>' + esc(L('g2048')) + '</h2><p>' + esc(L('d_g2048')) + '</p></div>' + storeBtn('g2048') + '</div>';
+  var h = '<div class="feat"><div><div class="sq" style="' + grad('g2048') + '">' + svg('g2048') + '</div></div><div class="fd"><small>' + esc(L('featured')) + '</small><h2>' + esc(L('g2048')) + '</h2><p>' + esc(L('d_g2048')) + '</p></div><div class="fb">' + storeBtn('g2048') + '</div></div>';
   CATS.forEach(function (c) {
     h += '<h3 class="sth">' + esc(L(c[0])) + '</h3><div class="apps">';
-    c[1].forEach(function (a) { h += '<div class="appr"><div class="sq" style="' + grad(a) + '">' + svg(a) + '</div><div class="ad"><b>' + esc(L(a)) + '</b><small>' + esc(L('d_' + a)) + '</small><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span></div>' + storeBtn(a) + '</div>'; });
+    c[1].forEach(function (a) { h += '<div class="appr"><div class="ar"><div><div class="sq" style="' + grad(a) + '">' + svg(a) + '</div></div><div class="ad"><b>' + esc(L(a)) + '</b><small>' + esc(L('d_' + a)) + '</small><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span></div><div class="ab">' + storeBtn(a) + '</div></div></div>'; });
     h += '</div>';
   });
   return h;
@@ -474,7 +570,7 @@ var CMDS = [
   ['unstuck', 'takildim', 'Sikistiysan kurtar', 'Get unstuck'], ['rules', 'kurallar', 'Kurallar', 'Rules'], ['help', 'yardim', 'Yardim', 'Help'], ['discord', 'iletisim', 'Iletisim', 'Contact']
 ];
 R.cmds = function () {
-  return card('', '<div class="cmds">' + CMDS.map(function (c) { return '<div><b>/' + esc(D.lang === 'tr' ? c[1] : c[0]) + '</b>' + esc(tr(c[2], c[3])) + '</div>'; }).join('') + '</div>');
+  return card('', '<div class="cmds">' + CMDS.map(function (c) { return '<div><p><b>/' + esc(D.lang === 'tr' ? c[1] : c[0]) + '</b>' + esc(tr(c[2], c[3])) + '</p></div>'; }).join('') + '</div>');
 };
 // music: procedural horror ambience (WebAudio)
 var MUS = { i: -1, nodes: [], timers: [], an: null, out: null };
@@ -513,7 +609,7 @@ function musPlay(i) {
 }
 R.music = function () {
   var tk = L('tracks'), h = '<div class="mus"><canvas id="mviz"></canvas><div class="mnow"><small>' + esc(L('np')) + '</small><b>' + esc(MUS.i >= 0 ? tk[MUS.i] : '-') + '</b></div></div><div class="tracks">';
-  tk.forEach(function (n, i) { var on = MUS.i === i; h += '<div class="trk' + (on ? ' on' : '') + '" data-mus="' + i + '"><span class="tb" style="' + grad(['music', 'prof', 'case', 'inv'][i]) + '">' + svg(on ? 'pause' : 'play') + '</span><div><b>' + esc(n) + '</b><small>VEXMIRA Ambience &middot; ' + ['4:12', '3:30', '5:05', '4:48'][i] + '</small></div></div>'; });
+  tk.forEach(function (n, i) { var on = MUS.i === i; h += '<div class="trk' + (on ? ' on' : '') + '" data-mus="' + i + '"><div class="tr"><div><span class="tb" style="display:block;' + grad(['music', 'prof', 'case', 'inv'][i]) + '">' + svg(on ? 'pause' : 'play') + '</span></div><div class="tt"><b>' + esc(n) + '</b><small>VEXMIRA Ambience &middot; ' + ['4:12', '3:30', '5:05', '4:48'][i] + '</small></div></div></div>'; });
   return h + '</div>';
 };
 function musViz() {
@@ -531,7 +627,7 @@ R.notes = function () { return '<textarea id="notesTa" class="notes" placeholder
 var CALC = { v: '0', a: null, op: null, fresh: true };
 R.calc = function () {
   var k = [['C', 'fn'], ['+/-', 'fn'], ['%', 'fn'], ['/', 'op'], ['7'], ['8'], ['9'], ['*', 'op'], ['4'], ['5'], ['6'], ['-', 'op'], ['1'], ['2'], ['3'], ['+', 'op'], ['0', 'z'], ['.'], ['=', 'op']];
-  return '<div class="calc"><div class="cdisp" id="cdisp">' + esc(CALC.v) + '</div><div class="ckeys">' + k.map(function (x) { return '<span class="ck ' + (x[1] || '') + '" data-calc="' + x[0] + '">' + (x[0] === '*' ? '&times;' : x[0] === '/' ? '&divide;' : x[0]) + '</span>'; }).join('') + '</div></div>';
+  return '<div class="calc"><div class="cdisp" id="cdisp">' + esc(CALC.v) + '</div><div class="ckeys">' + k.map(function (x) { return '<span class="ck ' + (x[1] || '') + '" data-calc="' + x[0] + '"><span>' + (x[0] === '*' ? '&times;' : x[0] === '/' ? '&divide;' : x[0]) + '</span></span>'; }).join('') + '</div></div>';
 };
 function calcKey(k) {
   var C = CALC, cur2 = parseFloat(C.v);
@@ -583,7 +679,7 @@ function start2048() {
   var B, score, best = num(store('2048')), over;
   function add() { var e = []; B.forEach(function (v, i) { if (!v) e.push(i); }); if (e.length) B[e[Math.floor(Math.random() * e.length)]] = Math.random() < 0.9 ? 2 : 4; }
   function reset() { B = []; for (var i = 0; i < 16; i++) B.push(0); score = 0; over = false; add(); add(); draw(); }
-  function draw() { var el = $('g48b'); if (!el) return; el.innerHTML = B.map(function (v) { return '<div class="c48 v' + Math.min(v, 4096) + '">' + (v || '') + '</div>'; }).join('') + (over ? '<div class="g48o">' + esc(L('over')) + '</div>' : ''); $('gScore').textContent = score; $('gBest').textContent = best; }
+  function draw() { var el = $('g48b'); if (!el) return; el.innerHTML = B.map(function (v) { return '<div class="c48 v' + Math.min(v, 4096) + '"><i>' + (v || '') + '</i></div>'; }).join('') + (over ? '<div class="g48o">' + esc(L('over')) + '</div>' : ''); $('gScore').textContent = score; $('gBest').textContent = best; }
   function move(d) {
     if (over) return; var moved = false;
     for (var a = 0; a < 4; a++) {
@@ -603,7 +699,7 @@ function start2048() {
   if (bd) { bd.addEventListener('mousedown', function (e) { sx = e.clientX; sy = e.clientY; }); bd.addEventListener('mouseup', function (e) { if (sx === null) return; var dx = e.clientX - sx, dy = e.clientY - sy; sx = null; if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return; move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0)); }); }
   reset();
 }
-R.whack = function () { var h = '<div class="wk"><div class="wkh"><div><small>' + esc(L('score')) + '</small><b id="gScore">0</b></div><div><small>' + esc(L('timeLeft')) + '</small><b id="wkT">30</b></div><div><small>' + esc(L('best')) + '</small><b id="gBest">0</b></div><span class="gbtn get" data-gs="1">' + esc(L('start')) + '</span></div><div class="wkg">'; for (var i = 0; i < 9; i++) h += '<div class="hole" data-hole="' + i + '"><i class="zb"></i></div>'; return h + '</div></div>'; };
+R.whack = function () { var h = '<div class="wk"><div class="wkh"><div><small>' + esc(L('score')) + '</small><b id="gScore">0</b></div><div><small>' + esc(L('timeLeft')) + '</small><b id="wkT">30</b></div><div><small>' + esc(L('best')) + '</small><b id="gBest">0</b></div><span class="gbtn get" data-gs="1">' + esc(L('start')) + '</span></div><div class="wkg">'; for (var i = 0; i < 9; i++) h += '<div class="hole" data-hole="' + i + '"><div><i class="zb"></i></div></div>'; return h + '</div></div>'; };
 function startWhack() {
   var best = num(store('whack')), score = 0, tl = 0, live = -1, timer = null, spawn = null;
   $('gBest').textContent = best;
@@ -617,7 +713,7 @@ var STARTERS = { game: function () { startGame(); }, snake: startSnake, g2048: s
 
 // ------------------------------------------------------------------ home (widgets + grid + folder + edit mode)
 var cur = null, EDIT = false, ACCS = ['#e3243b', '#ff6a2b', '#ffc23a', '#3ddc84', '#2fb8ff', '#8b5cff', '#ff4fa0'];
-function applyAccent() { var a = store('acc'); document.documentElement.style.setProperty('--acc', ACCS.indexOf(a) >= 0 ? a : ''); if (ACCS.indexOf(a) < 0) document.documentElement.style.removeProperty('--acc'); }
+function applyAccent() { applyTheme(); }
 function applyBright() { var b = num(store('br'), 100); $('screen').style.filter = b < 100 ? 'brightness(' + (b / 100) + ')' : ''; }
 function icoHtml(a, badges, dock) {
   if (a === 'games') { var gs = GAMES.filter(installed); return '<div class="ico" data-fold="games"><div class="sq fold">' + gs.slice(0, 4).map(function (g) { return '<i style="' + grad(g) + '">' + svg(g) + '</i>'; }).join('') + '</div><span>' + esc(L('games')) + '</span></div>'; }
@@ -643,7 +739,7 @@ function renderHome() {
   var h = '<div class="hello"><h1>' + esc(L('hello')) + ', <b>' + esc(D.name) + '</b></h1><div class="hact">' +
     (EDIT ? '<span class="pill on" data-ui="done">' + esc(L('done')) + '</span>' : '<span class="pill" data-ui="cc">' + svg('brush') + esc(L('custom')) + '</span>') + '</div></div>';
   h += '<div class="hbody' + (EDIT ? ' edit' : '') + '">' + widgets() + '<div class="grid">' + homeApps().map(function (a) { return icoHtml(a, badges); }).join('') + '</div></div>';
-  h += '<div class="dock">' + DOCK.map(function (a) { return icoHtml(a, badges, true); }).join('') + '</div>';
+  h += '<div class="dock"><div class="dockin">' + DOCK.map(function (a) { return icoHtml(a, badges, true); }).join('') + '</div></div>';
   $('home').innerHTML = h;
 }
 function overlay(id, html) {
@@ -658,13 +754,13 @@ function openFolder() {
 }
 function ccHtml() {
   var dark = store('theme') !== 'light', acc = store('acc') || ACCS[0], br = num(store('br'), 100);
-  function tile(k, ic, on, lab, val) { return '<div class="cct' + (on ? ' on' : '') + '" data-set="' + k + '"><i>' + svg(ic) + '</i><b>' + esc(lab) + '</b><small>' + esc(val) + '</small></div>'; }
+  function tile(k, ic, on, lab, val) { return '<div class="cct' + (on ? ' on' : '') + '" data-set="' + k + '"><div><i>' + svg(ic) + '</i><b>' + esc(lab) + '</b><small>' + esc(val) + '</small></div></div>'; }
   var h = '<div class="ccp"><div class="cch"><b>' + esc(L('cc')) + '</b><span class="x" data-ui="ccx">&times;</span></div><div class="ccg">' +
     tile(dark ? 'light' : 'dark', dark ? 'moon' : 'sun', dark, L('theme'), dark ? L('dark') : L('light')) + tile('snd', 'vol', soundOn, L('sound'), soundOn ? 'ON' : 'OFF') +
     tile('ntf', 'bell', notifOn, L('notif'), notifOn ? 'ON' : 'OFF') + tile(D.lang === 'tr' ? 'en' : 'tr', 'globe', true, L('lang'), D.lang === 'tr' ? 'Turkce' : 'English') + '</div>';
   h += '<div class="ccs"><i>' + svg('bright') + '</i><input id="ccBr" type="range" min="45" max="100" value="' + br + '"></div>';
   h += '<div class="ccl">' + esc(L('accent')) + '</div><div class="ccacc">' + ACCS.map(function (c) { return '<span data-acc="' + c + '" class="' + (c === acc ? 'on' : '') + '" style="background:' + c + '"></span>'; }).join('') + '</div>';
-  h += '<div class="ccl">' + esc(L('wall')) + '</div><div class="ccwp">' + L('wpNames').map(function (n, i) { return '<div class="wpt wp' + i + (i === WP ? ' on' : '') + '" data-wp="' + i + '" title="' + esc(n) + '">' + (i === 7 ? emblem() : '') + '<small>' + esc(n) + '</small></div>'; }).join('') + '</div>';
+  h += '<div class="ccl">' + esc(L('wall')) + '</div><div class="ccwp">' + L('wpNames').map(function (n, i) { return '<div class="wpt' + (i === WP ? ' on' : '') + '" data-wp="' + i + '"><div class="w wp' + i + '">' + (i === 7 ? emblem() : '') + '<small>' + esc(n) + '</small></div></div>'; }).join('') + '</div>';
   if (MUS.i >= 0) h += '<div class="ccm"><i style="' + grad('music') + '">' + svg('music') + '</i><div><small>' + esc(L('np')) + '</small><b>' + esc(L('tracks')[MUS.i]) + '</b></div><span class="gbtn" data-ui="mstop">' + esc(L('stop')) + '</span></div>';
   h += '<div class="cce" data-ui="edit">' + svg('grid') + esc(L('edit')) + '</div></div>';
   return h;
@@ -718,7 +814,7 @@ document.addEventListener('click', function (e) {
   if (GAME && GAME.flap && e.target && e.target.id === 'gcv') { GAME.flap(); return; }
   if (GAME && GAME.tap && e.target && e.target.id === 'scv') { GAME.tap(); return; }
   var ov = findAttr(e.target, ['id']);
-  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-case', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs']);
+  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs']);
   if (!el) {
     var t = e.target;
     if (t && t.className && typeof t.className === 'string' && t.className.indexOf('ov ') === 0) { closeOv(t.id); if (t.id === 'cc') SND.close(); }
@@ -743,6 +839,7 @@ document.addEventListener('click', function (e) {
   if ((v = el.getAttribute('data-calc')) !== null) { SND.tick(); calcKey(v); return; }
   if ((v = el.getAttribute('data-mus')) !== null) { v = num(v); if (MUS.i === v) musStop(); else musPlay(v); $('appBody').innerHTML = R.music(); musViz(); return; }
   SND.click();
+  if ((v = el.getAttribute('data-top'))) { $('appBody').innerHTML = leader(v); return; }
   if ((v = el.getAttribute('data-tab'))) { invTab = v; $('appBody').innerHTML = R[cur](); return; }
   if ((v = el.getAttribute('data-case')) !== null) { caseSel = num(v); var keep = D.cr; D.cr = null; $('appBody').innerHTML = R['case'](); D.cr = keep; return; }
   if ((v = el.getAttribute('data-wp')) !== null) { WP = num(v) % 8; store('wp', WP); setWall(); if (cur === 'set') $('appBody').innerHTML = R.set(); refreshCC(); return; }

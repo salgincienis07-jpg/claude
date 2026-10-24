@@ -3455,6 +3455,7 @@ new g_szCsoOverride[33][160];
 #define OVH_MAXENT 4096
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];
 new Float:g_fWingDz60[33];
+new g_pTabBots61, g_iTabW61, bool:g_bTabHud61, g_iMsgWList61, Float:g_fTabTap61[33], bool:g_bTabSent61[33];
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
 #define CM_CATS 3
@@ -11454,7 +11455,7 @@ return HC_SUPERCEDE;
 }
 return HC_CONTINUE;
 }
-if (item == ITEM_KNIFE)
+if (item == ITEM_KNIFE || (item == ITEM_C4 && type != ITEM_TYPE_BUYING))
 return HC_CONTINUE;
 SetHookChainReturn(ATYPE_BOOL, true);
 return HC_SUPERCEDE;
@@ -11463,6 +11464,8 @@ public rg_DefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt
 {
 new id = get_member(weapon, m_pPlayer);
 if (!(1 <= id <= g_iMax))
+return HC_CONTINUE;
+if (TabDeploy61(weapon, id))
 return HC_CONTINUE;
 new WeaponIdType:wid = get_member(weapon, m_iId);
 if (g_bZombie[id])
@@ -14788,6 +14791,7 @@ g_iStreak[id] = 0;
 rg_set_user_team(id, TEAM_TERRORIST, MODEL_UNASSIGNED, true, false);
 rg_remove_all_items(id);
 rg_give_item(id, "weapon_knife");
+TabGiveLater61(id);
 ApplyZombieStats(id);
 new Float:o[3];
 get_entvar(id, var_origin, o);
@@ -14944,6 +14948,7 @@ g_bRage[id] = 0; g_bZArmor[id] = 0; g_iInfNades[id] = 0; g_bZRegen[id] = 0; g_bN
 rg_set_user_team(id, TEAM_CT, MODEL_UNASSIGNED, true, false);
 rg_remove_all_items(id);
 rg_give_item(id, "weapon_knife");
+TabGiveLater61(id);
 rg_set_user_footsteps(id, false);
 ApplyHumanModel(id);
 set_entvar(id, var_health, float(MaxHumanHP(id)));
@@ -22364,7 +22369,7 @@ g_szKey[id][0] = 0; g_bLoaded[id] = false; g_iClassNext[id] = -1; g_iJobNext[id]
 g_bTrailOn[id] = false;
 g_bLmGiven[id] = false;
 g_iCases60[id] = 0; g_iTrades60[id] = 0; g_iLmKills60[id] = 0; g_iKnifeKills60[id] = 0; g_iCures60[id] = 0;
-g_iLifeKills60[id] = 0; g_iRoundInf60[id] = 0; g_bTab60[id] = false; g_iTradeTo60[id] = 0; g_iTradeFrom60[id] = 0;
+g_iLifeKills60[id] = 0; g_iRoundInf60[id] = 0; g_bTab60[id] = false; g_bTabSent61[id] = false; g_iTradeTo60[id] = 0; g_iTradeFrom60[id] = 0;
 g_iAfkSec[id] = 0;
 g_fNextBeat[id] = 0.0;
 for (new i = 0; i < NUM_PERKS; i++)
@@ -22953,6 +22958,7 @@ g_fRespawnAt[id] = 0.0;
 ResetLifeData(id);
 MsOnSpawn(id);
 set_task(0.7,"EpicVipSpawn",id+TASK_EPIC_SPAWN);
+TabGiveLater61(id, 0.8);
 g_iCsoIcon[id] = 0;
 if (g_bForceZombie[id])
 {
@@ -31272,9 +31278,11 @@ register_concmd("vex_give_case",  "cmd_GiveCase60",  ADMIN_RCON, "<isim> <0-3> -
 register_forward(FM_CmdStart, "fw_TabletCmd60");
 RegisterHam(Ham_Item_Deploy, "weapon_knife", "fw_KnifeDeploy60", 1);
 LbLoad60();
+TabItemInit61();
 }
 TabletPrecache60()
 {
+TabItemPrecache61();
 if (file_exists("models/vexmira/tablet/v_tablet.mdl", true)) g_iTabV60 = ZcPcModel("models/vexmira/tablet/v_tablet.mdl");
 if (file_exists("models/vexmira/tablet/p_tablet.mdl", true)) g_iTabP60 = ZcPcModel("models/vexmira/tablet/p_tablet.mdl");
 }
@@ -31964,8 +31972,11 @@ message_begin(MSG_ONE, SVC_WEAPONANIM, _, id); write_byte(anim); write_byte(0); 
 }
 public fw_TabletCmd60(id, uc, seed)
 {
-if (!is_user_alive(id) || is_user_bot(id) || g_bZombie[id] || !get_pcvar_num(g_pTabItem60) || !g_iTabV60) return FMRES_IGNORED;
+if (!is_user_alive(id) || is_user_bot(id) || !get_pcvar_num(g_pTabItem60) || !g_iTabV60) return FMRES_IGNORED;
 new btn = get_uc(uc, UC_Buttons), old = get_entvar(id, var_oldbuttons);
+// 6.1: the tablet is its own item now (slot 5); the old knife + R mode stays off
+TabCmd61(id, uc, btn, old);
+if (TabItemOn61()) return FMRES_IGNORED;
 new bool:knife = (GetActiveWeaponId(id) == WEAPON_KNIFE);
 if (!knife) { g_bTab60[id] = false; return FMRES_IGNORED; }
 if ((btn & IN_RELOAD) && !(old & IN_RELOAD)) { TabletShow60(id, !g_bTab60[id]); return FMRES_IGNORED; }
@@ -31994,11 +32005,11 @@ return FMRES_SUPERCEDE;
 }
 return FMRES_IGNORED;
 }
-public task_TabOpen60(tid) { new id = tid - 6060600; if (is_user_connected(id) && g_bTab60[id]) OpenTablet60(id, "home", ""); }
+public task_TabOpen60(tid) { new id = tid - 6060600; if (is_user_alive(id) && GetActiveWeaponId(id) == WEAPON_C4) OpenTablet60(id, "home", ""); }
 TabletRoundHint60(id)
 {
 if (!g_iTabV60 || is_user_bot(id) || !get_pcvar_num(g_pTabItem60)) return;
-client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Tabletin hazir: bicak elindeyken ^3R^1 = tableti cikar (panel acilir), ^3sol tik^1 = tekrar ac, ^3sag tik^1 = kaldir. Yazarak: ^3/ipad" : "^4[VEXMIRA]^1 Your tablet: hold the knife, ^3R^1 = take it out (panel opens), ^3left click^1 = reopen, ^3right click^1 = put away. Or type ^3/ipad");
+client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 iPad cebinde: ^3[5]^1 tusu ile al, ^3sol tik^1 = ekrani ac, ^3sag tik^1 = onceki silah. Yazarak: ^3/ipad" : "^4[VEXMIRA]^1 Your iPad is in slot ^3[5]^1: ^3left click^1 = open the screen, ^3right click^1 = previous weapon. Or type ^3/ipad");
 }
 
 // formats a dictionary key in Turkish or English regardless of the player (uses the server language slot)
@@ -32010,3 +32021,213 @@ formatex(out, len, "%L", LANG_SERVER, key);
 set_cvar_string("amx_language", old);
 }
 public task_TabHint60(tid) { new id = tid - 6070700; if (is_user_connected(id)) TabletRoundHint60(id); }
+
+// =====================================================================================================
+// 6.1 TABLET ITEM: its own weapon in slot 5 (built on weapon_c4, renamed with WeaponList -> own HUD
+// icon "sprites/vexmira_tablet.txt"). Every human and zombie gets it on each spawn / infection / cure.
+// Draw: the iPad model with the live home screen. Left click: tap the screen -> the tablet UI opens.
+// Right click: back to the previous weapon. Bomb messages, icons and planting are blocked.
+// =====================================================================================================
+#define TAB61_UID 6161
+#define TAB61_V "models/vexmira/tablet/v_tablet.mdl"
+#define TAB61_P "models/vexmira/tablet/p_tablet.mdl"
+#define TAB61_W "models/vexmira/tablet/w_tablet.mdl"
+TabItemPrecache61()
+{
+if (file_exists(TAB61_W, true)) g_iTabW61 = ZcPcModel(TAB61_W);
+if (file_exists("sprites/vexmira_tablet.txt", true) && file_exists("sprites/vexmira_hud_tablet.spr", true))
+{
+ZcPcGeneric("sprites/vexmira_tablet.txt");
+ZcPcModel("sprites/vexmira_hud_tablet.spr");
+g_bTabHud61 = true;
+}
+}
+TabItemInit61()
+{
+g_iMsgWList61 = get_user_msgid("WeaponList");
+g_pTabBots61 = register_cvar("vex_tablet_bots", "0");
+register_concmd("vex_tablet_status", "cmd_TabStatus61", ADMIN_RCON, "- tablet: kimde var, hud ikonu, modeller");
+register_concmd("vex_tablet_force", "cmd_TabForce61", ADMIN_RCON, "- (test) botlarin eline tableti ver");
+register_clcmd("vexmira_tablet", "cmd_SelTab61");
+RegisterHam(Ham_Weapon_PrimaryAttack, "weapon_c4", "fw_TabPrim61", 0);
+RegisterHam(Ham_Weapon_SecondaryAttack, "weapon_c4", "fw_TabSec61", 0);
+VxRegisterChain524(RG_CBasePlayer_DropPlayerItem, "rg_TabDrop61", false);
+VxRegisterChain524(RG_CWeaponBox_SetModel, "rg_TabBoxModel61", false);
+register_message(get_user_msgid("ScoreAttrib"), "msg_TabScore61");
+register_message(g_iMsgWList61, "msg_TabWList61");
+register_message(get_user_msgid("StatusIcon"), "msg_TabIcon61");
+register_message(get_user_msgid("BombDrop"), "msg_TabBlock61");
+register_message(get_user_msgid("BombPickup"), "msg_TabBlock61");
+register_message(get_user_msgid("TextMsg"), "msg_TabText61");
+}
+bool:TabIsItem61(weapon)
+{
+return weapon > 0 && !is_nullent(weapon) && get_member(weapon, m_iId) == WEAPON_C4;
+}
+bool:TabItemOn61()
+{
+return g_iTabV60 && get_pcvar_num(g_pTabItem60) ? true : false;
+}
+// own HUD name / icon for the C4 slot (once per client; the client then sends "vexmira_tablet" to select it)
+TabWeaponList61(id)
+{
+if (!g_bTabHud61 || g_bTabSent61[id] || !g_iMsgWList61) return;
+g_bTabSent61[id] = true;
+message_begin(MSG_ONE, g_iMsgWList61, _, id);
+write_string("vexmira_tablet");
+write_byte(-1); write_byte(-1); write_byte(-1); write_byte(-1); // no ammo counter for the tablet
+write_byte(4); write_byte(3); write_byte(6); write_byte(24);
+message_end();
+}
+public cmd_SelTab61(id)
+{
+if (is_user_alive(id)) engclient_cmd(id, "weapon_c4");
+return PLUGIN_HANDLED;
+}
+// give (or keep) the tablet; called after spawn, infection and cure
+// keep the CSO card system's WeaponList cache in sync: it re-sends the C4 entry after its HUD tricks
+TabFixWL61()
+{
+if (!g_bTabHud61) return;
+copy(g_szWL[6], charsmax(g_szWL[]), "vexmira_tablet");
+static const T[8] = { -1, -1, -1, -1, 4, 3, 6, 24 };
+for (new k = 0; k < 8; k++) g_iWL[6][k] = T[k];
+g_bWL[6] = true;
+}
+TabGive61(id)
+{
+TabFixWL61();
+if (!TabItemOn61() || !is_user_alive(id) || g_bBoss[id] || (is_user_bot(id) && !get_pcvar_num(g_pTabBots61))) return;
+TabWeaponList61(id);
+if (rg_has_item_by_name(id, "weapon_c4")) return;
+rg_give_custom_item(id, "weapon_c4", GT_APPEND, TAB61_UID);
+}
+public task_TabGive61(tid) { TabGive61(tid - 6161000); }
+TabGiveLater61(id, Float:delay = 0.3)
+{
+remove_task(id + 6161000);
+set_task(delay, "task_TabGive61", id + 6161000);
+}
+// deploy: tablet models + the c4 hold animation (two hands in front of the chest)
+bool:TabDeploy61(weapon, id)
+{
+if (!TabIsItem61(weapon) || !TabItemOn61()) return false;
+SetHookChainArg(2, ATYPE_STRING, TAB61_V);
+SetHookChainArg(3, ATYPE_STRING, g_iTabP60 ? TAB61_P : "");
+SetHookChainArg(5, ATYPE_STRING, "c4");
+g_bTab60[id] = true;
+client_cmd(id, "spk buttons/blip2");
+return true;
+}
+public fw_TabPrim61(weapon)
+{
+if (!TabIsItem61(weapon)) return HAM_IGNORED;
+new id = get_member(weapon, m_pPlayer);
+if (1 <= id <= g_iMax)
+{
+new Float:now = get_gametime();
+if (now - g_fTabTap61[id] > 0.9)
+{
+g_fTabTap61[id] = now;
+SendWeaponAnim60(id, 3);
+client_cmd(id, "spk buttons/lightswitch2");
+remove_task(id + 6060600);
+set_task(0.25, "task_TabOpen60", id + 6060600);
+}
+}
+set_member(weapon, m_Weapon_flNextPrimaryAttack, 0.4);
+return HAM_SUPERCEDE;
+}
+public fw_TabSec61(weapon)
+{
+if (!TabIsItem61(weapon)) return HAM_IGNORED;
+new id = get_member(weapon, m_pPlayer);
+if ((1 <= id <= g_iMax) && get_gametime() - g_fTabTap61[id] > 0.4)
+{
+g_fTabTap61[id] = get_gametime();
+client_cmd(id, "lastinv");
+}
+set_member(weapon, m_Weapon_flNextSecondaryAttack, 0.5);
+return HAM_SUPERCEDE;
+}
+// C4 has no secondary attack in the game dll: catch the right click here
+TabCmd61(id, uc, btn, old)
+{
+if (!(btn & IN_ATTACK2) || (old & IN_ATTACK2) || GetActiveWeaponId(id) != WEAPON_C4) return;
+set_uc(uc, UC_Buttons, btn & ~IN_ATTACK2);
+if (get_gametime() - g_fTabTap61[id] > 0.4)
+{
+g_fTabTap61[id] = get_gametime();
+client_cmd(id, "lastinv");
+}
+}
+public rg_TabDrop61(id, const pszItemName[])
+{
+if (is_user_alive(id) && equal(pszItemName, "weapon_c4"))
+{
+SetHookChainReturn(ATYPE_INTEGER, 0);
+return HC_SUPERCEDE;
+}
+return HC_CONTINUE;
+}
+public rg_TabBoxModel61(box, const model[])
+{
+if (!equal(model, "models/w_backpack.mdl")) return HC_CONTINUE;
+if (g_iTabW61) SetHookChainArg(2, ATYPE_STRING, TAB61_W);
+set_entvar(box, var_nextthink, get_gametime() + 20.0);
+return HC_CONTINUE;
+}
+public msg_TabScore61(msg, dest, ent)
+{
+new f = get_msg_arg_int(2);
+if (f & 2) set_msg_arg_int(2, ARG_BYTE, f & ~2);
+return PLUGIN_CONTINUE;
+}
+public msg_TabIcon61(msg, dest, ent)
+{
+new s[8]; get_msg_arg_string(2, s, charsmax(s));
+return equal(s, "c4") ? PLUGIN_HANDLED : PLUGIN_CONTINUE;
+}
+public msg_TabBlock61(msg, dest, ent) { return PLUGIN_HANDLED; }
+public msg_TabText61(msg, dest, ent)
+{
+if (get_msg_args() < 2) return PLUGIN_CONTINUE;
+new s[32]; get_msg_arg_string(2, s, charsmax(s));
+if (s[0] == '#' && (containi(s, "bomb") != -1 || containi(s, "C4_") != -1)) return PLUGIN_HANDLED;
+return PLUGIN_CONTINUE;
+}
+public cmd_TabStatus61(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+new n, h, w[33];
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_alive(p)) continue;
+n++;
+if (rg_has_item_by_name(p, "weapon_c4")) { h++; w[p] = 1; }
+}
+console_print(id, "[VEXMIRA] tablet: v=%d p=%d w=%d hud=%d item=%d | canli %d oyuncu, %d kiside tablet var", g_iTabV60, g_iTabP60, g_iTabW61, g_bTabHud61, TabItemOn61(), n, h);
+log_amx("[VEXMIRA] tablet: v=%d p=%d w=%d hud=%d item=%d | canli %d oyuncu, %d kiside tablet var", g_iTabV60, g_iTabP60, g_iTabW61, g_bTabHud61, TabItemOn61(), n, h);
+for (new p = 1; p <= g_iMax; p++) if (w[p]) { new nm[32]; get_user_name(p, nm, charsmax(nm)); log_amx("[VEXMIRA] tablet var: %s (%s)", nm, g_bZombie[p] ? "zombi" : "insan"); }
+return PLUGIN_HANDLED;
+}
+public cmd_TabForce61(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_alive(p) || !is_user_bot(p)) continue;
+TabGive61(p);
+engclient_cmd(p, "weapon_c4");
+}
+return PLUGIN_HANDLED;
+}
+// the game's own WeaponList for C4 (sent at every HUD init) -> tablet name / icon, no ammo counter
+public msg_TabWList61(msg, dest, ent)
+{
+if (!g_bTabHud61 || get_msg_args() < 9 || get_msg_arg_int(8) != 6) return PLUGIN_CONTINUE;
+set_msg_arg_string(1, "vexmira_tablet");
+set_msg_arg_int(2, ARG_BYTE, -1);
+set_msg_arg_int(3, ARG_BYTE, -1);
+return PLUGIN_CONTINUE;
+}
