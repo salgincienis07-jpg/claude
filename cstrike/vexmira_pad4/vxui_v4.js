@@ -817,7 +817,7 @@ document.addEventListener('click', function (e) {
   if (GAME && GAME.flap && e.target && e.target.id === 'gcv') { GAME.flap(); return; }
   if (GAME && GAME.tap && e.target && e.target.id === 'scv') { GAME.tap(); return; }
   var ov = findAttr(e.target, ['id']);
-  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-openc', 'data-daily', 'data-eq', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs', 'data-chat', 'data-send', 'data-fadd', 'data-facc', 'data-fdel', 'data-block', 'data-unblock', 'data-toffer', 'data-tgive', 'data-tacc', 'data-tdec', 'data-admtab', 'data-admp', 'data-adm', 'data-map','data-zperk','data-achclaim','data-marketcode','data-mktab','data-mkcat','data-mkstep','data-mkpick','data-marketlist','data-marketbuy','data-marketcancel','data-marketconfirm','data-marketabort','data-linktest']);
+  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-openc', 'data-daily', 'data-eq', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs', 'data-chat', 'data-send', 'data-fadd', 'data-facc', 'data-fdel', 'data-block', 'data-unblock', 'data-toffer', 'data-tgive', 'data-tacc', 'data-tdec', 'data-admtab', 'data-admp', 'data-adm', 'data-map','data-zperk','data-achclaim','data-marketcode','data-mktab','data-mkcat','data-mkstep','data-mkpick','data-marketlist','data-marketbuy','data-marketcancel','data-marketconfirm','data-marketabort','data-linktest','data-x4']);
   if (!el) {
     var t = e.target;
     if (t && t.className && typeof t.className === 'string' && t.className.indexOf('ov ') === 0) { closeOv(t.id); if (t.id === 'cc') SND.close(); }
@@ -826,6 +826,7 @@ document.addEventListener('click', function (e) {
   }
   var v;
   if(el.getAttribute('data-linktest')!==null){act('ping');return;}
+  if((v=el.getAttribute('data-x4'))!==null){var kv=v.split('=');X4[kv[0]]=kv[1];x4re();SND.click();return;}
   if((v=el.getAttribute('data-mktab'))!==null){MK_TAB=v;MARKET_CONFIRM=0;mkRender(true);return;}
   if((v=el.getAttribute('data-mkcat'))!==null){MK_CAT=v;mkRender(false);return;}
   if((v=el.getAttribute('data-mkpick'))!==null){MARKET_CODE=MARKET_CODE===v?'':v;mkRender(false);return;}
@@ -984,7 +985,7 @@ function listen(){
 }
 var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
 function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<15000)return;sendRaw('view',a);}
-function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 4.1 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
+function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 4.2 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 var HOME_SIG='', LIVE_SIG='';
@@ -1159,7 +1160,306 @@ R.market=function(){
   if(sel2)h+='<div class="mksheet"><div class="mksh">'+mkIcon(sel2[3],64)+'<b>'+esc(itemName(sel2[3]))+'</b><small>'+esc(sel2[2])+' · '+esc(mkRarName(sel2[3]))+'</small><div class="mkshp"><span>'+tr2('Fiyat','Price')+'</span><b>'+fmt(sel2[4])+' VC</b></div><div class="mkshp"><span>'+tr2('Sonra kalan','Balance after')+'</span><b>'+fmt(D.vc-sel2[4])+' VC</b></div><button class="mkbtn big" data-marketconfirm="1">'+tr2('Satın al','Buy now')+'</button><button class="mkbtn big ghost" data-marketabort="1">'+tr2('Vazgeç','Cancel')+'</button></div></div>';
   return h+'</div>';
 };
-var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA PAD 4.1</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA PAD 4.2</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+// ------------------------------------------------------------------ PAD 4.2: every app in the iPadOS style of the Market app
+// (large-title hero, segmented controls, inset grouped lists, card grids). Same data and the same actions as before.
+var X4={achf:'all',trt:'',zf:'all'};
+IC.coin='<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.6-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2.1 0 2.9 5.8 1.5 5.8 4.3 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.6-3-1.5M12 6v1.8M12 16.4v1.8"/>';
+IC.bolt='<path d="M13 2.5L4.5 13.5H11l-1 8 8.5-11H12z"/>';
+IC.fire='<path d="M12 21.5c-4 0-6.5-2.7-6.5-6.2 0-3.7 2.9-5.6 3.6-9.8 2.4 1.5 3.4 3.6 3.4 5.4 1-.6 1.7-1.8 1.9-3.2 2.4 2 4.1 4.6 4.1 7.6 0 3.5-2.5 6.2-6.5 6.2z"/>';
+IC.target='<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/>';
+IC.skull='<path d="M12 3c-4.4 0-7.5 3-7.5 7.2 0 2.6 1.3 4.3 2.8 5.3V19h9.4v-3.5c1.5-1 2.8-2.7 2.8-5.3C19.5 6 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/><path d="M10.5 19v2M13.5 19v2"/>';
+IC.crown='<path d="M3.5 18.5L2.5 7l5.5 4.5L12 4l4 7.5L21.5 7l-1 11.5z"/><path d="M3.5 18.5h17"/>';
+IC.lock='<rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>';
+IC.check='<path d="M5 12.5l4.5 4.5L19 7.5"/>';
+IC.send='<path d="M3.5 11.5L20.5 4l-6.5 16.5-3-6.5z"/><path d="M11 14l9.5-10"/>';
+IC.plus='<path d="M12 5v14M5 12h14"/>';
+IC.link='<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>';
+IC.paint='<circle cx="12" cy="12" r="8.5"/><circle cx="8.3" cy="10" r="1.3"/><circle cx="12" cy="7.6" r="1.3"/><circle cx="15.7" cy="10" r="1.3"/><path d="M13 16.5a2 2 0 1 1-2-2"/>';
+IC.photo='<rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M3.5 17l5-4.5 4 3.5 3-2.5 5 4"/>';
+IC.chart='<path d="M4 20.5V10M9.5 20.5V4M15 20.5v-7M20.5 20.5V8"/>';
+IC.chev='<path d="M9.5 6l6 6-6 6"/>';
+var X4C={red:'#ff6961,#c41a1f',orange:'#ffb340,#d46a00',yellow:'#ffe066,#d9a400',green:'#5be07f,#1f9a45',teal:'#5ee0d6,#118a8a',blue:'#5ab0ff,#0a5fd6',indigo:'#8e8cff,#3b35c9',purple:'#d18aff,#8a2bc9',pink:'#ff7aa8,#c8174f',gray:'#a3a8b2,#4b515c'};
+function x4t(a,b){return D.lang==='tr'?a:b;}
+function x4ic(k,col){var c=(X4C[col]||col||ICOL[k]||ICOL.about).split(',');return '<span class="x4i" style="'+lg(160,c[0],c[1])+'">'+svg(k)+'</span>';}
+function x4hero(app,title,sub,right){return '<div class="x4h"><div class="x4hl"><span class="x4a" style="'+grad(app)+'">'+svg(app)+'</span><div class="x4ht"><h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p></div></div>'+(right?'<div class="x4hr">'+right+'</div>':'')+'</div>';}
+function x4bal(label,val,unit,col){return '<small>'+esc(label)+'</small><b style="color:'+(col||'#ffd60a')+'">'+esc(val)+(unit?' <i>'+esc(unit)+'</i>':'')+'</b>';}
+function x4seg(items,attr,curv){return '<div class="mkseg">'+items.map(function(t){return '<span class="'+(curv===t[0]?'on':'')+'" '+attr+'="'+t[0]+'">'+esc(t[1])+(t[2]?' <em>'+t[2]+'</em>':'')+'</span>';}).join('')+'</div>';}
+function x4sec(t,body,foot){return (t?'<div class="x4s">'+esc(t)+'</div>':'')+'<div class="x4g">'+body+'</div>'+(foot?'<div class="x4f">'+foot+'</div>':'');}
+function x4row(icon,title,sub,right,attrs,cls){return '<div class="x4r'+(cls?' '+cls:'')+'"'+(attrs?' '+attrs:'')+'>'+(icon?'<div class="x4rc">'+icon+'</div>':'')+'<div class="x4rt"><b>'+title+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'+(right?'<div class="x4rr">'+right+'</div>':'')+'</div>';}
+function x4ava(name,lv,cls,dot){return '<span class="x4av'+(cls?' '+cls:'')+'" style="'+avaColor(lv)+'">'+esc(initials(name||'?'))+(dot?'<i class="x4on"></i>':'')+'</span>';}
+function x4btn(label,attrs,kind){return '<span class="x4b'+(kind?' '+kind:'')+'" '+(attrs||'')+'>'+esc(label)+'</span>';}
+function x4pill(t,c){return '<span class="x4p'+(c?' '+c:'')+'">'+t+'</span>';}
+function x4segv(items,key){return '<div class="mkseg">'+items.map(function(t){return '<span class="'+(X4[key]===t[0]?'on':'')+'" data-x4="'+key+'='+t[0]+'">'+esc(t[1])+(t[2]?' <em>'+t[2]+'</em>':'')+'</span>';}).join('')+'</div>';}
+function x4bar(pct,cls){return '<div class="x4bar'+(cls?' '+cls:'')+'"><i style="width:'+Math.max(0,Math.min(100,pct))+'%"></i></div>';}
+function x4kpis(list){return '<div class="x4k">'+list.map(function(k){return '<div class="x4kc"><div>'+x4ic(k[0],k[1])+'<b>'+esc(k[2])+'</b><small>'+esc(k[3])+'</small></div></div>';}).join('')+'</div>';}
+function x4empty(icon,col,title,text,btn){return '<div class="mkempty x4e"><span class="x4eic">'+x4ic(icon,col)+'</span><b>'+esc(title)+'</b><p>'+esc(text)+'</p>'+(btn||'')+'</div>';}
+function x4cmd(c){return '<div class="x4f">'+esc(x4t('Oyunda da yazabilirsin: ','Also works in chat: '))+'<code>'+esc(c)+'</code></div>';}
+function x4off(){return LIVE.on?'':'<div class="x4warn"><div class="x4ci">'+x4ic('link','orange')+'</div><span>'+esc(x4t('Canlı bağlantı kurulamadı. Tableti oyunda /ipad yazarak aç.','Live link is off. Open the tablet in game with /ipad.'))+'</span></div>';}
+function x4wrap(h){return '<div class="x4">'+h+'</div>';}
+function x4re(){var b=$('appBody');if(!b||!cur||!R[cur])return;var st=b.scrollTop;b.innerHTML=R[cur]();colors(b);b.scrollTop=st;}
+function x4item(code,size){return mkIcon(code,size||44);}
+function x4rar(code){var r=mkRar(code);return '<span style="color:'+MK_RAR[r][0]+'">'+esc(mkRarName(code))+'</span>';}
+function x4team(t){return t===2?x4t('Zombi','Zombie'):t===1?x4t('İnsan','Human'):x4t('İzleyici','Spectator');}
+
+// ---- profile
+R.prof=function(){
+  var pct=Math.max(0,Math.min(100,D.xn>0?Math.round(D.xp*100/D.xn):100));
+  var h='<div class="x4pc"><div class="x4pcl">'+x4ava(D.name,D.lv,'big')+'</div><div class="x4pcm"><h1>'+esc(D.name)+(D.vip?x4pill(D.vip===2?'ELITE':'VIP','y'):'')+'</h1><p>'+esc(x4t('Seviye ','Level '))+D.lv+(D.rank?' · #'+D.rank+' '+esc(x4t('sırada','rank')):'')+(D.vip&&D.vd?' · '+esc(F('vipDays',D.vd)):'')+'</p>'+x4bar(pct,'w')+'<small>XP '+fmt(D.xp)+' / '+fmt(D.xn)+' · %'+pct+'</small></div><div class="x4pcr"><small>'+esc(x4t('Seviye','Level'))+'</small><b>'+D.lv+'</b></div></div>';
+  h+='<div class="x4s">'+esc(x4t('Savaş istatistikleri','Combat stats'))+'</div>'+x4kpis([['blade','red',fmt(D.k),L('kills')],['zup','green',fmt(D.inf),L('infs')],['target','orange',fmt(D.hs),L('hs')],['top','yellow',fmt(D.w),L('wins')],['crown','purple',fmt(D.b),L('boss')],['skull','gray',fmt(D.d),L('deaths')],['time','blue',Math.floor(D.pt/60)+' '+L('hours'),L('play')],['ach','indigo',achCount()+'/'+achList().length,L('ach')]]);
+  var kd=D.d>0?(D.k/D.d).toFixed(2):fmt(D.k);
+  h+=x4sec(x4t('Cüzdan ve durum','Wallet and status'),
+    x4row(x4ic('coin','yellow'),'VexCoin',esc(x4t('Pazar, kasa ve mağaza parası','Market, case and shop money')),'<b class="x4v y">'+fmt(D.vc)+'</b>')+
+    x4row(x4ic('bolt','blue'),'AP',esc(x4t('Silah ve eşya puanı','Ammo packs')),'<b class="x4v">'+fmt(D.ap)+'</b>')+
+    x4row(x4ic('fire','orange'),esc(L('streak')),esc(x4t('Günlük giriş serisi','Daily login streak')),'<b class="x4v">'+D.streak+'</b>','data-app="daily"')+
+    x4row(x4ic('chart','teal'),esc(x4t('Öldürme / ölüm','Kill / death')),esc(x4t('Oran','Ratio')),'<b class="x4v">'+kd+'</b>')+
+    x4row(x4ic('users','green'),esc(L('online')),esc(D.map||''),'<b class="x4v">'+D.on+'/'+D.mx+'</b>')+
+    (D.sid?'<a class="x4r x4lnk" href="https://steamcommunity.com/profiles/'+esc(D.sid)+'" target="_blank"><div class="x4rc">'+x4ic('link','gray')+'</div><div class="x4rt"><b>'+esc(L('steam'))+'</b></div><div class="x4rr">'+svg('chev')+'</div></a>':''),
+    esc(x4t('Detaylı istatistik için ','For detailed stats type '))+'<code>/istatistik</code>');
+  return x4wrap(h);
+};
+
+// ---- leaderboards (top / time / achtop)
+leader=function(mode){
+  TOPM=mode;var rows=topRows(mode),me=-1;rows.forEach(function(r,i){if(r.n===D.name)me=i;});
+  var titles={top:L('top'),time:L('time'),achtop:L('achtop')};
+  var h=x4hero(mode==='time'?'time':mode==='achtop'?'achtop':'top',titles[mode],x4t('Sezon yarışı · ilk 3 her hafta duyurulur','Season race · top 3 announced weekly'),me>=0?x4bal(x4t('Senin sıran','Your rank'),'#'+(me+1),'','#0a84ff'):'');
+  h+=x4seg([['top','Top 15'],['time',x4t('Oynama süresi','Playtime')],['achtop',L('ach')]],'data-top',mode);
+  if(!rows.length)return x4wrap(h+x4empty('top','orange',x4t('Sıralama boş','No ranking yet'),x4t('Sunucuda oynandıkça burası dolar.','Fills up as people play.')));
+  var pod='<div class="podium">';
+  [1,0,2].forEach(function(i){var r=rows[i];if(!r)return;pod+='<div class="pod p'+(i+1)+'"><div class="pa" style="'+avaColor(i===0?80:i===1?55:30)+'">'+(i===0?'<span class="crown">'+CROWN+'</span>':'')+esc(initials(r.n))+'</div><b>'+esc(r.n)+(r.n===D.name?' &#9733;':'')+'</b><small>'+esc(r.main)+(r.lv?' · Lv '+esc(r.lv):'')+'</small><div class="ped">'+(i+1)+'</div></div>';});
+  h+=pod+'</div>';
+  var max=rows[0].v||1,list='';
+  rows.forEach(function(r,i){if(i<3)return;list+=x4row('<span class="x4rk">'+(i+1)+'</span>'+x4ava(r.n,i<6?40:10,'sm'),esc(r.n)+(r.lv?x4pill('Lv '+esc(r.lv)):''),x4bar(Math.max(4,Math.round(r.v*100/max))),'<b class="x4v">'+esc(r.main)+'</b><small class="x4vs">'+esc(r.sub)+'</small>','',r.n===D.name?'rk me':'rk');});
+  if(list)h+=x4sec(x4t('Sıralama','Standings'),list);
+  return x4wrap(h+x4cmd(mode==='top'?'/top15':mode==='time'?'/toptime':'/basarimtop'));
+};
+
+// ---- achievements
+R.ach=function(){
+  var a=achList(),claimed=D.claimedMask|0,rw=D.achReward,open=0,ready=0;
+  a.forEach(function(x,i){var u=(D.ach&(1<<i))!==0;if(u)open++;if(u&&!(claimed&(1<<i))&&D.claimedMask!==undefined)ready++;});
+  var pct=a.length?Math.round(open*100/a.length):0;
+  var h=x4hero('ach',x4t('Başarımlar','Achievements'),open+'/'+a.length+x4t(' açıldı',' unlocked')+(ready?' · '+ready+x4t(' ödül seni bekliyor',' rewards waiting'):''),x4bal(x4t('Tamamlandı','Complete'),'%'+pct,'','#ffd60a'));
+  h+=x4bar(pct,'big y');
+  h+=x4segv([['all',x4t('Tümü','All'),a.length],['ready',x4t('Ödül al','Claim'),ready],['open',x4t('Açılan','Unlocked'),open],['lock',x4t('Kilitli','Locked'),a.length-open]],'achf');
+  var g='';
+  a.forEach(function(x,i){
+    var u=(D.ach&(1<<i))!==0,paid=(claimed&(1<<i))!==0,can=u&&!paid&&D.claimedMask!==undefined;
+    if(X4.achf==='ready'&&!can)return;if(X4.achf==='open'&&!u)return;if(X4.achf==='lock'&&u)return;
+    var badge=paid?x4ic('check','green'):u?x4ic('ach','yellow'):x4ic('lock','gray');
+    g+='<div class="x4cc"><div class="x4ac'+(u?'':' lk')+'"><div class="x4ach"><div class="x4ci">'+badge+'</div><div><b>'+esc(x.n)+'</b><small>'+esc(x.d||'')+'</small></div></div><div class="x4acf"><span>'+(rw?x4pill(fmt(rw[0])+' VC','y')+x4pill(fmt(rw[1])+' AP','b'):'')+'</span>'+(can?x4btn(x4t('Ödülü al','Claim'),'data-achclaim="'+i+'"','g'):x4btn(paid?x4t('Alındı','Claimed'):u?x4t('Açıldı','Unlocked'):x4t('Kilitli','Locked'),'','dis'))+'</div></div></div>';
+  });
+  h+=g?'<div class="x4cg">'+g+'</div>':x4empty('ach','yellow',x4t('Burada başarım yok','Nothing here'),x4t('Başka bir filtre seç.','Pick another filter.'));
+  return x4wrap(h+x4cmd(x4t('/basarimlar','/achievements')));
+};
+
+// ---- inventory
+R.inv=function(){
+  var cats=MK_CATS.filter(function(c){return catList(c).length||(D.iv[c]|0);});
+  if(cats.indexOf(invTab)<0)invTab=cats[0]||'k';
+  var total=0,eqn=0;cats.forEach(function(c){for(var b=0;b<31;b++)if((D.iv[c]|0)&(1<<b))total++;if(D.eq[c]|0)eqn++;});
+  var h=x4hero('inv',x4t('Envanter','Inventory'),total+x4t(' eşya · ',' items · ')+eqn+x4t(' takılı',' equipped'),x4bal(x4t('Bakiyen','Balance'),fmt(D.vc),'VC'));
+  h+='<div class="mkchips">'+cats.map(function(c){var o=0;for(var b=0;b<31;b++)if((D.iv[c]|0)&(1<<b))o++;return '<span class="'+(invTab===c?'on':'')+'" data-tab="'+c+'"><svg viewBox="0 0 24 24">'+MK_ICO[c]+'</svg>'+esc(MK_META[c][D.lang==='tr'?0:1])+' <em>'+o+'</em></span>';}).join('')+'</div>';
+  var list=catList(invTab),n=list.length,g='';
+  if(!n){for(var b=0;b<16;b++)if((D.iv[invTab]|0)&(1<<b))n=b+1;}
+  for(var i=0;i<n;i++){
+    var it=list[i]||{},own=((D.iv[invTab]|0)&(1<<i))!==0,eq=(D.eq[invTab]|0)===i+1,code=invTab+(i+1);
+    if(it.ok===0&&!own)continue;
+    g+='<div class="x4cc c3"><div class="x4it'+(own?'':' no')+(eq?' eq':'')+'"><div class="x4itt">'+x4item(code,52)+(eq?x4pill(x4t('TAKILI','EQUIPPED'),'g'):own?'':'<span class="x4lk">'+svg('lock')+'</span>')+'</div><b>'+esc(itemName(code))+'</b><small>'+x4rar(code)+(it.vc?' · '+it.vc+' VC':'')+'</small>'+(own?x4btn(eq?x4t('Çıkar','Unequip'):x4t('Tak','Equip'),'data-eq="'+invTab+'.'+i+'.'+(eq?1:0)+'"',eq?'gh':''):x4btn(x4t('Kasadan / mağazadan','From cases / shop'),'','dis'))+'</div></div>';
+  }
+  h+=g?'<div class="x4cg">'+g+'</div>':x4empty('inv','purple',x4t('Bu kategori boş','This category is empty'),x4t('Kasa açarak ya da pazardan eşya kazan.','Win items from cases or the market.'),x4btn(x4t('Kasalara git','Open cases'),'data-app="case"'));
+  return x4wrap(h+x4cmd(x4t('/envanter  /kozmetik  /bicak','/inventory  /cosmetic  /knife')));
+};
+
+// ---- cases: same crates and reel, new header
+R['case']=function(){
+  var cs=caseData(),c=cs[caseSel]||cs[0],price=c.vc|0,can=D.vc>=price;
+  var h=x4hero('case',x4t('Kasalar','Cases'),x4t('Kasa aç, nadir eşyalar kazan','Open cases, win rare items'),x4bal(x4t('Bakiyen','Balance'),fmt(D.vc),'VC'));
+  if(D.cr)h+='<div class="x4g x4stage"><div id="cstage" class="casestage shake"><div class="rays">'+RAYS+'</div><div class="big">'+crate(D.cr.c)+'</div></div><div class="reelbox" id="rbox" style="display:none"><div class="needle"></div><div id="reel" class="reel"></div></div><div id="winBox"></div></div>';
+  h+='<div class="x4s">'+esc(x4t('Kasa seç','Pick a case'))+'</div><div class="x4g x4pad"><div class="cases">';
+  cs.forEach(function(k,i){var t=TIERS[i]||TIERS[0];h+='<div class="case'+(i===caseSel?' sel':'')+'" data-case="'+i+'"><div class="ci"><span class="tier" style="background:'+t.tagc+'">'+t.tag+'</span><div class="cbx"><div class="glow" style="background:-webkit-radial-gradient(50% 50%,circle closest-side,'+t.glow+',rgba(0,0,0,0))"></div>'+crate(i)+'</div><b>'+esc(k[D.lang]||k.en)+'</b><small>'+(k.vc|0)+' VC</small></div></div>';});
+  h+='</div></div>';
+  h+='<span class="x4b big'+(can?'':' dis')+'" data-openc="'+caseSel+'">'+esc(can?x4t('Aç','Open')+' · '+(c[D.lang]||c.en)+' · '+price+' VC':x4t('Yetersiz bakiye','Not enough VC')+' · '+price+' VC')+'</span>';
+  var loot=(c.loot||[]).slice(),rn=L('rar');
+  if(loot.length){for(var r=4;r>=0;r--){var g=loot.filter(function(l){return (l[1]|0)===r;});if(!g.length)continue;var sum=0;g.forEach(function(l){sum+=Number(l[2])||0;});g.sort(function(a,b){return a[2]-b[2];});
+    h+='<div class="x4s"><span style="color:'+RCOL[r]+'">●</span> '+esc(rn[r]||'')+' · %'+sum.toFixed(2)+'</div><div class="x4g"><div class="x4lt">'+g.map(function(l){return '<div class="x4lc"><span class="mkic" style="width:30px;height:30px;'+lg(135,RCOL[r],'#15121a')+'"><svg viewBox="0 0 24 24">'+(MK_ICO[String(l[0]).charAt(0)]||IC.gift)+'</svg></span><b>'+esc(itemName(l[0]))+'</b><em>%'+Number(l[2]).toFixed(2)+'</em></div>';}).join('')+'</div></div>';}}
+  else h+=x4empty('case','pink',x4t('Düşme oranları yükleniyor','Loading drop rates'),x4t('Sunucu cevap verdiğinde kasa içeriği görünür.','Contents appear when the server answers.'));
+  h+='<div class="x4f">'+esc(L('vipDrop'))+'</div>';
+  return x4wrap(h+x4cmd(x4t('/kasa','/case')));
+};
+
+// ---- daily reward
+R.daily=function(){
+  var today=D.dailyNext||Math.min(7,D.claimed?Math.max(1,D.streak):D.streak+1);
+  var h=x4hero('daily',x4t('Günlük Ödül','Daily Reward'),x4t('7 gün üst üste gir, büyük ödülü al','Log in 7 days in a row for the big prize'),x4bal(L('streak'),D.streak,x4t('gün','days'),'#ff9f0a'));
+  h+='<div class="x4dy">';
+  for(var i=1;i<=7;i++){
+    var rw=D.rewards&&D.rewards[i-1],done=i<today||(i===today&&D.claimed),now=i===today&&!D.claimed;
+    h+='<div class="x4d'+(done?' done':now?' now':'')+(i===7?' big':'')+'"><div><small>'+i+'. '+esc(L('day'))+'</small><span class="x4dg">'+svg(done?'check':i===7?'crown':'gift')+'</span><b>'+(rw?fmt(rw[0]):'—')+' AP</b><em>+'+(rw?fmt(rw[1]):'—')+' VC</em></div></div>';
+  }
+  h+='</div>';
+  if(D.claimed)h+='<div class="x4note"><div class="x4ci">'+x4ic('time','blue')+'</div><div><b>'+esc(L('claimed'))+'</b><small>'+esc(x4t('Sonraki ödül: ','Next reward in: '))+'<span id="dailyCountdown">'+esc(hms(D.next))+'</span></small></div></div>';
+  else h+='<span class="x4b g big" data-daily="1">'+esc(L('claim'))+(D.rewards&&D.rewards[today-1]?' · '+fmt(D.rewards[today-1][0])+' AP + '+fmt(D.rewards[today-1][1])+' VC':'')+'</span>';
+  h+=x4sec(x4t('Nasıl çalışır','How it works'),
+    x4row(x4ic('daily','green'),esc(x4t('Her gün bir kez al','Claim once a day')),esc(x4t('Ödül gece yarısı değil, son alımından 24 saat sonra yenilenir.','Resets 24 hours after your last claim.')),'')+
+    x4row(x4ic('fire','orange'),esc(x4t('Seriyi bozma','Keep the streak')),esc(x4t('Bir gün kaçırırsan seri 1. güne döner.','Miss a day and the streak restarts.')),'')+
+    x4row(x4ic('crown','yellow'),esc(x4t('7. gün büyük ödül','Day 7 jackpot')),esc(x4t('En yüksek AP ve VexCoin 7. gündedir.','Day 7 pays the most AP and VexCoin.')),''));
+  return x4wrap(h+x4cmd(x4t('/gunluk','/daily')));
+};
+
+// ---- zombie upgrades
+R.zup=function(){
+  var names=ZCLS[D.lang]||ZCLS.tr;
+  if(!D.zup)return x4wrap(x4hero('zup',x4t('Zombi Gelişim','Zombie Upgrades'),x4t('24 zombi sınıfı','24 zombie classes'),'')+x4empty('zup','green',x4t('Gelişim verisi bekleniyor','Waiting for upgrade data'),x4t('Sunucu cevap verdiğinde sınıfların burada görünür. Ayarlar > Canlı bağlantı ile kontrol et.','Your classes appear when the server answers. Check Settings > Live connection.'),x4btn(x4t('Bağlantıyı sına','Test connection'),'data-linktest="1"')));
+  var rows=D.zup,totFree=0,cards='',per=[x4t('Bekleme','Cooldown'),x4t('Menzil','Range'),x4t('Hasar','Damage')],pic=['time','target','blade'],pcol=['blue','teal','red'];
+  for(var i=0;i<24;i++){var z=rows[i]||[D.zlv[i]||0,0,0,0,0,0];var free=Math.max(0,z[0]-z[2]-z[3]-z[4]);totFree+=free;
+    if(X4.zf==='free'&&!free)continue;
+    var pct=z[5]?Math.round(z[1]*100/z[5]):100;
+    cards+='<div class="x4cc"><div class="x4zc"><div class="x4zh"><div class="x4ci"><span class="x4zl" style="'+avaColor(z[0]*5)+'">'+esc((names[i]||'?').charAt(0))+'</span></div><div><b>'+esc(names[i]||('Class '+(i+1)))+'</b><small>'+esc(x4t('Seviye ','Level '))+z[0]+' · '+z[1]+'/'+(z[5]||'MAX')+'</small></div>'+(free?x4pill('+'+free,'g'):'')+'</div>'+x4bar(pct,'g')+
+      per.map(function(n,k){return '<div class="x4zp"><div class="x4ci">'+x4ic(pic[k],pcol[k])+'</div><span class="x4zn">'+esc(n)+'</span><b>'+z[k+2]+'</b><span class="x4plus'+(free?'':' dis')+'"'+(free?' data-zperk="'+i+'.'+k+'"':'')+'>+</span></div>';}).join('')+'</div></div>';}
+  var h=x4hero('zup',x4t('Zombi Gelişim','Zombie Upgrades'),x4t('Enfekte et +1 · öldür +2 gelişim puanı','Infect +1 · kill +2 upgrade points'),x4bal(x4t('Boş puan','Free points'),totFree,'','#30d158'));
+  h+=x4segv([['all',x4t('Tüm sınıflar','All classes'),24],['free',x4t('Puanı olanlar','With points')]],'zf');
+  h+=cards?'<div class="x4cg">'+cards+'</div>':x4empty('zup','green',x4t('Boş puanın yok','No free points'),x4t('Zombiyken enfekte ederek ve öldürerek puan kazan.','Earn points by infecting and killing as a zombie.'));
+  return x4wrap(h+x4cmd(x4t('/sinif','/class')));
+};
+
+// ---- trade
+R.trade=function(){
+  var inc=OF.filter(function(o){return o[5]===1;}),out=OF.filter(function(o){return o[5]===0;});
+  if(!X4.trt)X4.trt=inc.length?'in':'new';
+  var h=x4off()+x4hero('trade',x4t('Takas','Trade'),x4t('Eşyanı seç, oyuncuya teklif et; karşı taraf tabletinden kabul eder.','Pick an item, offer it; they accept on their tablet.'),'');
+  h+=x4segv([['in',x4t('Gelen','Incoming'),inc.length],['out',x4t('Gönderilen','Sent'),out.length],['new',x4t('Yeni takas','New trade')]],'trt');
+  if(X4.trt==='in'){
+    h+=inc.length?x4sec('',inc.map(function(o){return x4row(x4item(o[3],40),esc(o[2])+' <span class="x4dim">'+esc(x4t('veriyor','gives'))+'</span> '+esc(itemName(o[3])),o[4]!=='-'?esc(x4t('Karşılığında istiyor: ','Wants: '))+esc(itemName(o[4])):esc(x4t('Hediye – karşılık istemiyor','Gift – nothing asked')),x4btn(x4t('Kabul','Accept'),'data-tacc="'+o[0]+'"','g')+x4btn(x4t('Reddet','Decline'),'data-tdec="'+o[0]+'"','red'));}).join('')):x4empty('trade','teal',x4t('Gelen teklif yok','No incoming offers'),x4t('Biri sana takas teklif ettiğinde burada ve oyunda iPad bildirimi olarak görünür.','Offers show up here and as an iPad alert in game.'));
+  }else if(X4.trt==='out'){
+    h+=out.length?x4sec('',out.map(function(o){return x4row(x4item(o[3],40),esc(itemName(o[3])),esc(x4t('Alıcı: ','To: '))+esc(o[2])+(o[4]!=='-'?' · '+esc(itemName(o[4])):''),x4pill(x4t('Bekliyor','Pending'),'y'));}).join('')):x4empty('trade','teal',x4t('Gönderilen teklif yok','No sent offers'),x4t('Yeni takas sekmesinden teklif gönder.','Send one from the New trade tab.'),x4btn(x4t('Yeni takas','New trade'),'data-x4="trt=new"'));
+  }else{
+    var own=mkOwned();
+    h+='<div class="x4s">'+esc(x4t('1. Vereceğin eşya','1. Item to give'))+'</div>';
+    h+=own.length?'<div class="mkpick">'+own.map(function(code){return '<div class="mkp'+(tradeSel===code?' on':'')+'" data-tgive="'+code+'">'+mkIcon(code,44)+'<b>'+esc(itemName(code))+'</b><small style="color:'+MK_RAR[mkRar(code)][0]+'">'+esc(mkRarName(code))+'</small>'+(tradeSel===code?'<span class="mkok">✓</span>':'')+'</div>';}).join('')+'</div>':x4empty('inv','purple',x4t('Takas edilecek eşyan yok','No items to trade'),x4t('Kasa açarak eşya kazan.','Win items from cases.'),x4btn(x4t('Kasalara git','Open cases'),'data-app="case"'));
+    if(own.length){var pl=others(true);
+      h+='<div class="x4s">'+esc(x4t('2. Kime','2. To whom'))+(tradeSel?' · '+esc(itemName(tradeSel)):'')+'</div>';
+      h+=x4sec('',pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4team(p[2])),tradeSel?x4btn(x4t('Teklif et','Offer'),'data-toffer="'+p[0]+'"'):x4btn(x4t('Önce eşya seç','Pick an item'),'','dis'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Sunucuda başka oyuncu yok','No other players online')),'',''));}
+  }
+  return x4wrap(h+x4cmd(x4t('/takas','/trade')));
+};
+
+// ---- messages
+var x4oldMsg=R.msg;
+R.msg=function(){
+  if(CHAT)return x4oldMsg();
+  var ppl={};MS.forEach(function(m){if(!ppl[m[0]]||ppl[m[0]][3]<m[3])ppl[m[0]]=m;});
+  var ids=Object.keys(ppl).sort(function(a,b){return ppl[b][3]-ppl[a][3];}),pl=others(true);
+  var h=x4off()+x4hero('msg',x4t('Mesajlar','Messages'),ids.length+x4t(' sohbet · ',' chats · ')+pl.length+x4t(' oyuncu çevrimiçi',' players online'),'');
+  h+=ids.length?x4sec(x4t('Sohbetler','Chats'),ids.map(function(uid){var m=ppl[uid];return x4row(x4ava(m[1],20,'',!!plName(num(uid))&&plName(num(uid))!=='?'),esc(m[1]),(m[4]?esc(x4t('Sen: ','You: ')):'')+esc(m[2]),'<small class="x4vs">'+ago(m[3])+'</small>'+svg('chev'),'data-chat="'+uid+'"','nav');}).join('')):x4empty('msg','blue',x4t('Henüz mesaj yok','No messages yet'),x4t('Aşağıdan bir oyuncu seçip ilk mesajı yaz.','Pick a player below and say hi.'));
+  h+=x4sec(x4t('Çevrimiçi oyuncular','Online players'),pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3],'',true),esc(p[1])+(p[4]&4?x4pill('ADM','r'):'')+(p[4]&1?x4pill('★','y'):''),'Lv '+p[3]+' · '+esc(x4team(p[2])),p[4]&2?x4pill(x4t('Engelli','Blocked'),'r'):x4btn(x4t('Yaz','Message'),'data-chat="'+p[0]+'"'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Başka oyuncu yok','No other players')),'',''));
+  return x4wrap(h);
+};
+
+// ---- friends
+R.friends=function(){
+  var reqs=others(true).filter(function(p){return p[4]&8;}),onl=FR.filter(function(f){return f[1];}).length;
+  var h=x4off()+x4hero('friends',x4t('Arkadaşlar','Friends'),FR.length+x4t(' arkadaş · ',' friends · ')+onl+x4t(' çevrimiçi',' online'),reqs.length?x4bal(x4t('İstek','Requests'),reqs.length,'','#ff375f'):'');
+  if(reqs.length)h+=x4sec(x4t('Arkadaşlık istekleri','Friend requests'),reqs.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4t('seni eklemek istiyor','wants to add you')),x4btn(x4t('Kabul et','Accept'),'data-facc="'+p[0]+'"','g'));}).join(''));
+  var fl=FR.slice().sort(function(a,b){return (b[1]?1:0)-(a[1]?1:0);});
+  h+=fl.length?x4sec(x4t('Arkadaşların','Your friends'),fl.map(function(f){return x4row(x4ava(f[0],30,f[1]?'':'x4of',!!f[1]),esc(f[0]),f[1]?'<span class="x4gr">● '+esc(x4t('Çevrimiçi','Online'))+'</span>':esc(x4t('Çevrimdışı','Offline')),f[1]?x4btn(x4t('Mesaj','Message'),'data-chat="'+f[1]+'"','gh'):'');}).join('')):x4empty('friends','green',x4t('Henüz arkadaşın yok','No friends yet'),x4t('Aşağıdan çevrimiçi oyuncuları ekleyebilirsin.','Add online players below.'));
+  var pl=others(true).filter(function(p){return !(p[4]&1)&&!(p[4]&8);});
+  h+=x4sec(x4t('Oyuncu ekle','Add players'),pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4team(p[2])),(p[4]&2)?x4btn(x4t('Engeli kaldır','Unblock'),'data-unblock="'+p[0]+'"','gh'):x4btn('+ '+x4t('Ekle','Add'),'data-fadd="'+p[0]+'"')+x4btn(x4t('Engelle','Block'),'data-block="'+p[0]+'"','red'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Eklenecek oyuncu yok','No players to add')),'',''));
+  return x4wrap(h);
+};
+
+// ---- notifications
+function x4nkind(t){t=String(t).toLowerCase();if(/mesaj|message/.test(t))return ['msg','blue'];if(/pazar|market|sat/.test(t))return ['market','green'];if(/arkada|friend/.test(t))return ['friends','teal'];if(/takas|trade|teklif|offer/.test(t))return ['trade','teal'];if(/kasa|case/.test(t))return ['case','pink'];if(/ba[sş]ar|achiev/.test(t))return ['ach','yellow'];if(/admin|ban|kick/.test(t))return ['adm','red'];return ['bell','red'];}
+R.notif=function(){
+  if(LIVE.tk)act('seen','','','',null);
+  var h=x4hero('notif',x4t('Bildirimler','Notifications'),NT.length?NT.length+x4t(' bildirim',' notifications'):x4t('Her şey yolunda','All caught up'),'');
+  h+=NT.length?x4sec(x4t('Son bildirimler','Recent'),NT.slice().reverse().map(function(n){var k=x4nkind(n[0]);return x4row(x4ic(k[0],k[1]),esc(n[0]),'','<small class="x4vs">'+ago(n[1])+'</small>');}).join(''),esc(x4t('Tablet kapalıyken gelenler oyunda iPad kartı olarak da görünür (Ayarlar > Bildirimler).','When the tablet is closed they also pop up in game (Settings > Notifications).'))):x4empty('notif','pink',x4t('Bildirim yok','No notifications'),x4t('Mesaj, arkadaşlık isteği, takas ve pazar satışları burada görünür.','Messages, friend requests, trades and market sales show up here.'));
+  return x4wrap(h);
+};
+
+// ---- settings (iPadOS Settings layout)
+R.set=function(){
+  var dark=store('theme')!=='light',acc=store('acc')||ACCS[0],ok=LIVE.fileOk&&!DEMO;
+  var h='<div class="x4set">';
+  h+=x4sec('',x4row(x4ava(D.name,D.lv,'md'),esc(D.name)+(D.vip?x4pill(D.vip===2?'ELITE':'VIP','y'):''),esc(x4t('Seviye ','Level '))+D.lv+' · '+fmt(D.vc)+' VC · '+fmt(D.ap)+' AP',svg('chev'),'data-app="prof"','nav big'));
+  h+=x4sec(x4t('Görünüm','Appearance'),
+    x4row(x4ic(dark?'moon':'sun',dark?'indigo':'orange'),esc(L('theme')),'','<div class="seg"><span data-set="dark" class="'+(dark?'on':'')+'">'+esc(L('dark'))+'</span><span data-set="light" class="'+(dark?'':'on')+'">'+esc(L('light'))+'</span></div>')+
+    x4row(x4ic('paint','pink'),esc(L('accent')),'','<div class="ccacc">'+ACCS.map(function(c){return '<span data-acc="'+c+'" class="'+(c===acc?'on':'')+'" style="background:'+c+'"></span>';}).join('')+'</div>'));
+  h+=x4sec(x4t('Ses ve bildirimler','Sound and alerts'),
+    x4row(x4ic('vol','red'),esc(L('sound')),esc(x4t('Tablet sesleri ve oyundaki iPad bildirim sesi','Tablet sounds and the in-game alert sound')),'<div class="sw'+(soundOn?' on':'')+'" data-set="snd"></div>')+
+    x4row(x4ic('bell','red'),esc(L('notif')),esc(x4t('Tablet kapalıyken oyunda sağ üstte iPad kartı','In-game iPad card while the tablet is closed')),'<div class="sw'+(notifOn?' on':'')+'" data-set="ntf"></div>'),
+    esc(x4t('Bu tercihler sunucuda saklanır, harita değişince kaybolmaz.','Saved on the server, kept across map changes.')));
+  h+=x4sec(L('lang'),x4row(x4ic('globe','blue'),esc(x4t('Tablet ve oyun dili','Tablet and game language')),'','<div class="seg"><span data-set="tr" class="'+(D.lang==='tr'?'on':'')+'">Türkçe</span><span data-set="en" class="'+(D.lang==='en'?'on':'')+'">English</span></div>'));
+  var w='<div class="wps">';L('wpNames').forEach(function(n,i){w+='<div class="wpt'+(i===WP?' on':'')+'" data-wp="'+i+'"><div class="w wp'+i+'">'+(i===7?emblem():'')+'<small>'+esc(n)+'</small></div></div>';});w+='</div>';
+  h+=x4sec(L('wall'),'<div class="x4pad">'+w+'</div>');
+  h+=x4sec(x4t('Canlı bağlantı','Live connection'),
+    x4row(x4ic('dl',ok?'green':'red'),esc(x4t('Oyun verisi','Game data')),esc(ok?x4t('Sunucudan geldi','Received from the server'):x4t('Yok – tableti oyunda /ipad ile aç','Missing – open the tablet in game with /ipad')),'<span class="ldot '+(ok?'g':'r')+'"></span>')+
+    x4row(x4ic('send',LIVE.ready?'green':'orange'),esc(x4t('Komut kanalı','Command channel')),esc((LIVE.ready?x4t('Sunucu dinliyor','Server listening'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('gönderilen ','sent ')+LIVE.sent),'<span class="ldot '+(LIVE.ready?'g':'y')+'"></span>')+
+    x4row(x4ic('msg',LIVE.sse?'green':'orange'),esc(x4t('Cevap kanalı','Reply channel')),esc((LIVE.sse?x4t('Bağlı','Connected'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('alınan ','received ')+LIVE.rx),'<span class="ldot '+(LIVE.sse?'g':'y')+'"></span>')+
+    x4row(x4ic('bolt','blue'),esc(x4t('Bağlantıyı sına','Test connection')),esc(x4t('Sunucuya ping gönderir, cevap 1-3 sn içinde gelir.','Pings the server; the answer arrives in 1-3 s.')),x4btn(x4t('Sına','Test'),'data-linktest="1"')));
+  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'VEXMIRA PAD 4.2',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
+  return x4wrap(h+'</div>');
+};
+
+// ---- about
+R.about=function(){
+  var mins=D.ts?Math.max(0,Math.round((Date.now()/1000-D.ts)/60)):-1;
+  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · PAD 4.2</p></div>';
+  h+=x4sec(x4t('Bu cihaz','This device'),
+    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">PAD 4.2</span>')+
+    x4row('',esc(L('map')),'','<span class="x4vs">'+esc(D.map)+'</span>')+
+    x4row('',esc(L('round')),'','<span class="x4vs">'+esc(D.round)+'</span>')+
+    x4row('',esc(L('players')),'','<span class="x4vs">'+D.on+'/'+D.mx+'</span>')+
+    (mins>=0?x4row('',esc(x4t('Veri güncellendi','Data updated')),'','<span class="x4vs">'+esc(F('updated',mins))+'</span>'):'')+
+    x4row('',esc(x4t('Bağlantı','Link')),'','<span class="x4vs">'+esc(LIVE.sse?x4t('Canlı','Live'):x4t('Bekleniyor','Waiting'))+'</span>'));
+  h+=x4sec(x4t('Yapımcı','Credits'),x4row(x4ic('brush','pink'),esc(L('credit')),'','<b style="color:var(--acc)">smurfsexy</b>'));
+  return x4wrap(h);
+};
+
+// ---- App Store, guide, commands, admin: same functions, new header and lists
+var x4oldStore=R.store;
+R.store=function(){return x4wrap(x4hero('store','App Store',x4t('Uygulama ekle, kaldır, keşfet','Get, remove and discover apps'),'')+x4oldStore());};
+MODES=[
+  ['Enfeksiyon','Infection','Tek zombi başlar, salgın enfekte ettikçe yayılır.','One zombie starts, the plague spreads with every infection.'],
+  ['Çoklu Enfeksiyon','Multi Infection','Başta birden fazla zombi vardır.','Several zombies from the very start.'],
+  ['Nemesis','Nemesis','Tek vuruşta öldüren dev zombi. [R] atılma, [F] öfke.','A huge zombie that kills in one hit. [R] leap, [F] rage.'],
+  ['Assassin','Assassin','Karanlıkta avlanan, çok hızlı ve tek vuruşta öldüren zombi.','A very fast one-hit zombie hunting in the dark.'],
+  ['Survivor','Survivor','Tek silahlı kahraman tüm zombilere karşı.','One armed hero against all the zombies.'],
+  ['Sniper','Sniper','Tek atışta öldüren AWP\'li keskin nişancı.','One sniper with a one-shot AWP.'],
+  ['Swarm','Swarm','Yarı zombi, enfeksiyon yok, sadece kan.','Half zombies, no infection, only blood.'],
+  ['Plague','Plague','Survivor + Nemesis + zombiler insanlara karşı.','Survivor + Nemesis + zombies against humans.'],
+  ['Armageddon','Armageddon','Nemesis ordusu Survivor ordusuna karşı.','Nemesis army against Survivor army.'],
+  ['BOSS','BOSS','3 faz, 5 yetenek. Renkli halkalara dikkat, herkes birlikte savaşır.','3 phases, 5 skills. Watch the colored circles, everyone fights together.']];
+TIPS=[
+  ['Lazer mayınını koridorlara ve kapılara kur: /lazerkur','Plant laser mines in corridors and doors: /plant'],
+  ['Zombiyken enfekte etmek +1, öldürmek +2 gelişim puanı verir.','As a zombie, infecting gives +1 and killing +2 upgrade points.'],
+  ['Kafaya vuruş daha çok hasar ve daha çok geri itme yapar.','Headshots deal more damage and more knockback.'],
+  ['Her gün gir, 7 günlük seriyi tamamla: /gunluk','Log in every day and finish the 7-day streak: /daily'],
+  ['Nadir eşyalar sunucudaki herkese duyurulur. Kabus Kasası en şanslı kasadır.','Rare drops are announced to everyone. The Nightmare Case has the best odds.']];
+R.guide=function(){
+  var mc=['green','teal','red','purple','blue','orange','yellow','pink','indigo','red'];
+  var h=x4hero('guide',x4t('Rehber','Guide'),x4t('Modlar, zombi sınıfları ve ipuçları','Modes, zombie classes and tips'),'');
+  h+=x4sec(L('modes'),MODES.map(function(m,i){return x4row('<span class="x4i x4n" style="'+lg(160,X4C[mc[i]].split(',')[0],X4C[mc[i]].split(',')[1])+'">'+(i+1)+'</span>',esc(tr(m[0],m[1])),esc(tr(m[2],m[3])),'');}).join(''));
+  var zc=ZCLS[D.lang]||ZCLS.tr;
+  h+=x4sec(L('classes'),'<div class="x4pad"><div class="zchips">'+zc.map(function(n){return '<span>'+esc(n)+'</span>';}).join('')+'</div></div>',esc(x4t('Sınıf seçmek için ','To pick a class type '))+'<code>'+esc(tr('/sinif','/class'))+'</code>');
+  h+=x4sec(L('tips'),TIPS.map(function(t,i){return x4row(x4ic(['zup','target','target','daily','case'][i],['yellow','green','orange','green','pink'][i]),esc(tr(t[0],t[1])),'','');}).join(''));
+  return x4wrap(h);
+};
+var CMDG=[[['Genel','General'],'cmds','gray',['ipad','menu','settings','lang','help','rules','discord']],[['Market ve eşyalar','Shop and items'],'market','green',['shop','vcmarket','guns','sw','knives','wings','pet','trail','cosmetic','case','trade']],[['Oyun','Gameplay'],'game','orange',['class','plant','take','unstuck','rtv','nextmap']],[['İlerleme','Progress'],'top','yellow',['daily','quest','achievements','top15','toptime','rank','stats','vip']]];
+var CMDTR={'ipad':'Tableti açar',menu:'Ana menü',shop:'Eşya marketi',vcmarket:'VexCoin marketi',guns:'Silah menüsü',sw:'Özel silahlar','class':'Zombi sınıfı seç',knives:'Bıçaklar',wings:'Kanatlar',pet:'Petler',trail:'İzler',cosmetic:'Kozmetik',plant:'Lazer mayını kur',take:'Lazer mayınını sök','case':'Kasa aç',trade:'Takas',daily:'Günlük ödül',quest:'Görevler',achievements:'Başarımlar',top15:'En iyi 15',toptime:'Süre sıralaması',rank:'Rütben',stats:'İstatistik',vip:'VIP menüsü',settings:'Ayarlar',lang:'Dil seçimi',rtv:'Harita oylaması',nextmap:'Sonraki harita',unstuck:'Sıkıştıysan kurtar',rules:'Kurallar',help:'Yardım',discord:'İletişim'};
+R.cmds=function(){
+  var by={};CMDS.forEach(function(c){by[c[0]]=c;});
+  var h=x4hero('cmds',x4t('Komutlar','Commands'),x4t('Sohbete yazılan komutlar · ','Chat commands · ')+CMDS.length,'');
+  CMDG.forEach(function(g){h+=x4sec(tr(g[0][0],g[0][1]),'<div class="x4c2">'+g[3].filter(function(k){return by[k];}).map(function(k){var c=by[k];return '<div class="x4cm"><code>/'+esc(D.lang==='tr'?c[1]:c[0])+'</code><small>'+esc(D.lang==='tr'?(CMDTR[k]||c[2]):c[3])+'</small></div>';}).join('')+'</div>');});
+  return x4wrap(h);
+};
+var x4oldAdm=R.adm;
+R.adm=function(){
+  if(D.role<1)return x4wrap(x4hero('adm',x4t('Yönetim','Admin'),'','')+x4empty('adm','red',x4t('Yetki gerekli','Admins only'),L('adminOnly')));
+  var founder=D.role>=2;
+  return '<div class="x4 x4adm">'+x4hero('adm',x4t('Yönetim','Admin'),(founder?x4t('Kurucu · tam yetki','Founder · full access'):'Admin')+' · '+esc(D.name),x4bal(L('players'),others(false).length+'/'+D.mx,'','#30d158'))+x4seg([['players',x4t('Oyuncular','Players')],['server',x4t('Sunucu','Server')]],'data-admtab',admTab)+x4oldAdm()+'</div>';
+};
 // Drag the content, preserving clicks until a movement threshold is crossed.
 (function(){var drag=null,suppress=0,inertia=0;document.addEventListener('mousedown',function(e){if(e.button!==0)return;inertia++;var el=e.target;if(/^(INPUT|TEXTAREA|SELECT|CANVAS)$/.test(el.tagName))return;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight+4&&(el.id==='appBody'||el.className==='hbody'||String(el.className).indexOf('hbody ')===0||el.className==='bubbles')){drag={el:el,y:e.clientY,last:e.clientY,t:Date.now(),v:0,moved:false};break;}el=el.parentNode;}},false);
 document.addEventListener('mousemove',function(e){if(!drag)return;var dy=e.clientY-drag.last,dt=Math.max(1,Date.now()-drag.t);if(Math.abs(e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){clearTimeout(LP.t);drag.el.scrollTop-=dy;drag.v=-dy/dt;drag.last=e.clientY;drag.t=Date.now();e.preventDefault();}},false);
