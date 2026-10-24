@@ -456,3 +456,83 @@ html[data-theme=light] .homebar{background:#1d1820}
 .cases .case{width:25%}
 .ccs>i{width:28px}
 .back{position:absolute;left:6px;top:0;height:42px;line-height:42px;width:auto;padding:0 6px;z-index:2}
+
+/* ===== 6.2 live link: link dot, busy spinner, social, trade, admin panel ===== */
+.busy{position:absolute;right:14px;bottom:12px;z-index:70;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.55);text-align:center;line-height:40px;display:none}
+.busy .ring{border-color:#fff;border-right-color:transparent}
+.ldot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#555;margin-right:8px;vertical-align:1px}
+.ldot.g{background:#34c759;box-shadow:0 0 6px #34c759}.ldot.y{background:#ffb000}.ldot.r{background:#c8102e}
+.off{color:#ff8a98;background:rgba(200,16,46,.12);border:1px solid rgba(200,16,46,.3);border-radius:10px;padding:8px 10px}
+.caseact{display:table;width:100%;margin-top:4px}
+.caseact .cabal{display:table-cell;vertical-align:middle;font-weight:800;color:var(--gold)}
+.caseact .gbtn{float:right}
+.gbtn.big{height:38px;line-height:36px;padding:0 20px;font-size:14px;border-radius:19px}
+.gbtn.dis{opacity:.5}
+/* players / rows */
+.prow{display:table;width:100%;padding:8px;margin-bottom:6px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+.prow.on{border-color:var(--acc);background:rgba(227,36,59,.1)}
+.prow>*{display:table-cell;vertical-align:middle}
+.prow>div:first-child{width:40px}
+.pa2{width:34px;height:34px;border-radius:10px;text-align:center;line-height:34px;font-weight:800;color:#fff;font-size:13px}
+.pa2.off{opacity:.45}
+.pn{padding-left:10px}
+.pn b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.pn small{font-size:11px;color:var(--sub)}
+.pr{text-align:right;white-space:nowrap}
+.lvchip.fr{background:rgba(255,194,58,.25);color:var(--gold)}
+/* chats */
+.chatrow{display:table;width:100%;padding:8px;margin-bottom:6px;border-radius:12px;background:var(--card2);border:1px solid var(--line);cursor:pointer}
+.chatrow>*{display:table-cell;vertical-align:middle}
+.chatrow .ci{padding-left:10px}
+.chatrow .ci b{display:block;font-size:13.5px}
+.chatrow .ci small{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.chatrow .t{width:40px;text-align:right;font-size:10.5px;color:var(--sub)}
+.chatwrap{position:absolute;left:0;top:0;right:0;bottom:0;padding:12px}
+.chathdr{display:table;width:100%;margin-bottom:10px}
+.chathdr>*{display:table-cell;vertical-align:middle}
+.chathdr b{text-align:right;font-size:15px}
+.chathdr .lnk{font-size:13px}
+.bubbles{position:absolute;left:12px;right:12px;top:48px;bottom:60px;overflow-y:auto}
+.bub{max-width:76%;margin-bottom:8px;clear:both}
+.bub p{padding:8px 12px;border-radius:16px;font-size:13.5px;word-wrap:break-word}
+.bub small{display:block;font-size:9.5px;color:var(--sub);margin-top:2px}
+.bub.in{float:left}.bub.in p{background:var(--card2);border-bottom-left-radius:4px}
+.bub.out{float:right;text-align:right}.bub.out p{background:var(--acc);color:#fff;border-bottom-right-radius:4px}
+.compose{position:absolute;left:12px;right:12px;bottom:12px;display:table;width:auto}
+.compose input{display:table-cell;width:100%;height:40px;border-radius:20px;border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:0 14px;font-size:14px;outline:none;-webkit-user-select:text;user-select:text}
+.compose .gbtn{display:table-cell;width:44px;height:40px;line-height:38px;margin-left:8px;font-size:17px;vertical-align:middle}
+/* notifications */
+.ntf{display:table;width:100%;padding:9px;margin-bottom:6px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+.ntf>*{display:table-cell;vertical-align:middle}
+.ntf .ni{width:34px;height:34px;border-radius:10px;background:var(--acc);text-align:center;line-height:40px}
+.ntf .ni svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2}
+.ntf div{padding-left:10px}
+.ntf b{display:block;font-size:13px}.ntf small{font-size:11px;color:var(--sub)}
+/* trade */
+.offer{display:table;width:100%;padding:9px;margin-bottom:6px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+.offer>*{display:table-cell;vertical-align:middle}
+.offer .oi{width:38px;height:38px;border-radius:11px;background:linear-gradient(145deg,#00b8a9,#004a44);text-align:center;line-height:44px}
+.offer .oi svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2}
+.offer .od{padding-left:10px}
+.offer .od b{display:block;font-size:13px}.offer .od small{font-size:11px;color:var(--sub)}
+.offer .oa{text-align:right;white-space:nowrap}
+.tsel{margin-bottom:12px}
+.tsel>b{display:block;font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.trow{margin-bottom:8px}
+.tchip{display:inline-block;padding:7px 12px;margin:0 6px 6px 0;border-radius:14px;background:var(--card2);border:1px solid var(--line);font-size:12px;cursor:pointer}
+.tchip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+/* admin */
+.admhello{display:table;width:100%;padding:12px;margin-bottom:10px;border-radius:16px;background:linear-gradient(120deg,rgba(227,36,59,.25),rgba(120,10,30,.2));border:1px solid var(--line)}
+.admhello>*{display:table-cell;vertical-align:middle}
+.admhello>div:last-child{padding-left:12px}
+.admhello b{font-size:16px}.admhello small{display:block;font-size:12px;color:var(--sub)}
+.admgrid{margin:0 -4px}
+.abtn{float:left;width:50%;box-sizing:border-box;margin:0;padding:11px 8px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admgrid .abtn{width:auto;display:block;float:left;margin:4px;min-width:40%}
+.abtn svg{display:inline-block;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;vertical-align:-3px;margin-right:6px}
+.abtn.warn2{background:rgba(227,36,59,.15);border-color:rgba(227,36,59,.4);color:#ff8a98}
+.admrow{margin-top:8px}
+.admrow input{width:100%;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:0 12px;font-size:13px;outline:none;-webkit-user-select:text;user-select:text}
+.maps{margin-top:2px}
+.mchip{display:inline-block;padding:7px 11px;margin:0 6px 6px 0;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:12px;cursor:pointer;font-family:Consolas,monospace}
+.mchip:active{background:var(--acc);color:#fff}

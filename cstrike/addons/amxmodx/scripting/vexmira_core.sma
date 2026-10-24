@@ -9,6 +9,7 @@
 #include <xs>
 #include <nvault>
 #include <geoip>
+#include <sockets>
 #pragma tabsize 0
 #pragma dynamic 32768
 native vxe_boss_giant(const name[], out[], len, Float:k, tex, build);
@@ -3455,6 +3456,26 @@ new g_szCsoOverride[33][160];
 #define OVH_MAXENT 4096
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];
 new Float:g_fWingDz60[33];
+#define TAB62_TASK 6262000
+#define RL_IDLE 0
+#define RL_CONNECTING 1
+#define RL_STREAM 2
+new g_pRlOn62, g_pRlHost62, g_pRlPort62, g_pRlTopic62, g_pWebBase62, g_pWebPage62;
+new g_szTopic62[40], g_szTok62[33][12], g_iSeqAck62[33], g_szRes62[33][160];
+new g_iRlSock62, g_iRlState62, Float:g_fRlNext62, Float:g_fRlLast62, g_iRlFails62;
+new g_szRlBuf62[4096], g_iRlBufLen62;
+new bool:g_bTabQuiet62, bool:g_bSelf62, Float:g_fTabSeen62[33], g_iActTick62[33], Float:g_fActWin62[33];
+// social / messages / notifications (messages live for the map, friends + blocks are saved)
+#define MSG62 24
+#define NOT62 16
+#define OFF62 24
+new g_hSocial62 = INVALID_HANDLE;
+new g_szSid62[33][36];
+new g_iMsgN62[33], g_iMsgFrom62[33][MSG62], g_szMsgName62[33][MSG62][24], g_szMsgTxt62[33][MSG62][120], g_iMsgTime62[33][MSG62], bool:g_bMsgOut62[33][MSG62];
+new g_iNotN62[33], g_szNot62[33][NOT62][96], g_iNotTime62[33][NOT62], g_iUnread62[33];
+new g_szFriends62[33][400], g_szBlocks62[33][200], g_iFReq62[33];   // friend request bits (from userid slot)
+new g_iOffN62, g_iOffId62[OFF62], g_iOffFrom62[OFF62], g_iOffTo62[OFF62], g_szOffGive62[OFF62][8], g_szOffWant62[OFF62][8], g_iOffSeq62;
+
 new g_pTabBots61, g_iTabW61, bool:g_bTabHud61, g_iMsgWList61, Float:g_fTabTap61[33], bool:g_bTabSent61[33];
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
@@ -22128,6 +22149,8 @@ client_print_color(p, print_team_default, "%s %L", ChatTag("JOIN_CONNECTING"), p
 }
 ZcCore_client_putinserver(id)
 {
+Tab62Connect(id);
+Tab62LoadSocial(id);
 g_bRadarHidden60[id] = false;
 SixEnter(id);
 g_iCsoCur[id] = -1;
@@ -22278,6 +22301,7 @@ VipWelcome(id);
 }
 ZcCore_client_disconnected(id, bool:drop, message[], maxlen)
 {
+Tab62Leave(id);
 CameraRemove47(id);
 BannerRemove47(id);
 GaugeRemove47(id);
@@ -31279,6 +31303,7 @@ register_forward(FM_CmdStart, "fw_TabletCmd60");
 RegisterHam(Ham_Item_Deploy, "weapon_knife", "fw_KnifeDeploy60", 1);
 LbLoad60();
 TabItemInit61();
+Tab62Init();
 }
 TabletPrecache60()
 {
@@ -31527,6 +31552,7 @@ else PlayKey(id, r >= 2 ? "LEVEL_UP" : "SHOP_BUY");
 if (g_iCases60[id] >= 25) GrantAch(id, 16);
 if (OwnedCount60(id) >= 20) GrantAch(id, 22);
 SaveData(id);
+if (g_bTabQuiet62) { Tab62CaseResult(id, c, code, r); return; }
 new extra[48]; formatex(extra, charsmax(extra), "&cr=%d~%s~%d", c, code, r);
 ReplaceStr60(extra, charsmax(extra), "$", "%24");
 OpenTablet60(id, "case", extra);
@@ -31871,8 +31897,14 @@ l2 += formatex(tmp[l2], charsmax(tmp) - l2, "%s%s~%d", i ? ";" : "", nm, g_iLbVa
 }
 if (tmp[0] && n + strlen(tmp) < 1260) UAdd60(h, charsmax(h), n, bd ? "at" : "tt", tmp);
 }
-new base[192]; get_pcvar_string(g_pTabUrl60, base, charsmax(base));
-formatex(url, charsmax(url), "%s#%s", base, h);
+if (!g_szSid62[id][0]) Tab62LoadSocial(id);
+if (!g_szTok62[id][0]) RandStr62(g_szTok62[id], 10);
+WriteU62(id);
+new rh[64]; get_pcvar_string(g_pRlHost62, rh, charsmax(rh));
+formatex(tmp, charsmax(tmp), "&tk=%s&uid=%d&rt=%s&rh=%s%%3A%d&rl=%d", g_szTok62[id], get_user_userid(id), g_szTopic62, rh, get_pcvar_num(g_pRlPort62), get_pcvar_num(g_pRlOn62) && g_szTopic62[0] ? 1 : 0);
+if (n + strlen(tmp) < charsmax(h)) n += formatex(h[n], charsmax(h) - n, "%s", tmp);
+new base[192], pg[48]; get_pcvar_string(g_pWebBase62, base, charsmax(base)); get_pcvar_string(g_pWebPage62, pg, charsmax(pg));
+formatex(url, charsmax(url), "%s%s?v=%d#%s", base, pg, get_systime(), h);
 show_motd(id, url, "VEXMIRA iPad");
 client_cmd(id, "spk buttons/blip1");
 }
@@ -31890,8 +31922,8 @@ out[o] = 0;
 public WriteItemsJs60()
 {
 if (!dir_exists("vexmira_web")) mkdir("vexmira_web");
-new fp = fopen("vexmira_web/items.js", "wt");
-if (!fp) { log_amx("[Vexmira] vexmira_web/items.js yazilamadi"); return; }
+new fp = fopen("vexmira_web/vx62.items.js", "wt");
+if (!fp) { log_amx("[Vexmira] vexmira_web/vx62.items.js yazilamadi"); return; }
 BuildPools60();
 fprintf(fp, "// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
 static const CATS[] = "kcwpftz";
@@ -31935,7 +31967,7 @@ fprintf(fp, ",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}", ja, jb, get_pcvar_num(g_pAchV
 }
 fprintf(fp, "]};^n");
 fclose(fp);
-log_amx("[Vexmira] tablet: vexmira_web/items.js yazildi (havuz: %d/%d/%d/%d/%d)", g_iPoolN60[0], g_iPoolN60[1], g_iPoolN60[2], g_iPoolN60[3], g_iPoolN60[4]);
+log_amx("[Vexmira] tablet: vexmira_web/vx62.items.js yazildi (havuz: %d/%d/%d/%d/%d)", g_iPoolN60[0], g_iPoolN60[1], g_iPoolN60[2], g_iPoolN60[3], g_iPoolN60[4]);
 }
 // ------------------------------------------------------------------------------------------ tablet item (knife + R)
 public fw_KnifeDeploy60(knife)
@@ -32230,4 +32262,671 @@ set_msg_arg_string(1, "vexmira_tablet");
 set_msg_arg_int(2, ARG_BYTE, -1);
 set_msg_arg_int(3, ARG_BYTE, -1);
 return PLUGIN_CONTINUE;
+}
+
+// =====================================================================================================
+// 6.2 TABLET LIVE LINK: the web tablet (vexmira_web/vx62.html) sends actions through a public message
+// relay (ntfy.sh, plain HTTP GET "image beacon" - works in the CS 1.6 MOTD browser), the server keeps
+// ONE streaming connection to the relay (sockets module), checks the per-player secret token and runs
+// the action. Results and live data (online players, messages, friends, offers, notifications, admin
+// lists) are written to vexmira_web/u/<token>.js, which the open tablet re-reads every 2 seconds.
+// Tablet & mod: smurfsexy
+// =====================================================================================================
+Tab62Init()
+{
+g_pRlOn62    = register_cvar("vex_tablet_relay", "1");
+g_pRlHost62  = register_cvar("vex_tablet_relay_host", "ntfy.sh");
+g_pRlPort62  = register_cvar("vex_tablet_relay_port", "80");
+g_pRlTopic62 = register_cvar("vex_tablet_topic", "");
+g_pWebBase62 = register_cvar("vex_tablet_web", "http://f16.oyunyoneticisi.biz/cstrike/vexmira_web/");
+g_pWebPage62 = register_cvar("vex_tablet_page", "vx62.html");
+register_concmd("vex_tablet_link", "cmd_TabLink62", ADMIN_RCON, "- tablet canli baglanti durumu");
+register_srvcmd("vex_tablet_fake", "cmd_TabFake62");
+register_concmd("vex_tablet_selftest", "cmd_TabSelf62", ADMIN_RCON, "<userid> <action...> - (test) aksiyonu bu oyuncu adina calistir + u dosyasi yaz");   // test: inject a relay line
+g_hSocial62 = nvault_open("vexmira_social");
+set_task(0.1, "task_Relay62", TAB62_TASK, _, _, "b");
+set_task(1.0, "task_TabTick62", TAB62_TASK + 1, _, _, "b");
+set_task(3.0, "task_Tab62Start");
+}
+public task_Tab62Start()
+{
+Tab62Topic();
+if (!dir_exists("vexmira_web")) mkdir("vexmira_web");
+// remove last map's data files
+new dirh, f[64], path[96];
+if ((dirh = open_dir("vexmira_web", f, charsmax(f))))
+{
+do { if (equal(f, "u_", 2) && containi(f, ".js") != -1) { formatex(path, charsmax(path), "vexmira_web/%s", f); delete_file(path); } } while (next_file(dirh, f, charsmax(f)));
+close_dir(dirh);
+}
+}
+Tab62Topic()
+{
+get_pcvar_string(g_pRlTopic62, g_szTopic62, charsmax(g_szTopic62));
+if (g_szTopic62[0]) return;
+new fp = fopen("addons/amxmodx/data/vexmira_tablet_topic.txt", "rt");
+if (fp) { fgets(fp, g_szTopic62, charsmax(g_szTopic62)); fclose(fp); trim(g_szTopic62); }
+if (strlen(g_szTopic62) < 12)
+{
+RandStr62(g_szTopic62, 18); format(g_szTopic62, charsmax(g_szTopic62), "vxm%s", g_szTopic62);
+fp = fopen("addons/amxmodx/data/vexmira_tablet_topic.txt", "wt");
+if (fp) { fprintf(fp, "%s^n", g_szTopic62); fclose(fp); }
+}
+}
+stock RandStr62(out[], n)
+{
+static const A[] = "abcdefghijkmnpqrstuvwxyz23456789";
+for (new i = 0; i < n; i++) out[i] = A[random(sizeof A - 1)];
+out[n] = 0;
+}
+Tab62Connect(id)
+{
+RandStr62(g_szTok62[id], 10);
+g_iSeqAck62[id] = 0; g_szRes62[id][0] = 0; g_fTabSeen62[id] = 0.0;
+g_iMsgN62[id] = 0; g_iNotN62[id] = 0; g_iUnread62[id] = 0; g_iFReq62[id] = 0;
+g_szFriends62[id][0] = 0; g_szBlocks62[id][0] = 0; g_szSid62[id][0] = 0;
+for (new p = 1; p <= g_iMax; p++) g_iFReq62[p] &= ~(1 << id);
+}
+Tab62LoadSocial(id)
+{
+if (is_user_bot(id)) return;
+get_user_authid(id, g_szSid62[id], charsmax(g_szSid62[]));
+if (g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0]) return;
+new key[48];
+formatex(key, charsmax(key), "f_%s", g_szSid62[id]); nvault_get(g_hSocial62, key, g_szFriends62[id], charsmax(g_szFriends62[]));
+formatex(key, charsmax(key), "b_%s", g_szSid62[id]); nvault_get(g_hSocial62, key, g_szBlocks62[id], charsmax(g_szBlocks62[]));
+new name[32]; get_user_name(id, name, charsmax(name));
+formatex(key, charsmax(key), "n_%s", g_szSid62[id]); nvault_set(g_hSocial62, key, name);
+}
+Tab62SaveSocial(id)
+{
+if (g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0]) return;
+new key[48];
+formatex(key, charsmax(key), "f_%s", g_szSid62[id]); nvault_set(g_hSocial62, key, g_szFriends62[id]);
+formatex(key, charsmax(key), "b_%s", g_szSid62[id]); nvault_set(g_hSocial62, key, g_szBlocks62[id]);
+}
+// "sid1,sid2," list helpers
+stock bool:ListHas62(const list[], const sid[])
+{
+if (!sid[0]) return false;
+new k[40]; formatex(k, charsmax(k), "%s,", sid);
+return containi(list, k) != -1;
+}
+stock ListAdd62(list[], len, const sid[])
+{
+if (!sid[0] || ListHas62(list, sid) || strlen(list) + strlen(sid) + 2 >= len) return;
+add(list, len, sid); add(list, len, ",");
+}
+stock ListDel62(list[], len, const sid[])
+{
+new k[40]; formatex(k, charsmax(k), "%s,", sid);
+replace(list, len, k, "");
+}
+bool:Friends62(a, b) { return ListHas62(g_szFriends62[a], g_szSid62[b]) && ListHas62(g_szFriends62[b], g_szSid62[a]); }
+bool:Blocked62(a, b) { return ListHas62(g_szBlocks62[a], g_szSid62[b]); }
+
+// ------------------------------------------------------------------------------------------ notifications
+Notify62(id, const text[], bool:sound = true)
+{
+if (!(1 <= id <= g_iMax) || !is_user_connected(id) || is_user_bot(id)) return;
+if (g_iNotN62[id] >= NOT62)
+{
+for (new i = 1; i < NOT62; i++) { copy(g_szNot62[id][i - 1], charsmax(g_szNot62[][]), g_szNot62[id][i]); g_iNotTime62[id][i - 1] = g_iNotTime62[id][i]; }
+g_iNotN62[id] = NOT62 - 1;
+}
+copy(g_szNot62[id][g_iNotN62[id]], charsmax(g_szNot62[][]), text);
+g_iNotTime62[id][g_iNotN62[id]] = get_systime();
+g_iNotN62[id]++;
+g_iUnread62[id]++;
+if (sound) client_cmd(id, "spk buttons/bell1");
+WriteU62(id);
+}
+// top-right notification badge while the tablet is not in the hand
+public task_TabTick62()
+{
+for (new id = 1; id <= g_iMax; id++)
+{
+if (!is_user_connected(id) || is_user_bot(id)) continue;
+if (!g_iUnread62[id] || (is_user_alive(id) && GetActiveWeaponId(id) == WEAPON_C4)) continue;
+set_dhudmessage(255, 200, 60, 0.86, 0.12, 0, 0.0, 1.05, 0.0, 0.0);
+show_dhudmessage(id, (g_iLang[id] != 1) ? "[iPad] %d yeni bildirim" : "[iPad] %d new notification%s", g_iUnread62[id], (g_iLang[id] != 1 || g_iUnread62[id] == 1) ? "" : "s");
+}
+}
+// ------------------------------------------------------------------------------------------ relay stream
+public task_Relay62()
+{
+if (!get_pcvar_num(g_pRlOn62) || !g_szTopic62[0]) return;
+new Float:now = get_gametime();
+switch (g_iRlState62)
+{
+case RL_IDLE:
+{
+if (now < g_fRlNext62) return;
+new host[64], err; get_pcvar_string(g_pRlHost62, host, charsmax(host));
+g_iRlSock62 = socket_open(host, get_pcvar_num(g_pRlPort62), SOCKET_TCP, err, SOCK_NON_BLOCKING);
+if (g_iRlSock62 <= 0 || err)
+{
+g_iRlFails62++; g_fRlNext62 = now + floatmin(60.0, 3.0 * float(g_iRlFails62));
+if (g_iRlFails62 <= 3) log_amx("[tablet] relay baglanamadi (%s:%d hata %d) - tekrar denenecek", host, get_pcvar_num(g_pRlPort62), err);
+g_iRlSock62 = 0;
+return;
+}
+g_iRlState62 = RL_CONNECTING; g_fRlLast62 = now;
+}
+case RL_CONNECTING:
+{
+if (socket_is_writable(g_iRlSock62, 0))
+{
+new host[64], req[256]; get_pcvar_string(g_pRlHost62, host, charsmax(host));
+formatex(req, charsmax(req), "GET /%s/json HTTP/1.1^r^nHost: %s^r^nUser-Agent: vexmira-tablet^r^nAccept: */*^r^n^r^n", g_szTopic62, host);
+socket_send2(g_iRlSock62, req, strlen(req));
+g_iRlState62 = RL_STREAM; g_fRlLast62 = now; g_iRlBufLen62 = 0;
+if (g_iRlFails62) log_amx("[tablet] relay baglandi (%s)", host);
+g_iRlFails62 = 0;
+}
+else if (now - g_fRlLast62 > 10.0) RelayDrop62(now);
+}
+case RL_STREAM:
+{
+new loops;
+while (loops++ < 8 && socket_is_readable(g_iRlSock62, 0))
+{
+new got = socket_recv(g_iRlSock62, g_szRlBuf62[g_iRlBufLen62], charsmax(g_szRlBuf62) - g_iRlBufLen62);
+if (got <= 0) { RelayDrop62(now); return; }
+g_iRlBufLen62 += got; g_szRlBuf62[g_iRlBufLen62] = 0; g_fRlLast62 = now;
+RelayLines62();
+if (g_iRlBufLen62 >= charsmax(g_szRlBuf62) - 8) g_iRlBufLen62 = 0;
+}
+if (now - g_fRlLast62 > 90.0) RelayDrop62(now);   // ntfy sends a keepalive every 45 s
+}
+}
+}
+RelayDrop62(Float:now)
+{
+if (g_iRlSock62 > 0) socket_close(g_iRlSock62);
+g_iRlSock62 = 0; g_iRlState62 = RL_IDLE; g_fRlNext62 = now + 2.0; g_iRlBufLen62 = 0;
+}
+RelayLines62()
+{
+new start = 0;
+for (new i = 0; i < g_iRlBufLen62; i++)
+{
+if (g_szRlBuf62[i] != 10) continue;
+g_szRlBuf62[i] = 0;
+RelayLine62(g_szRlBuf62[start]);
+start = i + 1;
+}
+if (start > 0)
+{
+new rest = g_iRlBufLen62 - start;
+for (new k = 0; k < rest; k++) g_szRlBuf62[k] = g_szRlBuf62[start + k];
+g_iRlBufLen62 = rest; g_szRlBuf62[rest] = 0;
+}
+}
+RelayLine62(const line[])
+{
+if (containi(line, "^"event^":^"message^"") == -1) return;
+new p = containi(line, "^"message^":^"");
+if (p == -1) return;
+p += 11;
+new msg[512], o;
+for (new i = p; line[i] && line[i] != '"' && o < charsmax(msg); i++) msg[o++] = line[i];
+msg[o] = 0;
+TabAction62(msg);
+}
+public cmd_TabFake62()
+{
+new a[512]; read_args(a, charsmax(a)); remove_quotes(a); trim(a);
+TabAction62(a);
+return PLUGIN_HANDLED;
+}
+public cmd_TabLink62(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+new host[64]; get_pcvar_string(g_pRlHost62, host, charsmax(host));
+console_print(id, "[VEXMIRA] tablet link: relay=%s:%d topic=%s state=%d (0 bos,1 baglaniyor,2 canli) hata=%d", host, get_pcvar_num(g_pRlPort62), g_szTopic62, g_iRlState62, g_iRlFails62);
+return PLUGIN_HANDLED;
+}
+// ------------------------------------------------------------------------------------------ actions
+// message: vx1~<token>~<seq>~<action>~<a>~<b>~<c>   (text arguments are hex encoded UTF-8)
+TabAction62(const msg[])
+{
+if (!equal(msg, "vx1~", 4)) return;
+new parts[8][128], n = 0, o = 0;
+for (new i = 4; msg[i] && n < 8; i++)
+{
+if (msg[i] == '~') { parts[n][o] = 0; n++; o = 0; continue; }
+if (o < 127) parts[n][o++] = msg[i];
+}
+if (n < 8) { parts[n][o] = 0; n++; }
+if (n < 3) return;
+new id = 0;
+for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && !is_user_bot(p) && equal(g_szTok62[p], parts[0])) { id = p; break; }
+if (!id) return;
+new seq = str_to_num(parts[1]);
+if (seq <= g_iSeqAck62[id]) return;   // replay / duplicate
+new Float:now = get_gametime();
+if (now - g_fActWin62[id] > 3.0) { g_fActWin62[id] = now; g_iActTick62[id] = 0; }
+if (++g_iActTick62[id] > 8) return;    // flood
+g_iSeqAck62[id] = seq;
+g_fTabSeen62[id] = now;
+g_bTabQuiet62 = true;
+TabDo62(id, parts[2], parts[3], parts[4], parts[5]);
+g_bTabQuiet62 = false;
+WriteU62(id);
+}
+Res62(id, const fmt[], any:...)
+{
+vformat(g_szRes62[id], charsmax(g_szRes62[]), fmt, 3);
+}
+stock HexDec62(const hex[], out[], len)
+{
+new o = 0;
+for (new i = 0; hex[i] && hex[i + 1] && o < len; i += 2)
+{
+new hi = HexVal62(hex[i]), lo = HexVal62(hex[i + 1]);
+if (hi < 0 || lo < 0) break;
+new c = hi * 16 + lo;
+if (c < 32 && c != 9) c = ' ';
+out[o++] = c;
+}
+out[o] = 0;
+}
+stock HexVal62(c)
+{
+if (c >= '0' && c <= '9') return c - '0';
+if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+return -1;
+}
+UidToId62(uid)
+{
+for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && get_user_userid(p) == uid) return p;
+return 0;
+}
+TabDo62(id, const act[], const a[], const b[], const c[])
+{
+new bool:tr = (g_iLang[id] != 1);
+new name[32]; get_user_name(id, name, charsmax(name));
+if (equal(act, "ping")) { Res62(id, "ok~ping"); return; }
+if (equal(act, "seen")) { g_iUnread62[id] = 0; Res62(id, "ok~seen"); return; }
+if (equal(act, "case"))
+{
+new t = clamp(str_to_num(a), 0, 3);
+if (g_iVC[id] < CASE60_PRICE[t]) { Res62(id, "err~%s", tr ? "Yetersiz VexCoin" : "Not enough VexCoin"); return; }
+OpenCase60(id, t, false);   // quiet: fills g_szRes62 with the result
+return;
+}
+if (equal(act, "daily"))
+{
+new before = g_iDailyDay[id];
+ClaimDaily(id);
+if (g_iDailyDay[id] != before) Res62(id, "ok~daily~%d", g_iDailyStreak[id]);
+else Res62(id, "err~%s", tr ? "Bugunku odul zaten alindi" : "Already claimed today");
+return;
+}
+if (equal(act, "equip"))
+{
+new cat = a[0], i = str_to_num(b) - 1;
+if (i < 0 || i >= ItemCount60(cat) || !ItemOwned60(id, cat, i)) { Res62(id, "err~%s", tr ? "Bu esya sende yok" : "You don't own this"); return; }
+Equip62(id, cat, i, str_to_num(c) == 1);
+Res62(id, "ok~equip");
+return;
+}
+if (equal(act, "msg"))
+{
+new t = UidToId62(str_to_num(a));
+if (!t || t == id || is_user_bot(t)) { Res62(id, "err~%s", tr ? "Oyuncu bulunamadi" : "Player not found"); return; }
+if (Blocked62(t, id)) { Res62(id, "err~%s", tr ? "Bu oyuncu seni engelledi" : "This player blocked you"); return; }
+new txt[120]; HexDec62(b, txt, charsmax(txt)); trim(txt);
+if (!txt[0]) return;
+MsgAdd62(t, id, name, txt, false);
+new tn[32]; get_user_name(t, tn, charsmax(tn));
+MsgAdd62(id, t, tn, txt, true);
+new note[96]; formatex(note, charsmax(note), (g_iLang[t] != 1) ? "%s: %s" : "%s: %s", name, txt);
+Notify62(t, note);
+client_print_color(t, id, (g_iLang[t] != 1) ? "^4[iPad]^3 %s^1 sana mesaj gonderdi: ^4%s" : "^4[iPad]^3 %s^1 messaged you: ^4%s", name, txt);
+WriteU62(t);
+Res62(id, "ok~msg");
+return;
+}
+if (equal(act, "fadd") || equal(act, "facc") || equal(act, "fdel") || equal(act, "block") || equal(act, "unblock"))
+{
+new t = UidToId62(str_to_num(a));
+if (!t || t == id || is_user_bot(t) || !g_szSid62[t][0]) { Res62(id, "err~%s", tr ? "Oyuncu bulunamadi" : "Player not found"); return; }
+new tn[32]; get_user_name(t, tn, charsmax(tn));
+if (equal(act, "fadd"))
+{
+if (Blocked62(t, id)) { Res62(id, "err~%s", tr ? "Engellendin" : "You are blocked"); return; }
+ListAdd62(g_szFriends62[id], charsmax(g_szFriends62[]), g_szSid62[t]);
+if (ListHas62(g_szFriends62[t], g_szSid62[id])) { new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[t] != 1) ? "%s ile artik arkadassiniz" : "You and %s are friends now", name); Notify62(t, msgx); }
+else { g_iFReq62[t] |= (1 << id); new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[t] != 1) ? "%s arkadaslik istegi gonderdi" : "%s sent you a friend request", name); Notify62(t, msgx); }
+}
+else if (equal(act, "facc"))
+{
+g_iFReq62[id] &= ~(1 << t);
+ListAdd62(g_szFriends62[id], charsmax(g_szFriends62[]), g_szSid62[t]);
+ListAdd62(g_szFriends62[t], charsmax(g_szFriends62[]), g_szSid62[id]);
+new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[t] != 1) ? "%s istegini kabul etti" : "%s accepted your request", name); Notify62(t, msgx);
+Tab62SaveSocial(t);
+}
+else if (equal(act, "fdel"))
+{
+g_iFReq62[id] &= ~(1 << t);
+ListDel62(g_szFriends62[id], charsmax(g_szFriends62[]), g_szSid62[t]);
+ListDel62(g_szFriends62[t], charsmax(g_szFriends62[]), g_szSid62[id]);
+Tab62SaveSocial(t);
+}
+else if (equal(act, "block"))
+{
+ListAdd62(g_szBlocks62[id], charsmax(g_szBlocks62[]), g_szSid62[t]);
+ListDel62(g_szFriends62[id], charsmax(g_szFriends62[]), g_szSid62[t]);
+g_iFReq62[id] &= ~(1 << t);
+}
+else ListDel62(g_szBlocks62[id], charsmax(g_szBlocks62[]), g_szSid62[t]);
+Tab62SaveSocial(id);
+WriteU62(t);
+Res62(id, "ok~%s", act);
+return;
+}
+if (equal(act, "trade"))
+{
+new t = UidToId62(str_to_num(a));
+if (!t || t == id || is_user_bot(t)) { Res62(id, "err~%s", tr ? "Oyuncu bulunamadi" : "Player not found"); return; }
+if (Blocked62(t, id)) { Res62(id, "err~%s", tr ? "Bu oyuncu seni engelledi" : "This player blocked you"); return; }
+new gc = b[0], gi = str_to_num(b[1]) - 1;
+if (gi < 0 || gi >= ItemCount60(gc) || !ItemOwned60(id, gc, gi)) { Res62(id, "err~%s", tr ? "Bu esya sende yok" : "You don't own this"); return; }
+if (ItemOwned60(t, gc, gi)) { Res62(id, "err~%s", tr ? "Bu esya onda zaten var" : "They already own it"); return; }
+if (g_iOffN62 >= OFF62) { for (new k = 1; k < OFF62; k++) OffCopy62(k - 1, k); g_iOffN62 = OFF62 - 1; }
+new k = g_iOffN62++;
+g_iOffId62[k] = ++g_iOffSeq62; g_iOffFrom62[k] = id; g_iOffTo62[k] = t;
+copy(g_szOffGive62[k], 7, b); copy(g_szOffWant62[k], 7, c[0] ? c : "-");
+new it[48]; CodeName60(t, b, it, charsmax(it), g_iLang[t] != 1);
+new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[t] != 1) ? "%s takas teklifi: %s" : "%s offers a trade: %s", name, it);
+Notify62(t, msgx);
+client_print_color(t, id, (g_iLang[t] != 1) ? "^4[iPad]^3 %s^1 sana takas teklif etti: ^4%s^1 - tabletten kabul et" : "^4[iPad]^3 %s^1 offers you ^4%s^1 - accept on your tablet", name, it);
+Res62(id, "ok~trade");
+return;
+}
+if (equal(act, "tacc") || equal(act, "tdec"))
+{
+new oid = str_to_num(a), k = -1;
+for (new q = 0; q < g_iOffN62; q++) if (g_iOffId62[q] == oid && g_iOffTo62[q] == id) { k = q; break; }
+if (k < 0) { Res62(id, "err~%s", tr ? "Teklif bulunamadi" : "Offer not found"); return; }
+new f = g_iOffFrom62[k];
+if (equal(act, "tacc"))
+{
+if (!is_user_connected(f)) { OffDel62(k); Res62(id, "err~%s", tr ? "Teklif sahibi oyundan cikti" : "The other player left"); return; }
+new gc = g_szOffGive62[k][0], gi = str_to_num(g_szOffGive62[k][1]) - 1;
+new wc = g_szOffWant62[k][0], wi = str_to_num(g_szOffWant62[k][1]) - 1;
+if (!ItemOwned60(f, gc, gi) || ItemOwned60(id, gc, gi)) { OffDel62(k); Res62(id, "err~%s", tr ? "Takas artik gecersiz" : "Trade no longer valid"); return; }
+if (wc != '-' && (wi < 0 || !ItemOwned60(id, wc, wi) || ItemOwned60(f, wc, wi))) { OffDel62(k); Res62(id, "err~%s", tr ? "Istenen esya sende yok" : "You don't own the wanted item"); return; }
+ItemSetOwned60(f, gc, gi, false); ItemSetOwned60(id, gc, gi, true);
+if (wc != '-') { ItemSetOwned60(id, wc, wi, false); ItemSetOwned60(f, wc, wi, true); }
+g_iTrades60[f]++; g_iTrades60[id]++; GrantAch(f, 18); GrantAch(id, 18);
+SaveData(f); SaveData(id);
+new fn[32]; get_user_name(f, fn, charsmax(fn));
+log_to_file("vexmira_trade.log", "TABLET TAKAS %s verdi %s <-> %s verdi %s", fn, g_szOffGive62[k], name, g_szOffWant62[k]);
+new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[f] != 1) ? "%s takasi kabul etti" : "%s accepted your trade", name);
+Notify62(f, msgx);
+Res62(id, "ok~tacc");
+}
+else
+{
+new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[f] != 1) ? "%s takasi reddetti" : "%s declined your trade", name);
+Notify62(f, msgx);
+Res62(id, "ok~tdec");
+}
+OffDel62(k);
+WriteU62(f);
+return;
+}
+if (equal(act, "adm")) { TabAdmin62(id, a, b, c); return; }
+Res62(id, "err~?");
+}
+OffCopy62(d, s)
+{
+g_iOffId62[d] = g_iOffId62[s]; g_iOffFrom62[d] = g_iOffFrom62[s]; g_iOffTo62[d] = g_iOffTo62[s];
+copy(g_szOffGive62[d], 7, g_szOffGive62[s]); copy(g_szOffWant62[d], 7, g_szOffWant62[s]);
+}
+OffDel62(k)
+{
+for (new q = k + 1; q < g_iOffN62; q++) OffCopy62(q - 1, q);
+if (g_iOffN62 > 0) g_iOffN62--;
+}
+MsgAdd62(id, from, const fname[], const txt[], bool:out)
+{
+if (g_iMsgN62[id] >= MSG62)
+{
+for (new i = 1; i < MSG62; i++)
+{
+g_iMsgFrom62[id][i - 1] = g_iMsgFrom62[id][i]; g_iMsgTime62[id][i - 1] = g_iMsgTime62[id][i]; g_bMsgOut62[id][i - 1] = g_bMsgOut62[id][i];
+copy(g_szMsgName62[id][i - 1], charsmax(g_szMsgName62[][]), g_szMsgName62[id][i]); copy(g_szMsgTxt62[id][i - 1], charsmax(g_szMsgTxt62[][]), g_szMsgTxt62[id][i]);
+}
+g_iMsgN62[id] = MSG62 - 1;
+}
+new k = g_iMsgN62[id]++;
+g_iMsgFrom62[id][k] = get_user_userid(from); g_iMsgTime62[id][k] = get_systime(); g_bMsgOut62[id][k] = out;
+copy(g_szMsgName62[id][k], charsmax(g_szMsgName62[][]), fname); copy(g_szMsgTxt62[id][k], charsmax(g_szMsgTxt62[][]), txt);
+}
+Equip62(id, cat, i, bool:off)
+{
+switch (cat)
+{
+case 'k': { g_iCommunitySel[id][1] = off ? 0 : i + 1; if (is_user_alive(id) && !g_bZombie[id]) set_task(0.1, "CommunityApplyKnife", id + 64000); }
+case 'c': { g_iCommunitySel[id][0] = off ? 0 : i + 1; }
+case 'w': { CmPrevRemove(id); CmSetSel(id, 0, off ? 0 : i + 1); }
+case 'p': { CmPrevRemove(id); CmSetSel(id, 1, off ? 0 : i + 1); }
+case 'f': g_iKfxSel[id] = off ? 0 : i + 1;
+case 't': g_iTrailSel[id] = off ? 0 : i + 1;
+case 'z': g_iLzSel531[id] = off ? 0 : i + 1;
+}
+SaveData(id);
+}
+// ------------------------------------------------------------------------------------------ admin panel
+TabAdmin62(id, const op[], const a[], const b[])
+{
+new bool:tr = (g_iLang[id] != 1);
+if (!IsAdmin60(id)) { Res62(id, "err~%s", tr ? "Yetkin yok" : "No permission"); return; }
+new an[32]; get_user_name(id, an, charsmax(an));
+// server wide
+if (equal(op, "rr")) { server_cmd("sv_restart 1"); Res62(id, "ok~rr"); log_amx("[tablet admin] %s round restart", an); return; }
+if (equal(op, "map"))
+{
+new m[32]; copy(m, charsmax(m), a);
+for (new i = 0; m[i]; i++) if (!isalnum(m[i]) && m[i] != '_' && m[i] != '-') { m[i] = 0; break; }
+if (!m[0] || !is_map_valid(m)) { Res62(id, "err~%s", tr ? "Harita yok" : "Unknown map"); return; }
+log_amx("[tablet admin] %s map -> %s", an, m);
+client_print_color(0, print_team_default, "^4[VEXMIRA]^1 Admin ^3%s^1 haritayi degistiriyor: ^4%s", an, m);
+set_task(3.0, "task_TabMap62", 0, m, sizeof m);
+Res62(id, "ok~map"); return;
+}
+if (equal(op, "say"))
+{
+new txt[120]; HexDec62(a, txt, charsmax(txt));
+if (txt[0]) { set_dhudmessage(255, 60, 60, -1.0, 0.25, 0, 0.0, 6.0, 0.2, 0.4); show_dhudmessage(0, "%s: %s", an, txt); client_print_color(0, print_team_red, "^4[ADMIN]^3 %s^1: %s", an, txt); }
+Res62(id, "ok~say"); return;
+}
+// player actions
+new t = UidToId62(str_to_num(a));
+if (!t) { Res62(id, "err~%s", tr ? "Oyuncu bulunamadi" : "Player not found"); return; }
+if (t != id && (get_user_flags(t) & ADMIN_IMMUNITY) && !IsFounder60(id)) { Res62(id, "err~%s", tr ? "Dokunulmazligi var" : "Target has immunity"); return; }
+new tn[32]; get_user_name(t, tn, charsmax(tn));
+new uid = get_user_userid(t), v = str_to_num(b);
+if (equal(op, "kick")) server_cmd("kick #%d ^"%s^"", uid, tr ? "Admin tarafindan atildin" : "Kicked by admin");
+else if (equal(op, "ban"))
+{
+if (!(get_user_flags(id) & ADMIN_BAN)) { Res62(id, "err~ban"); return; }
+v = clamp(v, 0, 43200);
+server_cmd("banid %d #%d kick;writeid", v, uid);
+}
+else if (equal(op, "slay")) { if (is_user_alive(t)) user_kill(t, 1); }
+else if (equal(op, "team"))
+{
+if (is_user_alive(t)) { if (g_bZombie[t]) MakeHuman(t); else MakeZombie(t); }
+}
+else if (equal(op, "resp")) { if (!is_user_alive(t)) ExecuteHamB(Ham_CS_RoundRespawn, t); }
+else if (equal(op, "vc") || equal(op, "ap") || equal(op, "vip"))
+{
+if (!IsFounder60(id)) { Res62(id, "err~%s", tr ? "Sadece kurucu" : "Founder only"); return; }
+if (equal(op, "vc")) g_iVC[t] = max(0, g_iVC[t] + clamp(v, -1000000, 1000000));
+else if (equal(op, "ap")) g_iAP[t] = max(0, g_iAP[t] + clamp(v, -1000000, 1000000));
+else VipAddDays60(t, clamp(v, 1, 365));
+SaveData(t);
+new msgx[96]; formatex(msgx, charsmax(msgx), (g_iLang[t] != 1) ? "Yonetimden hediye: %s %+d" : "Gift from staff: %s %+d", op, v);
+Notify62(t, msgx);
+}
+else if (equal(op, "freeze"))
+{
+new fl = get_entvar(t, var_flags);
+set_entvar(t, var_flags, (fl & FL_FROZEN) ? (fl & ~FL_FROZEN) : (fl | FL_FROZEN));
+}
+else { Res62(id, "err~?"); return; }
+log_amx("[tablet admin] %s -> %s %s %s", an, op, tn, b);
+Res62(id, "ok~adm~%s", op);
+}
+public task_TabMap62(const m[]) { server_cmd("changelevel %s", m); }
+
+// ------------------------------------------------------------------------------------------ data file
+JsPut62(fp, const s[])
+{
+static out[256];
+JsStr60(s, out, charsmax(out));
+fputs(fp, out);
+}
+public WriteU62(id)
+{
+if (!(1 <= id <= g_iMax) || !is_user_connected(id) || (is_user_bot(id) && !g_bSelf62) || !g_szTok62[id][0]) return;
+new path[64]; formatex(path, charsmax(path), "vexmira_web/u_%s.js", g_szTok62[id]);
+new fp = fopen(path, "wt");
+if (!fp) return;
+new name[32], today = get_systime() / 86400;
+fprintf(fp, "window.VXU={v:%d,ack:%d,res:^"", get_systime(), g_iSeqAck62[id]);
+JsPut62(fp, g_szRes62[id]);
+fprintf(fp, "^",ap:%d,vc:%d,lv:%d,xp:%d,xn:%d,un:%d,dy:^"%d~%d~%d^",me:%d,", g_iAP[id], g_iVC[id], g_iLevel[id], g_iXP[id], XPForLevel(g_iLevel[id] + 1), g_iUnread62[id],
+g_iDailyStreak[id], g_iDailyDay[id] == today ? 1 : 0, 86400 - (get_systime() % 86400), get_user_userid(id));
+fprintf(fp, "iv:^"k%d.c%d.w%d.p%d.f%d.z%d.t%d^",", g_iCommunityOwned[id][1], g_iCommunityOwned[id][0], g_iCmOwned[id] & 255, (g_iCmOwned[id] >> 8) & 255, (g_iCosOwned[id] >> 6) & 63, g_iLzOwned531[id], g_iCosOwned[id] & 63);
+fprintf(fp, "eq:^"k%d.c%d.w%d.p%d.f%d.z%d.t%d^",", g_iCommunitySel[id][1], g_iCommunitySel[id][0], CmSel(id, 0), CmSel(id, 1), g_iKfxSel[id], g_iLzSel531[id], g_iTrailSel[id]);
+// online players: [uid,"name",team(1 human,2 zombie,0 spec),level,flags(1 friend,2 blocked,4 admin,8 request,16 alive,32 me)]
+fprintf(fp, "pl:[");
+new first = 1;
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_connected(p)) continue;
+get_user_name(p, name, charsmax(name));
+new fl = 0;
+if (p == id) fl |= 32;
+if (Friends62(id, p)) fl |= 1;
+if (Blocked62(id, p)) fl |= 2;
+if (IsAdmin60(p)) fl |= 4;
+if (g_iFReq62[id] & (1 << p)) fl |= 8;
+if (is_user_alive(p)) fl |= 16;
+if (is_user_bot(p)) fl |= 64;
+fprintf(fp, "%s[%d,^"", first ? "" : ",", get_user_userid(p));
+JsPut62(fp, name);
+fprintf(fp, "^",%d,%d,%d]", !is_user_alive(p) ? 0 : (g_bZombie[p] ? 2 : 1), g_iLevel[p], fl);
+first = 0;
+}
+// friends (also offline, by saved name)
+fprintf(fp, "],fr:[");
+first = 1;
+if (g_hSocial62 != INVALID_HANDLE)
+{
+new list[400], sid[40], pos, key[48], nm[32];
+copy(list, charsmax(list), g_szFriends62[id]);
+while (list[pos])
+{
+new o = 0;
+while (list[pos] && list[pos] != ',' && o < charsmax(sid)) sid[o++] = list[pos++];
+sid[o] = 0; if (list[pos] == ',') pos++;
+if (!sid[0]) continue;
+nm[0] = 0; formatex(key, charsmax(key), "n_%s", sid); nvault_get(g_hSocial62, key, nm, charsmax(nm));
+new on = 0;
+for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && equal(g_szSid62[p], sid)) { on = get_user_userid(p); break; }
+fprintf(fp, "%s[^"", first ? "" : ",");
+JsPut62(fp, nm[0] ? nm : "?");
+fprintf(fp, "^",%d]", on);
+first = 0;
+}
+}
+// messages [uid,"name","text",time,out]
+fprintf(fp, "],ms:[");
+for (new k = 0; k < g_iMsgN62[id]; k++)
+{
+fprintf(fp, "%s[%d,^"", k ? "," : "", g_iMsgFrom62[id][k]);
+JsPut62(fp, g_szMsgName62[id][k]); fputs(fp, "^",^""); JsPut62(fp, g_szMsgTxt62[id][k]);
+fprintf(fp, "^",%d,%d]", g_iMsgTime62[id][k], g_bMsgOut62[id][k] ? 1 : 0);
+}
+// notifications ["text",time]
+fprintf(fp, "],nt:[");
+for (new k = 0; k < g_iNotN62[id]; k++)
+{
+fprintf(fp, "%s[^"", k ? "," : "");
+JsPut62(fp, g_szNot62[id][k]);
+fprintf(fp, "^",%d]", g_iNotTime62[id][k]);
+}
+// trade offers to me / from me [id,fromUid,"name","give","want",in(1)/out(0)]
+fprintf(fp, "],of:[");
+first = 1;
+for (new k = 0; k < g_iOffN62; k++)
+{
+new f = g_iOffFrom62[k], t = g_iOffTo62[k];
+if (f != id && t != id) continue;
+new other = (f == id) ? t : f;
+if (!is_user_connected(other)) continue;
+get_user_name(other, name, charsmax(name));
+fprintf(fp, "%s[%d,%d,^"", first ? "" : ",", g_iOffId62[k], get_user_userid(other));
+JsPut62(fp, name);
+fprintf(fp, "^",^"%s^",^"%s^",%d]", g_szOffGive62[k], g_szOffWant62[k], t == id ? 1 : 0);
+first = 0;
+}
+// maps for the admin panel
+if (IsAdmin60(id))
+{
+fprintf(fp, "maps:[");
+new mf = 0, cnt = 0, dirh, f[64];
+if ((dirh = open_dir("maps", f, charsmax(f))))
+{
+do
+{
+new l = strlen(f);
+if (l > 4 && equali(f[l - 4], ".bsp") && cnt < 40) { f[l - 4] = 0; fprintf(fp, "%s^"", mf ? "," : ""); JsPut62(fp, f); fputs(fp, "^""); mf = 1; cnt++; }
+} while (next_file(dirh, f, charsmax(f)));
+close_dir(dirh);
+}
+fprintf(fp, "],");
+}
+fprintf(fp, "rl:%d};^n", g_iRlState62);
+fclose(fp);
+}
+// result of an action started from the tablet (case opening) - called by OpenCase60 in quiet mode
+Tab62CaseResult(id, c, const code[], r)
+{
+Res62(id, "ok~case~%d~%s~%d", c, code, r);
+}
+Tab62Leave(id)
+{
+Tab62SaveSocial(id);
+if (g_szTok62[id][0]) { new path[64]; formatex(path, charsmax(path), "vexmira_web/u_%s.js", g_szTok62[id]); delete_file(path); }
+g_szTok62[id][0] = 0;
+for (new k = g_iOffN62 - 1; k >= 0; k--) if (g_iOffFrom62[k] == id || g_iOffTo62[k] == id) OffDel62(k);
+for (new p = 1; p <= g_iMax; p++) g_iFReq62[p] &= ~(1 << id);
+}
+public cmd_TabSelf62(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+new a[8]; read_argv(1, a, charsmax(a));
+new t = UidToId62(str_to_num(a));
+if (!t) { for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p)) { t = p; break; } }
+if (!t) { console_print(id, "[selftest] oyuncu yok"); return PLUGIN_HANDLED; }
+if (!g_szTok62[t][0]) RandStr62(g_szTok62[t], 10);
+new act[24], aa[64], bb[64], cc[64];
+read_argv(2, act, charsmax(act)); read_argv(3, aa, charsmax(aa)); read_argv(4, bb, charsmax(bb)); read_argv(5, cc, charsmax(cc));
+g_bTabQuiet62 = true; g_bSelf62 = true;
+TabDo62(t, act, aa, bb, cc);
+WriteU62(t);
+g_bTabQuiet62 = false; g_bSelf62 = false;
+console_print(id, "[selftest] #%d (%s) act=%s -> res=%s dosya=vexmira_web/u_%s.js", t, g_szTok62[t], act, g_szRes62[t], g_szTok62[t]);
+log_amx("[selftest] #%d act=%s res=%s vc=%d ap=%d", t, act, g_szRes62[t], g_iVC[t], g_iAP[t]);
+return PLUGIN_HANDLED;
 }

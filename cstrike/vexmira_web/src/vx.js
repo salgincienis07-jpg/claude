@@ -93,14 +93,16 @@ var T = {
   guide: 'Rehber', cmds: 'Komutlar', music: 'Muzik', notes: 'Notlar', calc: 'Hesap Makinesi', snake: 'Vex Yilan', g2048: 'Vex 2048', whack: 'Zombi Avi', games: 'Oyunlar',
   d_guide: 'Modlar, zombi siniflari, ipuclari', d_cmds: 'Tum sohbet komutlari tek yerde', d_music: 'Korku atmosferi muzikleri', d_notes: 'Kendi notlarin', d_calc: 'Hizli hesap', d_snake: 'Klasik yilan, karanlik temada', d_g2048: 'Kutulari birlestir, 2048e ulas', d_whack: '30 saniyede en cok zombiyi vur',
   cc: 'Kontrol Merkezi', accent: 'Vurgu rengi', bright: 'Parlaklik', edit: 'Ana ekrani duzenle', done: 'Bitti', custom: 'Ozellestir', wpNames: ['Kizil Sis', 'Ucurum', 'Zehir', 'Altigen', 'Kor', 'Mor Safak', 'Gece Mavisi', 'Vexmira'],
-  cat_games: 'Oyunlar', cat_tools: 'Araclar', cat_server: 'Sunucu', top3: 'En iyiler', np: 'Simdi caliyor', tracks: ['Karanlik Koridor', 'Kalp Atisi', 'Kanli Yagmur', 'Sisli Gece'], stop: 'Durdur',
+  cat_games: 'Oyunlar', cat_tools: 'Araclar', cat_server: 'Sunucu', cat_social: 'Sosyal',
+  msg: 'Mesajlar', friends: 'Arkadaslar', notif: 'Bildirimler', adm: 'Yonetim', d_msg: 'Oyuncularla mesajlas', d_friends: 'Arkadas ekle, engelle', d_notif: 'Tum bildirimlerin', d_adm: 'Yonetim paneli', top3: 'En iyiler', np: 'Simdi caliyor', tracks: ['Karanlik Koridor', 'Kalp Atisi', 'Kanli Yagmur', 'Sisli Gece'], stop: 'Durdur',
   modes: 'Oyun Modlari', classes: 'Zombi Siniflari', tips: 'Ipuclari', notesPh: 'Buraya yaz... (otomatik kaydedilir)', timeLeft: 'Sure', start: 'Basla', again: 'Tekrar', hint2048: 'Ok tuslari ile kaydir', hintSnake: 'Ok tuslari / WASD ile yonlendir',
   widgetHint: 'Duzenlemek icin bir simgeye basili tut', xp: 'XP'
 }, {
   guide: 'Guide', cmds: 'Commands', music: 'Music', notes: 'Notes', calc: 'Calculator', snake: 'Vex Snake', g2048: 'Vex 2048', whack: 'Zombie Hunt', games: 'Games',
   d_guide: 'Modes, zombie classes, tips', d_cmds: 'Every chat command in one place', d_music: 'Horror ambience tracks', d_notes: 'Your own notes', d_calc: 'Quick maths', d_snake: 'Classic snake, dark theme', d_g2048: 'Merge tiles, reach 2048', d_whack: 'Hit as many zombies as you can in 30 s',
   cc: 'Control Center', accent: 'Accent color', bright: 'Brightness', edit: 'Edit home screen', done: 'Done', custom: 'Customize', wpNames: ['Crimson Fog', 'Abyss', 'Toxic', 'Hexgrid', 'Ember', 'Violet Dawn', 'Midnight', 'Vexmira'],
-  cat_games: 'Games', cat_tools: 'Tools', cat_server: 'Server', top3: 'Top players', np: 'Now playing', tracks: ['Dark Corridor', 'Heartbeat', 'Blood Rain', 'Foggy Night'], stop: 'Stop',
+  cat_games: 'Games', cat_tools: 'Tools', cat_server: 'Server', cat_social: 'Social',
+  msg: 'Messages', friends: 'Friends', notif: 'Notifications', adm: 'Admin', d_msg: 'Message other players', d_friends: 'Add or block players', d_notif: 'All your notifications', d_adm: 'Admin panel', top3: 'Top players', np: 'Now playing', tracks: ['Dark Corridor', 'Heartbeat', 'Blood Rain', 'Foggy Night'], stop: 'Stop',
   modes: 'Game Modes', classes: 'Zombie Classes', tips: 'Tips', notesPh: 'Write here... (saved automatically)', timeLeft: 'Time', start: 'Start', again: 'Again', hint2048: 'Slide with the arrow keys', hintSnake: 'Steer with arrow keys / WASD',
   widgetHint: 'Press and hold an icon to edit', xp: 'XP'
 });
@@ -150,6 +152,9 @@ var IC = {
   store: '<path d="M8 17.5L12.5 6M16 17.5L11.5 6M6 13.5h12M4 17.5h16"/>',
   game: '<path d="M7.5 7.5h9a5 5 0 0 1 4.9 6l-.6 3a2.4 2.4 0 0 1-4.2 1L15 15.5H9L7.4 17.5a2.4 2.4 0 0 1-4.2-1l-.6-3a5 5 0 0 1 4.9-6z"/><path d="M8 10.3v3M6.5 11.8h3M15.5 11h.1M17.5 12.8h.1"/>',
   dl: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  msg: '<path d="M4 5.5h16v10H9l-4 4v-4H4z"/><path d="M8 9h8M8 12h5"/>',
+  friends: '<circle cx="8.5" cy="8" r="3.2"/><path d="M2.5 20c.7-3.3 3.1-5 6-5s5.3 1.7 6 5"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3M17.5 14.5c2 .7 3.3 2.3 3.8 5"/>',
+  notif: '<path d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8 2.5 8h-17S6 15.5 6 9M10 20.5h4"/><circle cx="18" cy="6" r="3" fill="currentColor" stroke="none"/>',
   guide: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5M9 7.5h7M9 11h5"/>',
   cmds: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15H17"/>',
   music: '<path d="M9 18V5.5l11-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/><path d="M9 9.5l11-2"/>',
@@ -174,7 +179,8 @@ var ICOL = {
   inv: '#ad7bff,#4c1fae', 'case': '#ff4f7b,#8e0b3f', daily: '#43e0a0,#0b7a50', zup: '#a2e65c,#2c7710', trade: '#45d9d2,#0b6f7c',
   set: '#a3acb7,#3b424c', adm: '#ff5a5a,#7c0a12', about: '#6c7280,#20242c', store: '#5aaeff,#5b36f2', game: '#ff9147,#c4310c',
   guide: '#7c8bff,#2c2fa3', cmds: '#4a505c,#111317', music: '#ff6492,#b3124c', notes: '#ffd34d,#d48f00', calc: '#ff9f2e,#4a2a0a',
-  snake: '#56e07a,#147a30', g2048: '#ffbf5a,#cf6a0c', whack: '#c75cff,#5c0f9c', games: '#3b3346,#15111c'
+  snake: '#56e07a,#147a30', g2048: '#ffbf5a,#cf6a0c', whack: '#c75cff,#5c0f9c', games: '#3b3346,#15111c',
+  msg: '#2fb8ff,#0b4a8f', friends: '#5ad1a0,#0b6b4a', notif: '#ff6a8a,#8a0f30'
 };
 function svg(k) { return '<svg viewBox="0 0 24 24">' + (IC[k] || IC.about) + '</svg>'; }
 function lg(a, c0, c1) { return 'background:' + c1 + ';background:-webkit-linear-gradient(' + (90 - a) + 'deg,' + c0 + ',' + c1 + ')'; }
@@ -274,10 +280,10 @@ function banner(title, text, icon, color, delay) {
 function hms(s) { s = Math.max(0, s | 0); return pad(Math.floor(s / 3600)) + ':' + pad(Math.floor(s % 3600 / 60)); }
 
 // ------------------------------------------------------------------ apps
-var CATALOG = ['prof', 'top', 'time', 'ach', 'achtop', 'inv', 'case', 'daily', 'zup', 'trade', 'guide', 'cmds', 'music', 'notes', 'calc', 'game', 'snake', 'g2048', 'whack', 'set', 'store', 'about'];
-var CATS = [['cat_server', ['prof', 'top', 'time', 'ach', 'achtop', 'inv', 'case', 'daily', 'zup', 'trade']], ['cat_games', ['game', 'snake', 'g2048', 'whack']], ['cat_tools', ['guide', 'cmds', 'music', 'notes', 'calc']]];
+var CATALOG = ['prof', 'top', 'time', 'ach', 'achtop', 'inv', 'case', 'daily', 'zup', 'trade', 'msg', 'friends', 'notif', 'guide', 'cmds', 'music', 'notes', 'calc', 'game', 'snake', 'g2048', 'whack', 'set', 'store', 'about'];
+var CATS = [['cat_server', ['prof', 'top', 'time', 'ach', 'achtop', 'inv', 'case', 'daily', 'zup', 'trade']], ['cat_social', ['msg', 'friends', 'notif']], ['cat_games', ['game', 'snake', 'g2048', 'whack']], ['cat_tools', ['guide', 'cmds', 'music', 'notes', 'calc']]];
 var GAMES = ['game', 'snake', 'g2048', 'whack'];
-var CORE = ['store', 'set', 'about', 'adm'], DEF = ['prof', 'top', 'ach', 'inv', 'case', 'daily', 'zup', 'trade', 'guide', 'music', 'game', 'snake'];
+var CORE = ['store', 'set', 'about', 'adm'], DEF = ['prof', 'top', 'ach', 'inv', 'case', 'daily', 'zup', 'trade', 'msg', 'friends', 'notif', 'guide', 'music', 'game', 'snake'];
 var INST = (function () { var v = store('apps6'); try { v = v ? JSON.parse(v) : null; } catch (e) { v = null; } return v || DEF.slice(); })();
 function installed(a) { return CORE.indexOf(a) >= 0 || INST.indexOf(a) >= 0 || a === D.page; }
 function saveInst() { store('apps6', JSON.stringify(INST)); }
@@ -357,7 +363,7 @@ R.inv = function () {
   for (var i = 0; i < n; i++) {
     var it = list[i] || {}, own = ((D.iv[invTab] | 0) & (1 << i)) !== 0, eq = (D.eq[invTab] | 0) === i + 1, r = it.r | 0;
     if (it.ok === 0 && !own) continue;
-    h += '<div class="it' + (own ? '' : ' no') + '"><div class="ic">' + (eq ? '<span class="eq">' + esc(L('equipped')) + '</span>' : '') + '<div class="ib" style="' + grad(invTab === 'k' ? 'case' : invTab === 'w' ? 'ach' : invTab === 'p' ? 'daily' : 'inv') + '">' + svg(invTab === 'k' ? 'blade' : invTab === 'p' ? 'prof' : 'inv') + '</div><b>' + esc(itemName(invTab + (i + 1))) + '</b><small class="t' + r + '">' + esc(L('rar')[r]) + (it.vc ? ' &middot; ' + it.vc + ' VC' : '') + '</small><div class="rb r' + r + '"></div></div></div>';
+    h += '<div class="it' + (own ? '' : ' no') + '"' + (own ? ' data-eq="' + invTab + '.' + i + '.' + (eq ? 1 : 0) + '"' : '') + '><div class="ic">' + (eq ? '<span class="eq">' + esc(L('equipped')) + '</span>' : '') + '<div class="ib" style="' + grad(invTab === 'k' ? 'case' : invTab === 'w' ? 'ach' : invTab === 'p' ? 'daily' : 'inv') + '">' + svg(invTab === 'k' ? 'blade' : invTab === 'p' ? 'prof' : 'inv') + '</div><b>' + esc(itemName(invTab + (i + 1))) + '</b><small class="t' + r + '">' + esc(L('rar')[r]) + (it.vc ? ' &middot; ' + it.vc + ' VC' : '') + '</small><div class="rb r' + r + '"></div></div></div>';
   }
   return card(L('inv'), h + '</div>' + cmd(D.lang === 'tr' ? '/envanter  /kozmetik  /bicak' : '/inventory  /cosmetic  /knife'));
 };
@@ -403,7 +409,9 @@ R['case'] = function () {
   var c = cs[caseSel], loot = (c.loot || []).slice().sort(function (a, b) { return b[1] - a[1]; }), lh = '<div class="loot">';
   loot.forEach(function (l) { lh += '<div><p style="border-left-color:' + RCOL[l[1]] + '"><span class="t' + l[1] + '">' + esc(itemName(l[0])) + '</span><b>' + Number(l[2]).toFixed(2) + '%</b></p></div>'; });
   lh += '</div>';
-  return stage + card(L('case'), h + cmd(D.lang === 'tr' ? '/kasa' : '/case')) + card(L('chances') + ' - ' + (c[D.lang] || c.en), (loot.length ? lh : '<p class="muted">' + esc(L('noData')) + '</p>') + '<p class="muted" style="margin-top:8px">' + esc(L('vipDrop')) + '</p>');
+    var canBuy = D.vc >= (c.vc | 0);
+  var open = '<div class="caseact"><div class="cabal">' + fmt(D.vc) + ' VC</div><span class="gbtn get big' + (canBuy ? '' : ' dis') + '" data-openc="' + caseSel + '">' + esc(L('open')) + ' - ' + (c.vc | 0) + ' VC</span></div>';
+  return stage + card(L('case'), h + open) + card(L('chances') + ' - ' + (c[D.lang] || c.en), (loot.length ? lh : '<p class="muted">' + esc(L('noData')) + '</p>') + '<p class="muted" style="margin-top:8px">' + esc(L('vipDrop')) + '</p>');
 };
 function runReel() {
   if (!D.cr || !$('reel')) return;
@@ -438,7 +446,8 @@ R.daily = function () {
     h += '<div class="day ' + cls + '"><div><b>' + esc(L('day')) + ' ' + i + '</b><strong>' + ap + ' AP</strong><small>+' + vc + ' VC</small></div></div>';
   }
   h += '</div>';
-  return card(L('daily') + ' - ' + L('streak') + ': ' + D.streak, h + '<p style="margin-top:12px">' + esc(D.claimed ? L('claimed') + ' - ' + F('dailyWait', hms(D.next)) : L('dailyReady')) + '</p>' + cmd(D.lang === 'tr' ? '/gunluk' : '/daily'));
+    var act2 = D.claimed ? '<p class="muted" style="margin-top:12px">' + esc(L('claimed') + ' - ' + F('dailyWait', hms(D.next))) + '</p>' : '<div class="caseact"><span class="gbtn get big" data-daily="1">' + esc(L('claim')) + '</span></div>';
+  return card(L('daily') + ' - ' + L('streak') + ': ' + D.streak, h + act2);
 };
 R.zup = function () {
   var names = ZCLS[D.lang], h = '<div class="zups">';
@@ -709,7 +718,7 @@ function startWhack() {
   function start() { score = 0; tl = 30; $('gScore').textContent = '0'; $('wkT').textContent = '30'; clearInterval(timer); timer = setInterval(function () { if (!$('wkT') || GAME.stop) { clearInterval(timer); clearTimeout(spawn); return; } tl--; $('wkT').textContent = tl; if (tl <= 0) end(); }, 1000); next(); }
   GAME = { stop: false, start: start, hit: function (i) { if (i === live && tl > 0) { score++; $('gScore').textContent = score; tone(300, 0.08, 'square', 0.07, 0, 90); var h = document.querySelectorAll('.hole')[i]; h.className = 'hole hit'; live = -1; clearTimeout(spawn); spawn = setTimeout(next, 220); } } };
 }
-var STARTERS = { game: function () { startGame(); }, snake: startSnake, g2048: start2048, whack: startWhack, music: musViz };
+var STARTERS = { game: function () { startGame(); }, snake: startSnake, g2048: start2048, whack: startWhack, music: musViz, msg: function () { var i = $('msgIn'); if (i && CHAT) i.focus(); var b = document.getElementsByClassName('bubbles')[0]; if (b) b.scrollTop = b.scrollHeight; } };
 
 // ------------------------------------------------------------------ home (widgets + grid + folder + edit mode)
 var cur = null, EDIT = false, ACCS = ['#e3243b', '#ff6a2b', '#ffc23a', '#3ddc84', '#2fb8ff', '#8b5cff', '#ff4fa0'];
@@ -735,12 +744,13 @@ function widgets() {
   return '<div class="wcol">' + w + '</div>';
 }
 function renderHome() {
-  var badges = { daily: D.claimed ? 0 : 1, 'case': D.cr ? 1 : 0 };
+  var badges = { daily: D.claimed ? 0 : 1, 'case': D.cr ? 1 : 0, notif: D.un | 0, trade: OF.filter(function (o) { return o[5] === 1; }).length, msg: MS.filter(function (m) { return !m[4]; }).length ? 0 : 0 };
   var h = '<div class="hello"><h1>' + esc(L('hello')) + ', <b>' + esc(D.name) + '</b></h1><div class="hact">' +
-    (EDIT ? '<span class="pill on" data-ui="done">' + esc(L('done')) + '</span>' : '<span class="pill" data-ui="cc">' + svg('brush') + esc(L('custom')) + '</span>') + '</div></div>';
+    '<span class="ldot" id="linkDot"></span>' + (EDIT ? '<span class="pill on" data-ui="done">' + esc(L('done')) + '</span>' : '<span class="pill" data-ui="cc">' + svg('brush') + esc(L('custom')) + '</span>') + '</div></div>';
   h += '<div class="hbody' + (EDIT ? ' edit' : '') + '">' + widgets() + '<div class="grid">' + homeApps().map(function (a) { return icoHtml(a, badges); }).join('') + '</div></div>';
   h += '<div class="dock"><div class="dockin">' + DOCK.map(function (a) { return icoHtml(a, badges, true); }).join('') + '</div></div>';
   $('home').innerHTML = h;
+  if (typeof linkDot === 'function') linkDot();
 }
 function overlay(id, html) {
   var o = $(id); if (!o) { o = document.createElement('div'); o.id = id; $('screen').appendChild(o); }
@@ -814,7 +824,7 @@ document.addEventListener('click', function (e) {
   if (GAME && GAME.flap && e.target && e.target.id === 'gcv') { GAME.flap(); return; }
   if (GAME && GAME.tap && e.target && e.target.id === 'scv') { GAME.tap(); return; }
   var ov = findAttr(e.target, ['id']);
-  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs']);
+  var el = findAttr(e.target, ['data-rm', 'data-get', 'data-open', 'data-ui', 'data-fold', 'data-app', 'data-tab', 'data-top', 'data-case', 'data-openc', 'data-daily', 'data-eq', 'data-set', 'data-wp', 'data-acc', 'data-mus', 'data-calc', 'data-dir', 'data-hole', 'data-gs', 'data-chat', 'data-send', 'data-fadd', 'data-facc', 'data-fdel', 'data-block', 'data-unblock', 'data-toffer', 'data-tgive', 'data-tacc', 'data-tdec', 'data-admtab', 'data-admp', 'data-adm', 'data-map']);
   if (!el) {
     var t = e.target;
     if (t && t.className && typeof t.className === 'string' && t.className.indexOf('ov ') === 0) { closeOv(t.id); if (t.id === 'cc') SND.close(); }
@@ -836,6 +846,29 @@ document.addEventListener('click', function (e) {
   if ((v = el.getAttribute('data-dir')) !== null) { if (GAME && GAME.dir) GAME.dir(num(v)); return; }
   if ((v = el.getAttribute('data-hole')) !== null) { if (GAME && GAME.hit) GAME.hit(num(v)); return; }
   if (el.getAttribute('data-gs') !== null) { if (GAME && GAME.start) GAME.start(); SND.click(); return; }
+  // ---- live-link apps ----
+  if ((v = el.getAttribute('data-chat')) !== null) { CHAT = num(v); $('appBody').innerHTML = R.msg(); if (CHAT && STARTERS.msg) STARTERS.msg(); SND.click(); return; }
+  if ((v = el.getAttribute('data-send')) !== null) { var inp = $('msgIn'); if (inp && inp.value.replace(/^\s+|\s+$/g, '')) { act('msg', num(v), hexs(inp.value), '', '/ipad'); inp.value = ''; } return; }
+  if ((v = el.getAttribute('data-fadd')) !== null) { act('fadd', num(v), '', '', '/ipad'); SND.click(); return; }
+  if ((v = el.getAttribute('data-facc')) !== null) { act('facc', num(v)); SND.click(); return; }
+  if ((v = el.getAttribute('data-fdel')) !== null) { act('fdel', num(v)); SND.click(); return; }
+  if ((v = el.getAttribute('data-block')) !== null) { act('block', num(v)); SND.click(); return; }
+  if ((v = el.getAttribute('data-unblock')) !== null) { act('unblock', num(v)); SND.click(); return; }
+  if ((v = el.getAttribute('data-openc')) !== null) { if (REEL_RUN) return; act('case', num(v), '', '', D.lang === 'tr' ? '/kasa' : '/case'); SND.click(); return; }
+  if (el.getAttribute('data-daily') !== null) { act('daily', '', '', '', D.lang === 'tr' ? '/gunluk' : '/daily'); SND.click(); return; }
+  if ((v = el.getAttribute('data-eq')) !== null) { var q = v.split('.'); act('equip', q[0], num(q[1]) + 1, q[2] === '1' ? 1 : 0, D.lang === 'tr' ? '/kozmetik' : '/cosmetic'); SND.click(); return; }
+  if ((v = el.getAttribute('data-tgive')) !== null) { tradeSel = (tradeSel === v ? null : v); $('appBody').innerHTML = R.trade(); SND.click(); return; }
+  if ((v = el.getAttribute('data-toffer')) !== null) { if (tradeSel) { act('trade', num(v), tradeSel, '-', '/takas'); tradeSel = null; } SND.click(); return; }
+  if ((v = el.getAttribute('data-tacc')) !== null) { act('tacc', num(v)); SND.click(); return; }
+  if ((v = el.getAttribute('data-tdec')) !== null) { act('tdec', num(v)); SND.click(); return; }
+  if ((v = el.getAttribute('data-admtab'))) { admTab = v; $('appBody').innerHTML = R.adm(); SND.click(); return; }
+  if ((v = el.getAttribute('data-admp')) !== null) { admSel = (admSel === num(v) ? 0 : num(v)); $('appBody').innerHTML = R.adm(); SND.click(); return; }
+  if ((v = el.getAttribute('data-map'))) { act('adm', 'map', v, '', 'amx_map ' + v); SND.click(); return; }
+  if ((v = el.getAttribute('data-adm'))) {
+    SND.click();
+    if (v === 'saynow') { var si = $('admSay'); if (si && si.value) act('adm', 'say', hexs(si.value), '', null); return; }
+    var q = v.split('|'); act('adm', q[0], q[1] || '', q[2] || '', null); return;
+  }
   if ((v = el.getAttribute('data-calc')) !== null) { SND.tick(); calcKey(v); return; }
   if ((v = el.getAttribute('data-mus')) !== null) { v = num(v); if (MUS.i === v) musStop(); else musPlay(v); $('appBody').innerHTML = R.music(); musViz(); return; }
   SND.click();

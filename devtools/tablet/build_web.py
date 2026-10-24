@@ -13,8 +13,8 @@ Both very old (Chromium 18) and current Chromium render the -webkit- gradient sy
 import re, json, os, sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'cstrike', 'vexmira_web')
-SRC = os.path.join(ROOT, 'src', 'ipad.src.css')
-OUT = os.path.join(ROOT, 'ipad.css.js')
+SRC = os.path.join(ROOT, 'src', 'vx.src.css')
+OUT = os.path.join(ROOT, 'vx62.css.js')
 
 PREFIX_PROPS = ('transform', 'transition', 'animation', 'animation-duration', 'animation-delay', 'animation-name',
                 'animation-direction', 'animation-iteration-count', 'animation-timing-function', 'filter', 'user-select')
