@@ -31919,6 +31919,9 @@ set_entvar(id, var_viewmodel, "models/vexmira/tablet/v_tablet.mdl");
 if (g_iTabP60) set_entvar(id, var_weaponmodel, "models/vexmira/tablet/p_tablet.mdl");
 SendWeaponAnim60(id, 3);
 client_cmd(id, "spk buttons/blip2");
+g_fTabOpen60[id] = get_gametime();
+remove_task(id + 6060600);
+set_task(0.6, "task_TabOpen60", id + 6060600);
 }
 else
 {
@@ -31943,22 +31946,32 @@ if (!g_bTab60[id]) return FMRES_IGNORED;
 if (btn & (IN_ATTACK | IN_ATTACK2))
 {
 set_uc(uc, UC_Buttons, btn & ~(IN_ATTACK | IN_ATTACK2));
-new Float:now = get_gametime();
-if (now - g_fTabOpen60[id] > 1.2 && !(old & (IN_ATTACK | IN_ATTACK2)))
+if ((btn & IN_ATTACK2) && !(old & IN_ATTACK2))
 {
+// right click = put the tablet away
+remove_task(id + 6060600);
+TabletShow60(id, false);
+client_cmd(id, "spk buttons/blip1");
+return FMRES_SUPERCEDE;
+}
+new Float:now = get_gametime();
+if (now - g_fTabOpen60[id] > 1.2 && !(old & IN_ATTACK))
+{
+// left click = open the panel again
 g_fTabOpen60[id] = now;
 SendWeaponAnim60(id, 1);
+remove_task(id + 6060600);
 set_task(0.35, "task_TabOpen60", id + 6060600);
 }
 return FMRES_SUPERCEDE;
 }
 return FMRES_IGNORED;
 }
-public task_TabOpen60(tid) { new id = tid - 6060600; if (is_user_connected(id)) OpenTablet60(id, "home", ""); }
+public task_TabOpen60(tid) { new id = tid - 6060600; if (is_user_connected(id) && g_bTab60[id]) OpenTablet60(id, "home", ""); }
 TabletRoundHint60(id)
 {
 if (!g_iTabV60 || is_user_bot(id) || !get_pcvar_num(g_pTabItem60)) return;
-client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Tabletin hazir: bicak elindeyken ^3R^1 = tablet, ^3sol tik^1 = ac. Yazarak: ^3/ipad" : "^4[VEXMIRA]^1 Your tablet: hold the knife, ^3R^1 = tablet, ^3left click^1 = open. Or type ^3/ipad");
+client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Tabletin hazir: bicak elindeyken ^3R^1 = tableti cikar (panel acilir), ^3sol tik^1 = tekrar ac, ^3sag tik^1 = kaldir. Yazarak: ^3/ipad" : "^4[VEXMIRA]^1 Your tablet: hold the knife, ^3R^1 = take it out (panel opens), ^3left click^1 = reopen, ^3right click^1 = put away. Or type ^3/ipad");
 }
 
 // formats a dictionary key in Turkish or English regardless of the player (uses the server language slot)
