@@ -9155,8 +9155,8 @@ g_iRoundAP[id]+= amount;
 SyncMoney(id);
 if(show && amount > 0 && !is_user_bot(id))
 {
-set_hudmessage(CLR_REWARD,0.535,0.47,0,0.0,0.9,0.05,0.25,4);
-show_hudmessage(id,"+%d AP",amount);
+set_dhudmessage(CLR_REWARD,0.535,0.47,0,0.0,0.9,0.05,0.25);
+show_dhudmessage(id,"+%d AP",amount);
 }
 }
 SyncMoney(id)
@@ -13756,8 +13756,8 @@ return;
 new key[16],nm[32];
 formatex(key,charsmax(key),"NMODE_%d",g_iNadeMode[id][slot]);
 formatex(nm,charsmax(nm),"%L",id,key);
-set_hudmessage(CLR_WARN,-1.0,0.62,0,0.0,2.0,0.0,0.3,4);
-show_hudmessage(id,"%L",id,"NMODE_HUD",nm);
+set_dhudmessage(CLR_WARN,-1.0,0.62,0,0.0,2.0,0.0,0.3);
+show_dhudmessage(id,"%L",id,"NMODE_HUD",nm);
 }
 public fw_NadeAttack2(weapon)
 {
@@ -15277,10 +15277,10 @@ SkillDeny(id,const key[],val = 0)
 if(!is_user_connected(id)|| is_user_bot(id))
 return;
 if(equal(key,"ABILITY_COOL"))
-set_hudmessage(CLR_COOL,-1.0,0.56,0,0.0,1.0,0.0,0.1,4);
+set_dhudmessage(CLR_COOL,-1.0,0.56,0,0.0,1.0,0.0,0.1);
 else
-set_hudmessage(CLR_WARN,-1.0,0.56,0,0.0,1.4,0.0,0.1,4);
-show_hudmessage(id,"%L",id,key,val);
+set_dhudmessage(CLR_WARN,-1.0,0.56,0,0.0,1.4,0.0,0.1);
+show_dhudmessage(id,"%L",id,key,val);
 }
 LightsBlockedMsg(id)
 {
@@ -18735,8 +18735,8 @@ if(!ok)
 {
 if(is_user_connected(g_iBoss)&& !is_user_bot(g_iBoss))
 {
-set_hudmessage(CLR_WARN,-1.0,0.56,0,0.0,1.2,0.0,0.0,4);
-show_hudmessage(g_iBoss,"%L",g_iBoss,"BSK_NO_TARGET");
+set_dhudmessage(CLR_WARN,-1.0,0.56,0,0.0,1.2,0.0,0.0);
+show_dhudmessage(g_iBoss,"%L",g_iBoss,"BSK_NO_TARGET");
 }
 return false;
 }
@@ -21318,8 +21318,8 @@ rg_round_respawn(id);
 }
 else if(!is_user_bot(id))
 {
-set_hudmessage(CLR_WARN,-1.0,Y_COUNT + 0.05,0,0.0,1.1,0.0,0.0,4);
-show_hudmessage(id,"%L",id,"RESPAWN_IN",floatround(g_fRespawnAt[id]- now,floatround_ceil));
+set_dhudmessage(CLR_WARN,-1.0,Y_COUNT + 0.05,0,0.0,1.1,0.0,0.0);
+show_dhudmessage(id,"%L",id,"RESPAWN_IN",floatround(g_fRespawnAt[id]- now,floatround_ceil));
 }
 }
 }
@@ -23343,7 +23343,7 @@ return;
 new WeaponIdType:wid = GetActiveWeaponId(attacker);
 new bool:bullet =(inflictor == attacker &&(bits & DMG_BULLET))? true : false;
 new bool:headshot =(bullet && get_member(victim,m_LastHitGroup)== HIT_HEAD)? true : false;
-if(!is_user_bot(attacker)&& !(g_iSet[attacker]& SET_NO_DMGNUM))
+if(!g_bHud4&&!is_user_bot(attacker)&& !(g_iSet[attacker]& SET_NO_DMGNUM))
 {
 new Float:x = 0.52 + random_float(-0.02,0.04);
 new Float:y = 0.45 + random_float(-0.02,0.04);
@@ -32732,7 +32732,7 @@ switch(f){case 0:return g_iMode;case 1:return g_iEvent;case 2:return g_iRound;ca
 if(!(1<=id<=g_iMax)||!is_user_connected(id))return 0;
 switch(f){case 7:return g_bZombie[id];case 8:return g_bBoss[id]||g_bNemesis[id]||g_bAssassin[id];case 10:return g_iVC[id];case 11:return g_iAP[id];case 12:return g_iLang[id];case 13:return g_iSet[id];case 14:return g_iLevel[id];case 15:return g_iUnread62[id];
 case 16:{new k,v[2]={1,1};for(new i=0;g_szPref4[id][i];i++)if(g_szPref4[id][i]=='*'){k++;if((k==5||k==6)&&g_szPref4[id][i+1]=='0')v[k-5]=0;}return v[0]|(v[1]<<1);}
-case 17:return is_user_alive(id)&&GetActiveWeaponId(id)==WEAPON_C4;case 18:return g_iTheme[id];}return 0;}
+case 17:return is_user_alive(id)&&GetActiveWeaponId(id)==WEAPON_C4;case 19:return g_fGaugeEnd47[id]>get_gametime();case 18:return g_iTheme[id];}return 0;}
 public cmd_TabSelf62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
