@@ -80,8 +80,23 @@ public plugin_init()
 
 public plugin_cfg()
 {
-	g_bCore = LibraryExists("vexmira_core45", LibType_Library) ? true : false;
+	g_bCore = CoreRunning();
+	if (!g_bCore) log_amx("[HUD v4] vxcore_v4 calismiyor -> HUD bekliyor (core duzelince harita degisiminde acilir)");
 	if (g_bCore && get_pcvar_num(g_pOn)) vxc_hud(0, 99); // core: stop drawing the old bars / top board / numbers
+}
+
+// core must be loaded AND running (a paused core makes every native call an error)
+bool:CoreRunning()
+{
+	if (!LibraryExists("vexmira_core45", LibType_Library)) return false;
+	new file[64], name[64], ver[16], author[32], status[16];
+	for (new i = 0, n = get_pluginsnum(); i < n; i++)
+	{
+		get_plugin(i, file, charsmax(file), name, charsmax(name), ver, charsmax(ver), author, charsmax(author), status, charsmax(status));
+		if (containi(file, "core") != -1 && (containi(file, "vx") != -1 || containi(file, "vexmira") != -1))
+			return (equali(status, "running") || equali(status, "debug")) ? true : false;
+	}
+	return false;
 }
 
 // ------------------------------------------------------------------ helpers

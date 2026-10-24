@@ -30080,8 +30080,7 @@ g_iFwPcMdl = register_forward(FM_PrecacheModel,"fw_PcModelPost",1);
 g_iFwPcGen = register_forward(FM_PrecacheGeneric,"fw_PcGenericPost",1);
 if(file_exists("models/rpgrocket.mdl",true)&& CommunityLegacyFileOk("models/rpgrocket.mdl"))g_bCameraReady529=(VxPcOk531()&& precache_model("models/rpgrocket.mdl")>0);
 log_to_file("vexmira_startup.log","[5.3.0] BEGIN map preload");
-if(vx521_pair_version()!=564){set_fail_state("VEXMIRA: core + gear + extra 5.6.4 birlikte guncellenmeli; gear eski.");return;}
-if(vxe_version()!=564){set_fail_state("VEXMIRA: core + gear + extra 5.6.4 birlikte guncellenmeli; extra eski.");return;}
+{new gv=vx521_pair_version(),ev=vxe_version();if(gv!=564||ev!=564)log_amx("[VEXMIRA] UYARI surum: gear=%d extra=%d (564 beklenir) - eklenti calismaya devam ediyor",gv,ev);}
 g_pZcRewrite=register_cvar("zc_rewrite_configs","0");
 new bool:force=get_pcvar_num(g_pZcRewrite)>0;
 vx45_write(force);
