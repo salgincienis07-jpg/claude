@@ -2786,7 +2786,7 @@ native vx521_pair_version();
 enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SWE_EXPLOSIVE };
 #define NUM_PERKS     6
 #define PERK_MAX      5
-#define NUM_ACH       14
+#define NUM_ACH       30
 #define NUM_TITLES    10
 #define NUM_STYLES    3
 #define NUM_THEMES    6
@@ -3474,6 +3474,15 @@ new Float:g_fCmOfs[CM_CATS][CM_MAX][3], Float:g_fCmAng[CM_CATS][CM_MAX][3], Floa
 new bool:g_bCmCtl[CM_CATS][CM_MAX];
 new bool:g_bCmOk[CM_CATS][CM_MAX], g_iCmN[CM_CATS];
 new g_iCmOwned[33], g_iCmSelPk[33], g_iCmEnt[33][CM_CATS];
+// ---- 6.0 tablet / cases / trade / achievements globals ----
+new g_iCases60[33], g_iTrades60[33], g_iLmKills60[33], g_iKnifeKills60[33], g_iCures60[33];
+new g_iLifeKills60[33], g_iRoundInf60[33], bool:g_bTab60[33], Float:g_fTabOpen60[33], g_iTabOld60[33];
+new g_pTabUrl60, g_pTabItem60, g_iTabV60, g_iTabP60, g_iUptime60;
+#define LB60_MAX 10
+new g_szLbKey60[2][LB60_MAX][48], g_szLbName60[2][LB60_MAX][32], g_iLbVal60[2][LB60_MAX], g_iLbN60[2], bool:g_bLbDirty60;
+#define CASE60_POOL 64
+new g_szPool60[5][CASE60_POOL][8], g_iPoolN60[5];
+new g_iTradeTo60[33], g_iTradeFrom60[33], g_szTradeGive60[33][8], Float:g_fTradeAt60[33];
 new g_iCmOwn[OVH_MAXENT], g_iCmInfo[OVH_MAXENT];
 new g_iCmPrev[33], g_iCmPrevInfo[33], Float:g_fCmPrevEnd[33];
 new g_pCosPreview, g_pCosDeal, g_pCosHide;
@@ -8436,12 +8445,12 @@ return;
 g_iAP[id] = get_pcvar_num(g_pStartAP);
 if (g_hVault == INVALID_HANDLE)
 return;
-new key[48], val[512];
+new key[48], val[768];
 GetKey(id, key, charsmax(key));
 if (!nvault_get(g_hVault, key, val, charsmax(val)))
 return;
 g_bNewPlayer[id] = 0;
-new f[48], arg[16], pos, n;
+new f[64], arg[16], pos, n;
 while (n < sizeof f && (pos = argparse(val, pos, arg, charsmax(arg))) != -1)
 f[n++] = str_to_num(arg);
 g_iXP[id]          = f[0];
@@ -8485,6 +8494,8 @@ if (v && !(g_iCommunityOwned[id][c] & (1 << (v - 1)))) g_iCommunitySel[id][c] = 
 g_iLzOwned531[id] = (n > 39) ? (f[39] & 15) : 0;
 g_iLzSel531[id] = (n > 40) ? clamp(f[40], 0, 4) : 0;
 if (g_iLzSel531[id] && !(g_iLzOwned531[id] & (1 << (g_iLzSel531[id] - 1)))) g_iLzSel531[id] = 0;
+g_iCases60[id] = (n > 41) ? f[41] : 0; g_iTrades60[id] = (n > 42) ? f[42] : 0; g_iLmKills60[id] = (n > 43) ? f[43] : 0;
+g_iKnifeKills60[id] = (n > 44) ? f[44] : 0; g_iCures60[id] = (n > 45) ? f[45] : 0;
 g_iLevel[id] = CalcLevel(g_iXP[id]);
 if (g_iTitle[id] < 0 || g_iTitle[id] >= NUM_TITLES) g_iTitle[id] = 0;
 if (g_iJob[id] < 0 || g_iJob[id] >= NUM_JOBS || g_iLevel[id] < JOB_LVL[g_iJob[id]]) g_iJob[id] = 0;
@@ -8501,17 +8512,18 @@ SaveData(id)
 {
 if (g_hVault == INVALID_HANDLE || !is_user_connected(id) || is_user_bot(id) || !g_bLoaded[id] || !g_szKey[id][0])
 return;
-new key[48], val[512];
+new key[48], val[768];
 GetKey(id, key, charsmax(key));
-formatex(val, charsmax(val), "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+formatex(val, charsmax(val), "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
 g_iXP[id], g_iAP[id], g_iVC[id], g_iKills[id], g_iInfects[id], g_iWins[id], g_iBossK[id], g_iHS[id],
 g_iAch[id], g_iTitle[id], g_iJobNext[id] >= 0 ? g_iJobNext[id] : g_iJob[id], g_iStyle[id], g_iSet[id], g_iTheme[id], g_iLang[id],
 g_iDailyDay[id], g_iDailyStreak[id], g_iPrim[id], g_iSec[id], g_iPlaySec[id] / 60,
 g_iPerk[id][0], g_iPerk[id][1], g_iPerk[id][2], g_iPerk[id][3], g_iPerk[id][4], g_iPerk[id][5],
 g_iClassNext[id] >= 0 ? g_iClassNext[id] : g_iClass[id], get_systime(), g_iHudPos[id],
-g_iCosOwned[id], g_iTrailSel[id], g_iKfxSel[id], g_iIfxSel[id], g_iCmOwned[id], g_iCmSelPk[id], g_iCommunityOwned[id][0], g_iCommunitySel[id][0], g_iCommunityOwned[id][1], g_iCommunitySel[id][1], g_iLzOwned531[id], g_iLzSel531[id]);
+g_iCosOwned[id], g_iTrailSel[id], g_iKfxSel[id], g_iIfxSel[id], g_iCmOwned[id], g_iCmSelPk[id], g_iCommunityOwned[id][0], g_iCommunitySel[id][0], g_iCommunityOwned[id][1], g_iCommunitySel[id][1], g_iLzOwned531[id], g_iLzSel531[id], g_iCases60[id], g_iTrades60[id], g_iLmKills60[id], g_iKnifeKills60[id], g_iCures60[id]);
 nvault_set(g_hVault, key, val);
 UpdateTop(id, key);
+LbSave60(id, key);
 }
 stock TitleName(id, viewer, out[], len)
 {
@@ -9375,6 +9387,8 @@ Chat(id, "SHOP_UNAVAIL");
 return;
 }
 MakeHuman(id);
+g_iCures60[id]++;
+if (g_iCures60[id] >= 10) GrantAch(id, 21);
 }
 case IT_MADNESS:
 {
@@ -13462,6 +13476,7 @@ FxSprite(point, g_sprExplode, 6, 220);
 FxStreak(point, 7, 40, 220);
 FxLight(point, r, g, b, 30, 6, 30);
 EmitKey(ent, "LM_KILL");
+if (1 <= owner <= g_iMax && !g_bZombie[owner]) { g_iLmKills60[owner]++; if (g_iLmKills60[owner] >= 100) GrantAch(owner, 19); }
 if (!is_nullent(ent))
 MineDamage(ent, get_pcvar_float(g_pLmKillWear), 0);
 }
@@ -15092,6 +15107,7 @@ get_user_name(victim, vname, charsmax(vname));
 get_user_name(attacker, aname, charsmax(aname));
 MakeZombie(victim);
 if(g_bZombie[victim] && attacker!=victim && attacker>=1 && attacker<=g_iMax && is_user_connected(attacker) && g_bZombie[attacker] && !g_bBoss[attacker] && !g_bNemesis[attacker] && !g_bAssassin[attacker]) vxe_zup_add(attacker,1,g_iClass[attacker]);
+if(attacker!=victim) AchInfect60(attacker);
 new Float:vo[3];
 get_entvar(victim, var_origin, vo);
 CosInfectFx(attacker, vo);
@@ -20849,6 +20865,7 @@ MsRoundEnd(status, wasActive);
 CsoFlushAll();
 if (!wasActive)
 return;
+RoundAch60(status);
 EpicRoundFinish(status);
 if (status == WINSTATUS_CTS || status == WINSTATUS_TERRORISTS)
 {
@@ -20912,7 +20929,7 @@ for (new id = 1; id <= g_iMax; id++)
 if (is_user_connected(id))
 SaveData(id);
 }
-SaveTop();
+SaveTop(); LbWrite60();
 }
 RoundSummary()
 {
@@ -22326,6 +22343,8 @@ for (new c = 0; c < 2; c++) { g_iCommunityOwned[id][c] = 0; g_iCommunitySel[id][
 g_szKey[id][0] = 0; g_bLoaded[id] = false; g_iClassNext[id] = -1; g_iJobNext[id] = -1;
 g_bTrailOn[id] = false;
 g_bLmGiven[id] = false;
+g_iCases60[id] = 0; g_iTrades60[id] = 0; g_iLmKills60[id] = 0; g_iKnifeKills60[id] = 0; g_iCures60[id] = 0;
+g_iLifeKills60[id] = 0; g_iRoundInf60[id] = 0; g_bTab60[id] = false; g_iTradeTo60[id] = 0; g_iTradeFrom60[id] = 0;
 g_iAfkSec[id] = 0;
 g_fNextBeat[id] = 0.0;
 for (new i = 0; i < NUM_PERKS; i++)
@@ -22372,6 +22391,7 @@ if (!is_user_connected(id) || is_user_bot(id) || g_bWelcomed[id])
 return;
 g_bWelcomed[id] = true;
 remove_task(id + TASK_WELCOME2);
+set_task(12.0, "task_TabHint60", id + 6070700);
 new name[32];
 get_user_name(id, name, charsmax(name));
 new t = g_iTheme[id];
@@ -23557,6 +23577,7 @@ if (valid && !g_bZombie[attacker])
 {
 if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker) && IsVip(attacker) && (g_iSet[attacker]&E46_VIP_KILL)) EpicVipFx(attacker);
 g_iKills[attacker]++;
+AchKill60(attacker, victim);
 g_iMapKills[attacker]++;
 g_iRoundKills[attacker]++;
 if (g_iJob[attacker] == JOB_HUNTER)
@@ -29075,6 +29096,8 @@ RegisterSay("pet",      "",          "cmd_cosmetic");
 RegisterSay("trail",    "iz",        "cmd_cosmetic");
 RegisterSay("skill",    "beceri",    "cmd_skill");
 RegisterSay("skill2",   "beceri2",   "cmd_skill2");
+TabletInit60();
+set_task(4.0, "WriteItemsJs60");
 log_to_file("vexmira_startup.log","[530 core] MapVoteInit BEGIN");
 MapVoteInit();
 log_to_file("vexmira_startup.log","[530 core] MapVoteInit READY");
@@ -29151,7 +29174,7 @@ SaveData(id);
 }
 nvault_close(g_hVault);
 }
-SaveTop();
+SaveTop(); LbWrite60();
 if (g_hVipVault != INVALID_HANDLE)
 nvault_close(g_hVipVault);
 if (g_tRes != Invalid_Trie)
@@ -30054,6 +30077,7 @@ log_to_file("vexmira_startup.log","[5.3.0] core ready; epic begin");
 EpicPrecache();
 log_to_file("vexmira_startup.log","[5.3.0] epic ready; arsenal begin");
 VxPrecache();PrecacheContexts51();
+TabletPrecache60();
 vxe_late_precache(); // 5.4.2: extra plugin loaded before core -> its files are precached now
 log_to_file("vexmira_startup.log","[5.3.0] COMPLETE map preload");
 log_amx("[Vex530] Precache complete: sound=%d model=%d generic=%d",max(g_iTotSnd,g_iPcSnd),max(g_iTotMdl,g_iPcMdl),max(g_iTotGen,g_iPcGen));
@@ -31189,3 +31213,760 @@ ExecuteHamB(Ham_TakeDamage,victim,inflictor,owner,dmg,DMG_BLAST);
 g_iAreaTarget563=previous;
 return 1;
 }
+
+// =====================================================================================================
+// 6.0 VEXMIRA TABLET (iPad) + CASES + TRADE + ACHIEVEMENTS 14-29 + LEADERBOARDS
+// The tablet is a web app on the FastDL host (cstrike/vexmira_web/ipad.html) opened in the MOTD window.
+// The plugin passes the player's data in the URL hash (see devtools/tablet/CONTRACT.md) and writes
+// vexmira_web/items.js (item / case / achievement names from this server's config) at map start.
+// Tablet & mod: smurfsexy
+// =====================================================================================================
+TabletInit60()
+{
+g_pTabUrl60 = register_cvar("vex_tablet_url", "http://f16.oyunyoneticisi.biz/cstrike/vexmira_web/ipad.html");
+g_pTabItem60 = register_cvar("vex_tablet_item", "1");
+g_iUptime60 = get_systime();
+RegisterSay("ipad",      "tablet",    "cmd_Tablet60");
+RegisterSay("panel",     "menu2",     "cmd_Tablet60");
+RegisterSay("top15",     "top15",     "cmd_TabTop60");
+RegisterSay("toptime",   "sure",      "cmd_TabTime60");
+RegisterSay("achtop",    "basarimtop","cmd_TabAchTop60");
+RegisterSay("achievements","basarimlar","cmd_TabAch60");
+RegisterSay("inventory", "envanter",  "cmd_TabInv60");
+RegisterSay("case",      "kasa",      "cmd_Case60");
+RegisterSay("cases",     "kasalar",   "cmd_Case60");
+RegisterSay("trade",     "takas",     "cmd_Trade60");
+RegisterSay("upgradeinfo","gelisimtab","cmd_TabZup60");
+register_concmd("vex_reset_top",  "cmd_ResetTop60",  ADMIN_RCON, "- top15 (seviye) siralamasini sifirla");
+register_concmd("vex_reset_time", "cmd_ResetTime60", ADMIN_RCON, "- oynama suresi siralamasini sifirla");
+register_concmd("vex_reset_ach",  "cmd_ResetAch60",  ADMIN_RCON, "- basarim siralamasini sifirla");
+register_concmd("vex_give_ach",   "cmd_GiveAch60",   ADMIN_RCON, "<isim> <0-29> - basarim ver");
+register_concmd("vex_give_case",  "cmd_GiveCase60",  ADMIN_RCON, "<isim> <0-3> - bedava kasa actir");
+register_forward(FM_CmdStart, "fw_TabletCmd60");
+RegisterHam(Ham_Item_Deploy, "weapon_knife", "fw_KnifeDeploy60", 1);
+LbLoad60();
+}
+TabletPrecache60()
+{
+if (file_exists("models/vexmira/tablet/v_tablet.mdl", true)) g_iTabV60 = ZcPcModel("models/vexmira/tablet/v_tablet.mdl");
+if (file_exists("models/vexmira/tablet/p_tablet.mdl", true)) g_iTabP60 = ZcPcModel("models/vexmira/tablet/p_tablet.mdl");
+}
+// ------------------------------------------------------------------------------------------ helpers
+stock UrlEnc60(const src[], dst[], len)
+{
+static const HX[] = "0123456789ABCDEF";
+new o = 0;
+for (new i = 0; src[i] && o < len - 3; i++)
+{
+new c = src[i] & 0xFF;
+if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.')
+dst[o++] = c;
+else { dst[o++] = '%'; dst[o++] = HX[c >> 4]; dst[o++] = HX[c & 15]; }
+}
+dst[o] = 0;
+}
+// "STEAM_0:Y:Z" -> SteamID64 as decimal string (76561197960265728 + 2Z + Y), 32-bit safe
+stock Steam64_60(id, out[], len)
+{
+out[0] = 0;
+new auth[40]; get_user_authid(id, auth, charsmax(auth));
+if (!equal(auth, "STEAM_", 6)) return;
+new p1 = contain(auth, ":"); if (p1 < 0) return;
+new y = auth[p1 + 1] - '0';
+new p2 = contain(auth[p1 + 1], ":"); if (p2 < 0) return;
+new z = str_to_num(auth[p1 + 2 + p2]);
+if (z <= 0) return;
+new add = z * 2 + y;
+new base[] = "76561197960265728";
+new d[20]; copy(d, charsmax(d), base);
+new i = strlen(d) - 1, carry = add;
+while (i >= 0 && carry > 0) { new v = (d[i] - '0') + carry; d[i] = '0' + (v % 10); carry = v / 10; i--; }
+copy(out, len, d);
+}
+stock ShortName60(const src[], out[], len)
+{
+copy(out, min(len, 14), src);
+}
+stock bool:IsFounder60(id) { return (get_user_flags(id) & ADMIN_RCON) ? true : false; }
+stock bool:IsAdmin60(id) { return (get_user_flags(id) & ADMIN_BAN) ? true : false; }
+// ------------------------------------------------------------------------------------------ items
+// category letters: k knife, c CT skin, w wing, p pet, f kill fx, z laser colour, t trail
+stock ItemCount60(cat)
+{
+switch (cat)
+{
+case 'k': return KN_TOTAL;
+case 'c': return 5;
+case 'w', 'p': return CM_MAX;
+case 'f', 't': return 6;
+case 'z': return 4;
+}
+return 0;
+}
+stock bool:ItemValid60(cat, i)
+{
+switch (cat)
+{
+case 'k': return KnifeReady47(i);
+case 'c': return g_bCommunityCtOk[i] ? true : false;
+case 'w': return g_bCmOk[0][i] ? true : false;
+case 'p': return g_bCmOk[1][i] ? true : false;
+case 'f', 't', 'z': return true;
+}
+return false;
+}
+stock ItemPrice60(id, cat, i)
+{
+switch (cat)
+{
+case 'k': return (i < 4) ? 450 : max(1, g_iMkCost[i - 4]);
+case 'c': return 400;
+case 'w': return max(1, g_iCmPrice[0][i]);
+case 'p': return max(1, g_iCmPrice[1][i]);
+case 'f': return max(1, CosPrice(id, 1, i));
+case 't': return max(1, CosPrice(id, 0, i));
+case 'z': return max(1, LzPrice531(i));
+}
+return 100;
+}
+stock ItemName60(id, cat, i, out[], len, bool:tr)
+{
+switch (cat)
+{
+case 'k': KnifeName538(1, i, out, len);
+case 'c': copy(out, len, COMMUNITY_CN[i]);
+case 'w': copy(out, len, (tr && g_szCmTr[0][i][0]) ? g_szCmTr[0][i] : g_szCmEn[0][i]);
+case 'p': copy(out, len, (tr && g_szCmTr[1][i][0]) ? g_szCmTr[1][i] : g_szCmEn[1][i]);
+case 'f': { new k[16]; formatex(k, charsmax(k), "COS_KFX_%d", i); LangFmt60(out, len, k, tr); }
+case 't': { new k[16]; formatex(k, charsmax(k), "COS_TRAIL_%d", i); LangFmt60(out, len, k, tr); }
+case 'z': copy(out, len, tr ? LZ_TR531[i] : LZ_EN531[i]);
+default: out[0] = 0;
+}
+#pragma unused id
+}
+stock bool:ItemOwned60(id, cat, i)
+{
+switch (cat)
+{
+case 'k': return (g_iCommunityOwned[id][1] & (1 << i)) ? true : false;
+case 'c': return (g_iCommunityOwned[id][0] & (1 << i)) ? true : false;
+case 'w': return (g_iCmOwned[id] & (1 << i)) ? true : false;
+case 'p': return (g_iCmOwned[id] & (1 << (8 + i))) ? true : false;
+case 'f': return (g_iCosOwned[id] & CosBit(1, i)) ? true : false;
+case 't': return (g_iCosOwned[id] & CosBit(0, i)) ? true : false;
+case 'z': return (g_iLzOwned531[id] & (1 << i)) ? true : false;
+}
+return false;
+}
+stock ItemSetOwned60(id, cat, i, bool:on)
+{
+switch (cat)
+{
+case 'k': { if (on) g_iCommunityOwned[id][1] |= (1 << i); else { g_iCommunityOwned[id][1] &= ~(1 << i); if (g_iCommunitySel[id][1] == i + 1) g_iCommunitySel[id][1] = 0; } }
+case 'c': { if (on) g_iCommunityOwned[id][0] |= (1 << i); else { g_iCommunityOwned[id][0] &= ~(1 << i); if (g_iCommunitySel[id][0] == i + 1) g_iCommunitySel[id][0] = 0; } }
+case 'w': { if (on) g_iCmOwned[id] |= (1 << i); else { g_iCmOwned[id] &= ~(1 << i); if (CmSel(id, 0) == i + 1) { CmPrevRemove(id); CmSetSel(id, 0, 0); } } }
+case 'p': { if (on) g_iCmOwned[id] |= (1 << (8 + i)); else { g_iCmOwned[id] &= ~(1 << (8 + i)); if (CmSel(id, 1) == i + 1) { CmPrevRemove(id); CmSetSel(id, 1, 0); } } }
+case 'f': { if (on) g_iCosOwned[id] |= CosBit(1, i); else { g_iCosOwned[id] &= ~CosBit(1, i); if (g_iKfxSel[id] == i + 1) g_iKfxSel[id] = 0; } }
+case 't': { if (on) g_iCosOwned[id] |= CosBit(0, i); else { g_iCosOwned[id] &= ~CosBit(0, i); if (g_iTrailSel[id] == i + 1) g_iTrailSel[id] = 0; } }
+case 'z': { if (on) g_iLzOwned531[id] |= (1 << i); else { g_iLzOwned531[id] &= ~(1 << i); if (g_iLzSel531[id] == i + 1) g_iLzSel531[id] = 0; } }
+}
+}
+stock OwnedCount60(id)
+{
+new n;
+static const CATS[] = "kcwpftz";
+for (new c = 0; c < sizeof CATS - 1; c++)
+for (new i = 0; i < ItemCount60(CATS[c]); i++)
+if (ItemOwned60(id, CATS[c], i)) n++;
+return n;
+}
+stock RarityOf60(price) { return (price <= 200) ? 0 : (price <= 400) ? 1 : (price <= 700) ? 2 : 3; }
+// ------------------------------------------------------------------------------------------ cases
+new const CASE60_PRICE[4] = { 150, 350, 700, 1200 };
+new const CASE60_W[4][5] = { {70, 24, 5, 1, 0}, {45, 35, 15, 5, 0}, {20, 35, 30, 13, 2}, {10, 30, 30, 22, 8} };
+new const CASE60_TR[4][] = { "Bronz Kasa", "Gumus Kasa", "Altin Kasa", "Kabus Kasasi" };
+new const CASE60_EN[4][] = { "Bronze Case", "Silver Case", "Gold Case", "Nightmare Case" };
+new const RAR60_TR[5][] = { "Siradan", "Nadir", "Destansi", "Efsanevi", "Mitik" };
+new const RAR60_EN[5][] = { "Common", "Rare", "Epic", "Legendary", "Mythic" };
+PoolAdd60(r, const code[]) { if (g_iPoolN60[r] < CASE60_POOL) copy(g_szPool60[r][g_iPoolN60[r]++], 7, code); }
+BuildPools60()
+{
+for (new r = 0; r < 5; r++) g_iPoolN60[r] = 0;
+static const CATS[] = "kcwpftz";
+new code[8];
+for (new c = 0; c < sizeof CATS - 1; c++)
+for (new i = 0; i < ItemCount60(CATS[c]); i++)
+{
+if (!ItemValid60(CATS[c], i)) continue;
+formatex(code, charsmax(code), "%c%d", CATS[c], i + 1);
+PoolAdd60(RarityOf60(ItemPrice60(0, CATS[c], i)), code);
+}
+PoolAdd60(0, "a200"); PoolAdd60(0, "$50"); PoolAdd60(1, "a500"); PoolAdd60(1, "$150"); PoolAdd60(2, "$500");
+PoolAdd60(4, "v1"); PoolAdd60(4, "v3"); PoolAdd60(4, "v7");
+if (!g_iPoolN60[3]) { PoolAdd60(3, "$500"); PoolAdd60(3, "v1"); }
+}
+CodeName60(id, const code[], out[], len, bool:tr)
+{
+switch (code[0])
+{
+case 'a': formatex(out, len, "%s AP", code[1]);
+case '$': formatex(out, len, "%s VexCoin", code[1]);
+case 'v': formatex(out, len, tr ? "VIP %s Gun" : "VIP %s Day(s)", code[1]);
+default: ItemName60(id, code[0], str_to_num(code[1]) - 1, out, len, tr);
+}
+}
+CodeRarity60(const code[])
+{
+for (new r = 4; r >= 0; r--)
+for (new i = 0; i < g_iPoolN60[r]; i++)
+if (equal(g_szPool60[r][i], code)) return r;
+return 0;
+}
+VipAddDays60(id, days)
+{
+if (g_hVipVault == INVALID_HANDLE) return;
+new key[48], val[32], base = get_systime(), tier = 1;
+GetKey(id, key, charsmax(key));
+if (nvault_get(g_hVipVault, key, val, charsmax(val)))
+{
+new t[8], e[16]; parse(val, t, charsmax(t), e, charsmax(e));
+if (str_to_num(e) > base) { base = str_to_num(e); tier = max(1, str_to_num(t)); }
+}
+formatex(val, charsmax(val), "%d %d", tier, base + clamp(days, 1, 365) * 86400);
+nvault_set(g_hVipVault, key, val);
+log_to_file("vexmira_vip.log", "VIP KASADAN: %s +%d gun", key, days);
+LoadVip(id);
+}
+// returns refund VC if it was a duplicate (0 = new item)
+GrantCode60(id, const code[])
+{
+switch (code[0])
+{
+case 'a': { AddAP(id, str_to_num(code[1]), false, false); return 0; }
+case '$': { g_iVC[id] += str_to_num(code[1]); return 0; }
+case 'v': { VipAddDays60(id, str_to_num(code[1])); return 0; }
+}
+new cat = code[0], i = str_to_num(code[1]) - 1;
+if (i < 0 || i >= ItemCount60(cat)) return 0;
+if (ItemOwned60(id, cat, i)) { new rf = max(10, ItemPrice60(id, cat, i) / 2); g_iVC[id] += rf; return rf; }
+ItemSetOwned60(id, cat, i, true);
+return 0;
+}
+OpenCase60(id, c, bool:free)
+{
+if (!is_user_connected(id) || c < 0 || c > 3) return;
+new bool:tr = (g_iLang[id] != 1);
+if (!free)
+{
+if (g_iVC[id] < CASE60_PRICE[c]) { client_print_color(id, print_team_default, tr ? "^4[VEXMIRA]^1 Yetersiz VexCoin: ^3%d^1 gerekli." : "^4[VEXMIRA]^1 Not enough VexCoin: ^3%d^1 needed.", CASE60_PRICE[c]); return; }
+g_iVC[id] -= CASE60_PRICE[c];
+}
+new tot, roll, r;
+for (r = 0; r < 5; r++) if (g_iPoolN60[r]) tot += CASE60_W[c][r];
+roll = random_num(1, max(1, tot));
+for (r = 0; r < 5; r++) { if (!g_iPoolN60[r]) continue; roll -= CASE60_W[c][r]; if (roll <= 0) break; }
+r = clamp(r, 0, 4);
+if (!g_iPoolN60[r]) r = 0;
+new code[8]; copy(code, charsmax(code), g_szPool60[r][random(max(1, g_iPoolN60[r]))]);
+new refund = GrantCode60(id, code);
+g_iCases60[id]++;
+new nm[48]; CodeName60(id, code, nm, charsmax(nm), tr);
+if (refund) client_print_color(id, print_team_default, tr ? "^4[VEXMIRA]^1 %s: ^3%s^1 (zaten vardi, ^4+%d VC^1 iade)" : "^4[VEXMIRA]^1 %s: ^3%s^1 (duplicate, ^4+%d VC^1 refund)", tr ? CASE60_TR[c] : CASE60_EN[c], nm, refund);
+else client_print_color(id, print_team_default, tr ? "^4[VEXMIRA]^1 %s acildi: ^3%s^1 [%s]" : "^4[VEXMIRA]^1 %s opened: ^3%s^1 [%s]", tr ? CASE60_TR[c] : CASE60_EN[c], nm, tr ? RAR60_TR[r] : RAR60_EN[r]);
+static const RC[5][3] = { {170, 170, 180}, {60, 140, 255}, {170, 70, 255}, {255, 190, 40}, {255, 40, 40} };
+FadeOne(id, RC[r][0], RC[r][1], RC[r][2], 60 + r * 20, 0.8);
+if (r >= 3)
+{
+GrantAch(id, 17);
+new name[32]; get_user_name(id, name, charsmax(name));
+for (new p = 1; p <= g_iMax; p++)
+{
+if (!is_user_connected(p) || is_user_bot(p)) continue;
+new bool:ptr = (g_iLang[p] != 1);
+new pn[48]; CodeName60(p, code, pn, charsmax(pn), ptr);
+client_print_color(p, id, ptr ? "^4[VEXMIRA]^3 %s^1 kasadan ^4%s^1 cikardi: ^3%s^1 !" : "^4[VEXMIRA]^3 %s^1 unboxed a ^4%s^1 item: ^3%s^1 !", name, ptr ? RAR60_TR[r] : RAR60_EN[r], pn);
+PlayKey(p, r >= 4 ? "MVP" : "ACH_UNLOCK");
+}
+}
+else PlayKey(id, r >= 2 ? "LEVEL_UP" : "SHOP_BUY");
+if (g_iCases60[id] >= 25) GrantAch(id, 16);
+if (OwnedCount60(id) >= 20) GrantAch(id, 22);
+SaveData(id);
+new extra[48]; formatex(extra, charsmax(extra), "&cr=%d~%s~%d", c, code, r);
+ReplaceStr60(extra, charsmax(extra), "$", "%24");
+OpenTablet60(id, "case", extra);
+}
+stock ReplaceStr60(s[], len, const a[], const b[]) { replace_all(s, len, a, b); }
+public cmd_Case60(id)
+{
+new bool:tr = (g_iLang[id] != 1);
+new m = menu_create(tr ? "\rVEXMIRA \w| \yKasalar^n\dVexCoin ile ac - icerik: tablet" : "\rVEXMIRA \w| \yCases^n\dOpen with VexCoin - contents: tablet", "menu_Case60");
+new line[96];
+for (new c = 0; c < 4; c++)
+{
+formatex(line, charsmax(line), "%s%s \r[%d VC]", g_iVC[id] >= CASE60_PRICE[c] ? "\w" : "\d", tr ? CASE60_TR[c] : CASE60_EN[c], CASE60_PRICE[c]);
+menu_additem(m, line);
+}
+menu_additem(m, tr ? "\yKasa icerikleri (tablet)" : "\yCase contents (tablet)");
+menu_setprop(m, MPROP_NUMBER_COLOR, "\r");
+menu_display(id, m, 0);
+return PLUGIN_HANDLED;
+}
+public menu_Case60(id, m, item)
+{
+menu_destroy(m);
+if (item < 0) return PLUGIN_HANDLED;
+if (item == 4) { OpenTablet60(id, "case", ""); return PLUGIN_HANDLED; }
+OpenCase60(id, item, false);
+return PLUGIN_HANDLED;
+}
+// ------------------------------------------------------------------------------------------ trade
+public cmd_Trade60(id)
+{
+new bool:tr = (g_iLang[id] != 1);
+new m = menu_create(tr ? "\rVEXMIRA \w| \yTakas^n\dKiminle takas yapacaksin?" : "\rVEXMIRA \w| \yTrade^n\dWho do you want to trade with?", "menu_TradePick60");
+new nm[32], inf[4], n;
+for (new p = 1; p <= g_iMax; p++)
+{
+if (p == id || !is_user_connected(p) || is_user_bot(p) || !g_bLoaded[p]) continue;
+get_user_name(p, nm, charsmax(nm)); num_to_str(p, inf, charsmax(inf));
+menu_additem(m, nm, inf); n++;
+}
+if (!n) { menu_destroy(m); client_print_color(id, print_team_default, tr ? "^4[VEXMIRA]^1 Takas icin sunucuda baska oyuncu yok." : "^4[VEXMIRA]^1 No other player to trade with."); return PLUGIN_HANDLED; }
+menu_setprop(m, MPROP_NUMBER_COLOR, "\r");
+menu_display(id, m, 0);
+return PLUGIN_HANDLED;
+}
+public menu_TradePick60(id, m, item)
+{
+if (item < 0) { menu_destroy(m); return PLUGIN_HANDLED; }
+new inf[4], acc, nm[2], cb; menu_item_getinfo(m, item, acc, inf, charsmax(inf), nm, charsmax(nm), cb); menu_destroy(m);
+new t = str_to_num(inf);
+if (!is_user_connected(t)) return PLUGIN_HANDLED;
+g_iTradeTo60[id] = t;
+ItemMenu60(id, "menu_TradeGive60", true);
+return PLUGIN_HANDLED;
+}
+// lists the player's owned items; info = code
+ItemMenu60(id, const handler[], bool:giveSide, const title2[] = "")
+{
+new bool:tr = (g_iLang[id] != 1);
+new title[160];
+if (title2[0]) copy(title, charsmax(title), title2);
+else formatex(title, charsmax(title), tr ? "\rVEXMIRA \w| \yTakas^n\dVerecegin esyayi sec" : "\rVEXMIRA \w| \yTrade^n\dPick the item you give");
+new m = menu_create(title, handler);
+if (!giveSide) menu_additem(m, tr ? "\yHediye olarak kabul et (karsilik yok)" : "\yAccept as a gift (nothing back)", "-");
+static const CATS[] = "kcwpftz";
+new code[8], nm[48], line[80], n;
+for (new c = 0; c < sizeof CATS - 1; c++)
+for (new i = 0; i < ItemCount60(CATS[c]); i++)
+{
+if (!ItemOwned60(id, CATS[c], i)) continue;
+formatex(code, charsmax(code), "%c%d", CATS[c], i + 1);
+ItemName60(id, CATS[c], i, nm, charsmax(nm), tr);
+formatex(line, charsmax(line), "\w%s \d[%s]", nm, tr ? RAR60_TR[RarityOf60(ItemPrice60(id, CATS[c], i))] : RAR60_EN[RarityOf60(ItemPrice60(id, CATS[c], i))]);
+menu_additem(m, line, code); n++;
+}
+if (giveSide && !n) { menu_destroy(m); client_print_color(id, print_team_default, tr ? "^4[VEXMIRA]^1 Takas edecek esyan yok. Kasa ac: ^3/kasa" : "^4[VEXMIRA]^1 You have no items to trade. Open a case: ^3/case"); return; }
+if (!giveSide) menu_additem(m, tr ? "\rReddet" : "\rDecline", "x");
+menu_setprop(m, MPROP_NUMBER_COLOR, "\r");
+menu_display(id, m, 0);
+}
+public menu_TradeGive60(id, m, item)
+{
+if (item < 0) { menu_destroy(m); return PLUGIN_HANDLED; }
+new code[8], acc, nm[2], cb; menu_item_getinfo(m, item, acc, code, charsmax(code), nm, charsmax(nm), cb); menu_destroy(m);
+new t = g_iTradeTo60[id];
+if (!is_user_connected(t) || is_user_bot(t)) return PLUGIN_HANDLED;
+copy(g_szTradeGive60[id], 7, code);
+g_iTradeFrom60[t] = id; g_fTradeAt60[t] = get_gametime();
+new an[32], inm[48]; get_user_name(id, an, charsmax(an));
+new bool:ttr = (g_iLang[t] != 1);
+CodeName60(t, code, inm, charsmax(inm), ttr);
+new title[192];
+formatex(title, charsmax(title), ttr ? "\rVEXMIRA \w| \yTakas teklifi^n\w%s sana \y%s\w veriyor.^n\dKarsiliginda ne verirsin?" : "\rVEXMIRA \w| \yTrade offer^n\w%s offers you \y%s\w.^n\dWhat do you give back?", an, inm);
+ItemMenu60(t, "menu_TradeAnswer60", false, title);
+client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Teklif gonderildi, cevap bekleniyor..." : "^4[VEXMIRA]^1 Offer sent, waiting for an answer...");
+return PLUGIN_HANDLED;
+}
+public menu_TradeAnswer60(t, m, item)
+{
+if (item < 0) { menu_destroy(m); return PLUGIN_HANDLED; }
+new back[8], acc, nm[2], cb; menu_item_getinfo(m, item, acc, back, charsmax(back), nm, charsmax(nm), cb); menu_destroy(m);
+new id = g_iTradeFrom60[t]; g_iTradeFrom60[t] = 0;
+if (!(1 <= id <= g_iMax) || !is_user_connected(id) || get_gametime() - g_fTradeAt60[t] > 60.0) return PLUGIN_HANDLED;
+if (back[0] == 'x') { client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Takas teklifin reddedildi." : "^4[VEXMIRA]^1 Your trade offer was declined."); return PLUGIN_HANDLED; }
+new give[8]; copy(give, charsmax(give), g_szTradeGive60[id]);
+new gc = give[0], gi = str_to_num(give[1]) - 1;
+if (!ItemOwned60(id, gc, gi) || ItemOwned60(t, gc, gi)) { client_print_color(t, print_team_default, "^4[VEXMIRA]^1 Takas gecersiz / trade invalid."); return PLUGIN_HANDLED; }
+new bc = 0, bi = -1;
+if (back[0] != '-')
+{
+bc = back[0]; bi = str_to_num(back[1]) - 1;
+if (!ItemOwned60(t, bc, bi) || ItemOwned60(id, bc, bi)) { client_print_color(t, print_team_default, "^4[VEXMIRA]^1 Takas gecersiz / trade invalid (zaten sahip)."); return PLUGIN_HANDLED; }
+}
+ItemSetOwned60(id, gc, gi, false); ItemSetOwned60(t, gc, gi, true);
+if (bi >= 0) { ItemSetOwned60(t, bc, bi, false); ItemSetOwned60(id, bc, bi, true); }
+g_iTrades60[id]++; g_iTrades60[t]++;
+if (g_iTrades60[id] >= 10) GrantAch(id, 18);
+if (g_iTrades60[t] >= 10) GrantAch(t, 18);
+new a1[32], a2[32]; get_user_name(id, a1, charsmax(a1)); get_user_name(t, a2, charsmax(a2));
+log_to_file("vexmira_trade.log", "TAKAS %s verdi %s <-> %s verdi %s", a1, give, a2, back);
+for (new p = 1; p <= g_iMax; p++)
+if (p == id || p == t) client_print_color(p, print_team_default, (g_iLang[p] != 1) ? "^4[VEXMIRA]^1 Takas tamamlandi: ^3%s^1 <-> ^3%s" : "^4[VEXMIRA]^1 Trade complete: ^3%s^1 <-> ^3%s", a1, a2);
+PlayKey(id, "SHOP_BUY"); PlayKey(t, "SHOP_BUY");
+SaveData(id); SaveData(t);
+return PLUGIN_HANDLED;
+}
+// ------------------------------------------------------------------------------------------ achievements 14-29
+AchExtra60(id)
+{
+if (is_user_bot(id)) return;
+new mins = g_iPlaySec[id] / 60;
+if (mins >= 600) GrantAch(id, 14);
+if (mins >= 6000) GrantAch(id, 15);
+if (g_iCases60[id] >= 25) GrantAch(id, 16);
+if (g_iTrades60[id] >= 10) GrantAch(id, 18);
+if (g_iLmKills60[id] >= 100) GrantAch(id, 19);
+if (g_iKnifeKills60[id] >= 100) GrantAch(id, 20);
+if (g_iCures60[id] >= 10) GrantAch(id, 21);
+if (OwnedCount60(id) >= 20) GrantAch(id, 22);
+}
+AchCount60(id) { new n; for (new i = 0; i < NUM_ACH; i++) if (g_iAch[id] & (1 << i)) n++; return n; }
+// called from the kill handler (human killed a zombie)
+AchKill60(attacker, victim)
+{
+if (!(1 <= attacker <= g_iMax) || is_user_bot(attacker)) return;
+g_iLifeKills60[attacker]++;
+if (g_iLifeKills60[attacker] >= 10) GrantAch(attacker, 27);
+if (g_bNemesis[victim]) GrantAch(attacker, 24);
+if (GetActiveWeaponId(attacker) == WEAPON_KNIFE) { g_iKnifeKills60[attacker]++; if (g_iKnifeKills60[attacker] >= 100) GrantAch(attacker, 20); }
+}
+AchInfect60(attacker)
+{
+if (!(1 <= attacker <= g_iMax) || is_user_bot(attacker)) return;
+g_iRoundInf60[attacker]++;
+if (g_iRoundInf60[attacker] >= 5) GrantAch(attacker, 26);
+for (new c = 0; c < NUM_CLASSES && c < 24; c++) if (vxe_zup_level(attacker, c) >= 5) { GrantAch(attacker, 28); break; }
+}
+RoundAch60(WinStatus:status)
+{
+for (new p = 1; p <= g_iMax; p++)
+{
+g_iRoundInf60[p] = 0;
+if (!is_user_alive(p) || is_user_bot(p)) continue;
+if (g_iMode == MODE_ARMAGEDDON && ((status == WINSTATUS_CTS && !g_bZombie[p]) || (status == WINSTATUS_TERRORISTS && g_bZombie[p]))) GrantAch(p, 23);
+if (g_iMode == MODE_SURVIVOR && status == WINSTATUS_CTS && g_bSurvivor[p]) GrantAch(p, 25);
+AchExtra60(p);
+}
+}
+public cmd_GiveAch60(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 3)) return PLUGIN_HANDLED;
+new who[32], a[8]; read_argv(1, who, charsmax(who)); read_argv(2, a, charsmax(a));
+new t = cmd_target(id, who, CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
+if (!t) return PLUGIN_HANDLED;
+GrantAch(t, clamp(str_to_num(a), 0, NUM_ACH - 1)); SaveData(t);
+console_print(id, "[Vexmira] OK");
+return PLUGIN_HANDLED;
+}
+public cmd_GiveCase60(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 3)) return PLUGIN_HANDLED;
+new who[32], a[8]; read_argv(1, who, charsmax(who)); read_argv(2, a, charsmax(a));
+new t = cmd_target(id, who, CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
+if (!t) return PLUGIN_HANDLED;
+OpenCase60(t, clamp(str_to_num(a), 0, 3), true);
+return PLUGIN_HANDLED;
+}
+// ------------------------------------------------------------------------------------------ leaderboards (0 playtime, 1 achievements)
+LbFile60(path[], len) { get_datadir(path, len); add(path, len, "/vexmira_top60.ini"); }
+LbLoad60()
+{
+new path[128]; LbFile60(path, charsmax(path));
+g_iLbN60[0] = 0; g_iLbN60[1] = 0;
+new fp = fopen(path, "rt"); if (!fp) return;
+new line[160], b[4], key[48], name[32], v[12];
+while (!feof(fp))
+{
+fgets(fp, line, charsmax(line)); trim(line);
+if (!line[0] || line[0] == ';') continue;
+if (parse(line, b, charsmax(b), key, charsmax(key), name, charsmax(name), v, charsmax(v)) < 4) continue;
+new bd = clamp(str_to_num(b), 0, 1), i = g_iLbN60[bd];
+if (i >= LB60_MAX) continue;
+copy(g_szLbKey60[bd][i], 47, key); copy(g_szLbName60[bd][i], 31, name); g_iLbVal60[bd][i] = str_to_num(v); g_iLbN60[bd]++;
+}
+fclose(fp);
+}
+LbWrite60()
+{
+if (!g_bLbDirty60) return;
+new path[128]; LbFile60(path, charsmax(path));
+new fp = fopen(path, "wt"); if (!fp) return;
+fprintf(fp, "; Vexmira 6.0 siralamalar: 0 = oynama suresi (dk), 1 = basarim sayisi^n");
+for (new bd = 0; bd < 2; bd++) for (new i = 0; i < g_iLbN60[bd]; i++)
+fprintf(fp, "%d ^"%s^" ^"%s^" %d^n", bd, g_szLbKey60[bd][i], g_szLbName60[bd][i], g_iLbVal60[bd][i]);
+fclose(fp);
+g_bLbDirty60 = false;
+}
+LbPut60(bd, const key[], const name[], val)
+{
+if (val <= 0) return;
+new slot = -1;
+for (new i = 0; i < g_iLbN60[bd]; i++) if (equal(g_szLbKey60[bd][i], key)) { slot = i; break; }
+if (slot == -1)
+{
+if (g_iLbN60[bd] < LB60_MAX) slot = g_iLbN60[bd]++;
+else if (val > g_iLbVal60[bd][LB60_MAX - 1]) slot = LB60_MAX - 1;
+else return;
+}
+else if (g_iLbVal60[bd][slot] == val) return;
+copy(g_szLbKey60[bd][slot], 47, key); copy(g_szLbName60[bd][slot], 31, name); g_iLbVal60[bd][slot] = val;
+for (new i = slot; i > 0 && g_iLbVal60[bd][i] > g_iLbVal60[bd][i - 1]; i--)
+{
+new tk[48], tn[32], tv;
+copy(tk, 47, g_szLbKey60[bd][i]); copy(tn, 31, g_szLbName60[bd][i]); tv = g_iLbVal60[bd][i];
+copy(g_szLbKey60[bd][i], 47, g_szLbKey60[bd][i - 1]); copy(g_szLbName60[bd][i], 31, g_szLbName60[bd][i - 1]); g_iLbVal60[bd][i] = g_iLbVal60[bd][i - 1];
+copy(g_szLbKey60[bd][i - 1], 47, tk); copy(g_szLbName60[bd][i - 1], 31, tn); g_iLbVal60[bd][i - 1] = tv;
+}
+g_bLbDirty60 = true;
+}
+LbSave60(id, const key[])
+{
+new name[32]; get_user_name(id, name, charsmax(name));
+replace_all(name, charsmax(name), "^"", "'");
+LbPut60(0, key, name, g_iPlaySec[id] / 60);
+LbPut60(1, key, name, AchCount60(id));
+AchExtra60(id);
+}
+public cmd_ResetTop60(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+g_iTopCount = 0; g_bTopDirty = true; SaveTop(); LbWrite60(); RefreshTopRanks();
+console_print(id, "[Vexmira] top15 sifirlandi"); log_amx("[Vexmira] top15 sifirlandi");
+return PLUGIN_HANDLED;
+}
+public cmd_ResetTime60(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+g_iLbN60[0] = 0; g_bLbDirty60 = true; LbWrite60();
+console_print(id, "[Vexmira] sure siralamasi sifirlandi");
+return PLUGIN_HANDLED;
+}
+public cmd_ResetAch60(id, level, cid)
+{
+if (!cmd_access(id, level, cid, 1)) return PLUGIN_HANDLED;
+g_iLbN60[1] = 0; g_bLbDirty60 = true; LbWrite60();
+console_print(id, "[Vexmira] basarim siralamasi sifirlandi");
+return PLUGIN_HANDLED;
+}
+// ------------------------------------------------------------------------------------------ open tablet
+public cmd_Tablet60(id)  { OpenTablet60(id, "home", ""); return PLUGIN_HANDLED; }
+public cmd_TabTop60(id)  { OpenTablet60(id, "top", ""); return PLUGIN_HANDLED; }
+public cmd_TabTime60(id) { OpenTablet60(id, "time", ""); return PLUGIN_HANDLED; }
+public cmd_TabAchTop60(id) { OpenTablet60(id, "achtop", ""); return PLUGIN_HANDLED; }
+public cmd_TabAch60(id)  { OpenTablet60(id, "ach", ""); return PLUGIN_HANDLED; }
+public cmd_TabInv60(id)  { OpenTablet60(id, "inv", ""); return PLUGIN_HANDLED; }
+public cmd_TabZup60(id)  { OpenTablet60(id, "zup", ""); return PLUGIN_HANDLED; }
+stock UAdd60(buf[], len, &n, const k[], const v[])
+{
+if (n >= len - 4) return;
+n += formatex(buf[n], len - n, "%s%s=%s", n ? "&" : "", k, v);
+}
+stock UAddI60(buf[], len, &n, const k[], v) { new t[16]; num_to_str(v, t, charsmax(t)); UAdd60(buf, len, n, k, t); }
+OpenTablet60(id, const page[], const extra[])
+{
+if (!is_user_connected(id) || is_user_bot(id)) return;
+static url[1500], h[1300], tmp[400], e[64];
+new n = 0;
+h[0] = 0;
+UAdd60(h, charsmax(h), n, "l", (g_iLang[id] == 1) ? "en" : "tr");
+UAdd60(h, charsmax(h), n, "pg", page);
+new name[32]; get_user_name(id, name, charsmax(name)); UrlEnc60(name, e, charsmax(e)); UAdd60(h, charsmax(h), n, "n", e);
+new sid[24]; Steam64_60(id, sid, charsmax(sid)); if (sid[0]) UAdd60(h, charsmax(h), n, "s", sid);
+new lvl = g_iLevel[id];
+UAddI60(h, charsmax(h), n, "lv", lvl); UAddI60(h, charsmax(h), n, "xp", g_iXP[id]); UAddI60(h, charsmax(h), n, "xn", XPForLevel(lvl + 1));
+UAddI60(h, charsmax(h), n, "ap", g_iAP[id]); UAddI60(h, charsmax(h), n, "vc", g_iVC[id]);
+UAddI60(h, charsmax(h), n, "k", g_iKills[id]); UAddI60(h, charsmax(h), n, "i", g_iInfects[id]); UAddI60(h, charsmax(h), n, "d", get_user_deaths(id));
+UAddI60(h, charsmax(h), n, "h", g_iHS[id]); UAddI60(h, charsmax(h), n, "w", g_iWins[id]); UAddI60(h, charsmax(h), n, "b", g_iBossK[id]);
+UAddI60(h, charsmax(h), n, "pt", g_iPlaySec[id] / 60);
+UAddI60(h, charsmax(h), n, "vip", IsVip(id) ? (g_iVip[id] >= 2 ? 2 : 1) : 0);
+if (IsVip(id) && g_iVipExpire[id] > 0) UAddI60(h, charsmax(h), n, "vd", max(0, (g_iVipExpire[id] - get_systime()) / 86400));
+UAddI60(h, charsmax(h), n, "r", IsFounder60(id) ? 2 : (IsAdmin60(id) ? 1 : 0));
+UAddI60(h, charsmax(h), n, "rk", g_iTopRank[id]);
+UAddI60(h, charsmax(h), n, "a", g_iAch[id]);
+// inventory
+formatex(tmp, charsmax(tmp), "k%d.c%d.w%d.p%d.f%d.z%d.t%d", g_iCommunityOwned[id][1], g_iCommunityOwned[id][0], g_iCmOwned[id] & 255, (g_iCmOwned[id] >> 8) & 255,
+(g_iCosOwned[id] >> 6) & 63, g_iLzOwned531[id], g_iCosOwned[id] & 63);
+UAdd60(h, charsmax(h), n, "iv", tmp);
+formatex(tmp, charsmax(tmp), "k%d.c%d.w%d.p%d.f%d.z%d.t%d", g_iCommunitySel[id][1], g_iCommunitySel[id][0], CmSel(id, 0), CmSel(id, 1), g_iKfxSel[id], g_iLzSel531[id], g_iTrailSel[id]);
+UAdd60(h, charsmax(h), n, "eq", tmp);
+new today = get_systime() / 86400;
+formatex(tmp, charsmax(tmp), "%d~%d~%d", g_iDailyStreak[id], g_iDailyDay[id] == today ? 1 : 0, 86400 - (get_systime() % 86400));
+UAdd60(h, charsmax(h), n, "dy", tmp);
+// zombie upgrade levels
+new zl = 0; tmp[0] = 0;
+for (new c = 0; c < 24; c++) zl += formatex(tmp[zl], charsmax(tmp) - zl, "%s%d", c ? "," : "", clamp(vxe_zup_level(id, c), 0, 5));
+format(tmp, charsmax(tmp), "0~%s", tmp);
+UAdd60(h, charsmax(h), n, "zu", tmp);
+UAddI60(h, charsmax(h), n, "zc", g_iClass[id]);
+UAdd60(h, charsmax(h), n, "kc", "0~0~0~0");
+UAddI60(h, charsmax(h), n, "on", get_playersnum()); UAddI60(h, charsmax(h), n, "mx", g_iMax);
+new map[32]; get_mapname(map, charsmax(map)); UAdd60(h, charsmax(h), n, "mp", map);
+formatex(tmp, charsmax(tmp), "%d/%d", g_iRound, RoundsTotal()); UrlEnc60(tmp, e, charsmax(e)); UAdd60(h, charsmax(h), n, "rd", e);
+if (IsAdmin60(id)) { formatex(tmp, charsmax(tmp), "%d~%d~0", (get_systime() - g_iUptime60) / 60, get_playersnum()); UAdd60(h, charsmax(h), n, "sv", tmp); }
+UAddI60(h, charsmax(h), n, "ts", get_systime());
+if (extra[0] && n < charsmax(h) - strlen(extra)) n += formatex(h[n], charsmax(h) - n, "%s", extra);
+// leaderboards last (dropped first when the URL is too long)
+new nm[48], l2 = 0;
+tmp[0] = 0;
+for (new i = 0; i < min(15, g_iTopCount) && l2 < charsmax(tmp) - 40; i++)
+{
+ShortName60(g_szTopName[i], name, charsmax(name)); UrlEnc60(name, nm, charsmax(nm));
+l2 += formatex(tmp[l2], charsmax(tmp) - l2, "%s%s~%d~%d", i ? ";" : "", nm, CalcLevel(g_iTopXP[i]), g_iTopKills[i]);
+}
+if (tmp[0] && n + strlen(tmp) < 1200) UAdd60(h, charsmax(h), n, "t", tmp);
+for (new bd = 0; bd < 2; bd++)
+{
+l2 = 0; tmp[0] = 0;
+for (new i = 0; i < g_iLbN60[bd] && l2 < charsmax(tmp) - 40; i++)
+{
+ShortName60(g_szLbName60[bd][i], name, charsmax(name)); UrlEnc60(name, nm, charsmax(nm));
+l2 += formatex(tmp[l2], charsmax(tmp) - l2, "%s%s~%d", i ? ";" : "", nm, g_iLbVal60[bd][i]);
+}
+if (tmp[0] && n + strlen(tmp) < 1260) UAdd60(h, charsmax(h), n, bd ? "at" : "tt", tmp);
+}
+new base[192]; get_pcvar_string(g_pTabUrl60, base, charsmax(base));
+formatex(url, charsmax(url), "%s#%s", base, h);
+show_motd(id, url, "VEXMIRA iPad");
+client_cmd(id, "spk buttons/blip1");
+}
+// ------------------------------------------------------------------------------------------ items.js (names for the tablet)
+JsStr60(const s[], out[], len)
+{
+new o = 0;
+for (new i = 0; s[i] && o < len - 2; i++)
+{
+if (s[i] == '"' || s[i] == '\') { out[o++] = '\'; out[o++] = s[i]; }
+else if (s[i] >= 32) out[o++] = s[i];
+}
+out[o] = 0;
+}
+public WriteItemsJs60()
+{
+if (!dir_exists("vexmira_web")) mkdir("vexmira_web");
+new fp = fopen("vexmira_web/items.js", "wt");
+if (!fp) { log_amx("[Vexmira] vexmira_web/items.js yazilamadi"); return; }
+BuildPools60();
+fprintf(fp, "// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
+static const CATS[] = "kcwpftz";
+new a[64], b[64], ja[96], jb[96];
+for (new c = 0; c < sizeof CATS - 1; c++)
+{
+fprintf(fp, "%s%c:[", c ? "," : "", CATS[c]);
+for (new i = 0; i < ItemCount60(CATS[c]); i++)
+{
+ItemName60(0, CATS[c], i, a, charsmax(a), true); ItemName60(0, CATS[c], i, b, charsmax(b), false);
+JsStr60(a, ja, charsmax(ja)); JsStr60(b, jb, charsmax(jb));
+new pr = ItemPrice60(0, CATS[c], i);
+fprintf(fp, "%s{tr:^"%s^",en:^"%s^",r:%d,vc:%d,ok:%d}", i ? "," : "", ja, jb, RarityOf60(pr), pr, ItemValid60(CATS[c], i) ? 1 : 0);
+}
+fprintf(fp, "]");
+}
+fprintf(fp, ",cases:[");
+for (new c = 0; c < 4; c++)
+{
+fprintf(fp, "%s{tr:^"%s^",en:^"%s^",vc:%d,loot:[", c ? "," : "", CASE60_TR[c], CASE60_EN[c], CASE60_PRICE[c]);
+new tot = 0; for (new r = 0; r < 5; r++) if (g_iPoolN60[r]) tot += CASE60_W[c][r];
+new first = 1;
+for (new r = 0; r < 5; r++)
+{
+if (!g_iPoolN60[r] || !CASE60_W[c][r]) continue;
+new Float:ch = float(CASE60_W[c][r]) * 100.0 / float(max(1, tot)) / float(g_iPoolN60[r]);
+for (new i = 0; i < g_iPoolN60[r]; i++) { fprintf(fp, "%s[^"%s^",%d,%.2f]", first ? "" : ",", g_szPool60[r][i], r, ch); first = 0; }
+}
+fprintf(fp, "]}");
+}
+fprintf(fp, "],ach:[");
+new key[20];
+for (new i = 0; i < NUM_ACH; i++)
+{
+formatex(key, charsmax(key), "ACH_NAME_%d", i); LangFmt60(a, charsmax(a), key, true); LangFmt60(b, charsmax(b), key, false);
+JsStr60(a, ja, charsmax(ja)); JsStr60(b, jb, charsmax(jb));
+fprintf(fp, "%s{tr:^"%s^",en:^"%s^"", i ? "," : "", ja, jb);
+formatex(key, charsmax(key), "ACH_DESC_%d", i); LangFmt60(a, charsmax(a), key, true); LangFmt60(b, charsmax(b), key, false);
+JsStr60(a, ja, charsmax(ja)); JsStr60(b, jb, charsmax(jb));
+fprintf(fp, ",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}", ja, jb, get_pcvar_num(g_pAchVC), get_pcvar_num(g_pAchAP));
+}
+fprintf(fp, "]};^n");
+fclose(fp);
+log_amx("[Vexmira] tablet: vexmira_web/items.js yazildi (havuz: %d/%d/%d/%d/%d)", g_iPoolN60[0], g_iPoolN60[1], g_iPoolN60[2], g_iPoolN60[3], g_iPoolN60[4]);
+}
+// ------------------------------------------------------------------------------------------ tablet item (knife + R)
+public fw_KnifeDeploy60(knife)
+{
+new id = get_member(knife, m_pPlayer);
+if (1 <= id <= g_iMax) g_bTab60[id] = false;
+return HAM_IGNORED;
+}
+TabletShow60(id, bool:on)
+{
+if (!g_iTabV60) return;
+if (on)
+{
+g_bTab60[id] = true;
+set_entvar(id, var_viewmodel, "models/vexmira/tablet/v_tablet.mdl");
+if (g_iTabP60) set_entvar(id, var_weaponmodel, "models/vexmira/tablet/p_tablet.mdl");
+SendWeaponAnim60(id, 3);
+client_cmd(id, "spk buttons/blip2");
+}
+else
+{
+g_bTab60[id] = false;
+new w = get_member(id, m_pActiveItem);
+if (w > 0 && !is_nullent(w)) ExecuteHamB(Ham_Item_Deploy, w);
+}
+}
+SendWeaponAnim60(id, anim)
+{
+set_entvar(id, var_weaponanim, anim);
+message_begin(MSG_ONE, SVC_WEAPONANIM, _, id); write_byte(anim); write_byte(0); message_end();
+}
+public fw_TabletCmd60(id, uc, seed)
+{
+if (!is_user_alive(id) || is_user_bot(id) || g_bZombie[id] || !get_pcvar_num(g_pTabItem60) || !g_iTabV60) return FMRES_IGNORED;
+new btn = get_uc(uc, UC_Buttons), old = get_entvar(id, var_oldbuttons);
+new bool:knife = (GetActiveWeaponId(id) == WEAPON_KNIFE);
+if (!knife) { g_bTab60[id] = false; return FMRES_IGNORED; }
+if ((btn & IN_RELOAD) && !(old & IN_RELOAD)) { TabletShow60(id, !g_bTab60[id]); return FMRES_IGNORED; }
+if (!g_bTab60[id]) return FMRES_IGNORED;
+if (btn & (IN_ATTACK | IN_ATTACK2))
+{
+set_uc(uc, UC_Buttons, btn & ~(IN_ATTACK | IN_ATTACK2));
+new Float:now = get_gametime();
+if (now - g_fTabOpen60[id] > 1.2 && !(old & (IN_ATTACK | IN_ATTACK2)))
+{
+g_fTabOpen60[id] = now;
+SendWeaponAnim60(id, 1);
+set_task(0.35, "task_TabOpen60", id + 6060600);
+}
+return FMRES_SUPERCEDE;
+}
+return FMRES_IGNORED;
+}
+public task_TabOpen60(tid) { new id = tid - 6060600; if (is_user_connected(id)) OpenTablet60(id, "home", ""); }
+TabletRoundHint60(id)
+{
+if (!g_iTabV60 || is_user_bot(id) || !get_pcvar_num(g_pTabItem60)) return;
+client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Tabletin hazir: bicak elindeyken ^3R^1 = tablet, ^3sol tik^1 = ac. Yazarak: ^3/ipad" : "^4[VEXMIRA]^1 Your tablet: hold the knife, ^3R^1 = tablet, ^3left click^1 = open. Or type ^3/ipad");
+}
+
+// formats a dictionary key in Turkish or English regardless of the player (uses the server language slot)
+LangFmt60(out[], len, const key[], bool:tr)
+{
+new old[8]; get_cvar_string("amx_language", old, charsmax(old));
+set_cvar_string("amx_language", tr ? "tr" : "en");
+formatex(out, len, "%L", LANG_SERVER, key);
+set_cvar_string("amx_language", old);
+}
+public task_TabHint60(tid) { new id = tid - 6070700; if (is_user_connected(id)) TabletRoundHint60(id); }
