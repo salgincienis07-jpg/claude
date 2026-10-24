@@ -2638,7 +2638,7 @@ register_native("vxe_ac_load","N_AcLoad622");
 register_native("vxe_ac_mask","N_AcMask622");
 register_native("vxe_ac_claim","N_AcClaim622");
 register_native("vxe_market_action","N_MarketAction622");
-register_native("vxe_market_write","N_MarketWrite622");
+register_native("vxe_market_write","N_MarketWrite622");register_native("vxe_market_str","N_MarketStr64");
 register_native("vxe_market_prepare","N_MarketPrepare622");
 register_native("vxe_market_finish","N_MarketFinish622");
 register_native("vxe_zup_spend","N_ZupSpend621");
@@ -4580,6 +4580,9 @@ if(op==0){if(!b[0]||strlen(b)>9)return 0;for(new digit=0;b[digit];digit++)if(b[d
 for(new k=0;k<MARKET622_MAX;k++){if(!MarketValid622(k)){g_mId622[k]=0;if(slot<0)slot=k;continue;}if(g_mOwner622[k]==id){count++;if(g_mCat622[k]==cat&&g_mItem622[k]==item)return 0;}}
 if(slot<0||count>=8)return 0;g_mId622[slot]=++g_mSerial622;g_mOwner622[slot]=id;g_mUid622[slot]=get_user_userid(id);g_mCat622[slot]=cat;g_mItem622[slot]=item;g_mPrice622[slot]=price;return 1;}
 new listing=str_to_num(a);for(new k=0;k<MARKET622_MAX;k++){if(g_mId622[k]!=listing)continue;if(!MarketValid622(k)){g_mId622[k]=0;return 0;}if(op==2){if(g_mOwner622[k]!=id)return 0;g_mId622[k]=0;return 1;}if(op==1){new seller=g_mOwner622[k];if(seller==id)return 0;g_mId622[k]=0;if(!vxc_tab_purchase(id,seller,g_mCat622[k],g_mItem622[k],g_mPrice622[k])){g_mId622[k]=listing;return 0;}return 1;}}return 0;}
+// 6.4: market rows for the tablet address: id~uid~name~code~price;...
+public N_MarketStr64(plugin,params){new len=get_param(3);static out[700];new n,name[32],enc[100],row[160];out[0]=0;for(new k=0;k<MARKET622_MAX;k++){if(!MarketValid622(k)){g_mId622[k]=0;continue;}get_user_name(g_mOwner622[k],name,31);new o;for(new i=0;name[i]&&o<96;i++){new c=name[i]&0xFF;if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9'))enc[o++]=c;else o+=formatex(enc[o],99-o,"%%%02X",c);}enc[o]=0;formatex(row,159,"%s%d~%d~%s~%c%d~%d",n?";":"",g_mId622[k],g_mUid622[k],enc,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);if(n+strlen(row)>=min(len,charsmax(out)))break;n+=copy(out[n],charsmax(out)-n,row);}
+set_string(2,out,len);return n;}
 public N_MarketWrite622(plugin,params){new fp=get_param(1);fputs(fp,"market:[");new first=1,name[32],safe[96];for(new k=0;k<MARKET622_MAX;k++){if(!MarketValid622(k)){g_mId622[k]=0;continue;}get_user_name(g_mOwner622[k],name,31);new n;for(new i=0;name[i]&&n<93;i++){if(name[i]=='"'||name[i]=='\')safe[n++]='\';if(name[i]>=32)safe[n++]=name[i];}safe[n]=0;fprintf(fp,"%s[%d,%d,^"%s^",^"%c%d^",%d]",first?"":",",g_mId622[k],g_mUid622[k],safe,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);first=0;}fputs(fp,"],");return 1;}
 
 native vxc_tab_recover(id,beforeVC,afterVC,cat,ix,beforeOwned,afterOwned);

@@ -24,8 +24,12 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function
 function num(v, d) { var n = parseInt(v, 10); return isNaN(n) ? (d || 0) : n; }
 function fmt(n) { n = num(n); return n >= 1000000 ? (n / 1000000).toFixed(1) + 'M' : n >= 10000 ? (n / 1000).toFixed(1) + 'K' : String(n); }
 var MEM = {};
-function store(k,v){if(v!==undefined){MEM[k]=String(v);try{localStorage.setItem('vx624_'+k,v);}catch(e){}return MEM[k];}if(Object.prototype.hasOwnProperty.call(MEM,k))return MEM[k];try{return MEM[k]=localStorage.getItem('vx624_'+k);}catch(e){return null;}}
+function store(k,v){if(v!==undefined){MEM[k]=String(v);try{localStorage.setItem('vx4_'+k,v);}catch(e){}return MEM[k];}if(Object.prototype.hasOwnProperty.call(MEM,k))return MEM[k];try{return MEM[k]=localStorage.getItem('vx4_'+k);}catch(e){return null;}}
 
+var PREFK=['lang','theme','acc','br','wp','snd','ntf'];
+(function(){var m=/[#&]pf=([^&]*)/.exec(location.hash||'');if(!m)return;var v=m[1].split('*');for(var i=0;i<PREFK.length;i++)if(v[i]!==undefined&&v[i]!=='')store(PREFK[i],PREFK[i]==='acc'?'#'+v[i]:v[i]);})();
+function prefStr(){return PREFK.map(function(k){var v=store(k);v=v==null?'':String(v);if(k==='acc')v=v.replace('#','');return v.replace(/[^A-Za-z0-9.\-]/g,'');}).join('*');}
+var PREF_T=null;function savePref(){clearTimeout(PREF_T);PREF_T=setTimeout(function(){if(LIVE&&LIVE.on&&LIVE.tk)sendRaw('pref',prefStr());},700);}
 // ------------------------------------------------------------------ data
 function parseHash() {
   var h = (location.hash || '').replace(/^#/, ''), o = {};
@@ -37,7 +41,7 @@ function dec(s) { try { return decodeURIComponent(s || ''); } catch (e) { return
 var RAW = parseHash(), DEMO = !RAW || !RAW.n;
 if(DEMO)RAW={l:'tr',n:'',pg:'home'};
 var D = {
-  lang: (dec(RAW.l) || store('lang') || 'tr') === 'en' ? 'en' : 'tr', page: dec(RAW.pg) || 'home', name: dec(RAW.n) || 'Player', sid: dec(RAW.s),
+  lang: (store('lang') || dec(RAW.l) || 'tr') === 'en' ? 'en' : 'tr', page: dec(RAW.pg) || 'home', name: dec(RAW.n) || 'Player', sid: dec(RAW.s),
   lv: num(RAW.lv, 1), xp: num(RAW.xp), xn: num(RAW.xn, 1), ap: num(RAW.ap), vc: num(RAW.vc), k: num(RAW.k), inf: num(RAW.i), d: num(RAW.d),
   hs: num(RAW.h), w: num(RAW.w), b: num(RAW.b), pt: num(RAW.pt), vip: num(RAW.vip), vd: num(RAW.vd), role: num(RAW.r), rank: num(RAW.rk),
   ach: num(RAW.a), on: num(RAW.on), mx: num(RAW.mx, 32), map: dec(RAW.mp), round: dec(RAW.rd), ts: num(RAW.ts)
@@ -53,20 +57,20 @@ var cr = RAW.cr ? dec(RAW.cr).split('~') : null; D.cr = cr ? { c: num(cr[0]), co
 
 // ------------------------------------------------------------------ texts
 var T = {
-  tr: { home: 'Ana Ekran', hello: 'Hos geldin', unlock: 'Kilidi acmak icin dokun', prof: 'Profil', top: 'Top 15', time: 'Sure Siralamasi', ach: 'Basarimlar', achtop: 'Basarim Top', inv: 'Envanter',
-    'case': 'Kasalar', daily: 'Gunluk Odul', zup: 'Zombi Gelisim', trade: 'Takas', set: 'Ayarlar', adm: 'Yonetim', about: 'Hakkinda', level: 'Seviye', kills: 'Oldurme', infs: 'Enfeksiyon',
-    deaths: 'Olum', hs: 'Kafa', wins: 'Galibiyet', boss: 'Boss', play: 'Oynama', hours: 'saat', min: 'dk', rank: 'Siralama', type: 'Oyunda yaz', steam: 'Steam profili', online: 'cevrimici',
-    map: 'Harita', round: 'Round', vipDays: 'VIP: {0} gun kaldi', dailyReady: 'Gunluk odulun hazir!', dailyWait: 'Siradaki odul: {0}', newAch: 'Basarim', you: 'Sen', name: 'Oyuncu', val: 'Deger',
-    noData: 'Henuz kayit yok', unlocked: 'acildi', locked: 'kilitli', owned: 'sahip', equipped: 'TAKILI', all: 'Tumu', knives: 'Bicaklar', skins: 'Karakterler', wings: 'Kanatlar', pets: 'Petler',
-    kfx: 'Oldurme Efekti', lasers: 'Lazerler', trails: 'Izler', chances: 'Dusme ihtimalleri', open: 'Kasa ac', opening: 'Kasa aciliyor...', got: 'Kazandin', dup: 'Zaten vardi: VC iade edildi',
-    rar: ['Siradan', 'Nadir', 'Destansi', 'Efsanevi', 'Mitik'], day: 'Gun', streak: 'Seri', claim: 'Odulunu al', claimed: 'Bugunku odul alindi', points: 'Puan', current: 'Su anki sinifin',
-    zupHow: 'Zombiyken insan enfekte et (+1) ya da oldur (+2). Seviye atladikca yeteneklerin guclenir.', tradeHow: 'Takas sistemi: sunucudaki bir oyuncuyu sec, verecegin esyayi sec; karsi taraf ya kendi esyasini verir ya da hediye olarak kabul eder. Tum takaslar kayit altindadir.',
-    theme: 'Tema', dark: 'Karanlik', light: 'Aydinlik', sound: 'Sesler', notif: 'Bildirimler', lang: 'Dil', wall: 'Duvar kagidi', adminOnly: 'Bu bolum sadece yonetim icindir.',
-    founder: 'Kurucu islemleri', uptime: 'Calisma suresi', players: 'Oyuncu', cmds: 'Komutlar', credit: 'Tablet ve mod', back: 'Geri', demo: 'Ornek veriler gosteriliyor', vipDrop: 'VIP sadece Kabus Kasasindan dusuk ihtimalle cikar',
-    updated: 'Guncellendi: {0} dk once', store: 'App Store', game: 'Vex Kanat', get: 'AL', openB: 'AC', remove: 'Kaldir', installed: 'Yuklu', installing: 'Yukleniyor', featured: 'Gunun Uygulamasi',
-    exitHint: 'Sag tik: geri  |  Cikmak icin: ESC / Tamam', tapStart: 'Baslamak icin tikla', best: 'En iyi', score: 'Skor', over: 'Oyun bitti', core: 'Sistem uygulamasi',
-    d_prof: 'Seviyen, istatistiklerin, Steam profilin', d_top: 'Sunucunun en iyi 15 oyuncusu', d_time: 'En cok oynayanlar', d_ach: '30 basarim ve odulleri', d_achtop: 'Basarim yarismasi', d_inv: 'Bicak, kanat, pet ve efektlerin',
-    d_case: 'Kasa ac, efsanevi esya kazan', d_daily: '7 gunluk odul serisi', d_zup: 'Zombi siniflarini gelistir', d_trade: 'Oyuncularla esya takasi', d_game: 'Borularin arasindan uc, rekor kir', d_set: 'Tema, ses, duvar kagidi', d_adm: 'Yonetim paneli', d_about: 'Vexmira hakkinda', d_store: 'Uygulama indir' },
+  tr: { home: 'Ana Ekran', hello: 'Hoş geldin', unlock: 'Kilidi açmak için dokun', prof: 'Profil', top: 'Top 15', time: 'Süre Sıralaması', ach: 'Başarımlar', achtop: 'Başarım Top', inv: 'Envanter',
+    'case': 'Kasalar', daily: 'Günlük Ödül', zup: 'Zombi Gelişim', trade: 'Takas', set: 'Ayarlar', adm: 'Yönetim', about: 'Hakkında', level: 'Seviye', kills: 'Öldürme', infs: 'Enfeksiyon',
+    deaths: 'Ölüm', hs: 'Kafa', wins: 'Galibiyet', boss: 'Boss', play: 'Oynama', hours: 'saat', min: 'dk', rank: 'Sıralama', type: 'Oyunda yaz', steam: 'Steam profili', online: 'çevrimiçi',
+    map: 'Harita', round: 'Round', vipDays: 'VIP: {0} gün kaldı', dailyReady: 'Günlük ödülün hazır!', dailyWait: 'Sıradaki ödül: {0}', newAch: 'Başarım', you: 'Sen', name: 'Oyuncu', val: 'Değer',
+    noData: 'Henüz kayıt yok', unlocked: 'açıldı', locked: 'kilitli', owned: 'sahip', equipped: 'TAKILI', all: 'Tümü', knives: 'Bıçaklar', skins: 'Karakterler', wings: 'Kanatlar', pets: 'Petler',
+    kfx: 'Öldürme Efekti', lasers: 'Lazerler', trails: 'İzler', chances: 'Düşme ihtimalleri', open: 'Kasa aç', opening: 'Kasa açılıyor...', got: 'Kazandın', dup: 'Zaten vardı: VC iade edildi',
+    rar: ['Sıradan', 'Nadir', 'Destansı', 'Efsanevi', 'Mitik'], day: 'Gün', streak: 'Seri', claim: 'Ödülünü al', claimed: 'Bugünkü ödül alındı', points: 'Puan', current: 'Şu anki sınıfın',
+    zupHow: 'Zombiyken insan enfekte et (+1) ya da öldür (+2). Seviye atladıkça yeteneklerin güçlenir.', tradeHow: 'Takas sistemi: sunucudaki bir oyuncuyu seç, vereceğin eşyayı seç; karşı taraf ya kendi eşyasını verir ya da hediye olarak kabul eder. Tüm takaslar kayıt altındadır.',
+    theme: 'Tema', dark: 'Karanlık', light: 'Aydınlık', sound: 'Sesler', notif: 'Bildirimler', lang: 'Dil', wall: 'Duvar kağıdı', adminOnly: 'Bu bölüm sadece yönetim içindir.',
+    founder: 'Kurucu işlemleri', uptime: 'Çalışma süresi', players: 'Oyuncu', cmds: 'Komutlar', credit: 'Tablet ve mod', back: 'Geri', demo: 'Örnek veriler gösteriliyor', vipDrop: 'VIP sadece Kabus Kasasından düşük ihtimalle çıkar',
+    updated: 'Güncellendi: {0} dk önce', store: 'App Store', game: 'Vex Kanat', get: 'AL', openB: 'AÇ', remove: 'Kaldır', installed: 'Yüklü', installing: 'Yükleniyor', featured: 'Günün Uygulaması',
+    exitHint: 'Sağ tik: geri  |  Çıkmak için: ESC / Tamam', tapStart: 'Başlamak için tıkla', best: 'En iyi', score: 'Skor', over: 'Oyun bitti', core: 'Sistem uygulaması',
+    d_prof: 'Seviyen, istatistiklerin, Steam profilin', d_top: 'Sunucunun en iyi 15 oyuncusu', d_time: 'En çok oynayanlar', d_ach: '30 başarım ve ödülleri', d_achtop: 'Başarım yarışması', d_inv: 'Bıçak, kanat, pet ve efektlerin',
+    d_case: 'Kasa aç, efsanevi eşya kazan', d_daily: '7 günlük ödül serisi', d_zup: 'Zombi sınıflarını geliştir', d_trade: 'Oyuncularla eşya takası', d_game: 'Boruların arasından uç, rekor kır', d_set: 'Tema, ses, duvar kağıdı', d_adm: 'Yönetim paneli', d_about: 'Vexmira hakkında', d_store: 'Uygulama indir' },
   en: { home: 'Home', hello: 'Welcome', unlock: 'Tap to unlock', prof: 'Profile', top: 'Top 15', time: 'Playtime', ach: 'Achievements', achtop: 'Achievement Top', inv: 'Inventory',
     'case': 'Cases', daily: 'Daily Reward', zup: 'Zombie Upgrade', trade: 'Trade', set: 'Settings', adm: 'Admin', about: 'About', level: 'Level', kills: 'Kills', infs: 'Infections',
     deaths: 'Deaths', hs: 'Headshots', wins: 'Wins', boss: 'Boss', play: 'Played', hours: 'h', min: 'min', rank: 'Rank', type: 'Type in game', steam: 'Steam profile', online: 'online',
@@ -83,13 +87,13 @@ var T = {
     d_case: 'Open cases, win legendary items', d_daily: '7-day reward streak', d_zup: 'Upgrade zombie classes', d_trade: 'Trade items with players', d_game: 'Fly between the pipes, beat the record', d_set: 'Theme, sound, wallpaper', d_adm: 'Admin panel', d_about: 'About Vexmira', d_store: 'Download apps' }
 };
 (function (a, b) { for (var k in a) T.tr[k] = a[k]; for (var j in b) T.en[j] = b[j]; })({
-  guide: 'Rehber', cmds: 'Komutlar', music: 'Muzik', notes: 'Notlar', calc: 'Hesap Makinesi', snake: 'Vex Yilan', g2048: 'Vex 2048', whack: 'Zombi Avi', games: 'Oyunlar',
-  d_guide: 'Modlar, zombi siniflari, ipuclari', d_cmds: 'Tum sohbet komutlari tek yerde', d_music: 'Korku atmosferi muzikleri', d_notes: 'Kendi notlarin', d_calc: 'Hizli hesap', d_snake: 'Klasik yilan, karanlik temada', d_g2048: 'Kutulari birlestir, 2048e ulas', d_whack: '30 saniyede en cok zombiyi vur',
-  cc: 'Kontrol Merkezi', accent: 'Vurgu rengi', bright: 'Parlaklik', edit: 'Ana ekrani duzenle', done: 'Bitti', custom: 'Ozellestir', wpNames: ['Kizil Sis', 'Ucurum', 'Zehir', 'Altigen', 'Kor', 'Mor Safak', 'Gece Mavisi', 'Vexmira'],
-  cat_games: 'Oyunlar', cat_tools: 'Araclar', cat_server: 'Sunucu', cat_social: 'Sosyal',
-  msg: 'Mesajlar', friends: 'Arkadaslar', notif: 'Bildirimler', adm: 'Yonetim', d_msg: 'Oyuncularla mesajlas', d_friends: 'Arkadas ekle, engelle', d_notif: 'Tum bildirimlerin', d_adm: 'Yonetim paneli', top3: 'En iyiler', np: 'Simdi caliyor', tracks: ['Karanlik Koridor', 'Kalp Atisi', 'Kanli Yagmur', 'Sisli Gece'], stop: 'Durdur',
-  modes: 'Oyun Modlari', classes: 'Zombi Siniflari', tips: 'Ipuclari', notesPh: 'Buraya yaz... (otomatik kaydedilir)', timeLeft: 'Sure', start: 'Basla', again: 'Tekrar', hint2048: 'Ok tuslari ile kaydir', hintSnake: 'Ok tuslari / WASD ile yonlendir',
-  widgetHint: 'Duzenlemek icin bir simgeye basili tut', xp: 'XP'
+  guide: 'Rehber', cmds: 'Komutlar', music: 'Müzik', notes: 'Notlar', calc: 'Hesap Makinesi', snake: 'Vex Yılan', g2048: 'Vex 2048', whack: 'Zombi Avı', games: 'Oyunlar',
+  d_guide: 'Modlar, zombi sınıfları, ipuçları', d_cmds: 'Tüm sohbet komutları tek yerde', d_music: 'Korku atmosferi müzikleri', d_notes: 'Kendi notların', d_calc: 'Hızlı hesap', d_snake: 'Klasik yılan, karanlık temada', d_g2048: 'Kutuları birleştir, 2048e ulaş', d_whack: '30 saniyede en çok zombiyi vur',
+  cc: 'Kontrol Merkezi', accent: 'Vurgu rengi', bright: 'Parlaklık', edit: 'Ana ekranı düzenle', done: 'Bitti', custom: 'Özelleştir', wpNames: ['Kızıl Sis', 'Uçurum', 'Zehir', 'Altıgen', 'Kor', 'Mor Şafak', 'Gece Mavisi', 'Vexmira'],
+  cat_games: 'Oyunlar', cat_tools: 'Araçlar', cat_server: 'Sunucu', cat_social: 'Sosyal',
+  msg: 'Mesajlar', friends: 'Arkadaşlar', notif: 'Bildirimler', adm: 'Yönetim', d_msg: 'Oyuncularla mesajlaş', d_friends: 'Arkadaş ekle, engelle', d_notif: 'Tüm bildirimlerin', d_adm: 'Yönetim paneli', top3: 'En iyiler', np: 'Şimdi çalıyor', tracks: ['Karanlık Koridor', 'Kalp Atisi', 'Kanlı Yagmur', 'Sisli Gece'], stop: 'Durdur',
+  modes: 'Oyun Modları', classes: 'Zombi Sınıfları', tips: 'İpuçları', notesPh: 'Buraya yaz... (otomatik kaydedilir)', timeLeft: 'Süre', start: 'Başla', again: 'Tekrar', hint2048: 'Ok tuşları ile kaydır', hintSnake: 'Ok tuşları / WASD ile yonlendir',
+  widgetHint: 'Düzenlemek için bir simgeye basılı tut', xp: 'XP'
 }, {
   guide: 'Guide', cmds: 'Commands', music: 'Music', notes: 'Notes', calc: 'Calculator', snake: 'Vex Snake', g2048: 'Vex 2048', whack: 'Zombie Hunt', games: 'Games',
   d_guide: 'Modes, zombie classes, tips', d_cmds: 'Every chat command in one place', d_music: 'Horror ambience tracks', d_notes: 'Your own notes', d_calc: 'Quick maths', d_snake: 'Classic snake, dark theme', d_g2048: 'Merge tiles, reach 2048', d_whack: 'Hit as many zombies as you can in 30 s',
@@ -246,7 +250,7 @@ function applyTheme() {
   if (a && /^#[0-9a-fA-F]{6}$/.test(a)) vals.acc = a;
   PALETTE=vals; ACC_NOW = vals.acc;
   document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark'); document.documentElement.lang = D.lang;
-  var css = ((window.VXCSS || '') + (window.VXFIXCSS || '')).replace(/var\(--([a-z0-9]+)\)/g, function (m, k) { return vals[k] != null ? vals[k] : m; });
+  var css = ((window.VXCSS || '') + (window.VXFIXCSS || '') + (window.VXIOSCSS || '')).replace(/var\(--([a-z0-9]+)\)/g, function (m, k) { return vals[k] != null ? vals[k] : m; });
   var st = document.getElementById('vxcss');
   if (!st) { st = document.createElement('style'); st.id = 'vxcss'; document.getElementsByTagName('head')[0].appendChild(st); }
   st.textContent = css;
@@ -321,7 +325,7 @@ function leader(mode) {
   var rows = topRows(mode), h = '';
   var titles = { top: L('top'), time: L('time'), achtop: L('achtop') };
   h += '<div class="seasonbar"><div><h2>' + esc(titles[mode]) + '<small>' + esc(D.lang === 'tr' ? 'Sezon yarisi - ilk 3 her hafta duyurulur' : 'Season race - top 3 announced every week') + '</small></h2></div><div class="tabsw">' +
-    ['top', 'time', 'achtop'].map(function (m) { return '<span class="tab' + (m === mode ? ' on' : '') + '" data-top="' + m + '">' + esc(m === 'top' ? 'Top 15' : m === 'time' ? (D.lang === 'tr' ? 'Sure' : 'Time') : L('ach')) + '</span>'; }).join('') + '</div></div>';
+    ['top', 'time', 'achtop'].map(function (m) { return '<span class="tab' + (m === mode ? ' on' : '') + '" data-top="' + m + '">' + esc(m === 'top' ? 'Top 15' : m === 'time' ? (D.lang === 'tr' ? 'Süre' : 'Time') : L('ach')) + '</span>'; }).join('') + '</div></div>';
   if (!rows.length) return h + card('', '<p class="muted">' + esc(L('noData')) + '</p>');
   var pod = '<div class="podium">';
   [1, 0, 2].forEach(function (i) {
@@ -449,21 +453,21 @@ R.set = function () {
   h += '<div class="set"><span>' + esc(L('lang')) + '</span><div class="seg"><span data-set="tr" class="' + (D.lang === 'tr' ? 'on' : '') + '">Turkce</span><span data-set="en" class="' + (D.lang === 'en' ? 'on' : '') + '">English</span></div></div>';
   var w = '<div class="wps">'; L('wpNames').forEach(function (n, i) { w += '<div class="wpt' + (i === WP ? ' on' : '') + '" data-wp="' + i + '"><div class="w wp' + i + '">' + (i === 7 ? emblem() : '') + '<small>' + esc(n) + '</small></div></div>'; }); w += '</div>';
   var acc = store('acc') || ACCS[0]; w += '<div class="ccl" style="margin-top:12px">' + esc(L('accent')) + '</div><div class="ccacc">' + ACCS.map(function (c) { return '<span data-acc="' + c + '" class="' + (c === acc ? 'on' : '') + '" style="background:' + c + '"></span>'; }).join('') + '</div>';
-  return card(L('set'), h) + card(L('wall'), w) + '<div class="cce" data-app="about" style="margin:0 0 12px">' + svg('about') + esc(L('about')) + '</div>' + card('', '<p class="muted">' + (D.lang === 'tr' ? 'Oyun ici ayarlar' : 'In-game settings') + '</p>' + cmd(D.lang === 'tr' ? '/ayarlar  /dil  /stil' : '/settings  /lang  /style'));
+  return card(L('set'), h) + card(L('wall'), w) + '<div class="cce" data-app="about" style="margin:0 0 12px">' + svg('about') + esc(L('about')) + '</div>' + card('', '<p class="muted">' + (D.lang === 'tr' ? 'Oyun içi ayarlar' : 'In-game settings') + '</p>' + cmd(D.lang === 'tr' ? '/ayarlar  /dil  /stil' : '/settings  /lang  /style'));
 };
 R.adm = function () {
   if (D.role < 1) return card('', '<p>' + esc(L('adminOnly')) + '</p>');
   var h = card('', '<div class="stats">' + stat(Math.floor(D.up / 60) + ' ' + L('hours') + ' ' + (D.up % 60) + ' ' + L('min'), L('uptime')) + stat(D.svp + '/' + D.mx, L('players')) + stat(D.map, L('map')) + stat(D.round, L('round')) + '</div>');
-  var a = [['amx_menu', D.lang === 'tr' ? 'oyuncu islemleri' : 'player actions'], ['/yonetim', D.lang === 'tr' ? 'Vexmira yonetim menusu (modlar, boss, event)' : 'Vexmira admin menu (modes, boss, events)'], ['amx_kick <isim>', 'kick'], ['amx_ban <isim> <dk>', 'ban'], ['amx_slay <isim>', 'slay'], ['amx_map <harita>', D.lang === 'tr' ? 'harita degistir' : 'change map'], ['vex_plan', D.lang === 'tr' ? 'bu haritanin round plani' : "this map's round plan"], ['vex_fastdl_files', 'FastDL']];
+  var a = [['amx_menu', D.lang === 'tr' ? 'oyuncu işlemleri' : 'player actions'], ['/yonetim', D.lang === 'tr' ? 'Vexmira yönetim menüsü (modlar, boss, event)' : 'Vexmira admin menu (modes, boss, events)'], ['amx_kick <isim>', 'kick'], ['amx_ban <isim> <dk>', 'ban'], ['amx_slay <isim>', 'slay'], ['amx_map <harita>', D.lang === 'tr' ? 'harita değiştir' : 'change map'], ['vex_plan', D.lang === 'tr' ? 'bu haritanın round planı' : "this map's round plan"], ['vex_fastdl_files', 'FastDL']];
   h += card(L('cmds'), '<div class="cmds">' + a.map(function (x) { return '<div><p><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>');
   if (D.role >= 2) {
-    var f = [['vex_reset_top', D.lang === 'tr' ? 'Top15 sifirla' : 'reset Top15'], ['vex_reset_time', D.lang === 'tr' ? 'sure siralamasini sifirla' : 'reset playtime top'], ['vex_reset_ach', D.lang === 'tr' ? 'basarim siralamasini sifirla' : 'reset achievement top'],
+    var f = [['vex_reset_top', D.lang === 'tr' ? 'Top15 sıfırla' : 'reset Top15'], ['vex_reset_time', D.lang === 'tr' ? 'sure sıralamasını sıfırla' : 'reset playtime top'], ['vex_reset_ach', D.lang === 'tr' ? 'başarım sıralamasını sıfırla' : 'reset achievement top'],
       ['vex_give_vc <isim> <miktar>', 'VexCoin'], ['vex_give_ap <isim> <miktar>', 'AP'], ['vex_give_ach <isim> <0-29>', L('ach')], ['vex_give_case <isim> <0-3>', L('case')], ['vex_vip_add <isim> <gun> <1|2>', 'VIP / ELITE'], ['vex_boss_build', D.lang === 'tr' ? 'dev boss dosyalari' : 'giant boss files']];
-    h += card(L('founder'), '<div class="warn">' + (D.lang === 'tr' ? 'Bu islemler geri alinamaz. Konsoldan (rcon) calistir.' : 'These actions cannot be undone. Run them from the console (rcon).') + '</div><div class="cmds">' + f.map(function (x) { return '<div><p><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>');
+    h += card(L('founder'), '<div class="warn">' + (D.lang === 'tr' ? 'Bu işlemler geri alınamaz. Konsoldan (rcon) çalıştır.' : 'These actions cannot be undone. Run them from the console (rcon).') + '</div><div class="cmds">' + f.map(function (x) { return '<div><p><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>');
   }
   return h;
 };
-R.about = function () { return card('', '<div class="about"><div class="lg">' + LOGO() + '</div><p><b>VEXMIRA</b> &middot; PAD 6.2.4</p><p class="muted" style="margin:6px 0">' + esc(L('credit')) + ': <b style="color:var(--acc)">smurfsexy</b></p><p class="muted">' + esc(D.map) + ' &middot; ' + esc(L('round')) + ' ' + esc(D.round) + '</p>' + (D.ts ? '<p class="muted">' + esc(F('updated', Math.max(0, Math.round((Date.now() / 1000 - D.ts) / 60)))) + '</p>' : '') + '</div>'); };
+R.about = function () { return card('', '<div class="about"><div class="lg">' + LOGO() + '</div><p><b>VEXMIRA</b> &middot; PAD 4.0</p><p class="muted" style="margin:6px 0">' + esc(L('credit')) + ': <b style="color:var(--acc)">smurfsexy</b></p><p class="muted">' + esc(D.map) + ' &middot; ' + esc(L('round')) + ' ' + esc(D.round) + '</p>' + (D.ts ? '<p class="muted">' + esc(F('updated', Math.max(0, Math.round((Date.now() / 1000 - D.ts) / 60)))) + '</p>' : '') + '</div>'); };
 
 R.store = function () {
   var h = '<div class="feat"><div><div class="sq" style="' + grad('g2048') + '">' + svg('g2048') + '</div></div><div class="fd"><small>' + esc(L('featured')) + '</small><h2>' + esc(L('g2048')) + '</h2><p>' + esc(L('d_g2048')) + '</p></div><div class="fb">' + storeBtn('g2048') + '</div></div>';
@@ -550,7 +554,7 @@ var TIPS = [
 R.guide = function () {
   var h = card(L('modes'), '<div class="glist">' + MODES.map(function (m, i) { return '<div class="gi"><span class="gn">' + (i + 1) + '</span><div><b>' + esc(tr(m[0], m[1])) + '</b><small>' + esc(tr(m[2], m[3])) + '</small></div></div>'; }).join('') + '</div>');
   var zc = ZCLS[D.lang] || ZCLS.tr;
-  h += card(L('classes'), '<div class="zchips">' + zc.map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' + cmd(tr('/sinif', '/class')));
+  h += card(L('classes'), '<div class="zchips">' + zc.map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' + cmd(tr('/sınıf', '/class')));
   h += card(L('tips'), '<div class="glist">' + TIPS.map(function (t) { return '<div class="gi"><span class="gn">&#10148;</span><div><small style="color:var(--txt);font-size:12.5px">' + esc(tr(t[0], t[1])) + '</small></div></div>'; }).join('') + '</div>');
   return h;
 };
@@ -755,7 +759,7 @@ function ccHtml() {
   function tile(k, ic, on, lab, val) { return '<div class="cct' + (on ? ' on' : '') + '" data-set="' + k + '"><div><i>' + svg(ic) + '</i><b>' + esc(lab) + '</b><small>' + esc(val) + '</small></div></div>'; }
   var h = '<div class="ccp"><div class="cch"><b>' + esc(L('cc')) + '</b><span class="x" data-ui="ccx">&times;</span></div><div class="ccg">' +
     tile(dark ? 'light' : 'dark', dark ? 'moon' : 'sun', dark, L('theme'), dark ? L('dark') : L('light')) + tile('snd', 'vol', soundOn, L('sound'), soundOn ? 'ON' : 'OFF') +
-    tile('ntf', 'bell', notifOn, L('notif'), notifOn ? 'ON' : 'OFF') + tile(D.lang === 'tr' ? 'en' : 'tr', 'globe', true, L('lang'), D.lang === 'tr' ? 'Turkce' : 'English') + '</div>';
+    tile('ntf', 'bell', notifOn, L('notif'), notifOn ? 'ON' : 'OFF') + tile(D.lang === 'tr' ? 'en' : 'tr', 'globe', true, L('lang'), D.lang === 'tr' ? 'Türkçe' : 'English') + '</div>';
   h += '<div class="ccs"><i>' + svg('bright') + '</i><input id="ccBr" type="range" min="45" max="100" value="' + br + '"></div>';
   h += '<div class="ccl">' + esc(L('accent')) + '</div><div class="ccacc">' + ACCS.map(function (c) { return '<span data-acc="' + c + '" class="' + (c === acc ? 'on' : '') + '" style="background:' + c + '"></span>'; }).join('') + '</div>';
   h += '<div class="ccl">' + esc(L('wall')) + '</div><div class="ccwp">' + L('wpNames').map(function (n, i) { return '<div class="wpt' + (i === WP ? ' on' : '') + '" data-wp="' + i + '"><div class="w wp' + i + '">' + (i === 7 ? emblem() : '') + '<small>' + esc(n) + '</small></div></div>'; }).join('') + '</div>';
@@ -763,9 +767,9 @@ function ccHtml() {
   h += '<div class="cce" data-ui="edit">' + svg('grid') + esc(L('edit')) + '</div></div>';
   return h;
 }
-function openCC() { overlay('cc', ccHtml()); var r = $('ccBr'); if (r) r.addEventListener('input', function () { store('br', r.value); applyBright(); }); SND.open(); }
+function openCC() { overlay('cc', ccHtml()); var r = $('ccBr'); if (r) r.addEventListener('input', function () { store('br', r.value); applyBright();savePref(); }); SND.open(); }
 function refreshCC() { var o = $('cc'); if (o && o.className.indexOf('show') >= 0) { o.innerHTML = ccHtml(); var r = $('ccBr'); if (r) r.addEventListener('input', function () { store('br', r.value); applyBright(); }); } }
-function setWall() { var w = $('wall'); w.className = 'wall wp' + WP + (cur ? ' blur' : ''); w.innerHTML = WP === 7 ? '<div class="wlogo">' + emblem() + '</div>' : ''; }
+function setWall() { var w = $('wall'); w.className = 'wall wp' + WP + (cur ? ' blur' : ''); w.innerHTML = ''; }
 function openApp(a, noSound) {
   if (!R[a]) a = 'prof'; closeOv('fold'); closeOv('cc'); EDIT = false; cur = a;
   stopGame();
@@ -775,7 +779,8 @@ function openApp(a, noSound) {
   $('app').className = 'app open'; $('home').className = 'home hide'; setWall();
   if (!noSound) SND.open();
   if (a === 'case') runReel();
-  if(STARTERS[a]){var epoch=EPOCH;setTimeout(function(){if(epoch!==EPOCH||cur!==a)return;try{STARTERS[a]();}catch(e){stopGame();toast(tr('Oyun baslatilamadi. Ana ekrana donebilirsin.','Game could not start. You can return home.'),false);}},30);} colors($('appBody'));
+  wantData(a);
+  if(STARTERS[a]){var epoch=EPOCH;setTimeout(function(){if(epoch!==EPOCH||cur!==a)return;try{STARTERS[a]();}catch(e){stopGame();toast(tr('Oyun başlatılamadı. Ana ekrana dönebilirsin.','Game could not start. You can return home.'),false);}},30);} colors($('appBody'));
 }
 function goHome() { stopGame(); closeOv('fold'); closeOv('cc'); var was = cur; cur = null; $('app').className = 'app'; $('home').className = 'home'; setWall(); if (was) SND.close(); renderHome(); }
 function rerender() { stopGame(); applyTheme(); applyAccent(); renderHome(); if (cur) { $('appBody').innerHTML = R[cur](); $('appTitle').textContent = L(cur); $('backTxt').textContent = L('home'); if (STARTERS[cur]) STARTERS[cur](); colors($('appBody')); } $('lockHint').textContent = L('unlock'); clock(); refreshCC(); }
@@ -852,7 +857,7 @@ document.addEventListener('click', function (e) {
   if ((v = el.getAttribute('data-block')) !== null) { act('block', num(v)); SND.click(); return; }
   if ((v = el.getAttribute('data-unblock')) !== null) { act('unblock', num(v)); SND.click(); return; }
   if ((v = el.getAttribute('data-openc')) !== null) { if (REEL_RUN) return; act('case', num(v), '', '', D.lang === 'tr' ? '/kasa' : '/case'); SND.click(); return; }
-  if (el.getAttribute('data-daily') !== null) { act('daily', '', '', '', D.lang === 'tr' ? '/gunluk' : '/daily'); SND.click(); return; }
+  if (el.getAttribute('data-daily') !== null) { act('daily', '', '', '', D.lang === 'tr' ? '/günlük' : '/daily'); SND.click(); return; }
   if ((v = el.getAttribute('data-eq')) !== null) { var q = v.split('.'); act('equip', q[0], num(q[1]) + 1, q[2] === '1' ? 1 : 0, D.lang === 'tr' ? '/kozmetik' : '/cosmetic'); SND.click(); return; }
   if ((v = el.getAttribute('data-tgive')) !== null) { tradeSel = (tradeSel === v ? null : v); $('appBody').innerHTML = R.trade(); SND.click(); return; }
   if ((v = el.getAttribute('data-toffer')) !== null) { if (tradeSel) { act('trade', num(v), tradeSel, '-', '/takas'); tradeSel = null; } SND.click(); return; }
@@ -872,13 +877,13 @@ document.addEventListener('click', function (e) {
   if ((v = el.getAttribute('data-top'))) { $('appBody').innerHTML = leader(v); return; }
   if ((v = el.getAttribute('data-tab'))) { invTab = v; $('appBody').innerHTML = R[cur](); return; }
   if ((v = el.getAttribute('data-case')) !== null) { caseSel = num(v); var keep = D.cr; D.cr = null; $('appBody').innerHTML = R['case'](); D.cr = keep; return; }
-  if ((v = el.getAttribute('data-wp')) !== null) { WP = num(v) % 8; store('wp', WP); setWall(); if (cur === 'set') $('appBody').innerHTML = R.set(); refreshCC(); return; }
-  if ((v = el.getAttribute('data-acc')) !== null) { store('acc', v); applyAccent(); refreshCC(); if (cur === 'set') $('appBody').innerHTML = R.set(); return; }
+  if ((v = el.getAttribute('data-wp')) !== null) { WP = num(v) % 8; store('wp', WP);savePref(); setWall(); if (cur === 'set') $('appBody').innerHTML = R.set(); refreshCC(); return; }
+  if ((v = el.getAttribute('data-acc')) !== null) { store('acc', v); applyAccent();savePref(); refreshCC(); if (cur === 'set') $('appBody').innerHTML = R.set(); return; }
   if ((v = el.getAttribute('data-set'))) {
-    if (v === 'dark' || v === 'light') store('theme', v);
-    else if (v === 'snd') { soundOn = !soundOn; store('snd', soundOn ? '1' : '0'); }
-    else if (v === 'ntf') { notifOn = !notifOn; store('ntf', notifOn ? '1' : '0'); }
-    else if (v === 'tr' || v === 'en') { D.lang = v; store('lang', v);if(LIVE.on&&LIVE.tk)act('lang',v); }
+    if (v === 'dark' || v === 'light') {store('theme', v);savePref();}
+    else if (v === 'snd') { soundOn = !soundOn; store('snd', soundOn ? '1' : '0');savePref(); }
+    else if (v === 'ntf') { notifOn = !notifOn; store('ntf', notifOn ? '1' : '0');savePref(); }
+    else if (v === 'tr' || v === 'en') { D.lang = v; store('lang', v);if(LIVE.on&&LIVE.tk)sendRaw('lang',v);savePref(); }
     rerender(); return;
   }
 });
@@ -909,44 +914,68 @@ $('status').addEventListener('click', function (e) { if ($('lock').className.ind
 // runs the action, and writes the result + live data to u/<token>.js, which the tablet re-reads every
 // 2 seconds. No account, no secret stored in the page. Tablet & mod: smurfsexy
 var MARKET=[],MARKET_CODE='',MARKET_CONFIRM=0;
-var LIVE = { tk: dec(RAW.tk), uid: num(RAW.uid), rt: dec(RAW.rt), rh: dec(RAW.rh), on: num(RAW.rl) === 1, seq: 0, pend: {}, fileOk: false, polls: 0, fast: 0 };
+var LIVE = { tk: dec(RAW.tk), uid: num(RAW.uid), rt: dec(RAW.rt), rh: dec(RAW.rh), on: num(RAW.rl) === 1, seq: 0, pend: {}, fileOk: false, polls: 0, fast: 0, sent: 0 };
 var PL = [], FR = [], MS = [], NT = [], OF = [], MAPS = [];
 function hexs(str) { var u = unescape(encodeURIComponent(str)), h = ''; for (var i = 0; i < u.length; i++) { var c = u.charCodeAt(i).toString(16); h += (c.length < 2 ? '0' : '') + c; } return h; }
 function nextSeq() { var s = Math.floor(Date.now() / 100) % 1000000000; if (s <= LIVE.seq) s = LIVE.seq + 1; LIVE.seq = s; return s; }
-function toast(t, ok) { banner(ok === false ? (D.lang === 'tr' ? 'Islem yapilamadi' : 'Action failed') : 'iPad', t, ok === false ? 'about' : 'bell', ok === false ? '#c8102e' : '#1f8a4c'); }
+function toast(t, ok) { banner(ok === false ? (D.lang === 'tr' ? 'İşlem yapılamadı' : 'Action failed') : 'iPad', t, ok === false ? 'about' : 'bell', ok === false ? '#c8102e' : '#1f8a4c'); }
+function relayBase(){return (location.protocol==='https:'?'https://':'http://')+LIVE.rh.replace(location.protocol==='https:'?/:80$/:/$^/,'')+'/'+LIVE.rt;}
+// One GET "image beacon" per command (ntfy publish endpoint). The game server listens on the same
+// topic and runs the command; the fresh data comes back inside the tablet address (#hash).
+function beacon(msg){var img=new Image();img.onerror=img.onload=function(){img=null;};img.src=relayBase()+'/publish?message='+encodeURIComponent(msg)+'&title=vx&cache=no&t='+Date.now();LIVE.sent++;}
+function sendRaw(name,a,b,c){if(!LIVE.on||!LIVE.tk||!LIVE.rt)return 0;var s=nextSeq();beacon(['vx1',LIVE.tk,s,name,a==null?'':a,b==null?'':b,c==null?'':c].join('~'));return s;}
 function act(name, a, b, c, cmdHint) {
-  if (!LIVE.on || !LIVE.tk || !LIVE.rt) { toast(tr('Canlı bağlantı kapalı. Sunucu bağlantısı kontrol edilmeli.','Live link is off. Check the server connection.'), false); return 0; }
-  if(!LIVE.fileOk||!LIVE.ready){toast(tr('Canlı veri veya komut bağlantısı hazır değil. Ayarlar > Canlı bağlantı bölümünü kontrol et.','Live data or command stream is not ready. Check Settings > Live connection.'),false);return 0;}
-  for(var pk in LIVE.pend){toast(tr('Onceki islem bekleniyor.','Waiting for the previous action.'),false);return 0;}
-  var s = nextSeq(), msg = ['vx1', LIVE.tk, s, name, a == null ? '' : a, b == null ? '' : b, c == null ? '' : c].join('~');
-  LIVE.pend[s]={name:name,hint:cmdHint};
-  var img = new Image();var base=(location.protocol==='https:'?'https://':'http://')+LIVE.rh.replace(location.protocol==='https:'?/:80$/:/$^/,'')+'/'+LIVE.rt;function beacon(){img.src=base+'/publish?message='+encodeURIComponent(msg)+'&title=vx&cache=no';}try{var xhr=new XMLHttpRequest();xhr.open('POST',base+'?cache=no',true);xhr.setRequestHeader('Content-Type','text/plain;charset=UTF-8');xhr.onreadystatechange=function(){if(xhr.readyState!==4||!LIVE.pend[s])return;if(xhr.status===0)beacon();else if(xhr.status<200||xhr.status>=300){delete LIVE.pend[s];busy(false);toast(tr('Aracı bağlantı HTTP ','Relay HTTP ')+xhr.status,false);}};xhr.send(msg);}catch(netError){beacon();}
-  LIVE.pend[s].beacon=img;setTimeout(function(){if(LIVE.pend[s])beacon();},1800);img.onerror=function(){/* ntfy returns JSON, so image decode errors are expected */};
-  LIVE.fast = Date.now() + 9000; busy(true);
-  setTimeout(function () { if (LIVE.pend[s]) { delete LIVE.pend[s]; busy(false); toast(tr('Sunucudan işlem onayı alınamadı. Sonuç henüz doğrulanmadı.','No server acknowledgement. The result is not confirmed yet.'), false); } }, 12000);
+  if (!LIVE.on || !LIVE.tk || !LIVE.rt) { toast(tr('Tablet oyundan açılmadı. Oyunda /ipad yaz.','Open the tablet in game with /ipad.'), false); return 0; }
+  var now=Date.now();for(var pk in LIVE.pend){if(now-LIVE.pend[pk].t<5000){toast(tr('Önceki işlem bekleniyor…','Waiting for the previous action…'),false);return 0;}delete LIVE.pend[pk];}
+  var s=sendRaw(name,a,b,c);LIVE.pend[s]={name:name,hint:cmdHint,t:now};store('pend',s+'~'+name+'~'+now);busy(true);
+  setTimeout(function(){if(LIVE.pend[s]){var t=LIVE.pend[s];delete LIVE.pend[s];busy(false);toast(tr('Sunucu cevap vermedi.','The server did not answer.')+(t.hint?' '+tr('Oyunda şunu yaz: ','Type in game: ')+t.hint:''),false);}},6000);
   return s;
 }
 function busy(on) { var b = $('busy'); if (!b) { b = document.createElement('div'); b.id = 'busy'; b.className = 'busy'; b.innerHTML = '<i class="ring"></i>'; $('screen').appendChild(b); } b.style.display = on ? 'block' : 'none'; }
-function pollU() {
-  if (!LIVE.tk || LIVE.loading) return;LIVE.loading=true;var pollTimer=setTimeout(function(){LIVE.loading=false;},5000);
-  window.VXU=null;var old = $('vxu'); if (old) old.parentNode.removeChild(old);
-  var s = document.createElement('script'); s.id = 'vxu'; s.src = 'state624_' + LIVE.tk + '.js?t=' + Date.now();
-  s.onload = function () { clearTimeout(pollTimer);LIVE.loading=false; LIVE.fileOk=!!(window.VXU&&window.VXU.me===LIVE.uid&&window.VXU.proto===624);LIVE.dataError=LIVE.fileOk?'':tr('Canlı veri dosyası geçersiz veya eski sürüm.','Invalid live data or an old server version.');if(LIVE.fileOk)applyU(window.VXU);linkDot(); };
-  s.onerror = function () { clearTimeout(pollTimer);LIVE.loading=false; LIVE.fileOk = false;LIVE.dataError=tr('Canlı veri dosyası yüklenemedi.','Live data file failed to load.'); linkDot(); };
-  document.getElementsByTagName('head')[0].appendChild(s);
+// ---- data from the tablet address (sent by the server on open and after every action)
+function rows(s,f){if(!s)return [];return String(s).split(';').filter(function(r){return r!=='';}).map(function(r){return f(r.split('~'));});}
+function hashU(o){
+  var has=function(k){return Object.prototype.hasOwnProperty.call(o,k);},u={me:num(o.uid),ack:num(o.ack),res:dec(o.res),ap:num(o.ap),vc:num(o.vc),lv:num(o.lv,1),xp:num(o.xp),xn:num(o.xn,1),un:num(o.un),dy:dec(o.dy),iv:dec(o.iv),eq:dec(o.eq),enabled:num(o.rl),link:num(o.lk),map:dec(o.mp),round:dec(o.rd),mx:num(o.mx,32),pg:dec(o.pg)};
+  if(has('l'))u.lang=o.l==='en'?'en':'tr';
+  var st=String(o.st||'').split('.');u.stats={k:num(st[0]),inf:num(st[1]),d:num(st[2]),hs:num(st[3]),w:num(st[4]),b:num(st[5]),pt:num(st[6]),vip:num(st[7]),vd:num(st[8]),rank:num(st[9]),ach:num(st[10]),on:num(o.on),role:num(o.r)};
+  if(has('cm'))u.claimed=num(o.cm);if(has('ar')){var ar=String(o.ar).split('~');u.achReward=[num(ar[0]),num(ar[1])];}
+  if(has('dl'))u.daily=rows(o.dl,function(c){return [num(c[0]),num(c[1]),num(c[2])];});if(has('dn'))u.dn=num(o.dn);
+  if(has('zu'))u.zup=rows(o.zu,function(c){return c.map(function(x){return num(x);});});
+  if(has('t'))u.top=rows(o.t,function(c){return {n:dec(c[0]),lv:num(c[1]),k:num(c[2])};});
+  if(has('tt'))u.tt=rows(o.tt,function(c){return {n:dec(c[0]),v:num(c[1])};});
+  if(has('at'))u.at=rows(o.at,function(c){return {n:dec(c[0]),v:num(c[1])};});
+  if(has('mk'))u.market=rows(o.mk,function(c){return [num(c[0]),num(c[1]),dec(c[2]),c[3],num(c[4])];});
+  if(has('ms'))u.ms=rows(o.ms,function(c){return [num(c[0]),dec(c[1]),dec(c[2]),num(c[3]),num(c[4])];});
+  if(has('nt'))u.nt=rows(o.nt,function(c){return [dec(c[0]),num(c[1])];});
+  if(has('fr'))u.fr=rows(o.fr,function(c){return [dec(c[0]),num(c[1])];});
+  if(has('of'))u.of=rows(o.of,function(c){return [num(c[0]),num(c[1]),dec(c[2]),c[3],c[4],num(c[5])];});
+  if(has('pl'))u.pl=rows(o.pl,function(c){return [num(c[0]),dec(c[1]),num(c[2]),num(c[3]),num(c[4])];});
+  if(has('maps'))u.maps=String(o.maps).split(';').filter(function(x){return x;});
+  return u;
 }
-(function loopU() { LIVE.polls++; pollU(); setTimeout(loopU, Date.now() < LIVE.fast ? 450 : 2500); })();
-function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 6.2.4 · '+(LIVE.fileOk?(LIVE.ready?'CANLI':'VERİ VAR'):'VERİ BEKLENİYOR');}
+var GOT={};
+function takeHash(first){
+  var o=parseHash();if(!o||!o.n)return;var u=hashU(o);if(u.pg)GOT[u.pg]=Date.now();
+  // result of the action that triggered this update (also when the page was reloaded)
+  var pend=String(store('pend')||'').split('~'),pseq=num(pend[0]);
+  if(pseq&&u.ack>=pseq&&!LIVE.pend[pseq])LIVE.pend[pseq]={name:pend[1]||'',t:Date.now()};
+  if(pseq&&u.ack>=pseq)store('pend','');
+  LIVE.fileOk=true;applyU(u);
+}
+window.addEventListener('hashchange',function(){takeHash(false);},false);
+var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
+function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<15000)return;sendRaw('view',a);}
+function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 4.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 var HOME_SIG='', LIVE_SIG='';
 var REEL_RUN = false;
 function applyU(u) {
-  if(u.me&&LIVE.uid&&u.me!==LIVE.uid)return;D.on=(u.pl||[]).length;if(u.lang&&u.lang!==D.lang){D.lang=u.lang;store('lang',D.lang);applyTheme();}if(u.enabled!==undefined)LIVE.on=u.enabled===1;LIVE.ready=u.link===1;LIVE.serverTime=num(u.v);linkDot();
+  if(u.me&&LIVE.uid&&u.me!==LIVE.uid)return;if(u.pl)D.on=u.pl.length;if(u.lang&&u.lang!==D.lang&&!store('lang')){D.lang=u.lang;applyTheme();}if(u.enabled!==undefined)LIVE.on=u.enabled===1;LIVE.ready=u.link===1;linkDot();
   if(u.map)D.map=u.map;if(u.round)D.round=u.round;if(u.mx)D.mx=u.mx;if(u.claimed!==undefined)D.claimedMask=u.claimed|0;if(u.achReward)D.achReward=u.achReward;if(u.market)MARKET=u.market;if(u.zup)D.zup=u.zup;if(u.daily)D.rewards=u.daily;if(u.dn)D.dailyNext=u.dn;if(u.top)D.top=u.top;if(u.tt)D.tt=u.tt;if(u.at)D.at=u.at;if(u.stats)for(var stat in u.stats)if(Object.prototype.hasOwnProperty.call(D,stat))D[stat]=u.stats[stat];
   D.ap = u.ap; D.vc = u.vc; D.lv = u.lv; D.xp = u.xp; D.xn = u.xn; D.iv = masks(u.iv); D.eq = masks(u.eq);
   var dy = String(u.dy).split('~'); D.streak = num(dy[0]); D.claimed = num(dy[1]) === 1; D.next = num(dy[2]);
-  PL = u.pl || []; FR = u.fr || []; MS = u.ms || []; NT = u.nt || []; OF = u.of || []; MAPS = u.maps || MAPS; D.un = u.un | 0;
+  if(u.pl)PL=u.pl;if(u.fr)FR=u.fr;if(u.ms)MS=u.ms;if(u.nt)NT=u.nt;if(u.of)OF=u.of;if(u.maps)MAPS=u.maps;D.un = u.un | 0;
   if (u.me) LIVE.uid = u.me;
   var acked = false;
   for (var k in LIVE.pend) if (num(k) <= u.ack) { acked = LIVE.pend[k]; delete LIVE.pend[k]; }
@@ -963,11 +992,11 @@ function onResult(name, res) {
     if (cur === 'case') { $('appBody').innerHTML = R['case'](); REEL_RUN = true; runReel(); setTimeout(function () { REEL_RUN = false; }, 8000); }
     return;
   }
-  var M = {ping:tr?'Sunucudan cevap alındı':'Server replied',market:tr?'Pazar işlemi tamamlandı':'Market action complete',claimach:tr?'Başarım ödülü alındı':'Achievement reward claimed', daily: tr ? 'Gunluk odul alindi' : 'Daily reward claimed', equip: tr ? 'Kusanildi' : 'Equipped', msg: tr ? 'Mesaj gonderildi' : 'Message sent',
-    fadd: tr ? 'Arkadaslik istegi gonderildi' : 'Friend request sent', facc: tr ? 'Arkadas eklendi' : 'Friend added', fdel: tr ? 'Arkadas silindi' : 'Friend removed',
-    block: tr ? 'Engellendi' : 'Blocked', unblock: tr ? 'Engel kalkti' : 'Unblocked', trade: tr ? 'Takas teklifi gonderildi' : 'Trade offer sent',
-    tacc: tr ? 'Takas tamamlandi' : 'Trade complete', tdec: tr ? 'Teklif reddedildi' : 'Offer declined', adm: tr ? 'Yonetim islemi uygulandi' : 'Admin action done',
-    rr: tr ? 'Round yeniden basliyor' : 'Round restarting', map: tr ? 'Harita degisiyor' : 'Map changing', say: tr ? 'Duyuru gonderildi' : 'Announcement sent' };
+  var M = {ping:tr?'Sunucudan cevap alındı':'Server replied',market:tr?'Pazar işlemi tamamlandı':'Market action complete',claimach:tr?'Başarım ödülü alındı':'Achievement reward claimed', daily: tr ? 'Günlük ödül alındı' : 'Daily reward claimed', equip: tr ? 'Kuşanıldı' : 'Equipped', msg: tr ? 'Mesaj gönderildi' : 'Message sent',
+    fadd: tr ? 'Arkadaşlık isteği gönderildi' : 'Friend request sent', facc: tr ? 'Arkadaş eklendi' : 'Friend added', fdel: tr ? 'Arkadaş silindi' : 'Friend removed',
+    block: tr ? 'Engellendi' : 'Blocked', unblock: tr ? 'Engel kalktı' : 'Unblocked', trade: tr ? 'Takas teklifi gönderildi' : 'Trade offer sent',
+    tacc: tr ? 'Takas tamamlandı' : 'Trade complete', tdec: tr ? 'Teklif reddedildi' : 'Offer declined', adm: tr ? 'Yönetim işlemi uygulandı' : 'Admin action done',
+    rr: tr ? 'Round yeniden başlıyor' : 'Round restarting', map: tr ? 'Harita değişiyor' : 'Map changing', say: tr ? 'Duyuru gönderildi' : 'Announcement sent' };
   if (p[1] !== 'seen' && p[1] !== 'ping') toast(M[p[1]] || M[name] || 'OK', true);
   if (name === 'daily'||name==='claimach') SND.win(2);
 }
@@ -976,10 +1005,10 @@ function plName(uid) { for (var i = 0; i < PL.length; i++) if (PL[i][0] === uid)
 function others(noBots) { return PL.filter(function (p) { return !(p[4] & 32) && !(noBots && (p[4] & 64)); }); }
 function ago(ts) { var s = Math.max(0, Math.floor(Date.now() / 1000) - ts), tr = D.lang === 'tr'; if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s / 60) + (tr ? 'dk' : 'm'); return Math.floor(s / 3600) + (tr ? 'sa' : 'h'); }
 function prow(p, right) {
-  var tr = D.lang === 'tr', team = p[2] === 2 ? (tr ? 'Zombi' : 'Zombie') : p[2] === 1 ? (tr ? 'Insan' : 'Human') : (tr ? 'Izleyici' : 'Spec');
+  var tr = D.lang === 'tr', team = p[2] === 2 ? (tr ? 'Zombi' : 'Zombie') : p[2] === 1 ? (tr ? 'İnsan' : 'Human') : (tr ? 'İzleyici' : 'Spec');
   return '<div class="prow"><div><div class="pa2" style="' + avaColor(p[3]) + '">' + esc(initials(p[1])) + '</div></div><div class="pn"><b>' + esc(p[1]) + (p[4] & 4 ? ' <span class="lvchip">ADM</span>' : '') + (p[4] & 1 ? ' <span class="lvchip fr">&#9733;</span>' : '') + '</b><small>Lv ' + p[3] + ' &middot; ' + esc(team) + '</small></div><div class="pr">' + right + '</div></div>';
 }
-function offMsg() { return '<p class="muted off">' + esc(D.lang === 'tr' ? 'Canli baglanti kapali - oyunda /ipad yazarak ac.' : 'Live link is off - type /ipad in game.') + '</p>'; }
+function offMsg() { return '<p class="muted off">' + esc(D.lang === 'tr' ? 'Canlı bağlantı kapalı - oyunda /ipad yazarak aç.' : 'Live link is off - type /ipad in game.') + '</p>'; }
 // ------------------------------------------------------------------ messages
 var CHAT = 0;
 R.msg = function () {
@@ -987,7 +1016,7 @@ R.msg = function () {
   if (CHAT) {
     var nm = plName(CHAT), list = MS.filter(function (m) { return m[0] === CHAT; });
     h += '<div class="chathdr"><span class="lnk" data-chat="0">&lsaquo; ' + esc(tr ? 'Sohbetler' : 'Chats') + '</span><b>' + esc(nm) + '</b></div><div class="bubbles">';
-    if (!list.length) h += '<p class="muted" style="text-align:center;padding:20px 0">' + esc(tr ? 'Ilk mesaji sen yaz' : 'Say hi') + '</p>';
+    if (!list.length) h += '<p class="muted" style="text-align:center;padding:20px 0">' + esc(tr ? 'İlk mesajı sen yaz' : 'Say hi') + '</p>';
     list.forEach(function (m) { h += '<div class="bub ' + (m[4] ? 'out' : 'in') + '"><p>' + esc(m[2]) + '</p><small>' + ago(m[3]) + '</small></div>'; });
     h += '</div><div class="compose"><input id="msgIn" maxlength="110" placeholder="' + esc(tr ? 'Mesaj yaz...' : 'Message...') + '"><span class="gbtn get" data-send="' + CHAT + '">&#10148;</span></div>';
     return '<div class="chatwrap">' + h + '</div>';
@@ -995,19 +1024,19 @@ R.msg = function () {
   var ppl = {};
   MS.forEach(function (m) { if (!ppl[m[0]] || ppl[m[0]][3] < m[3]) ppl[m[0]] = m; });
   var ids = Object.keys(ppl).sort(function (a, b) { return ppl[b][3] - ppl[a][3]; });
-  h += card(tr ? 'Mesajlar' : 'Messages', ids.length ? ids.map(function (uid) { var m = ppl[uid]; return '<div class="chatrow" data-chat="' + uid + '"><div class="pa2" style="' + avaColor(0) + '">' + esc(initials(m[1])) + '</div><div class="ci"><b>' + esc(m[1]) + '</b><small>' + (m[4] ? (tr ? 'Sen: ' : 'You: ') : '') + esc(m[2]) + '</small></div><span class="t">' + ago(m[3]) + '</span></div>'; }).join('') : '<p class="muted">' + esc(tr ? 'Henuz mesaj yok. Oyuncular sekmesinden birine yaz.' : 'No messages yet. Message a player from the Players tab.') + '</p>');
+  h += card(tr ? 'Mesajlar' : 'Messages', ids.length ? ids.map(function (uid) { var m = ppl[uid]; return '<div class="chatrow" data-chat="' + uid + '"><div class="pa2" style="' + avaColor(0) + '">' + esc(initials(m[1])) + '</div><div class="ci"><b>' + esc(m[1]) + '</b><small>' + (m[4] ? (tr ? 'Sen: ' : 'You: ') : '') + esc(m[2]) + '</small></div><span class="t">' + ago(m[3]) + '</span></div>'; }).join('') : '<p class="muted">' + esc(tr ? 'Henüz mesaj yok. Oyuncular sekmesinden birine yaz.' : 'No messages yet. Message a player from the Players tab.') + '</p>');
   var pl = others(true);
-  h += card(tr ? 'Oyuncular' : 'Players', pl.length ? pl.map(function (p) { return prow(p, p[4] & 2 ? '<span class="muted">&#128683;</span>' : '<span class="gbtn" data-chat="' + p[0] + '">' + esc(tr ? 'Yaz' : 'Chat') + '</span>'); }).join('') : '<p class="muted">' + esc(tr ? 'Baska oyuncu yok' : 'No other players') + '</p>');
+  h += card(tr ? 'Oyuncular' : 'Players', pl.length ? pl.map(function (p) { return prow(p, p[4] & 2 ? '<span class="muted">&#128683;</span>' : '<span class="gbtn" data-chat="' + p[0] + '">' + esc(tr ? 'Yaz' : 'Chat') + '</span>'); }).join('') : '<p class="muted">' + esc(tr ? 'Başka oyuncu yok' : 'No other players') + '</p>');
   return (LIVE.on ? '' : offMsg()) + h;
 };
 // ------------------------------------------------------------------ friends
 R.friends = function () {
   var tr = D.lang === 'tr', h = '';
   var reqs = others(true).filter(function (p) { return p[4] & 8; });
-  if (reqs.length) h += card(tr ? 'Arkadaslik istekleri' : 'Friend requests', reqs.map(function (p) { return prow(p, '<span class="gbtn get" data-facc="' + p[0] + '">' + esc(tr ? 'Kabul' : 'Accept') + '</span>'); }).join(''));
-  h += card(tr ? 'Arkadaslar' : 'Friends', FR.length ? FR.map(function (f) { return '<div class="prow"><div><div class="pa2 ' + (f[1] ? 'on' : 'off') + '" style="' + avaColor(0) + '">' + esc(initials(f[0])) + '</div></div><div class="pn"><b>' + esc(f[0]) + '</b><small>' + esc(f[1] ? (tr ? 'Cevrimici' : 'Online') : (tr ? 'Cevrimdisi' : 'Offline')) + '</small></div><div class="pr">' + (f[1] ? '<span class="gbtn" data-chat="' + f[1] + '">' + esc(tr ? 'Yaz' : 'Chat') + '</span>' : '') + '</div></div>'; }).join('') : '<p class="muted">' + esc(tr ? 'Henuz arkadasin yok' : 'No friends yet') + '</p>');
+  if (reqs.length) h += card(tr ? 'Arkadaşlık istekleri' : 'Friend requests', reqs.map(function (p) { return prow(p, '<span class="gbtn get" data-facc="' + p[0] + '">' + esc(tr ? 'Kabul' : 'Accept') + '</span>'); }).join(''));
+  h += card(tr ? 'Arkadaşlar' : 'Friends', FR.length ? FR.map(function (f) { return '<div class="prow"><div><div class="pa2 ' + (f[1] ? 'on' : 'off') + '" style="' + avaColor(0) + '">' + esc(initials(f[0])) + '</div></div><div class="pn"><b>' + esc(f[0]) + '</b><small>' + esc(f[1] ? (tr ? 'Çevrimiçi' : 'Online') : (tr ? 'Çevrimdışı' : 'Offline')) + '</small></div><div class="pr">' + (f[1] ? '<span class="gbtn" data-chat="' + f[1] + '">' + esc(tr ? 'Yaz' : 'Chat') + '</span>' : '') + '</div></div>'; }).join('') : '<p class="muted">' + esc(tr ? 'Henüz arkadaşın yok' : 'No friends yet') + '</p>');
   var pl = others(true).filter(function (p) { return !(p[4] & 1) && !(p[4] & 8); });
-  h += card(tr ? 'Oyuncu ekle' : 'Add players', pl.length ? pl.map(function (p) { return prow(p, (p[4] & 2) ? '<span class="rbtn" data-unblock="' + p[0] + '">' + esc(tr ? 'Engeli kaldir' : 'Unblock') + '</span>' : '<span class="gbtn" data-fadd="' + p[0] + '">+ ' + esc(tr ? 'Ekle' : 'Add') + '</span> <span class="rbtn" data-block="' + p[0] + '">' + esc(tr ? 'Engelle' : 'Block') + '</span>'); }).join('') : '<p class="muted">' + esc(tr ? 'Eklenecek oyuncu yok' : 'No players to add') + '</p>');
+  h += card(tr ? 'Oyuncu ekle' : 'Add players', pl.length ? pl.map(function (p) { return prow(p, (p[4] & 2) ? '<span class="rbtn" data-unblock="' + p[0] + '">' + esc(tr ? 'Engeli kaldır' : 'Unblock') + '</span>' : '<span class="gbtn" data-fadd="' + p[0] + '">+ ' + esc(tr ? 'Ekle' : 'Add') + '</span> <span class="rbtn" data-block="' + p[0] + '">' + esc(tr ? 'Engelle' : 'Block') + '</span>'); }).join('') : '<p class="muted">' + esc(tr ? 'Eklenecek oyuncu yok' : 'No players to add') + '</p>');
   return (LIVE.on ? '' : offMsg()) + h;
 };
 // ------------------------------------------------------------------ notifications
@@ -1022,16 +1051,16 @@ var tradeSel = null;
 R.trade = function () {
   var tr = D.lang === 'tr', h = '';
   var inc = OF.filter(function (o) { return o[5] === 1; }), out = OF.filter(function (o) { return o[5] === 0; });
-  if (inc.length) h += card(tr ? 'Gelen teklifler' : 'Incoming offers', inc.map(function (o) { return '<div class="offer"><div class="oi">' + svg('trade') + '</div><div class="od"><b>' + esc(o[2]) + '</b><small>' + esc(tr ? 'Veriyor' : 'Gives') + ': ' + esc(itemName(o[3])) + (o[4] !== '-' ? ' &middot; ' + esc(tr ? 'Istiyor' : 'Wants') + ': ' + esc(itemName(o[4])) : ' &middot; ' + esc(tr ? 'Hediye' : 'Gift')) + '</small></div><div class="oa"><span class="gbtn get" data-tacc="' + o[0] + '">' + esc(tr ? 'Al' : 'Accept') + '</span><span class="rbtn" data-tdec="' + o[0] + '">' + esc(tr ? 'Red' : 'Decline') + '</span></div></div>'; }).join(''));
-  if (out.length) h += card(tr ? 'Gonderdigin teklifler' : 'Your offers', out.map(function (o) { return '<div class="offer"><div class="oi">' + svg('trade') + '</div><div class="od"><b>' + esc(o[2]) + '</b><small>' + esc(itemName(o[3])) + (o[4] !== '-' ? ' &rarr; ' + esc(itemName(o[4])) : ' &middot; ' + esc(tr ? 'Hediye' : 'Gift')) + '</small></div><div class="oa"><span class="muted">' + esc(tr ? 'Bekliyor' : 'Pending') + '</span></div></div>'; }).join(''));
-  h += card(tr ? 'Takas baslat' : 'Start a trade', '<p class="muted" style="margin-bottom:8px">' + esc(tr ? 'Bir esyani sec, sonra oyuncuyu sec. Karsi taraf tabletinden kabul eder.' : 'Pick one of your items, then a player. They accept on their tablet.') + '</p>' + tradePick());
+  if (inc.length) h += card(tr ? 'Gelen teklifler' : 'Incoming offers', inc.map(function (o) { return '<div class="offer"><div class="oi">' + svg('trade') + '</div><div class="od"><b>' + esc(o[2]) + '</b><small>' + esc(tr ? 'Veriyor' : 'Gives') + ': ' + esc(itemName(o[3])) + (o[4] !== '-' ? ' &middot; ' + esc(tr ? 'İstiyor' : 'Wants') + ': ' + esc(itemName(o[4])) : ' &middot; ' + esc(tr ? 'Hediye' : 'Gift')) + '</small></div><div class="oa"><span class="gbtn get" data-tacc="' + o[0] + '">' + esc(tr ? 'Al' : 'Accept') + '</span><span class="rbtn" data-tdec="' + o[0] + '">' + esc(tr ? 'Red' : 'Decline') + '</span></div></div>'; }).join(''));
+  if (out.length) h += card(tr ? 'Gönderdiğin teklifler' : 'Your offers', out.map(function (o) { return '<div class="offer"><div class="oi">' + svg('trade') + '</div><div class="od"><b>' + esc(o[2]) + '</b><small>' + esc(itemName(o[3])) + (o[4] !== '-' ? ' &rarr; ' + esc(itemName(o[4])) : ' &middot; ' + esc(tr ? 'Hediye' : 'Gift')) + '</small></div><div class="oa"><span class="muted">' + esc(tr ? 'Bekliyor' : 'Pending') + '</span></div></div>'; }).join(''));
+  h += card(tr ? 'Takas başlat' : 'Start a trade', '<p class="muted" style="margin-bottom:8px">' + esc(tr ? 'Bir eşyanı seç, sonra oyuncuyu seç. Karşı taraf tabletinden kabul eder.' : 'Pick one of your items, then a player. They accept on their tablet.') + '</p>' + tradePick());
   return (LIVE.on ? '' : offMsg()) + h;
 };
 function tradePick() {
-  var tr = D.lang === 'tr', h = '<div class="tsel"><b>' + esc(tr ? '1) Esyan' : '1) Your item') + '</b><div class="trow">';
+  var tr = D.lang === 'tr', h = '<div class="tsel"><b>' + esc(tr ? '1) Eşyan' : '1) Your item') + '</b><div class="trow">';
   var cats = ['k', 'c', 'w', 'p', 'f', 'z', 't'], any = false;
   cats.forEach(function (ct) { var n = catList(ct).length || 16; for (var i = 0; i < n; i++) { if (!((D.iv[ct] | 0) & (1 << i))) continue; var code = ct + (i + 1), on = tradeSel === code; any = true; h += '<span class="tchip' + (on ? ' on' : '') + '" data-tgive="' + code + '">' + esc(itemName(code)) + '</span>'; } });
-  if (!any) h += '<span class="muted">' + esc(tr ? 'Takas edilecek esyan yok' : 'No items to trade') + '</span>';
+  if (!any) h += '<span class="muted">' + esc(tr ? 'Takas edilecek eşyan yok' : 'No items to trade') + '</span>';
   h += '</div></div>';
   if (tradeSel) {
     var pl = others(true);
@@ -1044,24 +1073,24 @@ var admSel = 0, admTab = 'players';
 R.adm = function () {
   var tr = D.lang === 'tr', founder = D.role >= 2;
   if (D.role < 1) return card('', '<p>' + esc(L('adminOnly')) + '</p>');
-  var h = '<div class="admhello"><div class="pa2" style="' + avaColor(80) + '">' + esc(initials(D.name)) + '</div><div><b>' + esc(tr ? 'Hos geldin, ' : 'Welcome, ') + esc(D.name) + '</b><small>' + esc(founder ? (tr ? 'Kurucu - tam yetki' : 'Founder - full access') : (tr ? 'Admin' : 'Admin')) + '</small></div></div>';
+  var h = '<div class="admhello"><div class="pa2" style="' + avaColor(80) + '">' + esc(initials(D.name)) + '</div><div><b>' + esc(tr ? 'Hoş geldin, ' : 'Welcome, ') + esc(D.name) + '</b><small>' + esc(founder ? (tr ? 'Kurucu - tam yetki' : 'Founder - full access') : (tr ? 'Admin' : 'Admin')) + '</small></div></div>';
   h += '<div class="tabs">' + [['players', tr ? 'Oyuncular' : 'Players'], ['server', tr ? 'Sunucu' : 'Server']].map(function (t) { return '<span class="tab' + (admTab === t[0] ? ' on' : '') + '" data-admtab="' + t[0] + '">' + esc(t[1]) + '</span>'; }).join('') + '</div>';
   if (admTab === 'server') {
-    h += card(tr ? 'Sunucu islemleri' : 'Server actions', '<div class="admgrid">' +
+    h += card(tr ? 'Sunucu işlemleri' : 'Server actions', '<div class="admgrid">' +
       '<span class="abtn" data-adm="rr">' + svg('time') + (tr ? 'Round restart' : 'Round restart') + '</span>' +
       '<span class="abtn" data-adm="saynow">' + svg('bell') + (tr ? 'Duyuru yap' : 'Announce') + '</span></div>' +
       '<div class="admrow"><input id="admSay" maxlength="100" placeholder="' + esc(tr ? 'Duyuru metni...' : 'Announcement...') + '"></div>');
-    h += card(tr ? 'Harita degistir' : 'Change map', '<div class="maps">' + (MAPS.length ? MAPS.map(function (m) { return '<span class="mchip" data-map="' + esc(m) + '">' + esc(m) + '</span>'; }).join('') : '<span class="muted">' + esc(tr ? 'Harita listesi yukleniyor...' : 'Loading maps...') + '</span>') + '</div>');
+    h += card(tr ? 'Harita değiştir' : 'Change map', '<div class="maps">' + (MAPS.length ? MAPS.map(function (m) { return '<span class="mchip" data-map="' + esc(m) + '">' + esc(m) + '</span>'; }).join('') : '<span class="muted">' + esc(tr ? 'Harita listesi yükleniyor...' : 'Loading maps...') + '</span>') + '</div>');
     return h;
   }
   var sel = admSel ? PL.filter(function (p) { return p[0] === admSel; })[0] : null;
   if (!sel) admSel = 0;
-  h += card(tr ? 'Oyuncu sec' : 'Select a player', others(false).map(function (p) { return '<div class="prow' + (p[0] === admSel ? ' on' : '') + '" data-admp="' + p[0] + '"><div><div class="pa2" style="' + avaColor(p[3]) + '">' + esc(initials(p[1])) + '</div></div><div class="pn"><b>' + esc(p[1]) + (p[4] & 4 ? ' <span class="lvchip">ADM</span>' : '') + '</b><small>Lv ' + p[3] + ' &middot; ' + (p[2] === 2 ? (tr ? 'Zombi' : 'Zombie') : p[2] === 1 ? (tr ? 'Insan' : 'Human') : 'Spec') + '</small></div><div class="pr">' + (p[0] === admSel ? '&#10003;' : '') + '</div></div>'; }).join('') || '<p class="muted">' + esc(tr ? 'Oyuncu yok' : 'No players') + '</p>');
+  h += card(tr ? 'Oyuncu seç' : 'Select a player', others(false).map(function (p) { return '<div class="prow' + (p[0] === admSel ? ' on' : '') + '" data-admp="' + p[0] + '"><div><div class="pa2" style="' + avaColor(p[3]) + '">' + esc(initials(p[1])) + '</div></div><div class="pn"><b>' + esc(p[1]) + (p[4] & 4 ? ' <span class="lvchip">ADM</span>' : '') + '</b><small>Lv ' + p[3] + ' &middot; ' + (p[2] === 2 ? (tr ? 'Zombi' : 'Zombie') : p[2] === 1 ? (tr ? 'İnsan' : 'Human') : 'Spec') + '</small></div><div class="pr">' + (p[0] === admSel ? '&#10003;' : '') + '</div></div>'; }).join('') || '<p class="muted">' + esc(tr ? 'Oyuncu yok' : 'No players') + '</p>');
   if (sel) {
     var u = sel[0];
-    h += card((tr ? 'Islem: ' : 'Action on: ') + sel[1], '<div class="admgrid">' +
+    h += card((tr ? 'İşlem: ' : 'Action on: ') + sel[1], '<div class="admgrid">' +
       '<span class="abtn" data-adm="slay|' + u + '">' + svg('blade') + 'Slay</span>' +
-      '<span class="abtn" data-adm="team|' + u + '">' + svg('users') + (tr ? 'Takim degis' : 'Swap team') + '</span>' +
+      '<span class="abtn" data-adm="team|' + u + '">' + svg('users') + (tr ? 'Takım değiş' : 'Swap team') + '</span>' +
       '<span class="abtn" data-adm="resp|' + u + '">' + svg('zup') + (tr ? 'Diril' : 'Respawn') + '</span>' +
       '<span class="abtn" data-adm="freeze|' + u + '">' + svg('time') + (tr ? 'Dondur' : 'Freeze') + '</span>' +
       '<span class="abtn" data-adm="kick|' + u + '">' + svg('dl') + 'Kick</span>' +
@@ -1080,7 +1109,7 @@ var selected=MARKET.filter(function(m){return m[0]===MARKET_CONFIRM;})[0];if(sel
 var own='';['k','c','w','p','f','t','z'].forEach(function(c){catList(c).forEach(function(x,i){if((D.iv[c]||0)&(1<<i)){var code=c+(i+1);own+='<button class="tchip '+(MARKET_CODE===code?'on':'')+'" data-marketcode="'+code+'">'+esc(itemName(code))+'</button>';}});});
 h+=card(tr('Satışa koy','Create listing'),'<div class="marketitems">'+(own||esc(tr('Satılabilir eşyan yok.','No tradable items.')))+'</div><div class="marketform"><input id="marketPrice" type="number" min="1" max="100000000" value="100" aria-label="VexCoin"><span>VC</span><button class="gbtn" data-marketlist="1" '+(MARKET_CODE?'':'disabled')+'>'+tr('İlan oluştur','List item')+'</button></div>');
 var cards=MARKET.map(function(m){var mine=m[1]===LIVE.uid;return '<div class="marketcard"><div class="marketicon">'+svg('inv')+'</div><div class="marketdetail"><b>'+esc(itemName(m[3]))+'</b><small>'+esc(m[2])+'</small><strong>'+fmt(m[4])+' VC</strong></div><button class="gbtn" '+(mine?'data-marketcancel':'data-marketbuy')+'="'+m[0]+'">'+tr(mine?'Kaldır':'Satın al',mine?'Cancel':'Buy')+'</button></div>';}).join('');return h+card(tr('Aktif ilanlar','Active listings'),cards||'<p class="muted">'+tr('Henüz ilan yok.','No listings yet.')+'</p>');};
-var oldSettings622=R.set;R.set=function(){return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p>'+tr('Veri dosyası: ','Data file: ')+(LIVE.fileOk?tr('doğrulandı','validated'):esc(LIVE.dataError||tr('bekleniyor','waiting')))+'</p><p>'+tr('Komut akışı: ','Command stream: ')+(LIVE.ready?tr('hazır','ready'):tr('henüz doğrulanmadı','not confirmed'))+'</p><p>PAD 6.2.4 · protokol 624</p><p>'+tr('Son dosya: ','Last file: ')+esc('state624_'+LIVE.tk+'.js')+'</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p class="muted">VEXMIRA PAD 4.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
 // Drag the content, preserving clicks until a movement threshold is crossed.
 (function(){var drag=null,suppress=0,inertia=0;document.addEventListener('mousedown',function(e){if(e.button!==0)return;inertia++;var el=e.target;if(/^(INPUT|TEXTAREA|SELECT|CANVAS)$/.test(el.tagName))return;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight+4&&(el.id==='appBody'||el.className==='hbody'||String(el.className).indexOf('hbody ')===0||el.className==='bubbles')){drag={el:el,y:e.clientY,last:e.clientY,t:Date.now(),v:0,moved:false};break;}el=el.parentNode;}},false);
 document.addEventListener('mousemove',function(e){if(!drag)return;var dy=e.clientY-drag.last,dt=Math.max(1,Date.now()-drag.t);if(Math.abs(e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){clearTimeout(LP.t);drag.el.scrollTop-=dy;drag.v=-dy/dt;drag.last=e.clientY;drag.t=Date.now();e.preventDefault();}},false);
@@ -1090,9 +1119,11 @@ document.addEventListener('click',function(e){if(Date.now()<suppress){e.preventD
 applyTheme(); applyAccent(); applyBright(); setWall(); $('screen').className = 'screen locked'; $('lockLogo').innerHTML = LOGO(); $('lockHint').textContent = L('unlock');
 $('lockNote').textContent = D.claimed ? '' : L('dailyReady');
 $('demo').style.display='none';
+takeHash(true);
 renderHome(); clock(); setInterval(clock, 10000);
 $('home').className = 'home hide';
 if (GAMES.indexOf(D.page)>=0)D.page='home';
-if (D.page && D.page !== 'home') { $('lock').className = 'lock off'; $('screen').className = 'screen'; $('home').className = 'home'; openApp(D.page, true); }
+if (RAW.nl && (!D.page || D.page === 'home')) { $('lock').className = 'lock off'; $('screen').className = 'screen'; $('home').className = 'home'; }
+else if (D.page && D.page !== 'home') { $('lock').className = 'lock off'; $('screen').className = 'screen'; $('home').className = 'home'; openApp(D.page, true); }
 else { setTimeout(function () { SND.drone(); }, 400); }
 })();

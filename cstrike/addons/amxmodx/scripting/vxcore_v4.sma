@@ -14,16 +14,15 @@ native vxe_ac_load(id);
 native vxe_ac_mask(id);
 native vxe_ac_claim(id,bit);
 native vxe_market_action(id,op,const a[],const b[]);
-native vxe_market_write(fp,id);
 native vxe_market_prepare(buyer,seller,cat,ix,price);
 native vxe_market_finish(buyer,seller);
 native vxe_zup_snapshot(id,cls,field);
 native vxe_zup_spend(id,cls,perk);
+native vxe_market_str(id,out[],len);
+new g_iActor4,g_szPref4[33][48];
 new bool:g_bRlReady621;
 new g_iRlOpenErr623;
 new g_iRelayRx624,g_iActionRx624,g_iStateWrites624,g_iStateErr624;
-new Float:g_fUWrite621[33];
-new g_fwPad4State,g_fwPad4Leave;
 #pragma tabsize 0
 #pragma dynamic 32768
 native vxe_boss_giant(const name[],out[],len,Float:k,tex,build);
@@ -31764,15 +31763,100 @@ if(n >= len - 4)return;
 n += formatex(buf[n],len - n,"%s%s=%s",n ? "&" : "",k,v);
 }
 stock UAddI60(buf[],len,&n,const k[],v){new t[16];num_to_str(v,t,charsmax(t));UAdd60(buf,len,n,k,t);}
-OpenTablet60(id,const page[],const extra[])
+// 6.4 (PAD v4): FastDL copies server-written files only every 15-30 min, so live data travels inside the
+// MOTD address itself (#hash). Base data always, plus the lists of the app that is open. After every
+// tablet action the server re-sends the address -> the page updates at once. Max ~1400 chars.
+#define H4LEN 1390
+H4S(h[],&n,const k[],const v[]){if(n+strlen(k)+strlen(v)+3>=H4LEN)return 0;n+=formatex(h[n],H4LEN-n,"&%s=%s",k,v);return 1;}
+H4I(h[],&n,const k[],v){new t[16];num_to_str(v,t,15);return H4S(h,n,k,t);}
+H4Row(h[],&n,&first,const row[]){if(n+strlen(row)+3>=H4LEN)return 0;if(!first)h[n++]=';';h[n]=0;n+=copy(h[n],H4LEN-n,row);first=0;return 1;}
+H4Key(h[],&n,const k[]){if(n+strlen(k)+3>=H4LEN)return 0;n+=formatex(h[n],H4LEN-n,"&%s=",k);return 1;}
+bool:App4(const app[],const a[],const b[]="",const c[]="",const d[]=""){return equal(app,a)||(b[0]&&equal(app,b))||(c[0]&&equal(app,c))||(d[0]&&equal(app,d));}
+Snap4(id,const app[],h[])
+{
+new n=0,t[160],e[400],name[32],first;
+get_user_name(id,name,31);UrlEnc60(name,e,95);n+=formatex(h,H4LEN,"n=%s",e);
+new host[64];get_pcvar_string(g_pRlHost62,host,63);
+formatex(t,159,"%s%%3A%d",host,get_pcvar_num(g_pRlPort62));
+H4S(h,n,"l",g_iLang[id]!=1?"tr":"en");H4S(h,n,"pg",app);H4S(h,n,"tk",g_szTok62[id]);H4I(h,n,"uid",get_user_userid(id));
+H4S(h,n,"rh",t);H4S(h,n,"rt",g_szTopic62);H4I(h,n,"rl",get_pcvar_num(g_pRlOn62)?1:0);H4I(h,n,"lk",g_bRlReady621?1:0);
+H4I(h,n,"lv",g_iLevel[id]);H4I(h,n,"xp",g_iXP[id]);H4I(h,n,"xn",XPForLevel(g_iLevel[id]+1));H4I(h,n,"ap",g_iAP[id]);H4I(h,n,"vc",g_iVC[id]);
+H4I(h,n,"r",IsFounder60(id)?2:(IsAdmin60(id)?1:0));H4I(h,n,"on",get_playersnum());H4I(h,n,"mx",g_iMax);H4I(h,n,"un",g_iUnread62[id]);
+H4I(h,n,"ack",g_iSeqAck62[id]);if(g_szRes62[id][0]){UrlEnc60(g_szRes62[id],e,399);H4S(h,n,"res",e);}
+new today=get_systime()/86400;formatex(t,159,"%d~%d~%d",g_iDailyStreak[id],g_iDailyDay[id]==today?1:0,86400-(get_systime()%86400));H4S(h,n,"dy",t);
+formatex(t,159,"k%d.c%d.w%d.p%d.f%d.z%d.t%d",g_iCommunityOwned[id][1],g_iCommunityOwned[id][0],g_iCmOwned[id]&255,(g_iCmOwned[id]>>8)&255,(g_iCosOwned[id]>>6)&63,g_iLzOwned531[id],g_iCosOwned[id]&63);UrlEnc60(t,e,199);H4S(h,n,"iv",e);
+formatex(t,159,"k%d.c%d.w%d.p%d.f%d.z%d.t%d",g_iCommunitySel[id][1],g_iCommunitySel[id][0],CmSel(id,0),CmSel(id,1),g_iKfxSel[id],g_iLzSel531[id],g_iTrailSel[id]);UrlEnc60(t,e,199);H4S(h,n,"eq",e);
+formatex(t,159,"%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d",g_iKills[id],g_iInfects[id],get_user_deaths(id),g_iHS[id],g_iWins[id],g_iBossK[id],g_iPlaySec[id]/60,IsVip(id)?(g_iVip[id]>=2?2:1):0,max(0,(g_iVipExpire[id]-get_systime())/86400),g_iTopRank[id],g_iAch[id]);H4S(h,n,"st",t);
+get_mapname(name,31);H4S(h,n,"mp",name);formatex(t,159,"%d%%2F%d",g_iRound,RoundsTotal());H4S(h,n,"rd",t);
+if(g_szPref4[id][0])H4S(h,n,"pf",g_szPref4[id]);H4I(h,n,"cm",vxe_ac_mask(id));formatex(t,159,"%d~%d",get_pcvar_num(g_pAchVC),get_pcvar_num(g_pAchAP));H4S(h,n,"ar",t);
+if(App4(app,"daily")||App4(app,"home"))
+{
+if(H4Key(h,n,"dl")){first=1;new dp=VipDailyPct(id);for(new day=1;day<=7;day++){new ap=get_pcvar_num(g_pDailyAP)+10*day,vc=1+day/2;if(dp>0){ap+=ap*dp/100;vc+=max(1,vc*dp/100);}formatex(t,159,"%d~%d~%d",ap,vc,50+25*day);H4Row(h,n,first,t);}}
+H4I(h,n,"dn",g_iDailyDay[id]==today?min(7,max(1,g_iDailyStreak[id])):(g_iDailyDay[id]==today-1?min(7,g_iDailyStreak[id]+1):1));
+}
+if(App4(app,"zup")&&H4Key(h,n,"zu"))
+{
+first=1;for(new cl=0;cl<24;cl++){formatex(t,159,"%d~%d~%d~%d~%d~%d",vxe_zup_snapshot(id,cl,0),vxe_zup_snapshot(id,cl,1),vxe_zup_snapshot(id,cl,2),vxe_zup_snapshot(id,cl,3),vxe_zup_snapshot(id,cl,4),vxe_zup_snapshot(id,cl,5));H4Row(h,n,first,t);}
+}
+if(App4(app,"top")&&H4Key(h,n,"t")){first=1;for(new row=0;row<g_iTopCount;row++){UrlEnc60(g_szTopName[row],e,90);formatex(t,159,"%s~%d~%d",e,CalcLevel(g_iTopXP[row]),g_iTopKills[row]);if(!H4Row(h,n,first,t))break;}}
+if(App4(app,"time","achtop"))
+{
+new board=App4(app,"time")?0:1;
+if(H4Key(h,n,board?"at":"tt")){first=1;for(new row=0;row<g_iLbN60[board];row++){UrlEnc60(g_szLbName60[board][row],e,90);formatex(t,159,"%s~%d",e,g_iLbVal60[board][row]);if(!H4Row(h,n,first,t))break;}}
+}
+if(App4(app,"market")&&H4Key(h,n,"mk")){new mk[700];vxe_market_str(id,mk,699);if(n+strlen(mk)+2<H4LEN)n+=copy(h[n],H4LEN-n,mk);}
+if(App4(app,"msg"))
+{
+new from=g_iMsgN62[id]>6?g_iMsgN62[id]-6:0;
+if(H4Key(h,n,"ms")){first=1;for(new k=from;k<g_iMsgN62[id];k++){new en[60],et[260];UrlEnc60(g_szMsgName62[id][k],en,59);UrlEnc60(g_szMsgTxt62[id][k],et,259);formatex(e,399,"%d~%s~%s~%d~%d",g_iMsgFrom62[id][k],en,et,g_iMsgTime62[id][k],g_bMsgOut62[id][k]?1:0);H4Row(h,n,first,e);}}
+}
+if(App4(app,"notif")&&H4Key(h,n,"nt"))
+{
+first=1;new from=g_iNotN62[id]>8?g_iNotN62[id]-8:0;
+for(new k=g_iNotN62[id]-1;k>=from;k--){new et[190];UrlEnc60(g_szNot62[id][k],et,189);formatex(e,199,"%s~%d",et,g_iNotTime62[id][k]);if(!H4Row(h,n,first,e))break;}
+}
+if(App4(app,"friends")&&H4Key(h,n,"fr")&&g_hSocial62!=INVALID_HANDLE)
+{
+new list[400],sid[40],pos,key[48],nm[32];first=1;copy(list,charsmax(list),g_szFriends62[id]);
+while(list[pos]){new o=0;while(list[pos]&&list[pos]!=','&&o<charsmax(sid))sid[o++]=list[pos++];sid[o]=0;if(list[pos]==',')pos++;if(!sid[0])continue;
+nm[0]=0;formatex(key,charsmax(key),"n_%s",sid);nvault_get(g_hSocial62,key,nm,charsmax(nm));new on=0;for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&equal(g_szSid62[p],sid)){on=get_user_userid(p);break;}
+UrlEnc60(nm[0]?nm:"?",e,90);formatex(t,159,"%s~%d",e,on);if(!H4Row(h,n,first,t))break;}
+}
+if(App4(app,"trade")&&H4Key(h,n,"of"))
+{
+first=1;for(new k=0;k<g_iOffN62;k++){new f=g_iOffFrom62[k],to=g_iOffTo62[k];if(f!=id&&to!=id)continue;new other=(f==id)?to:f;if(!is_user_connected(other))continue;get_user_name(other,name,31);UrlEnc60(name,e,90);
+formatex(t,159,"%d~%d~%s~%s~%s~%d",g_iOffId62[k],get_user_userid(other),e,g_szOffGive62[k],g_szOffWant62[k],to==id?1:0);if(!H4Row(h,n,first,t))break;}
+}
+if(App4(app,"msg","friends","trade","adm")||App4(app,"market","notif"))
+{
+if(H4Key(h,n,"pl")){first=1;for(new p=1;p<=g_iMax;p++){if(!is_user_connected(p))continue;get_user_name(p,name,31);UrlEnc60(name,e,90);new fl=0;if(p==id)fl|=32;if(Friends62(id,p))fl|=1;if(Blocked62(id,p))fl|=2;if(IsAdmin60(p))fl|=4;if(g_iFReq62[id]&(1<<p))fl|=8;if(is_user_alive(p))fl|=16;if(is_user_bot(p))fl|=64;
+formatex(t,159,"%d~%s~%d~%d~%d",get_user_userid(p),e,!is_user_alive(p)?0:(g_bZombie[p]?2:1),g_iLevel[p],fl);if(!H4Row(h,n,first,t))break;}}
+}
+if(App4(app,"adm")&&IsAdmin60(id)&&H4Key(h,n,"maps"))
+{
+new dirh,f[64],cnt;first=1;if((dirh=open_dir("maps",f,charsmax(f)))){do{new l=strlen(f);if(l>4&&equali(f[l-4],".bsp")&&cnt<30){f[l-4]=0;if(!H4Row(h,n,first,f))break;cnt++;}}while(next_file(dirh,f,charsmax(f)));close_dir(dirh);}
+}
+return n;
+}
+new g_szApp4[33][12];
+OpenTablet60(id,const page[],const extra[],bool:push=false)
 {
 if(!is_user_connected(id)||is_user_bot(id))return;
 if(!g_szTopic62[0])Tab62Topic();if(!g_szSid62[id][0])Tab62LoadSocial(id);if(!g_szTok62[id][0])RandStr62(g_szTok62[id],10);
-if(!dir_exists("vexmira_pad4"))mkdir("vexmira_pad4");
-g_fTabSeen62[id]=get_gametime();WriteU62(id);
-new name[32],enc[96],base[192],pg[48],host[64],sid[24],h[900],url[1300],mq[128],mt[64];get_cvar_string("vx_pad4_ws",mq,127);get_cvar_string("vx_pad4_topic",mt,63);get_user_name(id,name,31);UrlEnc60(name,enc,95);Steam64_60(id,sid,23);get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);get_pcvar_string(g_pRlHost62,host,63);
-formatex(h,899,"n=%s&l=%s&pg=%s&tk=%s&uid=%d&rh=%s%%3A%d&rt=%s&rl=%d&lv=%d&ap=%d&vc=%d&r=%d&on=%d&mx=%d&s=%s",enc,g_iLang[id]!=1?"tr":"en",page,g_szTok62[id],get_user_userid(id),host,get_pcvar_num(g_pRlPort62),g_szTopic62,get_pcvar_num(g_pRlOn62)?1:0,g_iLevel[id],g_iAP[id],g_iVC[id],IsFounder60(id)?2:(IsAdmin60(id)?1:0),get_playersnum(),g_iMax,sid);
-if(mq[0]&&mt[0]){add(h,899,"&mq=");add(h,899,mq);add(h,899,"&mt=");add(h,899,mt);}if(extra[0])add(h,899,extra);formatex(url,1299,"%s%s?v=%d#%s",base,pg,get_systime(),h);show_motd(id,url,"VEXMIRA iPad");client_cmd(id,"spk buttons/blip1");
+g_fTabSeen62[id]=get_gametime();copy(g_szApp4[id],11,page[0]?page:"home");
+static h[H4LEN+8],url[1536];new base[192],pg[48];
+new n=Snap4(id,g_szApp4[id],h);
+if(push)H4S(h,n,"nl","1");
+if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
+get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
+formatex(url,charsmax(url),"%s%s?v=4#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+}
+// re-send the tablet page with fresh data after an action (only while the player uses the tablet)
+TabPush4(id,bool:force=false)
+{
+if(!(1<=id<=g_iMax)||!is_user_connected(id)||is_user_bot(id)||!g_szTok62[id][0])return;
+if(!force&&(g_fTabSeen62[id]<=0.0||get_gametime()-g_fTabSeen62[id]>45.0||!is_user_alive(id)||GetActiveWeaponId(id)!=WEAPON_C4))return;
+OpenTablet60(id,g_szApp4[id][0]?g_szApp4[id]:"home","",true);
 }
 JsStr60(const s[],out[],len)
 {
@@ -31787,8 +31871,8 @@ out[o]= 0;
 public WriteItemsJs60()
 {
 if(!dir_exists("vexmira_pad4"))mkdir("vexmira_pad4");
-new fp = fopen("vexmira_pad4/vxitems_v4.js","wt");
-if(!fp){log_amx("[Vexmira] vexmira_pad4/vxitems_v4.js yazilamadi");return;}
+new fp = fopen("vexmira_pad4/vxitems_server.js","wt");
+if(!fp){log_amx("[Vexmira] vexmira_pad4/vxitems_server.js yazilamadi");return;}
 BuildPools60();
 fprintf(fp,"// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
 static const CATS[]= "kcwpftz";
@@ -31832,7 +31916,7 @@ fprintf(fp,",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}",ja,jb,get_pcvar_num(g_pAchVC),g
 }
 fprintf(fp,"]};^n");
 fclose(fp);
-log_amx("[Vexmira] tablet: vexmira_pad4/vxitems_v4.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
+log_amx("[Vexmira] tablet: vexmira_pad4/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
 }
 public fw_KnifeDeploy60(knife)
 {
@@ -32117,7 +32201,6 @@ g_pRlPort62 = register_cvar("vex_tablet_relay_port","80");
 g_pRlTopic62 = register_cvar("vex_tablet_topic","");
 g_pWebBase62 = register_cvar("vex_pad4_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad4/");
 g_pWebPage62 = register_cvar("vex_pad4_page","vexmira_pad_v4.html");
-g_fwPad4State = CreateMultiForward("vxl_state",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);g_fwPad4Leave = CreateMultiForward("vxl_leave",ET_IGNORE,FP_CELL,FP_STRING);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
 register_clcmd("vex_tablet_action","cmd_TabAction621");
@@ -32162,7 +32245,7 @@ Tab62Connect(id)
 RandStr62(g_szTok62[id],10);
 g_iSeqAck62[id]= 0;g_szRes62[id][0]= 0;g_fTabSeen62[id]= 0.0;
 g_iMsgN62[id]= 0;g_iNotN62[id]= 0;g_iUnread62[id]= 0;g_iFReq62[id]= 0;
-g_szFriends62[id][0]= 0;g_szBlocks62[id][0]= 0;g_szSid62[id][0]= 0;
+g_szFriends62[id][0]= 0;g_szBlocks62[id][0]= 0;g_szSid62[id][0]= 0;g_szPref4[id][0]=0;g_szApp4[id][0]=0;
 for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
 Tab62LoadSocial(id)
@@ -32173,6 +32256,7 @@ if(g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0])return;
 new key[48];
 formatex(key,charsmax(key),"f_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szFriends62[id],charsmax(g_szFriends62[]));
 formatex(key,charsmax(key),"b_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szBlocks62[id],charsmax(g_szBlocks62[]));
+formatex(key,charsmax(key),"p_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szPref4[id],charsmax(g_szPref4[]));
 new name[32];get_user_name(id,name,charsmax(name));
 formatex(key,charsmax(key),"n_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,name);
 }
@@ -32182,6 +32266,7 @@ if(g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0])return;
 new key[48];
 formatex(key,charsmax(key),"f_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,g_szFriends62[id]);
 formatex(key,charsmax(key),"b_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,g_szBlocks62[id]);
+formatex(key,charsmax(key),"p_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,g_szPref4[id]);
 }
 stock bool:ListHas62(const list[],const sid[])
 {
@@ -32214,14 +32299,13 @@ g_iNotTime62[id][g_iNotN62[id]]= get_systime();
 g_iNotN62[id]++;
 g_iUnread62[id]++;
 if(sound)client_cmd(id,"spk buttons/bell1");
-WriteU62(id);
+if(id!=g_iActor4&&App4(g_szApp4[id],"msg","notif","friends","trade"))TabPush4(id);
 }
 public task_TabTick62()
 {
 for(new id = 1;id <= g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))continue;
-if(g_fTabSeen62[id]>0.0 && get_gametime()-g_fUWrite621[id]>=(get_gametime()-g_fTabSeen62[id]<90.0?2.0:5.0)){g_fUWrite621[id]=get_gametime();WriteU62(id);}
 if(!g_iUnread62[id]||(is_user_alive(id)&& GetActiveWeaponId(id)== WEAPON_C4))continue;
 set_dhudmessage(255,200,60,0.86,0.12,0,0.0,1.05,0.0,0.0);
 show_dhudmessage(id,(g_iLang[id]!= 1)? "[iPad] %d yeni bildirim" : "[iPad] %d new notification%s",g_iUnread62[id],(g_iLang[id]!= 1 || g_iUnread62[id]== 1)? "" : "s");
@@ -32352,10 +32436,10 @@ if(now - g_fActWin62[id]> 3.0){g_fActWin62[id]= now;g_iActTick62[id]= 0;}
 if(++g_iActTick62[id]> 8)return;
 g_iSeqAck62[id]= seq;
 g_fTabSeen62[id]= now;
-g_bTabQuiet62 = true;
+g_bTabQuiet62 = true;g_iActor4 = id;
 TabDo62(id,parts[2],parts[3],parts[4],parts[5]);
-g_bTabQuiet62 = false;
-WriteU62(id);
+g_bTabQuiet62 = false;g_iActor4 = 0;
+if(!equal(parts[2],"pref")&&!equal(parts[2],"lang"))TabPush4(id,true);
 }
 Res62(id,const fmt[],any:...)
 {
@@ -32396,6 +32480,8 @@ if(equal(act,"marketlist")||equal(act,"marketbuy")||equal(act,"marketcancel")){n
 if(equal(act,"lang")){if(equal(a,"tr")||equal(a,"en")){SetLanguage(id,equal(a,"tr")?2:1);Res62(id,"ok~lang");}else Res62(id,"err~Invalid language");return;}
 if(equal(act,"zperk")){new cl=str_to_num(a),perk=str_to_num(b);if(cl<0||cl>=24||perk<0||perk>=3){Res62(id,"err~Invalid upgrade");return;}new ret=vxe_zup_spend(id,cl,perk);if(ret>0)Res62(id,"ok~zperk");else Res62(id,"err~%s",tr?"Bos gelistirme puani yok veya veri hazir degil":"No free points or data not ready");return;}
 if(equal(act,"ping")){Res62(id,"ok~ping");return;}
+if(equal(act,"pref")){new o;for(new i=0;a[i]&&o<47;i++)if(isalnum(a[i])||a[i]=='*'||a[i]=='.'||a[i]=='-')g_szPref4[id][o++]=a[i];g_szPref4[id][o]=0;Tab62SaveSocial(id);Res62(id,"ok~pref");return;}
+if(equal(act,"view")){if(a[0]&&strlen(a)<12)copy(g_szApp4[id],11,a);if(equal(a,"notif"))g_iUnread62[id]=0;Res62(id,"ok~view");return;}
 if(equal(act,"seen")){g_iUnread62[id]= 0;Res62(id,"ok~seen");return;}
 if(equal(act,"case"))
 {
@@ -32433,7 +32519,6 @@ MsgAdd62(id,t,tn,txt,true);
 new note[96];formatex(note,charsmax(note),(g_iLang[t]!= 1)? "%s: %s" : "%s: %s",name,txt);
 Notify62(t,note);
 client_print_color(t,id,(g_iLang[t]!= 1)? "^4[iPad]^3 %s^1 sana mesaj gonderdi: ^4%s" : "^4[iPad]^3 %s^1 messaged you: ^4%s",name,txt);
-WriteU62(t);
 Res62(id,"ok~msg");
 return;
 }
@@ -32472,7 +32557,6 @@ g_iFReq62[id]&= ~(1 << t);
 }
 else ListDel62(g_szBlocks62[id],charsmax(g_szBlocks62[]),g_szSid62[t]);
 Tab62SaveSocial(id);
-WriteU62(t);
 Res62(id,"ok~%s",act);
 return;
 }
@@ -32525,7 +32609,6 @@ Notify62(f,msgx);
 Res62(id,"ok~tdec");
 }
 OffDel62(k);
-WriteU62(f);
 return;
 }
 if(equal(act,"adm")){TabAdmin62(id,a,b,c);return;}
@@ -32630,123 +32713,6 @@ log_amx("[tablet admin] %s -> %s %s %s",an,op,tn,b);
 Res62(id,"ok~adm~%s",op);
 }
 public task_TabMap62(const m[]){server_cmd("changelevel %s",m);}
-JsPut62(fp,const s[])
-{
-static out[256];
-JsStr60(s,out,charsmax(out));
-fputs(fp,out);
-}
-public WriteU62(id)
-{
-if(!(1 <= id <= g_iMax)|| !is_user_connected(id)||(is_user_bot(id)&& !g_bSelf62)|| !g_szTok62[id][0])return;
-new path[64];formatex(path,charsmax(path),"vexmira_pad4/st4_%s.js",g_szTok62[id]);
-new temp[80];formatex(temp,charsmax(temp),"%s.tmp",path);
-new fp = fopen(temp,"wt");
-if(!fp){g_iStateErr624++;log_amx("[Tablet624] Cannot write live state file");return;}
-new name[32],today = get_systime()/ 86400;
-fprintf(fp,"window.VXU={proto:640,build:^"PAD4^",v:%d,ack:%d,res:^"",get_systime(),g_iSeqAck62[id]);
-JsPut62(fp,g_szRes62[id]);
-fprintf(fp,"^",ap:%d,vc:%d,lv:%d,xp:%d,xn:%d,un:%d,dy:^"%d~%d~%d^",me:%d,",g_iAP[id],g_iVC[id],g_iLevel[id],g_iXP[id],XPForLevel(g_iLevel[id]+ 1),g_iUnread62[id],
-g_iDailyStreak[id],g_iDailyDay[id]== today ? 1 : 0,86400 -(get_systime()% 86400),get_user_userid(id));
-fprintf(fp,"iv:^"k%d.c%d.w%d.p%d.f%d.z%d.t%d^",",g_iCommunityOwned[id][1],g_iCommunityOwned[id][0],g_iCmOwned[id]& 255,(g_iCmOwned[id]>> 8)& 255,(g_iCosOwned[id]>> 6)& 63,g_iLzOwned531[id],g_iCosOwned[id]& 63);
-fprintf(fp,"eq:^"k%d.c%d.w%d.p%d.f%d.z%d.t%d^",",g_iCommunitySel[id][1],g_iCommunitySel[id][0],CmSel(id,0),CmSel(id,1),g_iKfxSel[id],g_iLzSel531[id],g_iTrailSel[id]);
-fprintf(fp,"pl:[");
-new first = 1;
-for(new p = 1;p <= g_iMax;p++)
-{
-if(!is_user_connected(p))continue;
-get_user_name(p,name,charsmax(name));
-new fl = 0;
-if(p == id)fl |= 32;
-if(Friends62(id,p))fl |= 1;
-if(Blocked62(id,p))fl |= 2;
-if(IsAdmin60(p))fl |= 4;
-if(g_iFReq62[id]&(1 << p))fl |= 8;
-if(is_user_alive(p))fl |= 16;
-if(is_user_bot(p))fl |= 64;
-fprintf(fp,"%s[%d,^"",first ? "" : ",",get_user_userid(p));
-JsPut62(fp,name);
-fprintf(fp,"^",%d,%d,%d]",!is_user_alive(p)? 0 :(g_bZombie[p]? 2 : 1),g_iLevel[p],fl);
-first = 0;
-}
-fprintf(fp,"],fr:[");
-first = 1;
-if(g_hSocial62 != INVALID_HANDLE)
-{
-new list[400],sid[40],pos,key[48],nm[32];
-copy(list,charsmax(list),g_szFriends62[id]);
-while(list[pos])
-{
-new o = 0;
-while(list[pos]&& list[pos]!= ',' && o < charsmax(sid))sid[o++]= list[pos++];
-sid[o]= 0;if(list[pos]== ',')pos++;
-if(!sid[0])continue;
-nm[0]= 0;formatex(key,charsmax(key),"n_%s",sid);nvault_get(g_hSocial62,key,nm,charsmax(nm));
-new on = 0;
-for(new p = 1;p <= g_iMax;p++)if(is_user_connected(p)&& equal(g_szSid62[p],sid)){on = get_user_userid(p);break;}
-fprintf(fp,"%s[^"",first ? "" : ",");
-JsPut62(fp,nm[0]? nm : "?");
-fprintf(fp,"^",%d]",on);
-first = 0;
-}
-}
-fprintf(fp,"],ms:[");
-for(new k = 0;k < g_iMsgN62[id];k++)
-{
-fprintf(fp,"%s[%d,^"",k ? "," : "",g_iMsgFrom62[id][k]);
-JsPut62(fp,g_szMsgName62[id][k]);fputs(fp,"^",^"");JsPut62(fp,g_szMsgTxt62[id][k]);
-fprintf(fp,"^",%d,%d]",g_iMsgTime62[id][k],g_bMsgOut62[id][k]? 1 : 0);
-}
-fprintf(fp,"],nt:[");
-for(new k = 0;k < g_iNotN62[id];k++)
-{
-fprintf(fp,"%s[^"",k ? "," : "");
-JsPut62(fp,g_szNot62[id][k]);
-fprintf(fp,"^",%d]",g_iNotTime62[id][k]);
-}
-fprintf(fp,"],of:[");
-first = 1;
-for(new k = 0;k < g_iOffN62;k++)
-{
-new f = g_iOffFrom62[k],t = g_iOffTo62[k];
-if(f != id && t != id)continue;
-new other =(f == id)? t : f;
-if(!is_user_connected(other))continue;
-get_user_name(other,name,charsmax(name));
-fprintf(fp,"%s[%d,%d,^"",first ? "" : ",",g_iOffId62[k],get_user_userid(other));
-JsPut62(fp,name);
-fprintf(fp,"^",^"%s^",^"%s^",%d]",g_szOffGive62[k],g_szOffWant62[k],t == id ? 1 : 0);
-first = 0;
-}
-fputs(fp,"],");
-if(IsAdmin60(id))
-{
-fprintf(fp,"maps:[");
-new mf = 0,cnt = 0,dirh,f[64];
-if((dirh = open_dir("maps",f,charsmax(f))))
-{
-do
-{
-new l = strlen(f);
-if(l > 4 && equali(f[l - 4],".bsp")&& cnt < 40){f[l - 4]= 0;fprintf(fp,"%s^"",mf ? "," : "");JsPut62(fp,f);fputs(fp,"^"");mf = 1;cnt++;}
-}while(next_file(dirh,f,charsmax(f)));
-close_dir(dirh);
-}
-fprintf(fp,"],");
-}
-fprintf(fp,"map:^"");get_mapname(name,31);JsPut62(fp,name);fprintf(fp,"^",round:^"%d/%d^",mx:%d,",g_iRound,RoundsTotal(),g_iMax);
-fprintf(fp,"stats:{k:%d,inf:%d,d:%d,hs:%d,w:%d,b:%d,pt:%d,vip:%d,vd:%d,role:%d,rank:%d,ach:%d,on:%d},",g_iKills[id],g_iInfects[id],get_user_deaths(id),g_iHS[id],g_iWins[id],g_iBossK[id],g_iPlaySec[id]/60,IsVip(id)?(g_iVip[id]>=2?2:1):0,max(0,(g_iVipExpire[id]-get_systime())/86400),IsFounder60(id)?2:(IsAdmin60(id)?1:0),g_iTopRank[id],g_iAch[id],get_playersnum());
-fprintf(fp,"daily:[");new dp=VipDailyPct(id);for(new day=1;day<=7;day++){new ap=get_pcvar_num(g_pDailyAP)+10*day,vc=1+day/2;if(dp>0){ap+=ap*dp/100;vc+=max(1,vc*dp/100);}fprintf(fp,"%s[%d,%d,%d]",day>1?",":"",ap,vc,50+25*day);}fprintf(fp,"],dn:%d,",g_iDailyDay[id]==today?min(7,max(1,g_iDailyStreak[id])):(g_iDailyDay[id]==today-1?min(7,g_iDailyStreak[id]+1):1));
-fprintf(fp,"top:[");for(new row=0;row<g_iTopCount;row++){fprintf(fp,"%s{n:^"",row?",":"");JsPut62(fp,g_szTopName[row]);fprintf(fp,"^",lv:%d,k:%d}",CalcLevel(g_iTopXP[row]),g_iTopKills[row]);}fputs(fp,"],");
-for(new board=0;board<2;board++){fprintf(fp,"%s:[",board?"at":"tt");for(new row=0;row<g_iLbN60[board];row++){fprintf(fp,"%s{n:^"",row?",":"");JsPut62(fp,g_szLbName60[board][row]);fprintf(fp,"^",v:%d}",g_iLbVal60[board][row]);}fputs(fp,"],");}
-fprintf(fp,"claimed:%d,achReward:[%d,%d],",vxe_ac_mask(id),get_pcvar_num(g_pAchVC),get_pcvar_num(g_pAchAP));
-vxe_market_write(fp,id);
-fprintf(fp,"zup:[");
-for(new cl=0;cl<24;cl++){fprintf(fp,"%s[",cl?",":"");for(new f=0;f<6;f++)fprintf(fp,"%s%d",f?",":"",vxe_zup_snapshot(id,cl,f));fputs(fp,"]");}
-fprintf(fp,"],enabled:%d,link:%d,lang:^"%s^",rl:%d};^n",get_pcvar_num(g_pRlOn62)?1:0,g_bRlReady621?1:0,g_iLang[id]!=1?"tr":"en",g_iRlState62);
-fclose(fp);
-if(!rename_file(temp,path,1)){g_iStateErr624++;log_amx("[Tablet624] Cannot publish live state file");}else{g_iStateWrites624++;new r4;ExecuteForward(g_fwPad4State,r4,id,g_szTok62[id],path);}
-}
 Tab62CaseResult(id,c,const code[],r)
 {
 Res62(id,"ok~case~%d~%s~%d",c,code,r);
@@ -32754,13 +32720,11 @@ Res62(id,"ok~case~%d~%s~%d",c,code,r);
 Tab62Leave(id)
 {
 Tab62SaveSocial(id);
-if(g_szTok62[id][0]){new r4;ExecuteForward(g_fwPad4Leave,r4,id,g_szTok62[id]);}
 if(g_szTok62[id][0]){new path[64];formatex(path,charsmax(path),"vexmira_pad4/st4_%s.js",g_szTok62[id]);delete_file(path);}
 g_szTok62[id][0]= 0;
 for(new k = g_iOffN62 - 1;k >= 0;k--)if(g_iOffFrom62[k]== id || g_iOffTo62[k]== id)OffDel62(k);
 for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
-public vxl_cmd(const msg[]){new m[512];copy(m,charsmax(m),msg);TabAction62(m);}
 public cmd_TabSelf62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
@@ -32773,9 +32737,8 @@ new act[24],aa[64],bb[64],cc[64];
 read_argv(2,act,charsmax(act));read_argv(3,aa,charsmax(aa));read_argv(4,bb,charsmax(bb));read_argv(5,cc,charsmax(cc));
 g_bTabQuiet62 = true;g_bSelf62 = true;
 TabDo62(t,act,aa,bb,cc);
-WriteU62(t);
 g_bTabQuiet62 = false;g_bSelf62 = false;
-console_print(id,"[selftest] #%d (%s) act=%s -> res=%s dosya=vexmira_pad4/st4_%s.js",t,g_szTok62[t],act,g_szRes62[t],g_szTok62[t]);
+static hh[H4LEN+8];new ap4[12];read_argv(6,ap4,11);new hn=Snap4(t,ap4[0]?ap4:"home",hh);console_print(id,"[selftest] #%d (%s) act=%s -> res=%s snapshot=%d chars",t,g_szTok62[t],act,g_szRes62[t],hn);new sf=fopen("addons/amxmodx/data/vx4_snapshot.txt","wt");if(sf){fputs(sf,hh);fclose(sf);}
 log_amx("[selftest] #%d act=%s res=%s vc=%d ap=%d",t,act,g_szRes62[t],g_iVC[t],g_iAP[t]);
 return PLUGIN_HANDLED;
 }
