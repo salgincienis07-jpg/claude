@@ -32410,8 +32410,8 @@ public cmd_TabLink62(id,level,cid)
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new host[64];get_pcvar_string(g_pRlHost62,host,charsmax(host));
 console_print(id,"[VEXMIRA] tablet link: relay=%s:%d topic=%s state=%d (0 bos,1 baglaniyor,2 akis) deneme=%d",host,get_pcvar_num(g_pRlPort62),g_szTopic62,g_iRlState62,g_iRlFails62);
-console_print(id,"[Tablet624] subscription confirmed=%d socket_open_status=%d (baglaniyorken 3 normal olabilir)",g_bRlReady621,g_iRlOpenErr623);
-new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);console_print(id,"[Tablet624] page=%s%s rx=%d matched=%d writes=%d write_errors=%d",base,page,g_iRelayRx624,g_iActionRx624,g_iStateWrites624,g_iStateErr624);
+console_print(id,"[PAD4] komut kanali dinleniyor=%d (1 olmali) socket=%d",g_bRlReady621,g_iRlOpenErr623);
+new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);console_print(id,"[PAD4] sayfa=%s%s | tabletten gelen komut (rx)=%d | oyuncuya eslesen=%d | veri yolu: MOTD adresi (FastDL gerekmez)",base,page,g_iRelayRx624,g_iActionRx624);
 return PLUGIN_HANDLED;
 }
 TabAction62(const msg[])
