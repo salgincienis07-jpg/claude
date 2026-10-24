@@ -2792,7 +2792,7 @@ enum { SWE_NONE = 0, SWE_FIRE, SWE_LIGHTNING, SWE_ICE, SWE_VAMPIRE, SWE_VOID, SW
 #define NUM_THEMES    6
 #define NUM_RANKS     8
 #define NUM_ADS       26
-#define NUM_TIPS      18
+#define NUM_TIPS      22
 #define MAX_FLARES    8
 #define TASK_TICK     7001
 #define TASK_ANNOUNCE 7002
@@ -3454,6 +3454,7 @@ new g_iCsoIcon[33], g_iCsoShown, g_iCsoRestored;
 new g_szCsoOverride[33][160];
 #define OVH_MAXENT 4096
 new g_iOvhOwn[OVH_MAXENT], Float:g_fOvhDz[OVH_MAXENT];
+new Float:g_fWingDz60[33];
 new Float:g_fOvhStand[33], Float:g_fOvhDuck[33], Float:g_fOvhStackTop[33], g_szOvhMdl[33][32];
 new bool:g_bOvhSelf, Trie:g_tMdlTop;
 #define CM_CATS 3
@@ -10415,8 +10416,27 @@ case CMA_BACK:   z += top - 18.0;
 case CMA_FOLLOW: z += top - 10.0;
 }
 new Float:sc = g_fCmScale[c][i] > 0.05 ? g_fCmScale[c][i] : 1.0;
-ctl[0] = CmCtlByte(g_fCmOfs[c][i][0] / sc, CM_CTL_X0, CM_CTL_X1);
-ctl[1] = CmCtlByte(-g_fCmOfs[c][i][1] / sc, CM_CTL_Y0, CM_CTL_Y1);
+new Float:fx = g_fCmOfs[c][i][0], Float:fy = g_fCmOfs[c][i][1];
+// 6.0: wings follow the real back bone (Bip01 Spine2). The offset is measured against a standard CS
+// body (spine2 ~13.8 above the origin), so normal models look the same and small / crouched ones get
+// the wings on their real back instead of floating above it.
+if (c == 0 && (g_iCmAtt[c][i] == CMA_BACK || g_iCmAtt[c][i] == CMA_BONE) && g_iCosBone50[id][0] >= 0)
+{
+new Float:an[3];
+for (new k = 0; k < 3; k++) an[k] = g_fCosAnchor50[id][0][k];
+if (floatabs(an[0]) < 40.0 && floatabs(an[1]) < 40.0 && an[2] > -30.0 && an[2] < 60.0 && (an[0] != 0.0 || an[2] != 0.0))
+{
+new Float:ang[3]; get_entvar(id, var_angles, ang);
+new Float:yw = ang[1] * 0.0174532925, Float:cs = floatcos(yw), Float:sn = floatsin(yw);
+fx += floatclamp(an[0] * cs + an[1] * sn + 0.2, -8.0, 8.0);
+fy += floatclamp(-an[0] * sn + an[1] * cs, -4.0, 4.0);
+new Float:ps = Float:get_entvar(id, var_scale);
+z += floatclamp(an[2] - 13.8 * (ps > 0.05 ? ps : 1.0), -24.0, 12.0);
+g_fWingDz60[id] = an[2];
+}
+}
+ctl[0] = CmCtlByte(fx / sc, CM_CTL_X0, CM_CTL_X1);
+ctl[1] = CmCtlByte(-fy / sc, CM_CTL_Y0, CM_CTL_Y1);
 ctl[2] = CmCtlByte(z / sc, CM_CTL_Z0, CM_CTL_Z1);
 ctl[3] = 0;
 }
@@ -10740,10 +10760,10 @@ new Float:o[3], Float:po[3];
 get_entvar(ent, var_origin, o);
 get_entvar(id, var_origin, po);
 new k0 = pev(ent, pev_controller_0), k1 = pev(ent, pev_controller_1), k2 = pev(ent, pev_controller_2);
-server_print("[Vexmira] cos #%d %s ent=%d mt=%d aim=%d d=(%.0f %.0f %.0f) ctl=%d/%d/%d ofs=(fwd %.1f right %.1f up %.1f) top=%.1f/%.1f mdl=%s alive=%d z=%d",
+server_print("[Vexmira] cos #%d %s ent=%d mt=%d aim=%d d=(%.0f %.0f %.0f) ctl=%d/%d/%d ofs=(fwd %.1f right %.1f up %.1f) top=%.1f/%.1f mdl=%s alive=%d z=%d spine=%.1f duck=%d",
 id, CM_TABLE[c], ent, get_entvar(ent, var_movetype), get_entvar(ent, var_aiment), o[0] - po[0], o[1] - po[1], o[2] - po[2],
 k0, k1, k2, CM_CTL_X0 + (CM_CTL_X1 - CM_CTL_X0) * float(k0) / 255.0, -(CM_CTL_Y0 + (CM_CTL_Y1 - CM_CTL_Y0) * float(k1) / 255.0),
-CM_CTL_Z0 + (CM_CTL_Z1 - CM_CTL_Z0) * float(k2) / 255.0, g_fOvhStand[id], g_fOvhDuck[id], g_szOvhMdl[id], is_user_alive(id), g_bZombie[id]);
+CM_CTL_Z0 + (CM_CTL_Z1 - CM_CTL_Z0) * float(k2) / 255.0, g_fOvhStand[id], g_fOvhDuck[id], g_szOvhMdl[id], is_user_alive(id), g_bZombie[id], g_fWingDz60[id], (get_entvar(id, var_flags) & FL_DUCKING) ? 1 : 0);
 }
 }
 new n, e = -1;
