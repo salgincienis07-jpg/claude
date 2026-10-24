@@ -1421,7 +1421,17 @@ ZC_PERM = permanent
 ZC_ALIVE_HUMAN = ^1You need to be an ordinary living human to buy this. Survivor and Sniper use their mode loadout.
 ZC_HEV_LIMIT = ^1HEV can be bought once per round. You can buy it again next round.
 ZC_MISSING_COLLECTION = ^1This appearance is unavailable; your coins were not spent. Admin: vex_diagnose
+BH60_HP = HP
+BH60_ZHP = ZOMBIE
+BH60_AR = ARMOR
+BH60_AP = AP
+BH60_VC = VC
 [tr]
+BH60_HP = CAN
+BH60_ZHP = ZOMBI
+BH60_AR = ZIRH
+BH60_AP = AP
+BH60_VC = VC
 WELCOME = ^3VEXMIRA^1'ya hos geldin ^3%s^1! Silahini kap, gece uzun.
 WELCOME_2 = ^4M^1 = menu. ^4/ozel^1: 7 ozel silah | ^4/shop^1: Jetpack | ^4/kozmetik^1: koleksiyonlar.
 WELCOME_3 = ^1Su an ^4Turkce^1 oynuyorsun. English mi istersin? ^4/lang^1 yazman yeterli.

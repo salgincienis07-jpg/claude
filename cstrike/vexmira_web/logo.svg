@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="vr" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff4b5c"/>
+      <stop offset=".55" stop-color="#c3001b"/>
+      <stop offset="1" stop-color="#5a0010"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8dff3a"/>
+      <stop offset="1" stop-color="#1f8f2a"/>
+    </linearGradient>
+    <radialGradient id="core" cx=".5" cy=".45" r=".55">
+      <stop offset="0" stop-color="#2a0a10"/>
+      <stop offset="1" stop-color="#07050a"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="claw">
+      <rect width="120" height="120" fill="#fff"/>
+      <path d="M33 25 L37 23 L92 83 L90 88 Z" fill="#000"/>
+      <path d="M27 38 L31 36 L86 96 L83 100 Z" fill="#000"/>
+      <path d="M40 15 L44 14 L97 70 L96 75 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <polygon points="60,5 108,32.5 108,87.5 60,115 12,87.5 12,32.5" fill="url(#core)" stroke="url(#ring)" stroke-width="4" filter="url(#glow)"/>
+  <polygon points="60,14 100,37 100,83 60,106 20,83 20,37" fill="none" stroke="#8dff3a" stroke-opacity=".25" stroke-width="1"/>
+  <g filter="url(#glow)">
+    <path mask="url(#claw)" d="M24 30 L49 30 L60 68 L71 30 L96 30 L67 98 L53 98 Z" fill="url(#vr)"/>
+    <path d="M56 98 Q57 106 58.5 108 Q60 106 61 98 Z" fill="#c3001b"/>
+    <path d="M64 92 Q64.6 98 65.5 99.5 Q66.4 98 67 92 Z" fill="#a0001a"/>
+    <path d="M33 26 L37 24 L92 84 L90 88 Z M27 39 L31 37 L86 97 L83 100 Z M40 16 L44 15 L97 71 L96 75 Z" fill="none" stroke="#8dff3a" stroke-width=".9" stroke-opacity=".9"/>
+  </g>
+</svg>

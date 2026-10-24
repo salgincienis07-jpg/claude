@@ -5037,6 +5037,74 @@ show_dhudmessage(id, "%s[ %d ]   %s^n%s%d %s", sp, zw, lab, sp, zombies, alive);
 set_dhudmessage(255, 212, 80, -1.0, y, 0, 0.0, 2.2, 0.0, 0.1);
 show_dhudmessage(id, "%L^n%d:%02d^n%s", id, "TB532_ROUND", g_iRound, total, left / 60, left % 60, lineC);
 }
+// ============================================================================================
+// 6.0 VEXMIRA BOTTOM HUD: the stock CS 1.6 health/armor/radar, round timer and money are hidden
+// (CBasePlayer::m_iHideHUD) and drawn again in the same places in the Vexmira horror style:
+//   bottom-left  : health + armor with bars (colour follows the health, zombies toxic green)
+//   bottom-right : weapon + ammo, AP + VexCoin
+// The round timer is in the top scoreboard. cvars: vex_hud_bottom 1/0, vex_hud_hide <flags>, vex_hide_radar.
+// ============================================================================================
+#define TASK_BHUD60 606060
+new g_pHudBottom60, g_pHudHide60, g_pHideRadar60, bool:g_bRadarHidden60[33];
+BarGlyph60(out[], len, pct, cells)
+{
+new n = clamp((pct * cells + 50) / 100, 0, cells), i;
+for (i = 0; i < cells && i < len; i++) out[i] = (i < n) ? '|' : '.';
+out[min(cells, len)] = 0;
+}
+WeaponShort60(id, out[], len)
+{
+out[0] = 0;
+new w = get_member(id, m_pActiveItem);
+if (w <= 0 || is_nullent(w)) return 0;
+new cls[32]; get_entvar(w, var_classname, cls, charsmax(cls));
+if (equal(cls, "weapon_", 7)) copy(out, len, cls[7]); else copy(out, len, cls);
+strtoupper(out);
+return w;
+}
+public task_BottomHud60()
+{
+if (!get_pcvar_num(g_pHudBottom60)) return;
+new hide = get_pcvar_num(g_pHudHide60), radar = get_pcvar_num(g_pHideRadar60);
+static l[96], r[96], bar[24], bar2[24], wn[24];
+for (new id = 1; id <= g_iMax; id++)
+{
+if (!is_user_connected(id) || is_user_bot(id)) continue;
+if (radar && !g_bRadarHidden60[id]) { client_cmd(id, "hideradar"); g_bRadarHidden60[id] = true; }
+if (!is_user_alive(id)) continue;
+if (hide > 0) { new cur = get_member(id, m_iHideHUD); if ((cur & hide) != hide) set_member(id, m_iHideHUD, cur | hide); }
+if (g_iSet[id] & SET_NO_HUD) continue;
+new hp = floatround(Float:get_entvar(id, var_health)), mx = max(1, floatround(Float:get_entvar(id, var_max_health)));
+new ar = rg_get_user_armor(id), pct = clamp(hp * 100 / mx, 0, 100);
+BarGlyph60(bar, charsmax(bar), pct, 18);
+new cr, cg, cb;
+if (g_bBoss[id]) { cr = 200; cg = 90; cb = 255; }
+else if (g_bZombie[id]) { cr = 120; cg = 255; cb = 60; }
+else if (pct > 60) { cr = 235; cg = 235; cb = 235; }
+else if (pct > 30) { cr = 255; cg = 190; cb = 60; }
+else { cr = 255; cg = 40 + (g_iFrame % 2) * 40; cb = 40; }
+if (!g_bZombie[id] && ar > 0)
+{
+BarGlyph60(bar2, charsmax(bar2), clamp(ar, 0, 100), 18);
+formatex(l, charsmax(l), "%L  %4d  %s^n%L  %4d  %s", id, "BH60_HP", hp, bar, id, "BH60_AR", ar, bar2);
+}
+else formatex(l, charsmax(l), "%L  %4d  %s", id, g_bZombie[id] ? "BH60_ZHP" : "BH60_HP", hp, bar);
+set_dhudmessage(cr, cg, cb, 0.015, 0.905, 0, 0.0, 0.32, 0.0, 0.0);
+show_dhudmessage(id, "%s", l);
+r[0] = 0;
+new w = WeaponShort60(id, wn, charsmax(wn));
+if (w > 0 && !g_bZombie[id] && !equal(wn, "KNIFE") && !equal(wn, "C4"))
+{
+new clip = get_member(w, m_Weapon_iClip), WeaponIdType:wid = get_member(w, m_iId);
+new bp = rg_get_user_bpammo(id, wid);
+if (equal(wn, "HEGRENADE") || equal(wn, "FLASHBANG") || equal(wn, "SMOKEGRENADE")) formatex(r, charsmax(r), "%s  x%d", wn, bp);
+else formatex(r, charsmax(r), "%s   %3d / %d", wn, max(clip, 0), bp);
+}
+formatex(r, charsmax(r), "%s%s%L %d   %L %d", r, r[0] ? "^n" : "", id, "BH60_AP", g_iAP[id], id, "BH60_VC", g_iVC[id]);
+set_dhudmessage(g_bZombie[id] ? 150 : 255, g_bZombie[id] ? 230 : 200, g_bZombie[id] ? 90 : 80, 0.80, 0.905, 0, 0.0, 0.32, 0.0, 0.0);
+show_dhudmessage(id, "%s", r);
+}
+}
 DrawHud()
 {
 new humans = CountHumans(true), zombies = CountZombies(true);
@@ -5112,7 +5180,9 @@ else if (g_iTopRank[id] > 0)
 formatex(head, charsmax(head), "%L", id, "HUD_P1R", lvl, tname, g_iTopRank[id]);
 else
 formatex(head, charsmax(head), "%L", id, "HUD_P1", lvl, tname);
-if (is_user_alive(id))
+if (is_user_alive(id) && get_pcvar_num(g_pHudBottom60))
+l1[0] = 0; // 6.0: health/armor are in the new bottom-left HUD
+else if (is_user_alive(id))
 formatex(l1, charsmax(l1), "%L", id, cso ? "CSO_P_HP" : "HUD_P_HP", floatround(Float:get_entvar(id, var_health)), rg_get_user_armor(id));
 else
 formatex(l1, charsmax(l1), "%L", id, "HUD_P_DEAD");
@@ -6825,6 +6895,10 @@ new g_szSkyRot531[8][32], g_iSkyRotN531, g_iSkyRotPos531;
 bool:VxIsSpecialWeapon531(id, weapon)
 {
 if (VxIndex(weapon) >= 0) return true;
+// 6.0: Arsenal-538 special guns of vexmira_extra (RPG-7, Guitar, M3 Shark ...) are tagged with pev_impulse 5380+i.
+// They keep their own clip / reserve: no unlimited reserve, no unlimited clip (RPG must reload every rocket).
+new imp = get_entvar(weapon, var_impulse);
+if (imp >= 5380 && imp < 5380 + 16) return true;
 new WeaponIdType:wid = get_member(weapon, m_iId);
 static const GEAR_BASE[][2] = { {1, _:WEAPON_M249}, {2, _:WEAPON_AK47}, {3, _:WEAPON_AWP}, {4, _:WEAPON_M4A1}, {5, _:WEAPON_M249}, {6, _:WEAPON_M4A1} };
 for (new k = 0; k < sizeof GEAR_BASE; k++)
@@ -8402,8 +8476,9 @@ g_iIfxSel[id]      = (n > 32) ? clamp(f[32], 0, NUM_IFX) : 0;
 g_iCmOwned[id]     = (n > 33) ? f[33] : 0;
 g_iCmSelPk[id]     = (n > 34) ? f[34] : 0;
 for (new c = 0; c < 2; c++) {
-g_iCommunityOwned[id][c] = (n > 35 + c * 2) ? (f[35 + c * 2] & (c ? 255 : 31)) : 0;
-g_iCommunitySel[id][c] = (n > 36 + c * 2) ? clamp(f[36 + c * 2], 0, c ? 8 : 5) : 0;
+// 6.0: knives are 1..KN_TOTAL (10). The old mask kept only 8 bits -> knives 9-10 (bought with VC) were lost on map change.
+g_iCommunityOwned[id][c] = (n > 35 + c * 2) ? (f[35 + c * 2] & (c ? ((1 << KN_TOTAL) - 1) : 31)) : 0;
+g_iCommunitySel[id][c] = (n > 36 + c * 2) ? clamp(f[36 + c * 2], 0, c ? KN_TOTAL : 5) : 0;
 new v = g_iCommunitySel[id][c];
 if (v && !(g_iCommunityOwned[id][c] & (1 << (v - 1)))) g_iCommunitySel[id][c] = 0;
 }
@@ -11439,7 +11514,7 @@ arsenalShot = bool:(g_iVxAttack[id] == weapon && g_iVxClip[id] > 0
 g_iVxAttack[id] = 0;
 if (!arsenalShot) return HAM_IGNORED;
 }
-if (g_bUnlClip[id])
+if (g_bUnlClip[id] && !(get_entvar(weapon, var_impulse) >= 5380 && get_entvar(weapon, var_impulse) < 5380 + 16))
 {
 new clip = (arsenal >= 0) ? SW_CLIP[arsenal] : rg_get_weapon_info(wid, WI_GUN_CLIP_SIZE);
 if (clip > 0)
@@ -12432,8 +12507,21 @@ if (g_iJob[id] == JOB_ENGINEER)
 m++;
 return clamp(m, 0, 20);
 }
+new g_iMinesHuman60[33];
+// 6.0: only this owner's ZOMBIE mines (var_iuser4 = 1) - used when a zombie is cured back to human
+RemoveZombieMines60(id)
+{
+new ent;
+while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", LM_CLASS)) > 0)
+{
+if (get_entvar(ent, var_iuser1) != id || get_entvar(ent, var_iuser4) != 1) continue;
+new Float:o[3]; get_entvar(ent, var_origin, o); FxSparks(o);
+MineRemove(ent);
+}
+}
 GiveRoundMines(id)
 {
+if (!g_bLmGiven[id] && !LasersAllowed()) { g_iMines[id] = 0; return; } // 6.0: no leftover zombie mine count in no-laser rounds
 if (g_bLmGiven[id] || !LasersAllowed())
 return;
 g_bLmGiven[id] = true;
@@ -14651,6 +14739,7 @@ ZcCleanup(id);
 g_bSurvivor[id]=0; g_bSniper[id]=0;
 g_bZombie[id] = 1;
 g_bAlpha[id] = false;
+g_iMinesHuman60[id] = g_iMines[id]; // 6.0: remember the human allowance (restored if cured)
 g_iMines[id] = LasersAllowed() ? 1 : 0;
 if(g_iEvent==EV_TITAN && g_bFirst[id]) client_print(id,print_chat,"[VEXMIRA] TITAN: R ile yer darbesi. Bekleme: 18 saniye.");
 g_fInfectTime[id] = get_gametime();
@@ -14827,6 +14916,9 @@ set_entvar(id, var_max_health, float(MaxHumanHP(id)));
 ApplyHumanGravity(id);
 ApplyRender(id);
 rg_reset_maxspeed(id);
+// 6.0: cured zombie -> its zombie lasers are removed and the human laser allowance comes back
+RemoveZombieMines60(id);
+if (g_bLmGiven[id]) g_iMines[id] = LasersAllowed() ? max(0, g_iMinesHuman60[id]) : 0;
 GiveRoundMines(id);
 if (g_iPrim[id] >= 0 && g_iSec[id] >= 0)
 GiveLoadout(id);
@@ -20584,7 +20676,17 @@ g_iForceMode = -1;
 else if (IsBossRound(g_iRound) && players >= MODE_MINPL[MODE_BOSS])
 g_iMode = MODE_BOSS;
 else if (plan)
-g_iMode = (players >= MODE_MINPL[g_iPlanMode534[g_iRound]]) ? g_iPlanMode534[g_iRound] : MODE_INFECTION;
+{
+new pm = g_iPlanMode534[g_iRound];
+if (players >= MODE_MINPL[pm]) g_iMode = pm;
+else if (pm >= MODE_NEMESIS && pm < MODE_BOSS)
+{
+// 6.0: a planned special round that cannot start (too few players) is MOVED to the next normal round
+// instead of being lost - so Nemesis / Survivor / Swarm ... really get played on small servers.
+for (new r = g_iRound + 1; r <= g_iPlanTotal534; r++)
+if (!IsBossRound(r) && g_iPlanMode534[r] < MODE_NEMESIS) { g_iPlanMode534[r] = pm; break; }
+}
+}
 else if (RoundInList(g_pSpecialRounds, g_iRound))
 g_iMode = PickSpecialMode(players);
 else if (g_iRound >= 3 && random_num(1, 100) <= get_pcvar_num(g_pMultiChance))
@@ -21984,6 +22086,7 @@ client_print_color(p, print_team_default, "%s %L", ChatTag("JOIN_CONNECTING"), p
 }
 ZcCore_client_putinserver(id)
 {
+g_bRadarHidden60[id] = false;
 SixEnter(id);
 g_iCsoCur[id] = -1;
 g_iCsoQn[id] = 0;
@@ -22735,7 +22838,8 @@ RefillAmmo(id)
 for (new i = 0; i < sizeof PRIM_ENT; i++)
 {
 new WeaponIdType:w = WeaponIdType:rg_get_weapon_info(PRIM_ENT[i], WI_ID);
-if (rg_find_weapon_bpack_by_name(id, PRIM_ENT[i]))
+new we = rg_find_weapon_bpack_by_name(id, PRIM_ENT[i]);
+if (we > 0 && !VxIsSpecialWeapon531(id, we)) // 6.0: never refill a special gun (RPG-7 rockets) as a normal rifle
 rg_set_user_bpammo(id, w, max(rg_get_user_bpammo(id, w), PRIM_AMMO[i]));
 }
 for (new i = 0; i < sizeof SEC_ENT; i++)
@@ -23125,6 +23229,34 @@ if (dmg != damage)
 SetHookChainArg(4, ATYPE_FLOAT, dmg);
 return HC_CONTINUE;
 }
+// 6.0 HIT FEEL: every hit is felt by both sides.
+//  zombie shot by a human : short pain-shock slow (heavier guns slow more), a small view flinch
+//  human hit by a zombie  : screen shake scaled by the damage, strong view punch, red flash (above)
+HitFeel60(victim, attacker, Float:damage)
+{
+if (!is_user_alive(victim)) return;
+new Float:p[3]; get_entvar(victim, var_punchangle, p);
+if (g_bZombie[victim])
+{
+if (g_bBoss[victim]) return;
+new Float:slow = (g_bNemesis[victim] || g_bAssassin[victim]) ? 0.9 : floatclamp(1.0 - damage / 180.0, 0.55, 0.92);
+if (Float:get_member(victim, m_flVelocityModifier) > slow) set_member(victim, m_flVelocityModifier, slow);
+p[0] -= floatclamp(damage / 40.0, 0.4, 2.2); p[1] += random_float(-0.8, 0.8);
+set_entvar(victim, var_punchangle, p);
+}
+else
+{
+p[0] -= floatclamp(damage / 12.0, 2.0, 7.0); p[1] += random_float(-3.0, 3.0); p[2] += random_float(-2.0, 2.0);
+set_entvar(victim, var_punchangle, p);
+if (!is_user_bot(victim))
+{
+new amp = clamp(floatround(damage * 80.0), 1500, 9000);
+message_begin(MSG_ONE_UNRELIABLE, g_msgShake, _, victim);
+write_short(amp); write_short(1 << 11); write_short(1 << 13); message_end();
+}
+#pragma unused attacker
+}
+}
 public rg_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 {
 if(damage>0.0 && 1<=attacker<=g_iMax && attacker!=victim && 1<=victim<=g_iMax &&
@@ -23135,6 +23267,7 @@ if(hitNow565>=g_fHitFeel565[attacker] && !is_user_bot(attacker) && (g_bZombie[at
 { g_fHitFeel565[attacker]=hitNow565+0.17;client_cmd(attacker,"spk %s",g_bZombie[attacker]?"player/bhit_flesh-1":"buttons/blip1"); }
 if(hitNow565>=g_fHurtFeel565[victim] && !is_user_bot(victim) && !(g_iSet[victim]&SET_NO_FX))
 { g_fHurtFeel565[victim]=hitNow565+0.28;FadeOne(victim,170,25,25,22,0.12); }
+HitFeel60(victim, attacker, damage);
 }
 if(damage>0.0 && 1<=attacker<=g_iMax && 1<=victim<=g_iMax && is_user_alive(attacker) && is_user_alive(victim) &&
 g_bZombie[victim] && !g_bZombie[attacker] && GetActiveWeaponId(attacker)==WEAPON_KNIFE &&
@@ -23302,10 +23435,18 @@ dir[2] = 0.0;
 new Float:len = floatsqroot(dir[0] * dir[0] + dir[1] * dir[1]);
 if (len < 1.0)
 return;
-new Float:force = floatmin(damage * power * 0.35, floatclamp(get_pcvar_float(g_pKBMax536), 100.0, 2000.0));
+// 6.0 consistent knockback: the push depends on the WEAPON (KB_POWER) and on a capped per-hit damage
+// (headshots / damage multipliers no longer launch zombies), it weakens with distance, a bit stronger
+// in the air, and the old velocity is damped so automatic fire does not stack into a fling.
+new Float:kbMax = floatclamp(get_pcvar_float(g_pKBMax536), 100.0, 2000.0);
+new Float:force = power * floatmin(damage, 60.0) * 0.35;
+if (len > 600.0) force *= 0.6; else if (len > 300.0) force *= 1.0 - (len - 300.0) / 750.0;
+if (!(get_entvar(victim, var_flags) & FL_ONGROUND)) force *= 1.2;
 get_entvar(victim, var_velocity, vel);
-vel[0] += dir[0] / len * force;
-vel[1] += dir[1] / len * force;
+vel[0] = vel[0] * 0.8 + dir[0] / len * force;
+vel[1] = vel[1] * 0.8 + dir[1] / len * force;
+new Float:hs = floatsqroot(vel[0] * vel[0] + vel[1] * vel[1]);
+if (hs > kbMax) { vel[0] *= kbMax / hs; vel[1] *= kbMax / hs; }
 set_entvar(victim, var_velocity, vel);
 if (g_iDirLogN[DIR_KNOCK] < DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
 {
@@ -28959,6 +29100,10 @@ register_concmd("vex_vip_remove", "cmd_vip_remove", ADMIN_RCON, "<isim|#userid|S
 register_concmd("vex_vip_list",   "cmd_vip_list",   ADMIN_BAN,  "- online VIP listesi");
 register_concmd("vex_boss",       "cmd_adm_boss",   ADMIN_BAN,  "<0-8 | -1 rastgele> - siradaki boss");
 set_task(1.0, "task_Tick", TASK_TICK, _, _, "b");
+g_pHudBottom60 = register_cvar("vex_hud_bottom", "1");
+g_pHudHide60 = register_cvar("vex_hud_hide", "56"); // 8 health+armor(+radar) | 16 round timer | 32 money ; +1 = ammo too (also hides the crosshair)
+g_pHideRadar60 = register_cvar("vex_hide_radar", "1");
+set_task(0.3, "task_BottomHud60", TASK_BHUD60, _, _, "b");
 set_task(0.25, "task_ZombieVision", TASK_ZVISION, _, _, "b");
 set_task(0.2, "task_HudQueue", TASK_HUDQ, _, _, "b");
 set_task(0.1, "task_NadeTick", TASK_NADES, _, _, "b");
