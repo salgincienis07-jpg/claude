@@ -3703,7 +3703,7 @@ new t[64]; formatex(t,charsmax(t),"%L",id,key);
 replace_string(t,charsmax(t),"\y",""); replace_string(t,charsmax(t),"\r","");
 g_iMenuFor = id;
 if(MenuPlain538()) formatex(out,len,"\rVEXMIRA \d| \w%s^n\dAP \w%d   \dVC \w%d   \dLV \w%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
-else formatex(out,len,"\rVEXMIRA  \d/ \y%s^n\d---------------------------^n\wAP \y%d  \wVC \y%d  \wLV \y%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
+else formatex(out,len,"\rVEXMIRA \d>> \w%s^n\dLV \y%d   \dAP \y%d   \dVC \y%d^n\d- - - - - - - - - - - - - - -^n",t,g_iLevel[id],g_iAP[id],g_iVC[id]);
 if(sub[0]) { add(out,len,"\d"); add(out,len,sub); add(out,len,"^n"); }
 }
 stock VexOnOff(id, bool:on, out[], len)
@@ -23921,33 +23921,38 @@ new const HUB_FUN_ITEMS[]    = { 6, 9, 14, 15, 13 };
 new const HUB_VIPADM_ITEMS[] = { 8, 17 };
 ShowMainMenu(id)
 {
-new title[320], item[96];
+new title[320], item[128];
 new hsub[96];
 formatex(hsub, charsmax(hsub), "%L", id, "MENU_MAIN_SUB");
 VexHead(id, title, charsmax(title), "MENU_MAIN", hsub);
 new menu = VexMenuCreate(title, "menu_main_handler");
 PlayKey(id, "UI_OPEN");
 new bool:adm = (get_user_flags(id) & ADMIN_BAN) ? true : false;
-formatex(item, charsmax(item), "\y%L", id, "MAINH_1"); MenuAdd(menu, item, HUB_MARKET);
-formatex(item, charsmax(item), "\y%L", id, "MAINH_2"); MenuAdd(menu, item, 3);
-formatex(item, charsmax(item), "\y%L", id, "MAINH_3"); MenuAdd(menu, item, HUB_CLASS);
+MainItem60(id, menu, "MAINH_9", 24, "");
+MainItem60(id, menu, "MAINH_1", HUB_MARKET, "");
+MainItem60(id, menu, "MAINH_2", 3, "");
+MainItem60(id, menu, "MAINH_3", HUB_CLASS, "");
 menu_addblank(menu, 0);
-formatex(item, charsmax(item), "\y%L", id, "MAINH_4");
-if (g_iQuest[id] >= 0 && g_bQuestDone[id])
-add(item, charsmax(item), " \r[OK\r]");
-MenuAdd(menu, item, HUB_CHAR);
-formatex(item, charsmax(item), "\y%L", id, "MAINH_5");
-if (g_iDailyDay[id] < get_systime() / 86400)
-add(item, charsmax(item), " \r(!)");
-MenuAdd(menu, item, HUB_FUN);
-formatex(item, charsmax(item), "\rVexCoin Market"); MenuAdd(menu, item, 21);
+MainItem60(id, menu, "MAINH_4", HUB_CHAR, (g_iQuest[id] >= 0 && g_bQuestDone[id]) ? " \y[OK]" : "");
+MainItem60(id, menu, "MAINH_5", HUB_FUN, (g_iDailyDay[id] < get_systime() / 86400) ? " \r(!)" : "");
+MainItem60(id, menu, "MAINH_10", 21, "");
 menu_addblank(menu, 0);
-formatex(item, charsmax(item), "\y%L", id, "MAINH_7"); MenuAdd(menu, item, 11);
-formatex(item, charsmax(item), "\y%L%s", id, adm ? "MAINH_8A" : "MAINH_8", IsVip(id) ? " \y[*]" : "");
-MenuAdd(menu, item, adm ? HUB_VIPADM : 8);
+MainItem60(id, menu, "MAINH_7", 11, "");
+formatex(item, charsmax(item), "%s", IsVip(id) ? " \y[*]" : "");
+MainItem60(id, menu, adm ? "MAINH_8A" : "MAINH_8", adm ? HUB_VIPADM : 8, item);
 MenuNoPage(menu);
 menu_setprop(menu, MPROP_EXIT, MEXIT_FORCE);
 MenuFinish(id, menu);
+}
+// 6.0: "Name (details)" -> white name + grey details, one look for every main menu row
+MainItem60(id, menu, const key[], sel, const extra[])
+{
+new t[96], item[128];
+formatex(t, charsmax(t), "%L", id, key);
+new p = contain(t, " (");
+if (p > 0) { t[p] = 0; formatex(item, charsmax(item), "\w%s \d(%s%s", t, t[p + 2], extra); }
+else formatex(item, charsmax(item), "\w%s%s", t, extra);
+MenuAdd(menu, item, sel);
 }
 ShowHub(id, hub)
 {
@@ -24025,6 +24030,8 @@ case 20: cmd_quest(id);
 case 21: ShowCosmeticMenu(id);
 case 22: ShowTop10(id);
 case 23: amxclient_cmd(id, "vex_zup"); // 5.3.9c: zombie class upgrade menu (vexmira_extra)
+case 24: cmd_Tablet60(id);
+case 25: cmd_Case60(id);
 case 31: ShowCard(id, id);
 case 32: ShowAchMenu(id);
 case 33: ShowTitleMenu(id);
@@ -28776,7 +28783,7 @@ g_pQuests       = register_cvar("vex_quests", "1");
 g_pEvolve       = register_cvar("vex_evolve", "3");
 g_pJoinMsg      = register_cvar("vex_join_messages", "1");
 g_pPrefix        = register_cvar("vex_chat_prefix", "^4[VEX]^1");
-g_pHostname      = register_cvar("vex_hostname", "[ZM] Vexmira | Zombie Plague [EN/TR] | Boss+FreeVip | Events+Mods NewMod");
+g_pHostname      = register_cvar("vex_hostname", "[ZM] VEXMIRA Zombie 6.0 | BOSS | iPad+Cases | FREE VIP | TR/EN");
 g_pHostDyn       = register_cvar("vex_hostname_dynamic", "0");
 g_pEnv           = register_cvar("vex_env", "1");
 g_pEnvCalm       = register_cvar("vex_env_calm_random", "1");
@@ -29234,7 +29241,7 @@ if(i>=100) {BuySg538(id,i-100);return;}
 if(i<0 || i>=NUM_SPECIAL) return;
 if(!CommunityAlive(id)) {Chat(id,"ZC_ALIVE_HUMAN");return;}
 if(VxActive(id)==i) {Chat(id,"SHOP_ALREADY");return;}
-if(g_iAP[id]<SW_COST[i]) {client_print_color(id,print_team_default,"^4[Vexmira]^1 Bu silah icin ^3%d AP^1 daha gerekli.",SW_COST[i]-g_iAP[id]);return;}
+if(g_iAP[id]<SW_COST[i]) {client_print_color(id,print_team_default,g_iLang[id]==1?"^4[Vexmira]^1 You need ^3%d AP^1 more for this weapon.":"^4[Vexmira]^1 Bu silah icin ^3%d AP^1 daha gerekli.",SW_COST[i]-g_iAP[id]);return;}
 if(!g_bVxReady[i]) {client_print(id,print_chat,"[VEXMIRA] %s dosyalari yuklu degil; AP harcanmadi.",V50_NAMES[i]);return;}
 if(!VxGive(id,i)) {Chat(id,"SHOP_UNAVAIL");return;}
 AddAP(id,-SW_COST[i],false,false);PlayKey(id,"SHOP_BUY");VxItemFxRGB531(id,SW_RGB[i][0],SW_RGB[i][1],SW_RGB[i][2]);
@@ -31166,7 +31173,7 @@ new name[48],cost=vxe_sw_info(i,name,charsmax(name));
 if(cost<0) {Chat(id,"SHOP_UNAVAIL");return;}
 if(!CommunityAlive(id)) {Chat(id,"ZC_ALIVE_HUMAN");return;}
 if(vxe_sw_active(id)==i) {Chat(id,"SHOP_ALREADY");return;}
-if(g_iAP[id]<cost) {client_print_color(id,print_team_default,"^4[Vexmira]^1 Bu silah icin ^3%d AP^1 daha gerekli.",cost-g_iAP[id]);return;}
+if(g_iAP[id]<cost) {client_print_color(id,print_team_default,g_iLang[id]==1?"^4[Vexmira]^1 You need ^3%d AP^1 more for this weapon.":"^4[Vexmira]^1 Bu silah icin ^3%d AP^1 daha gerekli.",cost-g_iAP[id]);return;}
 if(!vxe_sw_give(id,i)) {Chat(id,"SHOP_UNAVAIL");return;}
 AddAP(id,-cost,false,false);PlayKey(id,"SHOP_BUY");
 new rgb=vxe_sw_rgb(i);VxItemFxRGB531(id,(rgb>>16)&255,(rgb>>8)&255,rgb&255);
@@ -31618,12 +31625,12 @@ if (!(1 <= id <= g_iMax) || !is_user_connected(id) || get_gametime() - g_fTradeA
 if (back[0] == 'x') { client_print_color(id, print_team_default, (g_iLang[id] != 1) ? "^4[VEXMIRA]^1 Takas teklifin reddedildi." : "^4[VEXMIRA]^1 Your trade offer was declined."); return PLUGIN_HANDLED; }
 new give[8]; copy(give, charsmax(give), g_szTradeGive60[id]);
 new gc = give[0], gi = str_to_num(give[1]) - 1;
-if (!ItemOwned60(id, gc, gi) || ItemOwned60(t, gc, gi)) { client_print_color(t, print_team_default, "^4[VEXMIRA]^1 Takas gecersiz / trade invalid."); return PLUGIN_HANDLED; }
+if (!ItemOwned60(id, gc, gi) || ItemOwned60(t, gc, gi)) { client_print_color(t, print_team_default, g_iLang[t] == 1 ? "^4[VEXMIRA]^1 Trade is no longer valid." : "^4[VEXMIRA]^1 Takas artik gecersiz."); return PLUGIN_HANDLED; }
 new bc = 0, bi = -1;
 if (back[0] != '-')
 {
 bc = back[0]; bi = str_to_num(back[1]) - 1;
-if (!ItemOwned60(t, bc, bi) || ItemOwned60(id, bc, bi)) { client_print_color(t, print_team_default, "^4[VEXMIRA]^1 Takas gecersiz / trade invalid (zaten sahip)."); return PLUGIN_HANDLED; }
+if (!ItemOwned60(t, bc, bi) || ItemOwned60(id, bc, bi)) { client_print_color(t, print_team_default, g_iLang[t] == 1 ? "^4[VEXMIRA]^1 Trade is not valid (item already owned)." : "^4[VEXMIRA]^1 Takas gecersiz (esya zaten sende var)."); return PLUGIN_HANDLED; }
 }
 ItemSetOwned60(id, gc, gi, false); ItemSetOwned60(t, gc, gi, true);
 if (bi >= 0) { ItemSetOwned60(t, bc, bi, false); ItemSetOwned60(id, bc, bi, true); }

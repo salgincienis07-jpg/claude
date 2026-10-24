@@ -1422,6 +1422,8 @@ new const ZUP_NAME[24][] = { "Walker", "Runner", "Tank", "Banshee", "Leech", "St
 new g_iZupVault = INVALID_HANDLE, g_iZupPts[33][24], g_iZupLvl[33][24], g_iZupStat[33][24][3], g_iZupSelected[33], g_iZupStep[ZUP_MAX], bool:g_bZupLoaded[33];
 new g_sprZupRing,g_hZupHud563;
 new g_szZupKey563[33][64];
+// 6.0: chat language of a player (core keeps the "lang" userinfo in sync: tr / en)
+bool:XTr60(id) { new l[4]; get_user_info(id, "lang", l, charsmax(l)); return !equali(l, "en"); }
 ZupInit()
 {
 new v[64];vxc_res_get("ZUP_STEPS",v,charsmax(v));if(!v[0]) copy(v,charsmax(v),"4 8 12 16 20");
@@ -1504,14 +1506,14 @@ g_iZupPts[id][c]=min(g_iZupPts[id][c]+pts,100000);
 g_iZupLvl[id][c]=ZupLevelOf(g_iZupPts[id][c]);
 g_iZupSelected[id]=c;
 new next=g_iZupLvl[id][c]<ZUP_MAX?g_iZupStep[g_iZupLvl[id][c]]:g_iZupStep[ZUP_MAX-1];
-if(!is_user_bot(id)) client_print_color(id,print_team_default,"^4[Vexmira]^1 %s: ^4+%d^1 gelisim (%d/%d). Menu: ^3/yukselt",ZUP_NAME[c],pts,g_iZupPts[id][c],next);
+if(!is_user_bot(id)) client_print_color(id,print_team_default,XTr60(id)?"^4[Vexmira]^1 %s: ^4+%d^1 gelisim (%d/%d). Menu: ^3/yukselt":"^4[Vexmira]^1 %s: ^4+%d^1 upgrade points (%d/%d). Menu: ^3/upgrade",ZUP_NAME[c],pts,g_iZupPts[id][c],next);
 if(g_iZupLvl[id][c]>old) ZupLevelUp(id,c);
 ZupSave(id);return g_iZupLvl[id][c];
 }
 ZupLevelUp(id,c)
 {
 new lv=g_iZupLvl[id][c];
-client_print_color(id,print_team_default,"^4[Vexmira]^1 %s seviye ^4%d^1! Gelistirme puanin var: ^3/yukselt^1 yaz, sinifini ve gelistirecegin skilli sec.",ZUP_NAME[c],lv);
+client_print_color(id,print_team_default,XTr60(id)?"^4[Vexmira]^1 %s seviye ^4%d^1! Gelistirme puanin var: ^3/yukselt^1 yaz, sinifini ve gelistirecegin skilli sec.":"^4[Vexmira]^1 %s level ^4%d^1! You have an upgrade point: type ^3/upgrade^1 and pick the skill to improve.",ZUP_NAME[c],lv);
 if(!is_user_bot(id)) client_cmd(id,"spk ^"items/suitchargeok1.wav^"");
 new Float:o[3];pev(id,pev_origin,o);ZupRing(o,lv,280);
 message_begin(MSG_ONE_UNRELIABLE,get_user_msgid("ScreenFade"),_,id);
@@ -1579,9 +1581,9 @@ menu_destroy(m);
 if(item<0||item>=3||!is_user_connected(id))return PLUGIN_HANDLED;
 new c=g_iZupSelected[id];if(c<0||c>=24)return PLUGIN_HANDLED;
 new used=g_iZupStat[id][c][0]+g_iZupStat[id][c][1]+g_iZupStat[id][c][2];
-if(used>=g_iZupLvl[id][c]){ClearSyncHud(id,g_hZupHud563);client_print_color(id,print_team_default,"^4[VEXMIRA]^1 Bosta gelistirme puanin yok.");return PLUGIN_HANDLED;}
+if(used>=g_iZupLvl[id][c]){ClearSyncHud(id,g_hZupHud563);client_print_color(id,print_team_default,XTr60(id)?"^4[VEXMIRA]^1 Bosta gelistirme puanin yok.":"^4[VEXMIRA]^1 You have no free upgrade points.");return PLUGIN_HANDLED;}
 g_iZupStat[id][c][item]++;ZupSave(id);ClearSyncHud(id,g_hZupHud563);ZupHint563(id,c);
-client_print_color(id,print_team_default,"^4[VEXMIRA]^1 %s gelistirildi. Kalan puan: %d",ZUP_NAME[c],g_iZupLvl[id][c]-used-1);
+client_print_color(id,print_team_default,XTr60(id)?"^4[VEXMIRA]^1 %s gelistirildi. Kalan puan: %d":"^4[VEXMIRA]^1 %s upgraded. Points left: %d",ZUP_NAME[c],g_iZupLvl[id][c]-used-1);
 ZupOpenSelected(id);return PLUGIN_HANDLED;
 }
 // ============================================================================================
@@ -1627,8 +1629,8 @@ public N_ItemBuy(plugin, params)
 new id = get_param(1), k = get_param(2);
 if (id < 1 || id > 32 || !is_user_alive(id) || k < 0 || k > 1 || !g_bItOk[k]) return 0;
 new z = vx45_corezombie(id);
-if (k == 0) { if (z || g_bMask[id]) return 0; g_bMask[id] = true; if (g_bItMdl[0]) vxc_set_model(id, g_szItMask); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Maske takildi: ^4bir sonraki enfeksiyonu engeller^1."); }
-else { if (!z || g_fZArmor[id] > 0.0) return 0; g_fZArmor[id] = float(g_iItArmorHp); if (g_bItMdl[1]) vxc_set_model(id, g_szItArmor); client_print_color(id, print_team_default, "^4[VEXMIRA]^1 Zirh giyildi: ^4%d^1 hasar boyunca %%%d daha az hasar.", g_iItArmorHp, floatround(g_fItArmorCut * 100.0)); }
+if (k == 0) { if (z || g_bMask[id]) return 0; g_bMask[id] = true; if (g_bItMdl[0]) vxc_set_model(id, g_szItMask); client_print_color(id, print_team_default, XTr60(id) ? "^4[VEXMIRA]^1 Maske takildi: ^4bir sonraki enfeksiyonu engeller^1." : "^4[VEXMIRA]^1 Mask on: ^4it blocks the next infection^1."); }
+else { if (!z || g_fZArmor[id] > 0.0) return 0; g_fZArmor[id] = float(g_iItArmorHp); if (g_bItMdl[1]) vxc_set_model(id, g_szItArmor); client_print_color(id, print_team_default, XTr60(id) ? "^4[VEXMIRA]^1 Zirh giyildi: ^4%d^1 hasar boyunca %%%d daha az hasar." : "^4[VEXMIRA]^1 Armor on: %%%d less damage for the next ^4%d^1 damage.", XTr60(id) ? g_iItArmorHp : floatround(g_fItArmorCut * 100.0), XTr60(id) ? floatround(g_fItArmorCut * 100.0) : g_iItArmorHp); }
 emit_sound(id, CHAN_ITEM, "items/ammopickup2.wav", 0.8, ATTN_NORM, 0, PITCH_NORM);
 return 1;
 }
@@ -1640,7 +1642,7 @@ g_bMask[v] = false;
 emit_sound(v, CHAN_BODY, "player/bhit_helmet-1.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
 message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("ScreenFade"), _, v);
 write_short(1 << 11); write_short(1 << 9); write_short(0); write_byte(60); write_byte(255); write_byte(90); write_byte(90); message_end();
-client_print_color(v, print_team_default, "^4[VEXMIRA]^1 Maske enfeksiyonu ^4engelledi^1 ve kirildi!");
+client_print_color(v, print_team_default, XTr60(v) ? "^4[VEXMIRA]^1 Maske enfeksiyonu ^4engelledi^1 ve kirildi!" : "^4[VEXMIRA]^1 Your mask ^4blocked^1 the infection and broke!");
 if (g_bItMdl[0]) vxc_restore_model(v);
 return 1;
 }
