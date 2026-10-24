@@ -19,7 +19,7 @@ native vxe_market_finish(buyer,seller);
 native vxe_zup_snapshot(id,cls,field);
 native vxe_zup_spend(id,cls,perk);
 native vxe_market_str(id,out[],len);
-new g_iActor4,g_szPref4[33][48];
+new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4;
 new bool:g_bRlReady621;
 new g_iRlOpenErr623;
 new g_iRelayRx624,g_iActionRx624,g_iStateWrites624,g_iStateErr624;
@@ -5104,7 +5104,7 @@ if(!is_user_connected(id)|| is_user_bot(id))continue;
 if(radar && !g_bRadarHidden60[id]){client_cmd(id,"hideradar");g_bRadarHidden60[id]= true;}
 if(!is_user_alive(id))continue;
 if(hide > 0){new cur = get_member(id,m_iHideHUD);if((cur & hide)!= hide)set_member(id,m_iHideHUD,cur | hide);}
-if(g_iSet[id]& SET_NO_HUD)continue;
+if((g_iSet[id]& SET_NO_HUD)||g_bHud4)continue;
 new hp = floatround(Float:get_entvar(id,var_health)),mx = max(1,floatround(Float:get_entvar(id,var_max_health)));
 new ar = rg_get_user_armor(id),pct = clamp(hp * 100 / mx,0,100);
 BarGlyph60(bar,charsmax(bar),pct,18);
@@ -5148,7 +5148,7 @@ for(new id = 1;id <= g_iMax;id++)
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
 new t = g_iTheme[id];
-if(top && HudPartMode(g_pHudTop)!= 0)
+if(top && !g_bHud4 && HudPartMode(g_pHudTop)!= 0)
 {
 formatex(key,charsmax(key),"MODE_NAME_%d",g_iMode);
 formatex(mn,charsmax(mn),"%L",id,key);
@@ -5210,7 +5210,7 @@ else if(g_iTopRank[id]> 0)
 formatex(head,charsmax(head),"%L",id,"HUD_P1R",lvl,tname,g_iTopRank[id]);
 else
 formatex(head,charsmax(head),"%L",id,"HUD_P1",lvl,tname);
-if(is_user_alive(id)&& get_pcvar_num(g_pHudBottom60))
+if(g_bHud4||(is_user_alive(id)&& get_pcvar_num(g_pHudBottom60)))
 l1[0]= 0;
 else if(is_user_alive(id))
 formatex(l1,charsmax(l1),"%L",id,cso ? "CSO_P_HP" : "HUD_P_HP",floatround(Float:get_entvar(id,var_health)),rg_get_user_armor(id));
@@ -5221,7 +5221,7 @@ AsciiBar(xbar,12,xpPct);
 l2[0]= 0;
 if(HudPartMode(g_pHudXp)!= 0)
 formatex(l2,charsmax(l2),"%L",id,"HUD_P2",xbar,g_iXP[id],need);
-formatex(l3,charsmax(l3),"%L",id,cso ? "CSO_P3" : "HUD_P3",g_iAP[id],g_iVC[id],g_iStreak[id]);
+if(g_bHud4)l3[0]=0;else formatex(l3,charsmax(l3),"%L",id,cso ? "CSO_P3" : "HUD_P3",g_iAP[id],g_iVC[id],g_iStreak[id]);
 l4[0]= 0;
 if(is_user_alive(id))
 {
@@ -28225,7 +28225,7 @@ public VxcPcReady542(plugin,params)return(g_tMdlDone != Invalid_Trie && g_tRes !
 public plugin_natives()
 {
 register_library("vexmira_core45");
-register_native("vxc_tab_value","N_TabValue622");
+register_native("vxc_tab_value","N_TabValue622");register_native("vxc_hud","N_Hud64");
 register_native("vxc_tab_key","N_TabKey622");
 register_native("vxc_tab_recover","N_TabRecover622");
 register_native("vxc_tab_credit","N_TabCredit622");
@@ -32201,6 +32201,7 @@ g_pRlPort62 = register_cvar("vex_tablet_relay_port","80");
 g_pRlTopic62 = register_cvar("vex_tablet_topic","");
 g_pWebBase62 = register_cvar("vex_pad4_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad4/");
 g_pWebPage62 = register_cvar("vex_pad4_page","vexmira_pad_v4.html");
+g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
 register_clcmd("vex_tablet_action","cmd_TabAction621");
@@ -32298,7 +32299,7 @@ copy(g_szNot62[id][g_iNotN62[id]],charsmax(g_szNot62[][]),text);
 g_iNotTime62[id][g_iNotN62[id]]= get_systime();
 g_iNotN62[id]++;
 g_iUnread62[id]++;
-if(sound)client_cmd(id,"spk buttons/bell1");
+if(g_bHud4){new r4;ExecuteForward(g_fwNote4,r4,id,text);}else if(sound)client_cmd(id,"spk buttons/bell1");
 if(id!=g_iActor4&&App4(g_szApp4[id],"msg","notif","friends","trade"))TabPush4(id);
 }
 public task_TabTick62()
@@ -32306,7 +32307,7 @@ public task_TabTick62()
 for(new id = 1;id <= g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))continue;
-if(!g_iUnread62[id]||(is_user_alive(id)&& GetActiveWeaponId(id)== WEAPON_C4))continue;
+if(g_bHud4||!g_iUnread62[id]||(is_user_alive(id)&& GetActiveWeaponId(id)== WEAPON_C4))continue;
 set_dhudmessage(255,200,60,0.86,0.12,0,0.0,1.05,0.0,0.0);
 show_dhudmessage(id,(g_iLang[id]!= 1)? "[iPad] %d yeni bildirim" : "[iPad] %d new notification%s",g_iUnread62[id],(g_iLang[id]!= 1 || g_iUnread62[id]== 1)? "" : "s");
 }
@@ -32725,6 +32726,13 @@ g_szTok62[id][0]= 0;
 for(new k = g_iOffN62 - 1;k >= 0;k--)if(g_iOffFrom62[k]== id || g_iOffTo62[k]== id)OffDel62(k);
 for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
+// v4 HUD data: f 99 = HUD plugin is running (core stops its own bars/top board)
+public N_Hud64(plugin,params){new id=get_param(1),f=get_param(2);if(f==99){g_bHud4=true;return 1;}
+switch(f){case 0:return g_iMode;case 1:return g_iEvent;case 2:return g_iRound;case 3:return RoundsTotal();case 4:return g_iBoss;case 5:{if(!g_iBoss||!is_user_alive(g_iBoss))return -1;new Float:bh=Float:get_entvar(g_iBoss,var_health);return clamp(floatround(bh*100.0/float(max(1,g_iBossMaxHP))),0,100);}case 6:return g_iBossType;case 9:return g_bRoundEnded;}
+if(!(1<=id<=g_iMax)||!is_user_connected(id))return 0;
+switch(f){case 7:return g_bZombie[id];case 8:return g_bBoss[id]||g_bNemesis[id]||g_bAssassin[id];case 10:return g_iVC[id];case 11:return g_iAP[id];case 12:return g_iLang[id];case 13:return g_iSet[id];case 14:return g_iLevel[id];case 15:return g_iUnread62[id];
+case 16:{new k,v[2]={1,1};for(new i=0;g_szPref4[id][i];i++)if(g_szPref4[id][i]=='*'){k++;if((k==5||k==6)&&g_szPref4[id][i+1]=='0')v[k-5]=0;}return v[0]|(v[1]<<1);}
+case 17:return is_user_alive(id)&&GetActiveWeaponId(id)==WEAPON_C4;case 18:return g_iTheme[id];}return 0;}
 public cmd_TabSelf62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
