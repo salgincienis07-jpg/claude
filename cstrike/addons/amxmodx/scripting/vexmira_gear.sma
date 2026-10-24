@@ -3,6 +3,7 @@ Derived from Vexmira 4.4.0-Full. Core: SmurfSexy & Capital.
 ReAPI SDK: s1lent / rehlds contributors (original API declarations embedded).
 CSO item authors preserved in component AUTHOR constants; see existing package KAYNAKLAR.md.
 Both vexmira_core and vexmira_gear are required. AMXX 1.10 / ReAPI >=5.24. */
+#pragma tabsize 0
 #include <amxmodx>
 #include <amxmisc>
 #include <engine>
@@ -15,7 +16,6 @@ Both vexmira_core and vexmira_gear are required. AMXX 1.10 / ReAPI >=5.24. */
 #include <nvault>
 #include <geoip>
 #pragma dynamic 32768
-new g_iIsolation526;
 new bool:g_bRun526;
 #pragma tabsize 0
 new g_iPcM51,g_iPcS51,g_iPcG51;
@@ -2644,15 +2644,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2677,15 +2691,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2758,15 +2786,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2786,15 +2828,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2819,15 +2875,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2847,15 +2917,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2879,15 +2963,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2913,15 +3011,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2943,15 +3055,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -2968,15 +3094,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -3065,15 +3205,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -3093,15 +3247,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
+}
 }
 }
 }
@@ -3124,42 +3292,29 @@ static const paths[][]={
 };
 for(new i=0;i<sizeof paths;i++) {
 if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
+formatex(required,charsmax(required),"Missing asset: %s",paths[i]);
+if(VexGuardFatal(scope,paths[i])) {
+    log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+    g_zcGuardFail=true;
+    return false;
+}
+log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+continue;
 }
 if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
 new fp=fopen(paths[i],"rb"); if(!fp) continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+if(!ok) {
+    formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
+    if(VexGuardFatal(scope,paths[i])) {
+        log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope);
+        g_zcGuardFail=true;
+        return false;
+    }
+    log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
+    continue;
 }
-}
-}
-if(equal(scope,"vx42_horseaxe")) {
-static const paths[][]={
-"models/p_horseaxe.mdl",
-"models/v_horseaxe.mdl",
-"sound/weapons/tomahawk_draw.wav",
-"sound/weapons/tomahawk_slash1.wav",
-"sound/weapons/tomahawk_slash1_hit.wav",
-"sound/weapons/tomahawk_slash2.wav",
-"sound/weapons/tomahawk_slash2_hit.wav",
-"sound/weapons/tomahawk_stab_hit.wav",
-"sound/weapons/tomahawk_stab_miss.wav",
-"sound/weapons/tomahawk_wall.wav"
-};
-for(new i=0;i<sizeof paths;i++) {
-if(!file_exists(paths[i],true) || file_size(paths[i])<4) {
-formatex(required,charsmax(required),"Missing asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue;
-}
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1) {
-new fp=fopen(paths[i],"rb"); if(!fp) continue;
-fread_blocks(fp,sample,4,BLOCK_CHAR); fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):
-(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):
-(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
-if(!ok) { formatex(required,charsmax(required),"Damaged asset: %s",paths[i]); if(VexGuardFatal(scope,paths[i])) { log_amx("[AssetGuard] %s -> %s modulu KAPALI, sunucu calismaya devam ediyor (dosyayi sunucuya ve FastDL e yukle)",required,scope); g_zcGuardFail=true; return false; } log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope); continue; }
 }
 }
 }
@@ -3171,7 +3326,7 @@ if (emitted) { ZcPcSound(s); return; }
 new f[128]; formatex(f, charsmax(f), "sound/%s", s);
 if (file_exists(f, true)) (!VxPcOk531()) ? 0 : precache_generic(f);
 }
-#define VERSION "5.3.1-Stable"
+#define VERSION "5.6.4"
 native vx47_jetgauge(id,percent,fuel);
 native vx45_corezombie(id);
 native vx45_coreweapon(id);
@@ -3179,6 +3334,8 @@ native vx45_corerestore(id);
 native vx45_corepreparejet(id);
 native vx45_coresurvivor(id);
 native vx45_corejetpack(id);
+native vx45_corejetdisabled(id);
+native vxe_audio_model(const src[],const tag[],out[],len);
 bool:CommunityLegacyFileOk(const path[])
 {
 new fp=fopen(path,"rb",true); if(!fp) return false;
@@ -3324,7 +3481,8 @@ set_task(0.1, "jan_Do_Register_HamBot", (id) + ZC_TOFF_JAN)
 }
 }
 public jan_Do_Register_HamBot(id)
-{ if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
+{
+if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
 RegisterHamFromEntity(Ham_TraceAttack, id, "jan_fw_TraceAttack_Player")
 }
 public jan_Get_Janus7(id)
@@ -3533,7 +3691,8 @@ write_byte(25)
 message_end()
 }
 public jan_ChangeTo_JanusTransform(id)
-{ if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
+{
+if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
 id -= jan_TASK_CHANGE
 if(!is_user_alive(id))
 return
@@ -3548,7 +3707,8 @@ remove_task( (id+jan_TASK_USETIME) + ZC_TOFF_JAN)
 set_task(float(jan_CHARGE_TIME), "jan_TurnOff_JTS2", (id+jan_TASK_USETIME) + ZC_TOFF_JAN)
 }
 public jan_TurnOff_JTS2(id)
-{ if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
+{
+if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
 id -= jan_TASK_USETIME
 if(!is_user_alive(id))
 return
@@ -3564,7 +3724,8 @@ emit_sound(id, CHAN_WEAPON, jan_Janus7_Sounds[8], 1.0, ATTN_NORM, 0, PITCH_NORM)
 set_task(jan_CHANGE_TIME - 1.0, "jan_ChangeTo_Back", (id+jan_TASK_CHANGE) + ZC_TOFF_JAN)
 }
 public jan_ChangeTo_Back(id)
-{ if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
+{
+if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
 id -= jan_TASK_CHANGE
 if(!is_user_alive(id))
 return
@@ -3745,7 +3906,8 @@ set_task(float(jan_CHARGE_LIMITTIME), "jan_TurnOff_JTS", (id+jan_TASK_CHANGELIMI
 }
 }
 public jan_TurnOff_JTS(id)
-{ if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
+{
+if (id >= ZC_TOFF_JAN && id < ZC_TOFF_JAN + 0x1000000) id -= ZC_TOFF_JAN;
 id -= jan_TASK_CHANGELIMITTIME
 if(!is_user_alive(id))
 return
@@ -4043,7 +4205,8 @@ get_tr2(ptr, TR_vecEndPos, jan_EndPos)
 free_tr2(ptr)
 return floatround(get_distance_f(end, jan_EndPos))
 }
-public jan_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; jan_g_VexGiving[id]=true; jan_Get_Janus7(id); jan_g_VexGiving[id]=false; return jan_vex_has(id) && user_has_weapon(id,CSW_M249); }
+public jan_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; jan_g_VexGiving[id]=true; jan_Get_Janus7(id); jan_g_VexGiving[id]=false; return jan_vex_has(id) && user_has_weapon(id,CSW_M249); }
 public jan_vex_remove(id) { jan_Remove_Janus7(id); return 1; }
 public jan_vex_has(id) { return jan_Get_BitVar(jan_g_Had_Janus7, id) ? 1 : 0; }
 #define pla_PLUGIN "[CSO] PlasmaGun"
@@ -4162,7 +4325,8 @@ set_task(0.1, "pla_Do_RegisterHam", (id) + ZC_TOFF_PLA)
 }
 }
 public pla_Do_VxRegisterHam524(id)
-{ if (id >= ZC_TOFF_PLA && id < ZC_TOFF_PLA + 0x1000000) id -= ZC_TOFF_PLA;
+{
+if (id >= ZC_TOFF_PLA && id < ZC_TOFF_PLA + 0x1000000) id -= ZC_TOFF_PLA;
 RegisterHamFromEntity(Ham_TraceAttack, id, "pla_fw_TraceAttack_Player")
 }
 public pla_Get_Plasma(id)
@@ -4250,7 +4414,8 @@ ExecuteHamB(Ham_TakeDamage, i, 0, pla_Attacker, float(pla_DAMAGE) / random_float
 }
 }
 public pla_Remove_PlasmaBall(pla_Ent)
-{ if (pla_Ent >= ZC_TOFF_PLA && pla_Ent < ZC_TOFF_PLA + 0x1000000) pla_Ent -= ZC_TOFF_PLA;
+{
+if (pla_Ent >= ZC_TOFF_PLA && pla_Ent < ZC_TOFF_PLA + 0x1000000) pla_Ent -= ZC_TOFF_PLA;
 if(!pev_valid(pla_Ent)) return
 new classname[32]; pev(pla_Ent,pev_classname,classname,charsmax(classname));
 if(!equal(classname,"vex_plasma_ball")) return
@@ -4433,7 +4598,8 @@ message_end()
 return HAM_IGNORED;
 }
 public pla_AddToPlayer_Delay(pla_Id)
-{ if (pla_Id >= ZC_TOFF_PLA && pla_Id < ZC_TOFF_PLA + 0x1000000) pla_Id -= ZC_TOFF_PLA;
+{
+if (pla_Id >= ZC_TOFF_PLA && pla_Id < ZC_TOFF_PLA + 0x1000000) pla_Id -= ZC_TOFF_PLA;
 set_pev(pla_Id, pev_viewmodel2, pla_V_MODEL)
 set_pev(pla_Id, pev_weaponmodel2, pla_P_MODEL)
 set_pdata_string(pla_Id, (492) * 4, pla_WEAPON_ANIMEXT, -1 , 20)
@@ -4561,7 +4727,8 @@ pla_vStart[0] = pla_vOrigin[0] + pla_vForward[0] * pla_forw + pla_vRight[0] * ri
 pla_vStart[1] = pla_vOrigin[1] + pla_vForward[1] * pla_forw + pla_vRight[1] * right + pla_vUp[1] * up
 pla_vStart[2] = pla_vOrigin[2] + pla_vForward[2] * pla_forw + pla_vRight[2] * right + pla_vUp[2] * up
 }
-public pla_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; pla_g_VexGiving[id]=true; pla_Get_Plasma(id); pla_g_VexGiving[id]=false; return pla_vex_has(id) && user_has_weapon(id,CSW_AK47); }
+public pla_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; pla_g_VexGiving[id]=true; pla_Get_Plasma(id); pla_g_VexGiving[id]=false; return pla_vex_has(id) && user_has_weapon(id,CSW_AK47); }
 public pla_vex_remove(id) { pla_Remove_Plasma(id); return 1; }
 public pla_vex_has(id) { return pla_Get_BitVar(pla_g_Had_Plasma, id) ? 1 : 0; }
 #define thb_PLUGIN "Thunderbolt"
@@ -4664,7 +4831,8 @@ thb_UnSet_BitVar(thb_g_TempAttack, id)
 thb_UnSet_BitVar(thb_g_IsAlive, id)
 }
 public thb_Do_RegisterHamBot(id)
-{ if (id >= ZC_TOFF_THB && id < ZC_TOFF_THB + 0x1000000) id -= ZC_TOFF_THB;
+{
+if (id >= ZC_TOFF_THB && id < ZC_TOFF_THB + 0x1000000) id -= ZC_TOFF_THB;
 RegisterHamFromEntity(Ham_Spawn, id, "thb_fw_PlayerSpawn_Post", 1)
 }
 public thb_fw_PrecacheEvent_Post(type, const name[])
@@ -4963,7 +5131,8 @@ thb_Check_Damage(id)
 set_pdata_float(id, 111, 0.0)
 }
 public thb_Set_SniperModel(id)
-{ if (id >= ZC_TOFF_THB && id < ZC_TOFF_THB + 0x1000000) id -= ZC_TOFF_THB;
+{
+if (id >= ZC_TOFF_THB && id < ZC_TOFF_THB + 0x1000000) id -= ZC_TOFF_THB;
 id -= 111
 if(!is_user_alive(id))
 return
@@ -5201,7 +5370,8 @@ return
 set_pdata_int(id, 363, thb_FOV, 5)
 set_pev(id, pev_fov, thb_FOV)
 }
-public thb_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; thb_g_VexGiving[id]=true; thb_Get_Thunderbolt(id); thb_g_VexGiving[id]=false; return thb_vex_has(id) && user_has_weapon(id,CSW_AWP); }
+public thb_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; thb_g_VexGiving[id]=true; thb_Get_Thunderbolt(id); thb_g_VexGiving[id]=false; return thb_vex_has(id) && user_has_weapon(id,CSW_AWP); }
 public thb_vex_remove(id) { thb_Remove_Thunderbolt(id); return 1; }
 public thb_vex_has(id) { return thb_Get_BitVar(thb_g_Had_Thunderbolt, id) ? 1 : 0; }
 #define eth_PLUGIN "[CSO] Ethereal"
@@ -5309,7 +5479,8 @@ set_task(0.1, "eth_Do_Register_HamBot", (id) + ZC_TOFF_ETH)
 }
 }
 public eth_Do_Register_HamBot(id)
-{ if (id >= ZC_TOFF_ETH && id < ZC_TOFF_ETH + 0x1000000) id -= ZC_TOFF_ETH;
+{
+if (id >= ZC_TOFF_ETH && id < ZC_TOFF_ETH + 0x1000000) id -= ZC_TOFF_ETH;
 RegisterHamFromEntity(Ham_TraceAttack, id, "eth_fw_TraceAttack_Player")
 }
 public eth_Get_Ethereal(id)
@@ -5777,7 +5948,8 @@ set_pdata_float(eth_Ent, 46 , eth_NextTime, 4)
 set_pdata_float(eth_Ent, 47, eth_NextTime, 4)
 set_pdata_float(eth_Ent, 48, eth_NextTime, 4)
 }
-public eth_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; eth_g_VexGiving[id]=true; eth_Get_Ethereal(id); eth_g_VexGiving[id]=false; return eth_vex_has(id) && user_has_weapon(id,CSW_M4A1); }
+public eth_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; eth_g_VexGiving[id]=true; eth_Get_Ethereal(id); eth_g_VexGiving[id]=false; return eth_vex_has(id) && user_has_weapon(id,CSW_M4A1); }
 public eth_vex_remove(id) { eth_Remove_Ethereal(id); return 1; }
 public eth_vex_has(id) { return eth_Get_BitVar(eth_g_Had_Ethereal, id) ? 1 : 0; }
 #define sal_PLUGIN "[CSO] Salamander"
@@ -5877,7 +6049,8 @@ set_task(0.1, "sal_Register_HamBot", (id) + ZC_TOFF_SAL)
 }
 }
 public sal_Register_HamBot(id)
-{ if (id >= ZC_TOFF_SAL && id < ZC_TOFF_SAL + 0x1000000) id -= ZC_TOFF_SAL;
+{
+if (id >= ZC_TOFF_SAL && id < ZC_TOFF_SAL + 0x1000000) id -= ZC_TOFF_SAL;
 sal_Register_SafetyFuncBot(id)
 RegisterHamFromEntity(Ham_TraceAttack, id, "sal_fw_TraceAttack")
 }
@@ -6281,7 +6454,8 @@ if(!sal_is_alive(id))
 return 0
 return sal_g_PlayerWeapon[id]
 }
-public sal_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; sal_g_VexGiving[id]=true; sal_Get_Salamander(id); sal_g_VexGiving[id]=false; return sal_vex_has(id) && user_has_weapon(id,CSW_M249); }
+public sal_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; sal_g_VexGiving[id]=true; sal_Get_Salamander(id); sal_g_VexGiving[id]=false; return sal_vex_has(id) && user_has_weapon(id,CSW_M249); }
 public sal_vex_remove(id) { sal_Remove_Salamander(id); return 1; }
 public sal_vex_has(id) { return sal_Get_BitVar(sal_g_Had_Salamander, id) ? 1 : 0; }
 #define bow_PLUGIN "[CSO] Weapon: Compound Bow"
@@ -7086,13 +7260,14 @@ bow_iResult = bow_iResult % 360
 bow_iResult = (bow_iResult > 180) ? (bow_iResult - 360) : bow_iResult
 return bow_iResult
 }
-public bow_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; bow_g_VexGiving[id]=true; bow_Get_CompoundBow(id); bow_g_VexGiving[id]=false; return bow_vex_has(id) && user_has_weapon(id,CSW_M4A1); }
+public bow_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; bow_g_VexGiving[id]=true; bow_Get_CompoundBow(id); bow_g_VexGiving[id]=false; return bow_vex_has(id) && user_has_weapon(id,CSW_M4A1); }
 public bow_vex_remove(id) { bow_Remove_CompoundBow(id); return 1; }
 public bow_vex_has(id) { return bow_Get_BitVar(bow_g_Had_CompoundBow, id) ? 1 : 0; }
 #define drs_PLUGIN "Dragon Sword"
 #define drs_VERSION "2.0"
 #define drs_AUTHOR "Dias Leon"
-#define drs_V_MODEL "models/v_dragonsword2.mdl"
+new drs_V_MODEL[96] = "models/v_dragonsword2.mdl";
 #define drs_P_MODEL "models/p_dragonsword.mdl"
 #define drs_CSW_DRAGONSWORD CSW_KNIFE
 #define drs_weapon_dragonsword "weapon_knife"
@@ -7167,6 +7342,7 @@ drs_g_MaxPlayers = get_maxplayers()
 }
 public drs_plugin_precache()
 {
+vxe_audio_model("models/v_dragonsword2.mdl","drs",drs_V_MODEL,charsmax(drs_V_MODEL));
 if (!VexAssetGuard("vx42_dragonsword")) return;
 ZcPcModel(drs_V_MODEL)
 ZcPcModel(drs_P_MODEL)
@@ -7213,7 +7389,8 @@ set_task(0.1, "drs_Do_RegisterHam_Bot", (id) + ZC_TOFF_DRS)
 }
 }
 public drs_Do_RegisterHam_Bot(id)
-{ if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
+{
+if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
 RegisterHamFromEntity(Ham_TraceAttack, id, "drs_fw_PlayerTraceAttack")
 }
 public drs_Event_NewRound()
@@ -7316,7 +7493,8 @@ set_task(drs_STAB_TIME, "drs_Do_StabNow", (id+drs_TASK_STABING) + ZC_TOFF_DRS)
 return FMRES_IGNORED;
 }
 public drs_Do_Slashing_Rotate(id)
-{ if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
+{
+if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
 id -= drs_TASK_SLASHING
 if(!is_user_alive(id))
 return
@@ -7333,7 +7511,8 @@ drs_g_Attack_Mode[id] = 0
 drs_g_Hit_Ing[id] = 0
 }
 public drs_Do_Slashing_Ahead(id)
-{ if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
+{
+if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
 id -= drs_TASK_SLASHING
 if(!is_user_alive(id))
 return
@@ -7350,7 +7529,8 @@ drs_g_Attack_Mode[id] = 0
 drs_g_Hit_Ing[id] = 0
 }
 public drs_Do_StabNow(id)
-{ if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
+{
+if (id >= ZC_TOFF_DRS && id < ZC_TOFF_DRS + 0x1000000) id -= ZC_TOFF_DRS;
 id -= drs_TASK_STABING
 if (!is_user_alive(id))
 return
@@ -7662,13 +7842,14 @@ get_tr2(ptr, TR_vecEndPos, drs_EndPos)
 free_tr2(ptr)
 return floatround(get_distance_f(end, drs_EndPos))
 }
-public drs_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; drs_get_dragonsword(id); return drs_vex_has(id); }
+public drs_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; drs_get_dragonsword(id); return drs_vex_has(id); }
 public drs_vex_remove(id) { drs_remove_dragonsword(id); return 1; }
 public drs_vex_has(id) { return drs_g_Had_DragonSword[id]; }
 #define kat_PLUGIN "[CSO] Dual Katana"
 #define kat_VERSION "1.0"
 #define kat_AUTHOR "Dias"
-#define kat_V_MODEL "models/v_katanad.mdl"
+new kat_V_MODEL[96] = "models/v_katanad.mdl";
 #define kat_P_MODEL "models/p_katanad.mdl"
 #define kat_CSW_DUALKATANA CSW_KNIFE
 #define kat_weapon_dualkatana "weapon_knife"
@@ -7746,6 +7927,7 @@ VxRegisterHam524(Ham_Item_Deploy, kat_weapon_dualkatana, "kat_fw_Item_Deploy_Pos
 }
 public kat_plugin_precache()
 {
+vxe_audio_model("models/v_katanad.mdl","kat",kat_V_MODEL,charsmax(kat_V_MODEL));
 if (!VexAssetGuard("vx42_katana")) return;
 ZcPcModel(kat_V_MODEL)
 ZcPcModel(kat_P_MODEL)
@@ -7790,7 +7972,8 @@ set_task(0.1, "kat_Do_RegisterHam_Bot", (id) + ZC_TOFF_KAT)
 }
 }
 public kat_Do_RegisterHam_Bot(id)
-{ if (id >= ZC_TOFF_KAT && id < ZC_TOFF_KAT + 0x1000000) id -= ZC_TOFF_KAT;
+{
+if (id >= ZC_TOFF_KAT && id < ZC_TOFF_KAT + 0x1000000) id -= ZC_TOFF_KAT;
 RegisterHamFromEntity(Ham_TraceAttack, id, "kat_fw_PlayerTraceAttack")
 }
 public kat_Event_Death()
@@ -7884,7 +8067,8 @@ set_task(kat_STAB_TIME, "kat_Do_StabNow", (id+kat_TASK_SET_DAMAGE) + ZC_TOFF_KAT
 return FMRES_IGNORED;
 }
 public kat_Do_Slashing(id)
-{ if (id >= ZC_TOFF_KAT && id < ZC_TOFF_KAT + 0x1000000) id -= ZC_TOFF_KAT;
+{
+if (id >= ZC_TOFF_KAT && id < ZC_TOFF_KAT + 0x1000000) id -= ZC_TOFF_KAT;
 id -= kat_TASK_SET_DAMAGE
 if (!is_user_alive(id))
 return
@@ -7907,7 +8091,8 @@ else if(kat_g_Hit_Ing[id] == kat_HIT_NOTHING) emit_sound(id, CHAN_WEAPON, kat_Du
 set_pdata_string(id, kat_m_szAnimExtention * 4, kat_WEAPON_ANIMEXT, -1 , 20)
 }
 public kat_Do_StabNow(id)
-{ if (id >= ZC_TOFF_KAT && id < ZC_TOFF_KAT + 0x1000000) id -= ZC_TOFF_KAT;
+{
+if (id >= ZC_TOFF_KAT && id < ZC_TOFF_KAT + 0x1000000) id -= ZC_TOFF_KAT;
 id -= kat_TASK_SET_DAMAGE
 if (!is_user_alive(id))
 return
@@ -8229,7 +8414,8 @@ get_tr2(ptr, TR_vecEndPos, kat_EndPos)
 free_tr2(ptr)
 return floatround(get_distance_f(end, kat_EndPos))
 }
-public kat_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; kat_get_dualkatana(id); return kat_vex_has(id); }
+public kat_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; kat_get_dualkatana(id); return kat_vex_has(id); }
 public kat_vex_remove(id) { kat_remove_dualkatana(id); return 1; }
 public kat_vex_has(id) { return kat_g_Had_DualKatana[id]; }
 #define lsb_PLUGIN "[CSO] LightSaber"
@@ -8244,7 +8430,7 @@ public kat_vex_has(id) { return kat_g_Had_DualKatana[id]; }
 #define lsb_RESET_TIME 1.5
 #define lsb_ANIMEXT1 "onehanded"
 #define lsb_ANIMEXT2 "knife"
-#define lsb_V_MODEL "models/v_sfsword.mdl"
+new lsb_V_MODEL[96] = "models/v_sfsword.mdl";
 #define lsb_P_MODEL_ON "models/p_sfsword_on.mdl"
 #define lsb_P_MODEL_OFF "models/p_sfsword_off.mdl"
 new const lsb_LightSaber_Sounds[14][] =
@@ -8314,6 +8500,7 @@ lsb_g_MaxPlayers = get_maxplayers()
 }
 public lsb_plugin_precache()
 {
+vxe_audio_model("models/v_sfsword.mdl","lsb",lsb_V_MODEL,charsmax(lsb_V_MODEL));
 if (!VexAssetGuard("vx42_lightsaber")) return;
 ZcPcModel(lsb_V_MODEL)
 ZcPcModel(lsb_P_MODEL_ON)
@@ -8331,7 +8518,8 @@ set_task(0.1, "lsb_Do_RegisterHam_Bot", (id) + ZC_TOFF_LSB)
 }
 }
 public lsb_Do_RegisterHam_Bot(id)
-{ if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
+{
+if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
 RegisterHamFromEntity(Ham_TraceAttack, id, "lsb_fw_TraceAttack")
 }
 public lsb_Get_LightSaber(id)
@@ -8492,7 +8680,8 @@ set_task(lsb_TURN_TIME - 0.1, "lsb_Turn_Complete", (id+lsb_TASK_TURN) + ZC_TOFF_
 return FMRES_IGNORED;
 }
 public lsb_Turn_Complete(id)
-{ if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
+{
+if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
 id -= lsb_TASK_TURN
 if(!is_user_alive(id))
 return
@@ -8504,7 +8693,8 @@ set_pev(id, pev_weaponmodel2, lsb_Get_BitVar(lsb_g_IsOnMode, id) ? lsb_P_MODEL_O
 set_pdata_string(id, (492) * 4, lsb_Get_BitVar(lsb_g_IsOnMode, id) ? lsb_ANIMEXT1 : lsb_ANIMEXT2, -1 , 20)
 }
 public lsb_Reset_Anim(id)
-{ if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
+{
+if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
 id -= lsb_TASK_RESET
 if(!is_user_alive(id))
 return
@@ -8513,7 +8703,8 @@ return
 set_pdata_string(id, (492) * 4, lsb_Get_BitVar(lsb_g_IsOnMode, id) ? lsb_ANIMEXT1 : lsb_ANIMEXT2, -1 , 20)
 }
 public lsb_Damage_Slash(id)
-{ if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
+{
+if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
 id -= lsb_TASK_SLASH
 if(!is_user_alive(id))
 return
@@ -8524,7 +8715,8 @@ if(lsb_Target) emit_sound(id, CHAN_WEAPON, lsb_LightSaber_Sounds[random_num(1, 2
 else if(lsb_g_WillBeHit[id] == lsb_HIT_WALL) emit_sound(id, CHAN_WEAPON, lsb_LightSaber_Sounds[random_num(12, 13)], 1.0, ATTN_NORM, 0, PITCH_NORM)
 }
 public lsb_Damage_Stab(id)
-{ if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
+{
+if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
 id -= lsb_TASK_SLASH
 if(!is_user_alive(id))
 return
@@ -8535,7 +8727,8 @@ if(lsb_Target) emit_sound(id, CHAN_WEAPON, lsb_LightSaber_Sounds[random_num(1, 2
 else if(lsb_g_WillBeHit[id] == lsb_HIT_WALL) emit_sound(id, CHAN_WEAPON, lsb_LightSaber_Sounds[random_num(12, 13)], 1.0, ATTN_NORM, 0, PITCH_NORM)
 }
 public lsb_Damage_OffStab(id)
-{ if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
+{
+if (id >= ZC_TOFF_LSB && id < ZC_TOFF_LSB + 0x1000000) id -= ZC_TOFF_LSB;
 id -= lsb_TASK_SLASH
 if(!is_user_alive(id))
 return
@@ -8800,365 +8993,10 @@ write_byte(0)
 message_end()
 }
 stock lsb_set_player_nextattack(id, Float:lsb_NextTime) set_pdata_float(id, 83, lsb_NextTime, 5)
-public lsb_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; lsb_Get_LightSaber(id); return lsb_vex_has(id); }
+public lsb_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id)) return 0; lsb_Get_LightSaber(id); return lsb_vex_has(id); }
 public lsb_vex_remove(id) { lsb_Remove_LightSaber(id); return 1; }
 public lsb_vex_has(id) { return lsb_Get_BitVar(lsb_g_Had_LightSaber, id) ? 1 : 0; }
-#define hax_PLUGIN "[CSO] Horse Axe"
-#define hax_VERSION "1.0"
-#define hax_AUTHOR "2015"
-#define hax_DAMAGE_A 120
-#define hax_DAMAGE_B 240
-#define hax_RADIUS 72.0
-#define hax_KNOCKBACK_POWER 350.0
-#define hax_MODEL_V "models/v_horseaxe.mdl"
-#define hax_MODEL_P "models/p_horseaxe.mdl"
-new const hax_HorseAxe_Sounds[8][] =
-{
-"weapons/tomahawk_draw.wav",
-"weapons/tomahawk_slash1.wav",
-"weapons/tomahawk_slash1_hit.wav",
-"weapons/tomahawk_slash2.wav",
-"weapons/tomahawk_slash2_hit.wav",
-"weapons/tomahawk_stab_hit.wav",
-"weapons/tomahawk_stab_miss.wav",
-"weapons/tomahawk_wall.wav"
-}
-enum
-{
-hax_ANIM_IDLE = 0,
-hax_ANIM_SLASH1,
-hax_ANIM_SLASH2,
-hax_ANIM_DRAW,
-hax_ANIM_STAB,
-hax_ANIM_STAB_MISS,
-hax_ANIM_MIDSLASH1,
-hax_ANIM_MIDSLASH2
-}
-enum
-{
-hax_HIT_NOTHING = 0,
-hax_HIT_ENEMY,
-hax_HIT_WALL
-}
-#define hax_TASK_CHANGE 2512015
-#define hax_TASK_ATTACK 25120152
-#define hax_CSW_HORSEAXE CSW_KNIFE
-#define hax_weapon_horseaxe "weapon_knife"
-#define hax_Get_BitVar(%1,%2) (%1 & (1 << (%2 & 31)))
-#define hax_Set_BitVar(%1,%2) %1 |= (1 << (%2 & 31))
-#define hax_UnSet_BitVar(%1,%2) %1 &= ~(1 << (%2 & 31))
-new hax_g_Had_HorseAxe, hax_g_TempingAttack, hax_g_Stab
-new hax_g_WillBeHit[33]
-new hax_g_IsConnected, hax_g_IsAlive, hax_g_PlayerWeapon[33], hax_g_HamBot
-public hax_plugin_init()
-{
-hax_Register_SafetyFunc()
-g_zcFm[ZCFM_EmitSound] |= (1<<9)
-g_zcFm[ZCFM_TraceLine] |= (1<<9)
-g_zcFm[ZCFM_TraceHull] |= (1<<9)
-VxRegisterHam524(Ham_Item_Deploy, hax_weapon_horseaxe, "hax_fw_Item_Deploy_Post", 1)
-VxRegisterHam524(Ham_TakeDamage, "player", "hax_fw_TakeDamage")
-VxRegisterHam524(Ham_TakeDamage, "player", "hax_fw_TakeDamage_Post", 1)
-}
-public hax_plugin_precache()
-{
-if (!VexAssetGuard("vx42_horseaxe")) return;
-ZcPcModel(hax_MODEL_V)
-ZcPcModel(hax_MODEL_P)
-for(new i = 0; i < sizeof(hax_HorseAxe_Sounds); i++)
-VexPcSnd(hax_HorseAxe_Sounds[i], (i==1||i==2||i==3||i==4||i==5||i==7) ? true : false)
-}
-public hax_client_putinserver(id)
-{
-hax_Safety_Connected(id)
-if(!hax_g_HamBot && is_user_bot(id))
-{
-hax_g_HamBot = 1
-set_task(0.1, "hax_Do_Register_HamBot", (id) + ZC_TOFF_HAX)
-}
-}
-public hax_Do_Register_HamBot(id)
-{ if (id >= ZC_TOFF_HAX && id < ZC_TOFF_HAX + 0x1000000) id -= ZC_TOFF_HAX;
-hax_Register_SafetyFuncBot(id)
-RegisterHamFromEntity(Ham_TakeDamage, id, "hax_fw_TakeDamage")
-RegisterHamFromEntity(Ham_TakeDamage, id, "hax_fw_TakeDamage_Post", 1)
-}
-public hax_client_disconnect(id)
-{
-hax_Safety_Disconnected(id)
-}
-public hax_Get_HorseAxe(id)
-{
-hax_Set_BitVar(hax_g_Had_HorseAxe, id)
-hax_UnSet_BitVar(hax_g_TempingAttack, id)
-hax_g_WillBeHit[id] = hax_HIT_NOTHING
-if(get_user_weapon(id) == CSW_KNIFE)
-{
-set_pev(id, pev_viewmodel2, hax_MODEL_V)
-set_pev(id, pev_weaponmodel2, hax_MODEL_P)
-hax_Set_WeaponAnim(id, hax_ANIM_DRAW)
-} else {
-engclient_cmd(id, hax_weapon_horseaxe)
-}
-}
-public hax_Remove_Papin(id)
-{
-hax_UnSet_BitVar(hax_g_Had_HorseAxe, id)
-}
-public hax_fw_EmitSound(id, channel, const sample[], Float:volume, Float:hax_attn, flags, pitch)
-{
-if(!hax_is_connected(id))
-return FMRES_IGNORED
-if(hax_get_player_weapon(id) != hax_CSW_HORSEAXE || !hax_Get_BitVar(hax_g_Had_HorseAxe, id))
-return FMRES_IGNORED
-if(sample[8] == 'k' && sample[9] == 'n' && sample[10] == 'i')
-{
-if(sample[14] == 's' && sample[15] == 'l' && sample[16] == 'a')
-{
-emit_sound(id, channel, random_num(0, 1) ? hax_HorseAxe_Sounds[1] : hax_HorseAxe_Sounds[3], volume, hax_attn, flags, pitch)
-set_task(0.1, "hax_Set_Speed", (id) + ZC_TOFF_HAX)
-hax_UnSet_BitVar(hax_g_Stab, id)
-return FMRES_SUPERCEDE
-}
-if (sample[14] == 'h' && sample[15] == 'i' && sample[16] == 't')
-{
-set_task(0.1, "hax_Set_Speed", (id) + ZC_TOFF_HAX)
-if (sample[17] == 'w')
-{
-hax_UnSet_BitVar(hax_g_Stab, id)
-emit_sound(id, channel, hax_HorseAxe_Sounds[7], volume, hax_attn, flags, pitch)
-return FMRES_SUPERCEDE
-} else {
-hax_UnSet_BitVar(hax_g_Stab, id)
-emit_sound(id, channel, random_num(0, 1) ? hax_HorseAxe_Sounds[2] : hax_HorseAxe_Sounds[4], volume, hax_attn, flags, pitch)
-return FMRES_SUPERCEDE
-}
-}
-if (sample[14] == 's' && sample[15] == 't' && sample[16] == 'a')
-{
-hax_Set_BitVar(hax_g_Stab, id)
-emit_sound(id, channel, hax_HorseAxe_Sounds[5], volume, hax_attn, flags, pitch)
-set_task(0.1, "hax_Set_Speed2", (id) + ZC_TOFF_HAX)
-return FMRES_SUPERCEDE;
-}
-}
-return FMRES_IGNORED
-}
-public hax_Set_Speed(id)
-{ if (id >= ZC_TOFF_HAX && id < ZC_TOFF_HAX + 0x1000000) id -= ZC_TOFF_HAX;
-hax_Set_Weapon_Idle(id, hax_CSW_HORSEAXE, 0.25 + 0.3)
-hax_Set_Player_NextAttack(id, 0.25)
-}
-public hax_Set_Speed2(id)
-{ if (id >= ZC_TOFF_HAX && id < ZC_TOFF_HAX + 0x1000000) id -= ZC_TOFF_HAX;
-hax_Set_Weapon_Idle(id, hax_CSW_HORSEAXE, 0.5 + 0.3)
-hax_Set_Player_NextAttack(id, 0.5)
-}
-public hax_fw_TraceLine(Float:hax_vector_start[3], Float:hax_vector_end[3], hax_ignored_monster, id, handle)
-{
-if(!hax_is_alive(id))
-return FMRES_IGNORED
-if(hax_get_player_weapon(id) != hax_CSW_HORSEAXE || !hax_Get_BitVar(hax_g_Had_HorseAxe, id))
-return FMRES_IGNORED
-static Float:hax_vecStart[3], Float:hax_vecEnd[3], Float:hax_v_angle[3], Float:hax_v_forward[3], Float:view_ofs[3], Float:hax_fOrigin[3]
-pev(id, pev_origin, hax_fOrigin)
-pev(id, pev_view_ofs, view_ofs)
-xs_vec_add(hax_fOrigin, view_ofs, hax_vecStart)
-pev(id, pev_v_angle, hax_v_angle)
-engfunc(EngFunc_MakeVectors, hax_v_angle)
-get_global_vector(GL_v_forward, hax_v_forward)
-if(!hax_Get_BitVar(hax_g_TempingAttack, id)) xs_vec_mul_scalar(hax_v_forward, hax_RADIUS, hax_v_forward)
-else xs_vec_mul_scalar(hax_v_forward, 0.0, hax_v_forward)
-xs_vec_add(hax_vecStart, hax_v_forward, hax_vecEnd)
-engfunc(EngFunc_TraceLine, hax_vecStart, hax_vecEnd, hax_ignored_monster, id, handle)
-return FMRES_SUPERCEDE
-}
-public hax_fw_TraceHull(Float:hax_vector_start[3], Float:hax_vector_end[3], hax_ignored_monster, hull, id, handle)
-{
-if(!hax_is_alive(id))
-return FMRES_IGNORED
-if(hax_get_player_weapon(id) != hax_CSW_HORSEAXE || !hax_Get_BitVar(hax_g_Had_HorseAxe, id))
-return FMRES_IGNORED
-static Float:hax_vecStart[3], Float:hax_vecEnd[3], Float:hax_v_angle[3], Float:hax_v_forward[3], Float:view_ofs[3], Float:hax_fOrigin[3]
-pev(id, pev_origin, hax_fOrigin)
-pev(id, pev_view_ofs, view_ofs)
-xs_vec_add(hax_fOrigin, view_ofs, hax_vecStart)
-pev(id, pev_v_angle, hax_v_angle)
-engfunc(EngFunc_MakeVectors, hax_v_angle)
-get_global_vector(GL_v_forward, hax_v_forward)
-if(!hax_Get_BitVar(hax_g_TempingAttack, id)) xs_vec_mul_scalar(hax_v_forward, hax_RADIUS, hax_v_forward)
-else xs_vec_mul_scalar(hax_v_forward, 0.0, hax_v_forward)
-xs_vec_add(hax_vecStart, hax_v_forward, hax_vecEnd)
-engfunc(EngFunc_TraceHull, hax_vecStart, hax_vecEnd, hax_ignored_monster, hull, id, handle)
-return FMRES_SUPERCEDE
-}
-public hax_fw_TakeDamage(hax_Victim, hax_Inflictor, hax_Attacker, Float:Damage, hax_DamageBits)
-{
-if(!hax_is_alive(hax_Attacker))
-return HAM_IGNORED
-if(hax_get_player_weapon(hax_Attacker) != hax_CSW_HORSEAXE || !hax_Get_BitVar(hax_g_Had_HorseAxe, hax_Attacker))
-return HAM_IGNORED
-if(hax_Get_BitVar(hax_g_Stab, hax_Attacker))
-{
-SetHamParamFloat(4, float(hax_DAMAGE_B))
-} else {
-SetHamParamFloat(4, float(hax_DAMAGE_A))
-}
-return HAM_HANDLED
-}
-public hax_fw_TakeDamage_Post(hax_Victim, hax_Inflictor, hax_Attacker, Float:Damage, hax_DamageBits)
-{
-if(!hax_is_alive(hax_Attacker))
-return HAM_IGNORED
-if(hax_get_player_weapon(hax_Attacker) != hax_CSW_HORSEAXE || !hax_Get_BitVar(hax_g_Had_HorseAxe, hax_Attacker))
-return HAM_IGNORED
-if(hax_Get_BitVar(hax_g_Stab, hax_Attacker))
-{
-static Float:Origin[3]; pev(hax_Attacker, pev_origin, Origin)
-if(is_user_alive(hax_Victim)) hax_HookEnt(hax_Victim, Origin, hax_KNOCKBACK_POWER)
-}
-return HAM_HANDLED
-}
-public hax_fw_Item_Deploy_Post(hax_Ent)
-{
-if(pev_valid(hax_Ent) != 2)
-return
-static hax_Id; hax_Id = get_pdata_cbase(hax_Ent, 41, 4)
-if(get_pdata_cbase(hax_Id, 373) != hax_Ent)
-return
-if(!hax_Get_BitVar(hax_g_Had_HorseAxe, hax_Id))
-return
-set_pev(hax_Id, pev_viewmodel2, hax_MODEL_V)
-set_pev(hax_Id, pev_weaponmodel2, hax_MODEL_P)
-hax_PlaySound(hax_Id, hax_HorseAxe_Sounds[0])
-hax_Set_WeaponAnim(hax_Id, hax_ANIM_DRAW)
-}
-stock hax_HookEnt(ent, Float:hax_VicOrigin[3], Float:speed)
-{
-static Float:hax_fl_Velocity[3]
-static Float:hax_EntOrigin[3]
-pev(ent, pev_origin, hax_EntOrigin)
-static Float:hax_distance_f
-hax_distance_f = get_distance_f(hax_EntOrigin, hax_VicOrigin)
-static Float:hax_fl_Time; hax_fl_Time = hax_distance_f / speed
-hax_fl_Velocity[0] = ((hax_EntOrigin[0] - hax_VicOrigin[0]) / hax_fl_Time) * 1.5
-hax_fl_Velocity[1] = ((hax_EntOrigin[1] - hax_VicOrigin[1]) / hax_fl_Time) * 1.5
-hax_fl_Velocity[2] = ((hax_EntOrigin[2] - hax_VicOrigin[2]) / hax_fl_Time) + 500.0
-set_pev(ent, pev_velocity, hax_fl_Velocity)
-}
-stock hax_is_wall_between_points(Float:start[3], Float:end[3], hax_ignore_ent)
-{
-static ptr
-ptr = create_tr2()
-engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, hax_ignore_ent, ptr)
-static Float:hax_EndPos[3]
-get_tr2(ptr, TR_vecEndPos, hax_EndPos)
-free_tr2(ptr)
-return floatround(get_distance_f(end, hax_EndPos))
-}
-stock hax_Set_WeaponAnim(id, hax_anim)
-{
-set_pev(id, pev_weaponanim, hax_anim)
-message_begin(MSG_ONE_UNRELIABLE, SVC_WEAPONANIM, {0, 0, 0}, id)
-write_byte(hax_anim)
-write_byte(pev(id, pev_body))
-message_end()
-}
-stock hax_Set_Weapon_Idle(id, hax_WeaponId ,Float:hax_TimeIdle)
-{
-static hax_entwpn; hax_entwpn = fm_get_user_weapon_entity(id, hax_WeaponId)
-if(!pev_valid(hax_entwpn))
-return
-set_pdata_float(hax_entwpn, 46, hax_TimeIdle, 4)
-set_pdata_float(hax_entwpn, 47, hax_TimeIdle, 4)
-set_pdata_float(hax_entwpn, 48, hax_TimeIdle + 0.5, 4)
-}
-stock hax_Set_Player_NextAttack(id, Float:hax_NextTime) set_pdata_float(id, 83, hax_NextTime, 5)
-stock hax_PlaySound(id, const sound[])
-{
-if(equal(sound[strlen(sound)-4], ".mp3")) client_cmd(id, "mp3 play ^"sound/%s^"", sound)
-else client_cmd(id, "spk ^"%s^"", sound)
-}
-stock hax_get_position(ent, Float:hax_forw, Float:right, Float:up, Float:hax_vStart[])
-{
-static Float:hax_vOrigin[3], Float:hax_vAngle[3], Float:hax_vForward[3], Float:hax_vRight[3], Float:hax_vUp[3]
-pev(ent, pev_origin, hax_vOrigin)
-pev(ent, pev_view_ofs,hax_vUp)
-xs_vec_add(hax_vOrigin,hax_vUp,hax_vOrigin)
-pev(ent, pev_v_angle, hax_vAngle)
-angle_vector(hax_vAngle,ANGLEVECTOR_FORWARD,hax_vForward)
-angle_vector(hax_vAngle,ANGLEVECTOR_RIGHT,hax_vRight)
-angle_vector(hax_vAngle,ANGLEVECTOR_UP,hax_vUp)
-hax_vStart[0] = hax_vOrigin[0] + hax_vForward[0] * hax_forw + hax_vRight[0] * right + hax_vUp[0] * up
-hax_vStart[1] = hax_vOrigin[1] + hax_vForward[1] * hax_forw + hax_vRight[1] * right + hax_vUp[1] * up
-hax_vStart[2] = hax_vOrigin[2] + hax_vForward[2] * hax_forw + hax_vRight[2] * right + hax_vUp[2] * up
-}
-public hax_Register_SafetyFunc()
-{
-g_zcEvCurWeapon |= (1<<9)
-VxRegisterHam524(Ham_Spawn, "player", "hax_fw_Safety_Spawn_Post", 1)
-VxRegisterHam524(Ham_Killed, "player", "hax_fw_Safety_Killed_Post", 1)
-}
-public hax_Register_SafetyFuncBot(id)
-{
-RegisterHamFromEntity(Ham_Spawn, id, "hax_fw_Safety_Spawn_Post", 1)
-RegisterHamFromEntity(Ham_Killed, id, "hax_fw_Safety_Killed_Post", 1)
-}
-public hax_Safety_Connected(id)
-{
-hax_Set_BitVar(hax_g_IsConnected, id)
-hax_UnSet_BitVar(hax_g_IsAlive, id)
-hax_g_PlayerWeapon[id] = 0
-}
-public hax_Safety_Disconnected(id)
-{
-hax_UnSet_BitVar(hax_g_IsConnected, id)
-hax_UnSet_BitVar(hax_g_IsAlive, id)
-hax_g_PlayerWeapon[id] = 0
-}
-public hax_Safety_CurWeapon(id)
-{
-if(!hax_is_alive(id))
-return
-static hax_CSW; hax_CSW = read_data(2)
-if(hax_g_PlayerWeapon[id] != hax_CSW) hax_g_PlayerWeapon[id] = hax_CSW
-}
-public hax_fw_Safety_Spawn_Post(id)
-{
-if(!is_user_alive(id))
-return
-hax_Set_BitVar(hax_g_IsAlive, id)
-}
-public hax_fw_Safety_Killed_Post(id)
-{
-hax_UnSet_BitVar(hax_g_IsAlive, id)
-}
-public hax_is_connected(id)
-{
-if(!(1 <= id <= 32))
-return 0
-if(!hax_Get_BitVar(hax_g_IsConnected, id))
-return 0
-return 1
-}
-public hax_is_alive(id)
-{
-if(!(1 <= id <= 32))
-return 0
-if(!hax_Get_BitVar(hax_g_IsConnected, id))
-return 0
-if(hax_Get_BitVar(hax_g_IsAlive, id)) return 1
-else return 0
-}
-public hax_get_player_weapon(id)
-{
-if(!hax_is_alive(id))
-return 0
-return hax_g_PlayerWeapon[id]
-}
-public hax_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id)) return 0; hax_Get_HorseAxe(id); return hax_vex_has(id); }
-public hax_vex_remove(id) { hax_Remove_Papin(id); return 1; }
-public hax_vex_has(id) { return hax_Get_BitVar(hax_g_Had_HorseAxe, id) ? 1 : 0; }
 #define hev_zp_get_user_zombie vx45_corezombie
 new const hev_HEV_MODEL_SHORT[] = "player_hev";
 new const hev_HEV_ZOMBIE_FULL[]  = "models/player/hev_zombie/hev_zombie.mdl";
@@ -9202,7 +9040,7 @@ const hev_ITEM_COST = 80
 #define hev_REGEN_TICK 2
 #define hev_BOOST_THRES 40
 #define hev_BOOST_VALUE 250
-new hev_g_iItemId, hev_g_maxPlayers, hev_g_MsgSync;
+new hev_g_iItemId, hev_g_maxPlayers;
 new bool:hev_g_bHasHEV[33], bool:hev_g_bBoughtThisRound[33], bool:hev_g_bMorphineUsed[33], bool:hev_g_bArmorBoostUsed[33], bool:hev_g_bIsHEVZombie[33];
 new hev_g_iSuitPower[33], hev_g_ent_playermodel[33];
 new hev_g_cvArmor, hev_g_cvHealthBonus, hev_g_cvDamageReduction, hev_g_cvLongJump;
@@ -9274,7 +9112,6 @@ for(new i = 0; i < sizeof hev_weapon_list; i++)
 VxRegisterHam524(Ham_Item_Deploy, hev_weapon_list[i], "hev_fw_Weapon_Deploy_Post", 1);
 register_event("HLTV", "hev_event_NewRound", "a", "1=0", "2=0");
 hev_g_maxPlayers = get_maxplayers();
-hev_g_MsgSync = CreateHudSyncObj();
 set_task(1.0, "hev_HEV_MainLoop", ZC_TOFF_HEV, _, _, "b");
 }
 public hev_Event_CurWeapon(id)
@@ -9397,7 +9234,8 @@ client_cmd(id, "spk fvox/hev_logon");
 hev_ScreenFade(id, {255, 150, 0}, 1.0, 0.5);
 }
 public hev_restore_weapon_model(id)
-{ if (id >= ZC_TOFF_HEV && id < ZC_TOFF_HEV + 0x1000000) id -= ZC_TOFF_HEV;
+{
+if (id >= ZC_TOFF_HEV && id < ZC_TOFF_HEV + 0x1000000) id -= ZC_TOFF_HEV;
 if (!is_user_alive(id) || hev_zp_get_user_zombie(id)) return;
 set_pev(id, pev_viewmodel2, "");
 new ent = get_pdata_cbase(id, 373, 5);
@@ -9546,7 +9384,8 @@ default: return;
 }
 set_pev(id, pev_viewmodel2, szModel);
 }
-stock hev_fm_remove_model_ent(id) { if (pev_valid(hev_g_ent_playermodel[id])) { engfunc(EngFunc_RemoveEntity, hev_g_ent_playermodel[id]); hev_g_ent_playermodel[id] = 0; } }
+stock hev_fm_remove_model_ent(id) {
+if (pev_valid(hev_g_ent_playermodel[id])) { engfunc(EngFunc_RemoveEntity, hev_g_ent_playermodel[id]); hev_g_ent_playermodel[id] = 0; } }
 stock hev_ScreenFade(id, color[3], Float:duration, Float:hev_hold)
 {
 message_begin(MSG_ONE, get_user_msgid("ScreenFade"), _, id);
@@ -9565,7 +9404,8 @@ message_end()
 }
 ZcHevRoundLocked(id) { return hev_g_bBoughtThisRound[id] ? 1 : 0; }
 public hev_vex_has(id) { return hev_g_bHasHEV[id]; }
-public hev_vex_give(id) { if (!is_user_alive(id) || vx45_corezombie(id) || hev_g_bHasHEV[id] || hev_g_bBoughtThisRound[id]) return 0; hev_ActivateHEV(id); return 1; }
+public hev_vex_give(id) {
+if (!is_user_alive(id) || vx45_corezombie(id) || hev_g_bHasHEV[id] || hev_g_bBoughtThisRound[id]) return 0; hev_ActivateHEV(id); return 1; }
 public hev_vex_remove(id) { hev_zp_remove_hev(id); return 1; }
 new Float:jet_fFuelClock[33], Float:jet_fFuelRemainder[33];
 new Float:jet_fEngineAt47[33], Float:jet_fHudAt47[33];
@@ -9726,6 +9566,7 @@ new Float:now = get_gametime();
 new bool:jet_inHand531 = (get_user_weapon(id) == CSW_KNIFE);
 new Float:jet_dt = floatclamp(now - jet_fFuelClock[id], 0.0, 0.1);
 jet_fFuelClock[id] = now;
+if(vx45_corejetdisabled(id)) return;
 static jet_button; jet_button = get_uc(uc_handle, UC_Buttons);
 if((jet_iGas[id] > 0) && (jet_button & IN_DUCK) && (jet_button & IN_JUMP))
 {
@@ -10041,7 +9882,8 @@ engclient_cmd(id, "weapon_knife"); set_pev(id, pev_viewmodel2, jet_ModelJetpack_
 return 1;
 }
 public jet_vex_remove(id) { jet_RemovePlayerJetPack(id); jet_ResetPlayerData(id); return 1; }
-public jet_vex_infected(id) { if (jet_bHasJetpack[id]) jet_CreateWorldJetPack(id); jet_vex_remove(id); return 1; }
+public jet_vex_infected(id) {
+if (jet_bHasJetpack[id]) jet_CreateWorldJetPack(id); jet_vex_remove(id); return 1; }
 public jet_CommunityDrop(id) {
 if (!jet_bHasJetpack[id] || get_user_weapon(id) != CSW_KNIFE) return PLUGIN_CONTINUE;
 jet_CmdDropJetPack(id); vx45_corerestore(id); return PLUGIN_HANDLED;
@@ -10649,7 +10491,13 @@ mgn_g_VexGiving[id]=true; mgn_Get_What(id); mgn_g_VexGiving[id]=false;
 return mgn_g_pWeaponA[id]?1:0;
 }
 public mgn_vex_has(id) { return id>=1 && id<=32 && mgn_g_pWeaponA[id]?1:0; }
-public mgn_vex_remove(id) { if(id>=1 && id<=32) { mgn_g_pWeaponA[id]=false; mgn_g_iRun[id]=false; } return 1; }
+public mgn_vex_remove(id) {
+if(id>=1 && id<=32) {
+    mgn_g_pWeaponA[id]=false;
+    mgn_g_iRun[id]=false;
+}
+return 1;
+}
 public mgn_MinigunDrop(id) { return is_user_alive(id) && vx45_coresurvivor(id) && mgn_HoldCBaseWeapon(id)?PLUGIN_HANDLED:PLUGIN_CONTINUE; }
 new const diag_ASSETS[][] = {
 "models/arrow.mdl",
@@ -10679,7 +10527,6 @@ new const diag_ASSETS[][] = {
 "models/p_dragonsword.mdl",
 "models/p_ethereal.mdl",
 "models/p_fgrenade.mdl",
-"models/p_horseaxe.mdl",
 "models/p_janus7.mdl",
 "models/p_katanad.mdl",
 "models/p_m134x.mdl",
@@ -10731,7 +10578,6 @@ new const diag_ASSETS[][] = {
 "models/v_hev.mdl",
 "models/v_hev_adrenaline_injector.mdl",
 "models/v_hev_zombie.mdl",
-"models/v_horseaxe.mdl",
 "models/v_janus7.mdl",
 "models/v_katanad.mdl",
 "models/v_m134x.mdl",
@@ -11520,101 +11366,6 @@ new const diag_ASSETS[][] = {
 "sound/vexmira/arena51/native/arsenal/7/4.wav",
 "sound/vexmira/arena51/native/arsenal/7/5.wav",
 "sound/vexmira/arena51/native/arsenal/7/6.wav",
-"sound/vexmira/arena51/native/default/ak47/0.wav",
-"sound/vexmira/arena51/native/default/ak47/1.wav",
-"sound/vexmira/arena51/native/default/ak47/2.wav",
-"sound/vexmira/arena51/native/default/aug/0.wav",
-"sound/vexmira/arena51/native/default/aug/1.wav",
-"sound/vexmira/arena51/native/default/aug/2.wav",
-"sound/vexmira/arena51/native/default/aug/3.wav",
-"sound/vexmira/arena51/native/default/aug/4.wav",
-"sound/vexmira/arena51/native/default/awp/0.wav",
-"sound/vexmira/arena51/native/default/awp/1.wav",
-"sound/vexmira/arena51/native/default/awp/2.wav",
-"sound/vexmira/arena51/native/default/awp/3.wav",
-"sound/vexmira/arena51/native/default/awp/4.wav",
-"sound/vexmira/arena51/native/default/c4/0.wav",
-"sound/vexmira/arena51/native/default/deagle/0.wav",
-"sound/vexmira/arena51/native/default/deagle/1.wav",
-"sound/vexmira/arena51/native/default/deagle/2.wav",
-"sound/vexmira/arena51/native/default/elite/0.wav",
-"sound/vexmira/arena51/native/default/elite/1.wav",
-"sound/vexmira/arena51/native/default/elite/2.wav",
-"sound/vexmira/arena51/native/default/elite/3.wav",
-"sound/vexmira/arena51/native/default/elite/4.wav",
-"sound/vexmira/arena51/native/default/elite/5.wav",
-"sound/vexmira/arena51/native/default/famas/0.wav",
-"sound/vexmira/arena51/native/default/famas/1.wav",
-"sound/vexmira/arena51/native/default/famas/2.wav",
-"sound/vexmira/arena51/native/default/fiveseven/0.wav",
-"sound/vexmira/arena51/native/default/fiveseven/1.wav",
-"sound/vexmira/arena51/native/default/fiveseven/2.wav",
-"sound/vexmira/arena51/native/default/fiveseven/3.wav",
-"sound/vexmira/arena51/native/default/g3sg1/0.wav",
-"sound/vexmira/arena51/native/default/g3sg1/1.wav",
-"sound/vexmira/arena51/native/default/g3sg1/2.wav",
-"sound/vexmira/arena51/native/default/galil/0.wav",
-"sound/vexmira/arena51/native/default/galil/1.wav",
-"sound/vexmira/arena51/native/default/galil/2.wav",
-"sound/vexmira/arena51/native/default/glock18/0.wav",
-"sound/vexmira/arena51/native/default/glock18/1.wav",
-"sound/vexmira/arena51/native/default/glock18/2.wav",
-"sound/vexmira/arena51/native/default/glock18/3.wav",
-"sound/vexmira/arena51/native/default/knife/0.wav",
-"sound/vexmira/arena51/native/default/m249/0.wav",
-"sound/vexmira/arena51/native/default/m249/1.wav",
-"sound/vexmira/arena51/native/default/m249/2.wav",
-"sound/vexmira/arena51/native/default/m249/3.wav",
-"sound/vexmira/arena51/native/default/m249/4.wav",
-"sound/vexmira/arena51/native/default/m249/5.wav",
-"sound/vexmira/arena51/native/default/m3/0.wav",
-"sound/vexmira/arena51/native/default/m3/1.wav",
-"sound/vexmira/arena51/native/default/m4a1/0.wav",
-"sound/vexmira/arena51/native/default/m4a1/1.wav",
-"sound/vexmira/arena51/native/default/m4a1/2.wav",
-"sound/vexmira/arena51/native/default/m4a1/3.wav",
-"sound/vexmira/arena51/native/default/m4a1/4.wav",
-"sound/vexmira/arena51/native/default/m4a1/5.wav",
-"sound/vexmira/arena51/native/default/mac10/0.wav",
-"sound/vexmira/arena51/native/default/mac10/1.wav",
-"sound/vexmira/arena51/native/default/mac10/2.wav",
-"sound/vexmira/arena51/native/default/mac10/3.wav",
-"sound/vexmira/arena51/native/default/mp5/0.wav",
-"sound/vexmira/arena51/native/default/mp5/1.wav",
-"sound/vexmira/arena51/native/default/mp5/2.wav",
-"sound/vexmira/arena51/native/default/p228/0.wav",
-"sound/vexmira/arena51/native/default/p228/1.wav",
-"sound/vexmira/arena51/native/default/p228/2.wav",
-"sound/vexmira/arena51/native/default/p228/3.wav",
-"sound/vexmira/arena51/native/default/p228/4.wav",
-"sound/vexmira/arena51/native/default/p90/0.wav",
-"sound/vexmira/arena51/native/default/p90/1.wav",
-"sound/vexmira/arena51/native/default/p90/2.wav",
-"sound/vexmira/arena51/native/default/p90/3.wav",
-"sound/vexmira/arena51/native/default/scout/0.wav",
-"sound/vexmira/arena51/native/default/scout/1.wav",
-"sound/vexmira/arena51/native/default/scout/2.wav",
-"sound/vexmira/arena51/native/default/sg550/0.wav",
-"sound/vexmira/arena51/native/default/sg550/1.wav",
-"sound/vexmira/arena51/native/default/sg550/2.wav",
-"sound/vexmira/arena51/native/default/sg552/0.wav",
-"sound/vexmira/arena51/native/default/sg552/1.wav",
-"sound/vexmira/arena51/native/default/sg552/2.wav",
-"sound/vexmira/arena51/native/default/tmp/0.wav",
-"sound/vexmira/arena51/native/default/tmp/1.wav",
-"sound/vexmira/arena51/native/default/tmp/2.wav",
-"sound/vexmira/arena51/native/default/ump45/0.wav",
-"sound/vexmira/arena51/native/default/ump45/1.wav",
-"sound/vexmira/arena51/native/default/ump45/2.wav",
-"sound/vexmira/arena51/native/default/usp/0.wav",
-"sound/vexmira/arena51/native/default/usp/1.wav",
-"sound/vexmira/arena51/native/default/usp/2.wav",
-"sound/vexmira/arena51/native/default/usp/3.wav",
-"sound/vexmira/arena51/native/default/usp/4.wav",
-"sound/vexmira/arena51/native/default/usp/5.wav",
-"sound/vexmira/arena51/native/default/usp/6.wav",
-"sound/vexmira/arena51/native/default/xm1014/0.wav",
-"sound/vexmira/arena51/native/default/xm1014/1.wav",
 "sound/vexmira/arena51/native/grenade_pin.wav",
 "sound/vexmira/arena51/world/ability.wav",
 "sound/vexmira/arena51/world/assassin_attack.wav",
@@ -11669,109 +11420,6 @@ new const diag_ASSETS[][] = {
 "sound/vexmira/arena52/ambience/mode7.wav",
 "sound/vexmira/arena52/ambience/mode8.wav",
 "sound/vexmira/arena52/ambience/mode9.wav",
-"sound/vexmira/arena52/foley/bolt.wav",
-"sound/vexmira/arena52/foley/draw.wav",
-"sound/vexmira/arena52/foley/magin.wav",
-"sound/vexmira/arena52/foley/magout.wav",
-"sound/vexmira/arena52/foley/pin.wav",
-"sound/vexmira/arena52/foley/scope.wav",
-"sound/vexmira/arena52/foley/shell.wav",
-"sound/vexmira/arena52/foley/throw.wav",
-"sound/vexmira/arena52/native/default/ak47/0.wav",
-"sound/vexmira/arena52/native/default/ak47/1.wav",
-"sound/vexmira/arena52/native/default/ak47/2.wav",
-"sound/vexmira/arena52/native/default/aug/0.wav",
-"sound/vexmira/arena52/native/default/aug/1.wav",
-"sound/vexmira/arena52/native/default/aug/2.wav",
-"sound/vexmira/arena52/native/default/aug/3.wav",
-"sound/vexmira/arena52/native/default/aug/4.wav",
-"sound/vexmira/arena52/native/default/awp/0.wav",
-"sound/vexmira/arena52/native/default/awp/1.wav",
-"sound/vexmira/arena52/native/default/awp/2.wav",
-"sound/vexmira/arena52/native/default/awp/3.wav",
-"sound/vexmira/arena52/native/default/awp/4.wav",
-"sound/vexmira/arena52/native/default/c4/0.wav",
-"sound/vexmira/arena52/native/default/deagle/0.wav",
-"sound/vexmira/arena52/native/default/deagle/1.wav",
-"sound/vexmira/arena52/native/default/deagle/2.wav",
-"sound/vexmira/arena52/native/default/elite/0.wav",
-"sound/vexmira/arena52/native/default/elite/1.wav",
-"sound/vexmira/arena52/native/default/elite/2.wav",
-"sound/vexmira/arena52/native/default/elite/3.wav",
-"sound/vexmira/arena52/native/default/elite/4.wav",
-"sound/vexmira/arena52/native/default/elite/5.wav",
-"sound/vexmira/arena52/native/default/famas/0.wav",
-"sound/vexmira/arena52/native/default/famas/1.wav",
-"sound/vexmira/arena52/native/default/famas/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/0.wav",
-"sound/vexmira/arena52/native/default/fiveseven/1.wav",
-"sound/vexmira/arena52/native/default/fiveseven/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/3.wav",
-"sound/vexmira/arena52/native/default/g3sg1/0.wav",
-"sound/vexmira/arena52/native/default/g3sg1/1.wav",
-"sound/vexmira/arena52/native/default/g3sg1/2.wav",
-"sound/vexmira/arena52/native/default/galil/0.wav",
-"sound/vexmira/arena52/native/default/galil/1.wav",
-"sound/vexmira/arena52/native/default/galil/2.wav",
-"sound/vexmira/arena52/native/default/glock18/0.wav",
-"sound/vexmira/arena52/native/default/glock18/1.wav",
-"sound/vexmira/arena52/native/default/glock18/2.wav",
-"sound/vexmira/arena52/native/default/glock18/3.wav",
-"sound/vexmira/arena52/native/default/knife/0.wav",
-"sound/vexmira/arena52/native/default/m249/0.wav",
-"sound/vexmira/arena52/native/default/m249/1.wav",
-"sound/vexmira/arena52/native/default/m249/2.wav",
-"sound/vexmira/arena52/native/default/m249/3.wav",
-"sound/vexmira/arena52/native/default/m249/4.wav",
-"sound/vexmira/arena52/native/default/m249/5.wav",
-"sound/vexmira/arena52/native/default/m3/0.wav",
-"sound/vexmira/arena52/native/default/m3/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/0.wav",
-"sound/vexmira/arena52/native/default/m4a1/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/3.wav",
-"sound/vexmira/arena52/native/default/m4a1/4.wav",
-"sound/vexmira/arena52/native/default/m4a1/5.wav",
-"sound/vexmira/arena52/native/default/mac10/0.wav",
-"sound/vexmira/arena52/native/default/mac10/1.wav",
-"sound/vexmira/arena52/native/default/mac10/2.wav",
-"sound/vexmira/arena52/native/default/mac10/3.wav",
-"sound/vexmira/arena52/native/default/mp5/0.wav",
-"sound/vexmira/arena52/native/default/mp5/1.wav",
-"sound/vexmira/arena52/native/default/mp5/2.wav",
-"sound/vexmira/arena52/native/default/p228/0.wav",
-"sound/vexmira/arena52/native/default/p228/1.wav",
-"sound/vexmira/arena52/native/default/p228/2.wav",
-"sound/vexmira/arena52/native/default/p228/3.wav",
-"sound/vexmira/arena52/native/default/p228/4.wav",
-"sound/vexmira/arena52/native/default/p90/0.wav",
-"sound/vexmira/arena52/native/default/p90/1.wav",
-"sound/vexmira/arena52/native/default/p90/2.wav",
-"sound/vexmira/arena52/native/default/p90/3.wav",
-"sound/vexmira/arena52/native/default/scout/0.wav",
-"sound/vexmira/arena52/native/default/scout/1.wav",
-"sound/vexmira/arena52/native/default/scout/2.wav",
-"sound/vexmira/arena52/native/default/sg550/0.wav",
-"sound/vexmira/arena52/native/default/sg550/1.wav",
-"sound/vexmira/arena52/native/default/sg550/2.wav",
-"sound/vexmira/arena52/native/default/sg552/0.wav",
-"sound/vexmira/arena52/native/default/sg552/1.wav",
-"sound/vexmira/arena52/native/default/sg552/2.wav",
-"sound/vexmira/arena52/native/default/tmp/0.wav",
-"sound/vexmira/arena52/native/default/tmp/1.wav",
-"sound/vexmira/arena52/native/default/tmp/2.wav",
-"sound/vexmira/arena52/native/default/ump45/0.wav",
-"sound/vexmira/arena52/native/default/ump45/1.wav",
-"sound/vexmira/arena52/native/default/ump45/2.wav",
-"sound/vexmira/arena52/native/default/usp/0.wav",
-"sound/vexmira/arena52/native/default/usp/1.wav",
-"sound/vexmira/arena52/native/default/usp/2.wav",
-"sound/vexmira/arena52/native/default/usp/3.wav",
-"sound/vexmira/arena52/native/default/usp/4.wav",
-"sound/vexmira/arena52/native/default/usp/5.wav",
-"sound/vexmira/arena52/native/default/usp/6.wav",
-"sound/vexmira/arena52/native/default/xm1014/0.wav",
-"sound/vexmira/arena52/native/default/xm1014/1.wav",
 "sound/vexmira/arena52/radio/boss.wav",
 "sound/vexmira/arena52/radio/chatter1.wav",
 "sound/vexmira/arena52/radio/chatter2.wav",
@@ -11917,35 +11565,6 @@ new const diag_ASSETS[][] = {
 "sound/weapons/change1_ready.wav",
 "sound/weapons/clipin1.wav",
 "sound/weapons/clipout1.wav",
-"sound/weapons/csgo/bknife/bknife_backstab02.wav",
-"sound/weapons/csgo/bknife/bknife_draw02.wav",
-"sound/weapons/csgo/bknife/bknife_look01_a.wav",
-"sound/weapons/csgo/bknife/bknife_look01_b.wav",
-"sound/weapons/csgo/bknife/bknife_look02_a.wav",
-"sound/weapons/csgo/bknife/bknife_look02_b.wav",
-"sound/weapons/csgo/bknife/bknife_look03_a.wav",
-"sound/weapons/csgo/bknife/bknife_look03_b.wav",
-"sound/weapons/csgo/deagle/de_deploy.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f009.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f036.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f057.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f081.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f111.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f133.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f166.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f193.wav",
-"sound/weapons/csgo/deagle/deagle_special_lookat_f228.wav",
-"sound/weapons/csgo/knife/knife_deploy1.wav",
-"sound/weapons/csgo/knife_widow/widow_deploy_01.wav",
-"sound/weapons/csgo/knife_widow/widow_lookat2_end.wav",
-"sound/weapons/csgo/knife_widow/widow_lookat2_loop_02.wav",
-"sound/weapons/csgo/knife_widow/widow_lookat2_loop_03.wav",
-"sound/weapons/csgo/knife_widow/widow_lookat2_loop_04.wav",
-"sound/weapons/csgo/knife_widow/widow_lookat2_loop_05.wav",
-"sound/weapons/csgo/knife_widow/widow_lookat2_start.wav",
-"sound/weapons/csgo/movement1.wav",
-"sound/weapons/csgo/movement2.wav",
-"sound/weapons/csgo/movement3.wav",
 "sound/weapons/de_clipin.wav",
 "sound/weapons/de_clipout.wav",
 "sound/weapons/de_deploy.wav",
@@ -12139,14 +11758,6 @@ new const diag_ASSETS[][] = {
 "sound/weapons/sniper_magin.wav",
 "sound/weapons/sniper_magout.wav",
 "sound/weapons/sniper_slidestop.wav",
-"sound/weapons/tomahawk_draw.wav",
-"sound/weapons/tomahawk_slash1.wav",
-"sound/weapons/tomahawk_slash1_hit.wav",
-"sound/weapons/tomahawk_slash2.wav",
-"sound/weapons/tomahawk_slash2_hit.wav",
-"sound/weapons/tomahawk_stab_hit.wav",
-"sound/weapons/tomahawk_stab_miss.wav",
-"sound/weapons/tomahawk_wall.wav",
 "sound/weapons/ump45_boltslap.wav",
 "sound/weapons/ump45_clipin.wav",
 "sound/weapons/ump45_clipout.wav",
@@ -14451,7 +14062,7 @@ if(!file_exists("addons/amxmodx/data/lang/vexmira_zombie.txt")) diag_Report("MIS
 diag_Report("ASSETS checked=%d missing=%d size_mismatch=%d",sizeof diag_ASSETS,diag_missing,diag_size_errors);
 diag_Report("END. Also capture: meta list; amxx version; amxx plugins. This checks files, not live gameplay.");
 }
-new const ZC_MOD_NAME[ZC_MODS][] = { "vx42_janus7", "vx42_plasma", "vx42_thunderbolt", "vx42_ethereal", "vx42_salamander", "vx42_bow", "vx42_dragonsword", "vx42_katana", "vx42_lightsaber", "vx42_horseaxe", "vx42_hev", "vx42_jetpack", "vx42_minigun", "vx42_diagnostic" };
+new const ZC_MOD_NAME[ZC_MODS][] = { "vx42_janus7", "vx42_plasma", "vx42_thunderbolt", "vx42_ethereal", "vx42_salamander", "vx42_bow", "vx42_dragonsword", "vx42_katana", "vx42_lightsaber", "removed_horseaxe", "vx42_hev", "vx42_jetpack", "vx42_minigun", "vx42_diagnostic" };
 new const ZC_MOD_COMP[ZC_MODS] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0 };
 ZcCompMod(comp)
 {
@@ -14474,7 +14085,7 @@ console_print(id,"8 yeni ozel silah core tarafindadir: vex_status | HEV kaldiril
 for (new i = 6; i < ZC_MODS; i++)
 if(i!=10) console_print(id, "module %-18s component %2d : %s", ZC_MOD_NAME[i], ZC_MOD_COMP[i], g_bZcOn[i] ? "ON" : "OFF (missing/damaged asset, see amxx log)");
 for (new i = 0; i < ZC_MODS; i++)
-if (i>=6 && i!=10 && !g_bZcOn[i]) log_amx("[Community] NOT READY: module %s is off (missing/damaged asset)", ZC_MOD_NAME[i]);
+if (i>=6 && i!=9 && i!=10 && !g_bZcOn[i]) log_amx("[Community] NOT READY: module %s is off (missing/damaged asset)", ZC_MOD_NAME[i]);
 }
 ZcCall(comp, op, id)
 {
@@ -14526,11 +14137,7 @@ case ZCOP_give: return lsb_vex_give(id);
 case ZCOP_has: return lsb_vex_has(id);
 case ZCOP_remove: return lsb_vex_remove(id);
 }
-case 10: switch (op) {
-case ZCOP_give: return hax_vex_give(id);
-case ZCOP_has: return hax_vex_has(id);
-case ZCOP_remove: return hax_vex_remove(id);
-}
+case 10: return 0; // Horse Axe / Tomahawk removed.
 case 11: switch (op) {
 case ZCOP_give: return hev_vex_give(id);
 case ZCOP_has: return hev_vex_has(id);
@@ -14619,24 +14226,23 @@ return callfunc_end();
 }
 stock VxSM(ent, const m[])
 {
-if (!VxCoreModelOk(m)) { if (g_iGuardLog531++ < 40) log_amx("[ModelGuard] SetModel '%s' yuklu degil -> atlandi (cokme onlendi)", m); return 0; }
+if (!VxCoreModelOk(m)) {
+if (g_iGuardLog531++ < 40) log_amx("[ModelGuard] SetModel '%s' yuklu degil -> atlandi (cokme onlendi)", m); return 0; }
 engfunc(EngFunc_SetModel, ent, m);
 return 1;
 }
 stock VxCsSetModel(id, const name[])
 {
 new p[128]; formatex(p, charsmax(p), "models/player/%s/%s.mdl", name, name);
-if (!VxCoreModelOk(p)) { if (g_iGuardLog531++ < 40) log_amx("[ModelGuard] oyuncu modeli '%s' yuklu degil -> degistirilmedi", p); return 0; }
+if (!VxCoreModelOk(p)) {
+if (g_iGuardLog531++ < 40) log_amx("[ModelGuard] oyuncu modeli '%s' yuklu degil -> degistirilmedi", p); return 0; }
 cs_set_user_model(id, name);
 return 1;
 }
 // ===================== end model guard =====================
 public plugin_precache()
 {
-g_iIsolation526=ReadIsolation526();
-log_to_file("vexmira_groups.log","[530 vexgear] selected profile=%d",g_iIsolation526);g_bRun526=(g_iIsolation526==2 || g_iIsolation526==3);
-log_to_file("vexmira_isolation.log","[530 vexgear] stage=%d full_module=%d precache BEGIN",g_iIsolation526,g_bRun526);
-if(!g_bRun526) {log_to_file("vexmira_isolation.log","[530 vexgear] baseline precache READY: no custom resources/hooks");return;}
+g_bRun526=true; // Production mode: configured gameplay is always enabled.
 
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePre524",0);
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePost524",1);
@@ -14656,14 +14262,14 @@ g_bZcOn[5]=false; // Replaced by core Arsenal8.
 g_zcCurMod = 6; g_zcGuardFail = false; drs_plugin_precache(); g_bZcOn[6] = !g_zcGuardFail;
 g_zcCurMod = 7; g_zcGuardFail = false; kat_plugin_precache(); g_bZcOn[7] = !g_zcGuardFail;
 g_zcCurMod = 8; g_zcGuardFail = false; lsb_plugin_precache(); g_bZcOn[8] = !g_zcGuardFail;
-g_zcCurMod = 9; g_zcGuardFail = false; hax_plugin_precache(); g_bZcOn[9] = !g_zcGuardFail;
+g_bZcOn[9]=false; // Horse Axe / Tomahawk removed; no models, sounds or hooks.
 g_bZcOn[10]=false; // HEV removed: no models/sounds/hooks are loaded.
 g_zcCurMod = 11; g_zcGuardFail = false; jet_plugin_precache(); g_bZcOn[11] = !g_zcGuardFail;
 g_zcCurMod = 12; g_zcGuardFail = false; mgn_plugin_precache(); g_bZcOn[12] = !g_zcGuardFail;
 g_bZcOn[13] = true;
 g_zcCurMod = -1;
 for (new i = 0; i < ZC_MODS; i++)
-if (i>=6 && i!=10 && !g_bZcOn[i]) log_amx("[Vexmira] modul %s KAPALI: eksik/bozuk dosya (yukaridaki AssetGuard satirlari). Diger her sey calisiyor.", ZC_MOD_NAME[i]);
+if (i>=6 && i!=9 && i!=10 && !g_bZcOn[i]) log_amx("[Vexmira] modul %s KAPALI: eksik/bozuk dosya (yukaridaki AssetGuard satirlari). Diger her sey calisiyor.", ZC_MOD_NAME[i]);
 }
 // 5.3.1: precache after map load = engine Host_Error (server shutdown) -> refuse instead
 new bool:g_bPcClosed531, g_iPcLate531;
@@ -14677,12 +14283,10 @@ public VxPcClose531() g_bPcClosed531 = true;
 public plugin_init()
 {
 set_task(0.1, "VxPcClose531");
-log_to_file("vexmira_isolation.log","[530 vexgear] plugin_init BEGIN stage=%d full=%d",g_iIsolation526,g_bRun526);
-register_clcmd("vex_test","IsolationStatus526");
-if(!g_bRun526) {register_plugin("Vexmira vexgear Baseline Test","5.3.1-Stable","Vexmira");log_to_file("vexmira_isolation.log","[530 vexgear] baseline plugin_init COMPLETE");return;}
+register_clcmd("vex_test","FullModeStatus563");
 
 log_to_file("vexmira_startup.log","[530 vexgear] plugin_init BEGIN");
-register_plugin("Vexmira Equipment", "5.3.1-Stable", "SmurfSexy & Capital / CSO authors");
+register_plugin("Vexmira Equipment", "5.6.4", "SmurfSexy & Capital / CSO authors");
 ZcBuildTrackedSoundList();
 if (g_bZcOn[0]) { log_to_file("vexmira_startup.log","[530 gear] jan BEGIN"); jan_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] jan READY"); }
 if (g_bZcOn[1]) { log_to_file("vexmira_startup.log","[530 gear] pla BEGIN"); pla_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] pla READY"); }
@@ -14693,7 +14297,6 @@ if (g_bZcOn[5]) { log_to_file("vexmira_startup.log","[530 gear] bow BEGIN"); bow
 if (g_bZcOn[6]) { log_to_file("vexmira_startup.log","[530 gear] drs BEGIN"); drs_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] drs READY"); }
 if (g_bZcOn[7]) { log_to_file("vexmira_startup.log","[530 gear] kat BEGIN"); kat_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] kat READY"); }
 if (g_bZcOn[8]) { log_to_file("vexmira_startup.log","[530 gear] lsb BEGIN"); lsb_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] lsb READY"); }
-if (g_bZcOn[9]) { log_to_file("vexmira_startup.log","[530 gear] hax BEGIN"); hax_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] hax READY"); }
 if (g_bZcOn[10]) { log_to_file("vexmira_startup.log","[530 gear] hev BEGIN"); hev_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] hev READY"); }
 if (g_bZcOn[11]) { log_to_file("vexmira_startup.log","[530 gear] jet BEGIN"); jet_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] jet READY"); }
 if (g_bZcOn[12]) { log_to_file("vexmira_startup.log","[530 gear] mgn BEGIN"); mgn_plugin_init(); log_to_file("vexmira_startup.log","[530 gear] mgn READY"); }
@@ -14715,7 +14318,6 @@ if (g_bZcOn[4]) sal_client_putinserver(id);
 if (g_bZcOn[6]) drs_client_putinserver(id);
 if (g_bZcOn[7]) kat_client_putinserver(id);
 if (g_bZcOn[8]) lsb_client_putinserver(id);
-if (g_bZcOn[9]) hax_client_putinserver(id);
 if (g_bZcOn[11]) jet_client_putinserver(id);
 }
 public client_disconnected(id, bool:drop, message[], maxlen)
@@ -14724,7 +14326,6 @@ ZcStopTrackedSounds(id);
 g_iTrackedWeaponId[id] = 0;
 if(!g_bRun526) return;
 if (g_bZcOn[4]) sal_client_disconnect(id);
-if (g_bZcOn[9]) hax_client_disconnect(id);
 if (g_bZcOn[10]) hev_client_disconnect(id);
 if (g_bZcOn[12]) mgn_client_disconnect(id);
 }
@@ -14761,7 +14362,6 @@ if (m & (1<<5)) { t = bow_fw_EmitSound(a1, a2, a3, a4, a5, a6, a7); if (t > r) r
 if (m & (1<<6)) { t = drs_fw_EmitSound(a1, a2, a3, a4, a5, a6, a7); if (t > r) r = t; }
 if (m & (1<<7)) { t = kat_fw_EmitSound(a1, a2, a3, a4, a5, a6, a7); if (t > r) r = t; }
 if (m & (1<<8)) { t = lsb_fw_EmitSound(a1, a2, a3, a4, a5, a6, a7); if (t > r) r = t; }
-if (m & (1<<9)) { t = hax_fw_EmitSound(a1, a2, a3, a4, a5, a6, a7); if (t > r) r = t; }
 if (m & (1<<10)) { t = hev_fw_EmitSound(a1, a2, a3, a4, a5, a6, a7); if (t > r) r = t; }
 if (r < FMRES_SUPERCEDE && a1 >= 1 && a1 <= 32 && a2 >= 0 && a2 < 8 && equal(a3, "weapons/", 8) && !(a6 & SND_STOP))
 {
@@ -14814,7 +14414,6 @@ if (m & (1<<5)) { t = bow_fw_TraceHull(a1, a2, a3, a4, a5, a6); if (t > r) r = t
 if (m & (1<<6)) { t = drs_fw_TraceHull(a1, a2, a3, a4, a5, a6); if (t > r) r = t; }
 if (m & (1<<7)) { t = kat_fw_TraceHull(a1, a2, a3, a4, a5, a6); if (t > r) r = t; }
 if (m & (1<<8)) { t = lsb_fw_TraceHull(a1, a2, a3, a4, a5, a6); if (t > r) r = t; }
-if (m & (1<<9)) { t = hax_fw_TraceHull(a1, a2, a3, a4, a5, a6); if (t > r) r = t; }
 return r;
 }
 public ZcFmD_TraceLine(Float:a1[3], Float:a2[3], a3, a4, a5)
@@ -14826,7 +14425,6 @@ if (m & (1<<5)) { t = bow_fw_TraceLine(a1, a2, a3, a4, a5); if (t > r) r = t; }
 if (m & (1<<6)) { t = drs_fw_TraceLine(a1, a2, a3, a4, a5); if (t > r) r = t; }
 if (m & (1<<7)) { t = kat_fw_TraceLine(a1, a2, a3, a4, a5); if (t > r) r = t; }
 if (m & (1<<8)) { t = lsb_fw_TraceLine(a1, a2, a3, a4, a5); if (t > r) r = t; }
-if (m & (1<<9)) { t = hax_fw_TraceLine(a1, a2, a3, a4, a5); if (t > r) r = t; }
 return r;
 }
 public ZcFmD_UpdateClientData_P(a1, a2, a3)
@@ -14858,7 +14456,6 @@ if (m & (1<<5)) bow_Event_CurWeapon(id);
 if (m & (1<<6)) drs_Event_CurWeapon(id);
 if (m & (1<<7)) kat_Event_CurWeapon(id);
 if (m & (1<<8)) lsb_Event_CurWeapon(id);
-if (m & (1<<9)) hax_Safety_CurWeapon(id);
 if (m & (1<<10)) hev_Event_CurWeapon(id);
 }
 ZcBuildTrackedSoundList()
@@ -14937,7 +14534,7 @@ new const ZC_F_CFG[][] = {
 "// GENEL",
 "//   Sunucu adi, sohbet etiketleri, temel ayarlar",
 "// ==============================================================================",
-"vex_hostname ^"Vexmira Zombie Plague | 9 Boss + 18 Event | CSO Weapons | TR^" // sunucu adi (en fazla 63 harf, Turkce harf YOK). Arastirma: listede en cok aranan kelimeler ^"Zombie Plague^" / ^"ZM^"; ozellik yazan adlar (boss, event, CSO) daha cok tiklaniyor; [TR] etiketi Turk oyuncuyu, Ingilizce kelimeler yabanciyi ceker. Alternatifler: ^"[ZM] Vexmira Zombie Plague | 9 Boss | CSO Silah | Lazer | FDL^" / ^"Vexmira Zombie Plague [TR] | Boss + Event | CSO | Level | FDL^"",
+"vex_hostname ^"[ZM] Vexmira | Zombie Plague [EN/TR] | Boss+FreeVip | Events | NewMod^" // Sunucu listesi adi",
 "vex_hostname_dynamic 0                                       // 1 = adin sonuna round / mod bilgisi eklenir, 0 = sabit ad",
 "vex_chat_prefix ^"^^4[^^1VEXMIRA^^4]^^1^"                          // sistem mesaji etiketi (^^1 sari ^^3 takim rengi ^^4 yesil; Turkce harf kullanma, CS 1.6 sohbeti bozuk gosterir)",
 "vex_chat_prefix_boss ^"^^3[^^4BOSS^^3]^^1^"                        // boss / boss yetenekleri etiketi",
@@ -15110,7 +14707,7 @@ new const ZC_F_CFG[][] = {
 "vex_bdoor_hp 1200                                            // kirilabilir kamp kapilarinin cani (haritada netname vxbd kapi varsa). Insanlar E ile acar/kapatir, zombiler vurarak kirar; her round geri gelir",
 "vex_gun_damage_mult 1.35                                     // NORMAL silahlarin (CS silahlari) zombilere hasar carpani (oyuncu geri bildirimi: hasar az geliyordu)",
 "vex_knockback_max 650                                        // tek mermide en fazla geri itme hizi",
-"vex_sknife_damage_mult 2.5                                   // ozel bicaklarin (Dragon Sword, Katana, Light Saber, Horse Axe) zombiye hasar carpani",
+"vex_sknife_damage_mult 2.5                                   // ozel bicaklarin (Dragon Sword, Katana, Light Saber) zombiye hasar carpani",
 "",
 "// ==============================================================================",
 "// OZEL SILAHLAR VE MERMI",
@@ -15143,12 +14740,12 @@ new const ZC_F_CFG[][] = {
 "vex_gun s 3  2   70                                          // Desert Eagle",
 "vex_gun s 4  3   120                                         // Dual Elites",
 "vex_gun s 5  5   100                                         // Five-seveN",
-"vex_sw 0 25 1 2 180 none 95 185 255 24 0 0.24 0.7            // OZEL SILAH 0 (Arbalest): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
-"vex_sw 1 30 1 2.4 180 none 230 165 80 20 0 0.45 0.9          // OZEL SILAH 1 (Heaven Splitter): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
-"vex_sw 2 35 1 1.7 240 none 240 185 60 40 0 0.11 0.65         // OZEL SILAH 2 (Quantum Horizon): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
-"vex_sw 3 40 1 2.8 160 none 230 85 95 16 0 0.5 0.8            // OZEL SILAH 3 (Magnum Drill Chimera): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
-"vex_sw 4 30 1 1.6 240 none 115 145 240 40 0 0.105 0.7        // OZEL SILAH 4 (Dark Knight): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
-"vex_sw 5 35 1 1.35 300 none 85 225 250 60 0 0.075 0.5        // OZEL SILAH 5 (Infinity Laser Fist): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 0 40 1 2 180 none 95 185 255 24 0 0.24 0.7            // OZEL SILAH 0 (Arbalest): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 1 45 1 2.4 180 none 230 165 80 20 0 0.45 0.9          // OZEL SILAH 1 (Heaven Splitter): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 2 50 1 1.7 240 none 240 185 60 40 0 0.11 0.65         // OZEL SILAH 2 (Quantum Horizon): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 3 60 1 2.8 160 none 230 85 95 16 0 0.5 0.8            // OZEL SILAH 3 (Magnum Drill Chimera): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 4 45 1 1.6 240 none 115 145 240 40 0 0.105 0.7        // OZEL SILAH 4 (Dark Knight): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 5 55 1 1.35 300 none 85 225 250 60 0 0.075 0.5        // OZEL SILAH 5 (Infinity Laser Fist): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
 "vex_sw_text 0 en ^"Arbalest^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 0 yazisi (en): ad + aciklama",
 "vex_sw_text 0 tr ^"Arbalest^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 0 yazisi (tr): ad + aciklama",
 "vex_sw_text 1 en ^"Heaven Splitter^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 1 yazisi (en): ad + aciklama",
@@ -15161,10 +14758,10 @@ new const ZC_F_CFG[][] = {
 "vex_sw_text 4 tr ^"Dark Knight^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 4 yazisi (tr): ad + aciklama",
 "vex_sw_text 5 en ^"Infinity Laser Fist^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 5 yazisi (en): ad + aciklama",
 "vex_sw_text 5 tr ^"Infinity Laser Fist^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 5 yazisi (tr): ad + aciklama",
-"vex_sw 6 45 1 1.8 210 none 150 75 235 30 0 0.18 0.65         // OZEL SILAH 6 (Void Avenger): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 6 70 1 1.8 210 none 150 75 235 30 0 0.18 0.65         // OZEL SILAH 6 (Void Avenger): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
 "vex_sw_text 6 en ^"Void Avenger^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 6 yazisi (en): ad + aciklama",
 "vex_sw_text 6 tr ^"Void Avenger^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 6 yazisi (tr): ad + aciklama",
-"vex_sw 7 40 1 1.45 300 none 220 175 90 60 0 0.11 0.65        // OZEL SILAH 7 (Dual Beretta Gunslinger): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
+"vex_sw 7 60 1 1.45 300 none 220 175 90 60 0 0.11 0.65        // OZEL SILAH 7 (Dual Beretta Gunslinger): <AP> <seviye> <hasar carpani> <yedek mermi> <efekt> <R G B> <sarjor> <zincir> <atis hizi> <geri tepme>",
 "vex_sw_text 7 en ^"Dual Beretta Gunslinger^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 7 yazisi (en): ad + aciklama",
 "vex_sw_text 7 tr ^"Dual Beretta Gunslinger^" ^"Sag tik: mod degistir | Sol tik: ates^" // OZEL SILAH 7 yazisi (tr): ad + aciklama",
 "vex_unlimited_bpammo 1                                       // 1 = herkeste sinirsiz yedek mermi (TUM mod/eventlerde), ozel silahlar haric",
@@ -15494,12 +15091,11 @@ new const ZC_F_CFG[][] = {
 "vex_wing 4 ^"Demon Wings^" ^"Iblis Kanadi^" models/vexmira/community/refresh/wings/devil.mdl 250 0 bone -3 0 -2 0 0 0 1 1 1.0 // KANAT 4: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <bone> <x y z> <aci p y r> <olcek> <animasyon> <hiz>",
 "vex_wing 5 ^"Phoenix Wings^" ^"Anka Kanadi^" models/vexmira/community/refresh/wings/phoenix.mdl 250 0 bone -3 0 -2 0 0 0 1 1 1.0 // KANAT 5: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <bone> <x y z> <aci p y r> <olcek> <animasyon> <hiz>",
 "vex_wing 6 ^"Seraph Wings^" ^"Seraf Kanadi^" models/vexmira/community/refresh/wings/sfwing.mdl 250 0 bone -3 0 -2 0 0 0 1 1 1.0 // KANAT 6: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <bone> <x y z> <aci p y r> <olcek> <animasyon> <hiz>",
-"vex_pet 1 ^"Cat Companion^" ^"Kedi Dost^" models/vexmira/community/refresh/pets/cat.mdl 200 0 follow -22 24 -36 0 0 0 1 0 1.0 // PET 1: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>",
-"vex_pet 2 ^"Duckling^" ^"Ordek Yavrusu^" models/vexmira/community/refresh/pets/duck.mdl 200 0 follow -22 24 -36 0 0 0 1 0 1.0 // PET 2: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>",
-"vex_pet 3 ^"Wolf Pup^" ^"Kurt Yavrusu^" models/vexmira/community/refresh/pets/wolf.mdl 250 0 follow -22 24 -36 0 0 0 1 0 1.0 // PET 3: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>",
-"vex_pet 4 ^"Octo Buddy^" ^"Ahtapot Dost^" models/vexmira/community/refresh/pets/octopus.mdl 200 0 follow -22 24 -36 0 0 0 1 0 1.0 // PET 4: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>",
-"vex_pet 5 ^"Shark Drone^" ^"Kopekbaligi^" models/vexmira/community/refresh/pets/shark.mdl 250 0 follow -22 24 -36 0 0 0 1 0 1.0 // PET 5: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>",
-"vex_pet 6 ^"Cube Pet^" ^"Kare Dost^" models/vexmira/community/refresh/pets/cube.mdl 300 0 follow -22 24 -36 0 0 0 0.65 0 1.0 // PET 6: ^"EN ad^" ^"TR ad^" <model> <VC fiyat> <vip 0/1> <follow> <x y z> <aci> <olcek> <anim> <hiz>",
+"vex_pet 1 ^"Kirby^" ^"Kirby^" models/player/vexpetkirby/chick.mdl 225 0 follow -12 16 -36 0 -90 0 1.0 0 1.0",
+"vex_pet 2 ^"Fturtle^" ^"FTurtle^" models/player/vexpetturtle/chick.mdl 250 0 follow -12 16 -36 0 -90 0 0.65 0 1.0",
+"vex_pet 3 ^"Padrigo^" ^"Padrigo^" models/player/vexpetpadrigo/chick.mdl 275 0 follow -12 16 -36 0 -90 0 0.75 0 1.0",
+"vex_pet 4 ^"Mystic Cat^" ^"Gizemli Kedi^" models/vexmira/pets2026/pet_4.mdl 300 0 follow -12 16 -36 0 0 0 0.9 0 1.0",
+"vex_pet 5 ^"KardanAdam^" ^"Snowman^" models/player/vexpetsnowman/chick.mdl 325 0 follow -12 16 -36 0 -90 0 0.9 0 1.0",
 "vex_cos_follow 1                                             // 1 = kanat + sapka oyuncuya kemikle yapisik (gecikme / isinlanma yok)",
 "",
 "// ==============================================================================",
@@ -15566,7 +15162,6 @@ new const ZC_F_CFG[][] = {
 "vex_six_tracer_every 6                                       // iz mermisi sikligi",
 "vex_meme_cooldown 12.0                                       // meme sesi bekleme (sn)",
 "vex_ambience_volume 0.55                                     // ambiyans muzik/ses seviyesi (0.05 - 1.0)",
-"vex_ambience_restart 120                                     // ambiyans kac saniyede bir tazelenir (parcalar zaten kendi kendine doner; baglanan / sesi kesilen oyuncu icin)",
 "",
 "// ==============================================================================",
 "// GOREV / ODUL / SEVIYE",
@@ -15636,7 +15231,7 @@ new const ZC_F_CFG[][] = {
 "vex_headshot_sound ^"buttons/blip1^"                           // zombiye kafadan vurunca vuran oyuncuya calan kisa ses (stok CS sesi, indirme yok; bos = kapali)",
 "vex_no_urban 1                                               // 1 = kimse urban (Seal Team 6) gorunumunu almaz. Bazi oyuncularda baska ZP sunucularindan kalma bozuk urban.mdl var: urbanT.mdl hatasi verip oyunu kapatiyordu",
 "vex_menu_plain 1                                             // 1 = sade menuler (tek baslik satiri, beyaz numara + yazi, gri fiyat); 0 = eski renkli",
-"vex_menu_gap 1                                               // 1 = menude her secenegin altinda bos satir (arasi acik, okunakli); 0 = sik liste",
+"vex_menu_gap 0                                               // 1 = menude her secenegin altinda bos satir (arasi acik, okunakli); 0 = sik liste",
 "vex_sknife_knockback 430                                     // ozel bicak darbesi zombiyi bu hizla geri iter (her bicakta MK<n>_KB carpani)",
 "vex_sknife_boss_kb 0.25                                      // boss / nemesis / assassin icin geri itme carpani",
 "",
@@ -15713,102 +15308,102 @@ new const ZC_F_CFG[][] = {
 "vex_res ZOMBIE_BLINK ^"vexmira/s534/whoosh.wav^"               // ses: zombie blink (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
 "vex_res ZOMBIE_WIN ^"vexmira/s534/zombie_win.wav^"             // ses: zombie win (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
 "vex_res Z0_MODEL ^"z4_heavy^"                          // ZOMBI SINIFI 0 (Walker): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z0_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 0 (Walker): el / pence modeli",
+"vex_res Z0_CLAW ^"models/player/zombiel/v_hands_tank.mdl^" // ZOMBI SINIFI 0 (Walker): el / pence modeli",
 "vex_res Z0_IDLE ^"^"                                           // ZOMBI SINIFI 0 (Walker): bekleme / homurtu sesi",
 "vex_res Z0_ABILITY ^"vexmira/s534/roar.wav^"                   // ZOMBI SINIFI 0 (Walker): yetenek (R) sesi",
 "vex_res Z1_MODEL ^"zombie_source^"                              // ZOMBI SINIFI 1 (Runner): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z1_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 1 (Runner): el / pence modeli",
+"vex_res Z1_CLAW ^"models/player/zombiel/v_hands_spitter.mdl^" // ZOMBI SINIFI 1 (Runner): el / pence modeli",
 "vex_res Z1_IDLE ^"^"                                           // ZOMBI SINIFI 1 (Runner): bekleme / homurtu sesi",
 "vex_res Z1_ABILITY ^"vexmira/s534/speed.wav^"                  // ZOMBI SINIFI 1 (Runner): yetenek (R) sesi",
 "vex_res Z2_MODEL ^"cso_heavy^"                        // ZOMBI SINIFI 2 (Tank): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z2_CLAW ^"models/vexmira/community/claws/heavy.mdl^"   // ZOMBI SINIFI 2 (Tank): el / pence modeli",
+"vex_res Z2_CLAW ^"models/player/zombiel/v_hands_tank.mdl^"   // ZOMBI SINIFI 2 (Tank): el / pence modeli",
 "vex_res Z2_IDLE ^"^"                                           // ZOMBI SINIFI 2 (Tank): bekleme / homurtu sesi",
 "vex_res Z2_ABILITY ^"vexmira/s534/impact.wav^"                 // ZOMBI SINIFI 2 (Tank): yetenek (R) sesi",
 "vex_res Z3_MODEL ^"zombie_witch2^"                             // ZOMBI SINIFI 3 (Banshee): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z3_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 3 (Banshee): el / pence modeli",
+"vex_res Z3_CLAW ^"models/player/zombiel/v_knife_witch_zombi.mdl^" // ZOMBI SINIFI 3 (Banshee): el / pence modeli",
 "vex_res Z3_IDLE ^"^"                                           // ZOMBI SINIFI 3 (Banshee): bekleme / homurtu sesi",
 "vex_res Z3_ABILITY ^"vexmira/s534/roar2.wav^"                  // ZOMBI SINIFI 3 (Banshee): yetenek (R) sesi",
 "vex_res Z4_MODEL ^"heal_zombi_origin^"                         // ZOMBI SINIFI 4 (Leech): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z4_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 4 (Leech): el / pence modeli",
+"vex_res Z4_CLAW ^"models/player/zombiel/v_knife_witch_zombi.mdl^" // ZOMBI SINIFI 4 (Leech): el / pence modeli",
 "vex_res Z4_IDLE ^"^"                                           // ZOMBI SINIFI 4 (Leech): bekleme / homurtu sesi",
 "vex_res Z4_ABILITY ^"vexmira/s534/heal.wav^"                   // ZOMBI SINIFI 4 (Leech): yetenek (R) sesi",
 "vex_res Z5_MODEL ^"vex_scary^"                                 // ZOMBI SINIFI 5 (Stalker): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z5_CLAW ^"models/vexmira/community/claws/scary.mdl^" // ZOMBI SINIFI 5 (Stalker): el / pence modeli",
+"vex_res Z5_CLAW ^"models/player/zombiel/v_knife_witch_zombi.mdl^" // ZOMBI SINIFI 5 (Stalker): el / pence modeli",
 "vex_res Z5_IDLE ^"^"                                           // ZOMBI SINIFI 5 (Stalker): bekleme / homurtu sesi",
 "vex_res Z5_ABILITY ^"vexmira/s534/whoosh.wav^"                 // ZOMBI SINIFI 5 (Stalker): yetenek (R) sesi",
 "vex_res Z6_MODEL ^"deimos_zombi_host^"                           // ZOMBI SINIFI 6 (Bomber): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z6_CLAW ^"models/vexmira/community/claws/heavy.mdl^" // ZOMBI SINIFI 6 (Bomber): el / pence modeli",
+"vex_res Z6_CLAW ^"models/player/zombiel/v_hands_boomer.mdl^" // ZOMBI SINIFI 6 (Bomber): el / pence modeli",
 "vex_res Z6_IDLE ^"^"                                           // ZOMBI SINIFI 6 (Bomber): bekleme / homurtu sesi",
 "vex_res Z6_ABILITY ^"vexmira/s534/boom.wav^"                   // ZOMBI SINIFI 6 (Bomber): yetenek (R) sesi",
 "vex_res Z7_MODEL ^"hev_zombie^"                                // ZOMBI SINIFI 7 (Frost): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z7_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 7 (Frost): el / pence modeli",
+"vex_res Z7_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 7 (Frost): el / pence modeli",
 "vex_res Z7_IDLE ^"^"                                           // ZOMBI SINIFI 7 (Frost): bekleme / homurtu sesi",
 "vex_res Z7_ABILITY ^"vexmira/s534/ice.wav^"                    // ZOMBI SINIFI 7 (Frost): yetenek (R) sesi",
 "vex_res Z8_MODEL ^"deimos_zombi_host^"                         // ZOMBI SINIFI 8 (Spitter): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z8_CLAW ^"models/vexmira/community/claws/heavy.mdl^" // ZOMBI SINIFI 8 (Spitter): el / pence modeli",
+"vex_res Z8_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 8 (Spitter): el / pence modeli",
 "vex_res Z8_IDLE ^"^"                                           // ZOMBI SINIFI 8 (Spitter): bekleme / homurtu sesi",
 "vex_res Z8_ABILITY ^"vexmira/s534/acid.wav^"                   // ZOMBI SINIFI 8 (Spitter): yetenek (R) sesi",
 "vex_res Z9_MODEL ^"l4d_tank^"                          // ZOMBI SINIFI 9 (Hulk): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z9_CLAW ^"models/vexmira/community/claws/heavy.mdl^"   // ZOMBI SINIFI 9 (Hulk): el / pence modeli",
+"vex_res Z9_CLAW ^"models/player/zombiel/v_hands_smoker.mdl^"   // ZOMBI SINIFI 9 (Hulk): el / pence modeli",
 "vex_res Z9_IDLE ^"^"                                           // ZOMBI SINIFI 9 (Hulk): bekleme / homurtu sesi",
 "vex_res Z9_ABILITY ^"vexmira/s534/impact.wav^"                 // ZOMBI SINIFI 9 (Hulk): yetenek (R) sesi",
 "vex_res Z10_MODEL ^"heal_zombi_origin^"                        // ZOMBI SINIFI 10 (Voodoo): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z10_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 10 (Voodoo): el / pence modeli",
+"vex_res Z10_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 10 (Voodoo): el / pence modeli",
 "vex_res Z10_IDLE ^"^"                                          // ZOMBI SINIFI 10 (Voodoo): bekleme / homurtu sesi",
 "vex_res Z10_ABILITY ^"vexmira/s534/dark.wav^"                  // ZOMBI SINIFI 10 (Voodoo): yetenek (R) sesi",
 "vex_res Z11_MODEL ^"vex_scary^"                                // ZOMBI SINIFI 11 (Phantom): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z11_CLAW ^"models/vexmira/community/claws/scary.mdl^" // ZOMBI SINIFI 11 (Phantom): el / pence modeli",
+"vex_res Z11_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 11 (Phantom): el / pence modeli",
 "vex_res Z11_IDLE ^"^"                                          // ZOMBI SINIFI 11 (Phantom): bekleme / homurtu sesi",
 "vex_res Z11_ABILITY ^"vexmira/s534/whoosh.wav^"                // ZOMBI SINIFI 11 (Phantom): yetenek (R) sesi",
-"vex_res Z12_MODEL ^"cso_heavy^"                                // ZOMBI SINIFI 12 (Kasap): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z12_CLAW ^"models/vexmira/community/claws/heavy.mdl^"  // ZOMBI SINIFI 12 (Kasap): el / pence modeli",
+"vex_res Z12_MODEL ^"hev_zombie^"                                // ZOMBI SINIFI 12 (Kasap): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
+"vex_res Z12_CLAW ^"models/player/zombiel/leech_fix.mdl^"  // ZOMBI SINIFI 12 (Kasap): el / pence modeli",
 "vex_res Z12_IDLE ^"^"                                          // ZOMBI SINIFI 12 (Kasap): bekleme / homurtu sesi",
 "vex_res Z12_ABILITY ^"vexmira/s534/roar.wav^"                  // ZOMBI SINIFI 12 (Kasap): yetenek (R) sesi",
 "vex_res Z13_MODEL ^"vex_scary^"                          // ZOMBI SINIFI 13 (Avci): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z13_CLAW ^"models/vexmira/community/claws/scary.mdl^" // ZOMBI SINIFI 13 (Avci): el / pence modeli",
+"vex_res Z13_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 13 (Avci): el / pence modeli",
 "vex_res Z13_IDLE ^"^"                                          // ZOMBI SINIFI 13 (Avci): bekleme / homurtu sesi",
 "vex_res Z13_ABILITY ^"vexmira/s534/whoosh.wav^"                // ZOMBI SINIFI 13 (Avci): yetenek (R) sesi",
 "vex_res Z14_MODEL ^"deimos_zombi_host^"                        // ZOMBI SINIFI 14 (Boga): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z14_CLAW ^"models/vexmira/community/claws/heavy.mdl^"  // ZOMBI SINIFI 14 (Boga): el / pence modeli",
+"vex_res Z14_CLAW ^"models/player/zombiel/v_hands_boomer.mdl^"  // ZOMBI SINIFI 14 (Boga): el / pence modeli",
 "vex_res Z14_IDLE ^"^"                                          // ZOMBI SINIFI 14 (Boga): bekleme / homurtu sesi",
 "vex_res Z14_ABILITY ^"vexmira/s534/impact.wav^"                // ZOMBI SINIFI 14 (Boga): yetenek (R) sesi",
 "vex_res Z15_MODEL ^"zombie_witch2^"                            // ZOMBI SINIFI 15 (Orumcek): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z15_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 15 (Orumcek): el / pence modeli",
+"vex_res Z15_CLAW ^"models/player/zombiel/v_knife_witch_zombi.mdl^" // ZOMBI SINIFI 15 (Orumcek): el / pence modeli",
 "vex_res Z15_IDLE ^"^"                                          // ZOMBI SINIFI 15 (Orumcek): bekleme / homurtu sesi",
 "vex_res Z15_ABILITY ^"vexmira/s534/acid.wav^"                  // ZOMBI SINIFI 15 (Orumcek): yetenek (R) sesi",
 "vex_res Z16_MODEL ^"deimos_zombi_host^"                        // ZOMBI SINIFI 16 (Magma): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z16_CLAW ^"models/vexmira/community/claws/heavy.mdl^"  // ZOMBI SINIFI 16 (Magma): el / pence modeli",
+"vex_res Z16_CLAW ^"models/player/zombiel/v_hands_smoker.mdl^"  // ZOMBI SINIFI 16 (Magma): el / pence modeli",
 "vex_res Z16_IDLE ^"^"                                          // ZOMBI SINIFI 16 (Magma): bekleme / homurtu sesi",
 "vex_res Z16_ABILITY ^"vexmira/s534/fire.wav^"                  // ZOMBI SINIFI 16 (Magma): yetenek (R) sesi",
-"vex_res Z17_MODEL ^"hev_zombie^"                               // ZOMBI SINIFI 17 (Volt): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z17_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 17 (Volt): el / pence modeli",
+"vex_res Z17_MODEL ^"vexvolt^"                               // ZOMBI SINIFI 17 (Volt): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
+"vex_res Z17_CLAW ^"models/player/zombiel/v_hands_spitter.mdl^" // ZOMBI SINIFI 17 (Volt): el / pence modeli",
 "vex_res Z17_IDLE ^"^"                                          // ZOMBI SINIFI 17 (Volt): bekleme / homurtu sesi",
 "vex_res Z17_ABILITY ^"vexmira/s534/zap.wav^"                   // ZOMBI SINIFI 17 (Volt): yetenek (R) sesi",
 "vex_res Z18_MODEL ^"zombie_source^"                             // ZOMBI SINIFI 18 (Taklitci): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z18_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 18 (Taklitci): el / pence modeli",
+"vex_res Z18_CLAW ^"models/player/zombiel/v_hands_spitter.mdl^" // ZOMBI SINIFI 18 (Taklitci): el / pence modeli",
 "vex_res Z18_IDLE ^"^"                                          // ZOMBI SINIFI 18 (Taklitci): bekleme / homurtu sesi",
 "vex_res Z18_ABILITY ^"vexmira/s534/dark.wav^"                  // ZOMBI SINIFI 18 (Taklitci): yetenek (R) sesi",
 "vex_res Z19_MODEL ^"vex_scary^"                                // ZOMBI SINIFI 19 (Kostebek): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z19_CLAW ^"models/vexmira/community/claws/scary.mdl^" // ZOMBI SINIFI 19 (Kostebek): el / pence modeli",
+"vex_res Z19_CLAW ^"models/player/zombiel/v_hands_spitter.mdl^" // ZOMBI SINIFI 19 (Kostebek): el / pence modeli",
 "vex_res Z19_IDLE ^"^"                                          // ZOMBI SINIFI 19 (Kostebek): bekleme / homurtu sesi",
 "vex_res Z19_ABILITY ^"vexmira/s534/impact.wav^"                // ZOMBI SINIFI 19 (Kostebek): yetenek (R) sesi",
 "vex_res Z20_MODEL ^"zombie_witch2^"                            // ZOMBI SINIFI 20 (Siren): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z20_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 20 (Siren): el / pence modeli",
+"vex_res Z20_CLAW ^"models/player/zombiel/v_hands_spitter.mdl^" // ZOMBI SINIFI 20 (Siren): el / pence modeli",
 "vex_res Z20_IDLE ^"^"                                          // ZOMBI SINIFI 20 (Siren): bekleme / homurtu sesi",
 "vex_res Z20_ABILITY ^"vexmira/s534/roar2.wav^"                 // ZOMBI SINIFI 20 (Siren): yetenek (R) sesi",
 "vex_res Z21_MODEL ^"cso_heavy^"                     // ZOMBI SINIFI 21 (Kale): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z21_CLAW ^"models/vexmira/community/claws/heavy.mdl^"  // ZOMBI SINIFI 21 (Kale): el / pence modeli",
+"vex_res Z21_CLAW ^"models/player/zombiel/v_hands_tank.mdl^"  // ZOMBI SINIFI 21 (Kale): el / pence modeli",
 "vex_res Z21_IDLE ^"^"                                          // ZOMBI SINIFI 21 (Kale): bekleme / homurtu sesi",
 "vex_res Z21_ABILITY ^"vexmira/s534/shield.wav^"                // ZOMBI SINIFI 21 (Kale): yetenek (R) sesi",
 "vex_res Z22_MODEL ^"heal_zombi_origin^"                        // ZOMBI SINIFI 22 (Spor Ana): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z22_CLAW ^"models/vexmira/community/claws/classic.mdl^" // ZOMBI SINIFI 22 (Spor Ana): el / pence modeli",
+"vex_res Z22_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 22 (Spor Ana): el / pence modeli",
 "vex_res Z22_IDLE ^"^"                                          // ZOMBI SINIFI 22 (Spor Ana): bekleme / homurtu sesi",
 "vex_res Z22_ABILITY ^"vexmira/s534/acid.wav^"                  // ZOMBI SINIFI 22 (Spor Ana): yetenek (R) sesi",
 "vex_res Z23_MODEL ^"nemesis^"                             // ZOMBI SINIFI 23 (Kabus): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD)",
-"vex_res Z23_CLAW ^"models/vexmira/community/claws/scary.mdl^" // ZOMBI SINIFI 23 (Kabus): el / pence modeli",
+"vex_res Z23_CLAW ^"models/player/zombiel/v_hands_hunter.mdl^" // ZOMBI SINIFI 23 (Kabus): el / pence modeli",
 "vex_res Z23_IDLE ^"^"                                          // ZOMBI SINIFI 23 (Kabus): bekleme / homurtu sesi",
 "vex_res Z23_ABILITY ^"vexmira/s534/dark.wav^"                  // ZOMBI SINIFI 23 (Kabus): yetenek (R) sesi",
-"vex_res CLAW_MODEL ^"models/zombie_plague/v_knife_zombie.mdl^" // varsayilan zombi pence modeli",
+"vex_res CLAW_MODEL ^"models/player/zombiel/v_hands_hunter.mdl^" // varsayilan zombi pence modeli",
 "",
 "// ---- KAYNAK: BOSSLAR --------------------------------------------------------",
 "vex_res BOSS_SPAWN ^"^"                                        // boss spawn (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
@@ -15827,7 +15422,7 @@ new const ZC_F_CFG[][] = {
 "vex_res BOSS_MARK_SPRITE ^"^"                                  // boss mark sprite (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res BOSS_PRELOAD ^"3^"                                     // haritada yuklenen boss sayisi (her boss ~6 ses + model; 3 = 512 ses sinirindan guvenli pay, bosslar haritadan haritaya doner)",
 "vex_res BOSS_PRELOAD_LIST ^"^"                                 // bos = bosslar haritadan haritaya sirayla doner (hepsi zamanla gelir)",
-"vex_res B0_MODEL ^"vex_boss048^"                               // BOSS 0 (BRUTE): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B0_MODEL ^"vexbrute^"                               // BOSS 0 (BRUTE): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B0_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 0 (BRUTE): el / pence modeli (v_ modeli)",
 "vex_res B0_INTRO ^"vexmira/arena51/boss/0/intro.wav^"          // BOSS 0 (BRUTE): giris sesi (boss dogunca)",
 "vex_res B0_IDLE ^"^"                                           // BOSS 0 (BRUTE): bekleme / nefes sesi",
@@ -15841,7 +15436,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B0_R1 ^"vexmira/arena51/boss/0/r1.wav^"                // BOSS 0 (BRUTE): 1. yetenek sesi",
 "vex_res B0_R2 ^"vexmira/arena51/boss/0/r2.wav^"                // BOSS 0 (BRUTE): 2. yetenek sesi",
 "vex_res B0_R3 ^"vexmira/arena51/boss/0/r3.wav^"                // BOSS 0 (BRUTE): 3. yetenek sesi",
-"vex_res B1_MODEL ^"vex_boss148^"                               // BOSS 1 (BANSHEE): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B1_MODEL ^"vexbanshe^"                               // BOSS 1 (BANSHEE): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B1_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 1 (BANSHEE): el / pence modeli (v_ modeli)",
 "vex_res B1_INTRO ^"vexmira/arena51/boss/1/intro.wav^"          // BOSS 1 (BANSHEE): giris sesi (boss dogunca)",
 "vex_res B1_IDLE ^"^"                                           // BOSS 1 (BANSHEE): bekleme / nefes sesi",
@@ -15855,7 +15450,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B1_R1 ^"vexmira/arena51/boss/1/r1.wav^"                // BOSS 1 (BANSHEE): 1. yetenek sesi",
 "vex_res B1_R2 ^"vexmira/arena51/boss/1/r2.wav^"                // BOSS 1 (BANSHEE): 2. yetenek sesi",
 "vex_res B1_R3 ^"vexmira/arena51/boss/1/r3.wav^"                // BOSS 1 (BANSHEE): 3. yetenek sesi",
-"vex_res B2_MODEL ^"vex_boss248^"                               // BOSS 2 (OVERLORD): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B2_MODEL ^"vexoverlord^"                               // BOSS 2 (OVERLORD): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B2_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 2 (OVERLORD): el / pence modeli (v_ modeli)",
 "vex_res B2_INTRO ^"vexmira/arena51/boss/2/intro.wav^"          // BOSS 2 (OVERLORD): giris sesi (boss dogunca)",
 "vex_res B2_IDLE ^"^"                                           // BOSS 2 (OVERLORD): bekleme / nefes sesi",
@@ -15869,7 +15464,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B2_R1 ^"vexmira/arena51/boss/2/r1.wav^"                // BOSS 2 (OVERLORD): 1. yetenek sesi",
 "vex_res B2_R2 ^"vexmira/arena51/boss/2/r2.wav^"                // BOSS 2 (OVERLORD): 2. yetenek sesi",
 "vex_res B2_R3 ^"vexmira/arena51/boss/2/r3.wav^"                // BOSS 2 (OVERLORD): 3. yetenek sesi",
-"vex_res B3_MODEL ^"vex_boss348^"                               // BOSS 3 (INFERNO): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B3_MODEL ^"vexbos2^"                               // BOSS 3 (INFERNO): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B3_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 3 (INFERNO): el / pence modeli (v_ modeli)",
 "vex_res B3_INTRO ^"vexmira/arena51/boss/3/intro.wav^"          // BOSS 3 (INFERNO): giris sesi (boss dogunca)",
 "vex_res B3_IDLE ^"^"                                           // BOSS 3 (INFERNO): bekleme / nefes sesi",
@@ -15883,7 +15478,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B3_R1 ^"vexmira/arena51/boss/3/r1.wav^"                // BOSS 3 (INFERNO): 1. yetenek sesi",
 "vex_res B3_R2 ^"vexmira/arena51/boss/3/r2.wav^"                // BOSS 3 (INFERNO): 2. yetenek sesi",
 "vex_res B3_R3 ^"vexmira/arena51/boss/3/r3.wav^"                // BOSS 3 (INFERNO): 3. yetenek sesi",
-"vex_res B4_MODEL ^"vex_boss448^"                               // BOSS 4 (REAPER): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B4_MODEL ^"vexreaper^"                               // BOSS 4 (REAPER): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B4_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 4 (REAPER): el / pence modeli (v_ modeli)",
 "vex_res B4_INTRO ^"vexmira/arena51/boss/4/intro.wav^"          // BOSS 4 (REAPER): giris sesi (boss dogunca)",
 "vex_res B4_IDLE ^"^"                                           // BOSS 4 (REAPER): bekleme / nefes sesi",
@@ -15897,7 +15492,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B4_R1 ^"vexmira/arena51/boss/4/r1.wav^"                // BOSS 4 (REAPER): 1. yetenek sesi",
 "vex_res B4_R2 ^"vexmira/arena51/boss/4/r2.wav^"                // BOSS 4 (REAPER): 2. yetenek sesi",
 "vex_res B4_R3 ^"vexmira/arena51/boss/4/r3.wav^"                // BOSS 4 (REAPER): 3. yetenek sesi",
-"vex_res B5_MODEL ^"vex_boss548^"                               // BOSS 5 (FROSTLORD): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B5_MODEL ^"vexbos4^"                               // BOSS 5 (FROSTLORD): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B5_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 5 (FROSTLORD): el / pence modeli (v_ modeli)",
 "vex_res B5_INTRO ^"vexmira/arena51/boss/5/intro.wav^"          // BOSS 5 (FROSTLORD): giris sesi (boss dogunca)",
 "vex_res B5_IDLE ^"^"                                           // BOSS 5 (FROSTLORD): bekleme / nefes sesi",
@@ -15911,7 +15506,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B5_R1 ^"vexmira/arena51/boss/5/r1.wav^"                // BOSS 5 (FROSTLORD): 1. yetenek sesi",
 "vex_res B5_R2 ^"vexmira/arena51/boss/5/r2.wav^"                // BOSS 5 (FROSTLORD): 2. yetenek sesi",
 "vex_res B5_R3 ^"vexmira/arena51/boss/5/r3.wav^"                // BOSS 5 (FROSTLORD): 3. yetenek sesi",
-"vex_res B6_MODEL ^"vex_boss648^"                               // BOSS 6 (STORMCALLER): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B6_MODEL ^"vexstormboss^"                               // BOSS 6 (STORMCALLER): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B6_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 6 (STORMCALLER): el / pence modeli (v_ modeli)",
 "vex_res B6_INTRO ^"vexmira/arena51/boss/6/intro.wav^"          // BOSS 6 (STORMCALLER): giris sesi (boss dogunca)",
 "vex_res B6_IDLE ^"^"                                           // BOSS 6 (STORMCALLER): bekleme / nefes sesi",
@@ -15925,7 +15520,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B6_R1 ^"vexmira/arena51/boss/6/r1.wav^"                // BOSS 6 (STORMCALLER): 1. yetenek sesi",
 "vex_res B6_R2 ^"vexmira/arena51/boss/6/r2.wav^"                // BOSS 6 (STORMCALLER): 2. yetenek sesi",
 "vex_res B6_R3 ^"vexmira/arena51/boss/6/r3.wav^"                // BOSS 6 (STORMCALLER): 3. yetenek sesi",
-"vex_res B7_MODEL ^"vex_boss748^"                               // BOSS 7 (HIVE QUEEN): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B7_MODEL ^"vexbos3^"                               // BOSS 7 (HIVE QUEEN): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B7_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 7 (HIVE QUEEN): el / pence modeli (v_ modeli)",
 "vex_res B7_INTRO ^"vexmira/arena51/boss/7/intro.wav^"          // BOSS 7 (HIVE QUEEN): giris sesi (boss dogunca)",
 "vex_res B7_IDLE ^"^"                                           // BOSS 7 (HIVE QUEEN): bekleme / nefes sesi",
@@ -15939,7 +15534,7 @@ new const ZC_F_CFG[][] = {
 "vex_res B7_R1 ^"vexmira/arena51/boss/7/r1.wav^"                // BOSS 7 (HIVE QUEEN): 1. yetenek sesi",
 "vex_res B7_R2 ^"vexmira/arena51/boss/7/r2.wav^"                // BOSS 7 (HIVE QUEEN): 2. yetenek sesi",
 "vex_res B7_R3 ^"vexmira/arena51/boss/7/r3.wav^"                // BOSS 7 (HIVE QUEEN): 3. yetenek sesi",
-"vex_res B8_MODEL ^"vex_boss848^"                               // BOSS 8 (VOID): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
+"vex_res B8_MODEL ^"vexbos1^"                               // BOSS 8 (VOID): oyuncu modeli (models/player/<AD>/<AD>.mdl -> sadece AD yazilir)",
 "vex_res B8_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^"    // BOSS 8 (VOID): el / pence modeli (v_ modeli)",
 "vex_res B8_INTRO ^"vexmira/arena51/boss/8/intro.wav^"          // BOSS 8 (VOID): giris sesi (boss dogunca)",
 "vex_res B8_IDLE ^"^"                                           // BOSS 8 (VOID): bekleme / nefes sesi",
@@ -15958,19 +15553,19 @@ new const ZC_F_CFG[][] = {
 "vex_res BOSS_PAIN ^"^"                                         // boss pain (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res BOSS_PAIN2 ^"^"                                        // boss pain2 (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res BOSS_ATTACK ^"^"                                       // boss attack (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res BOSS_SCALE ^"1.6^"                                     // BOSS BUYUKLUGU: 1.0 = normal, 1.6 = 1.6 kat dev (model + hitbox kodla buyutulur)",
-"vex_res BOSS_GIANT ^"file^"                                    // DEV BOSS: file = boss modelinin buyutulmus + inceltilmis kopyasi kendiliginden uretilir (models/player/<boss>_x16, orijinalin ~3te1 i boyutunda) | off = normal boyut, hic indirme yok | clone = sadece Xash istemcisi (Steam de boss buyumez - KULLANMA)",
-"vex_res BOSS_GIANT_TEX ^"128^"                                 // dev boss kopyasinda doku boyutu siniri (px). 128 = en kucuk indirme, giris hizli (onerilen) | 256 = daha net ama 3-4 kat buyuk | 512 = daha net ama daha buyuk dosya | 0 = dokulara dokunma",
-"vex_res BOSS_GIANT_ALL ^"0^"                                   // 0 = sadece o haritanin 3 bossu indirilir (giris HIZLI, onerilen) | 1 = 9 dev bossun hepsi ilk giriste indirilir (giris COK UZUN) | dev boss istemiyorsan BOSS_GIANT ^"off^" = hic indirme yok",
+"vex_res BOSS_SCALE ^"1.0^" // Otomatik model/T kopyasi yok; hazir model ve gerekli T dosyasini elle yukleyin.",
+"vex_res BOSS_GIANT ^"off^" // Otomatik model/T kopyasi yok; hazir model ve gerekli T dosyasini elle yukleyin.",
+"vex_res BOSS_GIANT ^"off^" // Otomatik model/T kopyasi yok; hazir model ve gerekli T dosyasini elle yukleyin.",
+"vex_res BOSS_GIANT ^"off^" // Otomatik model/T kopyasi yok; hazir model ve gerekli T dosyasini elle yukleyin.",
 "",
 "// ---- KAYNAK: OYUNCU MODELLERI -----------------------------------------------",
 "vex_res HUMAN_WIN ^"vexmira/s534/human_win.wav^"               // ses: human win (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res MODEL_BUDGET ^"250^"                                   // eklentinin yukleyebilecegi en fazla model/sprite sayisi (512 sinirina karsi koruma)",
-"vex_res NEMESIS_MODEL ^"nemesis^"                    // Nemesis modeli",
+"vex_res MODEL_BUDGET ^"340^"                                   // eklentinin yukleyebilecegi en fazla model/sprite sayisi (512 sinirina karsi koruma)",
+"vex_res NEMESIS_MODEL ^"nemesisvex^"                    // Nemesis modeli",
 "vex_res NEMESIS_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^" // Nemesis pence modeli",
-"vex_res ASSASSIN_MODEL ^"vex_scary^"                           // Assassin modeli",
+"vex_res ASSASSIN_MODEL ^"vexassasinzm^"                           // Assassin modeli",
 "vex_res ASSASSIN_CLAW ^"models/zombie_plague/v_knife_zombie.mdl^" // model: assassin claw",
-"vex_res HUMAN_MODELS ^"sp_halo_admins^"      // CT varsayilan karakterler (bosluk ile birden fazla; klasor adi veya tam yol models/player/vexmira/ct.mdl; ek secenekler: vx539_csoct vx539_cso2_arctic vx539_re_leon vx539_sakura)",
+"vex_res HUMAN_MODELS ^"vexhumanx^"      // CT varsayilan karakterler (bosluk ile birden fazla; klasor adi veya tam yol ^"models/player/vexmira/ct.mdl^"; ek secenekler: vx539_csoct vx539_cso2_arctic vx539_re_leon vx539_sakura)",
 "vex_res NEMESIS_INTRO ^"vexmira/s534/mode_start.wav^"          // ses: nemesis intro (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
 "vex_res NEMESIS_IDLE ^"^"                                      // nemesis idle (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res NEMESIS_PAIN ^"vexmira/arena48/b3_pain.wav^"           // ses: nemesis pain (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
@@ -15999,56 +15594,56 @@ new const ZC_F_CFG[][] = {
 "vex_res SNIPER_W2_VMODEL ^"^"                                  // Sniper silahi 2: el modeli",
 "vex_res SNIPER_W2_PMODEL ^"^"                                  // Sniper silahi 2: oyuncu ustu model",
 "vex_res SNIPER_W2_SOUND ^"^"                                   // Sniper silahi 2: ates sesi",
-"vex_res ADMIN_MODEL ^"sp_halo_admins^"                           // SADECE admin (ADMIN_BAN) CT modeli; ^"^" = kapali, indirilmez",
-"vex_res VIP_MODEL ^"sp_halo_admins^"                          // SADECE VIP CT modeli; ^"^" = kapali, indirilmez",
-"vex_res SURVIVOR_MODEL ^"sp_halo_admins^"                     // Survivor modeli (CT setinden: ek indirme yok)",
-"vex_res SNIPER_MODEL ^"sp_halo_admins^"                      // Sniper modeli (CT setinden: ek indirme yok)",
+"vex_res ADMIN_MODEL ^"vexadmins^"                           // SADECE admin (ADMIN_BAN) CT modeli; ^"^" = kapali, indirilmez",
+"vex_res VIP_MODEL ^"vexvips^"                          // SADECE VIP CT modeli; ^"^" = kapali, indirilmez",
+"vex_res SURVIVOR_MODEL ^"vexvips^"                     // Survivor modeli (CT setinden: ek indirme yok)",
+"vex_res SNIPER_MODEL ^"vexvips^"                      // Sniper modeli (CT setinden: ek indirme yok)",
 "",
 "// ---- KAYNAK: SILAH MODELLERI ------------------------------------------------",
-"vex_res W_HEGRENADE ^"models/vexmira_ze/grenades/vexmira_w_hegrenade.mdl^" // hegrenade silahi: yere dusen model",
-"vex_res W_SMOKEGRENADE ^"models/vexmira_ze/grenades/vexmira_w_smokegrenade.mdl^" // smokegrenade silahi: yere dusen model",
-"vex_res W_FLASHBANG ^"models/vexmira_ze/grenades/vexmira_w_flashbang.mdl^" // flashbang silahi: yere dusen model",
+"vex_res W_HEGRENADE ^"models/weapons/vexv2/w_hegrenade.mdl^" // hegrenade silahi: yere dusen model",
+"vex_res W_SMOKEGRENADE ^"models/weapons/vexv2/w_ice.mdl^" // smokegrenade silahi: yere dusen model",
+"vex_res W_FLASHBANG ^"models/weapons/vexv2/w_flash.mdl^" // flashbang silahi: yere dusen model",
 "vex_res V_KNIFE ^"models/vexmira/arena52/default/v_knife.mdl^" // knife silahi: el (gorus) modeli",
 "vex_res P_KNIFE ^"models/p_knife.mdl^"                         // knife silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_HEGRENADE ^"models/vexmira_ze/grenades/vexmira_v_hegrenade.mdl^" // hegrenade silahi: el (gorus) modeli",
-"vex_res P_HEGRENADE ^"models/vexmira_ze/grenades/vexmira_p_hegrenade.mdl^" // hegrenade silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_SMOKEGRENADE ^"models/vexmira_ze/grenades/vexmira_v_smokegrenade.mdl^" // smokegrenade silahi: el (gorus) modeli",
-"vex_res V_FLASHBANG ^"models/vexmira_ze/grenades/vexmira_v_flashbang.mdl^" // flashbang silahi: el (gorus) modeli",
+"vex_res V_HEGRENADE ^"models/weapons/vexv2/v_hegrenade.mdl^" // hegrenade silahi: el (gorus) modeli",
+"vex_res P_HEGRENADE ^"models/weapons/vexv2/p_hegrenade.mdl^" // hegrenade silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_SMOKEGRENADE ^"models/weapons/vexv2/v_ice.mdl^" // smokegrenade silahi: el (gorus) modeli",
+"vex_res V_FLASHBANG ^"models/weapons/vexv2/v_flash.mdl^" // flashbang silahi: el (gorus) modeli",
 "vex_res P_FLASHBANG ^"models/vexmira_ze/grenades/vexmira_p_flashbang.mdl^" // flashbang silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_P228 ^"models/vexmira_ze/skins/vexmira_p_p228.mdl^"  // p228 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_SCOUT ^"models/vexmira_ze/skins/vexmira_p_scout.mdl^" // scout silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_XM1014 ^"models/vexmira_ze/skins/vexmira_p_xm1014.mdl^" // xm1014 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_XM1014 ^"models/vexmira_ze/skins/vexmira_v_xm1014.mdl^"     // xm1014 silahi: el (gorus) modeli",
-"vex_res P_MAC10 ^"models/vexmira_ze/skins/vexmira_p_mac10.mdl^" // mac10 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_AUG ^"models/vexmira_ze/skins/vexmira_p_aug.mdl^"    // aug silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_AUG ^"models/vexmira_ze/skins/vexmira_v_aug.mdl^"    // aug silahi: el (gorus) modeli",
-"vex_res P_ELITE ^"models/vexmira_ze/skins/vexmira_p_elite.mdl^" // elite silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_FIVESEVEN ^"models/vexmira_ze/skins/vexmira_p_fiveseven.mdl^" // fiveseven silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_UMP45 ^"models/vexmira_ze/skins/vexmira_p_ump45.mdl^" // ump45 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_SG550 ^"models/vexmira_ze/skins/vexmira_p_sg550.mdl^" // sg550 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_SG550 ^"models/vexmira_ze/skins/vexmira_v_sg550.mdl^" // sg550 silahi: el (gorus) modeli",
-"vex_res V_GALIL ^"models/vexmira/arena52/default/v_galil.mdl^"       // galil silahi: el (gorus) modeli",
-"vex_res P_FAMAS ^"models/vexmira_ze/skins/vexmira_p_famas.mdl^" // famas silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_USP ^"models/vexmira_ze/skins/vexmira_p_usp.mdl^"    // usp silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_GLOCK18 ^"models/vexmira_ze/skins/vexmira_p_glock18.mdl^" // glock18 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_AWP ^"models/vexmira_ze/skins/vexmira_p_awp.mdl^"    // awp silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_AWP ^"models/vexmira_ze/skins/vexmira_v_awp.mdl^"           // awp silahi: el (gorus) modeli",
-"vex_res P_MP5NAVY ^"models/vexmira_ze/skins/vexmira_p_mp5.mdl^" // mp5navy silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_MP5NAVY ^"models/vexmira_ze/skins/vexmira_v_mp5.mdl^" // mp5navy silahi: el (gorus) modeli",
-"vex_res P_M249 ^"models/vexmira_ze/skins/vexmira_p_m249.mdl^"  // m249 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_M249 ^"models/vexmira_ze/skins/vexmira_v_m249.mdl^"         // m249 silahi: el (gorus) modeli",
-"vex_res P_M3 ^"models/vexmira_ze/skins/vexmira_p_m3.mdl^"      // m3 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_M4A1 ^"models/vexmira_ze/skins/vexmira_p_m4a1.mdl^"  // m4a1 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_M4A1 ^"models/vexmira_ze/skins/vexmira_v_m4a1.mdl^"         // m4a1 silahi: el (gorus) modeli",
-"vex_res P_TMP ^"models/vexmira_ze/skins/vexmira_p_tmp.mdl^"    // tmp silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_G3SG1 ^"models/vexmira_ze/skins/vexmira_p_g3sg1.mdl^" // g3sg1 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_DEAGLE ^"models/vexmira_ze/skins/vexmira_p_deagle.mdl^" // deagle silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_DEAGLE ^"models/vexmira_ze/skins/vexmira_v_deagle.mdl^"     // deagle silahi: el (gorus) modeli",
-"vex_res P_SG552 ^"models/vexmira_ze/skins/vexmira_p_sg552.mdl^" // sg552 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res V_SG552 ^"models/vexmira_ze/skins/vexmira_v_sg552.mdl^" // sg552 silahi: el (gorus) modeli",
-"vex_res V_AK47 ^"models/vexmira_ze/skins/vexmira_v_ak47.mdl^"         // ak47 silahi: el (gorus) modeli",
-"vex_res P_AK47 ^"models/vexmira_ze/skins/vexmira_p_ak47.mdl^"  // ak47 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res P_P90 ^"models/vexmira_ze/skins/vexmira_p_p90.mdl^"    // p90 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_P228 ^"^"  // p228 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_SCOUT ^"^" // scout silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_XM1014 ^"^" // xm1014 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_XM1014 ^"models/weapons/v_xm10142.mdl^"     // xm1014 silahi: el (gorus) modeli",
+"vex_res P_MAC10 ^"models/weapons/vexweaponsv2/p_mac10.mdl^" // mac10 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_AUG ^"^"    // aug silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_AUG ^"models/weapons/vexweaponsv2/v_aug.mdl^"    // aug silahi: el (gorus) modeli",
+"vex_res P_ELITE ^"models/weapons/vexweaponsv2/p_elite.mdl^" // elite silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_FIVESEVEN ^"models/weapons/vexweaponsv2/p_fiveseven.mdl^" // fiveseven silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_UMP45 ^"models/weapons/vexweaponsv2/p_ump45.mdl^" // ump45 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_SG550 ^"models/weapons/vexweaponsv2/p_sg550.mdl^" // sg550 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_SG550 ^"models/weapons/vexweaponsv2/v_sg550.mdl^" // sg550 silahi: el (gorus) modeli",
+"vex_res V_GALIL ^"models/weapons/vexweaponsv2/v_galil.mdl^"       // galil silahi: el (gorus) modeli",
+"vex_res P_FAMAS ^"models/weapons/vexweaponsv2/p_famas.mdl^" // famas silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_USP ^"^"    // usp silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_GLOCK18 ^"models/weapons/vexweaponsv2/p_glock18.mdl^" // glock18 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_AWP ^"models/vexmira/default2026/p_awp.mdl^"    // awp silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_AWP ^"models/weapons/vexweaponsv2/v_awp.mdl^"           // awp silahi: el (gorus) modeli",
+"vex_res P_MP5NAVY ^"models/vexmira/default2026/p_mp5.mdl^" // mp5navy silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_MP5NAVY ^"models/weapons/vexweaponsv2/v_mp5.mdl^" // mp5navy silahi: el (gorus) modeli",
+"vex_res P_M249 ^"models/weapons/vexweaponsv2/p_m249.mdl^"  // m249 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_M249 ^"models/weapons/vexweaponsv2/v_m249.mdl^"         // m249 silahi: el (gorus) modeli",
+"vex_res P_M3 ^"models/vexmira/default2026/p_m3.mdl^"      // m3 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_M4A1 ^"models/weapons/vexweaponsv2/p_m4a1.mdl^"  // m4a1 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_M4A1 ^"models/weapons/vexweaponsv2/v_m4a1.mdl^"         // m4a1 silahi: el (gorus) modeli",
+"vex_res P_TMP ^"^"    // tmp silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_G3SG1 ^"^" // g3sg1 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_DEAGLE ^"models/weapons/vexweaponsv2/p_deagle.mdl^" // deagle silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_DEAGLE ^"models/weapons/vexweaponsv2/v_deagle.mdl^"     // deagle silahi: el (gorus) modeli",
+"vex_res P_SG552 ^"models/weapons/vexweaponsv2/p_sg552.mdl^" // sg552 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res V_SG552 ^"models/weapons/vexweaponsv2/v_sg552.mdl^" // sg552 silahi: el (gorus) modeli",
+"vex_res V_AK47 ^"models/weapons/v_ak472.mdl^"         // ak47 silahi: el (gorus) modeli",
+"vex_res P_AK47 ^"models/weapons/p_ak472.mdl^"  // ak47 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_P90 ^"^"    // p90 silahi: oyuncunun elindeki model (baskalari gorur)",
 "vex_res SW0_VMODEL ^"models/vexmira/arena51/arsenal/0/v.mdl^"  // OZEL SILAH 0 (Arbalest): el modeli",
 "vex_res SW0_PMODEL ^"models/vexmira/arena50/arsenal/0/p.mdl^"  // OZEL SILAH 0 (Arbalest): oyuncu ustu model",
 "vex_res SW0_WMODEL ^"models/vexmira/arena50/arsenal/0/w.mdl^"  // OZEL SILAH 0 (Arbalest): yerdeki model",
@@ -16069,50 +15664,50 @@ new const ZC_F_CFG[][] = {
 "vex_res SW5_PMODEL ^"models/vexmira/arena50/arsenal/5/p.mdl^"  // OZEL SILAH 5 (Infinity Laser Fist): oyuncu ustu model",
 "vex_res SW5_WMODEL ^"models/vexmira/arena50/arsenal/5/w.mdl^"  // OZEL SILAH 5 (Infinity Laser Fist): yerdeki model",
 "vex_res SW5_FIRE ^"vexmira/arena51/arsenal/5/fire.wav^"        // OZEL SILAH 5 (Infinity Laser Fist): ates sesi",
-"vex_res V_UMP45 ^"models/vexmira_ze/skins/vexmira_v_ump45.mdl^" // ump45 silahi: el (gorus) modeli",
-"vex_res V_MP5 ^"models/vexmira_ze/skins/vexmira_v_mp5.mdl^"    // mp5 silahi: el (gorus) modeli",
-"vex_res V_MAC10 ^"models/vexmira_ze/skins/vexmira_v_mac10.mdl^" // mac10 silahi: el (gorus) modeli",
-"vex_res V_SCOUT ^"models/vexmira_ze/skins/vexmira_v_scout.mdl^" // scout silahi: el (gorus) modeli",
-"vex_res V_GLOCK18 ^"models/vexmira_ze/skins/vexmira_v_glock18.mdl^"   // glock18 silahi: el (gorus) modeli",
-"vex_res V_M3 ^"models/vexmira_ze/skins/vexmira_v_m3.mdl^"             // m3 silahi: el (gorus) modeli",
-"vex_res V_FIVESEVEN ^"models/vexmira_ze/skins/vexmira_v_fiveseven.mdl^" // fiveseven silahi: el (gorus) modeli",
-"vex_res V_TMP ^"models/vexmira_ze/skins/vexmira_v_tmp.mdl^"    // tmp silahi: el (gorus) modeli",
-"vex_res V_P90 ^"models/vexmira_ze/skins/vexmira_v_p90.mdl^"    // p90 silahi: el (gorus) modeli",
-"vex_res V_ELITE ^"models/vexmira_ze/skins/vexmira_v_elite.mdl^" // elite silahi: el (gorus) modeli",
-"vex_res V_P228 ^"models/vexmira_ze/skins/vexmira_v_p228.mdl^"  // p228 silahi: el (gorus) modeli",
-"vex_res V_FAMAS ^"models/vexmira_ze/skins/vexmira_v_famas.mdl^"       // famas silahi: el (gorus) modeli",
-"vex_res V_USP ^"models/vexmira_ze/skins/vexmira_v_usp.mdl^"           // usp silahi: el (gorus) modeli",
-"vex_res V_G3SG1 ^"models/vexmira_ze/skins/vexmira_v_g3sg1.mdl^" // g3sg1 silahi: el (gorus) modeli",
-"vex_res P_MP5 ^"models/vexmira_ze/skins/vexmira_p_mp5.mdl^"    // mp5 silahi: oyuncunun elindeki model (baskalari gorur)",
-"vex_res W_AK47 ^"models/vexmira_ze/skins/vexmira_w_ak47.mdl^"  // ak47 silahi: yere dusen model",
-"vex_res W_AUG ^"models/vexmira_ze/skins/vexmira_w_aug.mdl^"    // aug silahi: yere dusen model",
+"vex_res V_UMP45 ^"models/weapons/vexweaponsv2/v_ump45.mdl^" // ump45 silahi: el (gorus) modeli",
+"vex_res V_MP5 ^"models/weapons/vexweaponsv2/vexmira_v_mp5.mdl^"    // mp5 silahi: el (gorus) modeli",
+"vex_res V_MAC10 ^"models/weapons/vexweaponsv2/v_mac10.mdl^" // mac10 silahi: el (gorus) modeli",
+"vex_res V_SCOUT ^"^" // scout silahi: el (gorus) modeli",
+"vex_res V_GLOCK18 ^"models/weapons/vexweaponsv2/v_glock18.mdl^"   // glock18 silahi: el (gorus) modeli",
+"vex_res V_M3 ^"models/weapons/vexweaponsv2/v_m3.mdl^"             // m3 silahi: el (gorus) modeli",
+"vex_res V_FIVESEVEN ^"models/weapons/vexweaponsv2/v_fiveseven.mdl^" // fiveseven silahi: el (gorus) modeli",
+"vex_res V_TMP ^"models/weapons/vexweaponsv2/v_tmp.mdl^"    // tmp silahi: el (gorus) modeli",
+"vex_res V_P90 ^"models/weapons/vexweaponsv2/v_p90.mdl^"    // p90 silahi: el (gorus) modeli",
+"vex_res V_ELITE ^"models/weapons/vexweaponsv2/v_elite.mdl^" // elite silahi: el (gorus) modeli",
+"vex_res V_P228 ^"models/weapons/vexweaponsv2/v_p228.mdl^"  // p228 silahi: el (gorus) modeli",
+"vex_res V_FAMAS ^"models/weapons/vexweaponsv2/v_famas.mdl^"       // famas silahi: el (gorus) modeli",
+"vex_res V_USP ^"models/weapons/vexweaponsv2/v_usp.mdl^"           // usp silahi: el (gorus) modeli",
+"vex_res V_G3SG1 ^"models/weapons/vexweaponsv2/v_g3sg1.mdl^" // g3sg1 silahi: el (gorus) modeli",
+"vex_res P_MP5 ^"^"    // mp5 silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res W_AK47 ^"models/weapons/w_ak472.mdl^"  // ak47 silahi: yere dusen model",
+"vex_res W_AUG ^"^"    // aug silahi: yere dusen model",
 "vex_res W_AWP ^"models/vexmira_ze/skins/vexmira_w_awp.mdl^"    // awp silahi: yere dusen model",
-"vex_res W_DEAGLE ^"models/vexmira_ze/skins/vexmira_w_deagle.mdl^" // deagle silahi: yere dusen model",
-"vex_res W_ELITE ^"models/vexmira_ze/skins/vexmira_w_elite.mdl^" // elite silahi: yere dusen model",
-"vex_res W_FAMAS ^"models/vexmira_ze/skins/vexmira_w_famas.mdl^" // famas silahi: yere dusen model",
-"vex_res W_FIVESEVEN ^"models/vexmira_ze/skins/vexmira_w_fiveseven.mdl^" // fiveseven silahi: yere dusen model",
-"vex_res W_G3SG1 ^"models/vexmira_ze/skins/vexmira_w_g3sg1.mdl^" // g3sg1 silahi: yere dusen model",
-"vex_res W_GLOCK18 ^"models/vexmira_ze/skins/vexmira_w_glock18.mdl^" // glock18 silahi: yere dusen model",
-"vex_res W_M249 ^"models/vexmira_ze/skins/vexmira_w_m249.mdl^"  // m249 silahi: yere dusen model",
-"vex_res W_M3 ^"models/vexmira_ze/skins/vexmira_w_m3.mdl^"      // m3 silahi: yere dusen model",
-"vex_res W_M4A1 ^"models/vexmira_ze/skins/vexmira_w_m4a1.mdl^"  // m4a1 silahi: yere dusen model",
-"vex_res W_MAC10 ^"models/vexmira_ze/skins/vexmira_w_mac10.mdl^" // mac10 silahi: yere dusen model",
-"vex_res W_MP5 ^"models/vexmira_ze/skins/vexmira_w_mp5.mdl^"    // mp5 silahi: yere dusen model",
-"vex_res W_MP5NAVY ^"models/vexmira_ze/skins/vexmira_w_mp5.mdl^" // mp5navy silahi: yere dusen model",
-"vex_res W_P228 ^"models/vexmira_ze/skins/vexmira_w_p228.mdl^"  // p228 silahi: yere dusen model",
-"vex_res W_P90 ^"models/vexmira_ze/skins/vexmira_w_p90.mdl^"    // p90 silahi: yere dusen model",
-"vex_res W_SCOUT ^"models/vexmira_ze/skins/vexmira_w_scout.mdl^" // scout silahi: yere dusen model",
-"vex_res W_SG550 ^"models/vexmira_ze/skins/vexmira_w_sg550.mdl^" // sg550 silahi: yere dusen model",
-"vex_res W_SG552 ^"models/vexmira_ze/skins/vexmira_w_sg552.mdl^" // sg552 silahi: yere dusen model",
-"vex_res W_TMP ^"models/vexmira_ze/skins/vexmira_w_tmp.mdl^"    // tmp silahi: yere dusen model",
-"vex_res W_UMP45 ^"models/vexmira_ze/skins/vexmira_w_ump45.mdl^" // ump45 silahi: yere dusen model",
-"vex_res W_USP ^"models/vexmira_ze/skins/vexmira_w_usp.mdl^"    // usp silahi: yere dusen model",
-"vex_res W_XM1014 ^"models/vexmira_ze/skins/vexmira_w_xm1014.mdl^" // xm1014 silahi: yere dusen model",
+"vex_res W_DEAGLE ^"models/weapons/vexweaponsv2/w_deagle.mdl^" // deagle silahi: yere dusen model",
+"vex_res W_ELITE ^"models/weapons/vexweaponsv2/w_elite.mdl^" // elite silahi: yere dusen model",
+"vex_res W_FAMAS ^"models/weapons/vexweaponsv2/w_famas.mdl^" // famas silahi: yere dusen model",
+"vex_res W_FIVESEVEN ^"models/weapons/vexweaponsv2/w_fiveseven.mdl^" // fiveseven silahi: yere dusen model",
+"vex_res W_G3SG1 ^"^" // g3sg1 silahi: yere dusen model",
+"vex_res W_GLOCK18 ^"models/weapons/vexweaponsv2/w_glock18.mdl^" // glock18 silahi: yere dusen model",
+"vex_res W_M249 ^"models/weapons/vexweaponsv2/w_m249.mdl^"  // m249 silahi: yere dusen model",
+"vex_res W_M3 ^"models/weapons/vexweaponsv2/w_m3.mdl^"      // m3 silahi: yere dusen model",
+"vex_res W_M4A1 ^"models/weapons/vexweaponsv2/w_m4a1.mdl^"  // m4a1 silahi: yere dusen model",
+"vex_res W_MAC10 ^"models/weapons/vexweaponsv2/w_mac10.mdl^" // mac10 silahi: yere dusen model",
+"vex_res W_MP5 ^"models/weapons/vexweaponsv2/w_mp5.mdl^"    // mp5 silahi: yere dusen model",
+"vex_res W_MP5NAVY ^"models/weapons/vexweaponsv2/w_mp5.mdl^" // mp5navy silahi: yere dusen model",
+"vex_res W_P228 ^"^"  // p228 silahi: yere dusen model",
+"vex_res W_P90 ^"^"    // p90 silahi: yere dusen model",
+"vex_res W_SCOUT ^"^" // scout silahi: yere dusen model",
+"vex_res W_SG550 ^"models/weapons/vexweaponsv2/w_sg550.mdl^" // sg550 silahi: yere dusen model",
+"vex_res W_SG552 ^"models/weapons/vexweaponsv2/w_sg552.mdl^" // sg552 silahi: yere dusen model",
+"vex_res W_TMP ^"^"    // tmp silahi: yere dusen model",
+"vex_res W_UMP45 ^"models/weapons/vexweaponsv2/w_ump45.mdl^" // ump45 silahi: yere dusen model",
+"vex_res W_USP ^"models/weapons/vexweaponsv2/w_usp.mdl^"    // usp silahi: yere dusen model",
+"vex_res W_XM1014 ^"models/weapons/vexweaponsv2/w_xm1014.mdl^" // xm1014 silahi: yere dusen model",
 "vex_res P_SMOKEGRENADE ^"models/vexmira_ze/grenades/vexmira_p_smokegrenade.mdl^" // smokegrenade silahi: oyuncunun elindeki model (baskalari gorur)",
 "vex_res V_C4 ^"models/vexmira/arena52/default/v_c4.mdl^"       // c4 silahi: el (gorus) modeli",
 "vex_res P_C4 ^"models/p_c4.mdl^"                               // c4 silahi: oyuncunun elindeki model (baskalari gorur)",
 "vex_res W_C4 ^"models/w_c4.mdl^"                               // c4 silahi: yere dusen model",
-"vex_res P_GALIL ^"models/p_galil.mdl^"                         // galil silahi: oyuncunun elindeki model (baskalari gorur)",
+"vex_res P_GALIL ^"models/vexmira/default2026/p_galil.mdl^"                         // galil silahi: oyuncunun elindeki model (baskalari gorur)",
 "vex_res W_GALIL ^"models/w_galil.mdl^"                         // galil silahi: yere dusen model",
 "vex_res W_KNIFE ^"^"                                           // knife silahi: yere dusen model",
 "vex_res SW6_VMODEL ^"models/vexmira/arena51/arsenal/6/v.mdl^"  // OZEL SILAH 6 (Void Avenger): el modeli",
@@ -16154,9 +15749,9 @@ new const ZC_F_CFG[][] = {
 "vex_res LASERMINE_MODEL ^"models/vexmira/lasermine/lm_human.mdl^" // varsayilan lazer mayin modeli",
 "vex_res LASERMINE_MODEL_HUMAN ^"models/vexmira/lasermine/lm_human.mdl^" // insan lazer mayini (beyaz-mavi teknoloji)",
 "vex_res LASERMINE_MODEL_ZOMBIE ^"models/vexmira/lasermine/lm_zombie.mdl^" // zombi lazer mayini (organik biyo-mayin)",
-"vex_res NADE_INFECT_V ^"models/vexmira/nades/v_infect.mdl^"    // enfeksiyon bombasi el modeli (zombi pencesi)",
-"vex_res NADE_INFECT_P ^"models/vexmira/nades/p_infect.mdl^"    // enfeksiyon bombasi oyuncu ustu modeli",
-"vex_res NADE_INFECT_W ^"models/vexmira/nades/w_infect.mdl^"    // atilan enfeksiyon bombasi modeli",
+"vex_res NADE_INFECT_V ^"models/weapons/vexv2/v_enfect.mdl^"    // enfeksiyon bombasi el modeli (zombi pencesi)",
+"vex_res NADE_INFECT_P ^"models/weapons/vexv2/p_enfect.mdl^"    // enfeksiyon bombasi oyuncu ustu modeli",
+"vex_res NADE_INFECT_W ^"models/weapons/vexv2/w_enfect.mdl^"    // atilan enfeksiyon bombasi modeli",
 "",
 "// ---- KAYNAK: SPRITE / EFEKT -------------------------------------------------",
 "vex_res SPR_LASER ^"sprites/vexmira_ze/arena51/vexmira_base_beam.spr^" // sprite / efekt: spr laser",
@@ -16211,7 +15806,6 @@ new const ZC_F_CFG[][] = {
 "vex_res LAST_HUMAN ^"vexmira/s534/last_human.wav^"             // ses: last human (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
 "vex_res HEARTBEAT ^"^"                                         // heartbeat (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res FINAL_ROUND ^"vexmira/s534/final_round.wav^"           // ses: final round (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res MAP_END ^"vexmira/s534/bell.wav^"                      // ses: map end (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
 "vex_res SPEED_START ^"vexmira/s534/speed.wav^"                 // ses: speed start (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
 "vex_res SPEED_WIND ^"^"                                        // speed wind (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
 "vex_res STORM_STRIKE ^"vexmira/s534/thunder.wav^"              // ses: storm strike (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
@@ -16300,12 +15894,12 @@ new const ZC_F_CFG[][] = {
 "vex_res MODE7_MUSIC ^"^"                                       // Plague roundu muzigi (.wav ya da .mp3)",
 "vex_res CSO_LANG ^"tr^"                                        // kart dili: tr / en / both (both = oyuncunun diline gore, ~30 dosya daha indirilir)",
 "vex_res CSO_CARDSET ^"c539^"                                   // ekran kartlari: c538 = 5.3.8 yeni net kartlar (onerilen; sadece CSO_LANG dili indirilir), c533 = eski kart seti, off = sadece yazi kart",
-"vex_res MODEL_GUARD ^"1^"                                        // 1 = bozuk model/sprite (eksik doku, GL_Upload16 dokusu, kesik dosya) oyuncuya GONDERILMEZ, eski/varsayilan model kullanilir; sebep logs/vexmira_modelguard.log",
-"vex_res MODEL_PATH_INFO ^"0^"                                  // oyuncu modeli: klasor adi (vexbos1) veya tam yol (models/player/vexmira/admin.mdl, T aranmaz). Dev boss: vex_boss_build -> restart",
+"vex_res MODEL_GUARD ^"1^"                                      // 1 = bozuk model/sprite (eksik doku, GL_Upload16 dokusu, kesik dosya) oyuncuya GONDERILMEZ, eski/varsayilan model kullanilir; sebep logs/vexmira_modelguard.log",
+"vex_res MODEL_PATH_INFO ^"0^" // Otomatik model/T kopyasi yok; hazir model ve gerekli T dosyasini elle yukleyin.",
 "vex_res UNPRECACHE ^"1^"                                       // UNPRECACHER: 1 = oyunun kullanilmayan stok dosyalarini sesleri (C4 / bomba, rehine, tutor, geiger, bot telsizi, sprey) yukleme -> precache slotu + giris hizi; 0 = kapali",
 "vex_res UNPRECACHE_EXTRA ^"^"                                  // ek engellenecek stok dosyalar sesleri (bosluk ile, ornek: ^"weapons/c4_beep1.wav^"); model engellenmez (oyun bazi stok modelleri oyun icinde tekrar yukler)",
 "vex_res HITMARKER ^"1^"                                        // vur / kafadan vur / oldur hissi: c538 nisangah isareti (hm_hit / hm_hs / hm_kill) + kisa stok ses; 0 = kapali",
-"vex_res ZUP_STEPS ^"40 110 220 380 600^"                       // ZOMBI SINIF YUKSELTME: seviye 1..5 icin gereken puan (enfekte +1, insan oldurme +2; her sinif ayri, kalici). Seviye basina: bekleme -%6, menzil +%6, hasar +%8; Sv 3+ renkli halka. Menu: say /upgrade veya /yukselt",
+"vex_res ZUP_STEPS ^"4 8 12 16 20^"                       // ZOMBI SINIF YUKSELTME: 4/8/12/16/20 enfeksiyon puaninda skill puani (enfekte +1, insan oldurme +2; her sinif ayri, kalici). Seviye basina: bekleme -%6, menzil +%6, hasar +%8; Sv 3+ renkli halka. Menu: say /upgrade veya /yukselt",
 "vex_res ITEM_MASK_COST ^"30^"                                  // MARKET (insan): Enfeksiyon Maskesi AP fiyati; bir sonraki enfeksiyon vurusunu engeller (0 = satilmaz)",
 "vex_res ITEM_MASK_MODEL ^"^"                     // maske takan insanin modeli (models/player/AD/AD.mdl)",
 "vex_res ITEM_ZARMOR_COST ^"25^"                                // MARKET (zombi): Zombi Zirhi AP fiyati (0 = satilmaz)",
@@ -16317,139 +15911,117 @@ new const ZC_F_CFG[][] = {
 "vex_res MK1_P ^"models/vexmira/arena48/p_balrog.mdl^"          // bicak 1 p_ modeli",
 "vex_res MK1_SND ^"vexmira/arena48/melee/balrog^"               // bicak 1 ses oneki (_swing.wav / _hit.wav eklenir)",
 "vex_res MK1_ANIM ^"6 0 1 11^"                                  // bicak 1 animasyon no: cekme bekleme hafif agir",
-"vex_res MK1_DMG ^"1.4^"                                        // bicak 1 hasar carpani (hafif 170, agir 520 x carpan)",
-"vex_res MK1_KB ^"1.0^"                                         // bicak 1 geri itme carpani",
+"vex_res MK1_DMG ^"380 1200^"                                        // bicak 1 hasar carpani (hafif 170, agir 520 x carpan)",
+"vex_res MK1_KB ^"2.8^"                                         // bicak 1 geri itme carpani",
 "vex_res MK1_FX ^"0^"                                           // agir vurus efekti: 0 ates 1 simsek 2 buz 3 havaya firlat 4 zehir alani 5 vakum (cek)",
-"vex_res MK1_COST ^"500^"                                       // bicak 1 VC fiyati",
+"vex_res MK1_COST ^"600^"                                       // bicak 1 VC fiyati",
 "vex_res MK2_NAME ^"Janus-9 / Yildirim^"                        // pazar bicagi 2",
 "vex_res MK2_V ^"models/vexmira/arena48/v_janus.mdl^"           // model: mk2 v",
 "vex_res MK2_P ^"models/vexmira/arena48/p_janus.mdl^"           // model: mk2 p",
 "vex_res MK2_SND ^"vexmira/arena48/melee/janus^"",
 "vex_res MK2_ANIM ^"9 0 3 11^"",
 "vex_res MK2_FX ^"1^"",
-"vex_res MK2_COST ^"650^"",
-"vex_res MK2_DMG ^"1.4^"",
-"vex_res MK3_NAME ^"Magma Blade / Lav Kilici^"                  // pazar bicagi 3",
-"vex_res MK3_V ^"models/vexmira/v539/knives/magmablade/v_magmablade.mdl^" // model: mk3 v",
-"vex_res MK3_P ^"models/p_knife.mdl^"                           // p_ modeli (stok CS dosyasi, indirme yok)",
-"vex_res MK3_SWING ^"^"                                         // havaya vurus sesleri (| ile birden fazla, rastgele); bos = stok CS bicak sesi (indirme yok)",
-"vex_res MK3_HIT ^"^"                                           // zombiye isabet sesleri",
-"vex_res MK3_STAB ^"^"                                          // agir vurus (sag tik) sesi",
-"vex_res MK3_ANIM ^"3 0 1 4^"                                   // stok v_knife sirasi: cekme bekleme hafif agir",
-"vex_res MK3_DMG ^"180 650^"                                    // iki sayi = hafif agir mutlak hasar; tek sayi = carpan",
-"vex_res MK3_RATE ^"0.45 1.1^"                                  // hafif / agir vurus araligi (sn)",
-"vex_res MK3_RANGE ^"85^"",
-"vex_res MK3_KB ^"1.6^"",
-"vex_res MK3_FX ^"0^"                                           // 6 = %10 kritik x3 + kirilma parcasi, 7 = 2 sn icinde 3. vurus kombo x1.5",
-"vex_res MK3_COST ^"700^"",
-"vex_res MK4_NAME ^"Tomahawk / Savas Baltasi^"                  // pazar bicagi 4",
-"vex_res MK4_V ^"models/vexmira/v539/knives/tomahawk/v_tomahawk.mdl^" // model: mk4 v",
-"vex_res MK4_P ^"models/p_knife.mdl^"                           // model: mk4 p",
-"vex_res MK4_SWING ^"off^"                                      // off = sunucu sesi yok (model kendi sesini caliyor)",
-"vex_res MK4_HIT ^"vexmira/v539/tomahawk/knife_hit1.wav^"        // ses: mk4 hit (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res MK4_STAB ^"off^"",
-"vex_res MK4_SOUNDS ^"vexmira/v539/tomahawk/knife_draw.wav|vexmira/v539/tomahawk/knife_slash1.wav|vexmira/v539/tomahawk/knife_slash2.wav|vexmira/v539/tomahawk/knife_stab1.wav^" // modelin kendi caldigi sesler (sadece indirilir)",
-"vex_res MK4_ANIM ^"3 0 1 4^"",
-"vex_res MK4_DMG ^"220 800^"",
-"vex_res MK4_RATE ^"0.6 1.3^"",
-"vex_res MK4_RANGE ^"90^"",
-"vex_res MK4_KB ^"2.2^"",
-"vex_res MK4_FX ^"3^"",
-"vex_res MK4_COST ^"850^"",
-"vex_res MK5_NAME ^"Pickaxe / Kazma^"                           // pazar bicagi 5",
-"vex_res MK5_V ^"models/vexmira/v539/knives/pickaxe/v_pickaxeb.mdl^" // model: mk5 v",
-"vex_res MK5_P ^"models/p_knife.mdl^"                           // model: mk5 p",
-"vex_res MK5_SWING ^"^"                                         // mk5 swing (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res MK5_HIT ^"^"                                           // mk5 hit (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res MK5_STAB ^"^"                                          // mk5 stab (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res MK5_ANIM ^"3 0 1 4^"",
-"vex_res MK5_DMG ^"160 600^"",
-"vex_res MK5_RATE ^"0.4 1.0^"",
-"vex_res MK5_RANGE ^"80^"",
-"vex_res MK5_KB ^"1.3^"",
-"vex_res MK5_FX ^"6^"",
-"vex_res MK5_COST ^"750^"",
-"vex_res MK6_NAME ^"Crowbar / Levye^"                           // pazar bicagi 6",
-"vex_res MK6_V ^"models/vexmira/v539/knives/crowbar/v_crowbarb.mdl^" // model: mk6 v",
-"vex_res MK6_P ^"models/p_knife.mdl^"                           // model: mk6 p",
-"vex_res MK6_SWING ^"^"                                         // mk6 swing (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res MK6_HIT ^"^"                                           // mk6 hit (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res MK6_STAB ^"^"                                          // mk6 stab (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res MK6_ANIM ^"3 0 1 4^"",
-"vex_res MK6_DMG ^"200 700^"",
-"vex_res MK6_RATE ^"0.35 1.0^"",
-"vex_res MK6_RANGE ^"80^"",
-"vex_res MK6_KB ^"1.8^"",
-"vex_res MK6_FX ^"7^"",
-"vex_res MK6_COST ^"800^"",
-"vex_res SG1_NAME ^"Portal Gun^"                                // ARSENAL-538 ozel silah 1 (ozel silah menusunde, AP ile). SG<n>_V dosyasi yoksa gizlenir",
-"vex_res SG1_BASE ^"weapon_m249^"                               // taban silah (weapon_m249 / weapon_xm1014 / weapon_mp5navy / weapon_usp / weapon_elite ...)",
-"vex_res SG1_V ^"models/vexmira/v539/weapons/portalgun/v_portalgun.mdl^" // model: sg1 v",
-"vex_res SG1_P ^"models/vexmira/v539/weapons/portalgun/p_portalgun.mdl^" // bos = stok p_ modeli (indirme yok)",
-"vex_res SG1_W ^"models/vexmira/v539/weapons/portalgun/w_portalgun.mdl^" // yere dusen model; bos = stok",
-"vex_res SG1_FIRE ^"vexmira/v539/portalgun/m249-1.wav^"          // ates sesi (| ile birden fazla)",
-"vex_res SG1_FIRE2 ^"^"                                         // ozel atis sesi",
-"vex_res SG1_SOUNDS ^"^"                                        // modelin kendi caldigi sesler (sadece indirilir)",
-"vex_res SG1_ANIM ^"0 4 1 2 1 -1^"                              // animasyon no: bekleme cekme ates1 ates2 ates3 doldurma (-1 = yok)",
-"vex_res SG1_DMG ^"1.4^"                                        // hasar carpani (vex_sw_damage_mult ile carpilir)",
-"vex_res SG1_RATE ^"0.12^"                                      // atis araligi (sn)",
-"vex_res SG1_CLIP ^"40^"                                        // sarjor",
-"vex_res SG1_BPAMMO ^"200^"                                     // yedek mermi",
-"vex_res SG1_KB ^"2.5^"                                         // geri itme",
-"vex_res SG1_FX ^"1^"                                           // enerji isini + itme + yavaslatma, sag tik = itme patlamasi (sarjor bitmez)",
-"vex_res SG1_COST ^"30^"                                        // AP fiyati",
-"vex_res SG1_RGB ^"60 160 255^"                                 // efekt rengi",
-"vex_res SG2_NAME ^"Balrog-VII^"                                // ozel silah 2",
-"vex_res SG2_BASE ^"weapon_m249^"",
-"vex_res SG2_V ^"models/vexmira/v539/weapons/balrog7/v_balrog7b.mdl^" // model: sg2 v",
-"vex_res SG2_P ^"^"                                             // sg2 p (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG2_W ^"^"                                             // sg2 w (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG2_FIRE ^"vexmira/v539/balrog7/m249-1.wav^"            // ses: sg2 fire (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG2_FIRE2 ^"vexmira/v539/balrog7/m249-2.wav^"           // ses: sg2 fire2 (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG2_SOUNDS ^"vexmira/v539/balrog7/balrog7_clipout1.wav|vexmira/v539/balrog7/balrog7_clipout2.wav|vexmira/v539/balrog7/balrog7_clipin1.wav|vexmira/v539/balrog7/balrog7_clipin2.wav|vexmira/v539/balrog7/balrog7_clipin3.wav^" // ses: sg2 sounds (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG2_ANIM ^"0 4 1 2 1 3^"",
-"vex_res SG2_DMG ^"1.3^"",
-"vex_res SG2_RATE ^"0.09^"",
-"vex_res SG2_CLIP ^"120^"",
-"vex_res SG2_BPAMMO ^"360^"",
-"vex_res SG2_KB ^"1.5^"",
-"vex_res SG2_FX ^"2^"                                           // her 10. mermi atesli patlama (90 birim, 60 hasar)",
-"vex_res SG2_COST ^"32^"",
-"vex_res SG2_RGB ^"255 120 40^"",
-"vex_res SG3_NAME ^"Balrog-XI^"                                 // ozel silah 3",
-"vex_res SG3_BASE ^"weapon_xm1014^"",
-"vex_res SG3_V ^"models/vexmira/v539/weapons/balrog11/v_balrog11.mdl^" // model: sg3 v",
-"vex_res SG3_P ^"^"                                             // sg3 p (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG3_W ^"models/vexmira/v539/weapons/balrog11/w_balrog11.mdl^" // model: sg3 w",
-"vex_res SG3_FIRE ^"vexmira/v539/balrog11/xm1014-1.wav^"         // ses: sg3 fire (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG3_FIRE2 ^"^"                                         // sg3 fire2 (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG3_SOUNDS ^"vexmira/v539/balrog11/xm1014-insert.wav|vexmira/v539/balrog11/balrog11_draw.wav^" // ses: sg3 sounds (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG3_ANIM ^"0 6 1 2 1 3^"",
-"vex_res SG3_DMG ^"1.5^"",
-"vex_res SG3_RATE ^"0.25^"",
-"vex_res SG3_CLIP ^"12^"",
-"vex_res SG3_BPAMMO ^"96^"",
-"vex_res SG3_KB ^"6.0^"",
-"vex_res SG3_FX ^"3^"                                           // her 4. atis yakar; sag tik = alev topu (4 sn bekleme)",
-"vex_res SG3_COST ^"34^"",
-"vex_res SG3_RGB ^"255 80 30^"",
-"vex_res SG4_NAME ^"MP7 Nemesis^"                               // ozel silah 4",
-"vex_res SG4_BASE ^"weapon_mp5navy^"",
-"vex_res SG4_V ^"models/vexmira/v539/weapons/mp7nemesis/v_mp7nemesis.mdl^" // model: sg4 v",
-"vex_res SG4_P ^"^"                                             // sg4 p (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG4_W ^"^"                                             // sg4 w (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG4_FIRE ^"vexmira/v539/mp7nemesis/mp5-1.wav|vexmira/v539/mp7nemesis/mp5-2.wav^" // ses: sg4 fire (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG4_FIRE2 ^"^"                                         // sg4 fire2 (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG4_SOUNDS ^"vexmira/v539/mp7nemesis/mp5_clipout.wav|vexmira/v539/mp7nemesis/mp5_clipin.wav|vexmira/v539/mp7nemesis/mp5_slideback.wav^" // ses: sg4 sounds (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG4_ANIM ^"0 2 3 4 5 1^"",
-"vex_res SG4_DMG ^"1.35^"",
-"vex_res SG4_RATE ^"0.07^"",
-"vex_res SG4_CLIP ^"45^"",
-"vex_res SG4_BPAMMO ^"270^"",
-"vex_res SG4_KB ^"1.0^"",
-"vex_res SG4_FX ^"4^"                                           // zehirli mermi (3 sn, 0.5 sn de 5 hasar, yesil parlama)",
-"vex_res SG4_COST ^"28^"",
-"vex_res SG4_RGB ^"90 230 90^"",
+"vex_res MK2_COST ^"750^"",
+"vex_res MK2_DMG ^"400 1250^"",
+"// 5.5.0 integrated extra item replacements; original assets are listed in KAYNAKLAR_5.5.0.txt.",
+"vex_res MK3_NAME ^"Rune Blade^"",
+"vex_res MK3_V ^"models/vexmira/v550/runeblade/v_runeblade.mdl^"",
+"vex_res MK3_P ^"models/vexmira/v550/runeblade/p_runeblade.mdl^"",
+"vex_res MK3_SWING ^"weapons/runeblade-slash1.wav|weapons/runeblade-slash2.wav^"",
+"vex_res MK3_HIT ^"weapons/runeblade_hit1.wav|weapons/runeblade_hit2.wav^"",
+"vex_res MK3_STAB ^"weapons/runeblade_v_charge_attack1.wav|weapons/runeblade_v_charge_attack2.wav^"",
+"vex_res MK3_SOUNDS ^"weapons/runeblade_draw.wav|weapons/runeblade_charge_start1.wav|weapons/runeblade_charge_idle1.wav|weapons/runeblade_finish1.wav^"",
+"vex_res MK3_ANIM ^"2 0 1 7^"",
+"vex_res MK3_DMG ^"420 1320^"",
+"vex_res MK3_RATE ^"0.52 1.35^"",
+"vex_res MK3_RANGE ^"105^"",
+"vex_res MK3_KB ^"2.9^"",
+"vex_res MK3_FX ^"1^"",
+"vex_res MK3_COST ^"800^"",
+"vex_res MK3_EFFECT ^"sprites/vexmira/v550/runeblade_ef.spr^"",
+"vex_res MK5_NAME ^"Holy Sword Divine Order^"",
+"vex_res MK5_V ^"models/vexmira/v550/holysword/v_holysword.mdl^"",
+"vex_res MK5_P ^"models/vexmira/v550/holysword/p_holysword.mdl^"",
+"vex_res MK5_SWING ^"weapons/holysword_slash1.wav|weapons/holysword_slash2.wav|weapons/holysword_slash3.wav^"",
+"vex_res MK5_HIT ^"weapons/holysword_slash3.wav^"",
+"vex_res MK5_STAB ^"weapons/holysword_charge_slash.wav^"",
+"vex_res MK5_SOUNDS ^"weapons/holysword_draw.wav|weapons/holysword_cannon.wav|weapons/holysword_cannon_exp.wav|weapons/holysword_parryattack.wav^"",
+"vex_res MK5_SOUNDS2 ^"weapons/holysword_charge_start.wav|weapons/holysword_paring.wav|weapons/holysword_slash_change.wav^"",
+"vex_res MK5_ANIM ^"1 0 2 8^"",
+"vex_res MK5_DMG ^"430 1400^"",
+"vex_res MK5_RATE ^"0.48 1.30^"",
+"vex_res MK5_RANGE ^"110^"",
+"vex_res MK5_KB ^"3.0^"",
+"vex_res MK5_FX ^"2^"",
+"vex_res MK5_COST ^"900^"",
+"vex_res MK5_EFFECT ^"sprites/vexmira/v550/ef_holysword_charge.spr^"",
+"vex_res MK6_NAME ^"Miracle Prism Sword^"",
+"vex_res MK6_V ^"models/vexmira/v550/prism/v_magicknife.mdl^"",
+"vex_res MK6_P ^"models/vexmira/v550/prism/p_magicknife.mdl^"",
+"vex_res MK6_SWING ^"weapons/magicknife_slash1.wav|weapons/magicknife_slash2.wav|weapons/magicknife_slash3.wav|weapons/magicknife_slash4.wav^"",
+"vex_res MK6_HIT ^"weapons/magicknife_slash3.wav^"",
+"vex_res MK6_STAB ^"weapons/magicknife_charge_attack2.wav^"",
+"vex_res MK6_SOUNDS ^"weapons/magicknife_draw.wav|weapons/magicknife_charge_finish.wav|weapons/magicknife_magic_exp.wav^"",
+"vex_res MK6_SOUNDS2 ^"weapons/magicknife_charge_idle2_1.wav|weapons/magicknife_slash_end.wav^"",
+"vex_res MK6_ANIM ^"6 0 1 12^"",
+"vex_res MK6_DMG ^"420 1450^"",
+"vex_res MK6_RATE ^"0.50 1.40^"",
+"vex_res MK6_RANGE ^"105^"",
+"vex_res MK6_KB ^"3.0^"",
+"vex_res MK6_FX ^"5^"",
+"vex_res MK6_COST ^"1000^"",
+"vex_res MK6_EFFECT ^"sprites/vexmira/v550/ef_mgknife_exp01.spr^"",
+"vex_res SG1_NAME ^"Guitar Summer^"",
+"vex_res SG1_BASE ^"weapon_mp5navy^"",
+"vex_res SG1_V ^"models/vexmira/v550/guitar/v_guitar.mdl^"",
+"vex_res SG1_P ^"models/vexmira/v550/guitar/p_guitar.mdl^"",
+"vex_res SG1_W ^"models/vexmira/v550/guitar/w_guitar.mdl^"",
+"vex_res SG1_FIRE ^"weapons/gt.wav^"",
+"vex_res SG1_FIRE2 ^"^"",
+"vex_res SG1_SOUNDS ^"weapons/gt_clipin.wav|weapons/gt_clipon.wav|weapons/gt_clipout.wav|weapons/gt_draw.wav^"",
+"vex_res SG1_ANIM ^"0 2 3 4 5 1^"",
+"vex_res SG1_DMG ^"1.48^"",
+"vex_res SG1_RATE ^"0.098^"",
+"vex_res SG1_CLIP ^"35^"",
+"vex_res SG1_BPAMMO ^"210^"",
+"vex_res SG1_KB ^"1.7^"",
+"vex_res SG1_FX ^"0^"",
+"vex_res SG1_COST ^"45^"",
+"vex_res SG1_RGB ^"255 140 210^"",
+"vex_res SG3_NAME ^"CSO RPG-7^"",
+"vex_res SG3_BASE ^"weapon_ak47^"",
+"vex_res SG3_V ^"models/vexmira/v550/rpg7/v_rpg7.mdl^"",
+"vex_res SG3_P ^"models/vexmira/v550/rpg7/p_rpg7.mdl^"",
+"vex_res SG3_W ^"models/vexmira/v550/rpg7/w_rpg7.mdl^"",
+"vex_res SG3_FIRE ^"weapons/rpg7_shoot.wav^"",
+"vex_res SG3_FIRE2 ^"^"",
+"vex_res SG3_SOUNDS ^"weapons/rpg7_reload.wav|weapons/rpg7_draw.wav^"",
+"vex_res SG3_ANIM ^"0 7 4 5 4 6^"",
+"vex_res SG3_DMG ^"1.0^"",
+"vex_res SG3_RATE ^"1.25^"",
+"vex_res SG3_CLIP ^"1^"",
+"vex_res SG3_BPAMMO ^"20^"",
+"vex_res SG3_KB ^"2.4^"",
+"vex_res SG3_FX ^"9^"",
+"vex_res SG3_COST ^"65^"",
+"vex_res SG3_RGB ^"255 100 45^"",
+"vex_res SG4_NAME ^"M3 Shark^"",
+"vex_res SG4_BASE ^"weapon_m3^"",
+"vex_res SG4_V ^"models/vexmira/new/shark/v_m3dragonm.mdl^"",
+"vex_res SG4_P ^"models/vexmira/new/shark/p_m3dragonm.mdl^"",
+"vex_res SG4_W ^"models/vexmira/new/shark/w_m3dragonm.mdl^"",
+"vex_res SG4_FIRE ^"weapons/m3dragonm-1_1.wav|weapons/m3dragonm-1_2.wav^"",
+"vex_res SG4_FIRE2 ^"weapons/m3dragonm-2.wav^"",
+"vex_res SG4_SOUNDS ^"weapons/m3dragonm_gas_loop.wav|weapons/m3dragonm_shark_fx.wav|weapons/m3dragonm_secondary_draw.wav^"",
+"vex_res SG4_ANIM ^"0 6 1 2 1 3^"",
+"vex_res SG4_DMG ^"1.22^"",
+"vex_res SG4_RATE ^"0.78^"",
+"vex_res SG4_CLIP ^"8^"",
+"vex_res SG4_BPAMMO ^"48^"",
+"vex_res SG4_KB ^"2.3^"",
+"vex_res SG4_FX ^"12^"",
+"vex_res SG4_COST ^"60^"",
+"vex_res SG4_RGB ^"110 200 255^"",
 "vex_res SG5_NAME ^"Charger-7^"                                 // ozel silah 5",
 "vex_res SG5_BASE ^"weapon_m249^"",
 "vex_res SG5_V ^"models/vexmira/v539/weapons/charger7/v_charger7b.mdl^" // model: sg5 v",
@@ -16465,42 +16037,8 @@ new const ZC_F_CFG[][] = {
 "vex_res SG5_BPAMMO ^"300^"",
 "vex_res SG5_KB ^"1.2^"",
 "vex_res SG5_FX ^"5^"                                           // sag tik = delici lazer (400 hasar, 6 sn bekleme)",
-"vex_res SG5_COST ^"36^"",
+"vex_res SG5_COST ^"50^"",
 "vex_res SG5_RGB ^"120 200 255^"",
-"vex_res SG6_NAME ^"Chicken USP^"                               // ozel silah 6",
-"vex_res SG6_BASE ^"weapon_usp^"",
-"vex_res SG6_V ^"models/vexmira/v539/weapons/chickenusp/v_chickenuspb.mdl^" // model: sg6 v",
-"vex_res SG6_P ^"^"                                             // sg6 p (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG6_W ^"^"                                             // sg6 w (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG6_FIRE ^"vexmira/v539/chickenusp/usp_unsil-1.wav^"    // ses: sg6 fire (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG6_FIRE2 ^"^"                                         // sg6 fire2 (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG6_SOUNDS ^"vexmira/v539/chickenusp/usp_clipout.wav|vexmira/v539/chickenusp/usp_clipin.wav|vexmira/v539/chickenusp/usp_slideback.wav|vexmira/v539/chickenusp/usp_sliderelease.wav^" // ses: sg6 sounds (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG6_ANIM ^"8 14 9 10 11 13^"",
-"vex_res SG6_DMG ^"2.0^"",
-"vex_res SG6_RATE ^"0.15^"",
-"vex_res SG6_CLIP ^"20^"",
-"vex_res SG6_BPAMMO ^"120^"",
-"vex_res SG6_KB ^"3.0^"",
-"vex_res SG6_FX ^"6^"                                           // %15 sans tavuk sersemletme",
-"vex_res SG6_COST ^"20^"",
-"vex_res SG6_RGB ^"255 220 120^"",
-"vex_res SG7_NAME ^"Skull-2^"                                   // ozel silah 7",
-"vex_res SG7_BASE ^"weapon_elite^"",
-"vex_res SG7_V ^"models/vexmira/v539/weapons/skull2/v_skull2b.mdl^" // model: sg7 v",
-"vex_res SG7_P ^"^"                                             // sg7 p (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG7_W ^"^"                                             // sg7 w (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG7_FIRE ^"vexmira/v539/skull2/elite_fire.wav^"         // ses: sg7 fire (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG7_FIRE2 ^"^"                                         // sg7 fire2 (bos = varsayilan ses / kapali; kendi dosyani yazabilirsin)",
-"vex_res SG7_SOUNDS ^"vexmira/v539/skull2/skull2_draw2.wav|vexmira/v539/skull2/skull2_clipout.wav|vexmira/v539/skull2/skull2_reload2_1.wav|vexmira/v539/skull2/skull2_reload2_2.wav^" // ses: sg7 sounds (degistirmek icin kendi dosya yolunu yaz; ^"^" = sessiz)",
-"vex_res SG7_ANIM ^"0 15 2 3 8 14^"",
-"vex_res SG7_DMG ^"1.8^"",
-"vex_res SG7_RATE ^"0.11^"",
-"vex_res SG7_CLIP ^"36^"",
-"vex_res SG7_BPAMMO ^"180^"",
-"vex_res SG7_KB ^"2.0^"",
-"vex_res SG7_FX ^"7^"                                           // sag tik tek / cift atis (cift = 2x hiz, 0.8x hasar)",
-"vex_res SG7_COST ^"26^"",
-"vex_res SG7_RGB ^"200 60 60^"",
 "vex_res ITEM_SND_power ^"vexmira/s534/power.wav^"              // market esyasi sesi: power",
 "vex_res ITEM_SND_heal ^"vexmira/s534/heal.wav^"                // market esyasi sesi: heal",
 "vex_res ITEM_SND_armor ^"vexmira/s534/shield.wav^"             // market esyasi sesi: armor",
@@ -16513,7 +16051,21 @@ new const ZC_F_CFG[][] = {
 "vex_res ITEM_SND_regen ^"vexmira/s534/heal.wav^"               // market esyasi sesi: regen",
 "vex_res ITEM_SND_antidote ^"vexmira/s534/heal.wav^"            // market esyasi sesi: antidote",
 "vex_res ITEM_SND_serum ^"vexmira/s534/acid.wav^"               // market esyasi sesi: serum",
-"vex_res ITEM_SND_ammo ^"items/9mmclip1.wav^"                   // market esyasi sesi: mermi (CS 1.6 kendi sesi, indirme yok)"
+"vex_res ITEM_SND_ammo ^"items/9mmclip1.wav^"                   // market esyasi sesi: mermi (CS 1.6 kendi sesi, indirme yok)",
+"",
+"",
+"",
+"vex_res MK2_KB ^"2.8^"",
+"",
+"// 5.6.3: ozel sag tik / RPG / bicak alan saldirisi. Saldiran oyuncu kendini vurmaz.",
+"// Tum canli CT/T hedefler savrulur; duvar arkasina hasar gitmez. Insan hasari ayri tavanlidir.",
+"vex_res BLAST_DAMAGE_SCALE ^"1.0^" // zombi alan hasari carpani (0.5..2.0); RPG temel 950, sag tik 1150",
+"vex_res BLAST_RADIUS_SCALE ^"1.0^" // alan menzili carpani; RPG 330 birim, bicak 260 birim",
+"vex_res BLAST_FORCE_SCALE ^"1.0^" // yatay savurma carpani; temel 1100..1200",
+"vex_res BLAST_LIFT_SCALE ^"1.0^" // havaya firlatma carpani; temel 560..620",
+"vex_res BLAST_HUMAN_CAP ^"60^" // CT/insan basina tek patlamanin hasar tavani; savurma tam uygulanir",
+"",
+"// Pet: follow sonrasi X Y Z, pitch yaw roll. Yeni chick modellerinde yaw -90 ile sola bakis duzeltilir."
 };
 new const ZC_F_LANG[][] = {
 "[en]",
@@ -19360,10 +18912,10 @@ new const ZC_F_LANG[][] = {
 "ZC_MISSING_COLLECTION = ^^1Bu gorunum su an yuklu degil; coin harcanmadi. Yonetici: vex_diagnose"
 };
 new const ZC_F_MOTD_EN[][] = {
-"<html><head><meta charset=^"utf-8^"><style>body{background:#080e19;color:#dce9f8;font:13px Verdana,Arial;margin:0;padding:14px}h1{font-size:28px;color:#52e7ff;margin:0 0 4px;letter-spacing:5px}.tag{color:#b697ff;margin-bottom:12px}.box{background:#101c2d;border:1px solid #31405b;padding:8px 10px;margin:7px 0}b{color:#52e7ff}.small{font-size:11px;color:#9aadca}.gold{color:#ffcb5c}</style></head><body><h1>VEXMIRA</h1><div class=^"tag^">ZOMBIE / CSO / BOSS / TR & EN</div><p>Quarantine has begun. Survive together.</p><div class=^"box^"><b>M</b> main menu &nbsp; <b>/ozel</b> 8 ozel silah &nbsp; <b>/shop</b> Jetpack</div><div class=^"box^"><b>/cosmetic</b>: 5 CT skins, 5 knives, 5 wings, 5 hats, 5 pets. Permanent VC collection.</div><div class=^"box^"><b>F</b> inspect supported weapon &nbsp; <b>R</b> zombie skill &nbsp; <b>Ctrl + Space</b> Jetpack flight &nbsp; <b>Right click</b> rocket</div><div class=^"box^"><b>/lazer</b> mine menu &nbsp; <b>/daily</b> daily reward &nbsp; <b>/fps</b> display options &nbsp; <b>/memes</b> meme audio</div><div class=^"box^"><span class=^"gold^">9 bosses / 27 skills</span>. Avoid colored danger zones. Vote between 3 maps every 30 rounds.</div><p class=^"small^">SmurfSexy &amp; Capital | v4.4.0 | /lang - /dil</p></body></html>"
+"<html><head><meta charset=^"utf-8^"><style>body{background:#080e19;color:#dce9f8;font:13px Verdana,Arial;margin:0;padding:14px}h1{font-size:28px;color:#52e7ff;margin:0 0 4px;letter-spacing:5px}.tag{color:#b697ff;margin-bottom:12px}.box{background:#101c2d;border:1px solid #31405b;padding:8px 10px;margin:7px 0}b{color:#52e7ff}.small{font-size:11px;color:#9aadca}.gold{color:#ffcb5c}</style></head><body><h1>VEXMIRA</h1><div class=^"tag^">ZOMBIE / CSO / BOSS / TR & EN</div><p>Quarantine has begun. Survive together.</p><div class=^"box^"><b>M</b> main menu   <b>/ozel</b> 8 ozel silah   <b>/shop</b> Jetpack</div><div class=^"box^"><b>/cosmetic</b>: 5 CT skins, 5 knives, 5 wings, 5 hats, 5 pets. Permanent VC collection.</div><div class=^"box^"><b>F</b> inspect supported weapon   <b>R</b> zombie skill   <b>Ctrl + Space</b> Jetpack flight   <b>Right click</b> rocket</div><div class=^"box^"><b>/lazer</b> mine menu   <b>/daily</b> daily reward   <b>/fps</b> display options   <b>/memes</b> meme audio</div><div class=^"box^"><span class=^"gold^">9 bosses / 27 skills</span>. Avoid colored danger zones. Vote between 3 maps every 30 rounds.</div><p class=^"small^">SmurfSexy & Capital | v4.4.0 | /lang - /dil</p></body></html>"
 };
 new const ZC_F_MOTD_TR[][] = {
-"<html><head><meta charset=^"utf-8^"><style>body{background:#080e19;color:#dce9f8;font:13px Verdana,Arial;margin:0;padding:14px}h1{font-size:28px;color:#52e7ff;margin:0 0 4px;letter-spacing:5px}.tag{color:#b697ff;margin-bottom:12px}.box{background:#101c2d;border:1px solid #31405b;padding:8px 10px;margin:7px 0}b{color:#52e7ff}.small{font-size:11px;color:#9aadca}.gold{color:#ffcb5c}</style></head><body><h1>VEXMIRA</h1><div class=^"tag^">ZOMBIE / CSO / BOSS / TR & EN</div><p>Karantina basladi. Birlikte hayatta kal.</p><div class=^"box^"><b>M</b> ana menu &nbsp; <b>/ozel</b> 8 ozel silah &nbsp; <b>/shop</b> Jetpack</div><div class=^"box^"><b>/kozmetik</b>: 5 CT modeli, 5 bicak, 5 kanat, 5 sapka, 5 pet. VC ile kalici koleksiyon.</div><div class=^"box^"><b>F</b> normal silahi incele &nbsp; <b>R</b> zombi yetenegi &nbsp; <b>Ctrl + Space</b> Jetpack ucus &nbsp; <b>Sag tik</b> fuze</div><div class=^"box^"><b>/lazer</b> mayin menusu &nbsp; <b>/daily</b> gunluk odul &nbsp; <b>/fps</b> goruntu ayarlari &nbsp; <b>/memes</b> meme sesleri</div><div class=^"box^"><span class=^"gold^">9 boss / 27 yetenek</span>. Renkli tehlike halkalarindan kac. Her 30 roundda 3 harita arasinda oylama.</div><p class=^"small^">SmurfSexy &amp; Capital | v4.4.0 | /lang - /dil</p></body></html>"
+"<html><head><meta charset=^"utf-8^"><style>body{background:#080e19;color:#dce9f8;font:13px Verdana,Arial;margin:0;padding:14px}h1{font-size:28px;color:#52e7ff;margin:0 0 4px;letter-spacing:5px}.tag{color:#b697ff;margin-bottom:12px}.box{background:#101c2d;border:1px solid #31405b;padding:8px 10px;margin:7px 0}b{color:#52e7ff}.small{font-size:11px;color:#9aadca}.gold{color:#ffcb5c}</style></head><body><h1>VEXMIRA</h1><div class=^"tag^">ZOMBIE / CSO / BOSS / TR & EN</div><p>Karantina basladi. Birlikte hayatta kal.</p><div class=^"box^"><b>M</b> ana menu   <b>/ozel</b> 8 ozel silah   <b>/shop</b> Jetpack</div><div class=^"box^"><b>/kozmetik</b>: 5 CT modeli, 5 bicak, 5 kanat, 5 sapka, 5 pet. VC ile kalici koleksiyon.</div><div class=^"box^"><b>F</b> normal silahi incele   <b>R</b> zombi yetenegi   <b>Ctrl + Space</b> Jetpack ucus   <b>Sag tik</b> fuze</div><div class=^"box^"><b>/lazer</b> mayin menusu   <b>/daily</b> gunluk odul   <b>/fps</b> goruntu ayarlari   <b>/memes</b> meme sesleri</div><div class=^"box^"><span class=^"gold^">9 boss / 27 yetenek</span>. Renkli tehlike halkalarindan kac. Her 30 roundda 3 harita arasinda oylama.</div><p class=^"small^">SmurfSexy & Capital | v4.4.0 | /lang - /dil</p></body></html>"
 };
 new const ZC_F_MAP_ZM_VEXMIRA_7DOOR[][] = {
 "; zm_vexmira_7door - Kordon 7 senaryo dosyasi (latin-1, Turkce harfsiz)",
@@ -19897,9 +19449,6 @@ new const ZC_F_MAP_ZM_VEXMIRA_ICEFY[][] = {
 "model = models/vexmira/ice/ice_xbarrel.mdl @ice_xb5",
 "model = models/vexmira/ice/ice_xbarrel.mdl @ice_xb6"
 };
-new const ZC_F_EPIC_CFG[][] = {
-"// Vexmira 5.3.1: bu dosya artik kullanilmaz - tum ayarlar vexmira.cfg icinde"
-};
 new const ZC_F_EPIC_LANG[][] = {
 "",
 "[en]",
@@ -20069,6 +19618,7 @@ register_native("vx45_count","VxGearCount");
 register_native("vx45_status","VxGearStatus");
 register_native("vx45_hevlimit","VxGearHevLimit");
 register_native("vx45_write","VxGearWrite");
+register_native("vx563_cancel_weapon_tasks","VxCancelWeaponTasks563");
 }
 public VxGearCall(plugin, params) { return ZcCall(get_param(1),get_param(2),get_param(3)); }
 public VxGearReady(plugin, params) { return ZcCompOn(get_param(1)); }
@@ -20088,9 +19638,15 @@ jet_fHudAt47[id]=now+0.5;
 vx47_jetgauge(id,clamp(floatround((10.0-floatmax(0.0,jet_fLastShot[id]-now))*10.0),0,100),jet_iGas[id]*100/jet_MaxGas);
 }
 
-GearCreate51(const classname[]) {if(engfunc(EngFunc_NumberOfEntities)>=global_get(glb_maxEntities)-32) {log_to_file("vexmira_stability.log","GEAR_SPAWN_DENIED %s",classname);return 0;}return create_entity(classname);}
+GearCreate51(const classname[]) {
+if(engfunc(EngFunc_NumberOfEntities)>=global_get(glb_maxEntities)-32) {
+    log_to_file("vexmira_stability.log","GEAR_SPAWN_DENIED %s",classname);
+    return 0;
+}
+return create_entity(classname);
+}
 
-public Vx521PairVersion(plugin,params) { return 530; }
+public Vx521PairVersion(plugin,params) { return 564; }
 
 
 stock HamHook:VxRegisterHam524(Ham:fn,const cls[],const cb[],post=0,bool:specialbot=false) {
@@ -20114,19 +19670,22 @@ log_to_file("vexmira_startup.log","[530 vexgear] ServerActivate POST");
 return HC_CONTINUE;
 }
 
-stock ReadIsolation526() {
-new p[192];get_configsdir(p,charsmax(p));add(p,charsmax(p),"/vexmira_isolation.ini");
-new fp=fopen(p,"rt");if(!fp) return 0;
-new line[32];fgets(fp,line,charsmax(line));fclose(fp);trim(line);
-return clamp(str_to_num(line),0,10);
-}
-public IsolationStatus526(id) {
-console_print(id,"[530 vexgear] stage=%d full_module=%d; baseline is stock CS, not zombie gameplay",g_iIsolation526,g_bRun526);
-return PLUGIN_HANDLED;
-}
+
+public FullModeStatus563(id) { console_print(id,"[Vexmira 5.6.3] Production mode enabled."); return PLUGIN_HANDLED; }
 
 stock RegisterTexture530(const path[]) {
 new length=strlen(path);if(length<5 || !equali(path[length-4],".mdl")) return;
 new tex[192];copy(tex,charsmax(tex),path);tex[length-4]=0;add(tex,charsmax(tex),"T.mdl");
 if(file_exists(tex,true)) ZcPcGeneric(tex);
+}
+
+public VxCancelWeaponTasks563(plugin,params)
+{
+new id=get_param(1);if(id<1 || id>32) return 0;
+remove_task(id+drs_TASK_SLASHING+ZC_TOFF_DRS);remove_task(id+drs_TASK_STABING+ZC_TOFF_DRS);
+remove_task(id+kat_TASK_SET_DAMAGE+ZC_TOFF_KAT);remove_task(id+kat_TASK_RESET_DAMAGE+ZC_TOFF_KAT);
+remove_task(id+lsb_TASK_TURN+ZC_TOFF_LSB);remove_task(id+lsb_TASK_SLASH+ZC_TOFF_LSB);remove_task(id+lsb_TASK_RESET+ZC_TOFF_LSB);
+drs_g_Attack_Mode[id]=0;drs_g_Checking_Mode[id]=0;kat_g_Attack_Mode[id]=0;kat_g_Checking_Mode[id]=0;
+lsb_UnSet_BitVar(lsb_g_TempingAttack,id);lsb_UnSet_BitVar(lsb_g_InSpecialAttack,id);
+return 1;
 }

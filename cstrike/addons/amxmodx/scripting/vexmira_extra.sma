@@ -1,5 +1,5 @@
 /* Vexmira Zombie - EXTRA module (5.3.8). Third main plugin: keeps vexmira_core.sma under the panel's 1 MB
-   source limit. Holds: resource defaults, giant boss model builder/slimmer, event precache lists, and the
+   source limit. Holds: resource defaults, event precache lists, and the
    5.3.8 systems (kill feel, unprecacher, zombie class upgrades, special knife/gun slots).
    Load order (plugins-vexmira.ini): vexmira_core.amxx, vexmira_gear.amxx, vexmira_extra.amxx */
 #include <amxmodx>
@@ -14,9 +14,10 @@
 #include <reapi>
 #pragma dynamic 32768
 #pragma tabsize 0
-#define VXE_VERSION 538
+#define VXE_VERSION 564
 native vxc_res_set(const key[], const value[]);
 native vxc_pc_generic(const path[]);
+native vxc_area_hit(victim,owner,inflictor,Float:damage);
 #define NUM_CLASSES   24
 #define NUM_BOSSES    9
 #define NUM_SPECIAL   8
@@ -37,7 +38,26 @@ new const CLASS_MDL_DEF[NUM_CLASSES][] = { "walker", "runner", "tank", "banshee"
 new const CLASS_CLAW_DEF[NUM_CLASSES][] = { "walker", "runner", "hulk", "banshee", "leech", "stalker", "bomber", "frost", "spitter", "hulk", "voodoo", "phantom", "butcher", "runner", "hulk", "stalker", "bomber", "frost", "walker", "hulk", "banshee", "hulk", "spitter", "phantom" };
 new const BOSS_MDL_DEF[NUM_BOSSES][] = { "tank", "banshee", "hulk", "bomber", "phantom", "frost", "voodoo", "spitter", "stalker" };
 
-new g_iGiantNew542;
+#define VM_MODELS563 32
+#define VM_SEQS563 256
+#define VM_EVENTS563 1024
+#define VM_SOUNDS563 256
+new Trie:g_tVm563=Invalid_Trie,g_iVmCount563,g_iVmEventCount563,g_iVmSoundCount563;
+new g_szVmPath563[VM_MODELS563][96],g_szVmSound563[VM_SOUNDS563][96],bool:g_bVmSoundReady563[VM_SOUNDS563];
+new g_iVmStart563[VM_MODELS563][VM_SEQS563],g_iVmNum563[VM_MODELS563][VM_SEQS563];
+new Float:g_fVmLength563[VM_MODELS563][VM_SEQS563],bool:g_bVmLoop563[VM_MODELS563][VM_SEQS563];
+new g_iVmEventSound563[VM_EVENTS563],Float:g_fVmEventTime563[VM_EVENTS563];
+new g_iVmModel563[33],g_iVmString563[33],g_iVmSeq563[33],g_iVmCursor563[33];
+new Float:g_fVmClock563[33],bool:g_bVmRestart563[33];
+new g_iVmMessagePlayer563,g_iVmMessageByte563,g_iVmMessageSeq563;
+new bool:g_bVmPrecacheLive563;
+
+
+
+new Float:g_fLaunch563[33][3],g_iLaunchUser563[33],g_iLaunchPass563[33];
+new Float:g_fLegacyAlt563[33];
+new g_szWeaponSound563[33][16][96],g_iSoundChannel563[33][16],g_iSoundCursor563[33];
+new g_iSoundWeapon563[33],bool:g_bStopping563[33];
 public plugin_natives()
 {
 register_library("vexmira_extra");
@@ -52,6 +72,7 @@ register_native("vxe_version","N_Version");
 register_native("vxe_sw_hit","N_SwHit");
 register_native("vxe_unprecache_count","N_Unpc");
 register_native("vxe_zup_level","N_ZupLevel");
+register_native("vxe_zup_stat","N_ZupStat");
 register_native("vxe_zup_add","N_ZupAdd");
 register_native("vxe_zup_used","N_ZupUsed");
 register_native("vxe_mask_block","N_MaskBlock");
@@ -64,12 +85,20 @@ register_native("vxe_sw_info","N_SwInfo");
 register_native("vxe_sw_give","N_SwGive");
 register_native("vxe_sw_active","N_SwActive");
 register_native("vxe_sw_rgb","N_SwRgb");
+register_native("vxe_weapon_stop","N_WeaponStop563");
+register_native("vxe_blast","N_Blast563");
+register_native("vxe_legacy_melee","N_LegacyMelee563");
+register_native("vxe_audio_model","N_AudioModel563");
+register_native("vxe_prepare_audio_cfg","N_AudioConfig563");
 }
 public N_Version(plugin, params) return VXE_VERSION;
+new g_iGiantNew542;
+new bool:g_bBuildAllowed565;
 public N_GiantNew542(plugin, params) return g_iGiantNew542;
 public N_BossGiant(plugin, params)
 {
 new name[128], out[64];
+g_bBuildAllowed565 = params >= 6 && get_param(6) != 0;
 get_string(1, name, charsmax(name));
 new ok = GmBossGiant(name, out, charsmax(out), get_param_f(4), get_param(5)) ? 1 : 0;
 if (ok) set_string(2, out, get_param(3));
@@ -86,8 +115,10 @@ public N_Modern(plugin, params) { ModernEvents50(); return 1; }
 public N_NatPre(plugin, params) { NativePrecache52(); return 1; }
 public plugin_init()
 {
-register_plugin("Vexmira Extra", "5.3.8", "Vexmira");
+register_plugin("Vexmira Extra", "5.6.4", "Vexmira");
 ZupInit();
+WeaponLifecycleInit563();
+VmLifecycleInit563();
 register_concmd("vex_538_test", "Cmd538Test", ADMIN_RCON, "[upgrade points]");
 register_logevent("ItemsReset538", 2, "1=Round_Start");
 RegisterHam(Ham_Spawn, "player", "ItemsSpawn538", 1);
@@ -811,11 +842,14 @@ new mark[32];
 formatex(mark, charsmax(mark), "vexgiant534 t%d", tex);
 // 5.4.2 PROTECTION: a giant file that already exists and is valid is NEVER rebuilt or rewritten
 // (same name + same bytes -> players never download it again). Only a missing / broken file is built.
+if (!g_bBuildAllowed565) { if (!CommunityLegacyFileOk(dst)) return false; copy(out,len,gname); return true; }
 if (file_exists(dst, true) && !CommunityLegacyFileOk(dst)) { log_amx("[GiantBoss] bozuk dev model siliniyor, yeniden uretilecek: %s", dst); delete_file(dst); }
+new bool:built565 = false;
 if (!file_exists(dst, true))
 {
+built565 = true;
 if (!file_exists(src, true)) return false;
-g_iGiantNew542++;
+
 if (!dir_exists(dir)) mkdir(dir);
 if (!GmCopy(src, dst) || !GmPatch(dst, k)) { delete_file(dst); log_amx("[GiantBoss] %s olusturulamadi (dosya/klasor izni?) - normal boyut", dst); return false; }
 new tmp[168], s0 = file_size(dst, 0), bool:slim;
@@ -831,6 +865,7 @@ log_amx("[GiantBoss] dev model uretildi: %s (x%.1f) %d KB%s", dst, k, file_size(
 if (slim) log_amx("[GiantBoss] inceltildi: %d KB -> %d KB (kullanilmayan silah animasyonlari + doku %d px)", s0 / 1024, file_size(dst, 0) / 1024, tex);
 }
 if (!CommunityLegacyFileOk(dst)) return false;
+if (built565) g_iGiantNew542++;
 copy(out, len, gname);
 return true;
 }
@@ -857,251 +892,10 @@ if(containi(path,".wav")!=-1) return magic==0x46464952 && bytes>44;
 return bytes>0;
 }
 
-ModernEvents50()
-{
-static const paths[][]={"sound/vexmira/arena52/native/default/usp/0.wav",
-"sound/vexmira/arena52/native/default/usp/1.wav",
-"sound/vexmira/arena52/native/default/usp/2.wav",
-"sound/vexmira/arena52/native/default/usp/3.wav",
-"sound/vexmira/arena52/native/default/usp/4.wav",
-"sound/vexmira/arena52/native/default/usp/5.wav",
-"sound/vexmira/arena52/native/default/usp/6.wav",
-"sound/vexmira/arena52/native/default/elite/0.wav",
-"sound/vexmira/arena52/native/default/elite/1.wav",
-"sound/vexmira/arena52/native/default/elite/2.wav",
-"sound/vexmira/arena52/native/default/elite/3.wav",
-"sound/vexmira/arena52/native/default/elite/4.wav",
-"sound/vexmira/arena52/native/default/elite/5.wav",
-"sound/vexmira/arena52/native/default/m249/0.wav",
-"sound/vexmira/arena52/native/default/m249/1.wav",
-"sound/vexmira/arena52/native/default/m249/2.wav",
-"sound/vexmira/arena52/native/default/m249/3.wav",
-"sound/vexmira/arena52/native/default/m249/4.wav",
-"sound/vexmira/arena52/native/default/m249/5.wav",
-"sound/vexmira/arena52/native/default/famas/0.wav",
-"sound/vexmira/arena52/native/default/famas/1.wav",
-"sound/vexmira/arena52/native/default/famas/2.wav",
-"sound/vexmira/arena52/native/default/g3sg1/0.wav",
-"sound/vexmira/arena52/native/default/g3sg1/1.wav",
-"sound/vexmira/arena52/native/default/g3sg1/2.wav",
-"sound/vexmira/arena52/native/default/ak47/0.wav",
-"sound/vexmira/arena52/native/default/ak47/1.wav",
-"sound/vexmira/arena52/native/default/ak47/2.wav",
-"sound/vexmira/arena52/native/default/ump45/0.wav",
-"sound/vexmira/arena52/native/default/ump45/1.wav",
-"sound/vexmira/arena52/native/default/ump45/2.wav",
-"sound/vexmira/arena52/native/default/sg552/0.wav",
-"sound/vexmira/arena52/native/default/sg552/1.wav",
-"sound/vexmira/arena52/native/default/sg552/2.wav",
-"sound/vexmira/arena52/native/default/scout/0.wav",
-"sound/vexmira/arena52/native/default/scout/1.wav",
-"sound/vexmira/arena52/native/default/scout/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/0.wav",
-"sound/vexmira/arena52/native/default/m4a1/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/3.wav",
-"sound/vexmira/arena52/native/default/m4a1/4.wav",
-"sound/vexmira/arena52/native/default/m4a1/5.wav",
-"sound/vexmira/arena52/native/default/knife/0.wav",
-"sound/vexmira/arena52/native/default/mac10/0.wav",
-"sound/vexmira/arena52/native/default/mac10/1.wav",
-"sound/vexmira/arena52/native/default/mac10/2.wav",
-"sound/vexmira/arena52/native/default/mac10/3.wav",
-"sound/vexmira/arena52/native/default/fiveseven/0.wav",
-"sound/vexmira/arena52/native/default/fiveseven/1.wav",
-"sound/vexmira/arena52/native/default/fiveseven/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/3.wav",
-"sound/vexmira/arena52/native/default/mp5/0.wav",
-"sound/vexmira/arena52/native/default/mp5/1.wav",
-"sound/vexmira/arena52/native/default/mp5/2.wav",
-"sound/vexmira/arena52/native/default/deagle/0.wav",
-"sound/vexmira/arena52/native/default/deagle/1.wav",
-"sound/vexmira/arena52/native/default/deagle/2.wav",
-"sound/vexmira/arena52/native/default/c4/0.wav",
-"sound/vexmira/arena52/native/default/sg550/0.wav",
-"sound/vexmira/arena52/native/default/sg550/1.wav",
-"sound/vexmira/arena52/native/default/sg550/2.wav",
-"sound/vexmira/arena52/native/default/galil/0.wav",
-"sound/vexmira/arena52/native/default/galil/1.wav",
-"sound/vexmira/arena52/native/default/galil/2.wav",
-"sound/vexmira/arena52/native/default/p90/0.wav",
-"sound/vexmira/arena52/native/default/p90/1.wav",
-"sound/vexmira/arena52/native/default/p90/2.wav",
-"sound/vexmira/arena52/native/default/p90/3.wav",
-"sound/vexmira/arena52/native/default/xm1014/0.wav",
-"sound/vexmira/arena52/native/default/xm1014/1.wav",
-"sound/vexmira/arena52/native/default/aug/0.wav",
-"sound/vexmira/arena52/native/default/aug/1.wav",
-"sound/vexmira/arena52/native/default/aug/2.wav",
-"sound/vexmira/arena52/native/default/aug/3.wav",
-"sound/vexmira/arena52/native/default/aug/4.wav",
-"sound/vexmira/arena52/native/default/m3/0.wav",
-"sound/vexmira/arena52/native/default/m3/1.wav",
-"sound/vexmira/arena52/native/default/awp/0.wav",
-"sound/vexmira/arena52/native/default/awp/1.wav",
-"sound/vexmira/arena52/native/default/awp/2.wav",
-"sound/vexmira/arena52/native/default/awp/3.wav",
-"sound/vexmira/arena52/native/default/awp/4.wav",
-"sound/vexmira/arena52/native/default/glock18/0.wav",
-"sound/vexmira/arena52/native/default/glock18/1.wav",
-"sound/vexmira/arena52/native/default/glock18/2.wav",
-"sound/vexmira/arena52/native/default/glock18/3.wav",
-"sound/vexmira/arena52/native/default/p228/0.wav",
-"sound/vexmira/arena52/native/default/p228/1.wav",
-"sound/vexmira/arena52/native/default/p228/2.wav",
-"sound/vexmira/arena52/native/default/p228/3.wav",
-"sound/vexmira/arena52/native/default/p228/4.wav",
-"sound/vexmira/arena52/native/default/tmp/0.wav",
-"sound/vexmira/arena52/native/default/tmp/1.wav",
-"sound/vexmira/arena52/native/default/tmp/2.wav",
-"sound/vexmira/arena51/native/arsenal/1/0.wav",
-"sound/vexmira/arena51/native/arsenal/1/1.wav",
-"sound/vexmira/arena51/native/arsenal/1/2.wav",
-"sound/vexmira/arena51/native/arsenal/5/0.wav",
-"sound/vexmira/arena51/native/arsenal/5/1.wav",
-"sound/vexmira/arena51/native/arsenal/5/2.wav",
-"sound/vexmira/arena51/native/arsenal/5/3.wav",
-"sound/vexmira/arena51/native/arsenal/5/4.wav",
-"sound/vexmira/arena51/native/arsenal/5/5.wav",
-"sound/vexmira/arena51/native/arsenal/5/6.wav",
-"sound/vexmira/arena51/native/arsenal/5/7.wav",
-"sound/vexmira/arena51/native/arsenal/5/8.wav",
-"sound/vexmira/arena51/native/arsenal/5/9.wav",
-"sound/vexmira/arena51/native/arsenal/3/0.wav",
-"sound/vexmira/arena51/native/arsenal/3/1.wav",
-"sound/vexmira/arena51/native/arsenal/3/2.wav",
-"sound/vexmira/arena51/native/arsenal/3/3.wav",
-"sound/vexmira/arena51/native/arsenal/2/0.wav",
-"sound/vexmira/arena51/native/arsenal/2/1.wav",
-"sound/vexmira/arena51/native/arsenal/2/2.wav",
-"sound/vexmira/arena51/native/arsenal/7/0.wav",
-"sound/vexmira/arena51/native/arsenal/7/1.wav",
-"sound/vexmira/arena51/native/arsenal/7/2.wav",
-"sound/vexmira/arena51/native/arsenal/7/3.wav",
-"sound/vexmira/arena51/native/arsenal/7/4.wav",
-"sound/vexmira/arena51/native/arsenal/7/5.wav",
-"sound/vexmira/arena51/native/arsenal/7/6.wav",
-"sound/vexmira/arena51/native/arsenal/0/0.wav",
-"sound/vexmira/arena51/native/arsenal/0/1.wav",
-"sound/vexmira/arena51/native/arsenal/6/0.wav",
-"sound/vexmira/arena51/native/arsenal/6/1.wav",
-"sound/vexmira/arena51/native/arsenal/6/2.wav",
-"sound/vexmira/arena51/native/arsenal/6/3.wav",
-"sound/vexmira/arena51/native/arsenal/6/4.wav",
-"sound/vexmira/arena51/native/arsenal/6/5.wav",
-"sound/vexmira/arena51/native/arsenal/6/6.wav",
-"sound/vexmira/arena51/native/arsenal/6/7.wav",
-"sound/vexmira/arena51/native/arsenal/6/8.wav",
-"sound/vexmira/arena51/native/arsenal/4/0.wav",
-"sound/vexmira/arena51/native/arsenal/4/1.wav",
-"sound/vexmira/arena51/native/arsenal/4/2.wav",
-"sound/vexmira/arena51/native/arsenal/4/3.wav"};
-for(new i;i<sizeof paths;i++) vxc_pc_generic(paths[i]);
-vxc_pc_generic("sound/vexmira/arena52/foley/pin.wav");
-}
-NativePrecache52() {
-new const paths[][]={
-"sound/vexmira/arena52/native/default/ak47/0.wav",
-"sound/vexmira/arena52/native/default/ak47/1.wav",
-"sound/vexmira/arena52/native/default/ak47/2.wav",
-"sound/vexmira/arena52/native/default/aug/0.wav",
-"sound/vexmira/arena52/native/default/aug/1.wav",
-"sound/vexmira/arena52/native/default/aug/2.wav",
-"sound/vexmira/arena52/native/default/aug/3.wav",
-"sound/vexmira/arena52/native/default/aug/4.wav",
-"sound/vexmira/arena52/native/default/awp/0.wav",
-"sound/vexmira/arena52/native/default/awp/1.wav",
-"sound/vexmira/arena52/native/default/awp/2.wav",
-"sound/vexmira/arena52/native/default/awp/3.wav",
-"sound/vexmira/arena52/native/default/awp/4.wav",
-"sound/vexmira/arena52/native/default/c4/0.wav",
-"sound/vexmira/arena52/native/default/deagle/0.wav",
-"sound/vexmira/arena52/native/default/deagle/1.wav",
-"sound/vexmira/arena52/native/default/deagle/2.wav",
-"sound/vexmira/arena52/native/default/elite/0.wav",
-"sound/vexmira/arena52/native/default/elite/1.wav",
-"sound/vexmira/arena52/native/default/elite/2.wav",
-"sound/vexmira/arena52/native/default/elite/3.wav",
-"sound/vexmira/arena52/native/default/elite/4.wav",
-"sound/vexmira/arena52/native/default/elite/5.wav",
-"sound/vexmira/arena52/native/default/famas/0.wav",
-"sound/vexmira/arena52/native/default/famas/1.wav",
-"sound/vexmira/arena52/native/default/famas/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/0.wav",
-"sound/vexmira/arena52/native/default/fiveseven/1.wav",
-"sound/vexmira/arena52/native/default/fiveseven/2.wav",
-"sound/vexmira/arena52/native/default/fiveseven/3.wav",
-"sound/vexmira/arena52/native/default/g3sg1/0.wav",
-"sound/vexmira/arena52/native/default/g3sg1/1.wav",
-"sound/vexmira/arena52/native/default/g3sg1/2.wav",
-"sound/vexmira/arena52/native/default/galil/0.wav",
-"sound/vexmira/arena52/native/default/galil/1.wav",
-"sound/vexmira/arena52/native/default/galil/2.wav",
-"sound/vexmira/arena52/native/default/glock18/0.wav",
-"sound/vexmira/arena52/native/default/glock18/1.wav",
-"sound/vexmira/arena52/native/default/glock18/2.wav",
-"sound/vexmira/arena52/native/default/glock18/3.wav",
-"sound/vexmira/arena52/native/default/knife/0.wav",
-"sound/vexmira/arena52/native/default/m249/0.wav",
-"sound/vexmira/arena52/native/default/m249/1.wav",
-"sound/vexmira/arena52/native/default/m249/2.wav",
-"sound/vexmira/arena52/native/default/m249/3.wav",
-"sound/vexmira/arena52/native/default/m249/4.wav",
-"sound/vexmira/arena52/native/default/m249/5.wav",
-"sound/vexmira/arena52/native/default/m3/0.wav",
-"sound/vexmira/arena52/native/default/m3/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/0.wav",
-"sound/vexmira/arena52/native/default/m4a1/1.wav",
-"sound/vexmira/arena52/native/default/m4a1/2.wav",
-"sound/vexmira/arena52/native/default/m4a1/3.wav",
-"sound/vexmira/arena52/native/default/m4a1/4.wav",
-"sound/vexmira/arena52/native/default/m4a1/5.wav",
-"sound/vexmira/arena52/native/default/mac10/0.wav",
-"sound/vexmira/arena52/native/default/mac10/1.wav",
-"sound/vexmira/arena52/native/default/mac10/2.wav",
-"sound/vexmira/arena52/native/default/mac10/3.wav",
-"sound/vexmira/arena52/native/default/mp5/0.wav",
-"sound/vexmira/arena52/native/default/mp5/1.wav",
-"sound/vexmira/arena52/native/default/mp5/2.wav",
-"sound/vexmira/arena52/native/default/p228/0.wav",
-"sound/vexmira/arena52/native/default/p228/1.wav",
-"sound/vexmira/arena52/native/default/p228/2.wav",
-"sound/vexmira/arena52/native/default/p228/3.wav",
-"sound/vexmira/arena52/native/default/p228/4.wav",
-"sound/vexmira/arena52/native/default/p90/0.wav",
-"sound/vexmira/arena52/native/default/p90/1.wav",
-"sound/vexmira/arena52/native/default/p90/2.wav",
-"sound/vexmira/arena52/native/default/p90/3.wav",
-"sound/vexmira/arena52/native/default/scout/0.wav",
-"sound/vexmira/arena52/native/default/scout/1.wav",
-"sound/vexmira/arena52/native/default/scout/2.wav",
-"sound/vexmira/arena52/native/default/sg550/0.wav",
-"sound/vexmira/arena52/native/default/sg550/1.wav",
-"sound/vexmira/arena52/native/default/sg550/2.wav",
-"sound/vexmira/arena52/native/default/sg552/0.wav",
-"sound/vexmira/arena52/native/default/sg552/1.wav",
-"sound/vexmira/arena52/native/default/sg552/2.wav",
-"sound/vexmira/arena52/native/default/tmp/0.wav",
-"sound/vexmira/arena52/native/default/tmp/1.wav",
-"sound/vexmira/arena52/native/default/tmp/2.wav",
-"sound/vexmira/arena52/native/default/ump45/0.wav",
-"sound/vexmira/arena52/native/default/ump45/1.wav",
-"sound/vexmira/arena52/native/default/ump45/2.wav",
-"sound/vexmira/arena52/native/default/usp/0.wav",
-"sound/vexmira/arena52/native/default/usp/1.wav",
-"sound/vexmira/arena52/native/default/usp/2.wav",
-"sound/vexmira/arena52/native/default/usp/3.wav",
-"sound/vexmira/arena52/native/default/usp/4.wav",
-"sound/vexmira/arena52/native/default/usp/5.wav",
-"sound/vexmira/arena52/native/default/usp/6.wav",
-"sound/vexmira/arena52/native/default/xm1014/0.wav",
-"sound/vexmira/arena52/native/default/xm1014/1.wav",
-"sound/vexmira/arena52/foley/draw.wav",
-"sound/vexmira/arena52/foley/pin.wav",
-"sound/vexmira/arena52/foley/throw.wav"
-};
-for(new i=0;i<sizeof paths;i++) if(containi(paths[i],"/arsenal/4/")==-1) vxc_pc_generic(paths[i]);
-}
+ModernEvents50() {}
+NativePrecache52() {}
+
+NativePrecacheSpecial563() { g_bVmPrecacheLive563=true;VmCuePrecache563(); }
 // ============================================================================================
 // 5.3.8 ARSENAL-538: special guns on stock bases (m249 / xm1014 / mp5navy / usp / elite).
 // Same flow as the Arsenal-8 guns: bought from the core special weapon menu with AP, damage goes
@@ -1109,7 +903,7 @@ for(new i=0;i<sizeof paths;i++) if(containi(paths[i],"/arsenal/4/")==-1) vxc_pc_
 // core registry (vxc_pc_*), all stats from vexmira.cfg (vex_res SG<n>_*). A slot without its v_ file
 // is hidden.
 // ============================================================================================
-#define SG_MAX 8
+#define SG_MAX 7
 #define SG_TAG 5380
 native vxc_res_get(const key[], out[], len);
 native vxc_pc_model(const path[]);
@@ -1118,18 +912,19 @@ native vx45_corezombie(id);
 new g_szSgName[SG_MAX][48], g_szSgBase[SG_MAX][24], g_szSgV[SG_MAX][96], g_szSgP[SG_MAX][96], g_szSgW[SG_MAX][96];
 new g_szSgFire[SG_MAX][200], g_szSgFire2[SG_MAX][96], g_iSgAnim[SG_MAX][6], g_iSgClip[SG_MAX], g_iSgAmmo[SG_MAX], g_iSgCost[SG_MAX], g_iSgFx[SG_MAX];
 new Float:g_fSgDmg[SG_MAX], Float:g_fSgRate[SG_MAX], Float:g_fSgKb[SG_MAX], g_iSgRgb[SG_MAX][3], bool:g_bSgOk[SG_MAX], WeaponIdType:g_iSgWid[SG_MAX];
-new g_iSgShots[33], g_iSgClipPre[33], Float:g_fSgAltAt[33], bool:g_bSgDual[33], g_iSgPoison[33], g_iSgPoisonBy[33], Float:g_fSgPoisonAt[33];
+new g_iSgClipPre[33], Float:g_fSgAltAt[33];
 new g_iSgEv[31][2];
-new g_sprBeam538, g_sprExplo538, g_sprFire538, g_sprSmoke538, g_iSgN, g_iMaxPl538, bool:g_bSgHooked[31];
+new g_sprBeam538, g_sprExplo538, g_sprTrail538, g_iSgN, g_iMaxPl538, bool:g_bSgHooked[31];
 new const SG_DEF[SG_MAX][][] = {
-{"Portal Gun", "weapon_m249", "1.4", "0.12", "40", "200", "2.5", "1", "30", "60 160 255"},
-{"Balrog-VII", "weapon_m249", "1.3", "0.09", "120", "360", "1.5", "2", "32", "255 120 40"},
-{"Balrog-XI", "weapon_xm1014", "1.5", "0.25", "12", "96", "6.0", "3", "34", "255 80 30"},
-{"MP7 Nemesis", "weapon_mp5navy", "1.35", "0.07", "45", "270", "1.0", "4", "28", "90 230 90"},
-{"Charger-7", "weapon_m249", "1.25", "0.08", "100", "300", "1.2", "5", "36", "120 200 255"},
-{"Chicken USP", "weapon_usp", "2.0", "0.15", "20", "120", "3.0", "6", "20", "255 220 120"},
-{"Skull-2", "weapon_elite", "1.8", "0.11", "36", "180", "2.0", "7", "26", "200 60 60"},
-{"", "weapon_usp", "1.6", "0.2", "12", "96", "2.0", "0", "24", "180 120 255"} };
+{"Guitar Summer", "weapon_mp5navy", "1.48", "0.098", "35", "210", "1.7", "0", "45", "255 140 210"},
+{"", "", "1", "1", "1", "0", "0", "0", "0", "0 0 0"},
+{"CSO RPG-7", "weapon_ak47", "1.0", "1.25", "1", "20", "2.4", "9", "65", "255 100 45"},
+{"M3 Shark", "weapon_m3", "1.22", "0.78", "8", "48", "2.3", "12", "60", "110 200 255"},
+{"Charger-7", "weapon_m249", "1.25", "0.08", "100", "300", "1.2", "5", "50", "120 200 255"},
+{"", "", "1", "1", "1", "0", "0", "0", "0", "0 0 0"},
+{"", "", "1", "1", "1", "0", "0", "0", "0", "0 0 0"} };
+new g_iSgProjectileModel[4], g_sprSharkExplo;
+new g_iSgReloadEnt[33]; new Float:g_fSgReloadAt[33];
 // weapon id by entity name (get_weaponid is empty during precache)
 WeaponIdType:SgWid(const name[])
 {
@@ -1155,13 +950,13 @@ new want = random(n), rest[200], c; copy(rest, charsmax(rest), list); out[0] = 0
 while (rest[0]) { strtok(rest, out, len, rest, charsmax(rest), '|'); trim(out); if (c++ == want) break; }
 }
 // 5.4.2 LOAD ORDER FIX: if this plugin is listed before vexmira_core (panel order), core is not ready yet
-// (no config, no precache cache) and every file here was skipped ("0 / 8 ozel silah hazir").
+// (no config, no precache cache) and every file here was skipped ("0 / 5 ozel silah hazir").
 // Then core calls vxe_late_precache() at the end of its own precache and everything is loaded there.
 native vxc_pc_ready();
 new bool:g_bPcDone542;
 public plugin_precache()
 {
-if (!vxc_pc_ready()) { log_amx("[Vexmira] extra: core henuz hazir degil, yuklemeyi core yapacak (eklenti sirasi)"); return; }
+if (!vxc_pc_ready()) { return; }
 ExtraPrecache542();
 }
 public N_LatePrecache542(plugin, params) { ExtraPrecache542(); return 1; }
@@ -1175,6 +970,7 @@ new key[24], val[512], a[6][8];
 for (new i = 0; i < SG_MAX; i++)
 {
 g_bSgOk[i] = false;
+if(i==1 || i==5 || i==6) continue;
 formatex(key, charsmax(key), "SG%d_NAME", i + 1); SgRes(key, SG_DEF[i][0], g_szSgName[i], charsmax(g_szSgName[]));
 formatex(key, charsmax(key), "SG%d_BASE", i + 1); SgRes(key, SG_DEF[i][1], g_szSgBase[i], charsmax(g_szSgBase[]));
 formatex(key, charsmax(key), "SG%d_V", i + 1); SgRes(key, "", g_szSgV[i], charsmax(g_szSgV[]));
@@ -1190,7 +986,7 @@ formatex(key, charsmax(key), "SG%d_RATE", i + 1); SgRes(key, SG_DEF[i][3], val, 
 formatex(key, charsmax(key), "SG%d_CLIP", i + 1); SgRes(key, SG_DEF[i][4], val, charsmax(val)); g_iSgClip[i] = clamp(str_to_num(val), 1, 250);
 formatex(key, charsmax(key), "SG%d_BPAMMO", i + 1); SgRes(key, SG_DEF[i][5], val, charsmax(val)); g_iSgAmmo[i] = clamp(str_to_num(val), 0, 900);
 formatex(key, charsmax(key), "SG%d_KB", i + 1); SgRes(key, SG_DEF[i][6], val, charsmax(val)); g_fSgKb[i] = floatclamp(str_to_float(val), 0.0, 20.0);
-formatex(key, charsmax(key), "SG%d_FX", i + 1); SgRes(key, SG_DEF[i][7], val, charsmax(val)); g_iSgFx[i] = clamp(str_to_num(val), 0, 7);
+formatex(key, charsmax(key), "SG%d_FX", i + 1); SgRes(key, SG_DEF[i][7], val, charsmax(val)); g_iSgFx[i] = clamp(str_to_num(val), 0, 13);
 formatex(key, charsmax(key), "SG%d_COST", i + 1); SgRes(key, SG_DEF[i][8], val, charsmax(val)); g_iSgCost[i] = clamp(str_to_num(val), 0, 100000);
 formatex(key, charsmax(key), "SG%d_RGB", i + 1); SgRes(key, SG_DEF[i][9], val, charsmax(val));
 parse(val, a[0], 7, a[1], 7, a[2], 7); for (new k = 0; k < 3; k++) g_iSgRgb[i][k] = clamp(str_to_num(a[k]), 0, 255);
@@ -1205,16 +1001,18 @@ g_bSgOk[i] = true; g_iSgN++;
 }
 if (g_iSgN)
 {
+if (g_bSgOk[2]) {g_iSgProjectileModel[1] = vxc_pc_model("models/vexmira/v550/rpg7/s_rpg7.mdl");vxc_pc_sound("weapons/canon_firebal_exp.wav");}
+if (g_bSgOk[3]) { g_iSgProjectileModel[2] = vxc_pc_model("models/vexmira/new/shark/m3dragonm_effect.mdl"); g_sprSharkExplo = vxc_pc_model("sprites/vexmira/new/ef_m3waterbomb.spr"); }
+if (g_bSgOk[2]) g_sprTrail538 = vxc_pc_model("sprites/smoke.spr");
 g_sprBeam538 = vxc_pc_model("sprites/laserbeam.spr");
-g_sprExplo538 = vxc_pc_model("sprites/zerogxplode.spr");
-g_sprFire538 = vxc_pc_model("sprites/fexplo.spr");
-g_sprSmoke538 = vxc_pc_model("sprites/steam1.spr");
-static const EVF[][] = {"m249", "xm1014", "mp5n", "usp", "elite_left", "elite_right"};
-static const WeaponIdType:EVW[] = {WEAPON_M249, WEAPON_XM1014, WEAPON_MP5N, WEAPON_USP, WEAPON_ELITE, WEAPON_ELITE};
+g_sprExplo538 = vxc_pc_model("sprites/vexmira/fx563/rpg_blast.spr");
+static const EVF[][] = {"m249", "m3", "mp5n", "ak47"};
+static const WeaponIdType:EVW[] = {WEAPON_M249, WEAPON_M3, WEAPON_MP5N, WEAPON_AK47};
 new ev[48];
-for (new k = 0; k < sizeof EVF; k++) { formatex(ev, charsmax(ev), "events/%s.sc", EVF[k]); g_iSgEv[_:EVW[k]][k == 5 ? 1 : 0] = engfunc(EngFunc_PrecacheEvent, 1, ev); }
+for (new k = 0; k < sizeof EVF; k++) { formatex(ev, charsmax(ev), "events/%s.sc", EVF[k]); g_iSgEv[_:EVW[k]][0] = engfunc(EngFunc_PrecacheEvent, 1, ev); }
 }
-log_amx("[Arsenal538] %d / %d ozel silah hazir", g_iSgN, SG_MAX);
+NativePrecacheSpecial563();
+log_amx("[Arsenal538] %d / %d ozel silah hazir", g_iSgN, 4);
 }
 public plugin_cfg()
 {
@@ -1227,7 +1025,6 @@ RegisterHam(Ham_Item_Deploy, g_szSgBase[i], "SgDeploy", 1);
 RegisterHam(Ham_Weapon_PrimaryAttack, g_szSgBase[i], "SgAttackPre", 0);
 RegisterHam(Ham_Weapon_PrimaryAttack, g_szSgBase[i], "SgAttackPost", 1);
 RegisterHam(Ham_Weapon_Reload, g_szSgBase[i], "SgReloadPre", 0);
-RegisterHam(Ham_Weapon_Reload, g_szSgBase[i], "SgReloadPost", 1);
 RegisterHam(Ham_Item_PostFrame, g_szSgBase[i], "SgPostFrame", 0);
 }
 if (g_iSgN)
@@ -1235,8 +1032,10 @@ if (g_iSgN)
 register_forward(FM_CmdStart, "SgCmdStart");
 register_forward(FM_SetModel, "SgSetModel");
 register_forward(FM_PlaybackEvent, "SgEvent");
-register_concmd("vex_sg_give", "SgCmdGive", ADMIN_RCON, "<name or #userid> <1..8>");
-set_task(0.5, "SgPoisonTick", 538538, _, _, "b");
+register_concmd("vex_sg_give", "SgCmdGive", ADMIN_RCON, "<name or #userid> <1..7>");
+RegisterHookChain(RG_CBasePlayerWeapon_DefaultDeploy, "SgDefaultDeploy", false);
+register_touch("vex_sg_projectile", "*", "SgProjectileTouch");
+register_think("vex_sg_projectile", "SgProjectileThink");
 }
 }
 SgIndex(weapon)
@@ -1266,7 +1065,6 @@ if (w <= 0 || !pev_valid(w)) return 0;
 set_pev(w, pev_impulse, SG_TAG + i);
 set_member(w, m_Weapon_iClip, g_iSgClip[i]);
 rg_set_user_bpammo(id, g_iSgWid[i], g_iSgAmmo[i]);
-g_iSgShots[id] = 0; g_bSgDual[id] = false;
 engclient_cmd(id, g_szSgBase[i]);
 SgApplyModels(id, i);
 return w;
@@ -1284,10 +1082,35 @@ new id = get_member(weapon, m_pPlayer); if (id < 1 || id > g_iMaxPl538 || vx45_c
 SgApplyModels(id, i);
 return HAM_IGNORED;
 }
+public SgDefaultDeploy(weapon, szViewModel[], szWeaponModel[], iAnim, szAnimExt[], skiplocal)
+{
+new i=SgIndex(weapon); if(i<0) return HC_CONTINUE;
+new id=get_member(weapon,m_pPlayer);
+if(!is_user_alive(id) || vx45_corezombie(id)) return HC_CONTINUE;
+SetHookChainArg(2,ATYPE_STRING,g_szSgV[i]);
+if(g_szSgP[i][0]) SetHookChainArg(3,ATYPE_STRING,g_szSgP[i]);
+SetHookChainArg(4,ATYPE_INTEGER,g_iSgAnim[i][1]);
+return HC_CONTINUE;
+}
 public SgAttackPre(weapon)
 {
 new i = SgIndex(weapon); if (i < 0) return HAM_IGNORED;
-new id = get_member(weapon, m_pPlayer); g_iSgClipPre[id] = get_member(weapon, m_Weapon_iClip);
+new id = get_member(weapon, m_pPlayer);
+if (id < 1 || id > g_iMaxPl538 || !is_user_alive(id)) return HAM_IGNORED;
+new clip = get_member(weapon, m_Weapon_iClip);
+g_iSgClipPre[id] = clip;
+if (g_iSgFx[i] == 9)
+{
+if (clip > 0 && Float:get_member(weapon, m_Weapon_flNextPrimaryAttack) <= 0.0 && SgProjectileShoot(id, i))
+{
+set_member(weapon, m_Weapon_iClip, clip - 1);
+set_member(weapon, m_Weapon_flNextPrimaryAttack, g_fSgRate[i]);
+set_member(weapon, m_Weapon_flNextSecondaryAttack, g_fSgRate[i]);
+set_member(weapon, m_Weapon_flTimeWeaponIdle, g_fSgRate[i] + 0.4);
+g_iSgClipPre[id] = clip - 1; // the stock bullet attack is suppressed
+}
+return HAM_SUPERCEDE;
+}
 return HAM_IGNORED;
 }
 public SgAttackPost(weapon)
@@ -1295,47 +1118,47 @@ public SgAttackPost(weapon)
 new i = SgIndex(weapon); if (i < 0) return HAM_IGNORED;
 new id = get_member(weapon, m_pPlayer);
 if (id < 1 || id > g_iMaxPl538 || get_member(weapon, m_Weapon_iClip) >= g_iSgClipPre[id]) return HAM_IGNORED;
-new Float:rate = g_fSgRate[i] * ((g_iSgFx[i] == 7 && g_bSgDual[id]) ? 0.5 : 1.0);
-set_member(weapon, m_Weapon_flNextPrimaryAttack, rate);
+set_member(weapon, m_Weapon_flNextPrimaryAttack, g_fSgRate[i]);
 new snd[96]; SgPick(g_szSgFire[i], snd, charsmax(snd));
-g_iSgShots[id]++;
-if (g_iSgFx[i] == 2 && g_iSgShots[id] % 10 == 0 && g_szSgFire2[i][0]) copy(snd, charsmax(snd), g_szSgFire2[i]);
 if (snd[0]) emit_sound(id, CHAN_WEAPON, snd, 0.85, ATTN_NORM, 0, PITCH_NORM);
+if (g_iSgFx[i] == 0 || g_iSgFx[i] == 10) SgFlash(id, i);
 new seq = g_iSgAnim[i][2 + random(3)];
 SgAnim(id, seq);
-if (g_iSgFx[i] == 1) set_member(weapon, m_Weapon_iClip, g_iSgClip[i]); // energy gun: never reloads
 return HAM_IGNORED;
 }
 public SgReloadPre(weapon)
 {
 new i = SgIndex(weapon); if (i < 0) return HAM_IGNORED;
 new id = get_member(weapon, m_pPlayer);
+if(id<1 || id>g_iMaxPl538 || !is_user_alive(id)) return HAM_SUPERCEDE;
 new clip = get_member(weapon, m_Weapon_iClip);
-if (clip >= g_iSgClip[i] || rg_get_user_bpammo(id, g_iSgWid[i]) <= 0 || g_iSgFx[i] == 1) return HAM_SUPERCEDE;
-g_iSgClipPre[id] = clip; set_member(weapon, m_Weapon_iClip, 0);
-return HAM_IGNORED;
-}
-public SgReloadPost(weapon)
-{
-new i = SgIndex(weapon); if (i < 0) return HAM_IGNORED;
-new id = get_member(weapon, m_pPlayer);
-set_member(weapon, m_Weapon_iClip, g_iSgClipPre[id]);
-if (g_iSgWid[i] != WEAPON_XM1014 && get_member(weapon, m_Weapon_fInReload) && g_iSgAnim[i][5] >= 0) SgAnim(id, g_iSgAnim[i][5]);
-return HAM_IGNORED;
+if (clip >= g_iSgClip[i] || rg_get_user_bpammo(id, g_iSgWid[i]) <= 0) return HAM_SUPERCEDE;
+if(g_iSgReloadEnt[id]==weapon && g_fSgReloadAt[id]>get_gametime()) return HAM_SUPERCEDE;
+new Float:duration=(i==3 ? 2.4 : i==2 ? 2.2 : i==6 ? 2.7 : 2.8);
+g_iSgReloadEnt[id]=weapon;g_fSgReloadAt[id]=get_gametime()+duration;
+set_member(id,m_flNextAttack,duration);
+set_member(weapon,m_Weapon_flNextPrimaryAttack,duration);
+set_member(weapon,m_Weapon_flNextSecondaryAttack,duration);
+set_member(weapon,m_Weapon_fInReload,0);
+SgAnim(id,g_iSgAnim[i][5]);
+return HAM_SUPERCEDE;
 }
 public SgPostFrame(weapon)
 {
 new i = SgIndex(weapon); if (i < 0) return HAM_IGNORED;
-if (g_iSgWid[i] == WEAPON_XM1014) return HAM_IGNORED; // shotgun reloads shell by shell (stock)
 new id = get_member(weapon, m_pPlayer);
-if (get_member(weapon, m_Weapon_fInReload) && Float:get_member(id, m_flNextAttack) <= 0.0)
+if(id<1 || id>g_iMaxPl538 || g_iSgReloadEnt[id]!=weapon) return HAM_IGNORED;
+if(g_fSgReloadAt[id]>get_gametime()) return HAM_SUPERCEDE;
+g_iSgReloadEnt[id]=0;
 {
 new clip = get_member(weapon, m_Weapon_iClip), bp = rg_get_user_bpammo(id, g_iSgWid[i]);
 new j = min(g_iSgClip[i] - clip, bp);
 if (j > 0) { set_member(weapon, m_Weapon_iClip, clip + j); rg_set_user_bpammo(id, g_iSgWid[i], bp - j); }
-set_member(weapon, m_Weapon_fInReload, 0);
 }
-return HAM_IGNORED;
+set_member(weapon, m_Weapon_flNextPrimaryAttack, 0.0);
+set_member(weapon, m_Weapon_flNextSecondaryAttack, 0.0);
+set_member(id, m_flNextAttack, 0.0);
+return HAM_SUPERCEDE;
 }
 public SgSetModel(ent, const model[])
 {
@@ -1359,28 +1182,104 @@ new i = SgActive(invoker); if (i < 0) return FMRES_IGNORED;
 new w = _:g_iSgWid[i];
 return (ev == g_iSgEv[w][0] || ev == g_iSgEv[w][1]) ? FMRES_SUPERCEDE : FMRES_IGNORED;
 }
-// right click: charger laser / balrog-XI flame ball / skull-2 dual mode / portal blast
-public SgCmdStart(id, uc)
+// Charger laser and Rail Cannon charged piercing beam.
+public SgCmdStart(id,uc)
 {
-if (!(get_uc(uc, UC_Buttons) & IN_ATTACK2)) return FMRES_IGNORED;
-new i = SgActive(id); if (i < 0) return FMRES_IGNORED;
-new fx = g_iSgFx[i]; if (fx != 3 && fx != 5 && fx != 7 && fx != 1 && fx != 6) return FMRES_IGNORED;
-set_uc(uc, UC_Buttons, get_uc(uc, UC_Buttons) & ~IN_ATTACK2);
-if (fx == 6) return FMRES_IGNORED;
-new Float:now = get_gametime(); if (now < g_fSgAltAt[id]) return FMRES_IGNORED;
-switch (fx)
-{
-case 7: { g_bSgDual[id] = !g_bSgDual[id]; g_fSgAltAt[id] = now + 0.6; client_print(id, print_center, g_bSgDual[id] ? "CIFT ATIS" : "TEK ATIS"); }
-case 5: { g_fSgAltAt[id] = now + 6.0; SgBeamShot(id, i, 400.0); }
-case 3: { g_fSgAltAt[id] = now + 4.0; SgFlameBall(id, i); }
-case 1: { g_fSgAltAt[id] = now + 3.0; SgBeamShot(id, i, 150.0); }
-}
+if(!(get_uc(uc,UC_Buttons)&IN_ATTACK2)) return FMRES_IGNORED;
+new i=SgActive(id);if(i<0) return FMRES_IGNORED;
+if(i!=6) set_uc(uc,UC_Buttons,get_uc(uc,UC_Buttons)&~IN_ATTACK2);
+new Float:now=get_gametime();if(now<g_fSgAltAt[id] || g_iSgReloadEnt[id]) return FMRES_IGNORED;
+new weapon=get_member(id,m_pActiveItem);
+if(weapon<=0 || !pev_valid(weapon) || Float:get_member(id,m_flNextAttack)>0.0 || Float:get_member(weapon,m_Weapon_flNextPrimaryAttack)>0.0) return FMRES_IGNORED;
+new fx=g_iSgFx[i],cost=i==2?1:fx==11?8:fx==12?2:fx==13?6:5;
+if(get_member(weapon,m_Weapon_iClip)<cost) return FMRES_IGNORED;
+if(i==1 || i==2 || i==3 || i==5) {
+    if(!SgProjectileShoot(id,i,1)) return FMRES_IGNORED;
+} else SgBeamShot(id,i,800.0);
+set_member(weapon,m_Weapon_iClip,get_member(weapon,m_Weapon_iClip)-cost);
+g_fSgAltAt[id]=now+(i==2?2.5:5.0);
+set_member(weapon,m_Weapon_flNextPrimaryAttack,1.0);
+set_member(weapon,m_Weapon_flNextSecondaryAttack,1.0);
+SgAnim(id,fx==13?6:g_iSgAnim[i][4]);
 return FMRES_IGNORED;
+}
+// Dedicated projectile entities: stock bullets are suppressed for launcher primary fire.
+SgProjectileShoot(id, i, alt=0)
+{
+new ptype = i==2?1:i==3?2:-1;
+if (ptype < 0 || !g_iSgProjectileModel[ptype]) return 0;
+if(engfunc(EngFunc_NumberOfEntities)>=global_get(glb_maxEntities)-32) return 0;
+new ent = create_entity("info_target"); if (!is_valid_ent(ent)) return 0;
+entity_set_string(ent, EV_SZ_classname, "vex_sg_projectile");
+new Float:o[3], Float:f[3], Float:vel[3]; SgEye(id, o, f);
+for (new k = 0; k < 3; k++) o[k] += f[k] * 38.0;
+static const mdl[][]={"","models/vexmira/v550/rpg7/s_rpg7.mdl","models/vexmira/new/shark/m3dragonm_effect.mdl",""};
+entity_set_model(ent,mdl[ptype]);
+entity_set_origin(ent, o);
+entity_set_size(ent, Float:{-2.0, -2.0, -2.0}, Float:{2.0, 2.0, 2.0});
+entity_set_int(ent, EV_INT_solid, SOLID_BBOX);
+entity_set_int(ent, EV_INT_movetype, ptype==1 || ptype==3 ? MOVETYPE_FLY : MOVETYPE_TOSS);
+entity_set_edict(ent, EV_ENT_owner, id);
+entity_set_int(ent, EV_INT_iuser1, i);
+entity_set_int(ent, EV_INT_iuser2, alt);
+entity_set_int(ent, EV_INT_iuser3, get_user_userid(id));
+entity_set_float(ent, EV_FL_fuser1, get_gametime() + 4.0);
+for (new k = 0; k < 3; k++) vel[k] = f[k] * (ptype==1 || ptype==3 ? 1250.0 : 900.0);
+vel[2] += ptype==1 || ptype==3 ? 0.0 : 125.0;
+entity_set_vector(ent, EV_VEC_velocity, vel);
+entity_set_float(ent, EV_FL_nextthink, get_gametime() + 0.1);
+if ((ptype==1 || ptype==3) && g_sprTrail538)
+{
+message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
+write_byte(TE_BEAMFOLLOW); write_short(ent); write_short(g_sprTrail538);
+write_byte(8); write_byte(3); write_byte(g_iSgRgb[i][0]); write_byte(g_iSgRgb[i][1]);
+write_byte(g_iSgRgb[i][2]); write_byte(170); message_end();
+}
+SgAnim(id, g_iSgAnim[i][2]);
+new snd[96];SgPick(alt?g_szSgFire2[i]:g_szSgFire[i],snd,charsmax(snd));
+if(snd[0]) emit_sound(id,CHAN_WEAPON,snd,0.9,ATTN_NORM,0,PITCH_NORM);
+return 1;
+}
+public SgProjectileThink(ent)
+{
+if (!is_valid_ent(ent)) return;
+if (get_gametime() >= entity_get_float(ent, EV_FL_fuser1)) { SgProjectileTouch(ent,0); return; }
+entity_set_float(ent, EV_FL_nextthink, get_gametime() + 0.1);
+}
+public SgProjectileTouch(ent,touched)
+{
+if(!is_valid_ent(ent)) return;
+new id=entity_get_edict(ent,EV_ENT_owner),i=entity_get_int(ent,EV_INT_iuser1);
+if(touched==id && id>=1 && id<=32) return;
+if(i<0 || i>=SG_MAX) {remove_entity(ent);return;}
+entity_set_int(ent,EV_INT_solid,SOLID_NOT);
+new Float:o[3];entity_get_vector(ent,EV_VEC_origin,o);
+new spr=i==3?g_sprSharkExplo:g_sprExplo538;
+SgExplo(o,spr?spr:g_sprExplo538,i==2?32:26);
+new const explosion[][]={"weapons/canon_firebal_exp.wav","weapons/m3dragonm_shark_fx.wav"};
+emit_sound(ent,CHAN_ITEM,explosion[i==3?1:0],0.95,ATTN_NORM,0,PITCH_NORM);
+if(id>=1 && id<=32 && is_user_connected(id) && get_user_userid(id)==entity_get_int(ent,EV_INT_iuser3) && !vx45_corezombie(id)) {
+    new alt=entity_get_int(ent,EV_INT_iuser2);
+    new Float:damage=i==2?(alt?1250.0:1050.0):i==5?900.0:i==3?850.0:880.0;
+    if(i==2) Blast563(id,ent,o,350.0,damage,1300.0,660.0,0,true);
+    else if(touched>=1 && touched<=32 && is_user_alive(touched) && vx45_corezombie(touched)) vxc_area_hit(touched,id,ent,damage);
+}
+remove_entity(ent);
 }
 SgEye(id, Float:o[3], Float:f[3])
 {
 new Float:ofs[3], Float:a[3]; pev(id, pev_origin, o); pev(id, pev_view_ofs, ofs); xs_vec_add(o, ofs, o);
 pev(id, pev_v_angle, a); engfunc(EngFunc_MakeVectors, a); global_get(glb_v_forward, f);
+}
+SgFlash(id, i)
+{
+new Float:o[3], Float:f[3]; SgEye(id, o, f);
+for (new k = 0; k < 3; k++) o[k] += f[k] * 36.0;
+engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, o, 0);
+write_byte(TE_DLIGHT); engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]);
+engfunc(EngFunc_WriteCoord, o[2]); write_byte(11);
+write_byte(g_iSgRgb[i][0]); write_byte(g_iSgRgb[i][1]); write_byte(g_iSgRgb[i][2]);
+write_byte(2); write_byte(3); message_end();
 }
 SgBeam(const Float:a[3], const Float:b[3], i, width)
 {
@@ -1393,71 +1292,28 @@ write_byte(g_iSgRgb[i][0]); write_byte(g_iSgRgb[i][1]); write_byte(g_iSgRgb[i][2
 }
 SgExplo(const Float:o[3], spr, scale)
 {
+engfunc(EngFunc_MessageBegin,MSG_PVS,SVC_TEMPENTITY,o,0);write_byte(TE_DLIGHT);
+engfunc(EngFunc_WriteCoord,o[0]);engfunc(EngFunc_WriteCoord,o[1]);engfunc(EngFunc_WriteCoord,o[2]+16.0);
+write_byte(36);write_byte(255);write_byte(130);write_byte(40);write_byte(4);write_byte(25);message_end();
 if (!spr) return;
 engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, o, 0); write_byte(TE_EXPLOSION);
 engfunc(EngFunc_WriteCoord, o[0]); engfunc(EngFunc_WriteCoord, o[1]); engfunc(EngFunc_WriteCoord, o[2] + 10.0);
 write_short(spr); write_byte(scale); write_byte(20); write_byte(TE_EXPLFLAG_NOSOUND); message_end();
 }
-// piercing beam: every zombie on the line takes dmg
+// Alternate beam detonates at the first entity/world impact.
 SgBeamShot(id, i, Float:dmg)
 {
 new Float:o[3], Float:f[3], Float:e[3]; SgEye(id, o, f);
 for (new k = 0; k < 3; k++) e[k] = o[k] + f[k] * 4096.0;
-engfunc(EngFunc_TraceLine, o, e, IGNORE_MONSTERS, id, 0); get_tr2(0, TR_vecEndPos, e);
-SgBeam(o, e, i, g_iSgFx[i] == 5 ? 60 : 30);
-if (g_szSgFire2[i][0]) emit_sound(id, CHAN_ITEM, g_szSgFire2[i], 0.9, ATTN_NORM, 0, PITCH_NORM);
-new w = get_member(id, m_pActiveItem);
-for (new v = 1; v <= g_iMaxPl538; v++)
-{
-if (v == id || !is_user_alive(v) || !vx45_corezombie(v)) continue;
-new Float:p[3]; pev(v, pev_origin, p);
-new Float:d[3], Float:seg[3]; xs_vec_sub(p, o, d); xs_vec_sub(e, o, seg);
-new Float:len = xs_vec_len(seg); if (len < 1.0) continue;
-new Float:t = xs_vec_dot(d, seg) / (len * len); if (t < 0.0 || t > 1.0) continue;
-new Float:c[3]; for (new k = 0; k < 3; k++) c[k] = o[k] + seg[k] * t;
-if (get_distance_f(c, p) > 40.0) continue;
-ExecuteHamB(Ham_TakeDamage, v, w > 0 ? w : id, id, dmg, DMG_ENERGYBEAM);
-if (g_iSgFx[i] == 1) SgPush(v, f, 520.0 * g_fSgKb[i] / 2.5);
-}
-}
-SgFlameBall(id, i)
-{
-new Float:o[3], Float:f[3], Float:e[3]; SgEye(id, o, f);
-for (new k = 0; k < 3; k++) e[k] = o[k] + f[k] * 900.0;
 engfunc(EngFunc_TraceLine, o, e, DONT_IGNORE_MONSTERS, id, 0); get_tr2(0, TR_vecEndPos, e);
-SgBeam(o, e, i, 20); SgExplo(e, g_sprFire538, 18);
-SgArea(id, e, 130.0, 160.0, 6);
+for(new k=0;k<3;k++) e[k]-=f[k]*6.0;
+SgBeam(o, e, i, g_iSgFx[i] == 5 ? 60 : 30);
+SgExplo(e,g_sprExplo538,22);
+new target=get_tr2(0,TR_pHit);
+if(target>=1 && target<=32 && is_user_alive(target) && vx45_corezombie(target)) vxc_area_hit(target,id,get_member(id,m_pActiveItem),dmg);
+if (g_szSgFire2[i][0]) emit_sound(id, CHAN_ITEM, g_szSgFire2[i], 0.9, ATTN_NORM, 0, PITCH_NORM);
 }
-SgArea(id, const Float:at[3], Float:radius, Float:dmg, burnTicks)
-{
-new w = get_member(id, m_pActiveItem);
-for (new v = 1; v <= g_iMaxPl538; v++)
-{
-if (v == id || !is_user_alive(v) || !vx45_corezombie(v)) continue;
-new Float:p[3]; pev(v, pev_origin, p);
-if (get_distance_f(p, at) > radius) continue;
-ExecuteHamB(Ham_TakeDamage, v, w > 0 ? w : id, id, dmg, DMG_BURN);
-if (burnTicks > 0) { g_iSgPoison[v] = burnTicks; g_iSgPoisonBy[v] = id; g_fSgPoisonAt[v] = 15.0; }
-}
-}
-SgPush(v, const Float:dir[3], Float:speed)
-{
-new Float:vel[3]; pev(v, pev_velocity, vel);
-vel[0] = dir[0] * speed; vel[1] = dir[1] * speed; vel[2] = floatmax(vel[2], 120.0);
-set_pev(v, pev_velocity, vel);
-}
-// damage-over-time (poison / burn): 0.5 s ticks, damage in g_fSgPoisonAt
-public SgPoisonTick()
-{
-for (new v = 1; v <= g_iMaxPl538; v++)
-{
-if (g_iSgPoison[v] <= 0) continue;
-new by = g_iSgPoisonBy[v];
-if (!is_user_alive(v) || !vx45_corezombie(v) || !is_user_connected(by)) { g_iSgPoison[v] = 0; continue; }
-g_iSgPoison[v]--;
-ExecuteHamB(Ham_TakeDamage, v, by, by, g_fSgPoisonAt[v], DMG_POISON);
-}
-}
+
 public SgCmdGive(id, level, cid)
 {
 if (!cmd_access(id, level, cid, 3)) return PLUGIN_HANDLED;
@@ -1481,35 +1337,12 @@ public Float:N_SwHit(plugin, params)
 new att = get_param(1), vic = get_param(2), WeaponIdType:wid = WeaponIdType:get_param(3), head = get_param(4);
 new i = SgActive(att); if (i < 0 || g_iSgWid[i] != wid) return 0.0;
 new Float:m = g_fSgDmg[i];
-if (g_iSgFx[i] == 7 && g_bSgDual[att]) m *= 0.8;
-new Float:o[3], Float:f[3], Float:p[3]; SgEye(att, o, f); pev(vic, pev_origin, p);
-new boss = get_param(5);
-if (g_fSgKb[i] > 0.0 && !boss) SgPush(vic, f, 60.0 * g_fSgKb[i]);
-switch (g_iSgFx[i])
-{
-case 1: { SgBeam(o, p, i, 12); if (!boss) set_member(vic, m_flVelocityModifier, 0.5); }
-case 2: if (g_iSgShots[att] % 10 == 0) { SgExplo(p, g_sprExplo538, 8); SgAreaLater(att, p, 90.0, 60.0); }
-case 3: if (g_iSgShots[att] % 4 == 0) { g_iSgPoison[vic] = 6; g_iSgPoisonBy[vic] = att; g_fSgPoisonAt[vic] = 12.0; }
-case 4: { g_iSgPoison[vic] = 6; g_iSgPoisonBy[vic] = att; g_fSgPoisonAt[vic] = 5.0; if (!boss) SgGlow(vic); }
-case 6: if (!boss && random(100) < 15) { set_member(vic, m_flVelocityModifier, 0.0); SgExplo(p, g_sprSmoke538, 6); client_print(att, print_center, "TAVUK!"); }
-case 7: if (head && g_sprExplo538) SgExplo(p, g_sprSmoke538, 4);
-}
+new Float:p[3]; pev(vic, pev_origin, p);
+
+if (g_iSgFx[i] == 10 && head) SgExplo(p,g_sprExplo538,4);
 return m;
 }
-new Float:g_fSgAreaAt[33][3], Float:g_fSgAreaR[33], Float:g_fSgAreaD[33];
-SgAreaLater(id, const Float:at[3], Float:r, Float:d)
-{
-g_fSgAreaAt[id] = at; g_fSgAreaR[id] = r; g_fSgAreaD[id] = d;
-RequestFrame("SgAreaFrame", id);
-}
-public SgAreaFrame(id) { if (is_user_alive(id)) SgArea(id, g_fSgAreaAt[id], g_fSgAreaR[id], g_fSgAreaD[id], 0); }
-SgGlow(v)
-{
-set_rendering(v, kRenderFxGlowShell, 60, 230, 60, kRenderNormal, 12);
-remove_task(v + 538600); set_task(3.0, "SgGlowOff", v + 538600);
-}
-public SgGlowOff(t) { new v = t - 538600; if (is_user_connected(v)) set_rendering(v); }
-public client_disconnected(id) { Disc538(id); g_iSgPoison[id] = 0; g_bSgDual[id] = false; remove_task(id + 538600); }
+public client_disconnected(id) { Disc538(id); }
 public N_SwCount(plugin, params) return SG_MAX;
 public N_SwInfo(plugin, params)
 {
@@ -1586,61 +1419,104 @@ native vxc_card(id, arg);
 new const ZUP_NAME[24][] = { "Walker", "Runner", "Tank", "Banshee", "Leech", "Stalker", "Bomber", "Frost", "Spitter", "Hulk",
 "Voodoo", "Phantom", "Kasap", "Avci", "Boga", "Orumcek", "Magma", "Volt", "Taklitci", "Kostebek", "Siren", "Kale", "Spor Ana", "Kabus" };
 #define ZUP_MAX 5
-new g_iZupVault = INVALID_HANDLE, g_iZupPts[33][24], g_iZupLvl[33][24], g_iZupStep[ZUP_MAX], bool:g_bZupLoaded[33];
-new g_sprZupRing;
+new g_iZupVault = INVALID_HANDLE, g_iZupPts[33][24], g_iZupLvl[33][24], g_iZupStat[33][24][3], g_iZupSelected[33], g_iZupStep[ZUP_MAX], bool:g_bZupLoaded[33];
+new g_sprZupRing,g_hZupHud563;
+new g_szZupKey563[33][64];
 ZupInit()
 {
-new v[64]; vxc_res_get("ZUP_STEPS", v, charsmax(v)); if (!v[0]) copy(v, charsmax(v), "40 110 220 380 600");
-new a[ZUP_MAX][8]; parse(v, a[0], 7, a[1], 7, a[2], 7, a[3], 7, a[4], 7);
-for (new i = 0; i < ZUP_MAX; i++) g_iZupStep[i] = max(1, str_to_num(a[i]));
-for (new i = 1; i < ZUP_MAX; i++) if (g_iZupStep[i] <= g_iZupStep[i - 1]) g_iZupStep[i] = g_iZupStep[i - 1] * 2;
-g_iZupVault = nvault_open("vexmira_zup");
-register_clcmd("say /upgrade", "ZupMenu"); register_clcmd("say /yukselt", "ZupMenu"); register_clcmd("say_team /upgrade", "ZupMenu");
-register_clcmd("say_team /yukselt", "ZupMenu"); register_clcmd("vex_zup", "ZupMenu");
+new v[64];vxc_res_get("ZUP_STEPS",v,charsmax(v));if(!v[0]) copy(v,charsmax(v),"4 8 12 16 20");
+new a[ZUP_MAX][8];parse(v,a[0],7,a[1],7,a[2],7,a[3],7,a[4],7);
+for(new i=0;i<ZUP_MAX;i++) g_iZupStep[i]=max(i?g_iZupStep[i-1]+1:1,str_to_num(a[i]));
+g_iZupVault=nvault_open("vexmira_zup");
+if(g_iZupVault==INVALID_HANDLE) log_amx("[ZUP] nVault acilamadi; data/vault klasorunu kontrol edin.");
+g_hZupHud563=CreateHudSyncObj();
+register_clcmd("say /gelisim","ZupMenu");register_clcmd("say_team /gelisim","ZupMenu");register_clcmd("say /upgrade","ZupMenu");register_clcmd("say /yukselt","ZupMenu");
+register_clcmd("say_team /upgrade","ZupMenu");register_clcmd("say_team /yukselt","ZupMenu");
+register_clcmd("vex_zup","ZupMenu");
+register_concmd("vex_zup_status","ZupStatus563",ADMIN_RCON,"[name or #userid]");
+set_task(12.0,"ZupRemind563",563912,_,_,"b");
 }
-ZupKey(id, out[], len) { new a[36]; get_user_authid(id, a, charsmax(a)); if (!a[0] || equal(a, "BOT") || contain(a, "LAN") != -1 || contain(a, "PENDING") != -1) get_user_name(id, a, charsmax(a)); formatex(out, len, "zup_%s", a); }
+bool:ZupAuthReady565(id) {
+if(!is_user_connected(id) || is_user_bot(id)) return false;
+new auth[36];get_user_authid(id,auth,charsmax(auth));
+return auth[0] && containi(auth,"PENDING")==-1 && containi(auth,"UNKNOWN")==-1 && !equal(auth,"BOT");
+}
+ZupKey(id,out[],len)
+{
+if(g_szZupKey563[id][0]) {copy(out,len,g_szZupKey563[id]);return;}
+new a[36];get_user_authid(id,a,charsmax(a));
+if(!ZupAuthReady565(id)) return;
+if(equal(a,"STEAM_ID_LAN") || equal(a,"VALVE_ID_LAN")) get_user_name(id,a,charsmax(a));
+formatex(out,len,"zup_%s",a);copy(g_szZupKey563[id],charsmax(g_szZupKey563[]),out);
+}
 ZupLoad(id)
 {
+if(!ZupAuthReady565(id)) return;
 g_bZupLoaded[id] = true;
-for (new c = 0; c < 24; c++) { g_iZupPts[id][c] = 0; g_iZupLvl[id][c] = 0; }
+for (new c = 0; c < 24; c++) { g_iZupPts[id][c] = 0; g_iZupLvl[id][c] = 0; for(new k=0;k<3;k++) g_iZupStat[id][c][k]=0; }
 if (g_iZupVault == INVALID_HANDLE || is_user_bot(id)) return;
-new key[64], data[256]; ZupKey(id, key, charsmax(key));
+new key[64], data[512]; ZupKey(id, key, charsmax(key));
 if (!nvault_get(g_iZupVault, key, data, charsmax(data))) return;
 new tok[12], c, pos;
-while (c < 24 && (pos = argparse(data, pos, tok, charsmax(tok))) != -1) { g_iZupPts[id][c] = str_to_num(tok); g_iZupLvl[id][c] = ZupLevelOf(g_iZupPts[id][c]); c++; }
+while (c < 24 && (pos = argparse(data, pos, tok, charsmax(tok))) != -1) { g_iZupPts[id][c] = clamp(str_to_num(tok),0,100000); g_iZupLvl[id][c] = ZupLevelOf(g_iZupPts[id][c]); c++; }
+new perkKey[80];formatex(perkKey,charsmax(perkKey),"zup_perk_%s",key[4]);
+if(nvault_get(g_iZupVault,perkKey,data,charsmax(data))) {
+pos=0;
+for(c=0;c<24;c++) for(new k=0;k<3;k++) {
+if((pos=argparse(data,pos,tok,charsmax(tok)))==-1) return;
+new spent=g_iZupStat[id][c][0]+g_iZupStat[id][c][1]+g_iZupStat[id][c][2];
+g_iZupStat[id][c][k]=clamp(str_to_num(tok),0,max(0,g_iZupLvl[id][c]-spent));
+}
+}
 }
 ZupSave(id)
 {
-if (g_iZupVault == INVALID_HANDLE || is_user_bot(id) || !g_bZupLoaded[id]) return;
-new key[64], data[256], n[12]; ZupKey(id, key, charsmax(key));
+if (g_iZupVault == INVALID_HANDLE || !g_bZupLoaded[id] || !g_szZupKey563[id][0]) return;
+new key[64], data[512], n[12]; ZupKey(id, key, charsmax(key));
 for (new c = 0; c < 24; c++) { formatex(n, charsmax(n), c ? " %d" : "%d", g_iZupPts[id][c]); add(data, charsmax(data), n); }
 nvault_set(g_iZupVault, key, data);
+data[0]=0;
+for(new c=0;c<24;c++) for(new k=0;k<3;k++) {
+formatex(n,charsmax(n),(c||k)?" %d":"%d",g_iZupStat[id][c][k]);
+add(data,charsmax(data),n);
+}
+new perkKey[80];formatex(perkKey,charsmax(perkKey),"zup_perk_%s",key[4]);
+nvault_set(g_iZupVault,perkKey,data);
 }
 ZupLevelOf(pts) { new l; while (l < ZUP_MAX && pts >= g_iZupStep[l]) l++; return l; }
-public client_putinserver(id) ZupLoad(id);
-public N_ZupLevel(plugin, params) { new id = get_param(1), c = get_param(2); if (id < 1 || id > 32 || c < 0 || c >= 24) return 0; if (!g_bZupLoaded[id]) ZupLoad(id); return g_iZupLvl[id][c]; }
-public N_ZupAdd(plugin, params)
-{
-new id = get_param(1), pts = get_param(2), c = vxc_class(id);
-if (id < 1 || id > 32 || c < 0 || c >= 24 || pts <= 0 || !is_user_connected(id)) return 0;
-if (!g_bZupLoaded[id]) ZupLoad(id);
-new old = g_iZupLvl[id][c];
-g_iZupPts[id][c] = min(g_iZupPts[id][c] + pts, 100000);
-g_iZupLvl[id][c] = ZupLevelOf(g_iZupPts[id][c]);
-if (g_iZupLvl[id][c] > old) ZupLevelUp(id, c);
-ZupSave(id);
-return g_iZupLvl[id][c];
+public client_putinserver(id) {
+g_iZupSelected[id]=0;
+g_szZupKey563[id][0]=0;g_bZupLoaded[id]=false;
 }
-ZupLevelUp(id, c)
+public client_authorized(id) { if(is_user_connected(id) && !g_bZupLoaded[id]) ZupLoad(id); }
+public N_ZupLevel(plugin, params) { new id = get_param(1), c = get_param(2); if (id < 1 || id > 32 || c < 0 || c >= 24) return 0; if (!g_bZupLoaded[id] && ZupAuthReady565(id)) ZupLoad(id); return g_iZupLvl[id][c]; }
+public N_ZupStat(plugin, params) { new id=get_param(1),c=get_param(2),k=get_param(3);if(id<1||id>32||c<0||c>=24||k<0||k>=3)return 0;if(!g_bZupLoaded[id] && ZupAuthReady565(id))ZupLoad(id);return g_iZupStat[id][c][k]; }
+public N_ZupAdd(plugin,params)
 {
-new lv = g_iZupLvl[id][c];
-client_print_color(id, print_team_default, "^4[VEXMIRA]^1 %s sinifi ^4Seviye %d^1! Bekleme -%d%%, menzil +%d%%, hasar +%d%%", ZUP_NAME[c], lv, 6 * lv, 6 * lv, 8 * lv);
-vxc_card(id, lv);
-client_cmd(id, "spk ^"items/suitchargeok1^"");
-new Float:o[3]; pev(id, pev_origin, o);
-ZupRing(o, lv, 260);
-message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("ScreenFade"), _, id);
-write_short(1 << 11); write_short(1 << 10); write_short(0); write_byte(255); write_byte(200); write_byte(60); write_byte(70); message_end();
+new id=get_param(1),pts=get_param(2);
+if(id<1 || id>32 || pts<=0 || !is_user_connected(id)) return 0;
+new c=params>=3?get_param(3):-1;if(c<0) c=vxc_class(id);
+if(c<0 || c>=24) return 0;
+if(!g_bZupLoaded[id] && ZupAuthReady565(id)) ZupLoad(id);
+if(!g_bZupLoaded[id]) return 0;
+new old=g_iZupLvl[id][c];
+g_iZupPts[id][c]=min(g_iZupPts[id][c]+pts,100000);
+g_iZupLvl[id][c]=ZupLevelOf(g_iZupPts[id][c]);
+g_iZupSelected[id]=c;
+new next=g_iZupLvl[id][c]<ZUP_MAX?g_iZupStep[g_iZupLvl[id][c]]:g_iZupStep[ZUP_MAX-1];
+if(!is_user_bot(id)) client_print_color(id,print_team_default,"^4[Vexmira]^1 %s: ^4+%d^1 gelisim (%d/%d). Menu: ^3/yukselt",ZUP_NAME[c],pts,g_iZupPts[id][c],next);
+if(g_iZupLvl[id][c]>old) ZupLevelUp(id,c);
+ZupSave(id);return g_iZupLvl[id][c];
+}
+ZupLevelUp(id,c)
+{
+new lv=g_iZupLvl[id][c];
+client_print_color(id,print_team_default,"^4[Vexmira]^1 %s seviye ^4%d^1! Gelistirme puanin var: ^3/yukselt^1 yaz, sinifini ve gelistirecegin skilli sec.",ZUP_NAME[c],lv);
+if(!is_user_bot(id)) client_cmd(id,"spk ^"items/suitchargeok1.wav^"");
+new Float:o[3];pev(id,pev_origin,o);ZupRing(o,lv,280);
+message_begin(MSG_ONE_UNRELIABLE,get_user_msgid("ScreenFade"),_,id);
+write_short(1<<10);write_short(1<<10);write_short(0);write_byte(255);write_byte(195);write_byte(45);write_byte(65);message_end();
+g_iZupSelected[id]=c;ZupHint563(id,c);
 }
 ZupRing(const Float:o[3], lv, radius)
 {
@@ -1662,7 +1538,7 @@ return 1;
 }
 public ZupMenu(id)
 {
-if (!g_bZupLoaded[id]) ZupLoad(id);
+if (!g_bZupLoaded[id] && ZupAuthReady565(id)) ZupLoad(id);
 new title[160], line[96], cur = vxc_class(id);
 formatex(title, charsmax(title), "\wZombi Sinif Yukseltme  \d(enfekte +1, insan oldur +2)");
 new m = menu_create(title, "ZupMenuH");
@@ -1671,13 +1547,43 @@ for (new c = 0; c < 24; c++)
 new lv = g_iZupLvl[id][c], need = lv < ZUP_MAX ? g_iZupStep[lv] : 0;
 if (lv < ZUP_MAX) formatex(line, charsmax(line), "\w%s %s\d Sv %d  %d/%d", ZUP_NAME[c], c == cur ? "\w*" : "", lv, g_iZupPts[id][c], need);
 else formatex(line, charsmax(line), "\w%s %s\d Sv %d  MAKS", ZUP_NAME[c], c == cur ? "\w*" : "", lv);
+new available[24];formatex(available,charsmax(available)," | Bos: %d",ZupFree563(id,c));add(line,charsmax(line),available);
 menu_additem(m, line);
 }
 menu_setprop(m, MPROP_NUMBER_COLOR, "\r");
 menu_display(id, m, 0);
 return PLUGIN_HANDLED;
 }
-public ZupMenuH(id, m, item) { menu_destroy(m); return PLUGIN_HANDLED; }
+public ZupMenuH(id, m, item)
+{
+menu_destroy(m);
+if(item>=0 && item<24){g_iZupSelected[id]=item;ClearSyncHud(id,g_hZupHud563);ZupOpenSelected(id);}
+return PLUGIN_HANDLED;
+}
+public ZupOpenSelected(id)
+{
+if(!is_user_connected(id)||!g_bZupLoaded[id])return PLUGIN_HANDLED;
+new c=g_iZupSelected[id];if(c<0||c>=24)return PLUGIN_HANDLED;
+new used=g_iZupStat[id][c][0]+g_iZupStat[id][c][1]+g_iZupStat[id][c][2];
+new title[128],line[96];
+formatex(title,charsmax(title),"%s Seviye %d | %d bos puan",ZUP_NAME[c],g_iZupLvl[id][c],max(0,g_iZupLvl[id][c]-used));
+new m=menu_create(title,"ZupPerkSelect");
+formatex(line,charsmax(line),"Bekleme: -%d%% -> -%d%%",g_iZupStat[id][c][0]*6,(g_iZupStat[id][c][0]+1)*6);menu_additem(m,line);
+formatex(line,charsmax(line),"Menzil: +%d%% -> +%d%%",g_iZupStat[id][c][1]*6,(g_iZupStat[id][c][1]+1)*6);menu_additem(m,line);
+formatex(line,charsmax(line),"Hasar: +%d%% -> +%d%%",g_iZupStat[id][c][2]*8,(g_iZupStat[id][c][2]+1)*8);menu_additem(m,line);
+menu_display(id,m);return PLUGIN_HANDLED;
+}
+public ZupPerkSelect(id,m,item)
+{
+menu_destroy(m);
+if(item<0||item>=3||!is_user_connected(id))return PLUGIN_HANDLED;
+new c=g_iZupSelected[id];if(c<0||c>=24)return PLUGIN_HANDLED;
+new used=g_iZupStat[id][c][0]+g_iZupStat[id][c][1]+g_iZupStat[id][c][2];
+if(used>=g_iZupLvl[id][c]){ClearSyncHud(id,g_hZupHud563);client_print_color(id,print_team_default,"^4[VEXMIRA]^1 Bosta gelistirme puanin yok.");return PLUGIN_HANDLED;}
+g_iZupStat[id][c][item]++;ZupSave(id);ClearSyncHud(id,g_hZupHud563);ZupHint563(id,c);
+client_print_color(id,print_team_default,"^4[VEXMIRA]^1 %s gelistirildi. Kalan puan: %d",ZUP_NAME[c],g_iZupLvl[id][c]-used-1);
+ZupOpenSelected(id);return PLUGIN_HANDLED;
+}
 // ============================================================================================
 // 5.3.8 SHOP ITEMS (core shop menu, AP): 0 = infection mask (human: blocks one infection hit,
 // worn model vex_res ITEM_MASK_MODEL), 1 = zombie armor (zombie: -40 % damage until the armor
@@ -1747,9 +1653,20 @@ g_fZArmor[v] -= cut;
 if (g_fZArmor[v] <= 0.0) { g_fZArmor[v] = 0.0; emit_sound(v, CHAN_BODY, "debris/metal2.wav", 0.9, ATTN_NORM, 0, PITCH_NORM); client_print(v, print_center, "ZIRH KIRILDI"); if (g_bItMdl[1]) vxc_restore_model(v); }
 return d - cut;
 }
-public ItemsReset538() { for (new i = 1; i <= 32; i++) { g_bMask[i] = false; g_fZArmor[i] = 0.0; } }
-public ItemsSpawn538(id) { if (is_user_alive(id)) { g_bMask[id] = false; g_fZArmor[id] = 0.0; } }
-Disc538(id) { g_bZupLoaded[id] = false; g_bMask[id] = false; g_fZArmor[id] = 0.0; }
+public ItemsReset538() {
+new ent;while((ent=find_ent_by_class(ent,"vex_sg_projectile"))>0) remove_entity(ent);
+for(new i=1;i<=32;i++) {g_bMask[i]=false;g_fZArmor[i]=0.0;g_iSgReloadEnt[i]=0;g_fSgReloadAt[i]=0.0;g_fSgAltAt[i]=0.0;g_iLaunchPass563[i]=0;g_fLegacyAlt563[i]=0.0;}
+}
+public ItemsSpawn538(id) { if (is_user_alive(id)) { g_bMask[id] = false; g_fZArmor[id] = 0.0; g_iSgReloadEnt[id]=0;g_fSgReloadAt[id]=0.0;g_fSgAltAt[id]=0.0;g_fLegacyAlt563[id]=0.0; } }
+Disc538(id)
+{
+ZupSave(id);
+g_bZupLoaded[id]=false;g_szZupKey563[id][0]=0;g_bMask[id]=false;g_fZArmor[id]=0.0;
+g_iSgReloadEnt[id]=0;g_fSgReloadAt[id]=0.0;g_fSgAltAt[id]=0.0;
+g_iSoundWeapon563[id]=0;g_iSoundCursor563[id]=0;
+g_iLaunchPass563[id]=0;g_fLegacyAlt563[id]=0.0;
+for(new k=0;k<16;k++) g_szWeaponSound563[id][k][0]=0;
+}
 // test helper (rcon): humans get the mask, zombies the armor and +N upgrade points on their class
 public Cmd538Test(id, level, cid)
 {
@@ -1772,4 +1689,294 @@ if (g_iZupLvl[p][c] > old) { ZupLevelUp(p, c); up++; }
 console_print(id, "[538test] mask=%d armor=%d levelups=%d", m, z, up);
 log_amx("[538test] mask=%d armor=%d levelups=%d", m, z, up);
 return PLUGIN_HANDLED;
+}
+
+// 5.6.3: one blast/launch path for all alternate attacks.
+native vx563_cancel_weapon_tasks(id);
+public N_Blast563(plugin,params) {
+#pragma unused plugin,params
+return 0;
+}
+Blast563(owner,inflictor,const Float:origin[3],Float:radius,Float:damage,Float:force,Float:lift,skip=0,bool:selfLaunch=false)
+{
+if(owner<1 || owner>32 || !is_user_connected(owner)) return 0;
+radius=floatclamp(radius*BlastScale563("BLAST_RADIUS_SCALE"),64.0,450.0);
+damage*=BlastScale563("BLAST_DAMAGE_SCALE");force*=BlastScale563("BLAST_FORCE_SCALE");lift*=BlastScale563("BLAST_LIFT_SCALE");
+new Float:o[3];xs_vec_copy(origin,o);o[2]+=16.0;
+new hits,tr=create_tr2();
+for(new v=1;v<=g_iMaxPl538;v++) {
+    if((v==owner && !selfLaunch) || !is_user_alive(v)) continue;
+    new Float:p[3];pev(v,pev_origin,p);p[2]+=20.0;
+    new Float:dist=get_distance_f(o,p);if(dist>radius) continue;
+    engfunc(EngFunc_TraceLine,o,p,IGNORE_MONSTERS,inflictor>0?inflictor:owner,tr);
+    new Float:frac;get_tr2(tr,TR_flFraction,frac);
+    if(frac<0.98 || get_tr2(tr,TR_StartSolid)) continue;
+    if(v!=owner && v!=skip && damage>0.0) vxc_area_hit(v,owner,inflictor,damage*(1.0-0.35*dist/radius));
+    if(!is_user_alive(v)) continue;
+    new Float:dx=p[0]-o[0],Float:dy=p[1]-o[1],Float:len=floatsqroot(dx*dx+dy*dy);
+    if(len<1.0) {dx=1.0;dy=0.0;len=1.0;}
+    new Float:k=1.0-0.25*dist/radius;
+    g_fLaunch563[v][0]=dx/len*floatclamp(force*k,400.0,1600.0);
+    g_fLaunch563[v][1]=dy/len*floatclamp(force*k,400.0,1600.0);
+    g_fLaunch563[v][2]=floatclamp(lift*k,400.0,800.0);
+    g_iLaunchUser563[v]=get_user_userid(v);g_iLaunchPass563[v]=2;
+    RequestFrame("LaunchFrame563",v);hits++;
+}
+free_tr2(tr);
+return hits;
+}
+public LaunchFrame563(v)
+{
+if(v<1 || v>32 || !g_iLaunchPass563[v] || !is_user_alive(v) || get_user_userid(v)!=g_iLaunchUser563[v]) return;
+set_pev(v,pev_flags,pev(v,pev_flags)&~FL_ONGROUND);
+set_pev(v,pev_groundentity,0);
+set_pev(v,pev_velocity,g_fLaunch563[v]);
+if(--g_iLaunchPass563[v]>0) RequestFrame("LaunchFrame563",v);
+}
+public N_LegacyMelee563(plugin,params) {
+#pragma unused plugin,params
+return 0;
+}
+
+// All special model cues are server-controlled and stop selectively via SND_STOP.
+WeaponLifecycleInit563()
+{
+static const classes[][]={"weapon_knife","weapon_p228","weapon_scout","weapon_xm1014","weapon_mac10","weapon_aug","weapon_elite","weapon_fiveseven","weapon_ump45","weapon_sg550","weapon_galil","weapon_famas","weapon_usp","weapon_glock18","weapon_awp","weapon_mp5navy","weapon_m249","weapon_m3","weapon_m4a1","weapon_tmp","weapon_g3sg1","weapon_deagle","weapon_sg552","weapon_ak47","weapon_p90"};
+for(new k=0;k<sizeof classes;k++) RegisterHam(Ham_Item_Holster,classes[k],"WeaponHolster563",0);
+register_forward(FM_EmitSound,"WeaponEmit563",1);
+register_forward(FM_PlayerPreThink,"WeaponObserve563",0);
+RegisterHam(Ham_Killed,"player","WeaponDeath563",0);
+register_clcmd("drop","WeaponDrop563");
+}
+bool:WeaponSoundPath563(const path[])
+{
+return equal(path,"weapons/",8) || equal(path,"YouTuber/",9) || containi(path,"/arsenal/")!=-1 || containi(path,"/melee/")!=-1 || containi(path,"/native/")!=-1;
+}
+public WeaponObserve563(id)
+{
+if(!is_user_alive(id)) return FMRES_IGNORED;
+new w=get_member(id,m_pActiveItem);
+if(w!=g_iSoundWeapon563[id]) {
+    if(g_iSoundWeapon563[id]) WeaponStop563(id);
+    g_iSoundWeapon563[id]=w;
+}
+VmObserve563(id);
+return FMRES_IGNORED;
+}
+public WeaponEmit563(id,channel,const sample[],Float:vol,Float:att,flags,pitch)
+{
+#pragma unused vol,att,pitch
+if(id<1 || id>32 || g_bStopping563[id] || (flags&SND_STOP) || !WeaponSoundPath563(sample)) return FMRES_IGNORED;
+for(new k=0;k<16;k++) if(g_iSoundChannel563[id][k]==channel && equal(g_szWeaponSound563[id][k],sample)) return FMRES_IGNORED;
+new k=g_iSoundCursor563[id]++%16;
+copy(g_szWeaponSound563[id][k],charsmax(g_szWeaponSound563[][]),sample);
+g_iSoundChannel563[id][k]=channel;
+return FMRES_IGNORED;
+}
+WeaponStop563(id)
+{
+if(id<1 || id>32 || g_bStopping563[id]) return;
+g_bStopping563[id]=true;
+vx563_cancel_weapon_tasks(id);
+for(new k=0;k<16;k++) {
+    if(g_szWeaponSound563[id][k][0]) emit_sound(id,g_iSoundChannel563[id][k],g_szWeaponSound563[id][k],0.0,ATTN_NORM,SND_STOP,PITCH_NORM);
+    g_szWeaponSound563[id][k][0]=0;
+}
+g_iVmModel563[id]=-1;g_iVmString563[id]=0;g_iVmSeq563[id]=-1;g_iVmCursor563[id]=0;g_bVmRestart563[id]=false;
+g_iSoundCursor563[id]=0;g_iSoundWeapon563[id]=0;
+g_iSgReloadEnt[id]=0;g_fSgReloadAt[id]=0.0;
+g_bStopping563[id]=false;
+}
+public N_WeaponStop563(plugin,params) {WeaponStop563(get_param(1));return 1;}
+public WeaponHolster563(w) {new id=get_member(w,m_pPlayer);WeaponStop563(id);return HAM_IGNORED;}
+public WeaponDeath563(id,attacker,gib) {
+#pragma unused attacker,gib
+WeaponStop563(id);return HAM_IGNORED;
+}
+public WeaponDrop563(id) {WeaponStop563(id);return PLUGIN_CONTINUE;}
+
+ZupFree563(id,c) {return max(0,g_iZupLvl[id][c]-g_iZupStat[id][c][0]-g_iZupStat[id][c][1]-g_iZupStat[id][c][2]);}
+ZupHint563(id,c)
+{
+if(!is_user_connected(id) || is_user_bot(id)) return;
+if(c<0 || c>=24 || !ZupFree563(id,c)) {ClearSyncHud(id,g_hZupHud563);return;}
+set_hudmessage(255,200,55,-1.0,0.81,0,0.0,8.0,0.2,0.3,-1);
+ShowSyncHudMsg(id,g_hZupHud563,"GELISTIRME PUANIN VAR! %s: %d bos puan^nSohbete /yukselt yaz > Sinifini sec > Skilli gelistir",ZUP_NAME[c],ZupFree563(id,c));
+}
+public ZupRemind563()
+{
+for(new id=1;id<=32;id++) {
+    if(!is_user_connected(id) || is_user_bot(id) || !g_bZupLoaded[id]) continue;
+    ZupHint563(id,g_iZupSelected[id]);
+}
+}
+public ZupStatus563(id,level,cid)
+{
+if(!cmd_access(id,level,cid,1)) return PLUGIN_HANDLED;
+new who[32];read_argv(1,who,charsmax(who));
+new target=who[0]?cmd_target(id,who,CMDTARGET_ALLOW_SELF):id;
+if(target<1 || target>32 || !is_user_connected(target)) return PLUGIN_HANDLED;
+if(!g_bZupLoaded[target]) ZupLoad(target);
+new key[64];ZupKey(target,key,charsmax(key));
+console_print(id,"[ZUP] loaded=%d vault=%d key=%s steps=%d/%d/%d/%d/%d",g_bZupLoaded[target],g_iZupVault,key,g_iZupStep[0],g_iZupStep[1],g_iZupStep[2],g_iZupStep[3],g_iZupStep[4]);
+for(new c=0;c<24;c++) if(g_iZupPts[target][c] || g_iZupLvl[target][c]) console_print(id,"%s xp=%d level=%d free=%d perks=%d/%d/%d",ZUP_NAME[c],g_iZupPts[target][c],g_iZupLvl[target][c],ZupFree563(target,c),g_iZupStat[target][c][0],g_iZupStat[target][c][1],g_iZupStat[target][c][2]);
+return PLUGIN_HANDLED;
+}
+public plugin_end()
+{
+for(new id=1;id<=32;id++) if(is_user_connected(id)) ZupSave(id);
+if(g_iZupVault!=INVALID_HANDLE) nvault_close(g_iZupVault);
+if(g_tUnpc!=Invalid_Trie) TrieDestroy(g_tUnpc);
+if(g_tVm563!=Invalid_Trie) TrieDestroy(g_tVm563);
+}
+
+Float:BlastScale563(const key[])
+{
+new v[24];vxc_res_get(key,v,charsmax(v));return v[0]?floatclamp(str_to_float(v),0.5,2.0):1.0;
+}
+
+public N_AudioModel563(plugin,params)
+{
+new src[128],tag[16],out[96];get_string(1,src,charsmax(src));get_string(2,tag,charsmax(tag));
+new ok=AudioModel563(src,tag,out,charsmax(out));set_string(3,out,get_param(4));return ok;
+}
+public N_AudioConfig563(plugin,params)
+{
+new key[32],tag[16],src[128],out[96];
+for(new group=0;group<3;group++) {
+    new count=group==0?8:group==1?6:7;
+    for(new i=0;i<count;i++) {
+        if((group==1 && i==3) || (group==2 && (i==1 || i==5 || i==6))) continue;
+        if(group==0) {formatex(key,charsmax(key),"SW%d_VMODEL",i);formatex(tag,charsmax(tag),"sw%d",i);}
+        else {formatex(key,charsmax(key),"%s%d_V",group==1?"MK":"SG",i+1);formatex(tag,charsmax(tag),"%s%d",group==1?"mk":"sg",i+1);}
+        src[0]=0;vxc_res_get(key,src,charsmax(src));
+        if(src[0] && AudioModel563(src,tag,out,charsmax(out))) vxc_res_set(key,out);
+    }
+}
+return g_iVmCount563;
+}
+AudioModel563(const src[],const tag[],out[],len)
+{
+copy(out,len,src);
+if(!file_exists(src,true) || g_iVmCount563>=VM_MODELS563) return 0;
+new fp=fopen(src,"rb",true);if(!fp) return 0;
+new bytes=GmRdI(fp,72),num=GmRdI(fp,164),seq=GmRdI(fp,168),groups=GmRdI(fp,172);
+if(GmRdI(fp,0)!=0x54534449 || GmRdI(fp,4)!=10 || bytes<244 || bytes!=file_size(src) || num<1 || num>VM_SEQS563 || seq<244 || seq+num*176>bytes || groups<1 || groups>32) {fclose(fp);return 0;}
+new total;
+for(new i=0;i<num;i++) {
+    new n=GmRdI(fp,seq+i*176+48),o=GmRdI(fp,seq+i*176+52);
+    if(n<0 || n>256 || (n && (o<244 || o+n*76>bytes))) {fclose(fp);return 0;}
+    total+=n;
+}
+if(total+g_iVmEventCount563>VM_EVENTS563) {fclose(fp);return 0;}
+new crc[16];if(!hash_file(src,Hash_Crc32,crc,charsmax(crc))) {fclose(fp);return 0;}
+strtolower(crc);
+formatex(out,len,"models/vexmira/a563/%s_%s.mdl",tag,crc);
+if(GmRdI(fp,180)==0) {
+    new texture[128];copy(texture,charsmax(texture),out);texture[strlen(texture)-4]=0;add(texture,charsmax(texture),"T.mdl");
+    if(!file_exists(texture,true)) {fclose(fp);copy(out,len,src);return 0;}
+}
+if(g_tVm563==Invalid_Trie) g_tVm563=TrieCreate();
+new existing;if(TrieGetCell(g_tVm563,out,existing)) {fclose(fp);return 1;}
+if(!dir_exists("models/vexmira/a563")) mkdir("models/vexmira/a563");
+new bool:fresh=!file_exists(out,true) || file_size(out)!=bytes;
+if(fresh && !GmCopy(src,out)) {fclose(fp);copy(out,len,src);return 0;}
+new dst=fopen(out,"r+b");if(!dst) {fclose(fp);copy(out,len,src);return 0;}
+new m=g_iVmCount563++;
+copy(g_szVmPath563[m],charsmax(g_szVmPath563[]),out);TrieSetCell(g_tVm563,out,m+1);
+for(new i=0;i<num;i++) {
+    new q=seq+i*176,n=GmRdI(fp,q+48),o=GmRdI(fp,q+52);
+    new Float:fps=GmRdF(fp,q+32);g_fVmLength563[m][i]=floatmax(0.05,float(GmRdI(fp,q+56))/floatmax(1.0,fps));
+    g_bVmLoop563[m][i]=(GmRdI(fp,q+36)&1)!=0;
+    g_iVmStart563[m][i]=g_iVmEventCount563;
+    for(new j=0;j<n;j++) {
+        new ev=o+j*76;if(GmRdI(fp,ev+4)!=5004) continue;
+        new sample[96];fseek(fp,ev+12,SEEK_SET);fread_blocks(fp,sample,64,BLOCK_CHAR);sample[63]=0;
+        if(!sample[0] || containi(sample,".wav")==-1) continue;
+        new snd=-1;for(new k=0;k<g_iVmSoundCount563;k++) if(equal(sample,g_szVmSound563[k])) {snd=k;break;}
+        if(snd<0 && g_iVmSoundCount563<VM_SOUNDS563) {snd=g_iVmSoundCount563++;copy(g_szVmSound563[snd],charsmax(g_szVmSound563[]),sample);}
+        if(snd<0) continue;
+        new e=g_iVmEventCount563++;g_iVmEventSound563[e]=snd;
+        g_fVmEventTime563[e]=float(max(0,GmRdI(fp,ev)))/floatmax(1.0,fps);
+        g_iVmNum563[m][i]++;
+        fseek(dst,ev+4,SEEK_SET);fwrite(dst,0,BLOCK_INT);
+    }
+    new first=g_iVmStart563[m][i],last=first+g_iVmNum563[m][i];
+    for(new e=first+1;e<last;e++) for(new k=e;k>first && g_fVmEventTime563[k]<g_fVmEventTime563[k-1];k--) {
+        new snd=g_iVmEventSound563[k];g_iVmEventSound563[k]=g_iVmEventSound563[k-1];g_iVmEventSound563[k-1]=snd;
+        new Float:t=g_fVmEventTime563[k];g_fVmEventTime563[k]=g_fVmEventTime563[k-1];g_fVmEventTime563[k-1]=t;
+    }
+}
+fclose(dst);fclose(fp);
+// Studio split texture/sequence files follow the renamed viewmodel.
+new a[160],b[160],stem[128],base[96];copy(stem,charsmax(stem),src);stem[strlen(stem)-4]=0;
+copy(base,charsmax(base),out);base[strlen(base)-4]=0;
+/* Texture companions must be installed manually. */
+for(new n=1;n<groups;n++) {
+    formatex(a,charsmax(a),"%s%02d.mdl",stem,n);formatex(b,charsmax(b),"%s%02d.mdl",base,n);
+    if(file_exists(a,true) && !file_exists(b,true)) GmCopy(a,b);
+}
+if(g_bVmPrecacheLive563) VmCuePrecache563();
+return 1;
+}
+VmCuePrecache563()
+{
+for(new i=0;i<g_iVmSoundCount563;i++) {
+    if(g_bVmSoundReady563[i]) continue;
+    new full[128];formatex(full,charsmax(full),"sound/%s",g_szVmSound563[i]);
+    if(file_exists(full,true)) g_bVmSoundReady563[i]=vxc_pc_sound(g_szVmSound563[i])!=0;
+}
+log_amx("[Audio563] %d ozel model, %d indeksli animasyon sesi; silah birakilinca yalniz silah kanali durur.",g_iVmCount563,g_iVmSoundCount563);
+}
+VmLifecycleInit563()
+{
+register_forward(FM_MessageBegin,"VmMessageBegin563",0);
+register_forward(FM_WriteByte,"VmWriteByte563",0);
+register_forward(FM_MessageEnd,"VmMessageEnd563",0);
+for(new id=1;id<=32;id++) {g_iVmModel563[id]=-1;g_iVmSeq563[id]=-1;}
+}
+public VmMessageBegin563(dest,type,const Float:origin[3],id)
+{
+#pragma unused dest,origin
+g_iVmMessagePlayer563=type==SVC_WEAPONANIM && id>=1 && id<=32?id:0;
+g_iVmMessageByte563=0;return FMRES_IGNORED;
+}
+public VmWriteByte563(value)
+{
+if(g_iVmMessagePlayer563 && !g_iVmMessageByte563++) g_iVmMessageSeq563=value;
+return FMRES_IGNORED;
+}
+public VmMessageEnd563()
+{
+new id=g_iVmMessagePlayer563;
+if(id && g_iVmMessageByte563) {g_bVmRestart563[id]=true;g_iVmSeq563[id]=g_iVmMessageSeq563;}
+g_iVmMessagePlayer563=0;return FMRES_IGNORED;
+}
+VmObserve563(id)
+{
+new modelString=pev(id,pev_viewmodel),seq=pev(id,pev_weaponanim);
+if(modelString!=g_iVmString563[id]) {
+    g_iVmString563[id]=modelString;g_iVmModel563[id]=-1;
+    new path[128],m;pev(id,pev_viewmodel2,path,charsmax(path));
+    if(g_tVm563!=Invalid_Trie && TrieGetCell(g_tVm563,path,m)) g_iVmModel563[id]=m-1;
+    g_bVmRestart563[id]=true;
+}
+new m=g_iVmModel563[id];if(m<0 || seq<0 || seq>=VM_SEQS563) return;
+new Float:now=get_gametime();
+if(g_bVmRestart563[id] || seq!=g_iVmSeq563[id]) {
+    g_bVmRestart563[id]=false;g_iVmSeq563[id]=seq;g_fVmClock563[id]=now;g_iVmCursor563[id]=0;
+}
+new count=g_iVmNum563[m][seq];if(!count) return;
+new Float:elapsed=now-g_fVmClock563[id],Float:duration=g_fVmLength563[m][seq];
+if(g_bVmLoop563[m][seq] && elapsed>=duration) {
+    g_fVmClock563[id]=now;g_iVmCursor563[id]=0;elapsed=0.0;
+}
+while(g_iVmCursor563[id]<count) {
+    new e=g_iVmStart563[m][seq]+g_iVmCursor563[id];if(elapsed+0.001<g_fVmEventTime563[e]) break;
+    g_iVmCursor563[id]++;
+    new snd=g_iVmEventSound563[e];if(!g_bVmSoundReady563[snd]) continue;
+    new sample[96];copy(sample,charsmax(sample),g_szVmSound563[snd]);
+    new k=g_iSoundCursor563[id]++%16;copy(g_szWeaponSound563[id][k],charsmax(g_szWeaponSound563[][]),sample);g_iSoundChannel563[id][k]=CHAN_ITEM;
+    rh_emit_sound2(id,id,CHAN_ITEM,sample,0.8,ATTN_NORM,0,PITCH_NORM);
+}
 }
