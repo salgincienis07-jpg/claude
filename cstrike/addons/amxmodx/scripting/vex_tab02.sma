@@ -26,6 +26,7 @@ native vxc_tab_link(ready,topic[],len);
 native vxc_board(board,row,out[],len);
 native vxc_tab_tok(id,out[],len);
 native vxc_reset(what);
+native vxc_tab_reopen(id);
 new g_iSeq6[33];
 
 // ---------------------------------------------------------------- listener (commands from tablets)
@@ -47,7 +48,8 @@ new g_dayCount,g_dayNo,Float:g_fLastReply[33];
 // v10.3: server -> tablet data goes into the game server's own web folder (vex_tab02/d/<secret name>.js):
 // no relay limits, works the same with 32 players. ntfy replies only for a tablet that reports it cannot
 // read that folder (cvar vex_tab02_ntfy_reply 1 = always send them too).
-new g_iDSeq[33],g_szDName[33][24],bool:g_bRelayPl[33],g_pNtfy,g_dWrites,g_dFail;
+new g_iDSeq[33],g_szDName[33][24],bool:g_bRelayPl[33],g_pNtfy,g_pFiles,g_dWrites,g_dFail,g_iReopen;
+new Float:g_qMade[48];
 new g_pDay,g_pGap,g_pBoard,g_pOn,g_pHost,g_pPort;
 
 public plugin_init()
@@ -56,7 +58,8 @@ register_plugin(PLUGIN,VERSION,"smurfsexy");
 g_pDay=register_cvar("vex_tab02_reply_day","220");   // max answers per day from this server (ntfy.sh limit is ~250)
 g_pGap=register_cvar("vex_tab02_reply_gap","2.0");   // min seconds between two answers to the same player (later data is merged)
 g_pBoard=register_cvar("vex_tab02_board","1");
-g_pNtfy=register_cvar("vex_tab02_ntfy_reply","0");  // 1 = also answer over ntfy (old way, daily limited)
+g_pNtfy=register_cvar("vex_tab02_ntfy_reply","1");  // answers over the relay (fast); when it is full the tablet reopens with fresh data
+g_pFiles=register_cvar("vex_tab02_files","0");     // 1 = also write vex_tab02/d/*.js (only useful when the web folder shows server files at once)
 register_cvar("vex_tab02_ingame_only","1");       // 1 = tablet page refuses to run in a normal web browser (only the game's MOTD browser)       // 1 = write vex_tab02/g02.js (leaderboards) every 2 min
 register_concmd("vex_tab02","cmd_Status",ADMIN_RCON,"- TAB02 tablet status");
 set_task(0.05,"task_Net",551000,_,_,"b");
@@ -215,10 +218,10 @@ if(!equali(hex,msg[p+1],20)){g_lBad++;return;}
 new q=contain(body,"~");if(q<0){g_lBad++;return;}
 new seq=str_to_num(body[q+1]);if(seq<=g_iSeq6[id]){g_lBad++;return;} // an old (copied) command is never run twice
 g_iSeq6[id]=seq;
-if(!g_iDSeq[id])DataWrite(id,""); // first command: the tablet learns that its data file works
+if(!g_iDSeq[id]&&get_pcvar_num(g_pFiles))DataWrite(id,""); // first command: the tablet learns that its data file works
 static f[6][100];new n=0,o=0;for(new i=0;body[i]&&n<6;i++){if(body[i]=='~'){f[n][o]=0;n++;o=0;continue;}if(o<99)f[n][o++]=body[i];}if(n<6)f[n][o]=0;
 if(equal(f[2],"adm")&&equal(f[3],"reset")){AdminReset(id,str_to_num(f[4]));return;}
-if(equal(f[2],"ua")){new nm[32];get_user_name(id,nm,31);log_amx("[TAB02] %s tablet tarayicisi: %s",nm,f[3]);DataWrite(id,"");return;} // + first (empty) data file: the tablet sees the folder works
+if(equal(f[2],"ua")){new nm[32];get_user_name(id,nm,31);log_amx("[TAB02] %s tablet tarayicisi: %s",nm,f[3]);if(get_pcvar_num(g_pFiles))DataWrite(id,"");return;} // + first (empty) data file: the tablet sees the folder works
 if(equal(f[2],"relay")){g_bRelayPl[id]=str_to_num(f[3])!=0;new nm[32];get_user_name(id,nm,31);log_amx("[TAB02] %s tableti veri klasorunu okuyamiyor -> ntfy cevaplari acildi (vex_tab02_web adresini kontrol et)",nm);return;} // which browser the game uses (for vex_tab02_ingame_only)
 static out[512];formatex(out,charsmax(out),"vx1~%s%s",tk,body[q]);
 vxc_tab_action(out);
@@ -246,22 +249,35 @@ log_amx("[TAB02] %s reset %d (%s)",an,what,W[what]);
 public vxc_reply(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;
-if(1<=id<=32)DataWrite(id,body);
+if(1<=id<=32&&get_pcvar_num(g_pFiles))DataWrite(id,body);
 if(!get_pcvar_num(g_pNtfy)&&!(1<=id<=32&&g_bRelayPl[id]))return;
 DayRoll();
-if(g_dayCount>=get_pcvar_num(g_pDay)||get_gametime()<g_rPauseUntil){g_rDropped++;return;}
+if(g_dayCount>=get_pcvar_num(g_pDay)||get_gametime()<g_rPauseUntil){g_rDropped++;if(1<=id<=32&&vxc_tab_reopen(id))g_iReopen++;return;} // relay full: fresh data in the tablet address instead
 for(new k=0;k<g_qN;k++){new q=(g_qHead+k)%RQ;if(equal(g_qTopic[q],topic)){copy(g_qBody[q],1499,body);return;}} // newest data wins, no extra message
 // a player who just got an answer waits a moment; the newest data then goes out as one message
 new Float:now=get_gametime(),Float:at=now;
 if(1<=id<=32&&g_fLastReply[id]>0.0)at=floatmax(now,g_fLastReply[id]+get_pcvar_float(g_pGap));
 if(g_qN>=RQ){g_qHead=(g_qHead+1)%RQ;g_qN--;g_rDropped++;}
-new q=(g_qHead+g_qN)%RQ;copy(g_qTopic[q],63,topic);copy(g_qBody[q],1499,body);g_qOwner[q]=id;g_qAt[q]=at;g_qN++;
+new q=(g_qHead+g_qN)%RQ;copy(g_qTopic[q],63,topic);copy(g_qBody[q],1499,body);g_qOwner[q]=id;g_qAt[q]=at;g_qMade[q]=now;g_qN++;
 if(1<=id<=32)g_fLastReply[id]=at;
 }
 Send()
 {
 new Float:now=get_gametime();
+// an answer that waited more than 8 s (relay busy / waiting after 429): open that tablet with fresh data instead
+for(new k=0;k<g_qN;k++)
+{
+new q=(g_qHead+k)%RQ;
+if(now-g_qMade[q]<8.0)continue;
+new who=g_qOwner[q];
+if(1<=who<=32&&vxc_tab_reopen(who)){g_iReopen++;QDel(q);k--;}
+}
 for(new k=0;k<NS;k++)Slot(k,now);
+}
+QDel(due)
+{
+new q=due;while(q!=g_qHead){new pq=(q+RQ-1)%RQ;copy(g_qTopic[q],63,g_qTopic[pq]);copy(g_qBody[q],1499,g_qBody[pq]);g_qOwner[q]=g_qOwner[pq];g_qAt[q]=g_qAt[pq];g_qMade[q]=g_qMade[pq];q=pq;}
+g_qHead=(g_qHead+1)%RQ;g_qN--;
 }
 // take the first due queue entry (others may still wait for their per-player gap)
 bool:Pop(out[],len)
@@ -271,9 +287,7 @@ for(new k=0;k<g_qN;k++){new q=(g_qHead+k)%RQ;if(get_gametime()>=g_qAt[q]){due=q;
 if(due<0)return false;
 new host[64];Host(host,63);
 formatex(out,len,"POST /%s HTTP/1.0^r^nHost: %s^r^nContent-Type: text/plain^r^nX-Cache: no^r^nContent-Length: %d^r^nConnection: close^r^n^r^n%s",g_qTopic[due],host,strlen(g_qBody[due]),g_qBody[due]);
-// close the gap in the ring
-new q=due;while(q!=g_qHead){new pq=(q+RQ-1)%RQ;copy(g_qTopic[q],63,g_qTopic[pq]);copy(g_qBody[q],1499,g_qBody[pq]);g_qOwner[q]=g_qOwner[pq];g_qAt[q]=g_qAt[pq];q=pq;}
-g_qHead=(g_qHead+1)%RQ;g_qN--;
+QDel(due);
 return true;
 }
 Slot(k,Float:now)
@@ -345,7 +359,7 @@ new host[64];Host(host,63);DayRoll();
 console_print(id,"[TAB02] relay=%s:%d topic=%s dinleniyor=%d (1 olmali) gelen komut=%d reddedilen(imzasiz/sahte)=%d hata=%d",host,Port(),g_szTopic,g_lReady,g_lRx,g_lBad,g_lFails);
 console_print(id,"[TAB02] cevap: bugun %d/%d gonderildi, atlanan %d, 429=%d, sirada %d",g_dayCount,get_pcvar_num(g_pDay),g_rDropped,g_r429,g_qN);
 new nr=0;for(new p=1;p<=32;p++)if(g_bRelayPl[p])nr++;
-console_print(id,"[TAB02] veri dosyasi (vex_tab02/d): yazilan %d, hata %d | ntfy cevabi: %s, klasoru okuyamayan tablet %d",g_dWrites,g_dFail,get_pcvar_num(g_pNtfy)?"acik":"kapali",nr);
+console_print(id,"[TAB02] relay dolu/gecikince yeni veriyle acilan tablet: %d | veri dosyasi: %s (yazilan %d, hata %d) | ntfy cevabi: %s, %d",g_iReopen,get_pcvar_num(g_pFiles)?"acik":"kapali",g_dWrites,g_dFail,get_pcvar_num(g_pNtfy)?"acik":"kapali",nr);
 return PLUGIN_HANDLED;
 }
 

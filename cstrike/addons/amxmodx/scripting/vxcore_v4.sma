@@ -28222,7 +28222,7 @@ public VxcPcReady542(plugin,params)return(g_tMdlDone!=Invalid_Trie&&g_tRes!=Inva
 public plugin_natives()
 {
 register_library("vexmira_core45");
-register_native("vxc_tab_value","N_TabValue622");register_native("vxc_tab_action","N_TabAct5");register_native("vxc_tab_link","N_TabLink5");register_native("vxc_board","N_Board5");register_native("vxc_tab_tok","N_TabTok5");register_native("vxc_reset","N_Reset6");register_native("vxc_ipad_card","N_Card7");register_native("vxc_hud","N_Hud64");
+register_native("vxc_tab_value","N_TabValue622");register_native("vxc_tab_action","N_TabAct5");register_native("vxc_tab_link","N_TabLink5");register_native("vxc_board","N_Board5");register_native("vxc_tab_tok","N_TabTok5");register_native("vxc_tab_reopen","N_TabReopen10");register_native("vxc_reset","N_Reset6");register_native("vxc_ipad_card","N_Card7");register_native("vxc_hud","N_Hud64");
 register_native("vxc_tab_key","N_TabKey622");register_native("vxc_wal9","N_Wal9");register_native("vxc_note9","N_Note9");register_native("vxc_res9","N_Res9");register_native("vxc_push9","N_Push9");register_native("vxc_stat9","N_Stat9");register_native("vxc_case9","N_Case9");
 register_native("vxc_tab_recover","N_TabRecover622");
 register_native("vxc_tab_credit","N_TabCredit622");
@@ -31811,6 +31811,10 @@ if(!boards)Boards5(app,h,n);
 return n;
 }
 new g_szApp4[33][12];
+new Float:g_fCmdAt10[33],Float:g_fReopen10[33];
+// v10.4: the relay could not deliver the answer to this player's own command in time (daily limit / wait):
+// open the tablet again with fresh data in its address (no limits). Only right after the player's own command.
+public N_TabReopen10(plugin,params){new id=get_param(1);if(!(1<=id<=g_iMax)||!is_user_connected(id)||is_user_bot(id)||!g_szTok62[id][0])return 0;new Float:now=get_gametime();if(now-g_fCmdAt10[id]>10.0||now<g_fReopen10[id])return 0;g_fReopen10[id]=now+4.0;OpenTablet60(id,g_szApp4[id][0]?g_szApp4[id]:"home","",true);return 1;}
 OpenTablet60(id,const page[],const extra[],bool:push=false)
 {
 if(!is_user_connected(id)||is_user_bot(id))return;
@@ -32314,7 +32318,7 @@ new Float:now=get_gametime();
 if(now - g_fActWin62[id]> 3.0){g_fActWin62[id]= now;g_iActTick62[id]= 0;}
 if(++g_iActTick62[id]> 8)return;
 g_iSeqAck62[id]= seq;
-g_fTabSeen62[id]= now;
+g_fTabSeen62[id]= now;g_fCmdAt10[id]=now;
 g_bTabQuiet62=true;g_iActor4=id;
 TabDo62(id,parts[2],parts[3],parts[4],parts[5]);
 g_bTabQuiet62=false;g_iActor4=0;

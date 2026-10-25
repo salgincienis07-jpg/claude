@@ -2176,9 +2176,8 @@ function dfPoll(){
   if(!DF.name)DF.name=sha256(LIVE.tk+'|d02').slice(0,16);
   var sc=document.createElement('script'),fin=false;
   function next(okLoad){if(fin)return;fin=true;if(sc.parentNode)sc.parentNode.removeChild(sc);
-    if(!okLoad){DF.fails++;var waiting=false,now=Date.now();for(var k in LIVE.pend)if(now-LIVE.pend[k].t>9000)waiting=true;
-      if(!DF.ok&&!DF.asked&&DF.fails>=6&&waiting){DF.asked=true;sendRaw('relay','1');}}
-    var busy=false;for(var p in LIVE.pend)busy=true;setTimeout(dfPoll,busy?700:(DF.fails>20&&!DF.ok?5000:1500));}
+    if(!okLoad){DF.fails++;if(!DF.ok&&DF.fails>=8)return;} // folder not served live (FastDL copies later): stop, the relay + fresh address carry the data
+    var busy=false;for(var p in LIVE.pend)busy=true;setTimeout(dfPoll,busy?700:1500);}
   sc.onload=function(){next(true);};sc.onerror=function(){next(false);};
   setTimeout(function(){next(false);},6000);
   sc.src='d/'+DF.name+'.js?t='+Date.now();document.getElementsByTagName('head')[0].appendChild(sc);

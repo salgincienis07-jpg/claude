@@ -56,7 +56,11 @@ public task_Apply() ApplyUrl();
 
 ApplyUrl()
 {
-	if (!get_pcvar_num(g_pOn)) return;
+	// v10.4: a pointer from plugin_precache can be invalid on some panels: look the cvars up by name again
+	if (!g_pOn) g_pOn = get_cvar_pointer("vex_fastdl");
+	if (!g_pUrl) g_pUrl = get_cvar_pointer("vex_fastdl_url");
+	if (!g_pRate) g_pRate = get_cvar_pointer("vex_fastdl_rate");
+	if (!g_pOn || !g_pUrl || !get_pcvar_num(g_pOn)) return;
 	new url[192];
 	get_pcvar_string(g_pUrl, url, charsmax(url));
 	trim(url);
@@ -68,7 +72,7 @@ ApplyUrl()
 	if (cvar_exists("sv_send_resources")) set_cvar_num("sv_send_resources", 1);
 	// a file that is NOT on FastDL falls back to the in-game (UDP) download, whose speed is the player's rate:
 	// default 25000 = ~25 KB/s (a 700 KB boss = ~30 s). A higher minimum rate makes that fallback ~4x faster.
-	new r = get_pcvar_num(g_pRate);
+	new r = g_pRate ? get_pcvar_num(g_pRate) : 0;
 	if (r >= 25000)
 	{
 		if (get_cvar_num("sv_maxrate") < r) set_cvar_num("sv_maxrate", r);
