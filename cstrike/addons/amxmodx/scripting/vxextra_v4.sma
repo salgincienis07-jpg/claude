@@ -4671,7 +4671,7 @@ public N_MarketFinish622(plugin,params){new buyer=get_param(1),seller=get_param(
 // The open MOTD ignores a new address until it is closed, so the core hands every tablet reply here
 // (vxc_reply forward) and it is published to the tablet's own relay channel (same relay the tablet
 // already uses for its commands). One short HTTP request at a time, never blocks the game loop.
-// PAD5: replies are sent by vex_tab8 (daily limit aware); this old sender is kept unused
+// PAD5: replies are sent by vex_tab01 (daily limit aware); this old sender is kept unused
 stock vxc_reply_old64(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;

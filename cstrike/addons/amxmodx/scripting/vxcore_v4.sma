@@ -19,7 +19,7 @@ native vxe_market_finish(buyer,seller);
 native vxe_zup_snapshot(id,cls,field);
 native vxe_zup_spend(id,cls,perk);
 native vxe_market_str(id,out[],len);
-new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4,g_fwReply4;
+new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4,g_fwReply4,g_fwBank9=-1,g_fwSnap9=-1;
 new bool:g_bRlReady621;
 new g_iActionRx624,g_iRs6[4];
 new g_szPr5[33][4][8],g_iPr5[33][4],Float:g_fCard5[33];
@@ -58,7 +58,7 @@ new g_iAreaTarget563;
 new Float:g_fHitFeel565[33],Float:g_fHurtFeel565[33];
 new bool:g_bCameraReady529;
 #pragma tabsize 0
-#if AMXX_VERSION_NUM >= 175
+#if AMXX_VERSION_NUM>=175
 #pragma reqlib reapi
 #if !defined AMXMODX_NOAUTOLOAD
 #pragma loadlib reapi
@@ -136,7 +136,7 @@ mt_netadr,
 mt_csentity
 };
 #define ReAPIFunc 				{EngineFunc, GamedllFunc, GamedllFunc_CBaseAnimating, GamedllFunc_CBasePlayer, GamedllFunc_CSGameRules, GamedllFunc_CGrenade, GamedllFunc_CWeaponBox, ReCheckerFunc, GamedllFunc_CBasePlayerWeapon, GamedllFunc_CGib, GamedllFunc_CBaseEntity, GamedllFunc_CBotManager}
-#define is_nullent(%0)          (%0 == 0 || is_entity(%0) == false)
+#define is_nullent(%0)          (%0==0||is_entity(%0)==false)
 #define MAX_REGION_RANGE        1024
 #define BEGIN_FUNC_REGION(%0)   (any:MAX_REGION_RANGE * hooks_tables_e:ht_%0)
 #define BEGIN_MEMBER_REGION(%0) (any:MAX_REGION_RANGE * members_tables_e:mt_%0)
@@ -506,7 +506,7 @@ IGNOREMSG_TEAM
 }
 enum HitBoxGroup
 {
-HITGROUP_GENERIC = 0,
+HITGROUP_GENERIC=0,
 HITGROUP_HEAD,
 HITGROUP_CHEST,
 HITGROUP_STOMACH,
@@ -598,7 +598,7 @@ MODEL_AUTO
 };
 enum
 {
-GR_NONE = 0,
+GR_NONE=0,
 GR_WEAPON_RESPAWN_YES,
 GR_WEAPON_RESPAWN_NO,
 GR_AMMO_RESPAWN_YES,
@@ -645,7 +645,7 @@ WEAPON_SG552,
 WEAPON_AK47,
 WEAPON_KNIFE,
 WEAPON_P90,
-WEAPON_SHIELDGUN = 99
+WEAPON_SHIELDGUN=99
 };
 enum TimeBasedDamage
 {
@@ -660,7 +660,7 @@ ITDB_SLOWFREEZE
 };
 enum Activity
 {
-ACT_INVALID = -1,
+ACT_INVALID=-1,
 ACT_RESET,
 ACT_IDLE,
 ACT_GUARD,
@@ -765,7 +765,7 @@ ACT_NO
 };
 enum WinStatus
 {
-WINSTATUS_NONE = 0,
+WINSTATUS_NONE=0,
 WINSTATUS_CTS,
 WINSTATUS_TERRORISTS,
 WINSTATUS_DRAW,
@@ -860,7 +860,7 @@ C4_SLOT,
 };
 enum shieldgren_e
 {
-SHIELDREN_IDLE = 4,
+SHIELDREN_IDLE=4,
 SHIELDREN_UP,
 SHIELDREN_DOWN
 };
@@ -878,20 +878,20 @@ SHIELDGUN_DOWN,
 };
 enum SignalState
 {
-SIGNAL_BUY = BIT(0),
-SIGNAL_BOMB = BIT(1),
-SIGNAL_RESCUE = BIT(2),
-SIGNAL_ESCAPE = BIT(3),
-SIGNAL_VIPSAFETY = BIT(4),
+SIGNAL_BUY=BIT(0),
+SIGNAL_BOMB=BIT(1),
+SIGNAL_RESCUE=BIT(2),
+SIGNAL_ESCAPE=BIT(3),
+SIGNAL_VIPSAFETY=BIT(4),
 };
 enum WeaponState
 {
-WPNSTATE_USP_SILENCED = BIT(0),
-WPNSTATE_GLOCK18_BURST_MODE = BIT(1),
-WPNSTATE_M4A1_SILENCED = BIT(2),
-WPNSTATE_ELITE_LEFT = BIT(3),
-WPNSTATE_FAMAS_BURST_MODE = BIT(4),
-WPNSTATE_SHIELD_DRAWN = BIT(5),
+WPNSTATE_USP_SILENCED=BIT(0),
+WPNSTATE_GLOCK18_BURST_MODE=BIT(1),
+WPNSTATE_M4A1_SILENCED=BIT(2),
+WPNSTATE_ELITE_LEFT=BIT(3),
+WPNSTATE_FAMAS_BURST_MODE=BIT(4),
+WPNSTATE_SHIELD_DRAWN=BIT(5),
 };
 enum Bullet
 {
@@ -946,7 +946,7 @@ ITEM_TYPE_EQUIPPED
 };
 enum ItemID
 {
-ITEM_NONE = -1,
+ITEM_NONE=-1,
 ITEM_SHIELDGUN,
 ITEM_P228,
 ITEM_GLOCK,
@@ -990,7 +990,7 @@ ITEM_BATTERY
 };
 enum InfoMapBuyParam
 {
-BUYING_EVERYONE = 0,
+BUYING_EVERYONE=0,
 BUYING_ONLY_CTS,
 BUYING_ONLY_TERRORISTS,
 BUYING_NO_ONE,
@@ -1020,7 +1020,7 @@ BUYING_NO_ONE,
 #define SCORE_STATUS_DEFKIT               (1<<3)
 enum GameEventType
 {
-EVENT_INVALID = 0,
+EVENT_INVALID=0,
 EVENT_WEAPON_FIRED,
 EVENT_WEAPON_FIRED_ON_EMPTY,
 EVENT_WEAPON_RELOADED,
@@ -1119,13 +1119,13 @@ NUM_GAME_EVENTS,
 };
 enum SecondaryAtkState
 {
-WEAPON_SECONDARY_ATTACK_NONE = 0,
+WEAPON_SECONDARY_ATTACK_NONE=0,
 WEAPON_SECONDARY_ATTACK_SET,
 WEAPON_SECONDARY_ATTACK_BLOCK
 };
 enum Decal
 {
-DECAL_GUNSHOT1 = 0,
+DECAL_GUNSHOT1=0,
 DECAL_GUNSHOT2,
 DECAL_GUNSHOT3,
 DECAL_GUNSHOT4,
@@ -1178,7 +1178,7 @@ MNT_SET
 };
 enum ResourceType_t
 {
-t_sound = 0,
+t_sound=0,
 t_skin,
 t_model,
 t_decal,
@@ -1192,7 +1192,7 @@ rt_max
 #define SND_EMIT2_INVOKER BIT(1)
 enum EngineFunc
 {
-RH_SV_StartSound = BEGIN_FUNC_REGION(engine),
+RH_SV_StartSound=BEGIN_FUNC_REGION(engine),
 RH_SV_DropClient,
 RH_SV_ActivateServer,
 RH_Cvar_DirectSet,
@@ -1216,7 +1216,7 @@ RH_SV_AllowPhysent,
 };
 enum EntVars
 {
-var_classname = BEGIN_MEMBER_REGION(entvars),
+var_classname=BEGIN_MEMBER_REGION(entvars),
 var_globalname,
 var_origin,
 var_oldorigin,
@@ -1342,7 +1342,7 @@ var_euser4
 };
 enum UCmd
 {
-ucmd_lerp_msec = BEGIN_MEMBER_REGION(usercmd),
+ucmd_lerp_msec=BEGIN_MEMBER_REGION(usercmd),
 ucmd_msec,
 ucmd_viewangles,
 ucmd_forwardmove,
@@ -1357,7 +1357,7 @@ ucmd_impact_position
 };
 enum NetAdrType
 {
-NA_NULL = 0,
+NA_NULL=0,
 NA_LOOPBACK,
 NA_BROADCAST,
 NA_IP,
@@ -1366,7 +1366,7 @@ NA_BROADCAST_IPX,
 };
 enum NetAdrVars
 {
-netadr_type = BEGIN_MEMBER_REGION(netadr),
+netadr_type=BEGIN_MEMBER_REGION(netadr),
 netadr_ip,
 netadr_port
 };
@@ -1379,21 +1379,21 @@ native any:get_netadr(const adr,const NetAdrVars:var,any:...);
 native get_key_value(const pbuffer,const key[],const value[],const maxlen);
 native set_key_value(const pbuffer,const key[],const value[]);
 native get_key_value_buffer(const pbuffer,const output[],const maxlen);
-native set_key_value_buffer(const pbuffer,const value[],const maxlen = -1);
+native set_key_value_buffer(const pbuffer,const value[],const maxlen=-1);
 native GetBonePosition(const entity,const bone,Float:vecOrigin[3],Float:vecAngles[3]={0.0,0.0,0.0});
 native GetAttachment(const entity,const attachment,Float:vecOrigin[3],Float:vecAngles[3]={0.0,0.0,0.0});
 native SetBodygroup(const entity,const group,const value);
 native GetBodygroup(const entity,const group);
 native bool:GetSequenceInfo(const entity,&piFlags,&Float:pflFrameRate,&Float:pflGroundSpeed);
 native rh_set_mapname(const mapname[]);
-native rh_get_mapname(output[],len,MapNameType:type = MNT_SET);
+native rh_get_mapname(output[],len,MapNameType:type=MNT_SET);
 native rh_reset_mapname();
-native bool:rh_emit_sound2(const entity,const recipient,const channel,const sample[],Float:vol = VOL_NORM,Float:attn = ATTN_NORM,const flags = 0,const pitch = PITCH_NORM,emitFlags = 0,const Float:origin[3]={0.0,0.0,0.0});
+native bool:rh_emit_sound2(const entity,const recipient,const channel,const sample[],Float:vol=VOL_NORM,Float:attn=ATTN_NORM,const flags=0,const pitch=PITCH_NORM,emitFlags=0,const Float:origin[3]={0.0,0.0,0.0});
 native rh_update_user_info(playerEntIndex);
 native rh_drop_client(const index,const message[]= "");
 native rh_get_net_from(output[],len);
 native rh_get_client_connect_time(const index);
-#define IsRoundExpireEvent(%0) (((1 << _:(%0) + _:ScenarioEventEndRound:0) & ((1 << _:ROUND_TARGET_SAVED) | (1 << _:ROUND_HOSTAGE_NOT_RESCUED) | (1 << _:ROUND_TERRORISTS_NOT_ESCAPED) | (1 << _:ROUND_VIP_NOT_ESCAPED) | (1 << _:ROUND_GAME_OVER))) != 0)
+#define IsRoundExpireEvent(%0) (((1 << _:(%0) + _:ScenarioEventEndRound:0) & ((1 << _:ROUND_TARGET_SAVED) | (1 << _:ROUND_HOSTAGE_NOT_RESCUED) | (1 << _:ROUND_TERRORISTS_NOT_ESCAPED) | (1 << _:ROUND_VIP_NOT_ESCAPED) | (1 << _:ROUND_GAME_OVER)))!=0)
 #if AMXX_VERSION_NUM < 183
 #define RG_CBaseAnimating_ResetSequenceInfo RG_CBaseAnimating_ResetSequence
 #define RG_CBasePlayer_Observer_IsValidTarget RG_CBasePlayer_Observer_IsValid
@@ -1464,17 +1464,17 @@ GT_DROP_AND_REPLACE
 };
 enum MenuChooseTeam
 {
-MenuChoose_T = 1,
+MenuChoose_T=1,
 MenuChoose_CT,
 MenuChoose_VIP,
-MenuChoose_AutoSelect = 5,
+MenuChoose_AutoSelect=5,
 MenuChoose_Spec,
 };
 enum VGUIMenu
 {
-VGUI_Menu_Team = 2,
-VGUI_Menu_MapBriefing = 4,
-VGUI_Menu_Class_T = 26,
+VGUI_Menu_Team=2,
+VGUI_Menu_MapBriefing=4,
+VGUI_Menu_Class_T=26,
 VGUI_Menu_Class_CT,
 VGUI_Menu_Buy,
 VGUI_Menu_Buy_Pistol,
@@ -1486,7 +1486,7 @@ VGUI_Menu_Buy_Item,
 };
 enum GamedllFunc
 {
-RG_GetForceCamera = BEGIN_FUNC_REGION(gamedll),
+RG_GetForceCamera=BEGIN_FUNC_REGION(gamedll),
 RG_PlayerBlind,
 RG_RadiusFlash_TraceLine,
 RG_RoundEnd,
@@ -1521,11 +1521,11 @@ RG_BuyItem,
 };
 enum GamedllFunc_CBaseAnimating
 {
-RG_CBaseAnimating_ResetSequenceInfo = BEGIN_FUNC_REGION(animating)
+RG_CBaseAnimating_ResetSequenceInfo=BEGIN_FUNC_REGION(animating)
 };
 enum GamedllFunc_CGrenade
 {
-RG_CGrenade_DefuseBombStart = BEGIN_FUNC_REGION(grenade),
+RG_CGrenade_DefuseBombStart=BEGIN_FUNC_REGION(grenade),
 RG_CGrenade_DefuseBombEnd,
 RG_CGrenade_ExplodeHeGrenade,
 RG_CGrenade_ExplodeFlashbang,
@@ -1534,11 +1534,11 @@ RG_CGrenade_ExplodeBomb,
 };
 enum GamedllFunc_CWeaponBox
 {
-RG_CWeaponBox_SetModel = BEGIN_FUNC_REGION(weaponbox),
+RG_CWeaponBox_SetModel=BEGIN_FUNC_REGION(weaponbox),
 };
 enum GamedllFunc_CBasePlayer
 {
-RG_CBasePlayer_Spawn = BEGIN_FUNC_REGION(player),
+RG_CBasePlayer_Spawn=BEGIN_FUNC_REGION(player),
 RG_CBasePlayer_Precache,
 RG_CBasePlayer_ObjectCaps,
 RG_CBasePlayer_Classify,
@@ -1597,7 +1597,7 @@ RG_CBasePlayer_EntSelectSpawnPoint,
 };
 enum GamedllFunc_CBasePlayerWeapon
 {
-RG_CBasePlayerWeapon_CanDeploy = BEGIN_FUNC_REGION(weapon),
+RG_CBasePlayerWeapon_CanDeploy=BEGIN_FUNC_REGION(weapon),
 RG_CBasePlayerWeapon_DefaultDeploy,
 RG_CBasePlayerWeapon_DefaultReload,
 RG_CBasePlayerWeapon_DefaultShotgunReload,
@@ -1607,23 +1607,23 @@ RG_CBasePlayerWeapon_SendWeaponAnim,
 };
 enum GamedllFunc_CGib
 {
-RG_CGib_Spawn = BEGIN_FUNC_REGION(gib),
+RG_CGib_Spawn=BEGIN_FUNC_REGION(gib),
 RG_CGib_BounceGibTouch,
 RG_CGib_WaitTillLand,
 };
 enum GamedllFunc_CBaseEntity
 {
-RG_CBaseEntity_FireBullets = BEGIN_FUNC_REGION(cbaseentity),
+RG_CBaseEntity_FireBullets=BEGIN_FUNC_REGION(cbaseentity),
 RG_CBaseEntity_FireBuckshots,
 RG_CBaseEntity_FireBullets3,
 };
 enum GamedllFunc_CBotManager
 {
-RG_CBotManager_OnEvent = BEGIN_FUNC_REGION(botmanager),
+RG_CBotManager_OnEvent=BEGIN_FUNC_REGION(botmanager),
 }
 enum GamedllFunc_CSGameRules
 {
-RG_CSGameRules_FShouldSwitchWeapon = BEGIN_FUNC_REGION(gamerules),
+RG_CSGameRules_FShouldSwitchWeapon=BEGIN_FUNC_REGION(gamerules),
 RG_CSGameRules_GetNextBestWeapon,
 RG_CSGameRules_FlPlayerFallDamage,
 RG_CSGameRules_FPlayerCanTakeDamage,
@@ -1654,7 +1654,7 @@ RG_CSGameRules_PlayerGotWeapon,
 };
 enum CSGameRules_Members
 {
-m_bFreezePeriod = BEGIN_MEMBER_REGION(gamerules),
+m_bFreezePeriod=BEGIN_MEMBER_REGION(gamerules),
 m_bBombDropped,
 m_GameDesc,
 m_msgPlayerVoiceMask,
@@ -1744,7 +1744,7 @@ m_bTeamBalanced,
 };
 enum CBaseEntity_Members
 {
-currentammo = BEGIN_MEMBER_REGION(base),
+currentammo=BEGIN_MEMBER_REGION(base),
 maxammo_buckshot,
 ammo_buckshot,
 maxammo_9mm,
@@ -1772,7 +1772,7 @@ has_disconnected,
 };
 enum CBaseAnimating_Members
 {
-m_flFrameRate = BEGIN_MEMBER_REGION(animating),
+m_flFrameRate=BEGIN_MEMBER_REGION(animating),
 m_flGroundSpeed,
 m_flLastEventCheck,
 m_fSequenceFinished,
@@ -1780,7 +1780,7 @@ m_fSequenceLoops,
 };
 enum CBaseMonster_Members
 {
-m_Activity = BEGIN_MEMBER_REGION(basemonster),
+m_Activity=BEGIN_MEMBER_REGION(basemonster),
 m_IdealActivity,
 m_LastHitGroup,
 m_bitsDamageType,
@@ -1799,7 +1799,7 @@ m_vecEnemyLKP,
 };
 enum CBasePlayer_Members
 {
-random_seed = BEGIN_MEMBER_REGION(player),
+random_seed=BEGIN_MEMBER_REGION(player),
 m_usPlayerBleed,
 m_hObserverTarget,
 m_flNextObserverInput,
@@ -1992,7 +1992,7 @@ m_tmNextAccountHealthUpdate,
 };
 enum RebuyStruct
 {
-m_primaryWeapon = BEGIN_MEMBER_REGION(rebuystruct),
+m_primaryWeapon=BEGIN_MEMBER_REGION(rebuystruct),
 m_primaryAmmo,
 m_secondaryWeapon,
 m_secondaryAmmo,
@@ -2005,7 +2005,7 @@ m_armor,
 };
 enum PlayerMove
 {
-pm_player_index = BEGIN_MEMBER_REGION(playermove),
+pm_player_index=BEGIN_MEMBER_REGION(playermove),
 pm_server,
 pm_multiplayer,
 pm_time,
@@ -2068,7 +2068,7 @@ pm_player_maxs,
 };
 enum MoveVars
 {
-mv_gravity = BEGIN_MEMBER_REGION(movevars),
+mv_gravity=BEGIN_MEMBER_REGION(movevars),
 mv_stopspeed,
 mv_maxspeed,
 mv_spectatormaxspeed,
@@ -2097,7 +2097,7 @@ mv_skyvec_z,
 };
 enum PMTrace
 {
-pmt_allsolid = BEGIN_MEMBER_REGION(pmtrace),
+pmt_allsolid=BEGIN_MEMBER_REGION(pmtrace),
 pmt_startsolid,
 pmt_inopen,
 pmt_inwater,
@@ -2109,7 +2109,7 @@ pmt_hitgroup
 };
 enum CCSPlayer_Members
 {
-m_szModel = BEGIN_MEMBER_REGION(csplayer),
+m_szModel=BEGIN_MEMBER_REGION(csplayer),
 m_bForceShowMenu,
 m_flRespawnPending,
 m_flSpawnProtectionEndTime,
@@ -2131,13 +2131,13 @@ m_bPlayerDominated,
 };
 enum CBasePlayerItem_Members
 {
-m_pPlayer = BEGIN_MEMBER_REGION(baseitem),
+m_pPlayer=BEGIN_MEMBER_REGION(baseitem),
 m_pNext,
 m_iId,
 };
 enum CBasePlayerWeapon_Members
 {
-m_Weapon_iPlayEmptySound = BEGIN_MEMBER_REGION(baseweapon),
+m_Weapon_iPlayEmptySound=BEGIN_MEMBER_REGION(baseweapon),
 m_Weapon_fFireOnEmpty,
 m_Weapon_flNextPrimaryAttack,
 m_Weapon_flNextSecondaryAttack,
@@ -2173,7 +2173,7 @@ m_Weapon_flLastFireTime,
 };
 enum CWeaponBox_Members
 {
-m_WeaponBox_rgpPlayerItems = BEGIN_MEMBER_REGION(weaponbox),
+m_WeaponBox_rgpPlayerItems=BEGIN_MEMBER_REGION(weaponbox),
 m_WeaponBox_rgiszAmmo,
 m_WeaponBox_rgAmmo,
 m_WeaponBox_cAmmoTypes,
@@ -2181,14 +2181,14 @@ m_WeaponBox_bIsBomb,
 };
 enum CArmoury_Members
 {
-m_Armoury_iItem = BEGIN_MEMBER_REGION(armoury),
+m_Armoury_iItem=BEGIN_MEMBER_REGION(armoury),
 m_Armoury_iCount,
 m_Armoury_iInitialCount,
 m_Armoury_bAlreadyCounted,
 };
 enum CGrenade_Members
 {
-m_Grenade_bStartDefuse = BEGIN_MEMBER_REGION(grenade),
+m_Grenade_bStartDefuse=BEGIN_MEMBER_REGION(grenade),
 m_Grenade_bIsC4,
 m_Grenade_pBombDefuser,
 m_Grenade_flDefuseCountDown,
@@ -2215,153 +2215,153 @@ m_Grenade_fRegisteredSound,
 };
 enum CP228_Members
 {
-m_P228_iShell = BEGIN_MEMBER_REGION(p228),
+m_P228_iShell=BEGIN_MEMBER_REGION(p228),
 m_P228_usFire,
 };
 enum CSCOUT_Members
 {
-m_SCOUT_iShell = BEGIN_MEMBER_REGION(scout),
+m_SCOUT_iShell=BEGIN_MEMBER_REGION(scout),
 m_SCOUT_usFire,
 };
 enum CHEGrenade_Members
 {
-m_HEGrenade_usCreate = BEGIN_MEMBER_REGION(hegrenade),
+m_HEGrenade_usCreate=BEGIN_MEMBER_REGION(hegrenade),
 };
 enum CXM1014_Members
 {
-m_XM1014_iShell = BEGIN_MEMBER_REGION(xm1014),
+m_XM1014_iShell=BEGIN_MEMBER_REGION(xm1014),
 m_XM1014_flPumpTime,
 m_XM1014_usFire,
 };
 enum CC4_Members
 {
-m_C4_bStartedArming = BEGIN_MEMBER_REGION(c4),
+m_C4_bStartedArming=BEGIN_MEMBER_REGION(c4),
 m_C4_bBombPlacedAnimation,
 m_C4_fArmedTime,
 m_C4_bHasShield,
 };
 enum CMAC10_Members
 {
-m_MAC10_iShell = BEGIN_MEMBER_REGION(mac10),
+m_MAC10_iShell=BEGIN_MEMBER_REGION(mac10),
 m_MAC10_iShellOn,
 m_MAC10_usFire,
 };
 enum CAUG_Members
 {
-m_AUG_iShell = BEGIN_MEMBER_REGION(aug),
+m_AUG_iShell=BEGIN_MEMBER_REGION(aug),
 m_AUG_iShellOn,
 m_AUG_usFire,
 };
 enum CSmokeGrenade_Members
 {
-m_SmokeGrenade_usCreate = BEGIN_MEMBER_REGION(smokegrenade),
+m_SmokeGrenade_usCreate=BEGIN_MEMBER_REGION(smokegrenade),
 };
 enum CELITE_Members
 {
-m_ELITE_iShell = BEGIN_MEMBER_REGION(elite),
+m_ELITE_iShell=BEGIN_MEMBER_REGION(elite),
 m_ELITE_usFire_LEFT,
 m_ELITE_usFire_RIGHT,
 };
 enum CFiveSeven_Members
 {
-m_FiveSeven_iShell = BEGIN_MEMBER_REGION(fiveseven),
+m_FiveSeven_iShell=BEGIN_MEMBER_REGION(fiveseven),
 m_FiveSeven_usFire,
 };
 enum CUMP45_Members
 {
-m_UMP45_iShell = BEGIN_MEMBER_REGION(ump45),
+m_UMP45_iShell=BEGIN_MEMBER_REGION(ump45),
 m_UMP45_iShellOn,
 m_UMP45_usFire,
 };
 enum CSG550_Members
 {
-m_SG550_iShell = BEGIN_MEMBER_REGION(sg550),
+m_SG550_iShell=BEGIN_MEMBER_REGION(sg550),
 m_SG550_usFire,
 };
 enum CGalil_Members
 {
-m_Galil_iShell = BEGIN_MEMBER_REGION(galil),
+m_Galil_iShell=BEGIN_MEMBER_REGION(galil),
 m_Galil_iShellOn,
 m_Galil_usFire,
 };
 enum CFamas_Members
 {
-m_Famas_iShell = BEGIN_MEMBER_REGION(famas),
+m_Famas_iShell=BEGIN_MEMBER_REGION(famas),
 m_Famas_iShellOn,
 m_Famas_flBaseDamageBurst,
 };
 enum CUSP_Members
 {
-m_USP_iShell = BEGIN_MEMBER_REGION(usp),
+m_USP_iShell=BEGIN_MEMBER_REGION(usp),
 m_USP_usFire,
 m_USP_flBaseDamageSil,
 };
 enum CGLOCK18_Members
 {
-m_GLOCK18_iShell = BEGIN_MEMBER_REGION(glock18),
+m_GLOCK18_iShell=BEGIN_MEMBER_REGION(glock18),
 m_GLOCK18_bBurstFire,
 };
 enum CAWP_Members
 {
-m_AWP_iShell = BEGIN_MEMBER_REGION(awp),
+m_AWP_iShell=BEGIN_MEMBER_REGION(awp),
 m_AWP_usFire,
 };
 enum CMP5N_Members
 {
-m_MP5N_iShell = BEGIN_MEMBER_REGION(mp5n),
+m_MP5N_iShell=BEGIN_MEMBER_REGION(mp5n),
 m_MP5N_iShellOn,
 m_MP5N_usFire,
 };
 enum CM249_Members
 {
-m_M249_iShell = BEGIN_MEMBER_REGION(m249),
+m_M249_iShell=BEGIN_MEMBER_REGION(m249),
 m_M249_iShellOn,
 m_M249_usFire,
 };
 enum CM3_Members
 {
-m_M3_iShell = BEGIN_MEMBER_REGION(m3),
+m_M3_iShell=BEGIN_MEMBER_REGION(m3),
 m_M3_flPumpTime,
 m_M3_usFire,
 };
 enum CM4A1_Members
 {
-m_M4A1_iShell = BEGIN_MEMBER_REGION(m4a1),
+m_M4A1_iShell=BEGIN_MEMBER_REGION(m4a1),
 m_M4A1_iShellOn,
 m_M4A1_usFire,
 m_M4A1_flBaseDamageSil,
 };
 enum CTMP_Members
 {
-m_TMP_iShell = BEGIN_MEMBER_REGION(tmp),
+m_TMP_iShell=BEGIN_MEMBER_REGION(tmp),
 m_TMP_iShellOn,
 m_TMP_usFire,
 };
 enum CG3SG1_Members
 {
-m_G3SG1_iShell = BEGIN_MEMBER_REGION(g3sg1),
+m_G3SG1_iShell=BEGIN_MEMBER_REGION(g3sg1),
 m_G3SG1_usFire,
 };
 enum CDEAGLE_Members
 {
-m_DEAGLE_iShell = BEGIN_MEMBER_REGION(deagle),
+m_DEAGLE_iShell=BEGIN_MEMBER_REGION(deagle),
 m_DEAGLE_usFire,
 };
 enum CSG552_Members
 {
-m_SG552_iShell = BEGIN_MEMBER_REGION(sg552),
+m_SG552_iShell=BEGIN_MEMBER_REGION(sg552),
 m_SG552_iShellOn,
 m_SG552_usFire,
 };
 enum CAK47_Members
 {
-m_AK47_iShell = BEGIN_MEMBER_REGION(ak47),
+m_AK47_iShell=BEGIN_MEMBER_REGION(ak47),
 m_AK47_iShellOn,
 m_AK47_usFire,
 };
 enum CKnife_Members
 {
-m_Knife_trHit = BEGIN_MEMBER_REGION(knife),
+m_Knife_trHit=BEGIN_MEMBER_REGION(knife),
 m_Knife_usKnife,
 m_Knife_flStabBaseDamage,
 m_Knife_flSwingBaseDamage,
@@ -2372,43 +2372,43 @@ m_Knife_flBackStabMultiplier,
 };
 enum CP90_Members
 {
-m_P90_iShell = BEGIN_MEMBER_REGION(p90),
+m_P90_iShell=BEGIN_MEMBER_REGION(p90),
 m_P90_iShellOn,
 m_P90_usFire,
 };
 enum CShield_Members
 {
-m_Shield_hEntToIgnoreTouchesFrom = BEGIN_MEMBER_REGION(shield),
+m_Shield_hEntToIgnoreTouchesFrom=BEGIN_MEMBER_REGION(shield),
 m_Shield_flTimeToIgnoreTouches,
 };
 enum CMapInfo_Members
 {
-m_MapInfo_iBuyingStatus = BEGIN_MEMBER_REGION(mapinfo),
+m_MapInfo_iBuyingStatus=BEGIN_MEMBER_REGION(mapinfo),
 m_MapInfo_flBombRadius,
 };
 enum CCSPlayerWeapon_Members
 {
-m_Weapon_iStateSecondaryAttack = BEGIN_MEMBER_REGION(csplayerweapon),
+m_Weapon_iStateSecondaryAttack=BEGIN_MEMBER_REGION(csplayerweapon),
 m_Weapon_flBaseDamage,
 };
 #define m_Weapon_bHasSecondaryAttack m_Weapon_iStateSecondaryAttack
 enum CGib_Members
 {
-m_Gib_bloodColor = BEGIN_MEMBER_REGION(gib),
+m_Gib_bloodColor=BEGIN_MEMBER_REGION(gib),
 m_Gib_cBloodDecals,
 m_Gib_material,
 m_Gib_lifeTime,
 };
 enum CCSEntity_Members
 {
-m_ucDmgPenetrationLevel = BEGIN_MEMBER_REGION(csentity),
+m_ucDmgPenetrationLevel=BEGIN_MEMBER_REGION(csentity),
 m_pevLastInflictor,
 };
-native SetThink(const ent,const callback[],const params[]= "",const len = 0);
-native SetTouch(const ent,const callback[],const params[]= "",const len = 0);
-native SetUse(const ent,const callback[],const params[]= "",const len = 0);
-native SetBlocked(const ent,const callback[],const params[]= "",const len = 0);
-native SetMoveDone(const ent,const callback[],const params[]= "",const len = 0);
+native SetThink(const ent,const callback[],const params[]= "",const len=0);
+native SetTouch(const ent,const callback[],const params[]= "",const len=0);
+native SetUse(const ent,const callback[],const params[]= "",const len=0);
+native SetBlocked(const ent,const callback[],const params[]= "",const len=0);
+native SetMoveDone(const ent,const callback[],const params[]= "",const len=0);
 native set_member_game(CSGameRules_Members:member,any:...);
 native any:get_member_game(CSGameRules_Members:member,any:...);
 native set_member(const index,any:member,any:...);
@@ -2424,11 +2424,11 @@ native any:get_pmtrace(const tracehandle,const PMTrace:var,any:...);
 native set_rebuy(const RebuyHandle:rebuyhandle,const RebuyStruct:member,any:value);
 native any:get_rebuy(const RebuyHandle:rebuyhandle,RebuyStruct:member);
 native rg_set_animation(const index,PLAYER_ANIM:playerAnim);
-native rg_add_account(const index,amount,AccountSet:typeSet = AS_ADD,const bool:bTrackChange = true);
-native rg_give_item(const index,const pszName[],GiveType:type = GT_APPEND);
-native rg_give_custom_item(const index,const pszName[],GiveType:type = GT_APPEND,const uid = 0);
+native rg_add_account(const index,amount,AccountSet:typeSet=AS_ADD,const bool:bTrackChange=true);
+native rg_give_item(const index,const pszName[],GiveType:type=GT_APPEND);
+native rg_give_custom_item(const index,const pszName[],GiveType:type=GT_APPEND,const uid=0);
 native rg_give_default_items(const index);
-native rg_give_shield(const index,const bool:bDeploy = true);
+native rg_give_shield(const index,const bool:bDeploy=true);
 native rg_dmg_radius(Float:vecSrc[3],const inflictor,const attacker,const Float:flDamage,const Float:flRadius,const iClassIgnore,const bitsDamageType);
 native rg_multidmg_clear();
 native rg_multidmg_apply(const inflictor,const attacker);
@@ -2436,35 +2436,35 @@ native rg_multidmg_add(const inflictor,const victim,const Float:flDamage,const b
 native rg_fire_bullets(const inflictor,const attacker,const shots,Float:vecSrc[3],Float:vecDirShooting[3],Float:vecSpread[3],const Float:flDistance,const Bullet:iBulletType,const iTracerFreq,const iDamage);
 native rg_fire_buckshots(const inflictor,const attacker,const shots,Float:vecSrc[3],Float:vecDirShooting[3],Float:vecSpread[3],const Float:flDistance,const iTracerFreq,const iDamage);
 native Float:[3]rg_fire_bullets3(const inflictor,const attacker,Float:vecSrc[3],Float:vecDirShooting[3],const Float:vecSpread,const Float:flDistance,const iPenetration,const Bullet:iBulletType,const iDamage,const Float:flRangeModifier,const bool:bPistol,const shared_rand);
-native rg_round_end(const Float:tmDelay,const WinStatus:st,const ScenarioEventEndRound:event = ROUND_NONE,const message[]= "default",const sentence[]= "default",const bool:trigger = false);
-native rg_update_teamscores(const iCtsWins = 0,const iTsWins = 0,const bool:bAdd = true);
-native rg_create_entity(const classname[],const bool:useHashTable = false);
-native rg_find_ent_by_class(start_index,const classname[],const bool:useHashTable = false);
+native rg_round_end(const Float:tmDelay,const WinStatus:st,const ScenarioEventEndRound:event=ROUND_NONE,const message[]= "default",const sentence[]= "default",const bool:trigger=false);
+native rg_update_teamscores(const iCtsWins=0,const iTsWins=0,const bool:bAdd=true);
+native rg_create_entity(const classname[],const bool:useHashTable=false);
+native rg_find_ent_by_class(start_index,const classname[],const bool:useHashTable=false);
 native rg_find_ent_by_owner(&start_index,const classname[],owner);
 native rg_find_weapon_bpack_by_name(const index,const weapon[]);
 native bool:rg_has_item_by_name(const index,const item[]);
 native any:rg_get_weapon_info(any:...);
 native rg_set_weapon_info(const{WeaponIdType,_}:weapon_id,WpnInfo:type,any:...);
-native rg_remove_items_by_slot(const index,const InventorySlotType:slot,const bool:removeAmmo = true);
+native rg_remove_items_by_slot(const index,const InventorySlotType:slot,const bool:removeAmmo=true);
 native rg_drop_items_by_slot(const index,const InventorySlotType:slot);
-native rg_remove_all_items(const index,const bool:removeSuit = false);
+native rg_remove_all_items(const index,const bool:removeSuit=false);
 native rg_drop_item(const index,const item_name[]);
 native rg_internal_cmd(const index,const cmd[],const arg[]= "");
-native rg_remove_item(const index,const item_name[],const bool:removeAmmo = false);
+native rg_remove_item(const index,const item_name[],const bool:removeAmmo=false);
 native rg_set_user_bpammo(const index,WeaponIdType:weapon,amount);
 native rg_get_user_bpammo(const index,WeaponIdType:weapon);
 native rg_set_user_ammo(const index,WeaponIdType:weapon,amount);
 native rg_get_user_ammo(const index,WeaponIdType:weapon);
-native rg_give_defusekit(const index,const bool:bDefusekit = true,const Float:color[]={0.0,160.0,0.0},const icon[]= "defuser",const bool:bFlash = false);
-native rg_get_user_armor(const index,&ArmorType:armortype = ARMOR_NONE);
+native rg_give_defusekit(const index,const bool:bDefusekit=true,const Float:color[]={0.0,160.0,0.0},const icon[]= "defuser",const bool:bFlash=false);
+native rg_get_user_armor(const index,&ArmorType:armortype=ARMOR_NONE);
 native rg_set_user_armor(const index,armorvalue,ArmorType:armortype);
-native rg_set_user_team(const index,{TeamName,_}:team,{ModelName,_}:model = MODEL_AUTO,const bool:send_teaminfo = true,const bool:check_win_conditions = false);
-native rg_set_user_model(const index,const model[],const bool:update_index = false);
-native rg_reset_user_model(const index,const bool:update_index = false);
-native rg_set_user_footsteps(const index,bool:silent = false);
+native rg_set_user_team(const index,{TeamName,_}:team,{ModelName,_}:model=MODEL_AUTO,const bool:send_teaminfo=true,const bool:check_win_conditions=false);
+native rg_set_user_model(const index,const model[],const bool:update_index=false);
+native rg_reset_user_model(const index,const bool:update_index=false);
+native rg_set_user_footsteps(const index,bool:silent=false);
 native rg_get_user_footsteps(const index);
-native rg_transfer_c4(const index,const receiver = 0);
-native rg_instant_reload_weapons(const index,const weapon = 0);
+native rg_transfer_c4(const index,const receiver=0);
+native rg_instant_reload_weapons(const index,const weapon=0);
 native rg_plant_bomb(const index,Float:vecOrigin[3],Float:vecAngles[3]={0.0,0.0,0.0});
 native rg_set_account_rules(const RewardRules:rules_index,const amount);
 native rg_get_account_rules(const RewardRules:rules_index);
@@ -2480,34 +2480,34 @@ native bool:rg_is_player_can_respawn(const index);
 native WeaponIdType:rg_get_weaponbox_id(const entity);
 native rg_round_respawn(const index);
 native rg_reset_maxspeed(const index);
-native rg_send_bartime(const index,const duration,const bool:observer = true);
-native rg_send_bartime2(const index,const duration,const Float:startPercent,const bool:observer = true);
-native rg_send_audio(const index,const sample[],const pitch = PITCH_NORM);
+native rg_send_bartime(const index,const duration,const bool:observer=true);
+native rg_send_bartime2(const index,const duration,const Float:startPercent,const bool:observer=true);
+native rg_send_audio(const index,const sample[],const pitch=PITCH_NORM);
 native rg_set_iteminfo(const entity,ItemInfo:type,any:...);
 native rg_get_iteminfo(const ent,ItemInfo:type,any:...);
 native rg_set_global_iteminfo(const{WeaponIdType,_}:weapon_id,ItemInfo:type,any:...);
 native rg_get_global_iteminfo(const{WeaponIdType,_}:weapon_id,ItemInfo:type,any:...);
-native bool:rg_hint_message(const index,const message[],Float:duration = 6.0,bool:bDisplayIfPlayerDead = false,bool:bOverride = false);
+native bool:rg_hint_message(const index,const message[],Float:duration=6.0,bool:bDisplayIfPlayerDead=false,bool:bOverride=false);
 native rg_restart_round();
 native rg_check_win_conditions();
-native rg_initialize_player_counts(&num_alive_terrorist = 0,&num_alive_ct = 0,&num_dead_terrorist = 0,&num_dead_ct = 0);
+native rg_initialize_player_counts(&num_alive_terrorist=0,&num_alive_ct=0,&num_dead_terrorist=0,&num_dead_ct=0);
 native rg_reset_can_hear_player(const index);
 native rg_set_can_hear_player(const listener,const sender,const bool:can_hear);
 native bool:rg_get_can_hear_player(const listener,const sender);
 native rg_spawn_head_gib(const index);
-native rg_spawn_random_gibs(const index,const cGibs,const bool:bHuman = true);
-native rg_spawn_grenade(WeaponIdType:weaponId,pevOwner,Float:vecSrc[3],Float:vecThrow[3],Float:time,TeamName:iTeam,usEvent = 0);
+native rg_spawn_random_gibs(const index,const cGibs,const bool:bHuman=true);
+native rg_spawn_grenade(WeaponIdType:weaponId,pevOwner,Float:vecSrc[3],Float:vecThrow[3],Float:time,TeamName:iTeam,usEvent=0);
 native rg_create_weaponbox(const pItem,const pPlayerOwner,const modelName[],Float:origin[3],Float:angles[3],Float:velocity[3],Float:lifeTime,bool:packAmmo);
 native rg_remove_entity(const pEntity);
 native rg_decal_trace(const ptr,Decal:decalNumber);
 native rg_emit_texture_sound(const ptr,Float:vecSrc[3],Float:vecEnd[3],Bullet:iBulletType);
 native rg_add_ammo_registry(const szAmmoname[]);
-native rg_weapon_deploy(const entity,const szViewModel[],const szWeaponModel[],iAnim,const szAnimExt[],skiplocal = 0);
+native rg_weapon_deploy(const entity,const szViewModel[],const szWeaponModel[],iAnim,const szAnimExt[],skiplocal=0);
 native rg_weapon_reload(const entity,iClipSize,iAnim,Float:fDelay);
 native rg_weapon_shotgun_reload(const entity,iAnim,iStartAnim,Float:fDelay,Float:fStartDelay,const pszReloadSound1[]= "",const pszReloadSound2[]= "");
-native rg_weapon_send_animation(const entity,iAnim,skiplocal = 0);
+native rg_weapon_send_animation(const entity,iAnim,skiplocal=0);
 native rg_weapon_kickback(const entity,Float:up_base,Float:lateral_base,Float:up_modifier,Float:lateral_modifier,Float:up_max,Float:lateral_max,direction_change);
-native rg_switch_best_weapon(const player,const currentWeapon = 0);
+native rg_switch_best_weapon(const player,const currentWeapon=0);
 native rg_disappear(const player);
 native rg_set_observer_mode(const player,const mode);
 native rg_death_notice(const pVictim,const pKiller,const pevInflictor);
@@ -2524,7 +2524,7 @@ forward VTC_OnClientStartSpeak(const index);
 forward VTC_OnClientStopSpeak(const index);
 enum client_auth_type
 {
-CA_TYPE_NONE = 0,
+CA_TYPE_NONE=0,
 CA_TYPE_DPROTO,
 CA_TYPE_STEAM,
 CA_TYPE_STEAMEMU,
@@ -2537,14 +2537,14 @@ CA_TYPE_SXEI,
 CA_TYPE_REVEMU2013,
 CA_TYPE_SSE3,
 };
-#define is_user_steam(%0) (REU_GetAuthtype(%0) == CA_TYPE_STEAM)
+#define is_user_steam(%0) (REU_GetAuthtype(%0)==CA_TYPE_STEAM)
 native REU_GetProtocol(const index);
 native client_auth_type:REU_GetAuthtype(const index);
 native REU_GetAuthKey(const index,dest[],maxlen);
 native bool:REU_IsRevemuWithoutAdminRights(const index);
 enum ResourceType
 {
-RES_TYPE_NONE = 0,
+RES_TYPE_NONE=0,
 RES_TYPE_EXISTS,
 RES_TYPE_MISSING,
 RES_TYPE_IGNORE,
@@ -2552,21 +2552,21 @@ RES_TYPE_HASH_ANY,
 };
 enum ReCheckerFunc
 {
-RC_FileConsistencyProcess = BEGIN_FUNC_REGION(rechecker),
+RC_FileConsistencyProcess=BEGIN_FUNC_REGION(rechecker),
 RC_FileConsistencyFinal,
 RC_CmdExec,
 };
-native QueryFileHook:RegisterQueryFile(const file[],const function[],const ResourceType:type,const hash = -1);
+native QueryFileHook:RegisterQueryFile(const file[],const function[],const ResourceType:type,const hash=-1);
 native bool:UnRegisterQueryFile(QueryFileHook:hook);
 enum
 {
-HC_CONTINUE = 0,
+HC_CONTINUE=0,
 HC_SUPERCEDE,
 HC_BREAK
 };
 enum AType
 {
-ATYPE_INTEGER = 0,
+ATYPE_INTEGER=0,
 ATYPE_FLOAT,
 ATYPE_STRING,
 ATYPE_CLASSPTR,
@@ -2578,9 +2578,9 @@ ATYPE_TRACE
 };
 enum HookChain
 {
-INVALID_HOOKCHAIN = 0
+INVALID_HOOKCHAIN=0
 };
-native HookChain:RegisterHookChain(ReAPIFunc:function_id,const callback[],post = 0);
+native HookChain:RegisterHookChain(ReAPIFunc:function_id,const callback[],post=0);
 native bool:DisableHookChain(HookChain:hook);
 native bool:EnableHookChain(HookChain:hook);
 native SetHookChainReturn(AType:type,any:...);
@@ -2600,7 +2600,7 @@ native bool:has_vtc();
 native bool:has_rechecker();
 public __reapi_version_check(const majorVersion,const minorVersion)
 {
-if(majorVersion != REAPI_VERSION_MAJOR)
+if(majorVersion!=REAPI_VERSION_MAJOR)
 {
 new temp[512];
 formatex(temp,sizeof temp - 1,"[ReAPI]: Api major version mismatch; expected %d, real %d",REAPI_VERSION_MAJOR,majorVersion);
@@ -2628,10 +2628,10 @@ return;
 #define ZC_HEV         11
 #define ZC_JETPACK     12
 #define ZC_MINIGUN     13
-enum{ZCOP_give = 0,ZCOP_has,ZCOP_remove,ZCOP_infected};
+enum{ZCOP_give=0,ZCOP_has,ZCOP_remove,ZCOP_infected};
 #define ZC_MODS 14
 new bool:g_zcGuardFail;
-new Trie:g_tZcModelsReady = Invalid_Trie;
+new Trie:g_tZcModelsReady=Invalid_Trie;
 new g_pZcRewrite;
 #define ZC_TOFF_JAN 0x1000000
 #define ZC_TOFF_PLA 0x2000000
@@ -2651,7 +2651,7 @@ enum{ZCFM_CmdStart,ZCFM_EmitSound,ZCFM_PlaybackEvent,ZCFM_PlayerPreThink,ZCFM_Se
 stock bool:VexGuardFatal(const scope[],const path[])
 {
 if(equal(scope,"vexmira_core"))return false;
-return containi(path,".mdl")!=-1 || containi(path,".spr")!=-1;
+return containi(path,".mdl")!=-1||containi(path,".spr")!=-1;
 }
 stock bool:VexAssetGuard(const scope[])
 {
@@ -2690,10 +2690,10 @@ return false;
 log_amx("[AssetGuard] UYARI %s (%s) - eklenti calismaya devam ediyor",required,scope);
 continue;
 }
-if(containi(paths[i],".mdl")!=-1 || containi(paths[i],".spr")!=-1 || containi(paths[i],".wav")!=-1){
+if(containi(paths[i],".mdl")!=-1||containi(paths[i],".spr")!=-1||containi(paths[i],".wav")!=-1){
 new fp=fopen(paths[i],"rb");if(!fp)continue;
 fread_blocks(fp,sample,4,BLOCK_CHAR);fclose(fp);
-new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I' && sample[1]=='D' && sample[2]=='S' && sample[3]=='P'):(sample[0]=='R' && sample[1]=='I' && sample[2]=='F' && sample[3]=='F');
+new bool:ok=(containi(paths[i],".mdl")!=-1)?(sample[0]=='I'&&sample[1]=='D'&&sample[2]=='S'&&sample[3]=='T'):(containi(paths[i],".spr")!=-1)?(sample[0]=='I'&&sample[1]=='D'&&sample[2]=='S'&&sample[3]=='P'):(sample[0]=='R'&&sample[1]=='I'&&sample[2]=='F'&&sample[3]=='F');
 if(!ok){
 formatex(required,charsmax(required),"Damaged asset: %s",paths[i]);
 if(VexGuardFatal(scope,paths[i])){
@@ -2791,7 +2791,7 @@ native vx521_pair_version();
 #define NUM_JOBS      26
 #define NUM_ITEMS     28
 #define NUM_SPECIAL   8
-enum{SWE_NONE = 0,SWE_FIRE,SWE_LIGHTNING,SWE_ICE,SWE_VAMPIRE,SWE_VOID,SWE_EXPLOSIVE};
+enum{SWE_NONE=0,SWE_FIRE,SWE_LIGHTNING,SWE_ICE,SWE_VAMPIRE,SWE_VOID,SWE_EXPLOSIVE};
 #define NUM_PERKS     6
 #define PERK_MAX      5
 #define NUM_ACH       30
@@ -2868,7 +2868,7 @@ enum{SWE_NONE = 0,SWE_FIRE,SWE_LIGHTNING,SWE_ICE,SWE_VAMPIRE,SWE_VOID,SWE_EXPLOS
 #define SET_NO_RADIO52 (1<<12)
 enum
 {
-MODE_INFECTION = 0,
+MODE_INFECTION=0,
 MODE_MULTI,
 MODE_NEMESIS,
 MODE_ASSASSIN,
@@ -2882,7 +2882,7 @@ MODE_TOTAL
 };
 enum
 {
-EV_NONE = 0,
+EV_NONE=0,
 EV_BLOODMOON,
 EV_FOG,
 EV_SPEED,
@@ -2905,7 +2905,7 @@ EV_TOTAL
 };
 enum
 {
-JOB_MEDIC = 0,JOB_HEAVY,JOB_SCOUT,JOB_MARKSMAN,JOB_ENGINEER,JOB_LOOTER,
+JOB_MEDIC=0,JOB_HEAVY,JOB_SCOUT,JOB_MARKSMAN,JOB_ENGINEER,JOB_LOOTER,
 JOB_GUNNER,JOB_DEMO,JOB_SNIPER,JOB_PARA,JOB_PYRO,JOB_CRYO,
 JOB_VAMPIRE,JOB_GUARDIAN,JOB_BERSERKER,JOB_COMMANDER,
 JOB_JUGGERNAUT,JOB_NINJA,JOB_GHOST,JOB_GRENADIER,JOB_HUNTER,
@@ -2913,7 +2913,7 @@ JOB_DOCTOR,JOB_GAMBLER,JOB_TACTICIAN,JOB_LUCKY,JOB_ELITE
 };
 enum
 {
-IT_MEDKIT = 0,IT_ARMOR,IT_FIRENADE,IT_FROSTNADE,IT_FLARE,IT_DJUMP,
+IT_MEDKIT=0,IT_ARMOR,IT_FIRENADE,IT_FROSTNADE,IT_FLARE,IT_DJUMP,
 IT_BOOTS,IT_SERUM,IT_UNLCLIP,IT_DMGAMP,IT_RESPAWN,
 IT_ANTIDOTE,IT_MADNESS,IT_INFBOMB,IT_MUTAGEN,IT_RAGE,IT_RECHARGE,IT_ZARMOR,
 IT_ADREN,IT_HCLOAK,IT_NVG,IT_ESHIELD,IT_AMMO,
@@ -2921,7 +2921,7 @@ IT_ZSPRINT,IT_ZCLOAK,IT_ZJUMP,IT_ZREGEN,IT_ZNOKB
 };
 enum
 {
-PK_VITALITY = 0,PK_PLATING,PK_FIREPOWER,PK_FORTUNE,PK_AGILITY,PK_HIDE
+PK_VITALITY=0,PK_PLATING,PK_FIREPOWER,PK_FORTUNE,PK_AGILITY,PK_HIDE
 };
 #define NADE_FIRE    7701
 #define NADE_FROST   7702
@@ -3137,7 +3137,7 @@ new g_iMax,g_msgFog,g_msgFade,g_msgShake,g_msgDeath,g_msgScore,g_hVault;
 new g_sprRing,g_sprBeam,g_sprLightning,g_sprExplode,g_sprSmoke,g_sprBlood,g_sprBloodSpray,g_sprHeadMark;
 new bool:g_bGeoIP;
 new g_iRound,g_iMode,g_iEvent,g_iCountdown,g_iFrame;
-new g_iForceEvent = -1,g_iForceMode = -1,g_iForceBoss = -1;
+new g_iForceEvent=-1,g_iForceMode=-1,g_iForceBoss=-1;
 new bool:g_bModePicked47,bool:g_bForcedRound47;
 new bool:g_bThird47[33],g_iCamera47[33];
 new bool:g_bTitan47;
@@ -3149,11 +3149,11 @@ new const SIGIL47[2][]={"models/vexmira/epic/human_sigil47.mdl","models/vexmira/
 new g_iBanner47[33],g_iBannerKind47[33],g_iBannerModel47[5];
 new Float:g_fBannerEnd47[33],Float:g_fBannerStart47[33];
 new const BANNER47[5][]={"sprites/vexmira/epic/victory_ct47.spr","sprites/vexmira/epic/victory_t47.spr","sprites/vexmira/epic/intro47.spr","sprites/vexmira/epic/death47.spr","sprites/vexmira/arena530/notifications.spr"};
-new g_iBossBag[NUM_BOSSES],g_iBossBagPos = NUM_BOSSES,bool:g_bFinalBoss,g_iLastSpecial = -1;
+new g_iBossBag[NUM_BOSSES],g_iBossBagPos=NUM_BOSSES,bool:g_bFinalBoss,g_iLastSpecial=-1;
 new g_iBossPhase,g_iBossDmg[33];
 new g_iBoss,g_iBossType,g_iBossMaxHP,g_iBossTick,g_iMeteorTick,g_iGlobalInfBombs;
 new bool:g_bWaiting,bool:g_bCounting,bool:g_bRoundActive,bool:g_bRoundEnded,bool:g_bEnraged,bool:g_bLastAnn;
-new bool:g_bAdminEnvOverride,g_iAdminEnvLight = 'm',g_iAdminEnvFog[4],g_iAdminEnvWeather;
+new bool:g_bAdminEnvOverride,g_iAdminEnvLight='m',g_iAdminEnvFog[4],g_iAdminEnvWeather;
 new g_szLight[4]= "m";
 new Float:g_fFlarePos[MAX_FLARES][3],Float:g_fFlareEnd[MAX_FLARES];
 new g_bZombie[33],g_bNemesis[33],g_bAssassin[33],g_bSurvivor[33],g_bSniper[33];
@@ -3224,8 +3224,8 @@ new g_szZClaw[NUM_CLASSES][96],g_szBClaw[NUM_BOSSES][96],g_szNemClaw[96],g_szAsn
 new g_szWepV[31][96],g_szWepP[31][96],bool:g_bEmitting;
 new g_szVipKnifeV[96],g_szVipKnifeP[96],bool:g_bVipRegun[33];
 new g_pVipPriority,g_pVipAnnounce,g_pVipVoteW,g_pVipSpawnProt,g_pVipDaily,g_pEliteDaily,g_pVipScore,g_pVipRegun;
-new bool:g_bVoxCountdown = true;
-new g_iEpicCountdown = 2;
+new bool:g_bVoxCountdown=true;
+new g_iEpicCountdown=2;
 new Float:g_fSlotEnd[33][NUM_SLOTS],g_szSlotQ[33][NUM_SLOTS][128],g_iSlotQC[33][NUM_SLOTS],Float:g_fSlotQH[33][NUM_SLOTS],Float:g_fSlotQT[33][NUM_SLOTS];
 new bool:g_bWelcomed[33],bool:g_bMotdShown[33],Float:g_fMapStart;
 new g_iRoundKills[33],g_iRoundHS[33],g_iQuest[33],bool:g_bQuestDone[33],bool:g_bAlpha[33];
@@ -3273,7 +3273,7 @@ new g_pLmPerRound,g_pLmPerRoundVip,g_pLmOneShot,g_pLmSpecialDmg,g_pLmKillWear,g_
 new g_pLmArmTime,g_pLmBeamWidth,g_pLmColorMode,g_pLmColor,g_pLmRange,g_pLmTakeRange,g_pAirdropLaser;
 new g_pLmMaxRange,g_pLmBlockModes,g_pDbgDirs;
 new g_pAutoJoinHumans;
-new g_szLmBlockCache[64],g_iLmBlockMask = -1;
+new g_szLmBlockCache[64],g_iLmBlockMask=-1;
 new bool:g_bHeadMarkAt,bool:g_bMarkAt;
 new g_pNadeSensorArm,g_pNadeSensorLife,g_pNadeLaserArm,g_pNadeFireDmg,g_pNadeFireRad,g_pNadeFireBurn;
 new g_pNadeFrostRad,g_pNadeFrostTime,g_pNadeInfectRad,g_pNadeFlareTime,g_pNadeClusterDmg;
@@ -3282,7 +3282,7 @@ new g_pAfkTime,g_pAfkAction,g_pDropBeacon,g_pDropCompass,g_pLoopGuard,g_pLoopMax
 new g_pKillXP,g_pInfectXP,g_pWinHXP,g_pWinHAP,g_pWinZXP,g_pWinZAP,g_pBossKillXP,g_pBossKillAP,g_pBossKillVC;
 new g_pSpecKillXP,g_pSpecKillAP,g_pBossBoard,g_pHsAP,g_pExchange,g_pPerkStep,g_pDailyAP,g_pAchAP,g_pAchVC;
 new g_pBurnDmg,g_pZombieBurnDmg,g_pAirdropHP;
-new g_msgWeather,g_iCalmPreset = -1;
+new g_msgWeather,g_iCalmPreset=-1;
 new Trie:g_tSndInfo,g_iSndStopSlot;
 new bool:g_bLmGiven[33];
 new Float:g_fNextBeat[33];
@@ -3299,14 +3299,14 @@ new Float:g_fAfkPos[33][3],Float:g_fAfkAng[33][3],g_iAfkSec[33];
 new bool:g_bFxReliable;
 enum
 {
-PJ_NONE = 0,
+PJ_NONE=0,
 PJ_ORB,
 PJ_ACID,
 PJ_VOID
 };
 enum
 {
-CH_NONE = 0,
+CH_NONE=0,
 CH_TITAN,
 CH_REQUIEM,
 CH_CHAINS,
@@ -3321,14 +3321,14 @@ new g_iDashHit;
 new g_iPoolType[MAX_POOLS],Float:g_fPoolRad[MAX_POOLS],g_iPoolOwner[MAX_POOLS];
 enum
 {
-ZC_WALKER = 0,ZC_RUNNER,ZC_TANK,ZC_BANSHEE,ZC_LEECH,ZC_STALKER,ZC_BOMBER,ZC_FROST,
+ZC_WALKER=0,ZC_RUNNER,ZC_TANK,ZC_BANSHEE,ZC_LEECH,ZC_STALKER,ZC_BOMBER,ZC_FROST,
 ZC_SPITTER,ZC_HULK,ZC_VOODOO,ZC_PHANTOM,
 ZC_BUTCHER,ZC_HUNTER,ZC_CHARGER,ZC_ARACHNE,ZC_MAGMA,ZC_VOLT,ZC_MIMIC,ZC_BURROWER,
 ZC_SIREN,ZC_BULWARK,ZC_SPOREMOTHER,ZC_NIGHTMARE
 };
 enum
 {
-ZCV_HOOK_SPEED = 0,ZCV_HOOK_RANGE,ZCV_HOOK_PULL,ZCV_HOOK_TIME,ZCV_HOOK_DMG,
+ZCV_HOOK_SPEED=0,ZCV_HOOK_RANGE,ZCV_HOOK_PULL,ZCV_HOOK_TIME,ZCV_HOOK_DMG,
 ZCV_HUNT_POWER,ZCV_HUNT_UP,ZCV_HUNT_RAD,ZCV_HUNT_STUN,ZCV_HUNT_DMG,
 ZCV_CHG_TIME,ZCV_CHG_SPEED,ZCV_CHG_DMG,ZCV_CHG_PUSH,ZCV_CHG_STUN,
 ZCV_WEB_SPEED,ZCV_WEB_RANGE,ZCV_WEB_ROOT,ZCV_WEB_SLOW,ZCV_WEB_DMG,
@@ -3368,8 +3368,8 @@ new bool:g_bReflecting,g_iZcTick,g_iReflVictim,g_iReflAttacker,Float:g_fReflAmou
 new g_msgFlashlight,g_msgNVGToggle;
 new g_szSprChain[64],g_sprChain,g_szSprWeb[64],g_sprWeb,g_szSprSpore[64],g_sprSpore,g_szSprEmp[64],g_sprEmp;
 new g_szHookModel[96],g_szSporeModel[96];
-enum{EL_FIRE = 0,EL_ICE,EL_TOXIC,EL_VOID,EL_SHOCK,EL_TOTAL};
-enum{FXS_EXFIRE = 0,FXS_EXICE,FXS_EXTOXIC,FXS_EXVOID,FXS_HEAL,FXS_LEVELUP,FXS_INFECT,FXS_SHOCK,FXS_SLASH,FXS_ICE,FXS_VOID,FXS_TOXIC,FXS_TOTAL};
+enum{EL_FIRE=0,EL_ICE,EL_TOXIC,EL_VOID,EL_SHOCK,EL_TOTAL};
+enum{FXS_EXFIRE=0,FXS_EXICE,FXS_EXTOXIC,FXS_EXVOID,FXS_HEAL,FXS_LEVELUP,FXS_INFECT,FXS_SHOCK,FXS_SLASH,FXS_ICE,FXS_VOID,FXS_TOXIC,FXS_TOTAL};
 new const FXS_KEY[FXS_TOTAL][]={"SPR_EXPLO_FIRE","SPR_EXPLO_ICE","SPR_EXPLO_TOXIC","SPR_EXPLO_VOID","SPR_HEAL","SPR_LEVELUP",
 "SPR_INFECT","SPR_SHOCK","SPR_SLASH","SPR_ICE","SPR_VOID","SPR_TOXIC"};
 new g_sprFx[FXS_TOTAL],g_iFxSprN;
@@ -3377,7 +3377,7 @@ new const BOSS_ELEM[NUM_BOSSES]={EL_SHOCK,EL_SHOCK,EL_VOID,EL_FIRE,EL_VOID,EL_IC
 new Float:g_fFxHitT[33],Float:g_fFxHealT[33];
 new g_pMapVote,g_pMapPool,g_pMapVoteRound,g_pMapVoteTime,g_pMapVoteExtend,g_pMapExtendRounds,g_pMapChangeDelay;
 new g_pMapChooserGuard,g_pRtvRatio,g_pRtvMinPlayers,g_pRtvMinRound,g_pAmxNextmap;
-new g_szCurMap[32],g_szNextMap[32],g_szMapOpt[8][32],g_iMapOptN,g_iMapExtOpt = -1,g_iMapVotes[8];
+new g_szCurMap[32],g_szNextMap[32],g_szMapOpt[8][32],g_iMapOptN,g_iMapExtOpt=-1,g_iMapVotes[8];
 new g_iMapVoted[MAX_PLAYERS + 1],g_iMapVoteMenu[MAX_PLAYERS + 1]={-1,...},g_iMapVoteLeft,g_iMapVoteWait;
 new bool:g_bMapVoting,bool:g_bMapDecided,bool:g_bMapChangeNow,bool:g_bMapChanging,bool:g_bMapAwards;
 new g_iMapExtends,g_iMapExtendTo,bool:g_bRtv[MAX_PLAYERS + 1],g_iRtvCount;
@@ -3414,7 +3414,7 @@ new g_iAmbEnt[MAX_AMB],g_szAmbSnd[MAX_AMB][64],Float:g_fAmbVol[MAX_AMB],Float:g_
 new g_iAmbPitch[MAX_AMB],bool:g_bAmbOn[MAX_AMB],g_iAmbN,g_iAmbRestored,bool:g_bAmbReplay,bool:g_bAmbMuted;
 #define OVH_CLASS     "vex_ovh"
 #define OVH_CTL_CLASS "vex_ovhctl"
-enum{OVS_BOSSBAR = 0,OVS_BOSSICON,OVS_SMALLBAR,OVS_VIP,OVS_ADMIN,OVS_MVP,OVS_LAST,OVS_ALPHA,OVS_HUMAN47,OVS_ZOMBIE47,OVS_TOTAL};
+enum{OVS_BOSSBAR=0,OVS_BOSSICON,OVS_SMALLBAR,OVS_VIP,OVS_ADMIN,OVS_MVP,OVS_LAST,OVS_ALPHA,OVS_HUMAN47,OVS_ZOMBIE47,OVS_TOTAL};
 new g_szOvhSpr[OVS_TOTAL][64],g_iOvhFrames[OVS_TOTAL],g_iOvhWidth[OVS_TOTAL],g_iOvhHeight[OVS_TOTAL],g_iOvhMode[OVS_TOTAL];
 new g_iOvhBar[33],g_iOvhEmb[33],g_iOvhIcon[33],g_iOvhIconType[33],g_iOvhBarType[33],g_iOvhCtl;
 new g_iRoundMvp,Float:g_fStepDist[33];
@@ -3422,7 +3422,7 @@ new g_iOvhTick,g_iOvhCount,g_iOvhHumans;
 new g_iOvhSent[33];
 new g_pOvhEnable,g_pBossBarW,g_pSmallBarW,g_pIconSize,g_pIcons,g_pOvhSelf,g_pOvhMargin,g_pOvhGap;
 new g_pHudStyle,g_pHudTop,g_pHudRight,g_pHudMvp,g_pHudXp,g_pHudOvh,g_pHudObjective;
-enum{CN_KM1 = 0,CN_KM2,CN_KM3,CN_KM4,CN_KM5,CN_HS,CN_KNIFE,CN_NADE,CN_MVP,CN_HWIN,CN_ZWIN,CN_BOSS,
+enum{CN_KM1=0,CN_KM2,CN_KM3,CN_KM4,CN_KM5,CN_HS,CN_KNIFE,CN_NADE,CN_MVP,CN_HWIN,CN_ZWIN,CN_BOSS,
 CN_INFECT,CN_NEMESIS,CN_ASSASSIN,CN_SURVIVOR,CN_LAST,CN_LEVEL,CN_ROUND,
 CN_FIRST,CN_BKILL,CN_INFD,CN_TEN,CN_UPGRADE,CN_ITEM,CN_ARENA,CN_IPAD,CN_TOTAL};
 new const CSO_FILE[CN_TOTAL][]={"km1","km2","km3","km4","km5","hs","knife","nade","mvp","hwin","zwin","boss",
@@ -3430,7 +3430,7 @@ new const CSO_FILE[CN_TOTAL][]={"km1","km2","km3","km4","km5","hs","knife","nade
 new const CSO_LANG[CN_TOTAL]={0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,0,1,1,0,1,1,1,1,1,1,1,0};
 new const CSO_LAY[CN_TOTAL]={'k','l','l','l','l','k','l','k','c','c','c','c','c','c','c','c','l','l','r','c','c','c','c','c','l','c','c'};
 new const CSO_SHEETS[][]={"m","g","fx","rnd","cdtr","cden"};
-new bool:g_bCsoVex531 = true,g_iCsoLang531,g_szCsoDir[8]= "c539";
+new bool:g_bCsoVex531=true,g_iCsoLang531,g_szCsoDir[8]= "c539";
 #define UI_R 120
 #define UI_G 200
 #define UI_B 235
@@ -3446,16 +3446,16 @@ enum{X_FIREBALL=0,X_FLAME,X_EMBER,X_FROSTBURST,X_FROSTMIST,X_SHARD,X_FLARE,X_SPA
 X_GLOW,X_RING,X_BEAM,X_BEAMW,X_SMOKE,X_VOIDBURST,X_SHOCKBURST};
 new g_iFx532[FX532_TOTAL];
 #define TEFIRE_ADD532 32
-new g_iGiantMode532 = 0,g_iGiantEnt532,g_iGiantSeq532 = -1;
+new g_iGiantMode532=0,g_iGiantEnt532,g_iGiantSeq532=-1;
 new g_pAmbVol532,g_pAmbRe532,g_pCosSmooth532,g_pRadioText532,bool:g_bCsoC532,bool:g_bCapLow532[33],g_pTop532,g_pTopPad532,g_pTopY532;
-new g_iPreCso = 1,bool:g_bCsoFile[CN_TOTAL],g_iCsoRounds;
+new g_iPreCso=1,bool:g_bCsoFile[CN_TOTAL],g_iCsoRounds;
 new g_pComboTime,bool:g_bFirstBlood;
 new g_szHudSig[33][400],Float:g_fHudNext[33],g_iHudXpSeen[33]={-1,...},Float:g_fXpBarEnd[33];
 new g_msgWL,g_msgCurW,g_msgFOV,g_msgSIcon;
 new g_szWL[31][24],g_iWL[31][8],bool:g_bWL[31];
 new g_iCsoCur[33]={-1,...},g_iCsoArg[33],g_iCsoWpn[33],Float:g_fCsoEnd[33];
 new Float:g_fCsoStart[33],g_iCsoFrm[33];
-enum{CF_A = 0,CF_B,CF_G,CF_M,CF_C};
+enum{CF_A=0,CF_B,CF_G,CF_M,CF_C};
 new g_iCsoQ[33][CSO_QMAX],g_iCsoQA[33][CSO_QMAX],Float:g_fCsoQT[33][CSO_QMAX],g_iCsoQn[33];
 new g_iCsoIcon[33],g_iCsoShown,g_iCsoRestored;
 new g_szCsoOverride[33][160];
@@ -3470,7 +3470,7 @@ new bool:g_bTabQuiet62,bool:g_bSelf62,Float:g_fTabSeen62[33],g_iActTick62[33],Fl
 #define MSG62 24
 #define NOT62 16
 #define OFF62 24
-new g_hSocial62 = INVALID_HANDLE;
+new g_hSocial62=INVALID_HANDLE;
 new g_szSid62[33][36];
 new g_iMsgN62[33],g_iMsgFrom62[33][MSG62],g_szMsgName62[33][MSG62][24],g_szMsgTxt62[33][MSG62][120],g_iMsgTime62[33][MSG62],bool:g_bMsgOut62[33][MSG62];
 new g_iNotN62[33],g_szNot62[33][NOT62][96],g_iNotTime62[33][NOT62],g_iUnread62[33];
@@ -3488,7 +3488,7 @@ new bool:g_bOvhSelf,Trie:g_tMdlTop;
 #define CM_CTL_Y1 48.0
 #define CM_CTL_Z0 -32.0
 #define CM_CTL_Z1 96.0
-enum{CMA_BONE = 0,CMA_HEAD,CMA_BACK,CMA_FOLLOW};
+enum{CMA_BONE=0,CMA_HEAD,CMA_BACK,CMA_FOLLOW};
 new const CM_TABLE[CM_CATS][]={"vex_wing","vex_pet","vex_hat"};
 new const CM_CATKEY[CM_CATS][]={"COS_CAT_WING","COS_CAT_PET","COS_CAT_HAT"};
 new g_szCmEn[CM_CATS][CM_MAX][32],g_szCmTr[CM_CATS][CM_MAX][32],g_szCmMdl[CM_CATS][CM_MAX][96];
@@ -3547,10 +3547,10 @@ menu_item_getinfo(menu,item,access,data,charsmax(data),name,charsmax(name),cb);
 return str_to_num(data);
 }
 new g_iMenuFor;
-stock bool:ZcIsCode(c){return c == 'w' || c == 'y' || c == 'r' || c == 'd' || c == 'R';}
+stock bool:ZcIsCode(c){return c=='w'||c=='y'||c=='r'||c=='d'||c=='R';}
 stock VexMenuColor(const src[],dst[],len,const lead[]= "\w")
 {
-if(src[0]== '\' || src[0]== '^n')
+if(src[0]== '\'||src[0]== '^n')
 copy(dst,len,src);
 else
 formatex(dst,len,"%s%s",lead,src);
@@ -3564,13 +3564,13 @@ stock VexMenuCreate(const title[],const handler[])
 new t[512];
 VexMenuColor(title,t,charsmax(t),"\r");
 copy(g_szMenuLast,charsmax(g_szMenuLast),t);
-g_iMenuTitleLen = strlen(t);
-g_iMenuItemBytes = 0;
-g_iMenuItemCnt = 0;
-g_bMenuNoPage = false;
+g_iMenuTitleLen=strlen(t);
+g_iMenuItemBytes=0;
+g_iMenuItemCnt=0;
+g_bMenuNoPage=false;
 new menu51=menu_create(t,handler);menu_setprop(menu51,MPROP_NUMBER_COLOR,"\r");return menu51;
 }
-stock bool:MenuPlain538()return(g_pMenuPlain538 && get_pcvar_num(g_pMenuPlain538))? true : false;
+stock bool:MenuPlain538()return(g_pMenuPlain538&&get_pcvar_num(g_pMenuPlain538))? true : false;
 public VexDbgMenuTitle()
 {
 new t[600];
@@ -3578,7 +3578,7 @@ copy(t,charsmax(t),g_szMenuLast);
 replace_string(t,charsmax(t),"^n"," | ");
 log_amx("[menu-title] len=%d %s",strlen(g_szMenuLast),t);
 }
-stock VexAddText(menu,const text[],slot = 1)
+stock VexAddText(menu,const text[],slot=1)
 {
 new t[192];
 VexMenuColor(text,t,charsmax(t),"\d");
@@ -3598,27 +3598,27 @@ return 'd';
 new t[32];copy(t,charsmax(t),c);trim(t);
 if(equali(t,"ON")|| equali(t,"ACIK"))return 'y';
 if(equali(t,"OFF")|| equali(t,"KAPALI"))return 'd';
-new num = -1,bool:ap = false,bool:vc = false;
-for(new i = 0;c[i];i++)
+new num=-1,bool:ap=false,bool:vc=false;
+for(new i=0;c[i];i++)
 {
-if(c[i]>= '0' && c[i]<= '9')
+if(c[i]>= '0'&&c[i]<= '9')
 {
-if(num < 0)num = 0;
-if(num < 100000000)num = num * 10 +(c[i]- '0');
-new j = i + 1;while(c[j]== ' ')j++;
-if(!(c[j]>= '0' && c[j]<= '9'))
+if(num < 0)num=0;
+if(num < 100000000)num=num * 10 +(c[i]- '0');
+new j=i + 1;while(c[j]== ' ')j++;
+if(!(c[j]>= '0'&&c[j]<= '9'))
 {
-if(equali(c[j],"AP",2))ap = true;
-else if(equali(c[j],"VC",2)|| equali(c[j],"COIN",4))vc = true;
-if(ap || vc)break;
-num = -1;
+if(equali(c[j],"AP",2))ap=true;
+else if(equali(c[j],"VC",2)|| equali(c[j],"COIN",4))vc=true;
+if(ap||vc)break;
+num=-1;
 }
 }
 }
-if((ap || vc)&& num >= 0)
+if((ap||vc)&& num>=0)
 {
-new p = g_iMenuFor;
-if(p >= 1 && p <= 32 && is_user_connected(p)&&((ap && g_iAP[p]< num)||(vc && g_iVC[p]< num)))
+new p=g_iMenuFor;
+if(p>=1&&p<=32&&is_user_connected(p)&&((ap&&g_iAP[p]< num)||(vc&&g_iVC[p]< num)))
 return 'r';
 return 'y';
 }
@@ -3626,50 +3626,50 @@ return 'd';
 }
 stock ZcStyleItem(const src[],dst[],len)
 {
-new plain[192],n,nameEnd = -1,bool:hadText;
-for(new i = 0;src[i]&& n < charsmax(plain);i++)
+new plain[192],n,nameEnd=-1,bool:hadText;
+for(new i=0;src[i]&& n < charsmax(plain);i++)
 {
-if(src[i]== '\' && ZcIsCode(src[i + 1]))
+if(src[i]== '\'&&ZcIsCode(src[i + 1]))
 {
-if(hadText && nameEnd < 0)nameEnd = n;
+if(hadText&&nameEnd < 0)nameEnd=n;
 i++;
 continue;
 }
-if(src[i]== '[' && nameEnd < 0 && hadText)nameEnd = n;
-if(src[i]== '(' && nameEnd < 0 && hadText)
+if(src[i]== '['&&nameEnd < 0&&hadText)nameEnd=n;
+if(src[i]== '('&&nameEnd < 0&&hadText)
 {
-new j = i + 1;while(src[j]&& src[j]!= ')')j++;
-if(src[j]== ')' && j - i - 1 > 3)nameEnd = n;
+new j=i + 1;while(src[j]&& src[j]!= ')')j++;
+if(src[j]== ')'&&j - i - 1 > 3)nameEnd=n;
 }
 plain[n++]= src[i];
-if(src[i]!= ' ')hadText = true;
+if(src[i]!= ' ')hadText=true;
 }
 plain[n]= 0;
-if(nameEnd < 0)nameEnd = n;
+if(nameEnd < 0)nameEnd=n;
 new name[96],desc[160],tags[160],dn,tn;
-new k = min(nameEnd,charsmax(name));
+new k=min(nameEnd,charsmax(name));
 copy(name,k,plain);
 trim(name);
 new bool:star;
-for(new i = nameEnd;i < n;i++)
+for(new i=nameEnd;i < n;i++)
 {
 if(plain[i]== '[')
 {
-new close = -1;
-for(new j = i + 1;j < n;j++)if(plain[j]== ']'){close = j;break;}
+new close=-1;
+for(new j=i + 1;j < n;j++)if(plain[j]== ']'){close=j;break;}
 if(close > i)
 {
 new c[64];copy(c,min(close - i - 1,charsmax(c)),plain[i + 1]);
 new ct[64];copy(ct,charsmax(ct),c);trim(ct);
-if(equal(ct,"*")){star = true;i = close;continue;}
+if(equal(ct,"*")){star=true;i=close;continue;}
 if(equali(ct,"R")|| equali(ct,"E")|| equali(ct,"F")|| equali(ct,"G"))
 {
-dn += formatex(desc[dn],charsmax(desc)- dn,"[%s]",ct);
-i = close;
+dn+=formatex(desc[dn],charsmax(desc)- dn,"[%s]",ct);
+i=close;
 continue;
 }
-tn += formatex(tags[tn],charsmax(tags)- tn,"%s\%c[%s]",tn ? " " : "",ZcTagColor(ct),ct);
-i = close;
+tn+=formatex(tags[tn],charsmax(tags)- tn,"%s\%c[%s]",tn ? " " : "",ZcTagColor(ct),ct);
+i=close;
 continue;
 }
 }
@@ -3677,11 +3677,11 @@ if(dn < charsmax(desc))desc[dn++]= plain[i];
 }
 desc[dn]= 0;
 trim(desc);
-new o = formatex(dst,len,"%s%s",equal(name,"VexCoin Market")? "\r":"\y",name);
-if(star)o += formatex(dst[o],len - o," \y*");
-if(equal(desc,"(!)"))o += formatex(dst[o],len - o," \y(!)");
-else if(desc[0])o += formatex(dst[o],len - o," \d%s",desc);
-if(tags[0])o += formatex(dst[o],len - o," \d| %s",tags);
+new o=formatex(dst,len,"%s%s",equal(name,"VexCoin Market")? "\r":"\y",name);
+if(star)o+=formatex(dst[o],len - o," \y*");
+if(equal(desc,"(!)"))o+=formatex(dst[o],len - o," \y(!)");
+else if(desc[0])o+=formatex(dst[o],len - o," \d%s",desc);
+if(tags[0])o+=formatex(dst[o],len - o," \d| %s",tags);
 }
 stock MenuAdd(menu,const text[],value)
 {
@@ -3691,13 +3691,13 @@ ZcStyleItem(text,t,charsmax(t));
 if(MenuPlain538()){replace_string(t,charsmax(t),"\r","\d");replace_string(t,charsmax(t),"\y","\w");}
 if(contain(t,"[")!= -1){
 new r539[192],o539;
-for(new c = 0;t[c]&& o539 < charsmax(r539)- 4;c++){
+for(new c=0;t[c]&& o539 < charsmax(r539)- 4;c++){
 if(t[c]== '['){
 r539[o539++]= '\';
 r539[o539++]= 'r';
 }
 r539[o539++]= t[c];
-if(t[c]== ']' && t[c + 1]&& t[c + 1]!= '\'){
+if(t[c]== ']'&&t[c + 1]&& t[c + 1]!= '\'){
 r539[o539++]= '\';
 r539[o539++]= 'w';
 }
@@ -3705,21 +3705,21 @@ r539[o539++]= 'w';
 r539[o539]= 0;
 copy(t,charsmax(t),r539);
 }
-if(g_pMenuGap539 && get_pcvar_num(g_pMenuGap539)&& t[0]&& t[strlen(t)- 1]!= '^n')add(t,charsmax(t),"^n");
-g_iMenuItemBytes += strlen(t)+ 9;
+if(g_pMenuGap539&&get_pcvar_num(g_pMenuGap539)&& t[0]&& t[strlen(t)- 1]!= '^n')add(t,charsmax(t),"^n");
+g_iMenuItemBytes+=strlen(t)+ 9;
 g_iMenuItemCnt++;
 menu_additem(menu,t,info);
 }
 stock MenuNoPage(menu)
 {
-g_bMenuNoPage = true;
+g_bMenuNoPage=true;
 menu_setprop(menu,MPROP_PERPAGE,0);
 }
 stock VexHead(id,out[],len,const key[],const sub[]= "")
 {
 new t[64];formatex(t,charsmax(t),"%L",id,key);
 replace_string(t,charsmax(t),"\y","");replace_string(t,charsmax(t),"\r","");
-g_iMenuFor = id;
+g_iMenuFor=id;
 if(MenuPlain538())formatex(out,len,"\rVEXMIRA \d| \w%s^n\dAP \w%d   \dVC \w%d   \dLV \w%d^n",t,g_iAP[id],g_iVC[id],g_iLevel[id]);
 else formatex(out,len,"\rVEXMIRA \d>> \w%s^n\dLV \y%d   \dAP \y%d   \dVC \y%d^n\d- - - - - - - - - - - - - - -^n",t,g_iLevel[id],g_iAP[id],g_iVC[id]);
 if(sub[0]){add(out,len,"\d");add(out,len,sub);add(out,len,"^n");}
@@ -3746,16 +3746,16 @@ menu_setprop(menu,MPROP_NUMBER_COLOR,"\r");
 stock MenuFinish(id,menu)
 {
 MenuProps(id,menu);
-if(!g_bMenuNoPage && g_iMenuItemCnt > 0)
+if(!g_bMenuNoPage&&g_iMenuItemCnt > 0)
 {
-new avg = max(12,g_iMenuItemBytes / g_iMenuItemCnt);
-new budget = 495 - g_iMenuTitleLen - 85;
-new per = clamp(budget / avg,3,7);
-if(per < 7 || g_iMenuItemCnt > 7)
+new avg=max(12,g_iMenuItemBytes / g_iMenuItemCnt);
+new budget=495 - g_iMenuTitleLen - 85;
+new per=clamp(budget / avg,3,7);
+if(per < 7||g_iMenuItemCnt > 7)
 menu_setprop(menu,MPROP_PERPAGE,per);
 }
 menu_display(id,menu,0);
-g_iMenuFor = 0;
+g_iMenuFor=0;
 }
 new QUEST_NEED[NUM_QUESTS]={3,6,2500,6000,2,1,3,1};
 new QUEST_XP[NUM_QUESTS]={40,80,40,80,50,30,80,45};
@@ -3765,7 +3765,7 @@ new KFX_PRICE[NUM_KFX]={20,25,25,30,35,50};
 new IFX_PRICE[NUM_IFX]={20,30,40};
 stock PlayVoxAll(const key[])
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_AMB))
 PlayKey(p,key);
@@ -3773,87 +3773,87 @@ PlayKey(p,key);
 }
 CurrentEnv(&light,fog[4],&weather)
 {
-light = 'h';
+light='h';
 fog[0]= 0;fog[1]= 0;fog[2]= 0;fog[3]= 0;
-weather = 0;
+weather=0;
 if(!get_pcvar_num(g_pEnv))
 return;
 if(g_bAdminEnvOverride)
 {
-light = g_iAdminEnvLight;
-for(new i = 0;i < 4;i++)
+light=g_iAdminEnvLight;
+for(new i=0;i < 4;i++)
 fog[i]= g_iAdminEnvFog[i];
-weather = g_iAdminEnvWeather;
+weather=g_iAdminEnvWeather;
 return;
 }
-if(g_iMode == MODE_BOSS && g_iBossType >= 0 && g_iBossType < NUM_BOSSES)
+if(g_iMode==MODE_BOSS&&g_iBossType>=0&&g_iBossType < NUM_BOSSES)
 {
-light = ENV_BOSS_LIGHT[g_iBossType]? ENV_BOSS_LIGHT[g_iBossType]: 'd';
-for(new i = 0;i < 4;i++)
+light=ENV_BOSS_LIGHT[g_iBossType]? ENV_BOSS_LIGHT[g_iBossType]: 'd';
+for(new i=0;i < 4;i++)
 fog[i]= ENV_BOSS_FOG[g_iBossType][i];
-weather = ENV_BOSS_WEATHER[g_iBossType];
+weather=ENV_BOSS_WEATHER[g_iBossType];
 return;
 }
-if(g_iEvent == EV_BLACKOUT)
+if(g_iEvent==EV_BLACKOUT)
 {
 new bl[4];get_pcvar_string(g_pBlackLight531,bl,charsmax(bl));
-light =(bl[0]>= 'a' && bl[0]<= 'z')? bl[0]: 'b';
+light =(bl[0]>= 'a'&&bl[0]<= 'z')? bl[0]: 'b';
 fog[0]= 0;fog[1]= 0;fog[2]= 0;fog[3]= 18;
-weather = 0;
+weather=0;
 return;
 }
-if(g_iMode >= 0 && g_iMode < MODE_TOTAL && ENV_MODE_LIGHT[g_iMode])
+if(g_iMode>=0&&g_iMode < MODE_TOTAL&&ENV_MODE_LIGHT[g_iMode])
 {
-light = ENV_MODE_LIGHT[g_iMode];
-for(new i = 0;i < 4;i++)
+light=ENV_MODE_LIGHT[g_iMode];
+for(new i=0;i < 4;i++)
 fog[i]= ENV_MODE_FOG[g_iMode][i];
-weather = ENV_MODE_WEATHER[g_iMode];
-if(g_iEvent > EV_NONE && g_iEvent < EV_TOTAL && ENV_EV_LIGHT[g_iEvent])
+weather=ENV_MODE_WEATHER[g_iMode];
+if(g_iEvent > EV_NONE&&g_iEvent < EV_TOTAL&&ENV_EV_LIGHT[g_iEvent])
 {
-if(ENV_EV_LIGHT[g_iEvent]< light)light = ENV_EV_LIGHT[g_iEvent];
-if(ENV_EV_FOG[g_iEvent][3])for(new i = 0;i < 4;i++)fog[i]= ENV_EV_FOG[g_iEvent][i];
-if(ENV_EV_WEATHER[g_iEvent])weather = ENV_EV_WEATHER[g_iEvent];
+if(ENV_EV_LIGHT[g_iEvent]< light)light=ENV_EV_LIGHT[g_iEvent];
+if(ENV_EV_FOG[g_iEvent][3])for(new i=0;i < 4;i++)fog[i]= ENV_EV_FOG[g_iEvent][i];
+if(ENV_EV_WEATHER[g_iEvent])weather=ENV_EV_WEATHER[g_iEvent];
 }
 return;
 }
-if(g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
+if(g_iEvent > EV_NONE&&g_iEvent < EV_TOTAL)
 {
-light = ENV_EV_LIGHT[g_iEvent];
-for(new i = 0;i < 4;i++)
+light=ENV_EV_LIGHT[g_iEvent];
+for(new i=0;i < 4;i++)
 fog[i]= ENV_EV_FOG[g_iEvent][i];
-weather = ENV_EV_WEATHER[g_iEvent];
+weather=ENV_EV_WEATHER[g_iEvent];
 return;
 }
-if(g_iCalmPreset >= 0 && g_iCalmPreset < NUM_CALM)
+if(g_iCalmPreset>=0&&g_iCalmPreset < NUM_CALM)
 {
-light = ENV_CALM_LIGHT[g_iCalmPreset];
-for(new i = 0;i < 4;i++)
+light=ENV_CALM_LIGHT[g_iCalmPreset];
+for(new i=0;i < 4;i++)
 fog[i]= ENV_CALM_FOG[g_iCalmPreset][i];
-weather = ENV_CALM_WEATHER[g_iCalmPreset];
+weather=ENV_CALM_WEATHER[g_iCalmPreset];
 }
 }
 PickCalmPreset()
 {
-g_iCalmPreset = -1;
-if(!get_pcvar_num(g_pEnvCalm)|| g_iEvent != EV_NONE ||(g_iMode != MODE_INFECTION && g_iMode != MODE_MULTI))
+g_iCalmPreset=-1;
+if(!get_pcvar_num(g_pEnvCalm)|| g_iEvent!=EV_NONE ||(g_iMode!=MODE_INFECTION&&g_iMode!=MODE_MULTI))
 return;
 static const W[NUM_CALM]={35,15,15,15,10,10};
-new roll = random_num(1,100),acc;
-for(new i = 0;i < NUM_CALM;i++)
+new roll=random_num(1,100),acc;
+for(new i=0;i < NUM_CALM;i++)
 {
-acc += W[i];
-if(roll <= acc)
+acc+=W[i];
+if(roll<=acc)
 {
-g_iCalmPreset = i;
+g_iCalmPreset=i;
 return;
 }
 }
-g_iCalmPreset = 0;
+g_iCalmPreset=0;
 }
 new g_szStyle531[64][16],bool:g_bStyleDark531;
 public fw_LightStyle531(style,const val[])
 {
-if(style < 32 || style > 63)return FMRES_IGNORED;
+if(style < 32||style > 63)return FMRES_IGNORED;
 copy(g_szStyle531[style],charsmax(g_szStyle531[]),val);
 if(g_bStyleDark531)
 {
@@ -3864,9 +3864,9 @@ return FMRES_IGNORED;
 }
 StylesDark531(bool:dark)
 {
-if(dark == g_bStyleDark531)return;
-g_bStyleDark531 = dark;
-for(new st = 32;st < 64;st++)
+if(dark==g_bStyleDark531)return;
+g_bStyleDark531=dark;
+for(new st=32;st < 64;st++)
 {
 if(!g_szStyle531[st][0])continue;
 engfunc(EngFunc_LightStyle,st,dark ? "a" : g_szStyle531[st]);
@@ -3880,8 +3880,8 @@ g_szLight[0]= light ? light : 'm';
 g_szLight[1]= 0;
 #pragma unused weather
 engfunc(EngFunc_LightStyle,0,g_szLight);
-StylesDark531(g_iEvent == EV_BLACKOUT);
-for(new id = 1;id <= g_iMax;id++)
+StylesDark531(g_iEvent==EV_BLACKOUT);
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id))
 SendFogForEvent(id);
@@ -3908,7 +3908,7 @@ stock SendFogEx(id,r,g,b,density)
 {
 if(!g_msgFog)
 return;
-new Float:fd = float(max(density,0))/ 10000.0;
+new Float:fd=float(max(density,0))/ 10000.0;
 new d =(density > 0)?(_:fd): 0;
 message_begin(MSG_ONE,g_msgFog,_,id);
 write_byte(r);
@@ -3922,7 +3922,7 @@ message_end();
 }
 stock SendWeather(id,w)
 {
-if(!g_msgWeather || !is_user_connected(id)|| is_user_bot(id))
+if(!g_msgWeather||!is_user_connected(id)|| is_user_bot(id))
 return;
 message_begin(MSG_ONE,g_msgWeather,_,id);
 write_byte(clamp(w,0,2));
@@ -3956,7 +3956,7 @@ return(get_distance_f(o,po)<(g_bFxReliable ? 4000.0 : 2500.0))? true : false;
 }
 stock FxRing(const Float:o[3],r,g,b,radius)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -3984,7 +3984,7 @@ message_end();
 }
 stock FxLava(const Float:o[3])
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))continue;
 FxBegin(o,p);
@@ -3997,7 +3997,7 @@ message_end();
 }
 stock FxTeleport(const Float:o[3])
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))continue;
 FxBegin(o,p);
@@ -4010,7 +4010,7 @@ message_end();
 }
 stock FxImplosion(const Float:o[3],radius,count,life)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))continue;
 FxBegin(o,p);
@@ -4026,7 +4026,7 @@ message_end();
 }
 stock FxParticles(const Float:o[3],radius,color,dur)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))continue;
 FxBegin(o,p);
@@ -4042,7 +4042,7 @@ message_end();
 }
 stock FxSparks(const Float:o[3])
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))continue;
 FxBegin(o,p);
@@ -4055,9 +4055,9 @@ message_end();
 }
 stock FxBlood(const Float:o[3],scale)
 {
-if(!g_sprBlood || !g_sprBloodSpray)
+if(!g_sprBlood||!g_sprBloodSpray)
 return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))continue;
 FxBegin(o,p);
@@ -4082,14 +4082,14 @@ FxBeam(top,o,g_sprLightning,r,g,b,60);
 FxLight(o,r,g,b,40,8,30);
 FxSparks(o);
 }
-enum{DIR_HOOK = 0,DIR_PULL,DIR_LEAP,DIR_KNOCK,DIR_PUSH,DIR_DRAW,DIR_GRAV,DIR_TOTAL};
+enum{DIR_HOOK=0,DIR_PULL,DIR_LEAP,DIR_KNOCK,DIR_PUSH,DIR_DRAW,DIR_GRAV,DIR_TOTAL};
 #define DIR_LOG_MAX 25
 new g_iDirLogN[DIR_TOTAL];
 stock DirCheck(tag,const name[],const Float:a[3],const Float:b[3])
 {
-new Float:la = floatsqroot(a[0]* a[0]+ a[1]* a[1]+ a[2]* a[2]);
-new Float:lb = floatsqroot(b[0]* b[0]+ b[1]* b[1]+ b[2]* b[2]);
-if(la < 0.001 || lb < 0.001 || g_iDirLogN[tag]>= DIR_LOG_MAX)
+new Float:la=floatsqroot(a[0]* a[0]+ a[1]* a[1]+ a[2]* a[2]);
+new Float:lb=floatsqroot(b[0]* b[0]+ b[1]* b[1]+ b[2]* b[2]);
+if(la < 0.001||lb < 0.001||g_iDirLogN[tag]>= DIR_LOG_MAX)
 return;
 g_iDirLogN[tag]++;
 log_amx("[Vexmira] DIRCHK %s cos=%.3f",name,(a[0]* b[0]+ a[1]* b[1]+ a[2]* b[2])/(la * lb));
@@ -4102,7 +4102,7 @@ stock SprFileFormat(const path[])
 {
 if(!path[0])
 return -1;
-new fp = fopen(path,"rb",true);
+new fp=fopen(path,"rb",true);
 if(!fp)
 return -1;
 new ident,ver,type,fmt;
@@ -4111,7 +4111,7 @@ fread(fp,ver,BLOCK_INT);
 fread(fp,type,BLOCK_INT);
 fread(fp,fmt,BLOCK_INT);
 fclose(fp);
-return(ident == 0x50534449)? fmt : -1;
+return(ident==0x50534449)? fmt : -1;
 }
 stock FxHeadMark(ent,spr,life,bool:attach)
 {
@@ -4119,10 +4119,10 @@ if(!spr)
 return;
 new Float:o[3];
 get_entvar(ent,var_origin,o);
-new ofs = floatround(OvhTopOf(ent)+ 8.0);
-for(new p = 1;p <= g_iMax;p++)
+new ofs=floatround(OvhTopOf(ent)+ 8.0);
+for(new p=1;p<=g_iMax;p++)
 {
-if(!FxWants(p,o)|| p == ent)continue;
+if(!FxWants(p,o)|| p==ent)continue;
 message_begin(MSG_ONE_UNRELIABLE,SVC_TEMPENTITY,_,p);
 if(attach)
 {
@@ -4165,7 +4165,7 @@ message_end();
 }
 stock FxRingSmall(const Float:o[3],r,g,b)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4193,7 +4193,7 @@ message_end();
 }
 stock FxLight(const Float:o[3],r,g,b,radius,life,decay)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4214,7 +4214,7 @@ message_end();
 stock FxBeam(const Float:a[3],const Float:b[3],spr,r,g,bl,width)
 {
 if(spr<=0)return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,a))
 continue;
@@ -4231,7 +4231,7 @@ write_byte(0);
 write_byte(0);
 write_byte(2);
 write_byte(width);
-write_byte(spr == g_sprLightning ? 40 : 0);
+write_byte(spr==g_sprLightning ? 40 : 0);
 write_byte(r);
 write_byte(g);
 write_byte(bl);
@@ -4243,7 +4243,7 @@ message_end();
 stock FxSprite(const Float:o[3],spr,scale,bright)
 {
 if(spr<=0)return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4261,7 +4261,7 @@ message_end();
 stock FxExplosion(const Float:o[3])
 {
 if(g_sprExplode<=0)return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4277,11 +4277,11 @@ write_byte(TE_EXPLFLAG_NOSOUND);
 message_end();
 }
 }
-stock bool:FxSpr(const Float:o[3],spr,scale,bright = 200,Float:zofs = 0.0)
+stock bool:FxSpr(const Float:o[3],spr,scale,bright=200,Float:zofs=0.0)
 {
 if(!spr)
 return false;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4297,30 +4297,30 @@ message_end();
 }
 return true;
 }
-stock bool:FxExploEl(const Float:o[3],el,scale = 22,rate = 16)
+stock bool:FxExploEl(const Float:o[3],el,scale=22,rate=16)
 {
 new spr;
 switch(el)
 {
-case EL_FIRE: spr = g_sprFx[FXS_EXFIRE];
-case EL_ICE: spr = g_sprFx[FXS_EXICE];
-case EL_TOXIC: spr = g_sprFx[FXS_EXTOXIC];
-case EL_VOID: spr = g_sprFx[FXS_EXVOID];
-default: spr = g_sprFx[FXS_SHOCK];
+case EL_FIRE: spr=g_sprFx[FXS_EXFIRE];
+case EL_ICE: spr=g_sprFx[FXS_EXICE];
+case EL_TOXIC: spr=g_sprFx[FXS_EXTOXIC];
+case EL_VOID: spr=g_sprFx[FXS_EXVOID];
+default: spr=g_sprFx[FXS_SHOCK];
 }
 new s532;
 switch(el)
 {
-case EL_FIRE: s532 = g_iFx532[X_FIREBALL];
-case EL_ICE: s532 = g_iFx532[X_FROSTBURST];
-case EL_TOXIC: s532 = g_iFx532[X_TOXICBURST];
-case EL_VOID: s532 = g_iFx532[X_VOIDBURST];
-default: s532 = g_iFx532[X_SHOCKBURST];
+case EL_FIRE: s532=g_iFx532[X_FIREBALL];
+case EL_ICE: s532=g_iFx532[X_FROSTBURST];
+case EL_TOXIC: s532=g_iFx532[X_TOXICBURST];
+case EL_VOID: s532=g_iFx532[X_VOIDBURST];
+default: s532=g_iFx532[X_SHOCKBURST];
 }
-if(s532){spr = s532;scale = max(6,scale * 4 / 5);rate = max(rate,18);}
+if(s532){spr=s532;scale=max(6,scale * 4 / 5);rate=max(rate,18);}
 if(!spr)
 return false;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4337,7 +4337,7 @@ message_end();
 }
 return true;
 }
-stock bool:FxElSmall(const Float:o[3],el,scale = 6)
+stock bool:FxElSmall(const Float:o[3],el,scale=6)
 {
 switch(el)
 {
@@ -4350,16 +4350,16 @@ return FxSpr(o,g_sprFx[FXS_SHOCK],scale,190,0.0);
 }
 stock FxBossElement(const Float:c[3],Float:radius)
 {
-if(!(0 <= g_iBossType < NUM_BOSSES))
+if(!(0<=g_iBossType < NUM_BOSSES))
 return;
-new scale = clamp(floatround(radius / 14.0),10,40);
+new scale=clamp(floatround(radius / 14.0),10,40);
 FxExploEl(c,BOSS_ELEM[g_iBossType],scale,14);
 }
 stock FxClawHit(victim)
 {
 if(!g_sprFx[FXS_SLASH])
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fFxHitT[victim])
 return;
 g_fFxHitT[victim]= now + 0.3;
@@ -4371,7 +4371,7 @@ stock FxHeal(id)
 {
 if(!g_sprFx[FXS_HEAL]|| !is_user_alive(id))
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fFxHealT[id])
 return;
 g_fFxHealT[id]= now + 1.0;
@@ -4397,7 +4397,7 @@ stock FadeOne(id,r,g,b,a,Float:seconds)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 return;
-new dur = floatround(4096.0 * seconds);
+new dur=floatround(4096.0 * seconds);
 message_begin(MSG_ONE_UNRELIABLE,g_msgFade,_,id);
 write_short(dur);
 write_short(dur);
@@ -4410,7 +4410,7 @@ message_end();
 }
 stock FadeAll(r,g,b,a,Float:seconds)
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !(g_iSet[id]& SET_NO_FX))
 FadeOne(id,r,g,b,a,seconds);
@@ -4429,9 +4429,9 @@ message_end();
 stock bool:SixMemeAllowed(id,const path[])
 {
 if(!equal(path,"vexmira/meme/",13))return true;
-if(!(1 <= id <= g_iMax)|| !is_user_connected(id)|| is_user_bot(id))return false;
+if(!(1<=id<=g_iMax)|| !is_user_connected(id)|| is_user_bot(id))return false;
 if((g_iSet[id]& SET_NO_MEME)||(g_iSet[id]& SET_NO_STREAK))return false;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fSixMemeNext[id])return false;
 g_fSixMemeNext[id]= now + floatmax(2.0,get_pcvar_float(g_pSixMemeCD));
 return true;
@@ -4441,8 +4441,8 @@ stock SndPick531(path[],len)
 if(contain(path,"|")== -1)return;
 new parts[8][96],n,pos,tmp[96];
 new src[256];copy(src,charsmax(src),path);
-for(new i = 0;src[i];i++)if(src[i]== '|')src[i]= ' ';
-while(n < sizeof parts &&(pos = argparse(src,pos,tmp,charsmax(tmp)))!= -1)if(tmp[0])copy(parts[n++],charsmax(parts[]),tmp);
+for(new i=0;src[i];i++)if(src[i]== '|')src[i]= ' ';
+while(n < sizeof parts &&(pos=argparse(src,pos,tmp,charsmax(tmp)))!= -1)if(tmp[0])copy(parts[n++],charsmax(parts[]),tmp);
 if(n)copy(path,len,parts[random(n)]);else path[0]= 0;
 }
 stock PlayKey(id,const key[])
@@ -4461,9 +4461,9 @@ if(get_pcvar_num(g_pLoopGuard)&& SndLooped(path))
 return;
 if(equal(path,"vexmira/meme/",13))
 {
-if(id == 0)
+if(id==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 if(is_user_connected(p)&& !is_user_bot(p))PlayKey(p,key);
 return;
 }
@@ -4471,7 +4471,7 @@ if(!SixMemeAllowed(id,path))return;
 }
 VxClientCmd527(id,"spk ^"%s^"",path);
 }
-stock EmitKey(ent,const key[],chan = CHAN_VOICE,Float:attn = ATTN_NORM)
+stock EmitKey(ent,const key[],chan=CHAN_VOICE,Float:attn=ATTN_NORM)
 {
 if(!AllowAudio528())return;
 new path[256];
@@ -4488,53 +4488,53 @@ new key[24],path[96];
 formatex(key,charsmax(key),"SW%d_FIRE",sw);
 if(TrieGetString(g_tRes,key,path,charsmax(path))&& path[0])
 EmitSafe(id,CHAN_WEAPON,path,VOL_NORM,ATTN_NORM,0,PITCH_NORM);
-else if(SW_EFFECT[sw]== SWE_LIGHTNING || SW_EFFECT[sw]== SWE_VOID)
+else if(SW_EFFECT[sw]== SWE_LIGHTNING||SW_EFFECT[sw]== SWE_VOID)
 EmitKey(id,"SW_FIRE");
 }
-stock EmitSafe(ent,chan,const path[],Float:vol = VOL_NORM,Float:attn = ATTN_NORM,flags = 0,pitch = PITCH_NORM)
+stock EmitSafe(ent,chan,const path[],Float:vol=VOL_NORM,Float:attn=ATTN_NORM,flags=0,pitch=PITCH_NORM)
 {
-if(!path[0]||(ent > 0 && is_nullent(ent)))
+if(!path[0]||(ent > 0&&is_nullent(ent)))
 return;
 if(SndIs2DOnly(path)|| equal(path,"vexmira/meme/",13))
 {
 new Float:o[3];
 if(ent > 0)
 get_entvar(ent,var_origin,o);
-SpkAround(o,path,attn,(ent <= 0 || attn <= 0.0)? true : false);
+SpkAround(o,path,attn,(ent<=0||attn<=0.0)? true : false);
 return;
 }
-new bool:was = g_bEmitting;
-g_bEmitting = true;
+new bool:was=g_bEmitting;
+g_bEmitting=true;
 emit_sound(ent,chan,path,vol,attn,flags,pitch);
-g_bEmitting = was;
+g_bEmitting=was;
 if(!get_pcvar_num(g_pLoopGuard)|| !SndLooped(path))
 return;
 new params[68];
 params[0]= ent;
 params[1]= chan;
 copy(params[2],64,path);
-new Float:maxT = floatmax(0.5,get_pcvar_float(g_pLoopMax));
-new Float:t = SndLength(path);
-if(t <= 0.1 || t > maxT)
-t = maxT;
+new Float:maxT=floatmax(0.5,get_pcvar_float(g_pLoopMax));
+new Float:t=SndLength(path);
+if(t<=0.1||t > maxT)
+t=maxT;
 g_iSndStopSlot =(g_iSndStopSlot + 1)% 64;
 remove_task(TASK_SNDSTOP + g_iSndStopSlot);
 set_task(t,"task_StopEmit",TASK_SNDSTOP + g_iSndStopSlot,params,sizeof params);
 }
 public task_StopEmit(params[])
 {
-new ent = params[0];
-if(ent > 0 && is_nullent(ent))
+new ent=params[0];
+if(ent > 0&&is_nullent(ent))
 return;
-new bool:was = g_bEmitting;
-g_bEmitting = true;
+new bool:was=g_bEmitting;
+g_bEmitting=true;
 emit_sound(ent,params[1],params[2],0.0,ATTN_NORM,SND_STOP,PITCH_NORM);
-g_bEmitting = was;
+g_bEmitting=was;
 }
 stock StopRoundMusic()
 {
 for(new p52=1;p52<=g_iMax;p52++)AmbientStop52(p52);g_szAmbient49[0]=0;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 VxClientCmd527(id,"mp3 stop");
@@ -4542,15 +4542,15 @@ VxClientCmd527(id,"mp3 stop");
 }
 stock StopAllClientSounds()
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 VxClientCmd527(id,"mp3 stop;stopsound");
 }
 }
-stock FxRingEx(const Float:o[3],r,g,b,radius,width,life,bright = 200)
+stock FxRingEx(const Float:o[3],r,g,b,radius,width,life,bright=200)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4578,7 +4578,7 @@ message_end();
 }
 stock FxDisk(const Float:o[3],r,g,b,radius,life)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4609,7 +4609,7 @@ stock FxSpriteTrail(const Float:a[3],const Float:b[3],spr,count,life,scale,speed
 if(spr<=0)return;
 if(!spr)
 return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,a))
 continue;
@@ -4632,7 +4632,7 @@ message_end();
 }
 stock FxStreak(const Float:o[3],color,count,speed)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4655,7 +4655,7 @@ stock FxFunnel(const Float:o[3],spr,bool:reverse)
 {
 if(!spr)
 return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -4673,10 +4673,10 @@ stock BeamEntHand(ent)
 {
 return ent;
 }
-stock FxBeamEntPoint(ent,const Float:b[3],spr,r,g,bl,width,noise,life = 3)
+stock FxBeamEntPoint(ent,const Float:b[3],spr,r,g,bl,width,noise,life=3)
 {
 if(spr<=0)return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,b))
 continue;
@@ -4700,10 +4700,10 @@ write_byte(0);
 message_end();
 }
 }
-stock FxBeamEx(const Float:a[3],const Float:b[3],spr,r,g,bl,width,noise,life,bright = 200)
+stock FxBeamEx(const Float:a[3],const Float:b[3],spr,r,g,bl,width,noise,life,bright=200)
 {
 if(spr<=0)return;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,a))
 continue;
@@ -4741,7 +4741,7 @@ message_end();
 }
 stock ShakeAll(amp,Float:dur,freq)
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id))
 ShakeEx(id,amp,dur,freq);
@@ -4749,7 +4749,7 @@ ShakeEx(id,amp,dur,freq);
 }
 stock BeamCreate(const Float:start[3],const Float:end[3],r,g,b,width,bright)
 {
-new beam = CreateSafe51("beam");
+new beam=CreateSafe51("beam");
 if(is_nullent(beam))
 return 0;
 set_entvar(beam,var_flags,get_entvar(beam,var_flags)| FL_CUSTOMENTITY);
@@ -4780,7 +4780,7 @@ stock BeamPoints(beam,const Float:start[3],const Float:end[3])
 new Float:mins[3],Float:maxs[3];
 set_entvar(beam,var_origin,start);
 set_entvar(beam,var_angles,end);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 mins[i]= floatmin(start[i],end[i])- start[i];
 maxs[i]= floatmax(start[i],end[i])- start[i];
@@ -4806,19 +4806,19 @@ engfunc(EngFunc_EmitAmbientSound,0,o,path,VOL_NORM,ATTN_NORM,0,PITCH_NORM);
 stock FloorAt(const Float:o[3],Float:out[3])
 {
 new Float:a[3],Float:b[3];
-a = o;
+a=o;
 a[2]+= 24.0;
-b = o;
+b=o;
 b[2]-= 512.0;
 engfunc(EngFunc_TraceLine,a,b,IGNORE_MONSTERS,0,0);
 get_tr2(0,TR_vecEndPos,out);
 out[2]+= 2.0;
 }
-stock ZoneSpawn(const Float:o[3],Float:radius,r,g,b,Float:life,follow = 0,bool:sound = true)
+stock ZoneSpawn(const Float:o[3],Float:radius,r,g,b,Float:life,follow=0,bool:sound=true)
 {
 new Float:pos[3];
 FloorAt(o,pos);
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
 set_entvar(ent,var_classname,ZONE_CLASS);
@@ -4845,7 +4845,7 @@ mins[0]= -radius;mins[1]= -radius;mins[2]= -8.0;
 maxs[0]= radius;maxs[1]= radius;maxs[2]= 8.0;
 engfunc(EngFunc_SetSize,ent,mins,maxs);
 engfunc(EngFunc_SetOrigin,ent,pos);
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 set_entvar(ent,var_fuser1,now + life);
 set_entvar(ent,var_fuser2,now);
 set_entvar(ent,var_fuser3,radius);
@@ -4855,9 +4855,9 @@ set_entvar(ent,var_iuser2,(r << 16)|(g << 8)| b);
 set_entvar(ent,var_iuser3,g_iBossSerial);
 SetThink(ent,"fw_ZoneThink");
 set_entvar(ent,var_nextthink,now + 0.01);
-g_bFxReliable = true;
+g_bFxReliable=true;
 FxRingEx(pos,r,g,b,floatround(radius),10,6,220);
-g_bFxReliable = false;
+g_bFxReliable=false;
 if(sound)
 EmitKeyPos(pos,"ZONE_WARN");
 return ent;
@@ -4866,26 +4866,26 @@ public fw_ZoneThink(ent)
 {
 if(is_nullent(ent))
 return;
-new Float:now = get_gametime();
-new Float:end = Float:get_entvar(ent,var_fuser1);
-if(now >= end)
+new Float:now=get_gametime();
+new Float:end=Float:get_entvar(ent,var_fuser1);
+if(now>=end)
 {
 set_entvar(ent,var_flags,FL_KILLME);
 return;
 }
-new follow = get_entvar(ent,var_iuser1);
+new follow=get_entvar(ent,var_iuser1);
 if(follow > 0)
 {
 new bool:gone;
-if(follow <= g_iMax)
-gone = !is_user_alive(follow);
+if(follow<=g_iMax)
+gone=!is_user_alive(follow);
 else if(is_nullent(follow)||(get_entvar(follow,var_flags)& FL_KILLME))
-gone = true;
+gone=true;
 else
 {
 new cls[16];
 get_entvar(follow,var_classname,cls,charsmax(cls));
-gone = !equal(cls,"vex_airdrop");
+gone=!equal(cls,"vex_airdrop");
 }
 if(gone)
 {
@@ -4900,37 +4900,37 @@ get_entvar(follow,var_velocity,fv);
 fv[2]= 0.0;
 set_entvar(ent,var_velocity,fv);
 }
-new Float:radius = Float:get_entvar(ent,var_fuser3);
-new c = get_entvar(ent,var_iuser2);
-new r =(c >> 16)& 255,g =(c >> 8)& 255,b = c & 255;
+new Float:radius=Float:get_entvar(ent,var_fuser3);
+new c=get_entvar(ent,var_iuser2);
+new r =(c >> 16)& 255,g =(c >> 8)& 255,b=c & 255;
 if(g_sprZone)
 {
-new Float:t = now - Float:get_entvar(ent,var_fuser2);
+new Float:t=now - Float:get_entvar(ent,var_fuser2);
 new Float:speed =(end - now < 0.6)? 22.0 : 7.0;
-new Float:amt = 150.0 + 90.0 * floatabs(floatsin(t * speed,radian));
+new Float:amt=150.0 + 90.0 * floatabs(floatsin(t * speed,radian));
 set_entvar(ent,var_renderamt,amt);
-if(now >= Float:get_entvar(ent,var_fuser4))
+if(now>=Float:get_entvar(ent,var_fuser4))
 {
 set_entvar(ent,var_fuser4,now + 0.7);
 new Float:o[3];
 get_entvar(ent,var_origin,o);
-g_bFxReliable = true;
+g_bFxReliable=true;
 FxRingEx(o,r,g,b,floatround(radius),5,7,150);
-g_bFxReliable = false;
+g_bFxReliable=false;
 }
 set_entvar(ent,var_nextthink,now + 0.05);
 }
 else
 {
-if(now >= Float:get_entvar(ent,var_fuser4))
+if(now>=Float:get_entvar(ent,var_fuser4))
 {
 set_entvar(ent,var_fuser4,now + 0.5);
 new Float:o[3];
 get_entvar(ent,var_origin,o);
-g_bFxReliable = true;
+g_bFxReliable=true;
 FxDisk(o,r,g,b,floatround(radius),6);
 FxRingEx(o,r,g,b,floatround(radius),6,6,200);
-g_bFxReliable = false;
+g_bFxReliable=false;
 }
 set_entvar(ent,var_nextthink,now + 0.1);
 }
@@ -4938,7 +4938,7 @@ set_entvar(ent,var_nextthink,now + 0.1);
 stock RemoveAllZones()
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",ZONE_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",ZONE_CLASS))> 0)
 {
 SetThink(ent,"");
 set_entvar(ent,var_classname,"vex_removed");
@@ -4981,11 +4981,11 @@ stock SpkAround(const Float:o[3],const path[],Float:attn,bool:everyone)
 {
 if(get_pcvar_num(g_pLoopGuard)&& SndLooped(path))
 return;
-new Float:range = 99999.0;
-if(attn > 0.0 && !everyone)
-range = 1200.0 / floatmax(0.5,attn);
+new Float:range=99999.0;
+if(attn > 0.0&&!everyone)
+range=1200.0 / floatmax(0.5,attn);
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -4999,14 +4999,14 @@ if(!SixMemeAllowed(p,path))continue;
 VxClientCmd527(p,"spk ^"%s^"",path);
 }
 }
-stock AnimByName(ent,const name[],fallback,Float:rate = 1.0)
+stock AnimByName(ent,const name[],fallback,Float:rate=1.0)
 {
-new seq = fallback;
+new seq=fallback;
 if(name[0])
 {
-new found = lookup_sequence(ent,name);
-if(found >= 0)
-seq = found;
+new found=lookup_sequence(ent,name);
+if(found>=0)
+seq=found;
 }
 if(seq < 0)
 return -1;
@@ -5027,8 +5027,8 @@ new const Float:HUDPOS_X[NUM_HUDPOS]={0.75,0.015,0.015,0.75,-1.0};
 new const Float:HUDPOS_Y[NUM_HUDPOS]={0.585,0.33,0.20,0.12,0.80};
 stock HudPartMode(pcvar)
 {
-new mode = get_pcvar_num(pcvar);
-if(mode >= 0)
+new mode=get_pcvar_num(pcvar);
+if(mode>=0)
 return clamp(mode,0,2);
 switch(clamp(get_pcvar_num(g_pHudStyle),0,2))
 {
@@ -5040,20 +5040,20 @@ return 0;
 TopBoard532(id,humans,zombies,total,const lineC[])
 {
 static const PAD[]= "                                                            ";
-new pad = clamp(get_pcvar_num(g_pTopPad532),10,60);
+new pad=clamp(get_pcvar_num(g_pTopPad532),10,60);
 new sp[64];copy(sp,min(pad,charsmax(sp)),PAD);
-new left = max(0,RoundTimeLeft());
-new hw = get_member_game(m_iNumCTWins),zw = get_member_game(m_iNumTerroristWins);
-new Float:y = get_pcvar_float(g_pTopY532);
+new left=max(0,RoundTimeLeft());
+new hw=get_member_game(m_iNumCTWins),zw=get_member_game(m_iNumTerroristWins);
+new Float:y=get_pcvar_float(g_pTopY532);
 new lab[24],alive[24];
 formatex(alive,charsmax(alive),"%L",id,"TB532_ALIVE");
 formatex(lab,charsmax(lab),"%L",id,"TB532_HUM");
 set_dhudmessage(70,195,255,-1.0,y,0,0.0,2.2,0.0,0.1);
 show_dhudmessage(id,"%s   [ %d ]%s^n%s %d%s",lab,hw,sp,alive,humans,sp);
 formatex(lab,charsmax(lab),"%L",id,"TB532_ZOM");
-if(g_iMode == MODE_BOSS && g_iBoss && is_user_alive(g_iBoss))
+if(g_iMode==MODE_BOSS&&g_iBoss&&is_user_alive(g_iBoss))
 {
-new pct = clamp(floatround(Float:get_entvar(g_iBoss,var_health)* 100.0 / float(max(1,g_iBossMaxHP))),0,100);
+new pct=clamp(floatround(Float:get_entvar(g_iBoss,var_health)* 100.0 / float(max(1,g_iBossMaxHP))),0,100);
 set_dhudmessage(205,90,255,-1.0,y,0,0.0,2.2,0.0,0.1);
 show_dhudmessage(id,"%s[ %d ]   BOSS^n%s%d%%  HP",sp,zw,sp,pct);
 }
@@ -5069,15 +5069,15 @@ show_dhudmessage(id,"%L^n%d:%02d^n%s",id,"TB532_ROUND",g_iRound,total,left / 60,
 new g_pHudBottom60,g_pHudHide60,g_pHideRadar60,bool:g_bRadarHidden60[33];
 BarGlyph60(out[],len,pct,cells)
 {
-new n = clamp((pct * cells + 50)/ 100,0,cells),i;
-for(i = 0;i < cells && i < len;i++)out[i]=(i < n)? '|' : '.';
+new n=clamp((pct * cells + 50)/ 100,0,cells),i;
+for(i=0;i < cells&&i < len;i++)out[i]=(i < n)? '|' : '.';
 out[min(cells,len)]= 0;
 }
 WeaponShort60(id,out[],len)
 {
 out[0]= 0;
-new w = get_member(id,m_pActiveItem);
-if(w <= 0 || is_nullent(w))return 0;
+new w=get_member(id,m_pActiveItem);
+if(w<=0||is_nullent(w))return 0;
 new cls[32];get_entvar(w,var_classname,cls,charsmax(cls));
 if(equal(cls,"weapon_",7))copy(out,len,cls[7]);else copy(out,len,cls);
 strtoupper(out);
@@ -5086,24 +5086,24 @@ return w;
 public task_BottomHud60()
 {
 if(!get_pcvar_num(g_pHudBottom60))return;
-new hide = get_pcvar_num(g_pHudHide60),radar = get_pcvar_num(g_pHideRadar60);
+new hide=get_pcvar_num(g_pHudHide60),radar=get_pcvar_num(g_pHideRadar60);
 static l[96],r[96],bar[24],bar2[24],wn[24];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))continue;
-if(radar && !g_bRadarHidden60[id]){client_cmd(id,"hideradar");g_bRadarHidden60[id]= true;}
+if(radar&&!g_bRadarHidden60[id]){client_cmd(id,"hideradar");g_bRadarHidden60[id]= true;}
 if(!is_user_alive(id))continue;
-if(hide > 0){new cur = get_member(id,m_iHideHUD);if((cur & hide)!= hide)set_member(id,m_iHideHUD,cur | hide);}
+if(hide > 0){new cur=get_member(id,m_iHideHUD);if((cur & hide)!= hide)set_member(id,m_iHideHUD,cur | hide);}
 if((g_iSet[id]& SET_NO_HUD)||g_bHud4)continue;
-new hp = floatround(Float:get_entvar(id,var_health)),mx = max(1,floatround(Float:get_entvar(id,var_max_health)));
-new ar = rg_get_user_armor(id),pct = clamp(hp * 100 / mx,0,100);
+new hp=floatround(Float:get_entvar(id,var_health)),mx=max(1,floatround(Float:get_entvar(id,var_max_health)));
+new ar=rg_get_user_armor(id),pct=clamp(hp * 100 / mx,0,100);
 BarGlyph60(bar,charsmax(bar),pct,18);
 new cr,cg,cb;
-if(g_bBoss[id]){cr = 200;cg = 90;cb = 255;}
-else if(g_bZombie[id]){cr = 120;cg = 255;cb = 60;}
-else if(pct > 60){cr = 235;cg = 235;cb = 235;}
-else if(pct > 30){cr = 255;cg = 190;cb = 60;}
-else{cr = 255;cg = 40 +(g_iFrame % 2)* 40;cb = 40;}
+if(g_bBoss[id]){cr=200;cg=90;cb=255;}
+else if(g_bZombie[id]){cr=120;cg=255;cb=60;}
+else if(pct > 60){cr=235;cg=235;cb=235;}
+else if(pct > 30){cr=255;cg=190;cb=60;}
+else{cr=255;cg=40 +(g_iFrame % 2)* 40;cb=40;}
 if(!g_bZombie[id]&& ar > 0)
 {
 BarGlyph60(bar2,charsmax(bar2),clamp(ar,0,100),18);
@@ -5113,11 +5113,11 @@ else formatex(l,charsmax(l),"%L  %4d  %s",id,g_bZombie[id]? "BH60_ZHP" : "BH60_H
 set_dhudmessage(cr,cg,cb,0.015,0.905,0,0.0,0.32,0.0,0.0);
 show_dhudmessage(id,"%s",l);
 r[0]= 0;
-new w = WeaponShort60(id,wn,charsmax(wn));
-if(w > 0 && !g_bZombie[id]&& !equal(wn,"KNIFE")&& !equal(wn,"C4"))
+new w=WeaponShort60(id,wn,charsmax(wn));
+if(w > 0&&!g_bZombie[id]&& !equal(wn,"KNIFE")&& !equal(wn,"C4"))
 {
-new clip = get_member(w,m_Weapon_iClip),WeaponIdType:wid = get_member(w,m_iId);
-new bp = rg_get_user_bpammo(id,wid);
+new clip=get_member(w,m_Weapon_iClip),WeaponIdType:wid=get_member(w,m_iId);
+new bp=rg_get_user_bpammo(id,wid);
 if(equal(wn,"HEGRENADE")|| equal(wn,"FLASHBANG")|| equal(wn,"SMOKEGRENADE"))formatex(r,charsmax(r),"%s  x%d",wn,bp);
 else formatex(r,charsmax(r),"%s   %3d / %d",wn,max(clip,0),bp);
 }
@@ -5129,21 +5129,21 @@ show_dhudmessage(id,"%s",r);
 DrawHud()
 {
 if(g_iFrame%8==0){new hp4=is_plugin_loaded("VEXMIRA HUD v4");g_bHud4=(hp4>=0&&get_cvar_num("vx_hud4")>0);}
-new humans = CountHumans(true),zombies = CountZombies(true);
-new total = RoundsTotal();
-new bool:top =(g_iFrame % 2 == 0)? true : false;
+new humans=CountHumans(true),zombies=CountZombies(true);
+new total=RoundsTotal();
+new bool:top =(g_iFrame % 2==0)? true : false;
 new l1[96],l2[96],l3[96],l4[96],l5[96],head[96];
 new tname[32],key[16],ev[32],mn[32],cn[32],lineC[96];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
-new t = g_iTheme[id];
-if(top && !g_bHud4 && HudPartMode(g_pHudTop)!= 0)
+new t=g_iTheme[id];
+if(top&&!g_bHud4&&HudPartMode(g_pHudTop)!= 0)
 {
 formatex(key,charsmax(key),"MODE_NAME_%d",g_iMode);
 formatex(mn,charsmax(mn),"%L",id,key);
-if(g_iMode == MODE_BOSS)
+if(g_iMode==MODE_BOSS)
 {
 formatex(key,charsmax(key),"BOSS_NAME_%d",g_iBossType);
 formatex(ev,charsmax(ev),"%L",id,key);
@@ -5153,7 +5153,7 @@ else
 formatex(key,charsmax(key),"EV_NAME_%d",g_iEvent);
 formatex(ev,charsmax(ev),"%L",id,key);
 }
-if(g_iRound >= total)
+if(g_iRound>=total)
 formatex(lineC,charsmax(lineC),"%L",id,"TOP_C_FINAL",mn,ev);
 else
 formatex(lineC,charsmax(lineC),"%L",id,"TOP_C",mn,ev);
@@ -5161,7 +5161,7 @@ if(get_pcvar_num(g_pTop532))
 {
 TopBoard532(id,humans,zombies,total,lineC);
 }
-else if(g_iMode == MODE_BOSS && g_iBoss)
+else if(g_iMode==MODE_BOSS&&g_iBoss)
 {
 set_dhudmessage(THEME_A[t][0],THEME_A[t][1],THEME_A[t][2],-1.0,Y_TOPBAR,0,0.0,2.0,0.0,0.0);
 show_dhudmessage(id,"%L^n%L^n%s",id,"TOP_A",g_iRound,total,id,"TOP_B_BOSS",humans,lineC);
@@ -5184,12 +5184,12 @@ DrawSpecInfo(id);
 CsoRoleIcon(id);
 if((g_iSet[id]& SET_NO_HUD)|| HudPartMode(g_pHudRight)== 0||g_bHud4)
 continue; // HUD v4 shows level + job in its bottom-right block
-new lvl = g_iLevel[id];
-new base = XPForLevel(lvl);
-new need = XPForLevel(lvl + 1);
-new xpPct =(lvl >= MAX_LEVEL)? 100 : clamp((g_iXP[id]- base)* 100 / max(1,need - base),0,100);
+new lvl=g_iLevel[id];
+new base=XPForLevel(lvl);
+new need=XPForLevel(lvl + 1);
+new xpPct =(lvl>=MAX_LEVEL)? 100 : clamp((g_iXP[id]- base)* 100 / max(1,need - base),0,100);
 TitleName(id,id,tname,charsmax(tname));
-new bool:cso = CsoOn();
+new bool:cso=CsoOn();
 if(cso)
 {
 if(g_iTopRank[id]> 0)
@@ -5222,8 +5222,8 @@ formatex(key,charsmax(key),"CLASS_%d",g_iClass[id]);
 formatex(cn,charsmax(cn),"%L",id,key);
 if(g_bAlpha[id])
 add(cn,charsmax(cn)," [ALFA]");
-new Float:cd = g_fCool[id]- get_gametime();
-new Float:act = ZcActiveLeft(id);
+new Float:cd=g_fCool[id]- get_gametime();
+new Float:act=ZcActiveLeft(id);
 if(act > 0.0)
 formatex(l4,charsmax(l4),"%L",id,"HUD_CLASS_ACT",cn,floatround(act,floatround_ceil));
 else if(cd > 0.0)
@@ -5236,7 +5236,7 @@ else if(g_bBoss[id])
 new sk[16],skn[40],rs[24],fs[24];
 formatex(sk,charsmax(sk),"BSK_%d_%d",g_iBossType,clamp(g_iBossPhase,1,3));
 formatex(skn,charsmax(skn),"%L",id,sk);
-CdText(id,g_iBossChannel != CH_NONE ? -1.0 : g_fBossRCool - get_gametime(),rs,charsmax(rs));
+CdText(id,g_iBossChannel!=CH_NONE ? -1.0 : g_fBossRCool - get_gametime(),rs,charsmax(rs));
 CdText(id,g_fEpicG[id]- get_gametime(),fs,charsmax(fs));
 formatex(l4,charsmax(l4),"%L",id,"E46_BOSSHUD",skn,rs,fs);
 }
@@ -5271,21 +5271,21 @@ else
 copy(l5,charsmax(l5),cmp);
 }
 }
-new pos = g_iHudPos[id];
-new br = THEME_C[t][0],bg = THEME_C[t][1],bb = THEME_C[t][2];
+new pos=g_iHudPos[id];
+new br=THEME_C[t][0],bg=THEME_C[t][1],bb=THEME_C[t][2];
 if(is_user_alive(id)&& g_bZombie[id])
 {
 if(g_bBoss[id])
 {
-br = 255;bg = 200;bb = 170;
+br=255;bg=200;bb=170;
 }
 else if(g_bNemesis[id]|| g_bAssassin[id])
 {
-br = 255;bg = 170;bb = 150;
+br=255;bg=170;bb=150;
 }
 else
 {
-br = 195;bg = 255;bb = 160;
+br=195;bg=255;bb=160;
 }
 }
 if(cso)
@@ -5298,7 +5298,7 @@ if(l5[0])
 replace_string(l5,charsmax(l5)," : ","  ");
 new body[320];
 formatex(body,charsmax(body),"^n%s^n%s%s%s%s%s",l1,l3,l4[0]? "^n" : "",l4,l5[0]? "^n" : "",l5);
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 new sig[400];
 formatex(sig,charsmax(sig),"%d%s%s",pos,head,body);
 if(now < g_fHudNext[id]&& equal(sig,g_szHudSig[id]))
@@ -5307,7 +5307,7 @@ copy(g_szHudSig[id],charsmax(g_szHudSig[]),sig);
 g_fHudNext[id]= now + 0.75;
 if(!is_user_alive(id)|| !g_bZombie[id])
 {
-br = 235;bg = 235;bb = 245;
+br=235;bg=235;bb=245;
 }
 set_hudmessage(br,bg,bb,HUDPOS_X[pos],HUDPOS_Y[pos],0,0.0,1.6,0.0,0.0,1);
 show_hudmessage(id,"%s%s",head,body);
@@ -5325,7 +5325,7 @@ g_iHudXpSeen[id]= g_iXP[id];
 g_fXpBarEnd[id]= 0.0;
 return;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(g_iHudXpSeen[id]!= g_iXP[id])
 {
 new bool:first =(g_iHudXpSeen[id]== -1)? true : false;
@@ -5335,7 +5335,7 @@ return;
 rg_send_bartime2(id,3,float(clamp(pct,0,99)),false);
 g_fXpBarEnd[id]= now + 2.5;
 }
-else if(g_fXpBarEnd[id]> 0.0 && now >= g_fXpBarEnd[id])
+else if(g_fXpBarEnd[id]> 0.0&&now>=g_fXpBarEnd[id])
 {
 g_fXpBarEnd[id]= 0.0;
 rg_send_bartime(id,0,false);
@@ -5347,13 +5347,13 @@ if(MineAimInfo(id))
 return;
 new target,body;
 get_user_aiming(id,target,body,3000);
-if(!(1 <= target <= g_iMax)|| !is_user_alive(target))
+if(!(1<=target<=g_iMax)|| !is_user_alive(target))
 return;
 if(g_bZombie[target]&& g_fBurrow[target]> get_gametime())
 return;
 new name[32],role[32],key[16];
 get_user_name(target,name,charsmax(name));
-new hp = floatround(Float:get_entvar(target,var_health));
+new hp=floatround(Float:get_entvar(target,var_health));
 if(g_bZombie[target]&& g_fDisguise[target]> get_gametime()&& !g_bZombie[id])
 {
 formatex(role,charsmax(role),"%L",id,"JOB_0");
@@ -5389,9 +5389,9 @@ show_hudmessage(id,"%L",id,"HUD_AIM",name,role,hp,rg_get_user_armor(target),g_iL
 new const Float:SLOT_Y[NUM_SLOTS]={Y_ANN,Y_ALERT,Y_PERS,Y_KILL,Y_REWARD};
 stock HudDraw(id,slot,r,g,b,Float:hold,const text[])
 {
-if(g_pHudCalm538 && get_pcvar_num(g_pHudCalm538))
+if(g_pHudCalm538&&get_pcvar_num(g_pHudCalm538))
 {
-new t = clamp(g_iTheme[id],0,NUM_THEMES - 1);
+new t=clamp(g_iTheme[id],0,NUM_THEMES - 1);
 r =(THEME_A[t][0]+ 2 * 225)/ 3;g =(THEME_A[t][1]+ 2 * 225)/ 3;b =(THEME_A[t][2]+ 2 * 235)/ 3;
 }
 set_dhudmessage(r,g,b,-1.0,SLOT_Y[slot],0,0.0,hold,0.08,0.35);
@@ -5425,12 +5425,12 @@ return 1.0;
 }
 public task_HudQueue()
 {
-new Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
-for(new s = 0;s < NUM_SLOTS;s++)
+for(new s=0;s < NUM_SLOTS;s++)
 {
 if(!g_szSlotQ[id][s][0]|| now < g_fSlotEnd[id][s])
 continue;
@@ -5439,7 +5439,7 @@ if(now - g_fSlotQT[id][s]> SlotMaxWait(s))
 g_szSlotQ[id][s][0]= 0;
 continue;
 }
-new c = g_iSlotQC[id][s];
+new c=g_iSlotQC[id][s];
 HudDraw(id,s,(c >> 16)& 255,(c >> 8)& 255,c & 255,g_fSlotQH[id][s],g_szSlotQ[id][s]);
 g_szSlotQ[id][s][0]= 0;
 }
@@ -5447,13 +5447,13 @@ g_szSlotQ[id][s][0]= 0;
 }
 stock HudReset(id)
 {
-for(new s = 0;s < NUM_SLOTS;s++)
+for(new s=0;s < NUM_SLOTS;s++)
 {
 g_fSlotEnd[id][s]= 0.0;
 g_szSlotQ[id][s][0]= 0;
 }
 }
-stock HudTo(id,slot,r,g,b,Float:hold,const key[],iVal = 0)
+stock HudTo(id,slot,r,g,b,Float:hold,const key[],iVal=0)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 return;
@@ -5471,9 +5471,9 @@ formatex(text,charsmax(text),"%L",id,key,sVal);
 HudDecorate(slot,text,out,charsmax(out));
 HudText(id,slot,r,g,b,hold,out);
 }
-stock HudAll(slot,r,g,b,Float:hold,const key[],iVal = 0)
+stock HudAll(slot,r,g,b,Float:hold,const key[],iVal=0)
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 HudTo(id,slot,r,g,b,hold,key,iVal);
@@ -5481,7 +5481,7 @@ HudTo(id,slot,r,g,b,hold,key,iVal);
 }
 stock HudAllS(slot,r,g,b,Float:hold,const key[],const sVal[])
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 HudToS(id,slot,r,g,b,hold,key,sVal);
@@ -5494,55 +5494,55 @@ new const CSO_SND[CN_TOTAL][]={"CSO_KM","KILL_DOUBLE","KILL_TRIPLE","KILL_MULTI"
 "CSO_LEVEL","CSO_BANNER","CSO_FB","CSO_BKILL","CSO_INFD","CSO_TEN","LEVEL_UP","CSO_KM","COUNTDOWN_BEEP",""};
 CsoPrecacheVex531()
 {
-g_iCsoRounds = 0;
+g_iCsoRounds=0;
 new path[96];
-for(new i = 0;i < sizeof CSO_SHEETS;i++)
+for(new i=0;i < sizeof CSO_SHEETS;i++)
 {
-for(new k = 0;k <= 16;k++)
+for(new k=0;k<=16;k++)
 {
 formatex(path,charsmax(path),"sprites/vexmira/cso/%s%d.spr",CSO_SHEETS[i],k);
 if(file_exists(path,true))PcGeneric(path);
 else if(k > 1)break;
 }
 }
-new fxok = 1;
+new fxok=1;
 static const FXK[]={'a','b','c'},FXL[]={'c','l','k','r'};
-for(new i = 0;i < sizeof FXK;i++)
-for(new j = 0;j < sizeof FXL;j++)
+for(new i=0;i < sizeof FXK;i++)
+for(new j=0;j < sizeof FXL;j++)
 {
 formatex(path,charsmax(path),"sprites/vexmira/cso/fx%c_%c.txt",FXK[i],FXL[j]);
-if(file_exists(path,true))PcGeneric(path);else fxok = 0;
+if(file_exists(path,true))PcGeneric(path);else fxok=0;
 }
 static const LNG[][]={"en","tr"},FR[]={'m','g'};
 new lm[8];copy(lm,charsmax(lm),GetResString("CSO_LANG","tr"));
-g_iCsoLang531 = equali(lm,"both")? 0 :(equali(lm,"en")? 2 : 1);
-for(new n = 0;n < CN_TOTAL;n++)
+g_iCsoLang531=equali(lm,"both")? 0 :(equali(lm,"en")? 2 : 1);
+for(new n=0;n < CN_TOTAL;n++)
 {
-if(n == CN_ROUND)continue;
-new ok = fxok;
-for(new l = 0;l <(CSO_LANG[n]? 2 : 1);l++)
-for(new f = 0;f < sizeof FR;f++)
+if(n==CN_ROUND)continue;
+new ok=fxok;
+for(new l=0;l <(CSO_LANG[n]? 2 : 1);l++)
+for(new f=0;f < sizeof FR;f++)
 {
-if(CSO_LANG[n]&& g_iCsoLang531 && l !=(g_iCsoLang531 == 1 ? 1 : 0))continue;
+if(CSO_LANG[n]&& g_iCsoLang531&&l !=(g_iCsoLang531==1 ? 1 : 0))continue;
 if(CSO_LANG[n])formatex(path,charsmax(path),"sprites/vexmira/cso/%s_%s_%c.txt",CSO_FILE[n],LNG[l],FR[f]);
 else formatex(path,charsmax(path),"sprites/vexmira/cso/%s_%c.txt",CSO_FILE[n],FR[f]);
-if(file_exists(path,true))PcGeneric(path);else ok = 0;
+if(file_exists(path,true))PcGeneric(path);else ok=0;
 }
 g_bCsoFile[n]= ok ? true : false;
 }
-new total = clamp(g_iPreRoundsTotal > 0 ? g_iPreRoundsTotal : 30,1,CSO_ROUNDS);
-for(new r = 1;r <= total;r++)
+new total=clamp(g_iPreRoundsTotal > 0 ? g_iPreRoundsTotal : 30,1,CSO_ROUNDS);
+for(new r=1;r<=total;r++)
 {
 formatex(path,charsmax(path),"sprites/vexmira/cso/rnd%d.txt",r);
 if(!file_exists(path,true))break;
 PcGeneric(path);
-g_iCsoRounds = r;
+g_iCsoRounds=r;
 }
-g_bCsoFile[CN_ROUND]=(g_iCsoRounds > 0 && fxok)? true : false;
-for(new l = 0;l < 2;l++)
-for(new c = 1;c <= 10;c++)
+g_bCsoFile[CN_ROUND]=(g_iCsoRounds > 0&&fxok)? true : false;
+for(new l=0;l < 2;l++)
+for(new c=1;c<=10;c++)
 {
-if(g_iCsoLang531 && l !=(g_iCsoLang531 == 1 ? 1 : 0))continue;
+if(g_iCsoLang531&&l !=(g_iCsoLang531==1 ? 1 : 0))continue;
 formatex(path,charsmax(path),"sprites/vexmira/cso/cd_%s_%d.txt",LNG[l],c);
 if(file_exists(path,true))PcGeneric(path);
 }
@@ -5551,11 +5551,11 @@ CsoPrecache()
 {
 new set[16];copy(set,charsmax(set),GetResString("CSO_CARDSET","c539"));
 if(equali(set,"c538"))copy(set,charsmax(set),"c539");
-g_bCsoC532 = false;
+g_bCsoC532=false;
 if(equali(set,"off"))
 {
-g_bCsoVex531 = false;
-for(new i = 0;i < CN_TOTAL;i++)g_bCsoFile[i]= false;
+g_bCsoVex531=false;
+for(new i=0;i < CN_TOTAL;i++)g_bCsoFile[i]= false;
 return;
 }
 if(equali(set,"c539")|| equali(set,"c533")|| equali(set,"c532"))
@@ -5564,69 +5564,69 @@ copy(g_szCsoDir,charsmax(g_szCsoDir),equali(set,"c539")? "c539" : "c533");
 CsoPrecache533();
 return;
 }
-g_bCsoVex531 = !equali(set,"cards");
-if(g_iPreCso > 0 && g_bCsoVex531 && file_exists("sprites/vexmira/cso/fx1.spr",true))
+g_bCsoVex531=!equali(set,"cards");
+if(g_iPreCso > 0&&g_bCsoVex531&&file_exists("sprites/vexmira/cso/fx1.spr",true))
 {
-for(new i = 0;i < CN_TOTAL;i++)g_bCsoFile[i]= false;
+for(new i=0;i < CN_TOTAL;i++)g_bCsoFile[i]= false;
 CsoPrecacheVex531();
 return;
 }
-g_bCsoVex531 = false;
-g_iCsoRounds = CSO_ROUNDS;
-for(new i = 0;i < CN_TOTAL;i++)g_bCsoFile[i]= false;
-if(g_iPreCso <= 0)return;
-new path[96],bool:ok = true;
-for(new card = 0;card < 6;card++)
+g_bCsoVex531=false;
+g_iCsoRounds=CSO_ROUNDS;
+for(new i=0;i < CN_TOTAL;i++)g_bCsoFile[i]= false;
+if(g_iPreCso<=0)return;
+new path[96],bool:ok=true;
+for(new card=0;card < 6;card++)
 {
-for(new variant = 0;variant < 2;variant++)
+for(new variant=0;variant < 2;variant++)
 {
 formatex(path,charsmax(path),"sprites/vexmira/notify/card%d%s.spr",card,variant ? "_static" : "");
-if(!file_exists(path,true)){ok = false;continue;}
+if(!file_exists(path,true)){ok=false;continue;}
 (!VxPcOk531())? 0 : precache_generic(path);
 formatex(path,charsmax(path),"sprites/vexmira/notify/card%d%s.txt",card,variant ? "_static" : "");
-if(!file_exists(path,true)){ok = false;continue;}
+if(!file_exists(path,true)){ok=false;continue;}
 (!VxPcOk531())? 0 : precache_generic(path);
 }
 }
 if(ok)
-for(new i = 0;i < CN_TOTAL;i++)g_bCsoFile[i]= true;
+for(new i=0;i < CN_TOTAL;i++)g_bCsoFile[i]= true;
 }
 new const C533_FILE[CN_TOTAL][]={"km1","km2","km3","km4","km5","hs","knife","nade","mvp","hwin","zwin","boss",
 "infect","nemesis","assassin","survivor","last","level","round","fb","bkill","infd","cd","upgrade","item","ar","ipad"};
 new bool:g_bHp533;
 CsoPrecache533()
 {
-g_bCsoVex531 = true;
-g_bCsoC532 = true;
-g_iCsoRounds = 30;
+g_bCsoVex531=true;
+g_bCsoC532=true;
+g_iCsoRounds=30;
 new lm[8];copy(lm,charsmax(lm),GetResString("CSO_LANG","tr"));
-g_iCsoLang531 = equali(lm,"en")? 2 : 1;
-new lg[3];copy(lg,charsmax(lg),g_iCsoLang531 == 2 ? "en" : "tr");
-new path[96],sheet[96],line[160],n533,Trie:sheets = TrieCreate();
-for(new n = 0;n < CN_TOTAL;n++)
+g_iCsoLang531=equali(lm,"en")? 2 : 1;
+new lg[3];copy(lg,charsmax(lg),g_iCsoLang531==2 ? "en" : "tr");
+new path[96],sheet[96],line[160],n533,Trie:sheets=TrieCreate();
+for(new n=0;n < CN_TOTAL;n++)
 {
 g_bCsoFile[n]= false;
-if(g_iPreCso <= 0)continue;
-new ok = 1;
-if(!equal(g_szCsoDir,"c539")&&(n == CN_UPGRADE || n == CN_ITEM || n == CN_ARENA))continue;
-for(new c = 1;c <=((n == CN_TEN || n == CN_ARENA)? 10 : 1);c++)
+if(g_iPreCso<=0)continue;
+new ok=1;
+if(!equal(g_szCsoDir,"c539")&&(n==CN_UPGRADE||n==CN_ITEM||n==CN_ARENA))continue;
+for(new c=1;c <=((n==CN_TEN||n==CN_ARENA)? 10 : 1);c++)
 {
-if(n == CN_TEN)formatex(path,charsmax(path),"sprites/vexmira/%s/cd%d_%s.txt",g_szCsoDir,c,lg);
-else if(n == CN_ARENA)formatex(path,charsmax(path),"sprites/vexmira/%s/ar%d_%s.txt",g_szCsoDir,c,lg);
+if(n==CN_TEN)formatex(path,charsmax(path),"sprites/vexmira/%s/cd%d_%s.txt",g_szCsoDir,c,lg);
+else if(n==CN_ARENA)formatex(path,charsmax(path),"sprites/vexmira/%s/ar%d_%s.txt",g_szCsoDir,c,lg);
 else formatex(path,charsmax(path),"sprites/vexmira/%s/%s_%s.txt",g_szCsoDir,C533_FILE[n],lg);
-if(!Txt533Sheet(path,sheet,charsmax(sheet))){ok = 0;continue;}
-if(ZcPcGeneric(path)> 0)n533++;else ok = 0;
-if(!TrieKeyExists(sheets,sheet)){TrieSetCell(sheets,sheet,1);if(ZcPcGeneric(sheet)> 0)n533++;else ok = 0;}
+if(!Txt533Sheet(path,sheet,charsmax(sheet))){ok=0;continue;}
+if(ZcPcGeneric(path)> 0)n533++;else ok=0;
+if(!TrieKeyExists(sheets,sheet)){TrieSetCell(sheets,sheet,1);if(ZcPcGeneric(sheet)> 0)n533++;else ok=0;}
 }
 g_bCsoFile[n]= ok ? true : false;
 }
-g_bHp533 = true;
-for(new l = 0;l <= 10;l++)
+g_bHp533=true;
+for(new l=0;l<=10;l++)
 {
 formatex(path,charsmax(path),"sprites/vexmira/%s/bh_%d.txt",equal(g_szCsoDir,"c539")? "c539" : "c534",l);
-if(!Txt533Sheet(path,sheet,charsmax(sheet))|| ZcPcGeneric(path)<= 0){g_bHp533 = false;continue;}
+if(!Txt533Sheet(path,sheet,charsmax(sheet))|| ZcPcGeneric(path)<= 0){g_bHp533=false;continue;}
 n533++;
-if(!TrieKeyExists(sheets,sheet)){TrieSetCell(sheets,sheet,1);if(ZcPcGeneric(sheet)> 0)n533++;else g_bHp533 = false;}
+if(!TrieKeyExists(sheets,sheet)){TrieSetCell(sheets,sheet,1);if(ZcPcGeneric(sheet)> 0)n533++;else g_bHp533=false;}
 }
 TrieDestroy(sheets);
 #pragma unused line
@@ -5635,16 +5635,16 @@ log_amx("[Vexmira] ekran kartlari: %d dosya (sprites/vexmira/%s, dil %s, boss ca
 bool:Txt533Sheet(const txt[],out[],len)
 {
 out[0]= 0;
-new fp = fopen(txt,"rt",true);
+new fp=fopen(txt,"rt",true);
 if(!fp)return false;
 new line[192],a[24],b[8],c[96];
 while(!feof(fp))
 {
 fgets(fp,line,charsmax(line));
-if(parse(line,a,charsmax(a),b,charsmax(b),c,charsmax(c))== 3 && equal(a,"crosshair")){formatex(out,len,"sprites/%s.spr",c);break;}
+if(parse(line,a,charsmax(a),b,charsmax(b),c,charsmax(c))== 3&&equal(a,"crosshair")){formatex(out,len,"sprites/%s.spr",c);break;}
 }
 fclose(fp);
-return(out[0]!= 0 && file_exists(out,true));
+return(out[0]!= 0&&file_exists(out,true));
 }
 new const C532_FILE[CN_TOTAL][]={"","","","","","","","","mvp","hwin","zwin","boss",
 "","","","","last","","","","","","","","","",""};
@@ -5684,12 +5684,12 @@ static const D[31][8]=
 {-1,-1,-1,-1,2,1,29,0},
 {7,100,-1,-1,0,8,30,0}
 };
-for(new w = 1;w <= 30;w++)
+for(new w=1;w<=30;w++)
 {
-if(w == 2)
+if(w==2)
 continue;
 get_weaponname(w,g_szWL[w],charsmax(g_szWL[]));
-for(new k = 0;k < 8;k++)
+for(new k=0;k < 8;k++)
 g_iWL[w][k]= D[w][k];
 g_bWL[w]= g_szWL[w][0]? true : false;
 }
@@ -5700,11 +5700,11 @@ new name[24];
 get_msg_arg_string(1,name,charsmax(name));
 if(!equal(name,"weapon_",7))
 return PLUGIN_CONTINUE;
-new w = get_msg_arg_int(8);
-if(w < 1 || w > 30)
+new w=get_msg_arg_int(8);
+if(w < 1||w > 30)
 return PLUGIN_CONTINUE;
 copy(g_szWL[w],charsmax(g_szWL[]),name);
-for(new k = 0;k < 8;k++)
+for(new k=0;k < 8;k++)
 g_iWL[w][k]= get_msg_arg_int(k + 2);
 g_bWL[w]= true;
 return PLUGIN_CONTINUE;
@@ -5713,7 +5713,7 @@ stock CsoSendWL(id,const name[],w)
 {
 message_begin(MSG_ONE,g_msgWL,_,id);
 write_string(name);
-for(new k = 0;k < 8;k++)
+for(new k=0;k < 8;k++)
 write_byte(g_iWL[w][k]);
 message_end();
 }
@@ -5735,9 +5735,9 @@ stock CsoName(id,note,arg,frm,out[],len)
 {
 if(g_bCsoC532)
 {
-new bool:tr2 =(g_iCsoLang531 != 2);
-if(note == CN_TEN)formatex(out,len,"vexmira/%s/cd%d_%s",g_szCsoDir,clamp(arg,1,10),tr2 ? "tr" : "en");
-else if(note == CN_ARENA)formatex(out,len,"vexmira/%s/ar%d_%s",g_szCsoDir,clamp(arg,1,10),tr2 ? "tr" : "en");
+new bool:tr2 =(g_iCsoLang531!=2);
+if(note==CN_TEN)formatex(out,len,"vexmira/%s/cd%d_%s",g_szCsoDir,clamp(arg,1,10),tr2 ? "tr" : "en");
+else if(note==CN_ARENA)formatex(out,len,"vexmira/%s/ar%d_%s",g_szCsoDir,clamp(arg,1,10),tr2 ? "tr" : "en");
 else formatex(out,len,"vexmira/%s/%s_%s",g_szCsoDir,C533_FILE[note],tr2 ? "tr" : "en");
 #pragma unused id
 return;
@@ -5745,12 +5745,12 @@ return;
 if(g_bCsoVex531)
 {
 static const FRC[]={'a','b','g','m','c'};
-new bool:tr = g_iCsoLang531 ?(g_iCsoLang531 == 1):(g_iLang[id]== 2);
-if(frm == CF_A || frm == CF_B || frm == CF_C)
-formatex(out,len,"vexmira/cso/fx%c_%c",FRC[frm],(note == CN_TEN && arg > 0)? 'r' : CSO_LAY[note]);
-else if(note == CN_TEN && arg > 0)
+new bool:tr=g_iCsoLang531 ?(g_iCsoLang531==1):(g_iLang[id]== 2);
+if(frm==CF_A||frm==CF_B||frm==CF_C)
+formatex(out,len,"vexmira/cso/fx%c_%c",FRC[frm],(note==CN_TEN&&arg > 0)? 'r' : CSO_LAY[note]);
+else if(note==CN_TEN&&arg > 0)
 formatex(out,len,"vexmira/cso/cd_%s_%d",tr ? "tr" : "en",clamp(arg,1,10));
-else if(note == CN_ROUND)
+else if(note==CN_ROUND)
 formatex(out,len,"vexmira/cso/rnd%d",arg);
 else if(CSO_LANG[note])
 formatex(out,len,"vexmira/cso/%s_%s_%c",CSO_FILE[note],tr ? "tr" : "en",FRC[frm]);
@@ -5758,32 +5758,32 @@ else
 formatex(out,len,"vexmira/cso/%s_%c",CSO_FILE[note],FRC[frm]);
 return;
 }
-new card = 5;
+new card=5;
 switch(note)
 {
-case CN_ROUND: card = 0;
-case CN_HWIN: card = 1;
-case CN_ZWIN: card = 2;
-case CN_MVP: card = 3;
-case CN_BOSS,CN_NEMESIS,CN_ASSASSIN,CN_SURVIVOR,CN_LAST: card = 4;
-case CN_TEN: card = 5;
+case CN_ROUND: card=0;
+case CN_HWIN: card=1;
+case CN_ZWIN: card=2;
+case CN_MVP: card=3;
+case CN_BOSS,CN_NEMESIS,CN_ASSASSIN,CN_SURVIVOR,CN_LAST: card=4;
+case CN_TEN: card=5;
 }
 formatex(out,len,"vexmira/notify/card%d%s",card,get_pcvar_num(g_pCsoAnim)? "" : "_static");
 }
 stock CsoFrameAt(note,Float:t,Float:dur,cur)
 {
-if(!g_bCsoVex531 || g_bCsoC532 || get_pcvar_num(g_pCsoAnim)<= 0)
+if(!g_bCsoVex531||g_bCsoC532||get_pcvar_num(g_pCsoAnim)<= 0)
 return CF_M;
 if(t < 0.08)
 return CF_A;
 if(t < 0.18)
 return CF_B;
-if(dur - t < 0.2 && cur >= CF_G)
+if(dur - t < 0.2&&cur>=CF_G)
 return CF_C;
-if(note == CN_ROUND || note == CN_TEN)
+if(note==CN_ROUND||note==CN_TEN)
 return CF_M;
-new Float:p = t - 0.18;
-p -= float(floatround(p / 0.8,floatround_floor))* 0.8;
+new Float:p=t - 0.18;
+p-=float(floatround(p / 0.8,floatround_floor))* 0.8;
 return p < 0.2 ? CF_G : CF_M;
 }
 CsoSendFrame(id,frm,w,clip)
@@ -5798,21 +5798,21 @@ log_amx("[CSO] frame %s -> #%d",nm,id);
 }
 stock bool:CsoNoteOn(note)
 {
-return(note >= 0 && note < CN_TOTAL &&(CsoNotesMask533()& CSO_BIT[note]))? true : false;
+return(note>=0&&note < CN_TOTAL &&(CsoNotesMask533()& CSO_BIT[note]))? true : false;
 }
 stock CsoNotesMask533()
 {
-new v = get_pcvar_num(g_pCsoNotes);
-return(v <= 0 || v >= 65536)? 0xFFFF : v;
+new v=get_pcvar_num(g_pCsoNotes);
+return(v<=0||v>=65536)? 0xFFFF : v;
 }
 stock bool:CsoOn()
 {
-return get_pcvar_num(g_pCso)> 0 && g_iPreCso > 0;
+return get_pcvar_num(g_pCso)> 0&&g_iPreCso > 0;
 }
 stock bool:CsoFovOk(id)
 {
-new fov = get_member(id,m_iFOV);
-return(fov == 90 || fov <= 0)? true : false;
+new fov=get_member(id,m_iFOV);
+return(fov==90||fov<=0)? true : false;
 }
 CsoSound(id,note)
 {
@@ -5824,13 +5824,13 @@ PlayKey(id,CSO_SND[note]);
 }
 VexCardText532(id,note,const title[],const detail[],r,g,b,Float:hold)
 {
-new bool:big = !(note <= CN_NADE || note == CN_FIRST || note == CN_INFD || note == CN_TEN || note == CN_HS);
-new Float:y = big ?(g_bCapLow532[id]?(note == CN_MVP ? 0.74 : 0.665):(note == CN_MVP ? 0.36 : 0.25)): 0.62;
+new bool:big=!(note<=CN_NADE||note==CN_FIRST||note==CN_INFD||note==CN_TEN||note==CN_HS);
+new Float:y=big ?(g_bCapLow532[id]?(note==CN_MVP ? 0.74 : 0.665):(note==CN_MVP ? 0.36 : 0.25)): 0.62;
 // a card arriving while the previous big card is still on screen goes one row lower (no text on text)
 if(big){new Float:nw=get_gametime();if(nw<g_fCard5[id])y+=0.095;g_fCard5[id]=floatmax(g_fCard5[id],nw+hold+0.35);}
 new framed[160];
 copy(framed,charsmax(framed),title);
-if(get_pcvar_num(g_pHudMin538)){r = UI_R;g = UI_G;b = UI_B;hold = floatmin(hold,2.5);}
+if(get_pcvar_num(g_pHudMin538)){r=UI_R;g=UI_G;b=UI_B;hold=floatmin(hold,2.5);}
 set_dhudmessage(r,g,b,-1.0,y,0,0.0,hold,0.06,0.35);
 show_dhudmessage(id,"%s",framed);
 if(detail[0])
@@ -5838,7 +5838,7 @@ if(detail[0])
 set_dhudmessage(200,205,210,-1.0,y +(big ? 0.045 : 0.035),0,0.0,hold,0.12,0.35);
 show_dhudmessage(id,"%s",detail);
 }
-if(big && !get_pcvar_num(g_pHudMin538)&& !g_bCapLow532[id]&& is_user_connected(id)&& !is_user_bot(id))
+if(big&&!get_pcvar_num(g_pHudMin538)&& !g_bCapLow532[id]&& is_user_connected(id)&& !is_user_bot(id))
 {
 message_begin(MSG_ONE_UNRELIABLE,g_msgFade,_,id);
 write_short(1 << 10);write_short(0);write_short(0x0000);
@@ -5846,12 +5846,12 @@ write_byte(r);write_byte(g);write_byte(b);write_byte(28);
 message_end();
 }
 }
-stock bool:VexNotify(id,note,arg = 0)
+stock bool:VexNotify(id,note,arg=0)
 {
-if(id < 1 || id > g_iMax || note < 0 || note >= CN_TOTAL || !is_user_connected(id)|| is_user_bot(id))
+if(id < 1||id > g_iMax||note < 0||note>=CN_TOTAL||!is_user_connected(id)|| is_user_bot(id))
 return false;
-new title[96],detail[128],r = 55,g = 205,b = 255;
-new Float:hold = 2.4;
+new title[96],detail[128],r=55,g=205,b=255;
+new Float:hold=2.4;
 new bool:tr =(g_iLang[id]== 2);
 switch(note)
 {
@@ -5861,25 +5861,25 @@ if(tr)formatex(title,charsmax(title),"TUR %d / %d",g_iRound,RoundsTotal());
 else formatex(title,charsmax(title),"ROUND %d / %d",g_iRound,RoundsTotal());
 new key[24];formatex(key,charsmax(key),"MODE_NAME_%d",clamp(g_iMode,0,MODE_TOTAL - 1));
 formatex(detail,charsmax(detail),"%L",id,key);
-hold = 2.8;
+hold=2.8;
 }
 case CN_HWIN,CN_ZWIN:
 {
-new bool:human =(note == CN_HWIN);
+new bool:human =(note==CN_HWIN);
 if(human)VexCopy(title,charsmax(title),tr,"HUMANS VICTORIOUS","INSANLAR KAZANDI");
 else VexCopy(title,charsmax(title),tr,"ZOMBIES VICTORIOUS","ZOMBILER KAZANDI");
 if(tr)formatex(detail,charsmax(detail),"TUR %d TAMAMLANDI",g_iRound);
 else formatex(detail,charsmax(detail),"ROUND %d COMPLETE",g_iRound);
-r = human ? 65 : 90;g = human ? 190 : 235;b = human ? 255 : 85;hold = 4.0;
+r=human ? 65 : 90;g=human ? 190 : 235;b=human ? 255 : 85;hold=4.0;
 }
 case CN_MVP:
 {
-new mvp = g_iRoundMvp;
-if(mvp < 1 || mvp > g_iMax || !is_user_connected(mvp))return false;
+new mvp=g_iRoundMvp;
+if(mvp < 1||mvp > g_iMax||!is_user_connected(mvp))return false;
 new name[32];get_user_name(mvp,name,charsmax(name));
 copy(title,charsmax(title),tr ? "TURUN YILDIZI" : "ROUND MVP");
 formatex(detail,charsmax(detail),"%s | %d DMG | %d KILLS | %d INFECTS",name,g_iRoundDmg[mvp],g_iRoundKills[mvp],g_iRoundInf[mvp]);
-r = 255;g = 190;b = 55;hold = 4.0;
+r=255;g=190;b=55;hold=4.0;
 }
 case CN_BOSS:
 {
@@ -5920,19 +5920,19 @@ detail[0]= 0;
 VexCardText532(id,note,title,detail,r,g,b,hold);
 return true;
 }
-bool:CsoApply(id,note,arg,Float:dur,bool:sound,Float:elapsed = 0.0)
+bool:CsoApply(id,note,arg,Float:dur,bool:sound,Float:elapsed=0.0)
 {
-new clip,ammo,w = get_user_weapon(id,clip,ammo);
-if(w < 1 || w > 30 || !g_bWL[w])
+new clip,ammo,w=get_user_weapon(id,clip,ammo);
+if(w < 1||w > 30||!g_bWL[w])
 return false;
-if(g_iCsoCur[id]>= 0 && g_iCsoWpn[id]!= w)
+if(g_iCsoCur[id]>= 0&&g_iCsoWpn[id]!= w)
 CsoRestore(id,false);
 g_iCsoCur[id]= note;
 g_iCsoArg[id]= arg;
 g_iCsoWpn[id]= w;
 g_fCsoStart[id]= get_gametime()- elapsed;
 g_fCsoEnd[id]= g_fCsoStart[id]+ dur;
-new frm = CsoFrameAt(note,elapsed,dur,elapsed > 0.0 ? CF_M : -1);
+new frm=CsoFrameAt(note,elapsed,dur,elapsed > 0.0 ? CF_M : -1);
 CsoFov(id,clamp(get_pcvar_num(g_pCsoFov),10,89));
 CsoSendFrame(id,frm,w,clip);
 new nm[40];
@@ -5947,20 +5947,20 @@ if(get_pcvar_num(g_pCsoLog))
 log_amx("[CSO] show %s -> #%d wpn=%s(%d) fov=%d %.1fs",nm,id,g_szWL[w],w,get_pcvar_num(g_pCsoFov),dur);
 return true;
 }
-CsoRestore(id,bool:refresh = true)
+CsoRestore(id,bool:refresh=true)
 {
-new w = g_iCsoWpn[id];
+new w=g_iCsoWpn[id];
 g_iCsoCur[id]= -1;
 g_iCsoWpn[id]= 0;
-if(w < 1 || w > 30 || !is_user_connected(id))
+if(w < 1||w > 30||!is_user_connected(id))
 return;
 CsoSendWL(id,g_szWL[w],w);
-new fov = is_user_alive(id)? get_member(id,m_iFOV): 90;
+new fov=is_user_alive(id)? get_member(id,m_iFOV): 90;
 CsoFov(id,fov > 0 ? fov : 90);
-if(refresh && is_user_alive(id))
+if(refresh&&is_user_alive(id))
 {
-new clip,ammo,cw = get_user_weapon(id,clip,ammo);
-if(cw >= 1 && cw <= 30)
+new clip,ammo,cw=get_user_weapon(id,clip,ammo);
+if(cw>=1&&cw<=30)
 CsoCurW(id,cw,clip);
 }
 g_iCsoRestored++;
@@ -5976,29 +5976,29 @@ g_iCsoQn[id]= 0;
 }
 CsoFlushAll()
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
-if(g_iCsoCur[id]>= 0 || g_iCsoQn[id])
+if(g_iCsoCur[id]>= 0||g_iCsoQn[id])
 CsoClear(id);
 }
 }
 stock Float:CsoDur(note)
 {
-if(note == CN_TEN || note == CN_ARENA)
+if(note==CN_TEN||note==CN_ARENA)
 return 1.0;
 return(CSO_PRIO[note]<= 2)? floatclamp(get_pcvar_float(g_pCsoKmTime),0.5,5.0): floatclamp(get_pcvar_float(g_pCsoTime),1.0,6.0);
 }
 CsoQueue(id,note,arg)
 {
-new n = g_iCsoQn[id];
-if(n >= CSO_QMAX)
+new n=g_iCsoQn[id];
+if(n>=CSO_QMAX)
 {
 if(CSO_PRIO[g_iCsoQ[id][n - 1]]>= CSO_PRIO[note])
 return;
 n--;
 }
-new pos = n;
-while(pos > 0 && CSO_PRIO[g_iCsoQ[id][pos - 1]]< CSO_PRIO[note])
+new pos=n;
+while(pos > 0&&CSO_PRIO[g_iCsoQ[id][pos - 1]]< CSO_PRIO[note])
 {
 g_iCsoQ[id][pos]= g_iCsoQ[id][pos - 1];
 g_iCsoQA[id][pos]= g_iCsoQA[id][pos - 1];
@@ -6010,30 +6010,30 @@ g_iCsoQA[id][pos]= arg;
 g_fCsoQT[id][pos]= get_gametime();
 g_iCsoQn[id]= n + 1;
 }
-bool:CsoNotify(id,note,arg = 0)
+bool:CsoNotify(id,note,arg=0)
 {
 if(CsoNotifyImg(id,note,arg))
 return true;
 return VexNotify(id,note,arg);
 }
-bool:CsoNotifyImg(id,note,arg = 0)
+bool:CsoNotifyImg(id,note,arg=0)
 {
-if(id < 1 || id > g_iMax || note < 0 || note >= CN_TOTAL || !is_user_connected(id)||(g_iSet[id]& SET_NO_FX))
+if(id < 1||id > g_iMax||note < 0||note>=CN_TOTAL||!is_user_connected(id)||(g_iSet[id]& SET_NO_FX))
 return false;
 if(get_pcvar_num(g_pCsoLog))log_amx("[CSO] istek not=%d #%d on=%d dosya=%d bit=%d canli=%d",note,id,CsoOn(),g_bCsoFile[note],(CsoNotesMask533()& CSO_BIT[note])? 1 : 0,is_user_alive(id));
 if(!CsoOn()|| !g_bCsoFile[note]|| !(CsoNotesMask533()& CSO_BIT[note]))
 return false;
-if(g_bCsoC532 && note == CN_TEN && arg <= 0)
+if(g_bCsoC532&&note==CN_TEN&&arg<=0)
 return false;
-if(note == CN_ROUND &&(arg < 1 || arg > g_iCsoRounds))
+if(note==CN_ROUND &&(arg < 1||arg > g_iCsoRounds))
 return false;
 if(!is_user_alive(id)||(is_user_bot(id)&& !get_pcvar_num(g_pCsoBots)))
 return false;
-new clip,ammo,w = get_user_weapon(id,clip,ammo);
-if(w < 1 || w > 30 || !g_bWL[w])
+new clip,ammo,w=get_user_weapon(id,clip,ammo);
+if(w < 1||w > 30||!g_bWL[w])
 return false;
-new cur = g_iCsoCur[id];
-if((note == CN_TEN && cur == CN_TEN)|| note == CN_ARENA)
+new cur=g_iCsoCur[id];
+if((note==CN_TEN&&cur==CN_TEN)|| note==CN_ARENA)
 {
 CsoRestore(id,false);
 if(!CsoApply(id,note,arg,CsoDur(note),false))
@@ -6041,8 +6041,8 @@ return false;
 CsoSub(id,note,arg);
 return true;
 }
-new bool:km = CSO_PRIO[note]<= 2;
-if(cur >= 0 && CSO_PRIO[cur]> 2)
+new bool:km=CSO_PRIO[note]<= 2;
+if(cur>=0&&CSO_PRIO[cur]> 2)
 {
 if(km)
 CsoSound(id,note);
@@ -6060,7 +6060,7 @@ return true;
 CsoQueue(id,note,arg);
 return true;
 }
-if(cur >= 0)
+if(cur>=0)
 {
 if(CSO_PRIO[cur]> CSO_PRIO[note]&& g_fCsoEnd[id]- get_gametime()> 0.3)
 {
@@ -6069,15 +6069,15 @@ return true;
 }
 CsoRestore(id,false);
 }
-new bool:shown = CsoApply(id,note,arg,CsoDur(note),(note == CN_TEN || note == CN_ARENA)? false : true);
-if(shown && note == CN_TEN)
+new bool:shown=CsoApply(id,note,arg,CsoDur(note),(note==CN_TEN||note==CN_ARENA)? false : true);
+if(shown&&note==CN_TEN)
 CsoSub(id,note,arg);
 return shown;
 }
-stock CsoHudAll(note,arg,slot,r,g,b,Float:hold,const key[],iVal = 0)
+stock CsoHudAll(note,arg,slot,r,g,b,Float:hold,const key[],iVal=0)
 {
 #pragma unused slot, r, g, b, hold, key, iVal
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
@@ -6087,36 +6087,36 @@ CsoNotify(id,note,arg);
 CsoSub(id,note,arg)
 {
 if(g_bCsoC532)return;
-g_bCapLow532[id]= g_bCsoC532 && C532_FILE[note][0]!= 0;
+g_bCapLow532[id]= g_bCsoC532&&C532_FILE[note][0]!= 0;
 VexNotify(id,note,arg);
 g_bCapLow532[id]= false;
 }
 new g_iHpLvl533[33]={-1,...},g_iHpWpn533[33],g_pHpCard533;
 HpRestore533(id)
 {
-new w = g_iHpWpn533[id];
+new w=g_iHpWpn533[id];
 g_iHpLvl533[id]= -1;g_iHpWpn533[id]= 0;
-if(w < 1 || w > 30 || !is_user_connected(id)|| g_iCsoCur[id]>= 0)return;
+if(w < 1||w > 30||!is_user_connected(id)|| g_iCsoCur[id]>= 0)return;
 CsoSendWL(id,g_szWL[w],w);
-new fov = is_user_alive(id)? get_member(id,m_iFOV): 90;
+new fov=is_user_alive(id)? get_member(id,m_iFOV): 90;
 CsoFov(id,fov > 0 ? fov : 90);
-if(is_user_alive(id)){new clip,ammo,cw = get_user_weapon(id,clip,ammo);if(cw >= 1 && cw <= 30)CsoCurW(id,cw,clip);}
+if(is_user_alive(id)){new clip,ammo,cw=get_user_weapon(id,clip,ammo);if(cw>=1&&cw<=30)CsoCurW(id,cw,clip);}
 }
 BossHpTick533()
 {
-new boss = g_iBoss;
-new bool:fight = g_bHp533 && g_bCsoC532 && get_pcvar_num(g_pHpCard533)&& g_iMode == MODE_BOSS && boss >= 1 && boss <= g_iMax && is_user_alive(boss)&& !g_bRoundEnded;
-new lvl = 0;
-if(fight){new pct = floatround(Float:get_entvar(boss,var_health)* 100.0 / float(max(1,g_iBossMaxHP)),floatround_ceil);lvl = clamp((pct + 9)/ 10,0,10);}
-for(new id = 1;id <= g_iMax;id++)
+new boss=g_iBoss;
+new bool:fight=g_bHp533&&g_bCsoC532&&get_pcvar_num(g_pHpCard533)&& g_iMode==MODE_BOSS&&boss>=1&&boss<=g_iMax&&is_user_alive(boss)&& !g_bRoundEnded;
+new lvl=0;
+if(fight){new pct=floatround(Float:get_entvar(boss,var_health)* 100.0 / float(max(1,g_iBossMaxHP)),floatround_ceil);lvl=clamp((pct + 9)/ 10,0,10);}
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id)){g_iHpLvl533[id]= -1;continue;}
 if(g_iCsoCur[id]>= 0){g_iHpLvl533[id]= -1;g_iHpWpn533[id]= 0;continue;}
-new clip,ammo,w = is_user_alive(id)? get_user_weapon(id,clip,ammo): 0;
-new bool:want = fight && id != boss && is_user_alive(id)&& w >= 1 && w <= 30 && g_bWL[w]&& CsoFovOk(id)&& !(g_iSet[id]& SET_NO_FX)
-&& w != CSW_AWP && w != CSW_SCOUT && w != CSW_SG550 && w != CSW_G3SG1 && w != CSW_AUG && w != CSW_SG552;
+new clip,ammo,w=is_user_alive(id)? get_user_weapon(id,clip,ammo): 0;
+new bool:want=fight&&id!=boss&&is_user_alive(id)&& w>=1&&w<=30&&g_bWL[w]&& CsoFovOk(id)&& !(g_iSet[id]& SET_NO_FX)
+&& w!=CSW_AWP&&w!=CSW_SCOUT&&w!=CSW_SG550&&w!=CSW_G3SG1&&w!=CSW_AUG&&w!=CSW_SG552;
 if(!want){if(g_iHpLvl533[id]>= 0)HpRestore533(id);continue;}
-if(lvl == g_iHpLvl533[id]&& w == g_iHpWpn533[id])continue;
+if(lvl==g_iHpLvl533[id]&& w==g_iHpWpn533[id])continue;
 if(g_iHpWpn533[id]&& g_iHpWpn533[id]!= w)CsoSendWL(id,g_szWL[g_iHpWpn533[id]],g_iHpWpn533[id]);
 new nm[32];formatex(nm,charsmax(nm),"vexmira/%s/bh_%d",equal(g_szCsoDir,"c539")? "c539" : "c534",lvl);
 CsoFov(id,clamp(get_pcvar_num(g_pCsoFov),10,89));
@@ -6127,10 +6127,10 @@ g_iHpLvl533[id]= lvl;g_iHpWpn533[id]= w;
 public task_CsoTick()
 {
 BossHpTick533();
-new Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
-if(g_iCsoCur[id]< 0 && !g_iCsoQn[id])
+if(g_iCsoCur[id]< 0&&!g_iCsoQn[id])
 continue;
 if(!is_user_connected(id))
 {
@@ -6143,7 +6143,7 @@ if(!is_user_alive(id))
 CsoClear(id);
 continue;
 }
-new clip,ammo,w = get_user_weapon(id,clip,ammo);
+new clip,ammo,w=get_user_weapon(id,clip,ammo);
 if(g_iCsoCur[id]>= 0)
 {
 if(!CsoFovOk(id))
@@ -6151,11 +6151,11 @@ if(!CsoFovOk(id))
 CsoRestore(id);
 continue;
 }
-if(w != g_iCsoWpn[id])
+if(w!=g_iCsoWpn[id])
 {
-new note = g_iCsoCur[id],arg = g_iCsoArg[id];
-new Float:left = g_fCsoEnd[id]- now;
-new Float:el = now - g_fCsoStart[id],Float:tot = g_fCsoEnd[id]- g_fCsoStart[id];
+new note=g_iCsoCur[id],arg=g_iCsoArg[id];
+new Float:left=g_fCsoEnd[id]- now;
+new Float:el=now - g_fCsoStart[id],Float:tot=g_fCsoEnd[id]- g_fCsoStart[id];
 CsoRestore(id);
 if(left > 0.4)
 CsoApply(id,note,arg,tot,false,el);
@@ -6163,21 +6163,21 @@ continue;
 }
 if(now < g_fCsoEnd[id])
 {
-new frm = CsoFrameAt(g_iCsoCur[id],now - g_fCsoStart[id],g_fCsoEnd[id]- g_fCsoStart[id],g_iCsoFrm[id]);
-if(frm != g_iCsoFrm[id])
+new frm=CsoFrameAt(g_iCsoCur[id],now - g_fCsoStart[id],g_fCsoEnd[id]- g_fCsoStart[id],g_iCsoFrm[id]);
+if(frm!=g_iCsoFrm[id])
 CsoSendFrame(id,frm,w,clip);
 continue;
 }
 CsoRestore(id,g_iCsoQn[id]== 0);
 }
-while(g_iCsoQn[id]> 0 && g_iCsoCur[id]< 0)
+while(g_iCsoQn[id]> 0&&g_iCsoCur[id]< 0)
 {
 if(!CsoFovOk(id))
 break;
-new note = g_iCsoQ[id][0],arg = g_iCsoQA[id][0];
-new Float:qt = g_fCsoQT[id][0];
+new note=g_iCsoQ[id][0],arg=g_iCsoQA[id][0];
+new Float:qt=g_fCsoQT[id][0];
 g_iCsoQn[id]--;
-for(new k = 0;k < g_iCsoQn[id];k++)
+for(new k=0;k < g_iCsoQn[id];k++)
 {
 g_iCsoQ[id][k]= g_iCsoQ[id][k + 1];
 g_iCsoQA[id][k]= g_iCsoQA[id][k + 1];
@@ -6195,7 +6195,7 @@ break;
 }
 VexLocalizedAnnounce(id,const key[],r,g,b,Float:hold)
 {
-if(id < 1 || id > g_iMax || !is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX))return;
+if(id < 1||id > g_iMax||!is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX))return;
 new txt[192];
 LookupLangKey(txt,charsmax(txt),key,id);
 replace_all(txt,charsmax(txt),"%d","");replace_all(txt,charsmax(txt),"%s","");replace_all(txt,charsmax(txt),"%i","");
@@ -6216,7 +6216,7 @@ else copy(out,len,en);
 }
 VexPlainAnnounce(id,const en[],const tu[],r,g,b,Float:hold)
 {
-if(id < 1 || id > g_iMax || !is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX))return;
+if(id < 1||id > g_iMax||!is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX))return;
 VexCopy(g_szCsoOverride[id],charsmax(g_szCsoOverride[]),g_iLang[id]== 2,en,tu);
 VexNotify(id,CN_INFD,0);
 g_szCsoOverride[id][0]= 0;
@@ -6224,19 +6224,19 @@ g_szCsoOverride[id][0]= 0;
 }
 VexCountdown(id,seconds)
 {
-if(id < 1 || id > g_iMax || !is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX))return;
+if(id < 1||id > g_iMax||!is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX))return;
 if(g_iLang[id]== 2)
 formatex(g_szCsoOverride[id],charsmax(g_szCsoOverride[]),"TUR BASLAMASINA %d^nSAVASA HAZIR OL",seconds);
 else
 formatex(g_szCsoOverride[id],charsmax(g_szCsoOverride[]),"ROUND STARTS IN %d^nPREPARE FOR COMBAT",seconds);
-if(g_bCsoC532 && seconds >= 1 && seconds <= 10 && g_bModePicked47 && g_iMode == MODE_BOSS && g_bArB536 && g_iArHN536 > 0 && get_pcvar_num(g_pArenaTp536)&& g_bCsoFile[CN_ARENA])
+if(g_bCsoC532&&seconds>=1&&seconds<=10&&g_bModePicked47&&g_iMode==MODE_BOSS&&g_bArB536&&g_iArHN536 > 0&&get_pcvar_num(g_pArenaTp536)&& g_bCsoFile[CN_ARENA])
 {
 if(g_iLang[id]== 2)formatex(g_szCsoOverride[id],charsmax(g_szCsoOverride[]),"%d SANIYE SONRA BOSS ARENASINA ISINLANACAKSIN",seconds);
 else formatex(g_szCsoOverride[id],charsmax(g_szCsoOverride[]),"TELEPORT TO THE BOSS ARENA IN %d",seconds);
 CsoNotify(id,CN_ARENA,seconds);
 }
-else if(g_bCsoC532){if(seconds >= 1 && seconds <= 10)CsoNotify(id,CN_TEN,seconds);}
-else if(seconds <= 10 || !g_bCsoVex531)CsoNotify(id,CN_TEN,seconds);
+else if(g_bCsoC532){if(seconds>=1&&seconds<=10)CsoNotify(id,CN_TEN,seconds);}
+else if(seconds<=10||!g_bCsoVex531)CsoNotify(id,CN_TEN,seconds);
 else VexNotify(id,CN_TEN,seconds);
 g_szCsoOverride[id][0]= 0;
 }
@@ -6244,19 +6244,19 @@ new const CSO_ICON[][]={"","suithelmet_full","dmg_bio","dmg_rad","dmg_heat"};
 new const CSO_ICON_RGB[][3]={{0,0,0},{0,220,255},{120,255,40},{255,40,40},{255,200,60}};
 CsoRoleIcon(id)
 {
-new want = 0;
-if(CsoOn()&& get_pcvar_num(g_pCsoIcons)&& HudPartMode(g_pHudRight)!= 0 && is_user_alive(id))
+new want=0;
+if(CsoOn()&& get_pcvar_num(g_pCsoIcons)&& HudPartMode(g_pHudRight)!= 0&&is_user_alive(id))
 {
 if(g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id])
-want = 3;
+want=3;
 else if(g_bZombie[id])
-want = 2;
-else if(g_bSurvivor[id]|| g_bSniper[id]||(g_bLastAnn && !g_bZombie[id]))
-want = 4;
+want=2;
+else if(g_bSurvivor[id]|| g_bSniper[id]||(g_bLastAnn&&!g_bZombie[id]))
+want=4;
 else
-want = 1;
+want=1;
 }
-if(want == g_iCsoIcon[id])
+if(want==g_iCsoIcon[id])
 return;
 if(g_iCsoIcon[id]> 0)
 {
@@ -6279,13 +6279,13 @@ g_iCsoIcon[id]= want;
 }
 stock HudDecorate(slot,const text[],out[],len)
 {
-new nl = contain(text,"^n");
-if(slot != SL_ANN && slot != SL_ALERT)
+new nl=contain(text,"^n");
+if(slot!=SL_ANN&&slot!=SL_ALERT)
 {
 copy(out,len,text);
 return;
 }
-if(nl == -1)
+if(nl==-1)
 {
 formatex(out,len,"-=[  %s  ]=-",text);
 return;
@@ -6297,7 +6297,7 @@ formatex(out,len,"-=[  %s  ]=-^n%s",title,text[nl + 1]);
 stock SpaceOut(const src[],dst[],len)
 {
 new j;
-for(new i = 0;src[i]&& j < len - 2;i++)
+for(new i=0;src[i]&& j < len - 2;i++)
 {
 if(i)
 dst[j++]= ' ';
@@ -6307,7 +6307,7 @@ dst[j]= 0;
 }
 stock Translate(out[],len,const key[],id)
 {
-new target = id;
+new target=id;
 if(!LookupLangKey(out,len,key,target))
 copy(out,len,key);
 }
@@ -6335,10 +6335,10 @@ Translate(fmt,charsmax(fmt),key,id);
 vformat(msg,charsmax(msg),fmt,3);
 client_print_color(id,ChatColorFor(key),"%s %s",ChatTag(key),msg);
 }
-stock ChatAll(const key[],iVal = 0)
+stock ChatAll(const key[],iVal=0)
 {
-new c = ChatColorFor(key);
-for(new id = 1;id <= g_iMax;id++)
+new c=ChatColorFor(key);
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 client_print_color(id,c,"%s %L",ChatTag(key),id,key,iVal);
@@ -6346,8 +6346,8 @@ client_print_color(id,c,"%s %L",ChatTag(key),id,key,iVal);
 }
 stock ChatAllS(const key[],const sVal[])
 {
-new c = ChatColorFor(key);
-for(new id = 1;id <= g_iMax;id++)
+new c=ChatColorFor(key);
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 client_print_color(id,c,"%s %L",ChatTag(key),id,key,sVal);
@@ -6356,24 +6356,24 @@ client_print_color(id,c,"%s %L",ChatTag(key),id,key,sVal);
 BossHud(hp,pct)
 {
 new key[16],nm[32],spaced[64],ph[48],bar[48],hl[48],tag[32];
-pct = clamp(pct,0,100);
-new hr = 255,hg = 40 + 130 * pct / 100,hb = 0;
-if(g_bEnraged && g_iFrame % 2)
+pct=clamp(pct,0,100);
+new hr=255,hg=40 + 130 * pct / 100,hb=0;
+if(g_bEnraged&&g_iFrame % 2)
 {
-hr = 255;hg = 210;hb = 210;
+hr=255;hg=210;hb=210;
 }
 else if(g_bEnraged)
 {
 }
 formatex(key,charsmax(key),"BOSS_NAME_%d",g_iBossType);
 AsciiBar(bar,20,pct);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id)|| g_iHpLvl533[id]>= 0)
 continue;
 formatex(nm,charsmax(nm),"%L",id,key);
 SpaceOut(nm,spaced,charsmax(spaced));
-formatex(ph,charsmax(ph),"%L",id,g_bEnraged ? "BOSS_PH_RAGE" :(g_iBossPhase >= 3 ? "BOSS_PH_3" :(g_iBossPhase == 2 ? "BOSS_PH_2" : "BOSS_PH_1")));
+formatex(ph,charsmax(ph),"%L",id,g_bEnraged ? "BOSS_PH_RAGE" :(g_iBossPhase>=3 ? "BOSS_PH_3" :(g_iBossPhase==2 ? "BOSS_PH_2" : "BOSS_PH_1")));
 formatex(hl,charsmax(hl),"%L",id,"BOSS_HPLINE",hp,g_iBossMaxHP);
 tag[0]= 0;
 if(g_bFinalBoss)
@@ -6384,11 +6384,11 @@ show_dhudmessage(id,"%s%s   ::   %s^n[%s]   %d%%^n%s",tag,spaced,ph,bar,pct,hl);
 }
 stock AsciiBar(out[],segs,pct)
 {
-segs = clamp(segs,1,46);
-new full = clamp((pct * segs + 50)/ 100,0,segs);
-if(pct > 0 && full == 0)
-full = 1;
-for(new i = 0;i < segs;i++)
+segs=clamp(segs,1,46);
+new full=clamp((pct * segs + 50)/ 100,0,segs);
+if(pct > 0&&full==0)
+full=1;
+for(new i=0;i < segs;i++)
 out[i]=(i < full)? '|' : '.';
 out[segs]= 0;
 }
@@ -6403,8 +6403,8 @@ formatex(out,len,"%L",id,"HUD_READY");
 }
 DrawSpecInfo(id)
 {
-new target = get_entvar(id,var_iuser2);
-if(!(1 <= target <= g_iMax)|| target == id || !is_user_alive(target))
+new target=get_entvar(id,var_iuser2);
+if(!(1<=target<=g_iMax)|| target==id||!is_user_alive(target))
 return;
 new name[32],role[32],key[16];
 get_user_name(target,name,charsmax(name));
@@ -6441,20 +6441,20 @@ show_hudmessage(id,"%L",id,"SPEC_INFO",name,g_iLevel[target],role,floatround(Flo
 #define OVH_MAGIC 0x56584F48
 bool:OvhValid(ent,id)
 {
-return(ent > g_iMax && !is_nullent(ent)&& get_entvar(ent,var_iuser2)== OVH_MAGIC && get_entvar(ent,var_iuser1)== id)? true : false;
+return(ent > g_iMax&&!is_nullent(ent)&& get_entvar(ent,var_iuser2)== OVH_MAGIC&&get_entvar(ent,var_iuser1)== id)? true : false;
 }
 OvhInit()
 {
-for(new id = 0;id <= 32;id++)
+for(new id=0;id<=32;id++)
 {
 g_iOvhBar[id]= 0;g_iOvhEmb[id]= 0;g_iOvhIcon[id]= 0;
 g_iOvhBarType[id]= -1;g_iOvhIconType[id]= -1;
 }
-g_iOvhCount = 0;
-new ent = CreateSafe51("info_target");
+g_iOvhCount=0;
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 {
-g_iOvhCtl = 0;
+g_iOvhCtl=0;
 return;
 }
 set_entvar(ent,var_classname,OVH_CTL_CLASS);
@@ -6463,22 +6463,22 @@ set_entvar(ent,var_movetype,MOVETYPE_NONE);
 set_entvar(ent,var_effects,EF_NODRAW);
 SetThink(ent,"fw_OvhThink");
 set_entvar(ent,var_nextthink,get_gametime()+ 1.0);
-g_iOvhCtl = ent;
+g_iOvhCtl=ent;
 }
 public fw_OvhThink(ent)
 {
-if(ent != g_iOvhCtl || is_nullent(ent))
+if(ent!=g_iOvhCtl||is_nullent(ent))
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 set_entvar(ent,var_nextthink,now + 0.05);
 g_iOvhTick++;
-if(g_iOvhTick % 2 == 0)
+if(g_iOvhTick % 2==0)
 CmTick(now);
 new bool:on =(get_pcvar_num(g_pOvhEnable)&& HudPartMode(g_pHudOvh)!= 0)? true : false;
-g_bOvhSelf = get_pcvar_num(g_pOvhSelf)? true : false;
-if(g_iOvhTick % 5 == 0)
-g_iOvhHumans =(g_bRoundActive && !g_bRoundEnded)? CountHumans(true): 0;
-for(new id = 1;id <= g_iMax;id++)
+g_bOvhSelf=get_pcvar_num(g_pOvhSelf)? true : false;
+if(g_iOvhTick % 5==0)
+g_iOvhHumans =(g_bRoundActive&&!g_bRoundEnded)? CountHumans(true): 0;
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 {
@@ -6486,9 +6486,9 @@ if(g_iOvhBar[id]|| g_iOvhEmb[id]|| g_iOvhIcon[id])
 OvhRemove(id);
 continue;
 }
-if((g_iOvhTick + id)% 5 == 0)
+if((g_iOvhTick + id)% 5==0)
 OvhRefresh(id,on);
-if((g_iOvhTick + id)% 2 == 0 &&(g_iOvhBar[id]|| g_iOvhEmb[id]|| g_iOvhIcon[id]))
+if((g_iOvhTick + id)% 2==0 &&(g_iOvhBar[id]|| g_iOvhEmb[id]|| g_iOvhIcon[id]))
 OvhUpdate(id);
 if(g_bZombie[id]&&(g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]))
 VoiceTick(id,now);
@@ -6498,59 +6498,59 @@ g_fStepDist[id]= 0.0;
 }
 OvhRefresh(id,bool:on)
 {
-new barType = -1,icon = -1;
-new bool:alive = is_user_alive(id)? true : false;
-if(on && alive && !OvhHidden(id))
+new barType=-1,icon=-1;
+new bool:alive=is_user_alive(id)? true : false;
+if(on&&alive&&!OvhHidden(id))
 {
 if(!g_bRoundEnded)
 {
-if(g_bBoss[id]&& g_iBoss == id && g_szOvhSpr[OVS_BOSSBAR][0])
-barType = OVS_BOSSBAR;
+if(g_bBoss[id]&& g_iBoss==id&&g_szOvhSpr[OVS_BOSSBAR][0])
+barType=OVS_BOSSBAR;
 else if(g_bZombie[id]&& g_szOvhSpr[OVS_ZOMBIE47][0])
-barType = OVS_ZOMBIE47;
+barType=OVS_ZOMBIE47;
 else if(g_bZombie[id]&& g_szOvhSpr[OVS_SMALLBAR][0])
-barType = OVS_SMALLBAR;
+barType=OVS_SMALLBAR;
 }
 if(!g_bBoss[id])
-icon = OvhIconFor(id);
+icon=OvhIconFor(id);
 }
-if(barType != g_iOvhBarType[id]||(g_iOvhBar[id]&& !OvhValid(g_iOvhBar[id],id)))
+if(barType!=g_iOvhBarType[id]||(g_iOvhBar[id]&& !OvhValid(g_iOvhBar[id],id)))
 {
 OvhKill(g_iOvhBar[id]);
 g_iOvhSent[id]= -1;
 g_iOvhBar[id]= 0;
 g_iOvhBarType[id]= -1;
-if(barType >= 0)
+if(barType>=0)
 {
-new Float:w = get_pcvar_float(barType == OVS_BOSSBAR ? g_pBossBarW : g_pSmallBarW);
+new Float:w=get_pcvar_float(barType==OVS_BOSSBAR ? g_pBossBarW : g_pSmallBarW);
 g_iOvhBar[id]= OvhSpawn(id,barType,floatclamp(w,8.0,400.0)/ float(g_iOvhWidth[barType]));
 if(g_iOvhBar[id])
 g_iOvhBarType[id]= barType;
 }
 }
-new bool:wantEmb =(barType == OVS_BOSSBAR && g_szOvhSpr[OVS_BOSSICON][0])? true : false;
-if(g_iOvhEmb[id]&&(!wantEmb || !OvhValid(g_iOvhEmb[id],id)))
+new bool:wantEmb =(barType==OVS_BOSSBAR&&g_szOvhSpr[OVS_BOSSICON][0])? true : false;
+if(g_iOvhEmb[id]&&(!wantEmb||!OvhValid(g_iOvhEmb[id],id)))
 {
 OvhKill(g_iOvhEmb[id]);
 g_iOvhSent[id]= -1;
 g_iOvhEmb[id]= 0;
 }
-if(wantEmb && !g_iOvhEmb[id])
+if(wantEmb&&!g_iOvhEmb[id])
 {
-new sz = max(g_iOvhWidth[OVS_BOSSICON],g_iOvhHeight[OVS_BOSSICON]);
+new sz=max(g_iOvhWidth[OVS_BOSSICON],g_iOvhHeight[OVS_BOSSICON]);
 g_iOvhEmb[id]= OvhSpawn(id,OVS_BOSSICON,28.0 / float(max(1,sz)));
 if(g_iOvhEmb[id])
 set_entvar(g_iOvhEmb[id],var_frame,float(clamp(Ovh538(OVS_BOSSICON)? 12 + g_iBossType : g_iBossType,0,g_iOvhFrames[OVS_BOSSICON]- 1)));
 }
-if(icon != g_iOvhIconType[id]||(g_iOvhIcon[id]&& !OvhValid(g_iOvhIcon[id],id)))
+if(icon!=g_iOvhIconType[id]||(g_iOvhIcon[id]&& !OvhValid(g_iOvhIcon[id],id)))
 {
 OvhKill(g_iOvhIcon[id]);
 g_iOvhSent[id]= -1;
 g_iOvhIcon[id]= 0;
 g_iOvhIconType[id]= -1;
-if(icon >= 0)
+if(icon>=0)
 {
-new sz = max(g_iOvhWidth[icon],g_iOvhHeight[icon]);
+new sz=max(g_iOvhWidth[icon],g_iOvhHeight[icon]);
 g_iOvhIcon[id]= OvhSpawn(id,icon,floatclamp(get_pcvar_float(g_pIconSize),6.0,64.0)/ float(max(1,sz)));
 if(g_iOvhIcon[id])
 g_iOvhIconType[id]= icon;
@@ -6561,31 +6561,31 @@ stock bool:Ovh538(slot)return(contain(g_szOvhSpr[slot],"538")!= -1)? true : fals
 new Float:g_fOvhShown[33],Float:g_fOvhPrevHp[33],Float:g_fOvhFlash[33];
 Ovh538Frame(id,slot,Float:pct)
 {
-new Float:now = get_gametime();
-new Float:hp = Float:get_entvar(id,var_health);
+new Float:now=get_gametime();
+new Float:hp=Float:get_entvar(id,var_health);
 if(hp < g_fOvhPrevHp[id]- 0.5)g_fOvhFlash[id]= now + 0.25;
 g_fOvhPrevHp[id]= hp;
-if(g_fOvhShown[id]<= 0.0 || pct > g_fOvhShown[id])g_fOvhShown[id]= pct;
+if(g_fOvhShown[id]<= 0.0||pct > g_fOvhShown[id])g_fOvhShown[id]= pct;
 else g_fOvhShown[id]= floatmax(pct,g_fOvhShown[id]- 3.0);
-new p = clamp(floatround(g_fOvhShown[id]),0,100);
-if(pct > 0.0 && p < 1)p = 1;
-if(slot == OVS_BOSSBAR)return(g_fOvhFlash[id]> now)? 26 + p / 10 : p / 4;
+new p=clamp(floatround(g_fOvhShown[id]),0,100);
+if(pct > 0.0&&p < 1)p=1;
+if(slot==OVS_BOSSBAR)return(g_fOvhFlash[id]> now)? 26 + p / 10 : p / 4;
 return(g_fOvhFlash[id]> now)? 51 + p / 10 : p / 2;
 }
 OvhIconFor(id)
 {
-new bits = get_pcvar_num(g_pIcons);
+new bits=get_pcvar_num(g_pIcons);
 if(!bits)
 return -1;
-if((bits & OVH_ICONBIT_LAST)&& g_szOvhSpr[OVS_LAST][0]&& !g_bZombie[id]&& g_iOvhHumans == 1)
+if((bits & OVH_ICONBIT_LAST)&& g_szOvhSpr[OVS_LAST][0]&& !g_bZombie[id]&& g_iOvhHumans==1)
 return OVS_LAST;
-if((bits & OVH_ICONBIT_MVP)&& HudPartMode(g_pHudMvp)!= 0 && g_szOvhSpr[OVS_MVP][0]&& g_iRoundMvp == id)
+if((bits & OVH_ICONBIT_MVP)&& HudPartMode(g_pHudMvp)!= 0&&g_szOvhSpr[OVS_MVP][0]&& g_iRoundMvp==id)
 return OVS_MVP;
 if((bits & OVH_ICONBIT_ALPHA)&& g_szOvhSpr[OVS_ALPHA][0]&& g_bZombie[id]&& g_bAlpha[id])
 return OVS_ALPHA;
 if(g_bNemesis[id]|| g_bAssassin[id]|| g_bMinion[id])
 return -1;
-new flags = get_user_flags(id);
+new flags=get_user_flags(id);
 if((bits & OVH_ICONBIT_ADMIN)&& g_szOvhSpr[OVS_ADMIN][0]&&(flags & ADMIN_BAN))
 return OVS_ADMIN;
 if((bits & OVH_ICONBIT_VIP)&& g_szOvhSpr[OVS_VIP][0]&& IsVip(id))
@@ -6594,73 +6594,73 @@ return -1;
 }
 bool:OvhHidden(id)
 {
-new Float:now = get_gametime();
-if(g_bZombie[id]&&(g_fBurrow[id]> now || g_fDisguise[id]> now))
+new Float:now=get_gametime();
+if(g_bZombie[id]&&(g_fBurrow[id]> now||g_fDisguise[id]> now))
 return true;
 if(get_entvar(id,var_effects)& EF_NODRAW)
 return true;
-new mode = get_entvar(id,var_rendermode);
-if(mode != kRenderNormal && Float:get_entvar(id,var_renderamt)< 100.0)
+new mode=get_entvar(id,var_rendermode);
+if(mode!=kRenderNormal&&Float:get_entvar(id,var_renderamt)< 100.0)
 return true;
 return false;
 }
-MdlHeadTops(const name[],&Float:stand = 0.0,&Float:duck = 0.0)
+MdlHeadTops(const name[],&Float:stand=0.0,&Float:duck=0.0)
 {
 new Float:v[2];
 if(name[0]&& TrieGetArray(g_tMdlTop,name,v,2))
 {
-stand = v[0];
-duck = v[1];
+stand=v[0];
+duck=v[1];
 return;
 }
-stand = 36.0;
-duck = -1.0;
+stand=36.0;
+duck=-1.0;
 new path[128],fp;
 PlayerMdlPath540(name,path,charsmax(path));
-if(name[0]&&(fp = fopen(path,"rb",true)))
+if(name[0]&&(fp=fopen(path,"rb",true)))
 {
-new id,raw,Float:hdrTop,numseq,seqidx,Float:idle = -1.0,lab[32],Float:z;
+new id,raw,Float:hdrTop,numseq,seqidx,Float:idle=-1.0,lab[32],Float:z;
 fread(fp,id,BLOCK_INT);
-if(id == 0x54534449)
+if(id==0x54534449)
 {
 fseek(fp,108,SEEK_SET);
 fread(fp,raw,BLOCK_INT);
-hdrTop = Float:raw;
+hdrTop=Float:raw;
 fseek(fp,164,SEEK_SET);
 fread(fp,numseq,BLOCK_INT);
 fread(fp,seqidx,BLOCK_INT);
-numseq = clamp(numseq,0,512);
-new Float:tallest = -1.0,Float:eyeZ;
-fseek(fp,84,SEEK_SET);fread(fp,raw,BLOCK_INT);eyeZ = Float:raw;
-for(new i = 0;i < numseq;i++)
+numseq=clamp(numseq,0,512);
+new Float:tallest=-1.0,Float:eyeZ;
+fseek(fp,84,SEEK_SET);fread(fp,raw,BLOCK_INT);eyeZ=Float:raw;
+for(new i=0;i < numseq;i++)
 {
 fseek(fp,seqidx + i * 176,SEEK_SET);
 fread_blocks(fp,lab,32,BLOCK_CHAR);
 lab[31]= 0;
 fseek(fp,seqidx + i * 176 + 116,SEEK_SET);
 fread(fp,raw,BLOCK_INT);
-z = Float:raw;
-if(z < 4.0 || z > 400.0)
+z=Float:raw;
+if(z < 4.0||z > 400.0)
 continue;
-if(equali(lab,"idle1"))idle = z;
-else if(equali(lab,"crouch_idle"))duck = z;
-if(containi(lab,"crouch")!= -1 || containi(lab,"jump")!= -1 || containi(lab,"death")!= -1 || containi(lab,"die")!= -1 || containi(lab,"swim")!= -1 || containi(lab,"treadwater")!= -1)
+if(equali(lab,"idle1"))idle=z;
+else if(equali(lab,"crouch_idle"))duck=z;
+if(containi(lab,"crouch")!= -1||containi(lab,"jump")!= -1||containi(lab,"death")!= -1||containi(lab,"die")!= -1||containi(lab,"swim")!= -1||containi(lab,"treadwater")!= -1)
 continue;
-if(containi(lab,"idle")!= -1 || containi(lab,"walk")!= -1 || containi(lab,"run")!= -1 || containi(lab,"ref_")!= -1 || containi(lab,"shoot")!= -1)
-tallest = floatmax(tallest,z);
+if(containi(lab,"idle")!= -1||containi(lab,"walk")!= -1||containi(lab,"run")!= -1||containi(lab,"ref_")!= -1||containi(lab,"shoot")!= -1)
+tallest=floatmax(tallest,z);
 }
-if(hdrTop > 8.0 && hdrTop < 400.0 && floatabs(hdrTop - 36.0)> 0.5)
-stand = hdrTop;
+if(hdrTop > 8.0&&hdrTop < 400.0&&floatabs(hdrTop - 36.0)> 0.5)
+stand=hdrTop;
 else if(idle > 0.0)
-stand = idle;
-if(tallest > 0.0)stand = floatmax(stand,floatmin(tallest,(idle > 0.0 ? idle : stand)* 1.6));
-if(eyeZ > 8.0 && eyeZ < 300.0)stand = floatmax(stand,eyeZ + 8.0);
+stand=idle;
+if(tallest > 0.0)stand=floatmax(stand,floatmin(tallest,(idle > 0.0 ? idle : stand)* 1.6));
+if(eyeZ > 8.0&&eyeZ < 300.0)stand=floatmax(stand,eyeZ + 8.0);
 }
 fclose(fp);
 }
-if(duck <= 0.0)
-duck = floatmax(8.0,stand - 10.0);
-duck = floatmin(duck,stand);
+if(duck<=0.0)
+duck=floatmax(8.0,stand - 10.0);
+duck=floatmin(duck,stand);
 if(name[0])
 {
 v[0]= stand;
@@ -6672,12 +6672,12 @@ OvhModelTops(id)
 {
 new mdl[32];
 get_user_info(id,"model",mdl,charsmax(mdl));
-new Float:sc = Float:get_entvar(id,var_scale);
+new Float:sc=Float:get_entvar(id,var_scale);
 if(!equal(mdl,g_szOvhMdl[id])|| g_fOvhStand[id]<= 0.0)
 {
 copy(g_szOvhMdl[id],charsmax(g_szOvhMdl[]),mdl);
 MdlHeadTops(mdl,g_fOvhStand[id],g_fOvhDuck[id]);
-if(sc > 0.05 && floatabs(sc - 1.0)> 0.01)
+if(sc > 0.05&&floatabs(sc - 1.0)> 0.01)
 {
 g_fOvhStand[id]*= sc;
 g_fOvhDuck[id]*= sc;
@@ -6686,10 +6686,10 @@ g_fOvhDuck[id]*= sc;
 }
 Float:OvhTopOf(id)
 {
-if(!(1 <= id <= g_iMax))
+if(!(1<=id<=g_iMax))
 return 40.0;
 OvhModelTops(id);
-new Float:head = OverheadTop52(id);
+new Float:head=OverheadTop52(id);
 if(g_iOvhBar[id]|| g_iOvhEmb[id]|| g_iOvhIcon[id])
 return head + g_fOvhStackTop[id];
 return head + floatclamp(get_pcvar_float(g_pOvhMargin),0.0,64.0);
@@ -6698,10 +6698,10 @@ OvhSpawn(id,slot,Float:scale)
 {
 if(!g_szOvhSpr[slot][0])
 return 0;
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
-if(ent >= OVH_MAXENT)
+if(ent>=OVH_MAXENT)
 {
 set_entvar(ent,var_flags,FL_KILLME);
 return 0;
@@ -6713,7 +6713,7 @@ set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
 set_entvar(ent,var_iuser1,id);
 set_entvar(ent,var_iuser2,OVH_MAGIC);
 g_iOvhSent[id]= -1;
-if(1 <= id <= 32){g_fOvhShown[id]= 0.0;g_fOvhPrevHp[id]= Float:get_entvar(id,var_health);}
+if(1<=id<=32){g_fOvhShown[id]= 0.0;g_fOvhPrevHp[id]= Float:get_entvar(id,var_health);}
 set_entvar(ent,var_rendermode,g_iOvhMode[slot]);
 set_entvar(ent,var_renderamt,255.0);
 set_entvar(ent,var_rendercolor,Float:{255.0,255.0,255.0});
@@ -6732,7 +6732,7 @@ return ent;
 }
 OvhKill(ent)
 {
-if(ent > g_iMax && !is_nullent(ent))
+if(ent > g_iMax&&!is_nullent(ent))
 {
 if(get_entvar(ent,var_iuser2)== OVH_MAGIC)
 {
@@ -6740,7 +6740,7 @@ set_entvar(ent,var_iuser2,0);
 set_entvar(ent,var_movetype,MOVETYPE_NONE);
 set_entvar(ent,var_effects,EF_NODRAW);
 set_entvar(ent,var_flags,FL_KILLME);
-g_iOvhCount = max(0,g_iOvhCount - 1);
+g_iOvhCount=max(0,g_iOvhCount - 1);
 }
 }
 if(0 < ent < OVH_MAXENT)
@@ -6748,7 +6748,7 @@ g_iOvhOwn[ent]= 0;
 }
 OvhRemove(id)
 {
-if(!(0 < id <= 32))
+if(!(0 < id<=32))
 return;
 OvhKill(g_iOvhBar[id]);
 OvhKill(g_iOvhEmb[id]);
@@ -6759,10 +6759,10 @@ g_iOvhBarType[id]= -1;g_iOvhIconType[id]= -1;
 }
 OvhRemoveAll()
 {
-for(new id = 1;id <= 32;id++)
+for(new id=1;id<=32;id++)
 OvhRemove(id);
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",OVH_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",OVH_CLASS))> 0)
 {
 set_entvar(ent,var_iuser2,0);
 set_entvar(ent,var_movetype,MOVETYPE_NONE);
@@ -6772,7 +6772,7 @@ if(ent < OVH_MAXENT)
 g_iOvhOwn[ent]= 0;
 }
 arrayset(g_iOvhOwn,0,sizeof g_iOvhOwn);
-g_iOvhCount = 0;
+g_iOvhCount=0;
 }
 OvhUpdate(id)
 {
@@ -6781,106 +6781,106 @@ if(!is_user_alive(id))
 OvhRemove(id);
 return;
 }
-new bool:hidden = OvhHidden(id);
+new bool:hidden=OvhHidden(id);
 OvhModelTops(id);
-new frameNow = -1;
+new frameNow=-1;
 if(g_iOvhBar[id]&& g_iOvhBarType[id]>= 0)
 {
-new slot0 = g_iOvhBarType[id];
-new Float:hp0 = Float:get_entvar(id,var_health),Float:mx0;
-if(slot0 == OVS_BOSSBAR)
-mx0 = float(max(1,g_iBossMaxHP));
+new slot0=g_iOvhBarType[id];
+new Float:hp0=Float:get_entvar(id,var_health),Float:mx0;
+if(slot0==OVS_BOSSBAR)
+mx0=float(max(1,g_iBossMaxHP));
 else
-mx0 = floatmax(floatmax(Float:get_entvar(id,var_max_health),float(g_iMaxHP[id])),hp0);
-new last0 = max(0,g_iOvhFrames[slot0]- 1);
-frameNow = clamp(floatround(hp0 / floatmax(1.0,mx0)* float(last0)),0,last0);
-if(hp0 > 0.0 && frameNow < 1 && last0 > 0)
-frameNow = 1;
-if(slot0 == OVS_ZOMBIE47 ||(slot0 == OVS_BOSSBAR && g_iOvhFrames[slot0]== 104))
-frameNow = clamp(floatround(hp0 / floatmax(1.0,mx0)* 25.0),0,25)* 4 +((g_iOvhTick / 2)% 4);
+mx0=floatmax(floatmax(Float:get_entvar(id,var_max_health),float(g_iMaxHP[id])),hp0);
+new last0=max(0,g_iOvhFrames[slot0]- 1);
+frameNow=clamp(floatround(hp0 / floatmax(1.0,mx0)* float(last0)),0,last0);
+if(hp0 > 0.0&&frameNow < 1&&last0 > 0)
+frameNow=1;
+if(slot0==OVS_ZOMBIE47 ||(slot0==OVS_BOSSBAR&&g_iOvhFrames[slot0]== 104))
+frameNow=clamp(floatround(hp0 / floatmax(1.0,mx0)* 25.0),0,25)* 4 +((g_iOvhTick / 2)% 4);
 if(Ovh538(slot0))
-frameNow = min(Ovh538Frame(id,slot0,floatclamp(hp0 / floatmax(1.0,mx0)* 100.0,0.0,100.0)),g_iOvhFrames[slot0]- 1);
+frameNow=min(Ovh538Frame(id,slot0,floatclamp(hp0 / floatmax(1.0,mx0)* 100.0,0.0,100.0)),g_iOvhFrames[slot0]- 1);
 }
-new Float:gap = floatclamp(get_pcvar_float(g_pOvhGap),0.0,32.0);
-new Float:z = floatmax(14.0,floatclamp(get_pcvar_float(g_pOvhMargin),0.0,64.0));
+new Float:gap=floatclamp(get_pcvar_float(g_pOvhGap),0.0,32.0);
+new Float:z=floatmax(14.0,floatclamp(get_pcvar_float(g_pOvhMargin),0.0,64.0));
 new ents[3],n;
-new bar = g_iOvhBar[id];
-if(bar && !OvhValid(bar,id))
+new bar=g_iOvhBar[id];
+if(bar&&!OvhValid(bar,id))
 {
 g_iOvhBar[id]= 0;
-bar = 0;
+bar=0;
 }
 if(bar)
 {
-new Float:h = float(g_iOvhHeight[g_iOvhBarType[id]])* Float:get_entvar(bar,var_scale);
+new Float:h=float(g_iOvhHeight[g_iOvhBarType[id]])* Float:get_entvar(bar,var_scale);
 g_fOvhDz[bar]= z + h * 0.5;
-z += h + gap;
+z+=h + gap;
 ents[n++]= bar;
 }
-new emb = g_iOvhEmb[id];
-if(emb && !OvhValid(emb,id))
+new emb=g_iOvhEmb[id];
+if(emb&&!OvhValid(emb,id))
 {
 g_iOvhEmb[id]= 0;
-emb = 0;
+emb=0;
 }
 if(emb)
 {
-new Float:h = float(g_iOvhHeight[OVS_BOSSICON])* Float:get_entvar(emb,var_scale);
+new Float:h=float(g_iOvhHeight[OVS_BOSSICON])* Float:get_entvar(emb,var_scale);
 g_fOvhDz[emb]= z + h * 0.5;
-z += h + gap;
+z+=h + gap;
 ents[n++]= emb;
 }
-new icon = g_iOvhIcon[id];
-if(icon && !OvhValid(icon,id))
+new icon=g_iOvhIcon[id];
+if(icon&&!OvhValid(icon,id))
 {
 g_iOvhIcon[id]= 0;
-icon = 0;
+icon=0;
 }
 if(icon)
 {
-new slot = g_iOvhIconType[id];
-new Float:h = 16.0;
-if(slot >= 0)
-h = float(g_iOvhHeight[slot])* Float:get_entvar(icon,var_scale);
+new slot=g_iOvhIconType[id];
+new Float:h=16.0;
+if(slot>=0)
+h=float(g_iOvhHeight[slot])* Float:get_entvar(icon,var_scale);
 g_fOvhDz[icon]= z + h * 0.5;
-z += h + gap;
+z+=h + gap;
 ents[n++]= icon;
 }
 g_fOvhStackTop[id]= z;
 new Float:o[3],Float:p[3];
 get_entvar(id,var_origin,o);
-new Float:head = OverheadTop52(id);
-for(new i = 0;i < n;i++)
+new Float:head=OverheadTop52(id);
+for(new i=0;i < n;i++)
 {
 p[0]= o[0];
 p[1]= o[1];
 p[2]= o[2]+ head + g_fOvhDz[ents[i]];
 engfunc(EngFunc_SetOrigin,ents[i],p);
 }
-if(icon && g_iOvhIconType[id]>=0){new it=g_iOvhIconType[id];if(Ovh538(it)){static const IF538[OVS_TOTAL]={8,8,0,1,0,3,2,4,0,0};set_entvar(icon,var_frame,float(min(IF538[it],g_iOvhFrames[it]-1)));}else set_entvar(icon,var_frame,float((g_iOvhTick/2)%max(1,g_iOvhFrames[it])));}
+if(icon&&g_iOvhIconType[id]>=0){new it=g_iOvhIconType[id];if(Ovh538(it)){static const IF538[OVS_TOTAL]={8,8,0,1,0,3,2,4,0,0};set_entvar(icon,var_frame,float(min(IF538[it],g_iOvhFrames[it]-1)));}else set_entvar(icon,var_frame,float((g_iOvhTick/2)%max(1,g_iOvhFrames[it])));}
 new sig =(frameNow + 1)|(hidden ? 0x1000 : 0)|(bar << 13);
-if(sig == g_iOvhSent[id])
+if(sig==g_iOvhSent[id])
 return;
 g_iOvhSent[id]= sig;
 if(bar)
 set_entvar(bar,var_frame,float(max(0,frameNow)));
-for(new i = 0;i < n;i++)
+for(new i=0;i < n;i++)
 set_entvar(ents[i],var_effects,hidden ? EF_NODRAW : 0);
 }
 public fw_AddToFullPackPost(es,e,ent,host,hostflags,player,pSet)
 {
-if(g_iGiantEnt532 && get_orig_retval()&&(ent == g_iGiantEnt532 || ent == g_iBoss))
+if(g_iGiantEnt532&&get_orig_retval()&&(ent==g_iGiantEnt532||ent==g_iBoss))
 GiantPack532(es,ent,host);
-if(!player && ent < OVH_MAXENT && g_iMsMkOf[ent])
+if(!player&&ent < OVH_MAXENT&&g_iMsMkOf[ent])
 return MsMkPack(es,host);
-if(!player && ent > g_iMax && ent < OVH_MAXENT && g_iCmOwn[ent])
+if(!player&&ent > g_iMax&&ent < OVH_MAXENT&&g_iCmOwn[ent])
 return CmPack(es,ent,host);
-if(player || !g_iOvhCount || ent >= OVH_MAXENT || ent <= g_iMax)
+if(player||!g_iOvhCount||ent>=OVH_MAXENT||ent<=g_iMax)
 return FMRES_IGNORED;
-new id = g_iOvhOwn[ent];
-if(!id || !get_orig_retval())
+new id=g_iOvhOwn[ent];
+if(!id||!get_orig_retval())
 return FMRES_IGNORED;
-if(!g_bOvhSelf &&((host == id &&(!g_iCamera47[id]|| is_nullent(g_iCamera47[id])))||(get_entvar(host,var_iuser1)== 4 && get_entvar(host,var_iuser2)== id)))
+if(!g_bOvhSelf &&((host==id &&(!g_iCamera47[id]|| is_nullent(g_iCamera47[id])))||(get_entvar(host,var_iuser1)== 4&&get_entvar(host,var_iuser2)== id)))
 {
 set_es(es,ES_Effects,get_es(es,ES_Effects)| EF_NODRAW);
 return FMRES_IGNORED;
@@ -6915,23 +6915,23 @@ new g_szSkyRot531[8][32],g_iSkyRotN531,g_iSkyRotPos531;
 bool:VxIsSpecialWeapon531(id,weapon)
 {
 if(VxIndex(weapon)>= 0)return true;
-new imp = get_entvar(weapon,var_impulse);
-if(imp >= 5380 && imp < 5380 + 16)return true;
-new WeaponIdType:wid = get_member(weapon,m_iId);
+new imp=get_entvar(weapon,var_impulse);
+if(imp>=5380&&imp < 5380 + 16)return true;
+new WeaponIdType:wid=get_member(weapon,m_iId);
 static const GEAR_BASE[][2]={{1,_:WEAPON_M249},{2,_:WEAPON_AK47},{3,_:WEAPON_AWP},{4,_:WEAPON_M4A1},{5,_:WEAPON_M249},{6,_:WEAPON_M4A1}};
-for(new k = 0;k < sizeof GEAR_BASE;k++)
-if(_:wid == GEAR_BASE[k][1]&& ZcCall(GEAR_BASE[k][0],ZCOP_has,id))return true;
-if(ZcCall(ZC_MINIGUN,ZCOP_has,id)&& wid == WEAPON_M249)return true;
+for(new k=0;k < sizeof GEAR_BASE;k++)
+if(_:wid==GEAR_BASE[k][1]&& ZcCall(GEAR_BASE[k][0],ZCOP_has,id))return true;
+if(ZcCall(ZC_MINIGUN,ZCOP_has,id)&& wid==WEAPON_M249)return true;
 return false;
 }
 VxRefillReserve531(weapon)
 {
 if(!get_pcvar_num(g_pInfAmmo531)|| is_nullent(weapon))return;
-new id = get_member(weapon,m_pPlayer);
-if(!(1 <= id <= g_iMax)|| !is_user_alive(id)|| g_bZombie[id]|| VxIsSpecialWeapon531(id,weapon))return;
-new WeaponIdType:wid = get_member(weapon,m_iId);
-new mx = rg_get_weapon_info(wid,WI_MAX_ROUNDS);
-if(mx > 0 && rg_get_user_bpammo(id,wid)< mx)rg_set_user_bpammo(id,wid,mx);
+new id=get_member(weapon,m_pPlayer);
+if(!(1<=id<=g_iMax)|| !is_user_alive(id)|| g_bZombie[id]|| VxIsSpecialWeapon531(id,weapon))return;
+new WeaponIdType:wid=get_member(weapon,m_iId);
+new mx=rg_get_weapon_info(wid,WI_MAX_ROUNDS);
+if(mx > 0&&rg_get_user_bpammo(id,wid)< mx)rg_set_user_bpammo(id,wid,mx);
 }
 public VxHamReloadPre531(weapon){VxRefillReserve531(weapon);return HAM_IGNORED;}
 public VxReloadPre531(const weapon,iClipSize,iAnim,Float:fDelay){VxRefillReserve531(weapon);return HC_CONTINUE;}
@@ -6940,28 +6940,28 @@ PickSkyRotation()
 {
 new list[256],pos,tmp[32];
 copy(list,charsmax(list),GetResString("SKY_LIST",""));
-g_iSkyRotN531 = 0;
-while(g_iSkyRotN531 < sizeof g_szSkyRot531 &&(pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+g_iSkyRotN531=0;
+while(g_iSkyRotN531 < sizeof g_szSkyRot531 &&(pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 if(!tmp[0]|| !SkyExists(tmp)){if(tmp[0])log_amx("[Vexmira] gokyuzu dosyasi eksik: gfx/env/%s*.tga (atlandi)",tmp);continue;}
 copy(g_szSkyRot531[g_iSkyRotN531++],charsmax(g_szSkyRot531[]),tmp);
 }
 if(!g_iSkyRotN531)return;
-new per = clamp(str_to_num(GetResString("SKY_PER_MAP","3")),1,8);
+new per=clamp(str_to_num(GetResString("SKY_PER_MAP","3")),1,8);
 if(per < g_iSkyRotN531)
 {
 new info0[8];get_localinfo("vex_skywin",info0,charsmax(info0));
 new start =(str_to_num(info0)+ per)% g_iSkyRotN531;
 num_to_str(start,info0,charsmax(info0));set_localinfo("vex_skywin",info0);
 new tmp531[8][32];
-for(new k = 0;k < per;k++)copy(tmp531[k],charsmax(tmp531[]),g_szSkyRot531[(start + k)% g_iSkyRotN531]);
-for(new k = 0;k < per;k++)copy(g_szSkyRot531[k],charsmax(g_szSkyRot531[]),tmp531[k]);
-g_iSkyRotN531 = per;
+for(new k=0;k < per;k++)copy(tmp531[k],charsmax(tmp531[]),g_szSkyRot531[(start + k)% g_iSkyRotN531]);
+for(new k=0;k < per;k++)copy(g_szSkyRot531[k],charsmax(g_szSkyRot531[]),tmp531[k]);
+g_iSkyRotN531=per;
 }
 static const SIDE[][]={"up","dn","lf","rt","ft","bk"};
 new path[96];
-for(new k = 0;k < g_iSkyRotN531;k++)
-for(new i = 0;i < 6;i++)
+for(new k=0;k < g_iSkyRotN531;k++)
+for(new i=0;i < 6;i++)
 {
 formatex(path,charsmax(path),"gfx/env/%s%s.tga",g_szSkyRot531[k],SIDE[i]);
 PcGeneric(path);
@@ -6975,17 +6975,17 @@ log_amx("[Vexmira] gokyuzu rotasyonu: %d gokyuzu, bu harita %s ile basliyor",g_i
 }
 SkyNextRound531()
 {
-if(g_iSkyRotN531 < 2 || str_to_num(GetResString("SKY_MODE","1"))!= 3)return;
+if(g_iSkyRotN531 < 2||str_to_num(GetResString("SKY_MODE","1"))!= 3)return;
 g_iSkyRotPos531 =(g_iSkyRotPos531 + 1)% g_iSkyRotN531;
 copy(g_szSky,charsmax(g_szSky),g_szSkyRot531[g_iSkyRotPos531]);
 set_cvar_string("sv_skyname",g_szSky);
 }
 PickSky()
 {
-new mode = str_to_num(GetResString("SKY_MODE","1"));
-if(mode <= 0)
+new mode=str_to_num(GetResString("SKY_MODE","1"));
+if(mode<=0)
 return;
-if(mode == 3){PickSkyRotation();return;}
+if(mode==3){PickSkyRotation();return;}
 new own[32];
 get_cvar_string("sv_skyname",own,charsmax(own));
 if(own[0]&& !IsStockSky(own)&& SkyExists(own))
@@ -6996,7 +6996,7 @@ return;
 }
 new list[256],names[16][32],n,pos,tmp[32];
 copy(list,charsmax(list),GetResString("SKY_LIST",""));
-while(n < sizeof names &&(pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+while(n < sizeof names &&(pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 if(tmp[0]&& SkyExists(tmp))
 copy(names[n++],charsmax(names[]),tmp);
@@ -7006,11 +7006,11 @@ if(!n)
 log_amx("[Vexmira] SKY_LIST icindeki gokyuzleri sunucuda bulunamadi, haritanin kendi gokyuzu kullaniliyor.");
 return;
 }
-copy(g_szSky,charsmax(g_szSky),names[mode == 2 ? 0 : random(n)]);
+copy(g_szSky,charsmax(g_szSky),names[mode==2 ? 0 : random(n)]);
 set_cvar_string("sv_skyname",g_szSky);
 static const SIDE[][]={"up","dn","lf","rt","ft","bk"};
 new path[96];
-for(new i = 0;i < 6;i++)
+for(new i=0;i < 6;i++)
 {
 formatex(path,charsmax(path),"gfx/env/%s%s.tga",g_szSky,SIDE[i]);
 PcGeneric(path);
@@ -7024,7 +7024,7 @@ static const STOCK[][]=
 "snow","tornsky","trainyard","2desert","cliff","hav","dusk","neb6","xen9","alien1",
 "alien2","alien3","black","blue","grnplsnt"
 };
-for(new i = 0;i < sizeof STOCK;i++)
+for(new i=0;i < sizeof STOCK;i++)
 {
 if(equali(name,STOCK[i]))
 return true;
@@ -7035,7 +7035,7 @@ bool:SkyExists(const name[])
 {
 static const SIDE[][]={"up","dn","lf","rt","ft","bk"};
 new path[96];
-for(new i = 0;i < 6;i++)
+for(new i=0;i < 6;i++)
 {
 formatex(path,charsmax(path),"gfx/env/%s%s.tga",name,SIDE[i]);
 if(!file_exists(path,true))
@@ -7067,7 +7067,7 @@ static const FB[][]=
 "ZOMBIE_ACID","ZOMBIE_HEAL","ZOMBIE_BLINK","ZOMBIE_SHOCK","BOSS_ROAR","BOSS_SCREAM",
 "ZOMBIE_PAIN","ZOMBIE_DIE","ZOMBIE_IDLE"
 };
-for(new i = 0;i < sizeof FB;i++)
+for(new i=0;i < sizeof FB;i++)
 {
 if(equal(key,FB[i]))
 return true;
@@ -7078,10 +7078,10 @@ bool:IsKey2D(const key[])
 {
 if(equal(key,"UI_",3)|| containi(key,"_MUSIC")!= -1)
 return true;
-new len = strlen(key);
-if(len > 6 && equal(key[len - 6],"_INTRO"))
+new len=strlen(key);
+if(len > 6&&equal(key[len - 6],"_INTRO"))
 return true;
-for(new i = 0;i < sizeof SOUND_2D_KEYS;i++)
+for(new i=0;i < sizeof SOUND_2D_KEYS;i++)
 {
 if(equal(key,SOUND_2D_KEYS[i]))
 return true;
@@ -7097,15 +7097,15 @@ if(contain(path,"|")!= -1)
 {
 new src[256],tmp[96],pos,keep[256],one[96];
 copy(src,charsmax(src),path);
-for(new i = 0;src[i];i++)if(src[i]== '|')src[i]= ' ';
-while((pos = argparse(src,pos,tmp,charsmax(tmp)))!= -1)
+for(new i=0;src[i];i++)if(src[i]== '|')src[i]= ' ';
+while((pos=argparse(src,pos,tmp,charsmax(tmp)))!= -1)
 {
 if(!tmp[0])continue;
 copy(one,charsmax(one),tmp);
 new bool:ok;
-if(containi(one,".mp3")!= -1){PcGeneric(one);ok = true;}
-else if(twoD){formatex(full,charsmax(full),"sound/%s",one);if(file_exists(full,true)){PcGeneric(full);TrieSetCell(g_tSnd2D,one,1);ok = true;}}
-else ok = PcSound(one)? true : false;
+if(containi(one,".mp3")!= -1){PcGeneric(one);ok=true;}
+else if(twoD){formatex(full,charsmax(full),"sound/%s",one);if(file_exists(full,true)){PcGeneric(full);TrieSetCell(g_tSnd2D,one,1);ok=true;}}
+else ok=PcSound(one)? true : false;
 if(ok){if(keep[0])add(keep,charsmax(keep),"|");add(keep,charsmax(keep),one);}
 }
 TrieSetString(g_tRes,key,keep);
@@ -7137,9 +7137,9 @@ copy(low,charsmax(low),path);
 strtolower(low);
 if(TrieKeyExists(g_tSnd3D,path)|| TrieKeyExists(g_tSnd3D,low))
 return 1;
-if(g_iMySnd >= g_iSndBudget)
+if(g_iMySnd>=g_iSndBudget)
 {
-if(++g_iSndSkipped <= 8)
+if(++g_iSndSkipped<=8)
 log_amx("[Vexmira] Ses butcesi dolu (SOUND_BUDGET %d), atlandi: %s",g_iSndBudget,path);
 return 0;
 }
@@ -7148,7 +7148,7 @@ if(!file_exists(full,true)){log_amx("[VexAsset] Sound skipped (missing): %s",ful
 if(max(g_iTotSnd,g_iPcSnd)>=448){log_amx("[AssetGuard] sound reserve: %s",path);return 0;}
 new idx =(!VxPcOk531())? 0 : precache_sound(path);
 g_iMySnd++;
-g_iPcSnd = max(g_iPcSnd,idx);
+g_iPcSnd=max(g_iPcSnd,idx);
 TrieSetCell(g_tSnd3D,path,idx);
 if(!equal(low,path))
 TrieSetCell(g_tSnd3D,low,idx);
@@ -7158,7 +7158,7 @@ return 1;
 PcGeneric(const path[])
 {
 if(!AllowGeneric528(path))return;
-if(equal(path,"sound/",6)&& g_tSnd3D!=Invalid_Trie && TrieKeyExists(g_tSnd3D,path[6]))return;
+if(equal(path,"sound/",6)&& g_tSnd3D!=Invalid_Trie&&TrieKeyExists(g_tSnd3D,path[6]))return;
 if(g_tMdlDone==Invalid_Trie){log_amx("[VexInit] PcGeneric before cache initialization: %s",path);return;}
 if(!path[0]|| TrieKeyExists(g_tMdlDone,path))
 return;
@@ -7167,9 +7167,9 @@ TrieSetCell(g_tMdlDone,path,1);
 if(max(g_iTotGen,g_iPcGen)>=448){log_amx("[AssetGuard] download reserve: %s",path);return;}
 new idx =(!VxPcOk531())? 0 : precache_generic(path);
 g_iMyGen++;
-g_iPcGen = max(g_iPcGen,idx);
+g_iPcGen=max(g_iPcGen,idx);
 }
-PcModel(const path[],bool:optional = true)
+PcModel(const path[],bool:optional=true)
 {
 if(!AllowModel528(path))return 0;
 if(g_tMdlDone==Invalid_Trie){log_amx("[VexInit] PcModel before cache initialization: %s",path);return 0;}
@@ -7179,9 +7179,9 @@ if(strlen(path)> 62){log_to_file("vexmira_modelguard.log","ENGELLENDI %s -> yol 
 new idx;
 if(TrieGetCell(g_tMdlDone,path,idx))
 return idx;
-if(optional && g_iMyMdl >= g_iMdlBudget)
+if(optional&&g_iMyMdl>=g_iMdlBudget)
 {
-if(++g_iMdlSkipped <= 8)
+if(++g_iMdlSkipped<=8)
 log_amx("[Vexmira] Model butcesi dolu (MODEL_BUDGET %d), atlandi: %s",g_iMdlBudget,path);
 return 0;
 }
@@ -7190,14 +7190,14 @@ if(max(g_iTotMdl,g_iPcMdl)>=448){log_amx("[AssetGuard] model reserve: %s",path);
 idx =(!VxPcOk531())? 0 : precache_model(path);
 RegisterTexture530(path);
 g_iMyMdl++;
-g_iPcMdl = max(g_iPcMdl,idx);
+g_iPcMdl=max(g_iPcMdl,idx);
 TrieSetCell(g_tMdlDone,path,idx);
 return idx;
 }
 bool:AnyClassLacks(const ev[])
 {
 new key[24],tmp[8];
-for(new i = 0;i < NUM_CLASSES;i++)
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(key,charsmax(key),"Z%d_%s",i,ev);
 if(!TrieGetString(g_tRes,key,tmp,charsmax(tmp))|| !tmp[0])
@@ -7208,39 +7208,39 @@ return false;
 new g_iSndBlocked;
 public fw_PcSoundPost(const s[])
 {
-g_iTotSnd = max(g_iTotSnd,get_orig_retval());
+g_iTotSnd=max(g_iTotSnd,get_orig_retval());
 return FMRES_IGNORED;
 }
 public fw_PcModelPost(const s[])
 {
-g_iTotMdl = max(g_iTotMdl,get_orig_retval());
+g_iTotMdl=max(g_iTotMdl,get_orig_retval());
 if(get_orig_retval()> 0)VxPcRemember(s);
 return FMRES_IGNORED;
 }
 public fw_PcGenericPost(const s[])
 {
-g_iTotGen = max(g_iTotGen,get_orig_retval());
+g_iTotGen=max(g_iTotGen,get_orig_retval());
 return FMRES_IGNORED;
 }
 PrecacheReportTotals()
 {
-g_iSndBlocked = vxe_unprecache_count(0);
+g_iSndBlocked=vxe_unprecache_count(0);
 log_amx("[Vexmira] unprecacher: kullanilmayan stok ses %d + model %d engellendi",g_iSndBlocked,vxe_unprecache_count(1));
-if(g_iFwPcSnd){unregister_forward(FM_PrecacheSound,g_iFwPcSnd,1);g_iFwPcSnd = 0;}
-if(g_iFwPcMdl){unregister_forward(FM_PrecacheModel,g_iFwPcMdl,1);g_iFwPcMdl = 0;}
-if(g_iFwPcGen){unregister_forward(FM_PrecacheGeneric,g_iFwPcGen,1);g_iFwPcGen = 0;}
-g_iTotSnd = max(g_iTotSnd,g_iPcSnd);
-g_iTotMdl = max(g_iTotMdl,g_iPcMdl);
-g_iTotGen = max(g_iTotGen,g_iPcGen);
+if(g_iFwPcSnd){unregister_forward(FM_PrecacheSound,g_iFwPcSnd,1);g_iFwPcSnd=0;}
+if(g_iFwPcMdl){unregister_forward(FM_PrecacheModel,g_iFwPcMdl,1);g_iFwPcMdl=0;}
+if(g_iFwPcGen){unregister_forward(FM_PrecacheGeneric,g_iFwPcGen,1);g_iFwPcGen=0;}
+g_iTotSnd=max(g_iTotSnd,g_iPcSnd);
+g_iTotMdl=max(g_iTotMdl,g_iPcMdl);
+g_iTotGen=max(g_iTotGen,g_iPcGen);
 log_amx("[Vexmira] precache toplam (oyun + harita dahil): sound=%d/512 model=%d/512 generic=%d (motor havuzu; 512 sayacina dahil degil)",g_iTotSnd,g_iTotMdl,g_iTotGen);
-if(g_iTotSnd > 480 || g_iTotMdl > 480)
+if(g_iTotSnd > 480||g_iTotMdl > 480)
 log_amx("[Vexmira] UYARI: precache limitine yakin! vexmira.cfg: vex_res SOUND_BUDGET / MODEL_BUDGET / BOSS_PRELOAD dusur.");
 }
 public srv_PrecacheStats()
 {
-server_print("[ModelGuard] hook=%d kayitli model=%d v_ak47=%d p_fgrenade=%d",g_bPcHook531,g_tPcAll531 != Invalid_Trie ? TrieGetSize(g_tPcAll531): -1,VxModelOk("models/v_ak47.mdl"),VxModelOk("models/p_fgrenade.mdl"));
+server_print("[ModelGuard] hook=%d kayitli model=%d v_ak47=%d p_fgrenade=%d",g_bPcHook531,g_tPcAll531!=Invalid_Trie ? TrieGetSize(g_tPcAll531): -1,VxModelOk("models/v_ak47.mdl"),VxModelOk("models/p_fgrenade.mdl"));
 new list[96],nm[16];
-for(new i = 0;i < g_iBossLoadN;i++)
+for(new i=0;i < g_iBossLoadN;i++)
 {
 formatex(nm,charsmax(nm),"%s%s",i ? ", " : "",BOSS_FILE[g_iBossLoadList[i]]);
 add(list,charsmax(list),nm);
@@ -7253,7 +7253,7 @@ server_print("[Vexmira] yuklenen bosslar (%d): %s",g_iBossLoadN,list[0]? list : 
 server_print("[Vexmira] engellenen stok ses: %d  |  ortam sesi (ambient_generic) kaydi: %d, yeniden baslatma: %d",
 g_iSndBlocked,g_iAmbN,g_iAmbRestored);
 new ovh[160];
-for(new i = 0;i < OVS_TOTAL;i++)
+for(new i=0;i < OVS_TOTAL;i++)
 {
 if(g_szOvhSpr[i][0])
 {
@@ -7263,7 +7263,7 @@ add(ovh,charsmax(ovh),nm);
 }
 server_print("[Vexmira] kafa ustu sprite'lar (tur:GxYxKare):%s",ovh[0]? ovh : " yok");
 new live,bars,icons;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(g_iOvhBar[id])
 {
@@ -7280,71 +7280,71 @@ return PLUGIN_HANDLED;
 }
 PlanBossLoad()
 {
-g_iBossLoadN = 0;
-for(new b = 0;b < NUM_BOSSES;b++)
+g_iBossLoadN=0;
+for(new b=0;b < NUM_BOSSES;b++)
 g_bBossLoaded[b]= false;
-new maxN = clamp(str_to_num(GetResString("BOSS_PRELOAD","4")),1,NUM_BOSSES);
+new maxN=clamp(str_to_num(GetResString("BOSS_PRELOAD","4")),1,NUM_BOSSES);
 new list[64],tmp[8],pos;
 copy(list,charsmax(list),GetResString("BOSS_PRELOAD_LIST",""));
-while(g_iBossLoadN < maxN &&(pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+while(g_iBossLoadN < maxN &&(pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 if(!isdigit(tmp[0]))
 continue;
-new b = str_to_num(tmp);
-if(b < 0 || b >= NUM_BOSSES || g_bBossLoaded[b])
+new b=str_to_num(tmp);
+if(b < 0||b>=NUM_BOSSES||g_bBossLoaded[b])
 continue;
 g_bBossLoaded[b]= true;
 g_iBossLoadList[g_iBossLoadN++]= b;
 }
 if(!g_iBossLoadN)
 {
-new need = maxN;
+new need=maxN;
 new info[16];
 get_localinfo("vex_bossrot",info,charsmax(info));
-new used = str_to_num(info)&((1 << NUM_BOSSES)- 1);
+new used=str_to_num(info)&((1 << NUM_BOSSES)- 1);
 new cand[NUM_BOSSES],nc;
-for(new b = 0;b < NUM_BOSSES;b++)
+for(new b=0;b < NUM_BOSSES;b++)
 {
 if(!(used &(1 << b)))
 cand[nc++]= b;
 }
-while(g_iBossLoadN < need && nc > 0)
+while(g_iBossLoadN < need&&nc > 0)
 {
-new r = random(nc),b = cand[r];
+new r=random(nc),b=cand[r];
 cand[r]= cand[--nc];
 g_bBossLoaded[b]= true;
 g_iBossLoadList[g_iBossLoadN++]= b;
 }
 if(g_iBossLoadN < need)
 {
-used = 0;
-nc = 0;
-for(new b = 0;b < NUM_BOSSES;b++)
+used=0;
+nc=0;
+for(new b=0;b < NUM_BOSSES;b++)
 {
 if(!g_bBossLoaded[b])
 cand[nc++]= b;
 }
-while(g_iBossLoadN < need && nc > 0)
+while(g_iBossLoadN < need&&nc > 0)
 {
-new r = random(nc),b = cand[r];
+new r=random(nc),b=cand[r];
 cand[r]= cand[--nc];
 g_bBossLoaded[b]= true;
 g_iBossLoadList[g_iBossLoadN++]= b;
 }
 }
-for(new i = 0;i < g_iBossLoadN;i++)
+for(new i=0;i < g_iBossLoadN;i++)
 used |=(1 << g_iBossLoadList[i]);
 num_to_str(used,info,charsmax(info));
 set_localinfo("vex_bossrot",info);
 }
-g_iBossBagPos = NUM_BOSSES;
+g_iBossBagPos=NUM_BOSSES;
 }
 BossClearKeys(b)
 {
 static const EV[][]={"INTRO","IDLE","PAIN","PAIN2","DEATH","STEP","ATTACK","PHASE","KILL","R1","R2","R3",
 "SPAWN","ROAR","SCREAM","ABILITY","MUSIC"};
 new key[24];
-for(new e = 0;e < sizeof EV;e++)
+for(new e=0;e < sizeof EV;e++)
 {
 formatex(key,charsmax(key),"B%d_%s",b,EV[e]);
 TrieSetString(g_tRes,key,"");
@@ -7352,24 +7352,24 @@ TrieSetString(g_tRes,key,"");
 }
 bool:BossIsLoaded(b)
 {
-return(0 <= b < NUM_BOSSES && g_bBossLoaded[b])? true : false;
+return(0<=b < NUM_BOSSES&&g_bBossLoaded[b])? true : false;
 }
 LoadHumanModels()
 {
 new list[512],tmp[128],pos,out[32];
-g_iHumanModelN = 0;
+g_iHumanModelN=0;
 copy(list,charsmax(list),GetResString("HUMAN_MODELS",""));
 add(list,charsmax(list)," ");
 add(list,charsmax(list),GetResString("HUMAN_MODEL",""));
-while(g_iHumanModelN < MAX_HMODELS &&(pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+while(g_iHumanModelN < MAX_HMODELS &&(pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 if(!tmp[0])
 continue;
 new dup;
-for(new i = 0;i < g_iHumanModelN;i++)
+for(new i=0;i < g_iHumanModelN;i++)
 {
 if(equali(g_szHumanModels[i],tmp))
-dup = 1;
+dup=1;
 }
 if(dup)
 continue;
@@ -7414,7 +7414,7 @@ if(!g_szMineModel[0]&& file_exists("models/w_c4.mdl",true))
 copy(g_szMineModel,charsmax(g_szMineModel),"models/w_c4.mdl");
 PcModel(g_szMineModel,false);
 }
-g_iMineModelIndex = g_szMineModel[0]?(VxModelOk(g_szMineModel)? engfunc(EngFunc_ModelIndex,g_szMineModel): 0): 0;
+g_iMineModelIndex=g_szMineModel[0]?(VxModelOk(g_szMineModel)? engfunc(EngFunc_ModelIndex,g_szMineModel): 0): 0;
 if(!g_iMineModelIndex)
 {
 log_amx("[Vexmira] Laser model was not precached; planting is safely disabled: %s",g_szMineModel);
@@ -7431,36 +7431,36 @@ copy(g_szMineHumanModel,charsmax(g_szMineHumanModel),g_szMineModel);
 GetFileModel("LASERMINE_MODEL_ZOMBIE",g_szMineZombieModel,charsmax(g_szMineZombieModel));
 if(!g_szMineZombieModel[0])
 copy(g_szMineZombieModel,charsmax(g_szMineZombieModel),g_szMineModel);
-g_iMineHumanModelIndex = g_szMineHumanModel[0]?(VxModelOk(g_szMineHumanModel)? engfunc(EngFunc_ModelIndex,g_szMineHumanModel): 0): 0;
-g_iMineZombieModelIndex = g_szMineZombieModel[0]?(VxModelOk(g_szMineZombieModel)? engfunc(EngFunc_ModelIndex,g_szMineZombieModel): 0): 0;
+g_iMineHumanModelIndex=g_szMineHumanModel[0]?(VxModelOk(g_szMineHumanModel)? engfunc(EngFunc_ModelIndex,g_szMineHumanModel): 0): 0;
+g_iMineZombieModelIndex=g_szMineZombieModel[0]?(VxModelOk(g_szMineZombieModel)? engfunc(EngFunc_ModelIndex,g_szMineZombieModel): 0): 0;
 if(!g_iMineHumanModelIndex)
 {
 log_amx("[Vexmira] Human laser model unavailable; using shared model: %s",g_szMineModel);
 copy(g_szMineHumanModel,charsmax(g_szMineHumanModel),g_szMineModel);
-g_iMineHumanModelIndex = g_iMineModelIndex;
+g_iMineHumanModelIndex=g_iMineModelIndex;
 }
 if(!g_iMineZombieModelIndex)
 {
 log_amx("[Vexmira] Zombie laser model unavailable; using shared model: %s",g_szMineModel);
 copy(g_szMineZombieModel,charsmax(g_szMineZombieModel),g_szMineModel);
-g_iMineZombieModelIndex = g_iMineModelIndex;
+g_iMineZombieModelIndex=g_iMineModelIndex;
 }
 new bool:tripmine =(containi(g_szMineModel,"tripmine")!= -1)? true : false;
 new bool:c4 =(containi(g_szMineModel,"w_c4")!= -1)? true : false;
-new bool:fellBack = !equal(cfgModel,g_szMineModel);
+new bool:fellBack=!equal(cfgModel,g_szMineModel);
 new seq[24];
-g_iMineBody =(fellBack || tripmine)?(tripmine ? 3 : 0): str_to_num(GetResString("LASERMINE_BODY","0"));
+g_iMineBody =(fellBack||tripmine)?(tripmine ? 3 : 0): str_to_num(GetResString("LASERMINE_BODY","0"));
 copy(seq,charsmax(seq),tripmine ? "world" :(fellBack ? "0" : GetResString("LASERMINE_SEQUENCE","idle")));
 g_szMineSeqName[0]= 0;
 if(isdigit(seq[0]))
-g_iMineSeq = str_to_num(seq);
+g_iMineSeq=str_to_num(seq);
 else
 {
-g_iMineSeq = tripmine ? 7 : 0;
+g_iMineSeq=tripmine ? 7 : 0;
 copy(g_szMineSeqName,charsmax(g_szMineSeqName),seq);
 }
-copy(g_szMineDeploySeq,charsmax(g_szMineDeploySeq),(fellBack || tripmine)? "" : GetResString("LASERMINE_DEPLOY_SEQ","deploy"));
-g_iMineSkin =(fellBack || tripmine)? 0 : str_to_num(GetResString("LASERMINE_SKIN","0"));
+copy(g_szMineDeploySeq,charsmax(g_szMineDeploySeq),(fellBack||tripmine)? "" : GetResString("LASERMINE_DEPLOY_SEQ","deploy"));
+g_iMineSkin =(fellBack||tripmine)? 0 : str_to_num(GetResString("LASERMINE_SKIN","0"));
 MinePreset(tripmine,c4,fellBack);
 copy(cfgModel,charsmax(cfgModel),GetResString("AIRDROP_MODEL",""));
 GetFileModel("AIRDROP_MODEL",g_szDropModel,charsmax(g_szDropModel));
@@ -7469,9 +7469,9 @@ if(!g_szDropModel[0]&& file_exists("models/w_weaponbox.mdl",true))
 copy(g_szDropModel,charsmax(g_szDropModel),"models/w_weaponbox.mdl");
 PcModel(g_szDropModel,false);
 }
-fellBack = !equal(cfgModel,g_szDropModel);
-g_iDropBodyChute = fellBack ? 0 : str_to_num(GetResString("AIRDROP_BODY_CHUTE","1"));
-g_iDropBodyLanded = fellBack ? 0 : str_to_num(GetResString("AIRDROP_BODY_LANDED","0"));
+fellBack=!equal(cfgModel,g_szDropModel);
+g_iDropBodyChute=fellBack ? 0 : str_to_num(GetResString("AIRDROP_BODY_CHUTE","1"));
+g_iDropBodyLanded=fellBack ? 0 : str_to_num(GetResString("AIRDROP_BODY_LANDED","0"));
 copy(g_szDropSeqFall,charsmax(g_szDropSeqFall),fellBack ? "" : GetResString("AIRDROP_SEQ_FALL","fall"));
 copy(g_szDropSeqIdle,charsmax(g_szDropSeqIdle),fellBack ? "" : GetResString("AIRDROP_SEQ_IDLE","idle"));
 GetFileModel("EGG_MODEL",g_szEggModel,charsmax(g_szEggModel));
@@ -7487,7 +7487,7 @@ g_iOvhFrames[slot]= 1;
 g_iOvhWidth[slot]= 64;
 g_iOvhHeight[slot]= 16;
 g_iOvhMode[slot]= kRenderTransAlpha;
-new fp = fopen(g_szOvhSpr[slot],"rb",true);
+new fp=fopen(g_szOvhSpr[slot],"rb",true);
 if(!fp)
 return;
 new ident,ver,type,fmt,radius,w,h,frames;
@@ -7500,7 +7500,7 @@ fread(fp,w,BLOCK_INT);
 fread(fp,h,BLOCK_INT);
 fread(fp,frames,BLOCK_INT);
 fclose(fp);
-if(ident != 0x50534449)
+if(ident!=0x50534449)
 return;
 g_iOvhFrames[slot]= clamp(frames,1,256);
 g_iOvhWidth[slot]= clamp(w,1,1024);
@@ -7524,35 +7524,35 @@ if(TrieKeyExists(g_tSndInfo,snd))
 return;
 new full[160],info;
 formatex(full,charsmax(full),"sound/%s",snd);
-new fp = fopen(full,"rb",true);
+new fp=fopen(full,"rb",true);
 if(fp)
 {
 new id,size,tmp,rate,byterate,datalen,bool:loop,guard;
 fread(fp,id,BLOCK_INT);
 fread(fp,size,BLOCK_INT);
 fread(fp,tmp,BLOCK_INT);
-if(id == WAV_RIFF && tmp == WAV_WAVE)
+if(id==WAV_RIFF&&tmp==WAV_WAVE)
 {
 while(!feof(fp)&& guard++ < 64)
 {
-if(fread(fp,id,BLOCK_INT)!= 1 || fread(fp,size,BLOCK_INT)!= 1 || size < 0)
+if(fread(fp,id,BLOCK_INT)!= 1||fread(fp,size,BLOCK_INT)!= 1||size < 0)
 break;
-if(id == WAV_FMT && size >= 16)
+if(id==WAV_FMT&&size>=16)
 {
 fread(fp,tmp,BLOCK_INT);
 fread(fp,rate,BLOCK_INT);
 fread(fp,byterate,BLOCK_INT);
 fseek(fp,size - 12,SEEK_CUR);
 }
-else if(id == WAV_DATA)
+else if(id==WAV_DATA)
 {
-datalen = size;
+datalen=size;
 fseek(fp,size,SEEK_CUR);
 }
 else
 {
-if(id == WAV_CUE)
-loop = true;
+if(id==WAV_CUE)
+loop=true;
 fseek(fp,size,SEEK_CUR);
 }
 if(size & 1)
@@ -7602,7 +7602,7 @@ if(!file_exists(path,true))
 log_amx("[Vexmira] Sprite bulunamadi: %s (%s) - orijinal efekt kullanilacak",path,key);
 return 0;
 }
-new idx = PcModel(path);
+new idx=PcModel(path);
 if(idx)
 copy(out,len,path);
 return idx;
@@ -7610,40 +7610,40 @@ return idx;
 GetResString(const key[],const def[])
 {
 static out[256];
-if(g_tRes == Invalid_Trie || !TrieGetString(g_tRes,key,out,charsmax(out))|| !out[0])
+if(g_tRes==Invalid_Trie||!TrieGetString(g_tRes,key,out,charsmax(out))|| !out[0])
 copy(out,charsmax(out),def);
 return out;
 }
-new Float:g_fBossScale531 = 1.0;
+new Float:g_fBossScale531=1.0;
 #define GM_OK(%1) (%1)
 GiantRemove532()
 {
-if(g_iGiantEnt532 && pev_valid(g_iGiantEnt532))engfunc(EngFunc_RemoveEntity,g_iGiantEnt532);
-g_iGiantEnt532 = 0;g_iGiantSeq532 = -1;
+if(g_iGiantEnt532&&pev_valid(g_iGiantEnt532))engfunc(EngFunc_RemoveEntity,g_iGiantEnt532);
+g_iGiantEnt532=0;g_iGiantSeq532=-1;
 }
 public GiantFrame532()
 {
-if(g_iGiantMode532 != 1 || g_fBossScale531 <= 1.01){if(g_iGiantEnt532)GiantRemove532();return;}
-new id = g_iBoss;
-new bool:have = g_iGiantEnt532 && pev_valid(g_iGiantEnt532);
-if(!(g_iMode == MODE_BOSS && id >= 1 && id <= g_iMax && is_user_connected(id)&& g_iBossType >= 0 && g_iBossType < NUM_BOSSES && g_szBModel[g_iBossType][0]
+if(g_iGiantMode532!=1||g_fBossScale531<=1.01){if(g_iGiantEnt532)GiantRemove532();return;}
+new id=g_iBoss;
+new bool:have=g_iGiantEnt532&&pev_valid(g_iGiantEnt532);
+if(!(g_iMode==MODE_BOSS&&id>=1&&id<=g_iMax&&is_user_connected(id)&& g_iBossType>=0&&g_iBossType < NUM_BOSSES&&g_szBModel[g_iBossType][0]
 &&((is_user_alive(id)&& g_bBoss[id])|| have)))
 {
 if(g_iGiantEnt532)GiantRemove532();
 return;
 }
-new ent = g_iGiantEnt532;
+new ent=g_iGiantEnt532;
 if(!is_user_alive(id))
 {
-new dseq = get_entvar(id,var_sequence);
-if(dseq != g_iGiantSeq532){g_iGiantSeq532 = dseq;set_entvar(ent,var_sequence,dseq);set_entvar(ent,var_frame,0.0);set_entvar(ent,var_animtime,get_gametime());set_entvar(ent,var_framerate,1.0);}
+new dseq=get_entvar(id,var_sequence);
+if(dseq!=g_iGiantSeq532){g_iGiantSeq532=dseq;set_entvar(ent,var_sequence,dseq);set_entvar(ent,var_frame,0.0);set_entvar(ent,var_animtime,get_gametime());set_entvar(ent,var_framerate,1.0);}
 return;
 }
-if(!ent || !pev_valid(ent))
+if(!ent||!pev_valid(ent))
 {
 new mdl[128];PlayerMdlPath540(g_szBModel[g_iBossType],mdl,charsmax(mdl));
 if(!VxModelOk(mdl))return;
-ent = CreateSafe51("info_target");
+ent=CreateSafe51("info_target");
 if(is_nullent(ent))return;
 set_entvar(ent,var_classname,"vex_giantbody");
 VxSM(ent,mdl);
@@ -7652,7 +7652,7 @@ set_entvar(ent,var_solid,SOLID_NOT);
 set_entvar(ent,var_scale,g_fBossScale531);
 set_entvar(ent,var_owner,id);
 engfunc(EngFunc_SetSize,ent,Float:{-1.0,-1.0,-1.0},Float:{1.0,1.0,1.0});
-g_iGiantEnt532 = ent;g_iGiantSeq532 = -1;
+g_iGiantEnt532=ent;g_iGiantSeq532=-1;
 log_amx("[GiantBoss] dev govde: ent %d, boss #%d, model %s, olcek %.2f (yeni dosya yok)",ent,id,mdl,g_fBossScale531);
 }
 new Float:o[3],Float:a[3],Float:v[3];
@@ -7660,11 +7660,11 @@ get_entvar(id,var_origin,o);get_entvar(id,var_v_angle,a);get_entvar(id,var_veloc
 o[2]+=((get_entvar(id,var_flags)& FL_DUCKING)? 18.0 : 36.0)*(g_fBossScale531 - 1.0);
 engfunc(EngFunc_SetOrigin,ent,o);
 a[0]= 0.0;a[2]= 0.0;set_entvar(ent,var_angles,a);
-new seq = get_entvar(id,var_sequence),gait = get_entvar(id,var_gaitsequence);
-if(floatsqroot(v[0]* v[0]+ v[1]* v[1])> 30.0 && gait > 0 &&(Float:get_entvar(id,var_animtime)< get_gametime()- 0.6))seq = gait;
-if(seq != g_iGiantSeq532)
+new seq=get_entvar(id,var_sequence),gait=get_entvar(id,var_gaitsequence);
+if(floatsqroot(v[0]* v[0]+ v[1]* v[1])> 30.0&&gait > 0 &&(Float:get_entvar(id,var_animtime)< get_gametime()- 0.6))seq=gait;
+if(seq!=g_iGiantSeq532)
 {
-g_iGiantSeq532 = seq;
+g_iGiantSeq532=seq;
 set_entvar(ent,var_sequence,seq);set_entvar(ent,var_frame,0.0);
 set_entvar(ent,var_animtime,get_gametime());set_entvar(ent,var_framerate,1.0);
 }
@@ -7677,17 +7677,17 @@ set_entvar(ent,var_skin,get_entvar(id,var_skin));set_entvar(ent,var_body,get_ent
 GiantPack532(es,ent,host)
 {
 if(!g_iGiantEnt532)return FMRES_IGNORED;
-if(ent == g_iBoss && ent >= 1 && ent <= g_iMax)
+if(ent==g_iBoss&&ent>=1&&ent<=g_iMax)
 {
 set_es(es,ES_RenderMode,kRenderTransAlpha);set_es(es,ES_RenderAmt,0);set_es(es,ES_RenderFx,kRenderFxNone);
 return FMRES_IGNORED;
 }
-if(ent == g_iGiantEnt532 && host == g_iBoss && !(g_iCamera47[host]&& !is_nullent(g_iCamera47[host])))
+if(ent==g_iGiantEnt532&&host==g_iBoss&&!(g_iCamera47[host]&& !is_nullent(g_iCamera47[host])))
 set_es(es,ES_Effects,get_es(es,ES_Effects)| EF_NODRAW);
 return FMRES_IGNORED;
 }
-new Trie:g_tPm540 = Invalid_Trie,Trie:g_tPmIdx540 = Invalid_Trie;
-stock bool:IsMdlPath540(const v[])return(contain(v,"/")!= -1 || containi(v,".mdl")!= -1);
+new Trie:g_tPm540=Invalid_Trie,Trie:g_tPmIdx540=Invalid_Trie;
+stock bool:IsMdlPath540(const v[])return(contain(v,"/")!= -1||containi(v,".mdl")!= -1);
 stock bool:PathModel540(const v[],out[],len)
 {
 new path[128],base[32],tok[32];
@@ -7695,22 +7695,22 @@ if(equali(v,"models/",7))copy(path,charsmax(path),v);else formatex(path,charsmax
 replace_all(path,charsmax(path),"\","/");
 if(containi(path,".mdl")== -1)add(path,charsmax(path),".mdl");
 if(!file_exists(path,true)){log_amx("[Vexmira] Model bulunamadi: %s - varsayilan kullanilacak",path);return false;}
-new l = strlen(path),st = 0,h = 7;
-for(new i = 0;i < l;i++){if(path[i]== '/')st = i + 1;h =(h * 31 + path[i])% 99991;}
-new n = 0;
-for(new i = st;i < l && path[i]!= '.' && n < 10;i++)if(isalnum(path[i])|| path[i]== '_')base[n++]= path[i];
+new l=strlen(path),st=0,h=7;
+for(new i=0;i < l;i++){if(path[i]== '/')st=i + 1;h =(h * 31 + path[i])% 99991;}
+new n=0;
+for(new i=st;i < l&&path[i]!= '.'&&n < 10;i++)if(isalnum(path[i])|| path[i]== '_')base[n++]= path[i];
 base[n]= 0;
 formatex(tok,charsmax(tok),"vxp%d_%s",h % 1000,base);
-new idx = PcModel(path);
+new idx=PcModel(path);
 if(!idx)return false;
-if(g_tPm540 == Invalid_Trie){g_tPm540 = TrieCreate();g_tPmIdx540 = TrieCreate();}
+if(g_tPm540==Invalid_Trie){g_tPm540=TrieCreate();g_tPmIdx540=TrieCreate();}
 TrieSetString(g_tPm540,tok,path);TrieSetCell(g_tPmIdx540,tok,idx);
 copy(out,len,tok);
 return true;
 }
 stock PlayerMdlPath540(const name[],out[],len)
 {
-if(g_tPm540 != Invalid_Trie && TrieGetString(g_tPm540,name,out,len))return;
+if(g_tPm540!=Invalid_Trie&&TrieGetString(g_tPm540,name,out,len))return;
 formatex(out,len,"models/player/%s/%s.mdl",name,name);
 }
 GetPlayerModel(const key[],out[],len)
@@ -7745,7 +7745,7 @@ PcPlayerTex(const name[])
 {
 new tex[128];
 formatex(tex,charsmax(tex),"models/player/%s/%sT.mdl",name,name);
-if(g_iFwPcMdl && file_exists(tex,true))
+if(g_iFwPcMdl&&file_exists(tex,true))
 ZcPcGeneric(tex);
 }
 GetFileModel(const key[],out[],len)
@@ -7765,28 +7765,28 @@ out[0]= 0;
 new Trie:g_tResMiss533;
 ResMiss533(const key[],const path[])
 {
-if(g_tResMiss533 == Invalid_Trie)g_tResMiss533 = TrieCreate();
+if(g_tResMiss533==Invalid_Trie)g_tResMiss533=TrieCreate();
 TrieSetString(g_tResMiss533,key,path);
 }
 #define FDL_MAX 900
 new g_szFdl534[FDL_MAX][96],g_iFdlSz534[FDL_MAX],g_iFdlN534;
 stock FdlAdd534(const path[])
 {
-if(g_iFdlN534 >= FDL_MAX || !path[0])return;
-for(new i = 0;i < g_iFdlN534;i++)if(equali(g_szFdl534[i],path))return;
-new sz = file_size(path,0);
-if(sz <= 0)return;
+if(g_iFdlN534>=FDL_MAX||!path[0])return;
+for(new i=0;i < g_iFdlN534;i++)if(equali(g_szFdl534[i],path))return;
+new sz=file_size(path,0);
+if(sz<=0)return;
 copy(g_szFdl534[g_iFdlN534],charsmax(g_szFdl534[]),path);
 g_iFdlSz534[g_iFdlN534++]= sz;
 }
 stock FdlTrie534(Trie:t,bool:snd)
 {
-if(t == Invalid_Trie)return;
-new TrieIter:it = TrieIterCreate(t),k[96],full[110];
+if(t==Invalid_Trie)return;
+new TrieIter:it=TrieIterCreate(t),k[96],full[110];
 while(!TrieIterEnded(it))
 {
 TrieIterGetKey(it,k,charsmax(k));
-if(snd && !equali(k,"sound/",6)){formatex(full,charsmax(full),"sound/%s",k);FdlAdd534(full);}
+if(snd&&!equali(k,"sound/",6)){formatex(full,charsmax(full),"sound/%s",k);FdlAdd534(full);}
 else FdlAdd534(k);
 TrieIterNext(it);
 }
@@ -7794,45 +7794,45 @@ TrieIterDestroy(it);
 }
 FdlCollect534()
 {
-g_iFdlN534 = 0;
+g_iFdlN534=0;
 new map[48],path[96],line[128];
 get_mapname(map,charsmax(map));
 formatex(path,charsmax(path),"maps/%s.bsp",map);FdlAdd534(path);
 formatex(path,charsmax(path),"maps/%s.res",map);
-new fp = fopen(path,"rt");
+new fp=fopen(path,"rt");
 if(fp)
 {
 while(!feof(fp))
 {
 fgets(fp,line,charsmax(line));trim(line);
-if(line[0]&& !(line[0]== '/' && line[1]== '/'))FdlAdd534(line);
+if(line[0]&& !(line[0]== '/'&&line[1]== '/'))FdlAdd534(line);
 }
 fclose(fp);
 }
 FdlTrie534(g_tMdlDone,false);
 FdlTrie534(g_tSnd2D,true);
 FdlTrie534(g_tSnd3D,true);
-for(new i = 1;i < g_iFdlN534;i++)
-for(new j = i;j > 0 && g_iFdlSz534[j - 1]< g_iFdlSz534[j];j--)
+for(new i=1;i < g_iFdlN534;i++)
+for(new j=i;j > 0&&g_iFdlSz534[j - 1]< g_iFdlSz534[j];j--)
 {
-new t = g_iFdlSz534[j];g_iFdlSz534[j]= g_iFdlSz534[j - 1];g_iFdlSz534[j - 1]= t;
+new t=g_iFdlSz534[j];g_iFdlSz534[j]= g_iFdlSz534[j - 1];g_iFdlSz534[j - 1]= t;
 new tmp[96];copy(tmp,charsmax(tmp),g_szFdl534[j]);copy(g_szFdl534[j],charsmax(g_szFdl534[]),g_szFdl534[j - 1]);copy(g_szFdl534[j - 1],charsmax(g_szFdl534[]),tmp);
 }
 new total;
-for(new i = 0;i < g_iFdlN534;i++)total += g_iFdlSz534[i];
+for(new i=0;i < g_iFdlN534;i++)total+=g_iFdlSz534[i];
 return total;
 }
 public cmd_FastDl534(id)
 {
-if(id && !(get_user_flags(id)& ADMIN_BAN))return PLUGIN_HANDLED;
-new total = FdlCollect534(),dir[96],out[128],url[128];
+if(id&&!(get_user_flags(id)& ADMIN_BAN))return PLUGIN_HANDLED;
+new total=FdlCollect534(),dir[96],out[128],url[128];
 get_datadir(dir,charsmax(dir));
 formatex(out,charsmax(out),"%s/vexmira_fastdl.txt",dir);
 get_cvar_string("sv_downloadurl",url,charsmax(url));
 FdlWrite534(total);
 console_print(id,"[Vexmira] %d dosya, toplam %.1f MB -> %s",g_iFdlN534,float(total)/ 1048576.0,out);
 console_print(id,"[Vexmira] FastDL: %s",url[0]? url : "YOK (sv_downloadurl bos) - oyuncular bu dosyalari oyunun yavas indirmesiyle ceker!");
-for(new i = 0;i < min(12,g_iFdlN534);i++)console_print(id,"   %5d KB  %s",g_iFdlSz534[i]/ 1024,g_szFdl534[i]);
+for(new i=0;i < min(12,g_iFdlN534);i++)console_print(id,"   %5d KB  %s",g_iFdlSz534[i]/ 1024,g_szFdl534[i]);
 return PLUGIN_HANDLED;
 }
 FdlWrite534(total)
@@ -7842,24 +7842,24 @@ get_datadir(dir,charsmax(dir));
 get_mapname(map,charsmax(map));
 formatex(out,charsmax(out),"%s/vexmira_fastdl.txt",dir);
 formatex(all,charsmax(all),"%s/vexmira_fastdl_hepsi.txt",dir);
-new fo = fopen(out,"wt");
+new fo=fopen(out,"wt");
 if(fo)
 {
 fprintf(fo,"// Vexmira - %s: oyuncunun indirdigi %d ozel dosya, %.1f MB (buyukten kucuge). FastDL klasorune AYNI yollarla kopyala.^n",map,g_iFdlN534,float(total)/ 1048576.0);
-for(new i = 0;i < g_iFdlN534;i++)fprintf(fo,"%s   // %d KB^n",g_szFdl534[i],g_iFdlSz534[i]/ 1024);
+for(new i=0;i < g_iFdlN534;i++)fprintf(fo,"%s   // %d KB^n",g_szFdl534[i],g_iFdlSz534[i]/ 1024);
 fclose(fo);
 }
 #pragma unused l
-new Trie:seen = TrieCreate(),line[140];
-new fp = fopen(all,"rt");
+new Trie:seen=TrieCreate(),line[140];
+new fp=fopen(all,"rt");
 if(fp)
 {
 while(!feof(fp)){fgets(fp,line,charsmax(line));trim(line);if(line[0]&& line[0]!= '/')TrieSetCell(seen,line,1);}
 fclose(fp);
 }
-new added,fa = fopen(all,"at");
-if(fa && !fp)fprintf(fa,"// Vexmira - oynanan BUTUN haritalarin indirme dosyalari (her harita acilisinda eklenir). Hepsini FastDL'e AYNI yollarla koy.^n");
-for(new i = 0;i < g_iFdlN534;i++)
+new added,fa=fopen(all,"at");
+if(fa&&!fp)fprintf(fa,"// Vexmira - oynanan BUTUN haritalarin indirme dosyalari (her harita acilisinda eklenir). Hepsini FastDL'e AYNI yollarla koy.^n");
+for(new i=0;i < g_iFdlN534;i++)
 if(!TrieKeyExists(seen,g_szFdl534[i])){if(fa)fprintf(fa,"%s^n",g_szFdl534[i]);TrieSetCell(seen,g_szFdl534[i],1);added++;}
 if(fa)fclose(fa);
 TrieDestroy(seen);
@@ -7868,8 +7868,8 @@ return added;
 public task_FastDlWarn534()
 {
 new url[128];get_cvar_string("sv_downloadurl",url,charsmax(url));
-new total = FdlCollect534();
-new added = FdlWrite534(total);
+new total=FdlCollect534();
+new added=FdlWrite534(total);
 if(added)log_amx("[Vexmira] FastDL listesi: %d yeni dosya data/vexmira_fastdl_hepsi.txt dosyasina eklendi",added);
 if(!url[0])
 log_amx("[Vexmira] UYARI: FastDL (sv_downloadurl) yok. Bu haritada %d ozel dosya / %.1f MB oyuncuya YAVAS indirilir. Liste: konsola vex_fastdl",g_iFdlN534,float(total)/ 1048576.0);
@@ -7878,13 +7878,13 @@ log_amx("[Vexmira] FastDL: %s | bu haritada %d ozel dosya / %.1f MB (eksiksiz yu
 }
 public cmd_Kontrol533(id)
 {
-if(id && !(get_user_flags(id)& ADMIN_BAN))return PLUGIN_HANDLED;
+if(id&&!(get_user_flags(id)& ADMIN_BAN))return PLUGIN_HANDLED;
 console_print(id,"===== VEXMIRA AYAR KONTROLU =====");
 new n;
-if(g_tResMiss533 != Invalid_Trie)
+if(g_tResMiss533!=Invalid_Trie)
 {
-new Snapshot:it = TrieSnapshotCreate(g_tResMiss533),key[48],path[192];
-for(new i = 0;i < TrieSnapshotLength(it);i++)
+new Snapshot:it=TrieSnapshotCreate(g_tResMiss533),key[48],path[192];
+for(new i=0;i < TrieSnapshotLength(it);i++)
 {
 TrieSnapshotGetKey(it,i,key,charsmax(key));TrieGetString(g_tResMiss533,key,path,charsmax(path));
 console_print(id,"  EKSIK DOSYA: vex_res %s -> %s (varsayilan kullaniliyor)",key,path);n++;
@@ -7892,7 +7892,7 @@ console_print(id,"  EKSIK DOSYA: vex_res %s -> %s (varsayilan kullaniliyor)",key
 TrieSnapshotDestroy(it);
 }
 console_print(id,"  %d eksik dosya. Ses yolu ornegi: vex_res AMBIENT_MODE2 ^"sound/klasor/dosya.wav^" (wav: mono, 8/16 bit, 11-22 kHz; muzik icin .mp3 de olur)",n);
-console_print(id,"  Kartlar: %s | dev boss: %s | ses %d/512, indirme ~%d, model %d/512",CsoOn()? "acik" : "KAPALI",g_iGiantMode532 == 2 ? "dosya" :(g_iGiantMode532 == 1 ? "clone" : "kapali"),g_iTotSnd,g_iTotGen,g_iTotMdl);
+console_print(id,"  Kartlar: %s | dev boss: %s | ses %d/512, indirme ~%d, model %d/512",CsoOn()? "acik" : "KAPALI",g_iGiantMode532==2 ? "dosya" :(g_iGiantMode532==1 ? "clone" : "kapali"),g_iTotSnd,g_iTotGen,g_iTotMdl);
 return PLUGIN_HANDLED;
 }
 ResSet(const key[],const value[])
@@ -7900,7 +7900,7 @@ ResSet(const key[],const value[])
 if(!key[0])return;
 if(equali(key,"VOX_COUNTDOWN")){g_bVoxCountdown=(str_to_num(value)!=0);g_iEpicCountdown=clamp(str_to_num(value),0,2);return;}
 new normalized[512];copy(normalized,charsmax(normalized),value);
-if(contain(value,"|")!=-1 && containi(value,".wav")!=-1){
+if(contain(value,"|")!=-1&&containi(value,".wav")!=-1){
 new src[512],tmp[128],pos,keep[512],full2[160];copy(src,charsmax(src),value);
 for(new i=0;src[i];i++)if(src[i]=='|')src[i]=' ';
 while((pos=argparse(src,pos,tmp,charsmax(tmp)))!=-1){
@@ -7913,12 +7913,12 @@ if(keep[0])add(keep,charsmax(keep),"|");add(keep,charsmax(keep),tmp);
 if(keep[0])TrieSetString(g_tRes,key,keep);
 return;
 }
-if(value[0]&&(containi(value,".wav")!=-1 || containi(value,".mp3")!=-1)){
+if(value[0]&&(containi(value,".wav")!=-1||containi(value,".mp3")!=-1)){
 while(equali(normalized,"sound/",6)){new tmp[192];copy(tmp,charsmax(tmp),normalized[6]);copy(normalized,charsmax(normalized),tmp);}
-if(contain(normalized,"..")!=-1 || normalized[0]=='/'){log_amx("[Vexmira] Gecersiz ses yolu: %s",key);return;}
+if(contain(normalized,"..")!=-1||normalized[0]=='/'){log_amx("[Vexmira] Gecersiz ses yolu: %s",key);return;}
 new full[192];formatex(full,charsmax(full),"sound/%s",normalized);
 if(!file_exists(full,true)){log_amx("[Vexmira] Ses bulunamadi: %s (%s) - varsayilan kullanilacak",full,key);ResMiss533(key,full);return;}
-if(containi(value,".mp3")!=-1 || equal(key,"AMBIENT_",8))copy(normalized,charsmax(normalized),full);
+if(containi(value,".mp3")!=-1||equal(key,"AMBIENT_",8))copy(normalized,charsmax(normalized),full);
 }
 TrieSetString(g_tRes,key,normalized);
 }
@@ -7930,11 +7930,11 @@ add(out,len,"/vexmira.cfg");
 StripCfgComment(line[])
 {
 new bool:q;
-for(new i = 0;line[i];i++)
+for(new i=0;line[i];i++)
 {
 if(line[i]== '"')
-q = !q;
-else if(!q && line[i]== '/' && line[i + 1]== '/')
+q=!q;
+else if(!q&&line[i]== '/'&&line[i + 1]== '/')
 {
 line[i]= 0;
 break;
@@ -7961,7 +7961,7 @@ return n;
 }
 LoadConfigFile(const file[],bool:precache)
 {
-new fp = fopen(file,"rt");
+new fp=fopen(file,"rt");
 if(!fp)
 {
 if(!precache)
@@ -7973,45 +7973,45 @@ while(!feof(fp))
 {
 fgets(fp,line,charsmax(line));
 trim(line);
-if(!line[0]|| line[0]== ';' || line[0]== '#' ||(line[0]== '/' && line[1]== '/'))
+if(!line[0]|| line[0]== ';'||line[0]== '#' ||(line[0]== '/'&&line[1]== '/'))
 continue;
 StripCfgComment(line);
 if(!line[0])
 continue;
-argc = 0;
-pos = 0;
-while(argc < CFG_MAXARGS &&(pos = argparse(line,pos,args[argc],charsmax(args[])))!= -1)
+argc=0;
+pos=0;
+while(argc < CFG_MAXARGS &&(pos=argparse(line,pos,args[argc],charsmax(args[])))!= -1)
 argc++;
 if(!argc)
 continue;
 if(equali(args[0],"vex_restore"))
 {
-if(precache && argc >= 3)CommunityRestoreResource(args[1],args[2]);
+if(precache&&argc>=3)CommunityRestoreResource(args[1],args[2]);
 continue;
 }
 if(equali(args[0],"vex_res"))
 {
-if(precache && argc >= 2)
-ResSet(args[1],argc >= 3 ? args[2]: "");
+if(precache&&argc>=2)
+ResSet(args[1],argc>=3 ? args[2]: "");
 continue;
 }
 if(precache)
 {
-if(argc >= 2)
+if(argc>=2)
 {
 if(equali(args[0],"vex_boss_rounds"))
 {
 g_szPreBossRounds[0]= 0;
-for(new i = 1;i < argc;i++)
+for(new i=1;i < argc;i++)
 {
 add(g_szPreBossRounds,charsmax(g_szPreBossRounds),args[i]);
 add(g_szPreBossRounds,charsmax(g_szPreBossRounds)," ");
 }
 }
 else if(equali(args[0],"vex_rounds_total"))
-g_iPreRoundsTotal = str_to_num(args[1]);
+g_iPreRoundsTotal=str_to_num(args[1]);
 else if(equali(args[0],"vex_cso_style"))
-g_iPreCso = str_to_num(args[1]);
+g_iPreCso=str_to_num(args[1]);
 else if(equali(args[0],"vex_wing")|| equali(args[0],"vex_pet")|| equali(args[0],"vex_hat"))
 CmParse(args,argc);
 }
@@ -8025,7 +8025,7 @@ continue;
 if(cvar_exists(args[0]))
 {
 value[0]= 0;
-for(new i = 1;i < argc;i++)
+for(new i=1;i < argc;i++)
 {
 if(i > 1)
 add(value,charsmax(value)," ");
@@ -8063,9 +8063,9 @@ MsApplyRoundTime();
 ColorEscape(const src[],dst[],len)
 {
 new j;
-for(new i = 0;src[i]&& j < len;i++)
+for(new i=0;src[i]&& j < len;i++)
 {
-if(src[i]== '^^' && src[i + 1]>= '1' && src[i + 1]<= '4')
+if(src[i]== '^^'&&src[i + 1]>= '1'&&src[i + 1]<= '4')
 {
 dst[j++]= src[i + 1]- '0';
 i++;
@@ -8082,8 +8082,8 @@ if(argc < need)
 log_amx("[Vexmira] %s: eksik deger (%d gerekli)",args[0],need - 1);
 return -1;
 }
-new i = str_to_num(args[1]);
-if(i < 0 || i >= maxIdx)
+new i=str_to_num(args[1]);
+if(i < 0||i>=maxIdx)
 {
 log_amx("[Vexmira] %s: gecersiz numara %d (0-%d)",args[0],i,maxIdx - 1);
 return -1;
@@ -8092,10 +8092,10 @@ return i;
 }
 EnvLightArg(const a[])
 {
-if(!a[0]|| a[0]== '0' || a[0]== '-')
+if(!a[0]|| a[0]== '0'||a[0]== '-')
 return 0;
-new c = tolower(a[0]);
-return(c >= 'a' && c <= 'z')? c : 0;
+new c=tolower(a[0]);
+return(c>='a'&&c<='z')? c : 0;
 }
 bool:ApplyTableCmd(const args[][],argc)
 {
@@ -8104,7 +8104,7 @@ if(equali(args[0],"vex_wing")|| equali(args[0],"vex_pet")|| equali(args[0],"vex_
 return true;
 if(equali(args[0],"vex_item"))
 {
-if((i = TblIdx(args,argc,5,NUM_ITEMS))>= 0)
+if((i=TblIdx(args,argc,5,NUM_ITEMS))>= 0)
 {
 ITEM_COST[i]= max(0,str_to_num(args[2]));
 ITEM_LIMIT[i]= max(0,str_to_num(args[3]));
@@ -8116,7 +8116,7 @@ return true;
 }
 if(equali(args[0],"vex_class"))
 {
-if((i = TblIdx(args,argc,8,NUM_CLASSES))>= 0)
+if((i=TblIdx(args,argc,8,NUM_CLASSES))>= 0)
 {
 CLASS_HP[i]= floatmax(0.05,str_to_float(args[2]));
 CLASS_SPD[i]= clamp(str_to_num(args[3]),50,900);
@@ -8131,9 +8131,9 @@ if(equali(args[0],"vex_modewpn"))
 {
 if(argc < 4)
 return true;
-new mm = equali(args[1],"survivor")? 0 :(equali(args[1],"sniper")? 1 : -1);
-new ms = str_to_num(args[2])- 1;
-if(mm < 0 || ms < 0 || ms >= MW_SLOTS)
+new mm=equali(args[1],"survivor")? 0 :(equali(args[1],"sniper")? 1 : -1);
+new ms=str_to_num(args[2])- 1;
+if(mm < 0||ms < 0||ms>=MW_SLOTS)
 {
 log_amx("[Vexmira] vex_modewpn: gecersiz mod / yuva: %s %s",args[1],args[2]);
 return true;
@@ -8143,18 +8143,18 @@ if(equali(args[3],"none")|| equal(args[3],"-"))
 MW_ENT[mm][ms][0]= 0;
 return true;
 }
-new WeaponIdType:w = WeaponIdType:rg_get_weapon_info(args[3],WI_ID);
-if(w == WEAPON_NONE || w == WEAPON_KNIFE || w == WEAPON_HEGRENADE || w == WEAPON_SMOKEGRENADE || w == WEAPON_FLASHBANG || w == WEAPON_C4)
+new WeaponIdType:w=WeaponIdType:rg_get_weapon_info(args[3],WI_ID);
+if(w==WEAPON_NONE||w==WEAPON_KNIFE||w==WEAPON_HEGRENADE||w==WEAPON_SMOKEGRENADE||w==WEAPON_FLASHBANG||w==WEAPON_C4)
 {
 log_amx("[Vexmira] vex_modewpn: gecersiz silah: %s",args[3]);
 return true;
 }
 copy(MW_ENT[mm][ms],charsmax(MW_ENT[][]),args[3]);
 MW_ID[mm][ms]= w;
-if(argc >= 5)MW_DMG[mm][ms]= floatclamp(str_to_float(args[4]),0.1,99999.0);
-if(argc >= 6)MW_CLIP[mm][ms]= clamp(str_to_num(args[5]),0,250);
-if(argc >= 7)MW_BP[mm][ms]= clamp(str_to_num(args[6]),0,999);
-if(argc >= 8)
+if(argc>=5)MW_DMG[mm][ms]= floatclamp(str_to_float(args[4]),0.1,99999.0);
+if(argc>=6)MW_CLIP[mm][ms]= clamp(str_to_num(args[5]),0,250);
+if(argc>=7)MW_BP[mm][ms]= clamp(str_to_num(args[6]),0,999);
+if(argc>=8)
 {
 if(equali(args[7],"fire"))MW_FX[mm][ms]= SWE_FIRE;
 else if(equali(args[7],"lightning"))MW_FX[mm][ms]= SWE_LIGHTNING;
@@ -8168,13 +8168,13 @@ return true;
 }
 if(equali(args[0],"vex_sw"))
 {
-if((i = TblIdx(args,argc,6,NUM_SPECIAL))>= 0)
+if((i=TblIdx(args,argc,6,NUM_SPECIAL))>= 0)
 {
 SW_COST[i]= max(0,str_to_num(args[2]));
 SW_LVL[i]= clamp(str_to_num(args[3]),1,MAX_LEVEL);
 SW_MULT[i]= floatclamp(str_to_float(args[4]),0.1,10.0);
 SW_BPAMMO[i]= clamp(str_to_num(args[5]),1,999);
-if(argc >= 7)
+if(argc>=7)
 {
 if(equali(args[6],"fire"))SW_EFFECT[i]= SWE_FIRE;
 else if(equali(args[6],"lightning"))SW_EFFECT[i]= SWE_LIGHTNING;
@@ -8184,29 +8184,29 @@ else if(equali(args[6],"void"))SW_EFFECT[i]= SWE_VOID;
 else if(equali(args[6],"explosive"))SW_EFFECT[i]= SWE_EXPLOSIVE;
 else if(equali(args[6],"none"))SW_EFFECT[i]= SWE_NONE;
 }
-if(argc >= 10)
+if(argc>=10)
 {
 SW_RGB[i][0]= clamp(str_to_num(args[7]),0,255);
 SW_RGB[i][1]= clamp(str_to_num(args[8]),0,255);
 SW_RGB[i][2]= clamp(str_to_num(args[9]),0,255);
 }
-if(argc >= 11)
+if(argc>=11)
 SW_CLIP[i]= clamp(str_to_num(args[10]),1,100);
-if(argc >= 12)
+if(argc>=12)
 SW_CHAIN_DMG[i]= clamp(str_to_num(args[11]),0,100);
-if(argc >= 13)
+if(argc>=13)
 SW_RATE[i]= floatclamp(str_to_float(args[12]),0.05,5.0);
-if(argc >= 14)
+if(argc>=14)
 SW_RECOIL[i]= floatclamp(str_to_float(args[13]),0.5,2.0);
 }
 return true;
 }
 if(equali(args[0],"vex_sw_text"))
 {
-if((i = TblIdx(args,argc,5,NUM_SPECIAL))>= 0)
+if((i=TblIdx(args,argc,5,NUM_SPECIAL))>= 0)
 {
-new lang = equali(args[2],"tr")? 1 :(equali(args[2],"en")? 0 : -1);
-if(lang >= 0)
+new lang=equali(args[2],"tr")? 1 :(equali(args[2],"en")? 0 : -1);
+if(lang>=0)
 {
 copy(g_szSWName[lang][i],charsmax(g_szSWName[][]),args[3]);
 copy(g_szSWDesc[lang][i],charsmax(g_szSWDesc[][]),args[4]);
@@ -8218,16 +8218,16 @@ if(equali(args[0],"vex_gun"))
 {
 if(argc < 5)
 return true;
-new idx = str_to_num(args[2]);
-if(args[1][0]== 'p' || args[1][0]== 'P')
+new idx=str_to_num(args[2]);
+if(args[1][0]== 'p'||args[1][0]== 'P')
 {
-if(0 <= idx < sizeof PRIM_LVL)
+if(0<=idx < sizeof PRIM_LVL)
 {
 PRIM_LVL[idx]= clamp(str_to_num(args[3]),1,MAX_LEVEL);
 PRIM_AMMO[idx]= clamp(str_to_num(args[4]),1,999);
 }
 }
-else if(0 <= idx < sizeof SEC_LVL)
+else if(0<=idx < sizeof SEC_LVL)
 {
 SEC_LVL[idx]= clamp(str_to_num(args[3]),1,MAX_LEVEL);
 SEC_AMMO[idx]= clamp(str_to_num(args[4]),1,999);
@@ -8236,18 +8236,18 @@ return true;
 }
 if(equali(args[0],"vex_job"))
 {
-if((i = TblIdx(args,argc,3,NUM_JOBS))>= 0)
+if((i=TblIdx(args,argc,3,NUM_JOBS))>= 0)
 JOB_LVL[i]= clamp(str_to_num(args[2]),1,MAX_LEVEL);
 return true;
 }
 if(equali(args[0],"vex_boss_stat"))
 {
-if((i = TblIdx(args,argc,5,NUM_BOSSES))>= 0)
+if((i=TblIdx(args,argc,5,NUM_BOSSES))>= 0)
 {
 BOSS_HP_MULT[i]= floatmax(0.05,str_to_float(args[2]));
 BOSS_SPD[i]= clamp(str_to_num(args[3]),50,900);
 BOSS_GRAV[i]= floatclamp(str_to_float(args[4]),0.1,2.0);
-if(argc >= 8)
+if(argc>=8)
 {
 BOSS_RGB[i][0]= clamp(str_to_num(args[5]),0,255);
 BOSS_RGB[i][1]= clamp(str_to_num(args[6]),0,255);
@@ -8258,9 +8258,9 @@ return true;
 }
 if(equali(args[0],"vex_boss_skill"))
 {
-if((i = TblIdx(args,argc,6,NUM_BOSSES))>= 0)
+if((i=TblIdx(args,argc,6,NUM_BOSSES))>= 0)
 {
-new ph = clamp(str_to_num(args[2]),1,3)- 1;
+new ph=clamp(str_to_num(args[2]),1,3)- 1;
 BSK_COOL[i][ph]= floatmax(1.0,str_to_float(args[3]));
 BSK_DMG[i][ph]= floatmax(0.0,str_to_float(args[4]));
 BSK_RAD[i][ph]= max(0,str_to_num(args[5]));
@@ -8269,7 +8269,7 @@ return true;
 }
 if(equali(args[0],"vex_mode_rule"))
 {
-if((i = TblIdx(args,argc,4,MODE_TOTAL))>= 0)
+if((i=TblIdx(args,argc,4,MODE_TOTAL))>= 0)
 {
 MODE_CHANCE[i]= max(0,str_to_num(args[2]));
 MODE_MINPL[i]= clamp(str_to_num(args[3]),1,32);
@@ -8278,13 +8278,13 @@ return true;
 }
 if(equali(args[0],"vex_env_event")|| equali(args[0],"vex_env_mode")|| equali(args[0],"vex_env_boss")|| equali(args[0],"vex_env_calm"))
 {
-new kind = equali(args[0],"vex_env_event")? 0 : equali(args[0],"vex_env_mode")? 1 : equali(args[0],"vex_env_boss")? 2 : 3;
+new kind=equali(args[0],"vex_env_event")? 0 : equali(args[0],"vex_env_mode")? 1 : equali(args[0],"vex_env_boss")? 2 : 3;
 static const MAXN[4]={EV_TOTAL,MODE_TOTAL,NUM_BOSSES,NUM_CALM};
-if((i = TblIdx(args,argc,8,MAXN[kind]))< 0)
+if((i=TblIdx(args,argc,8,MAXN[kind]))< 0)
 return true;
-new l = EnvLightArg(args[2]),w = clamp(str_to_num(args[7]),0,2);
-new f0 = clamp(str_to_num(args[3]),0,255),f1 = clamp(str_to_num(args[4]),0,255);
-new f2 = clamp(str_to_num(args[5]),0,255),f3 = clamp(str_to_num(args[6]),0,200);
+new l=EnvLightArg(args[2]),w=clamp(str_to_num(args[7]),0,2);
+new f0=clamp(str_to_num(args[3]),0,255),f1=clamp(str_to_num(args[4]),0,255);
+new f2=clamp(str_to_num(args[5]),0,255),f3=clamp(str_to_num(args[6]),0,200);
 switch(kind)
 {
 case 0:{ENV_EV_LIGHT[i]= l ? l : 'm';ENV_EV_FOG[i][0]= f0;ENV_EV_FOG[i][1]= f1;ENV_EV_FOG[i][2]= f2;ENV_EV_FOG[i][3]= f3;ENV_EV_WEATHER[i]= w;}
@@ -8298,18 +8298,18 @@ if(equali(args[0],"vex_cosmetic"))
 {
 if(argc < 4)
 return true;
-new cat = str_to_num(args[1]),idx = str_to_num(args[2]),price = max(1,str_to_num(args[3]));
+new cat=str_to_num(args[1]),idx=str_to_num(args[2]),price=max(1,str_to_num(args[3]));
 switch(cat)
 {
-case 0: if(0 <= idx < NUM_TRAILS)TRAIL_PRICE[idx]= price;
-case 1: if(0 <= idx < NUM_KFX)KFX_PRICE[idx]= price;
-case 2: if(0 <= idx < NUM_IFX)IFX_PRICE[idx]= price;
+case 0: if(0<=idx < NUM_TRAILS)TRAIL_PRICE[idx]= price;
+case 1: if(0<=idx < NUM_KFX)KFX_PRICE[idx]= price;
+case 2: if(0<=idx < NUM_IFX)IFX_PRICE[idx]= price;
 }
 return true;
 }
 if(equali(args[0],"vex_quest"))
 {
-if((i = TblIdx(args,argc,5,NUM_QUESTS))>= 0)
+if((i=TblIdx(args,argc,5,NUM_QUESTS))>= 0)
 {
 QUEST_NEED[i]= max(1,str_to_num(args[2]));
 QUEST_XP[i]= max(0,str_to_num(args[3]));
@@ -8322,8 +8322,8 @@ return false;
 public srv_TableCmd()
 {
 new args[CFG_MAXARGS][128];
-new argc = min(read_argc(),CFG_MAXARGS);
-for(new i = 0;i < argc;i++)
+new argc=min(read_argc(),CFG_MAXARGS);
+for(new i=0;i < argc;i++)
 read_argv(i,args[i],charsmax(args[]));
 if(ApplyTableCmd(args,argc))
 server_print("[Vexmira] %s uygulandi.",args[0]);
@@ -8339,7 +8339,7 @@ public cmd_reload_cfg(id,level,cid)
 if(!cmd_access(id,level,cid,1))
 return PLUGIN_HANDLED;
 log_to_file("vexmira_startup.log","[530 core] config reload BEGIN");
-new n = LoadMainConfig(false);
+new n=LoadMainConfig(false);
 log_to_file("vexmira_startup.log","[530 core] config reload READY");
 console_print(id,"[Vexmira] vexmira.cfg yeniden yuklendi (%d satir). Ses/model degisiklikleri harita degisince gecerli.",n);
 if(id)
@@ -8357,16 +8357,16 @@ get_pcvar_string(g_pHostname,base,charsmax(base));
 trim(base);
 if(!base[0])
 return;
-new name[128],tag[40],dyn = get_pcvar_num(g_pHostDyn);
+new name[128],tag[40],dyn=get_pcvar_num(g_pHostDyn);
 copy(name,charsmax(name),base);
-if(dyn > 0 && g_iRound > 0)
+if(dyn > 0&&g_iRound > 0)
 {
-for(new pass = 0;pass < 2;pass++)
+for(new pass=0;pass < 2;pass++)
 {
-HostTag(tag,charsmax(tag),pass == 1);
+HostTag(tag,charsmax(tag),pass==1);
 if(strlen(base)+ strlen(tag)+ 3 > HOSTNAME_MAX)
 continue;
-if(dyn == 2)
+if(dyn==2)
 formatex(name,charsmax(name),"[%s] %s",tag,base);
 else
 formatex(name,charsmax(name),"%s | %s",base,tag);
@@ -8379,7 +8379,7 @@ get_cvar_string("hostname",cur,charsmax(cur));
 if(!equal(cur,name))
 set_cvar_string("hostname",name);
 }
-HostTag(out[],len,bool:compact = false)
+HostTag(out[],len,bool:compact=false)
 {
 static const MODE_SHORT[MODE_TOTAL][]=
 {
@@ -8391,20 +8391,20 @@ static const EV_SHORT[EV_TOTAL][]=
 "SUPPLY","BERSERK","ADRENALINE","METEORS","HORDE","TITAN","GOLD RUSH","VAMPIRE",
 "HEADHUNTER","STORM","BLACKOUT"
 };
-new total = RoundsTotal();
+new total=RoundsTotal();
 if(compact)
 {
-if(g_iMode != MODE_INFECTION && g_iMode < MODE_TOTAL)
+if(g_iMode!=MODE_INFECTION&&g_iMode < MODE_TOTAL)
 copy(out,len,MODE_SHORT[g_iMode]);
-else if(g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
+else if(g_iEvent > EV_NONE&&g_iEvent < EV_TOTAL)
 copy(out,len,EV_SHORT[g_iEvent]);
 else
 formatex(out,len,"R%d",g_iRound);
 return;
 }
-if(g_iMode != MODE_INFECTION && g_iMode < MODE_TOTAL)
+if(g_iMode!=MODE_INFECTION&&g_iMode < MODE_TOTAL)
 formatex(out,len,"R%d/%d %s",g_iRound,total,MODE_SHORT[g_iMode]);
-else if(g_iEvent > EV_NONE && g_iEvent < EV_TOTAL)
+else if(g_iEvent > EV_NONE&&g_iEvent < EV_TOTAL)
 formatex(out,len,"R%d/%d %s",g_iRound,total,EV_SHORT[g_iEvent]);
 else
 formatex(out,len,"R%d/%d",g_iRound,total);
@@ -8427,7 +8427,7 @@ ComputeKey(id,key[],len)
 new auth[35];
 get_user_authid(id,auth,charsmax(auth));
 if(!auth[0]|| equal(auth,"STEAM_ID_LAN")|| equal(auth,"VALVE_ID_LAN")|| equal(auth,"BOT")
-|| equal(auth,"HLTV")|| containi(auth,"PENDING")!= -1 || containi(auth,"UNKNOWN")!= -1)
+|| equal(auth,"HLTV")|| containi(auth,"PENDING")!= -1||containi(auth,"UNKNOWN")!= -1)
 {
 new n[32];
 get_user_name(id,n,charsmax(n));
@@ -8444,7 +8444,7 @@ g_iLang[id]= 1;
 return;
 }
 g_iAP[id]= get_pcvar_num(g_pStartAP);
-if(g_hVault == INVALID_HANDLE)
+if(g_hVault==INVALID_HANDLE)
 return;
 new key[48],val[768];
 GetKey(id,key,charsmax(key));
@@ -8452,7 +8452,7 @@ if(!nvault_get(g_hVault,key,val,charsmax(val)))
 return;
 g_bNewPlayer[id]= 0;
 new f[64],arg[16],pos,n;
-while(n < sizeof f &&(pos = argparse(val,pos,arg,charsmax(arg)))!= -1)
+while(n < sizeof f &&(pos=argparse(val,pos,arg,charsmax(arg)))!= -1)
 f[n++]= str_to_num(arg);
 g_iXP[id]= f[0];
 g_iAP[id]= f[1];
@@ -8474,7 +8474,7 @@ g_iDailyStreak[id]= f[16];
 g_iPrim[id]=(n > 17)? f[17]: -1;
 g_iSec[id]=(n > 18)? f[18]: -1;
 g_iPlaySec[id]= f[19]* 60;
-for(new i = 0;i < NUM_PERKS;i++)
+for(new i=0;i < NUM_PERKS;i++)
 g_iPerk[id][i]= clamp(f[20 + i],0,PERK_MAX);
 g_iClass[id]= f[26];
 g_iLastSeen[id]=(n > 27)? f[27]: 0;
@@ -8486,11 +8486,11 @@ g_iKfxSel[id]=(n > 31)? clamp(f[31],0,NUM_KFX): 0;
 g_iIfxSel[id]=(n > 32)? clamp(f[32],0,NUM_IFX): 0;
 g_iCmOwned[id]=(n > 33)? f[33]: 0;
 g_iCmSelPk[id]=(n > 34)? f[34]: 0;
-for(new c = 0;c < 2;c++){
+for(new c=0;c < 2;c++){
 g_iCommunityOwned[id][c]=(n > 35 + c * 2)?(f[35 + c * 2]&(c ?((1 << KN_TOTAL)- 1): 31)): 0;
 g_iCommunitySel[id][c]=(n > 36 + c * 2)? clamp(f[36 + c * 2],0,c ? KN_TOTAL : 5): 0;
-new v = g_iCommunitySel[id][c];
-if(v && !(g_iCommunityOwned[id][c]&(1 <<(v - 1))))g_iCommunitySel[id][c]= 0;
+new v=g_iCommunitySel[id][c];
+if(v&&!(g_iCommunityOwned[id][c]&(1 <<(v - 1))))g_iCommunitySel[id][c]= 0;
 }
 g_iLzOwned531[id]=(n > 39)?(f[39]& 15): 0;
 g_iLzSel531[id]=(n > 40)? clamp(f[40],0,4): 0;
@@ -8498,20 +8498,20 @@ if(g_iLzSel531[id]&& !(g_iLzOwned531[id]&(1 <<(g_iLzSel531[id]- 1))))g_iLzSel531
 g_iCases60[id]=(n > 41)? f[41]: 0;g_iTrades60[id]=(n > 42)? f[42]: 0;g_iLmKills60[id]=(n > 43)? f[43]: 0;
 g_iKnifeKills60[id]=(n > 44)? f[44]: 0;g_iCures60[id]=(n > 45)? f[45]: 0;
 g_iLevel[id]= CalcLevel(g_iXP[id]);
-if(g_iTitle[id]< 0 || g_iTitle[id]>= NUM_TITLES)g_iTitle[id]= 0;
-if(g_iJob[id]< 0 || g_iJob[id]>= NUM_JOBS || g_iLevel[id]< JOB_LVL[g_iJob[id]])g_iJob[id]= 0;
-if(g_iStyle[id]< 0 || g_iStyle[id]>= NUM_STYLES)g_iStyle[id]= 0;
-if(g_iTheme[id]< 0 || g_iTheme[id]>= NUM_THEMES)g_iTheme[id]= 0;
-if(g_iLang[id]< 0 || g_iLang[id]> 2)g_iLang[id]= 0;
+if(g_iTitle[id]< 0||g_iTitle[id]>= NUM_TITLES)g_iTitle[id]= 0;
+if(g_iJob[id]< 0||g_iJob[id]>= NUM_JOBS||g_iLevel[id]< JOB_LVL[g_iJob[id]])g_iJob[id]= 0;
+if(g_iStyle[id]< 0||g_iStyle[id]>= NUM_STYLES)g_iStyle[id]= 0;
+if(g_iTheme[id]< 0||g_iTheme[id]>= NUM_THEMES)g_iTheme[id]= 0;
+if(g_iLang[id]< 0||g_iLang[id]> 2)g_iLang[id]= 0;
 if(g_iPrim[id]>= sizeof PRIM_NAME)g_iPrim[id]= -1;
 if(g_iSec[id]>= sizeof SEC_NAME)g_iSec[id]= -1;
-if(g_iClass[id]< 0 || g_iClass[id]>= NUM_CLASSES || g_iLevel[id]< CLASS_LVL[g_iClass[id]])g_iClass[id]= 0;
+if(g_iClass[id]< 0||g_iClass[id]>= NUM_CLASSES||g_iLevel[id]< CLASS_LVL[g_iClass[id]])g_iClass[id]= 0;
 if(g_iAP[id]< 0)g_iAP[id]= 0;
 if(g_iVC[id]< 0)g_iVC[id]= 0;
 }
 SaveData(id)
 {
-if(g_hVault == INVALID_HANDLE || !is_user_connected(id)|| is_user_bot(id)|| !g_bLoaded[id]|| !g_szKey[id][0])
+if(g_hVault==INVALID_HANDLE||!is_user_connected(id)|| is_user_bot(id)|| !g_bLoaded[id]|| !g_szKey[id][0])
 return;
 new key[48],val[768];
 GetKey(id,key,charsmax(key));
@@ -8537,7 +8537,7 @@ formatex(out,len,"%L",viewer,key);
 }
 CalcLevel(xp)
 {
-new lvl = 1 + floatround(floatsqroot(float(xp)/ 25.0),floatround_floor);
+new lvl=1 + floatround(floatsqroot(float(xp)/ 25.0),floatround_floor);
 return min(lvl,MAX_LEVEL);
 }
 XPForLevel(lvl)
@@ -8547,10 +8547,10 @@ return 25 *(lvl - 1)*(lvl - 1);
 RankOf(lvl)
 {
 new r;
-for(new i = 0;i < NUM_RANKS;i++)
+for(new i=0;i < NUM_RANKS;i++)
 {
-if(lvl >= RANK_LVL[i])
-r = i;
+if(lvl>=RANK_LVL[i])
+r=i;
 }
 return r;
 }
@@ -8559,11 +8559,11 @@ LevelUp(id,old)
 new Float:o[3],name[32];
 get_entvar(id,var_origin,o);
 get_user_name(id,name,charsmax(name));
-new vc = g_iLevel[id]- old;
-for(new l = old + 1;l <= g_iLevel[id];l++)
+new vc=g_iLevel[id]- old;
+for(new l=old + 1;l<=g_iLevel[id];l++)
 {
-if(l % 10 == 0)
-vc += 5;
+if(l % 10==0)
+vc+=5;
 }
 g_iVC[id]+= vc;
 FxRing(o,0,255,140,260);
@@ -8573,31 +8573,31 @@ FadeOne(id,0,255,140,90,0.6);
 PlayKey(id,"LEVEL_UP");
 CsoNotify(id,CN_LEVEL,g_iLevel[id]);
 Chat(id,"LEVELUP_VC",vc);
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
-if(is_user_connected(p)&& p != id)
+if(is_user_connected(p)&& p!=id)
 client_print_color(p,id,"%s %L",ChatTag("LEVELUP_CHAT"),p,"LEVELUP_CHAT",name,g_iLevel[id]);
 }
-for(new j = 0;j < NUM_JOBS;j++)
+for(new j=0;j < NUM_JOBS;j++)
 {
-if(JOB_LVL[j]> old && JOB_LVL[j]<= g_iLevel[id])
+if(JOB_LVL[j]> old&&JOB_LVL[j]<= g_iLevel[id])
 ChatKeyName(id,"UNLOCK_JOB","JOB_",j);
 }
-for(new c = 0;c < NUM_CLASSES;c++)
+for(new c=0;c < NUM_CLASSES;c++)
 {
-if(CLASS_LVL[c]> old && CLASS_LVL[c]<= g_iLevel[id])
+if(CLASS_LVL[c]> old&&CLASS_LVL[c]<= g_iLevel[id])
 ChatKeyName(id,"UNLOCK_CLASS","CLASS_",c);
 }
-for(new s = 0;s < NUM_SPECIAL;s++)
+for(new s=0;s < NUM_SPECIAL;s++)
 {
-if(SW_LVL[s]> old && SW_LVL[s]<= g_iLevel[id])
+if(SW_LVL[s]> old&&SW_LVL[s]<= g_iLevel[id])
 ChatKeyName(id,"UNLOCK_SW","SW_",s);
 }
 if(RankOf(g_iLevel[id])> RankOf(old))
 {
 new key[12];
 formatex(key,charsmax(key),"RANK_%d",RankOf(g_iLevel[id]));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
 if(!is_user_connected(p))
 continue;
@@ -8622,7 +8622,7 @@ if(g_iLevel[id]>= 10)GrantAch(id,9);
 if(g_iLevel[id]>= 30)GrantAch(id,10);
 if(g_iLevel[id]>= 50)GrantAch(id,11);
 if(g_iDailyStreak[id]>= 7)GrantAch(id,12);
-for(new i = 0;i < NUM_PERKS;i++)
+for(new i=0;i < NUM_PERKS;i++)
 {
 if(g_iPerk[id][i]>= PERK_MAX)
 {
@@ -8647,7 +8647,7 @@ HudText(id,SL_PERS,CLR_REWARD,4.0,txt);
 PlayKey(id,"ACH_UNLOCK");
 FxRing(o,255,215,0,260);
 FadeOne(id,255,215,0,70,0.7);
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
 if(!is_user_connected(p))
 continue;
@@ -8655,7 +8655,7 @@ new an[48];
 formatex(an,charsmax(an),"%L",p,key);
 client_print_color(p,id,"%s %L",ChatTag("ACH_CHAT"),p,"ACH_CHAT",name,an);
 }
-for(new t = 1;t < NUM_TITLES;t++)
+for(new t=1;t < NUM_TITLES;t++)
 {
 if(TITLE_ACH[t]== bit)
 ChatKeyName(id,"UNLOCK_TITLE","TITLE_",t);
@@ -8664,10 +8664,10 @@ SaveData(id);
 }
 ClaimDaily(id)
 {
-new today = VXDAY;
+new today=VXDAY;
 if(g_iDailyDay[id]== today)
 {
-new left = 86400 -((get_systime()+10800)% 86400);
+new left=86400 -((get_systime()+10800)% 86400);
 Chat(id,"DAILY_WAIT",left / 3600,(left % 3600)/ 60);
 return;
 }
@@ -8676,15 +8676,15 @@ g_iDailyStreak[id]++;
 else
 g_iDailyStreak[id]= 1;
 g_iDailyDay[id]= today;
-new s = min(g_iDailyStreak[id],7);
-new ap = get_pcvar_num(g_pDailyAP)+ 20 * s;
-new vc = 3 + 2 * s; // v6: 5..17 VC over the 7-day streak
-new xp = 50 + 25 * s;
-new dp = VipDailyPct(id);
+new s=min(g_iDailyStreak[id],7);
+new ap=get_pcvar_num(g_pDailyAP)+ 20 * s;
+new vc=3 + 2 * s; // v6: 5..17 VC over the 7-day streak
+new xp=50 + 25 * s;
+new dp=VipDailyPct(id);
 if(dp > 0)
 {
-ap += ap * dp / 100;
-vc += max(1,vc * dp / 100);
+ap+=ap * dp / 100;
+vc+=max(1,vc * dp / 100);
 }
 g_iVC[id]+= vc;
 AddAP(id,ap,false,false);
@@ -8703,8 +8703,8 @@ ShowTitleMenu(id)
 {
 new title[320],item[128],key[12],tn[40];
 VexHead(id,title,charsmax(title),"MENU_TITLE");
-new menu = VexMenuCreate(title,"menu_title_handler");
-for(new i = 0;i < NUM_TITLES;i++)
+new menu=VexMenuCreate(title,"menu_title_handler");
+for(new i=0;i < NUM_TITLES;i++)
 {
 formatex(key,charsmax(key),"TITLE_%d",i);
 formatex(tn,charsmax(tn),"%L",id,key);
@@ -8725,7 +8725,7 @@ MenuFinish(id,menu);
 }
 bool:TitleUnlocked(id,t)
 {
-if(t == 0)
+if(t==0)
 return true;
 return(g_iAch[id]&(1 << TITLE_ACH[t]))? true : false;
 }
@@ -8736,7 +8736,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new t = MenuInfo(menu,item);
+new t=MenuInfo(menu,item);
 menu_destroy(menu);
 if(!TitleUnlocked(id,t))
 {
@@ -8752,7 +8752,7 @@ return PLUGIN_HANDLED;
 ShowAchMenu(id)
 {
 new title[320],item[160],k1[16],k2[16],n1[40],n2[64],count;
-for(new i = 0;i < NUM_ACH;i++)
+for(new i=0;i < NUM_ACH;i++)
 {
 if(g_iAch[id]&(1 << i))
 count++;
@@ -8760,8 +8760,8 @@ count++;
 new hsub[32];
 formatex(hsub,charsmax(hsub),"[\y%d / %d\r]",count,NUM_ACH);
 VexHead(id,title,charsmax(title),"MENU_ACH",hsub);
-new menu = VexMenuCreate(title,"menu_ach_handler");
-for(new i = 0;i < NUM_ACH;i++)
+new menu=VexMenuCreate(title,"menu_ach_handler");
+for(new i=0;i < NUM_ACH;i++)
 {
 formatex(k1,charsmax(k1),"ACH_NAME_%d",i);
 formatex(k2,charsmax(k2),"ACH_DESC_%d",i);
@@ -8783,7 +8783,7 @@ return PLUGIN_HANDLED;
 ShowStats(id)
 {
 new count,tname[32];
-for(new i = 0;i < NUM_ACH;i++)
+for(new i=0;i < NUM_ACH;i++)
 {
 if(g_iAch[id]&(1 << i))
 count++;
@@ -8798,18 +8798,18 @@ Chat(id,"STATS_5",g_iPlaySec[id]/ 3600,(g_iPlaySec[id]% 3600)/ 60,g_iDailyStreak
 ShowTop(id)
 {
 new ids[32],n,tmp;
-for(new i = 1;i <= g_iMax;i++)
+for(new i=1;i<=g_iMax;i++)
 {
 if(is_user_connected(i)&& !is_user_bot(i))
 ids[n++]= i;
 }
-for(new i = 0;i < n - 1;i++)
+for(new i=0;i < n - 1;i++)
 {
-for(new j = i + 1;j < n;j++)
+for(new j=i + 1;j < n;j++)
 {
 if(g_iXP[ids[j]]> g_iXP[ids[i]])
 {
-tmp = ids[i];
+tmp=ids[i];
 ids[i]= ids[j];
 ids[j]= tmp;
 }
@@ -8817,7 +8817,7 @@ ids[j]= tmp;
 }
 Chat(id,"TOP_TITLE");
 new name[32];
-for(new i = 0;i < n && i < 5;i++)
+for(new i=0;i < n&&i < 5;i++)
 {
 get_user_name(ids[i],name,charsmax(name));
 Chat(id,"TOP_LINE",i + 1,name,g_iLevel[ids[i]],g_iXP[ids[i]]);
@@ -8829,7 +8829,7 @@ AssignQuests()
 {
 if(!get_pcvar_num(g_pQuests))
 return;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 {
@@ -8839,10 +8839,10 @@ continue;
 new q,tries;
 do
 {
-q = random(NUM_QUESTS);
+q=random(NUM_QUESTS);
 tries++;
 }
-while(tries < 20 &&(q == g_iQuest[id]||(QUEST_TYPE[q]== 4 && !AllowsInfection())));
+while(tries < 20 &&(q==g_iQuest[id]||(QUEST_TYPE[q]== 4&&!AllowsInfection())));
 g_iQuest[id]= q;
 g_iQuestProg[id]= 0;
 g_bQuestDone[id]= false;
@@ -8854,10 +8854,10 @@ client_print_color(id,print_team_default,"%s %L",ChatTag("QUEST_NEW"),id,"QUEST_
 }
 QuestEvent(id,type,amount)
 {
-if(!get_pcvar_num(g_pQuests)|| !(1 <= id <= g_iMax)|| is_user_bot(id))
+if(!get_pcvar_num(g_pQuests)|| !(1<=id<=g_iMax)|| is_user_bot(id))
 return;
-new q = g_iQuest[id];
-if(q < 0 || q >= NUM_QUESTS || g_bQuestDone[id]|| QUEST_TYPE[q]!= type)
+new q=g_iQuest[id];
+if(q < 0||q>=NUM_QUESTS||g_bQuestDone[id]|| QUEST_TYPE[q]!= type)
 return;
 g_iQuestProg[id]+= amount;
 if(g_iQuestProg[id]< QUEST_NEED[q])
@@ -8869,7 +8869,7 @@ PlayKey(id,"QUEST_DONE");
 HudTo(id,SL_PERS,CLR_REWARD,3.0,"QUEST_DONE_HUD");
 new name[32];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,id,"%s %L",ChatTag("QUEST_DONE_ALL"),p,"QUEST_DONE_ALL",name);
@@ -8878,8 +8878,8 @@ client_print_color(p,id,"%s %L",ChatTag("QUEST_DONE_ALL"),p,"QUEST_DONE_ALL",nam
 QuestLine(id,out[],len)
 {
 out[0]= 0;
-new q = g_iQuest[id];
-if(!get_pcvar_num(g_pQuests)|| q < 0 || q >= NUM_QUESTS)
+new q=g_iQuest[id];
+if(!get_pcvar_num(g_pQuests)|| q < 0||q>=NUM_QUESTS)
 return;
 if(g_bQuestDone[id])
 {
@@ -8893,8 +8893,8 @@ formatex(out,len,"%L",id,"QUEST_LINE",desc,min(g_iQuestProg[id],QUEST_NEED[q]),Q
 }
 public cmd_quest(id)
 {
-new q = g_iQuest[id];
-if(!get_pcvar_num(g_pQuests)|| q < 0 || q >= NUM_QUESTS)
+new q=g_iQuest[id];
+if(!get_pcvar_num(g_pQuests)|| q < 0||q>=NUM_QUESTS)
 {
 Chat(id,"QUEST_NONE");
 return PLUGIN_HANDLED;
@@ -8917,8 +8917,8 @@ LoadTop()
 {
 new path[128];
 TopFile(path,charsmax(path));
-g_iTopCount = 0;
-new fp = fopen(path,"rt");
+g_iTopCount=0;
+new fp=fopen(path,"rt");
 if(!fp)
 return;
 new line[160],key[48],name[32],s1[12],s2[12],s3[12],s4[12];
@@ -8930,7 +8930,7 @@ if(!line[0]|| line[0]== ';')
 continue;
 if(parse(line,key,charsmax(key),name,charsmax(name),s1,charsmax(s1),s2,charsmax(s2),s3,charsmax(s3),s4,charsmax(s4))< 6)
 continue;
-new i = g_iTopCount++;
+new i=g_iTopCount++;
 copy(g_szTopKey[i],charsmax(g_szTopKey[]),key);
 copy(g_szTopName[i],charsmax(g_szTopName[]),name);
 g_iTopXP[i]= str_to_num(s1);
@@ -8940,7 +8940,7 @@ g_iTopBoss[i]= str_to_num(s4);
 }
 fclose(fp);
 SortTop();
-g_bTopDirty = false;
+g_bTopDirty=false;
 }
 SaveTop()
 {
@@ -8948,14 +8948,14 @@ if(!g_bTopDirty)
 return;
 new path[128];
 TopFile(path,charsmax(path));
-new fp = fopen(path,"wt");
+new fp=fopen(path,"wt");
 if(!fp)
 return;
 fprintf(fp,"; Vexmira - tum zamanlarin siralamasi (otomatik)^n");
-for(new i = 0;i < g_iTopCount;i++)
+for(new i=0;i < g_iTopCount;i++)
 fprintf(fp,"^"%s^" ^"%s^" %d %d %d %d^n",g_szTopKey[i],g_szTopName[i],g_iTopXP[i],g_iTopKills[i],g_iTopInf[i],g_iTopBoss[i]);
 fclose(fp);
-g_bTopDirty = false;
+g_bTopDirty=false;
 }
 TopSwap(a,b)
 {
@@ -8966,16 +8966,16 @@ copy(g_szTopKey[b],charsmax(g_szTopKey[]),tk);
 copy(tn,charsmax(tn),g_szTopName[a]);
 copy(g_szTopName[a],charsmax(g_szTopName[]),g_szTopName[b]);
 copy(g_szTopName[b],charsmax(g_szTopName[]),tn);
-t = g_iTopXP[a];g_iTopXP[a]= g_iTopXP[b];g_iTopXP[b]= t;
-t = g_iTopKills[a];g_iTopKills[a]= g_iTopKills[b];g_iTopKills[b]= t;
-t = g_iTopInf[a];g_iTopInf[a]= g_iTopInf[b];g_iTopInf[b]= t;
-t = g_iTopBoss[a];g_iTopBoss[a]= g_iTopBoss[b];g_iTopBoss[b]= t;
+t=g_iTopXP[a];g_iTopXP[a]= g_iTopXP[b];g_iTopXP[b]= t;
+t=g_iTopKills[a];g_iTopKills[a]= g_iTopKills[b];g_iTopKills[b]= t;
+t=g_iTopInf[a];g_iTopInf[a]= g_iTopInf[b];g_iTopInf[b]= t;
+t=g_iTopBoss[a];g_iTopBoss[a]= g_iTopBoss[b];g_iTopBoss[b]= t;
 }
 SortTop()
 {
-for(new i = 1;i < g_iTopCount;i++)
+for(new i=1;i < g_iTopCount;i++)
 {
-for(new j = i;j > 0 && g_iTopXP[j]> g_iTopXP[j - 1];j--)
+for(new j=i;j > 0&&g_iTopXP[j]> g_iTopXP[j - 1];j--)
 TopSwap(j,j - 1);
 }
 RefreshTopRanks();
@@ -8983,13 +8983,13 @@ RefreshTopRanks();
 RefreshTopRanks()
 {
 new key[48];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 g_iTopRank[id]= 0;
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
 GetKey(id,key,charsmax(key));
-for(new i = 0;i < g_iTopCount;i++)
+for(new i=0;i < g_iTopCount;i++)
 {
 if(equal(g_szTopKey[i],key))
 {
@@ -9003,21 +9003,21 @@ UpdateTop(id,const key[])
 {
 if(is_user_bot(id)|| g_iXP[id]<= 0)
 return;
-new slot = -1;
-for(new i = 0;i < g_iTopCount;i++)
+new slot=-1;
+for(new i=0;i < g_iTopCount;i++)
 {
 if(equal(g_szTopKey[i],key))
 {
-slot = i;
+slot=i;
 break;
 }
 }
-if(slot == -1)
+if(slot==-1)
 {
 if(g_iTopCount < TOP_MAX)
-slot = g_iTopCount++;
+slot=g_iTopCount++;
 else if(g_iXP[id]> g_iTopXP[TOP_MAX - 1])
-slot = TOP_MAX - 1;
+slot=TOP_MAX - 1;
 else
 return;
 }
@@ -9033,7 +9033,7 @@ g_iTopKills[slot]= g_iKills[id];
 g_iTopInf[slot]= g_iInfects[id];
 g_iTopBoss[slot]= g_iBossK[id];
 SortTop();
-g_bTopDirty = true;
+g_bTopDirty=true;
 }
 HtmlName(const src[],dst[],len)
 {
@@ -9051,22 +9051,22 @@ ShowTop10(id)
 {
 static html[1600];
 new len,nm[40];
-len = formatex(html,charsmax(html),"<html><head><style>body{background:#06080e;color:#cfe6ff;font-family:Verdana;font-size:12px;margin:8px}h2{color:#00c8ff;text-align:center;letter-spacing:6px;margin:4px}table{width:100%%;border-collapse:collapse}th{color:#ff4670;border-bottom:1px solid #1c3550;padding:4px}td{padding:3px;text-align:center}.n{text-align:left;color:#2ee6a6}.f{text-align:center;color:#7d90a6;margin-top:8px}</style></head><body>");
-len += formatex(html[len],charsmax(html)- len,"<h2>%L</h2><table><tr><th>#<th>%L<th>Lv<th>XP<th>%L<th>%L<th>Boss",id,"TOP10_TITLE",id,"TOP10_NAME",id,"TOP10_KILLS",id,"TOP10_INF");
-new shown = min(10,g_iTopCount);
-for(new i = 0;i < shown;i++)
+len=formatex(html,charsmax(html),"<html><head><style>body{background:#06080e;color:#cfe6ff;font-family:Verdana;font-size:12px;margin:8px}h2{color:#00c8ff;text-align:center;letter-spacing:6px;margin:4px}table{width:100%%;border-collapse:collapse}th{color:#ff4670;border-bottom:1px solid #1c3550;padding:4px}td{padding:3px;text-align:center}.n{text-align:left;color:#2ee6a6}.f{text-align:center;color:#7d90a6;margin-top:8px}</style></head><body>");
+len+=formatex(html[len],charsmax(html)- len,"<h2>%L</h2><table><tr><th>#<th>%L<th>Lv<th>XP<th>%L<th>%L<th>Boss",id,"TOP10_TITLE",id,"TOP10_NAME",id,"TOP10_KILLS",id,"TOP10_INF");
+new shown=min(10,g_iTopCount);
+for(new i=0;i < shown;i++)
 {
 HtmlName(g_szTopName[i],nm,20);
-len += formatex(html[len],charsmax(html)- len,"<tr><td>%d<td class=n>%s<td>%d<td>%d<td>%d<td>%d<td>%d",
+len+=formatex(html[len],charsmax(html)- len,"<tr><td>%d<td class=n>%s<td>%d<td>%d<td>%d<td>%d<td>%d",
 i + 1,nm,CalcLevel(g_iTopXP[i]),g_iTopXP[i],g_iTopKills[i],g_iTopInf[i],g_iTopBoss[i]);
 }
-len += formatex(html[len],charsmax(html)- len,"</table><div class=f>");
+len+=formatex(html[len],charsmax(html)- len,"</table><div class=f>");
 if(g_iTopRank[id]> 0)
-len += formatex(html[len],charsmax(html)- len,"%L",id,"TOP10_YOU",g_iTopRank[id]);
-else if(g_iTopCount >= TOP_MAX)
-len += formatex(html[len],charsmax(html)- len,"%L",id,"TOP10_NEED",max(0,g_iTopXP[TOP_MAX - 1]- g_iXP[id]+ 1));
+len+=formatex(html[len],charsmax(html)- len,"%L",id,"TOP10_YOU",g_iTopRank[id]);
+else if(g_iTopCount>=TOP_MAX)
+len+=formatex(html[len],charsmax(html)- len,"%L",id,"TOP10_NEED",max(0,g_iTopXP[TOP_MAX - 1]- g_iXP[id]+ 1));
 else
-len += formatex(html[len],charsmax(html)- len,"%L",id,"TOP10_OPEN");
+len+=formatex(html[len],charsmax(html)- len,"%L",id,"TOP10_OPEN");
 formatex(html[len],charsmax(html)- len,"</div></body></html>");
 show_motd(id,html,"VEXMIRA | TOP 10");
 }
@@ -9086,68 +9086,68 @@ HtmlName(raw,name,charsmax(name));
 TitleName(target,id,tname,charsmax(tname));
 formatex(key,charsmax(key),"JOB_%d",g_iJob[target]);
 formatex(jn,charsmax(jn),"%L",id,key);
-new lvl = g_iLevel[target];
-new base = XPForLevel(lvl),need = XPForLevel(lvl + 1);
-new pct =(lvl >= MAX_LEVEL)? 100 : clamp((g_iXP[target]- base)* 100 / max(1,need - base),0,100);
+new lvl=g_iLevel[target];
+new base=XPForLevel(lvl),need=XPForLevel(lvl + 1);
+new pct =(lvl>=MAX_LEVEL)? 100 : clamp((g_iXP[target]- base)* 100 / max(1,need - base),0,100);
 new ach;
-for(new i = 0;i < NUM_ACH;i++)
+for(new i=0;i < NUM_ACH;i++)
 {
 if(g_iAch[target]&(1 << i))
 ach++;
 }
-len = formatex(html,charsmax(html),"<html><head><style>body{background:#06080e;color:#cfe6ff;font-family:Verdana;font-size:12px;margin:10px}h2{color:#00c8ff;letter-spacing:4px;margin:2px 0}.t{color:#ff4670;margin-bottom:6px}.bar{background:#13202f;height:14px;border:1px solid #1c3550}.fl{background:#00c8ff;height:14px}td{padding:4px 10px}b{color:#2ee6a6}</style></head><body>");
-len += formatex(html[len],charsmax(html)- len,"<h2>%s</h2><div class=t>Lv.%d â€¢ %s",name,lvl,tname);
+len=formatex(html,charsmax(html),"<html><head><style>body{background:#06080e;color:#cfe6ff;font-family:Verdana;font-size:12px;margin:10px}h2{color:#00c8ff;letter-spacing:4px;margin:2px 0}.t{color:#ff4670;margin-bottom:6px}.bar{background:#13202f;height:14px;border:1px solid #1c3550}.fl{background:#00c8ff;height:14px}td{padding:4px 10px}b{color:#2ee6a6}</style></head><body>");
+len+=formatex(html[len],charsmax(html)- len,"<h2>%s</h2><div class=t>Lv.%d â€¢ %s",name,lvl,tname);
 if(g_iTopRank[target]> 0)
-len += formatex(html[len],charsmax(html)- len," â€¢ TOP #%d",g_iTopRank[target]);
+len+=formatex(html[len],charsmax(html)- len," â€¢ TOP #%d",g_iTopRank[target]);
 if(IsElite(target))
-len += formatex(html[len],charsmax(html)- len," â€¢ ELITE");
+len+=formatex(html[len],charsmax(html)- len," â€¢ ELITE");
 else if(IsVip(target))
-len += formatex(html[len],charsmax(html)- len," â€¢ VIP");
-len += formatex(html[len],charsmax(html)- len,"</div><div class=bar><div class=fl style=^"width:%d%%^"></div></div>XP %d / %d (%d%%)<table>",pct,g_iXP[target],need,pct);
-len += formatex(html[len],charsmax(html)- len,"<tr><td>AP <b>%d</b><td>VC <b>%d</b><td>%L <b>%s</b>",g_iAP[target],g_iVC[target],id,"CARD_JOB",jn);
-len += formatex(html[len],charsmax(html)- len,"<tr><td>%L <b>%d</b><td>%L <b>%d</b><td>HS <b>%d</b>",id,"CARD_KILLS",g_iKills[target],id,"CARD_INF",g_iInfects[target],g_iHS[target]);
-len += formatex(html[len],charsmax(html)- len,"<tr><td>%L <b>%d</b><td>%L <b>%d</b><td>%L <b>%d/%d</b>",id,"CARD_WINS",g_iWins[target],id,"CARD_BOSS",g_iBossK[target],id,"CARD_ACH",ach,NUM_ACH);
-len += formatex(html[len],charsmax(html)- len,"<tr><td>%L <b>%d:%02d</b><td>%L <b>%d</b><td>%L <b>%d</b>",id,"CARD_TIME",g_iPlaySec[target]/ 3600,(g_iPlaySec[target]% 3600)/ 60,id,"CARD_DAILY",g_iDailyStreak[target],id,"CARD_MAPKILLS",g_iMapKills[target]);
+len+=formatex(html[len],charsmax(html)- len," â€¢ VIP");
+len+=formatex(html[len],charsmax(html)- len,"</div><div class=bar><div class=fl style=^"width:%d%%^"></div></div>XP %d / %d (%d%%)<table>",pct,g_iXP[target],need,pct);
+len+=formatex(html[len],charsmax(html)- len,"<tr><td>AP <b>%d</b><td>VC <b>%d</b><td>%L <b>%s</b>",g_iAP[target],g_iVC[target],id,"CARD_JOB",jn);
+len+=formatex(html[len],charsmax(html)- len,"<tr><td>%L <b>%d</b><td>%L <b>%d</b><td>HS <b>%d</b>",id,"CARD_KILLS",g_iKills[target],id,"CARD_INF",g_iInfects[target],g_iHS[target]);
+len+=formatex(html[len],charsmax(html)- len,"<tr><td>%L <b>%d</b><td>%L <b>%d</b><td>%L <b>%d/%d</b>",id,"CARD_WINS",g_iWins[target],id,"CARD_BOSS",g_iBossK[target],id,"CARD_ACH",ach,NUM_ACH);
+len+=formatex(html[len],charsmax(html)- len,"<tr><td>%L <b>%d:%02d</b><td>%L <b>%d</b><td>%L <b>%d</b>",id,"CARD_TIME",g_iPlaySec[target]/ 3600,(g_iPlaySec[target]% 3600)/ 60,id,"CARD_DAILY",g_iDailyStreak[target],id,"CARD_MAPKILLS",g_iMapKills[target]);
 formatex(html[len],charsmax(html)- len,"</table></body></html>");
 show_motd(id,html,"VEXMIRA | PROFILE");
 }
 TopJoinAnnounce(id)
 {
-new r = g_iTopRank[id];
-if(r < 1 || r > 3)
+new r=g_iTopRank[id];
+if(r < 1||r > 3)
 return;
 new name[32];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
-if(p != id && is_user_connected(p)&& !is_user_bot(p))
+if(p!=id&&is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,id,"%s %L",ChatTag("TOP_JOIN"),p,"TOP_JOIN",r,name);
 }
 }
 Float:APMult(id)
 {
-new Float:m = 1.0;
+new Float:m=1.0;
 if(g_iJob[id]== JOB_LOOTER)
-m += 0.5;
-m += float(VipBonusPct(id))/ 100.0;
-m += 0.10 * float(g_iPerk[id][PK_FORTUNE]);
-if(g_iEvent == EV_GOLDRUSH)
+m+=0.5;
+m+=float(VipBonusPct(id))/ 100.0;
+m+=0.10 * float(g_iPerk[id][PK_FORTUNE]);
+if(g_iEvent==EV_GOLDRUSH)
 m *= 2.0;
 return m;
 }
-AddAP(id,amount,bool:mult = true,bool:show = true)
+AddAP(id,amount,bool:mult=true,bool:show=true)
 {
-if(!is_user_connected(id)|| amount == 0)
+if(!is_user_connected(id)|| amount==0)
 return;
-if(mult && amount > 0 && g_iJob[id]== JOB_GAMBLER && random_num(1,100)<= 10)
+if(mult&&amount > 0&&g_iJob[id]== JOB_GAMBLER&&random_num(1,100)<= 10)
 amount *= 2;
-if(mult && amount > 0)
-amount = max(1,floatround(float(amount)* APMult(id)));
+if(mult&&amount > 0)
+amount=max(1,floatround(float(amount)* APMult(id)));
 g_iAP[id]= max(0,g_iAP[id]+ amount);
 if(amount > 0)
 g_iRoundAP[id]+= amount;
 SyncMoney(id);
-if(show && amount > 0 && !is_user_bot(id))
+if(show&&amount > 0&&!is_user_bot(id))
 {
 set_dhudmessage(CLR_REWARD,0.535,0.47,0,0.0,0.9,0.05,0.25);
 show_dhudmessage(id,"+%d AP",amount);
@@ -9159,30 +9159,30 @@ if(!is_user_connected(id)|| is_user_hltv(id))
 return;
 if(pev_valid(id)!= 2)
 return;
-new TeamName:t = get_member(id,m_iTeam);
-if(t == TEAM_TERRORIST || t == TEAM_CT)
+new TeamName:t=get_member(id,m_iTeam);
+if(t==TEAM_TERRORIST||t==TEAM_CT)
 rg_add_account(id,min(g_iAP[id],999999),AS_SET,false);
 }
 Reward(id,xp,ap)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 return;
-xp = xp *(100 + VipBonusPct(id))/ 100;
-if(g_iEvent == EV_GOLDRUSH)
+xp=xp *(100 + VipBonusPct(id))/ 100;
+if(g_iEvent==EV_GOLDRUSH)
 xp *= 2;
-new old = g_iLevel[id];
+new old=g_iLevel[id];
 g_iXP[id]= max(0,g_iXP[id]+ xp);
 g_iRoundXP[id]+= xp;
 g_iLevel[id]= CalcLevel(g_iXP[id]);
-if(xp > 0 && HudPartMode(g_pHudXp)== 2 && !g_iPlantAction[id]&& !CsoOn())
+if(xp > 0&&HudPartMode(g_pHudXp)== 2&&!g_iPlantAction[id]&& !CsoOn())
 {
-new lvl = g_iLevel[id];
-new pct =(lvl >= MAX_LEVEL)? 100 : clamp((g_iXP[id]- XPForLevel(lvl))* 100 / max(1,XPForLevel(lvl + 1)- XPForLevel(lvl)),0,100);
+new lvl=g_iLevel[id];
+new pct =(lvl>=MAX_LEVEL)? 100 : clamp((g_iXP[id]- XPForLevel(lvl))* 100 / max(1,XPForLevel(lvl + 1)- XPForLevel(lvl)),0,100);
 rg_send_bartime2(id,2,float(pct),false);
 }
 if(ap > 0)
 AddAP(id,ap,true,false);
-if((xp > 0 || ap > 0)&& HudPartMode(g_pHudXp)!= 0)
+if((xp > 0||ap > 0)&& HudPartMode(g_pHudXp)!= 0)
 {
 new txt[48];
 if(ap > 0)
@@ -9198,24 +9198,24 @@ CheckAch(id);
 ShowShopMenu(id)
 {
 new title[320],item[160],k1[12],k2[16],n1[40],n2[64];
-new isZ = g_bZombie[id]? 1 : 0;
+new isZ=g_bZombie[id]? 1 : 0;
 if(isZ)VexHead(id,title,charsmax(title),"MENU_SHOP_Z");else VexHead(id,title,charsmax(title),"MENU_SHOP_H");
-new menu = VexMenuCreate(title,"menu_shop_handler");
+new menu=VexMenuCreate(title,"menu_shop_handler");
 if(!isZ){
 formatex(item,charsmax(item),"%L",id,"ZC_SPECIAL");MenuAdd(menu,item,202);
 formatex(item,charsmax(item),"%L [80 AP]",id,"ZC_JETPACK");MenuAdd(menu,item,200);
 }
-for(new k = 0,nk = vxe_item_count();k < nk;k++)
+for(new k=0,nk=vxe_item_count();k < nk;k++)
 {
-new c538 = vxe_item_info(k,isZ,n1,charsmax(n1));
+new c538=vxe_item_info(k,isZ,n1,charsmax(n1));
 if(c538 < 0)continue;
 formatex(item,charsmax(item),"\y%s \r[%d AP]",n1,c538);MenuAdd(menu,item,300 + k);
 }
-for(new i = 0;i < NUM_ITEMS;i++)
+for(new i=0;i < NUM_ITEMS;i++)
 {
 if(ITEM_TEAM[i]!= isZ)
 continue;
-new cost = ItemPrice(id,i);
+new cost=ItemPrice(id,i);
 formatex(k1,charsmax(k1),"ITEM_%d",i);
 formatex(k2,charsmax(k2),"ITEM_DESC_%d",i);
 formatex(n1,charsmax(n1),"%L",id,k1);
@@ -9235,11 +9235,11 @@ MenuFinish(id,menu);
 }
 ItemPrice(id,i)
 {
-new cost = ITEM_COST[i];
+new cost=ITEM_COST[i];
 if(g_iJob[id]== JOB_ENGINEER)
-cost = cost * 3 / 4;
-cost = cost *(100 - VipDiscPct(id))/ 100;
-if(i == IT_MEDKIT && g_iJob[id]== JOB_MEDIC)
+cost=cost * 3 / 4;
+cost=cost *(100 - VipDiscPct(id))/ 100;
+if(i==IT_MEDKIT&&g_iJob[id]== JOB_MEDIC)
 cost /= 2;
 return max(1,cost);
 }
@@ -9250,16 +9250,16 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-if(sel == 999){ShowMainMenu(id);return PLUGIN_HANDLED;}
-if(sel == 202){CommunityWeaponMenu(id);return PLUGIN_HANDLED;}
-if(sel == 210 || sel == 211){CommunityCoinMenu(id,sel - 210);return PLUGIN_HANDLED;}
-if(sel >= 300 && sel < 340)
+if(sel==999){ShowMainMenu(id);return PLUGIN_HANDLED;}
+if(sel==202){CommunityWeaponMenu(id);return PLUGIN_HANDLED;}
+if(sel==210||sel==211){CommunityCoinMenu(id,sel - 210);return PLUGIN_HANDLED;}
+if(sel>=300&&sel < 340)
 BuyItem538(id,sel - 300);
-else if(sel == 200 || sel == 201)
+else if(sel==200||sel==201)
 CommunityBuyGear(id,sel - 200);
-else if(sel == 100)
+else if(sel==100)
 Exchange(id);
 else
 {
@@ -9271,7 +9271,7 @@ return PLUGIN_HANDLED;
 }
 Exchange(id)
 {
-new xc = max(1,get_pcvar_num(g_pExchange));
+new xc=max(1,get_pcvar_num(g_pExchange));
 if(g_iAP[id]< xc)
 {
 Chat(id,"SHOP_NOAP");
@@ -9284,20 +9284,20 @@ Chat(id,"SHOP_EXCHANGED");
 }
 BuyItem(id,i)
 {
-new isZ = g_bZombie[id]? 1 : 0;
-new bool:dead = !is_user_alive(id);
-new Float:now = get_gametime();
-if(i == IT_RESPAWN)
+new isZ=g_bZombie[id]? 1 : 0;
+new bool:dead=!is_user_alive(id);
+new Float:now=get_gametime();
+if(i==IT_RESPAWN)
 {
-new TeamName:myt = get_member(id,m_iTeam);
-if(!dead || g_bZombie[id]|| !g_bRoundActive || !AllowsInfection()|| RoundTimeLeft()< 60
-||(myt != TEAM_TERRORIST && myt != TEAM_CT))
+new TeamName:myt=get_member(id,m_iTeam);
+if(!dead||g_bZombie[id]|| !g_bRoundActive||!AllowsInfection()|| RoundTimeLeft()< 60
+||(myt!=TEAM_TERRORIST&&myt!=TEAM_CT))
 {
 Chat(id,"SHOP_UNAVAIL");
 return;
 }
 }
-else if(dead || ITEM_TEAM[i]!= isZ || g_bBoss[id]|| g_bMinion[id]|| g_bNemesis[id]|| g_bAssassin[id]|| g_bSurvivor[id]|| g_bSniper[id])
+else if(dead||ITEM_TEAM[i]!= isZ||g_bBoss[id]|| g_bMinion[id]|| g_bNemesis[id]|| g_bAssassin[id]|| g_bSurvivor[id]|| g_bSniper[id])
 {
 Chat(id,"SHOP_UNAVAIL");
 return;
@@ -9312,8 +9312,8 @@ if(ITEM_LIMIT[i]&& g_iBought[id][i]>= ITEM_LIMIT[i])
 Chat(id,"SHOP_LIMIT");
 return;
 }
-new val = ITEM_VAL[i];
-new cost = ItemPrice(id,i);
+new val=ITEM_VAL[i];
+new cost=ItemPrice(id,i);
 if(g_iAP[id]< cost)
 {
 Chat(id,"SHOP_NOAP");
@@ -9323,7 +9323,7 @@ switch(i)
 {
 case IT_MEDKIT:
 {
-new mx = MaxHumanHP(id)+ max(1,val);
+new mx=MaxHumanHP(id)+ max(1,val);
 if(Float:get_entvar(id,var_health)>= float(mx))
 {
 Chat(id,"SHOP_ALREADY");
@@ -9334,7 +9334,7 @@ HealTo(id,max(1,val),mx);
 case IT_ARMOR: rg_set_user_armor(id,clamp(val,1,999),ARMOR_VESTHELM);
 case IT_FIRENADE:
 {
-for(new k = 0;k < max(1,val);k++)
+for(new k=0;k < max(1,val);k++)
 {
 g_iFireNades[id]++;
 GiveNadeStack(id,"weapon_hegrenade",WEAPON_HEGRENADE);
@@ -9342,7 +9342,7 @@ GiveNadeStack(id,"weapon_hegrenade",WEAPON_HEGRENADE);
 }
 case IT_FROSTNADE:
 {
-for(new k = 0;k < max(1,val);k++)
+for(new k=0;k < max(1,val);k++)
 {
 g_iFrostNades[id]++;
 GiveNadeStack(id,"weapon_smokegrenade",WEAPON_SMOKEGRENADE);
@@ -9350,7 +9350,7 @@ GiveNadeStack(id,"weapon_smokegrenade",WEAPON_SMOKEGRENADE);
 }
 case IT_FLARE:
 {
-for(new k = 0;k < max(1,val);k++)
+for(new k=0;k < max(1,val);k++)
 {
 g_iFlares[id]++;
 GiveNadeStack(id,"weapon_flashbang",WEAPON_FLASHBANG);
@@ -9381,7 +9381,7 @@ rg_round_respawn(id);
 }
 case IT_ANTIDOTE:
 {
-if(CountZombies(true)<= 1 || now - g_fInfectTime[id]< 5.0)
+if(CountZombies(true)<= 1||now - g_fInfectTime[id]< 5.0)
 {
 Chat(id,"SHOP_UNAVAIL");
 return;
@@ -9398,7 +9398,7 @@ EmitKey(id,"MADNESS");
 }
 case IT_INFBOMB:
 {
-if(!AllowsInfection()|| g_iGlobalInfBombs >= max(1,val))
+if(!AllowsInfection()|| g_iGlobalInfBombs>=max(1,val))
 {
 Chat(id,"SHOP_UNAVAIL");
 return;
@@ -9448,8 +9448,8 @@ set_user_rendering(id,kRenderFxGlowShell,0,255,255,kRenderNormal,18);
 case IT_AMMO:
 {
 RefillAmmo(id);
-new sw = g_iSpecW[id];
-for(new s = 0;s < NUM_SPECIAL;s++)
+new sw=g_iSpecW[id];
+for(new s=0;s < NUM_SPECIAL;s++)
 {
 if(sw &(1 << s))
 rg_set_user_bpammo(id,SW_BASE_ID[s],SW_BPAMMO[s]);
@@ -9490,15 +9490,15 @@ static const ITEM_RGB531[][3]={
 VxItemFx531(id,i)
 {
 if(!is_user_alive(id))return;
-new r = 255,g = 255,b = 255;
-if(0 <= i < sizeof ITEM_RGB531){r = ITEM_RGB531[i][0];g = ITEM_RGB531[i][1];b = ITEM_RGB531[i][2];}
+new r=255,g=255,b=255;
+if(0<=i < sizeof ITEM_RGB531){r=ITEM_RGB531[i][0];g=ITEM_RGB531[i][1];b=ITEM_RGB531[i][2];}
 VxItemFxRGB531(id,r,g,b);
 new Float:o[3];
 get_entvar(id,var_origin,o);
-if(i == IT_MEDKIT)FxHeal(id);
+if(i==IT_MEDKIT)FxHeal(id);
 ItemFx533(id,i,o);
 }
-enum{IF_POWER = 0,IF_HEAL,IF_ARMOR,IF_MADNESS,IF_RAGE,IF_CLOAK,IF_JUMP,IF_SPEED,IF_SHIELD,IF_REGEN,IF_AMMO,IF_ANTIDOTE,IF_SERUM,IF_TOTAL};
+enum{IF_POWER=0,IF_HEAL,IF_ARMOR,IF_MADNESS,IF_RAGE,IF_CLOAK,IF_JUMP,IF_SPEED,IF_SHIELD,IF_REGEN,IF_AMMO,IF_ANTIDOTE,IF_SERUM,IF_TOTAL};
 new const IF_NAME533[IF_TOTAL][]={"power","heal","armor","madness","rage","cloak","jump","speed","shield","regen","ammo","antidote","serum"};
 new const ITEM_FAM533[]={IF_HEAL,IF_ARMOR,IF_POWER,IF_POWER,IF_POWER,IF_JUMP,IF_SPEED,IF_REGEN,IF_AMMO,IF_RAGE,
 IF_POWER,IF_ANTIDOTE,IF_MADNESS,IF_SERUM,IF_SERUM,IF_RAGE,IF_POWER,IF_ARMOR,IF_SPEED,IF_CLOAK,IF_POWER,IF_SHIELD,
@@ -9506,14 +9506,14 @@ IF_AMMO,IF_SPEED,IF_CLOAK,IF_JUMP,IF_REGEN,IF_SHIELD};
 ItemSndPrecache533()
 {
 new key[32],path[96];
-for(new f = 0;f < IF_TOTAL;f++)
+for(new f=0;f < IF_TOTAL;f++)
 {
 formatex(key,charsmax(key),"ITEM_SND_%s",IF_NAME533[f]);
 if(!TrieGetString(g_tRes,key,path,charsmax(path)))
 {
 {
 static const IF_S535[][]={"power","heal","shield","roar","roar2","whoosh","whoosh","speed","shield","heal","","heal","acid"};
-if(f == IF_AMMO)copy(path,charsmax(path),"items/9mmclip1.wav");
+if(f==IF_AMMO)copy(path,charsmax(path),"items/9mmclip1.wav");
 else formatex(path,charsmax(path),"vexmira/s534/%s.wav",IF_S535[f]);
 }
 TrieSetString(g_tRes,key,path);
@@ -9523,12 +9523,12 @@ PrecacheSoundKeyEx(key,false);
 }
 ItemFx533(id,i,const Float:o[3])
 {
-new f =(0 <= i < sizeof ITEM_FAM533)? ITEM_FAM533[i]: IF_POWER;
+new f =(0<=i < sizeof ITEM_FAM533)? ITEM_FAM533[i]: IF_POWER;
 new key[32];formatex(key,charsmax(key),"ITEM_SND_%s",IF_NAME533[f]);
 EmitKey(id,key,CHAN_ITEM,ATTN_NORM);
 if(!g_iFx532[X_GLOW])return;
-new Float:c[3];c = o;c[2]+= 10.0;
-new Float:feet[3];feet = o;feet[2]-=((get_entvar(id,var_flags)& FL_DUCKING)? 16.0 : 34.0);
+new Float:c[3];c=o;c[2]+= 10.0;
+new Float:feet[3];feet=o;feet[2]-=((get_entvar(id,var_flags)& FL_DUCKING)? 16.0 : 34.0);
 switch(f)
 {
 case IF_HEAL:{NxSprite(c,g_iFx532[X_GLOW],10,200,10.0);NxShower(c,g_iFx532[X_TOXICMIST],10,10,2,22,18,60.0);NxRing(feet,g_iFx532[X_RING],80,255,120,120,16,5,200,2.0);}
@@ -9553,7 +9553,7 @@ VxItemFxRGB531(id,r,g,b)
 if(!is_user_alive(id))return;
 new Float:o[3],Float:f[3];
 get_entvar(id,var_origin,o);
-f = o;f[2]-=((get_entvar(id,var_flags)& FL_DUCKING)? 16.0 : 34.0);
+f=o;f[2]-=((get_entvar(id,var_flags)& FL_DUCKING)? 16.0 : 34.0);
 FxRingEx(f,r,g,b,140,14,5,230);
 FxRingEx(f,255,255,255,70,6,3,160);
 FxLight(o,r,g,b,22,6,40);
@@ -9564,9 +9564,9 @@ AnnounceBuy(id,const itemKey[])
 {
 new name[32],nm[48];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBuyBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBuyBcast);p++)
 {
-if(!is_user_connected(p)|| is_user_bot(p)|| p == id)
+if(!is_user_connected(p)|| is_user_bot(p)|| p==id)
 continue;
 formatex(nm,charsmax(nm),"%L",p,itemKey);
 client_print_color(p,id,"%s %L",CHAT_PREFIX,p,g_bZombie[id]? "BUY_ALL_Z" : "BUY_ALL_H",name,nm);
@@ -9578,8 +9578,8 @@ CommunityWeaponMenu(id);
 }
 public menu_special_handler(id,menu,item)
 {
-if(item >= 0){
-new i = MenuInfo(menu,item);
+if(item>=0){
+new i=MenuInfo(menu,item);
 if(i==999){
 menu_destroy(menu);
 ShowShopMenu(id);
@@ -9594,19 +9594,19 @@ ShowPerkMenu(id)
 {
 new title[320],item[160],k1[12],k2[16],n1[32],n2[64];
 VexHead(id,title,charsmax(title),"MENU_PERKS");
-new menu = VexMenuCreate(title,"menu_perk_handler");
-for(new i = 0;i < NUM_PERKS;i++)
+new menu=VexMenuCreate(title,"menu_perk_handler");
+for(new i=0;i < NUM_PERKS;i++)
 {
 formatex(k1,charsmax(k1),"PERK_%d",i);
 formatex(k2,charsmax(k2),"PERK_DESC_%d",i);
 formatex(n1,charsmax(n1),"%L",id,k1);
 formatex(n2,charsmax(n2),"%L",id,k2);
-new lv = g_iPerk[id][i];
+new lv=g_iPerk[id][i];
 new stars[8];
-for(new s = 0;s < PERK_MAX;s++)
+for(new s=0;s < PERK_MAX;s++)
 stars[s]=(s < lv)? '*' : '-';
 stars[PERK_MAX]= 0;
-if(lv >= PERK_MAX)
+if(lv>=PERK_MAX)
 formatex(item,charsmax(item),"\y%s \r[\y%s\r] [\yMAX\r]",n1,stars);
 else
 formatex(item,charsmax(item),"\y%s \r[\y%s\r] [%s%d VC\r]",n1,stars,
@@ -9623,13 +9623,13 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new p = MenuInfo(menu,item);
+new p=MenuInfo(menu,item);
 menu_destroy(menu);
 if(p==999){ShowCosmeticMenu(id);return PLUGIN_HANDLED;}
-if(p<0 || p>=NUM_PERKS)return PLUGIN_HANDLED;
+if(p<0||p>=NUM_PERKS)return PLUGIN_HANDLED;
 DescChat(id,"PERK_%d","PERK_DESC_%d",p);
-new lv = g_iPerk[id][p];
-if(lv >= PERK_MAX)
+new lv=g_iPerk[id][p];
+if(lv>=PERK_MAX)
 {
 Chat(id,"PERK_MAXED");
 }
@@ -9657,7 +9657,7 @@ g_iVip[id]= 0;
 g_iVipExpire[id]= 0;
 if(is_user_bot(id))
 return;
-if(g_hVipVault != INVALID_HANDLE)
+if(g_hVipVault!=INVALID_HANDLE)
 {
 new key[48],val[32];
 GetKey(id,key,charsmax(key));
@@ -9665,8 +9665,8 @@ if(nvault_get(g_hVipVault,key,val,charsmax(val)))
 {
 new t[8],e[16];
 parse(val,t,charsmax(t),e,charsmax(e));
-new tier = clamp(str_to_num(t),0,2);
-new expire = str_to_num(e);
+new tier=clamp(str_to_num(t),0,2);
+new expire=str_to_num(e);
 if(expire > get_systime())
 {
 g_iVip[id]= tier;
@@ -9679,7 +9679,7 @@ set_task(6.0,"task_VipExpired",id + TASK_VIPMSG);
 }
 }
 }
-new flags = get_user_flags(id);
+new flags=get_user_flags(id);
 if(flags & ADMIN_LEVEL_G)
 g_iVip[id]= 2;
 else if((flags & ADMIN_LEVEL_H)&& g_iVip[id]< 1)
@@ -9687,7 +9687,7 @@ g_iVip[id]= 1;
 }
 public task_VipExpired(tid)
 {
-new id = tid - TASK_VIPMSG;
+new id=tid - TASK_VIPMSG;
 if(is_user_connected(id))
 Chat(id,"VIP_EXPIRED");
 }
@@ -9720,12 +9720,12 @@ return 0;
 VipRoundVC(id)
 {
 if(!IsVip(id))return 0;
-new v = max(0,get_pcvar_num(g_pVipRoundVC));
+new v=max(0,get_pcvar_num(g_pVipRoundVC));
 return IsElite(id)? v * 2 : v;
 }
 VipVoteW(id)
 {
-if(!(1 <= id <= g_iMax)|| !IsVip(id))
+if(!(1<=id<=g_iMax)|| !IsVip(id))
 return 1;
 return clamp(get_pcvar_num(g_pVipVoteW),1,3);
 }
@@ -9749,15 +9749,15 @@ MaxAirJumps(id)
 {
 if(g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]|| g_bMinion[id])
 return 0;
-new n = g_iExtraJumps[id];
+new n=g_iExtraJumps[id];
 if(IsVip(id))n++;
 if(IsElite(id))n++;
 return n;
 }
 public msg_ScoreAttrib(msgid,dest,rcv)
 {
-new p = get_msg_arg_int(1);
-if(1 <= p <= g_iMax && IsVip(p)&& get_pcvar_num(g_pVipScore))
+new p=get_msg_arg_int(1);
+if(1<=p<=g_iMax&&IsVip(p)&& get_pcvar_num(g_pVipScore))
 set_msg_arg_int(2,ARG_BYTE,get_msg_arg_int(2)|(1 << 2));
 return PLUGIN_CONTINUE;
 }
@@ -9768,17 +9768,17 @@ return;
 new name[32],tier[16];
 get_user_name(id,name,charsmax(name));
 VipTierKey(id,tier,charsmax(tier));
-new pri = get_pcvar_num(g_pVipPriority);
-if(pri > 0 && get_playersnum(1)>= g_iMax - pri)
+new pri=get_pcvar_num(g_pVipPriority);
+if(pri > 0&&get_playersnum(1)>= g_iMax - pri)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,id,"%s %L",ChatTag("VIP_JOIN"),p,"VIP_PRIORITY",name);
 }
-new ann = get_pcvar_num(g_pVipAnnounce);
-for(new p = 1;p <= g_iMax && ann > 0;p++)
+new ann=get_pcvar_num(g_pVipAnnounce);
+for(new p=1;p<=g_iMax&&ann > 0;p++)
 {
-if(!is_user_connected(p)|| is_user_bot(p)|| p == id)
+if(!is_user_connected(p)|| is_user_bot(p)|| p==id)
 continue;
 new tn[16];
 formatex(tn,charsmax(tn),"%L",p,tier);
@@ -9787,7 +9787,7 @@ new txt[128];
 formatex(txt,charsmax(txt),"%L",p,"VIP_JOIN_HUD",tn,name);
 HudText(p,SL_ALERT,CLR_REWARD,3.0,txt);
 }
-if(ann >= 2)
+if(ann>=2)
 PlayKey(0,"VIP_JOIN");
 new tn2[16];
 formatex(tn2,charsmax(tn2),"%L",id,tier);
@@ -9796,7 +9796,7 @@ HudToS(id,SL_PERS,CLR_REWARD,4.0,"VIP_WELCOME_HUD",tn2);
 if(g_iVipExpire[id]> 0)
 {
 new days =(g_iVipExpire[id]- get_systime())/ 86400;
-if(days <= 3)
+if(days<=3)
 Chat(id,"VIP_ENDING",days + 1);
 else
 Chat(id,"VIP_DAYS_LEFT",days);
@@ -9857,9 +9857,9 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-if(sel >= 10)
+if(sel>=10)
 ShowVipInfo(id,sel - 10);
 else if(IsVip(id))
 ShowVipMenu(id);
@@ -9879,7 +9879,7 @@ formatex(left,charsmax(left),"%L",id,"VIP_PERMANENT");
 new hsub[64];
 formatex(hsub,charsmax(hsub),"[\y%s\r] [\y%s\r]",tn,left);
 VexHead(id,title,charsmax(title),"MENU_VIP",hsub);
-new menu = VexMenuCreate(title,"menu_vip_handler");
+new menu=VexMenuCreate(title,"menu_vip_handler");
 formatex(item,charsmax(item),"\y%L%s",id,g_bZombie[id]? "VIPM_FREE_Z" : "VIPM_FREE_H",g_bVipFreeUsed[id]? " \r[X]" : "");
 MenuAdd(menu,item,1);
 new ak[16];
@@ -9900,12 +9900,12 @@ MenuFinish(id,menu);
 }
 public menu_vip_handler(id,menu,item)
 {
-if(item < 0 || !IsVip(id))
+if(item < 0||!IsVip(id))
 {
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 switch(sel)
 {
@@ -9946,7 +9946,7 @@ return;
 g_bVipFreeUsed[id]= 1;
 if(g_bZombie[id])
 {
-new Float:add = IsElite(id)? 1000.0 : 500.0;
+new Float:add=IsElite(id)? 1000.0 : 500.0;
 g_iMaxHP[id]+= floatround(add);
 set_entvar(id,var_health,Float:get_entvar(id,var_health)+ add);
 if(IsElite(id))
@@ -9999,11 +9999,11 @@ CosPrice(id,cat,idx)
 new p;
 switch(cat)
 {
-case 0: p = TRAIL_PRICE[idx];
-case 1: p = KFX_PRICE[idx];
-default: p = IFX_PRICE[idx];
+case 0: p=TRAIL_PRICE[idx];
+case 1: p=KFX_PRICE[idx];
+default: p=IFX_PRICE[idx];
 }
-p = p *(100 - VipDiscPct(id))/ 100;
+p=p *(100 - VipDiscPct(id))/ 100;
 return max(1,p);
 }
 CosCount(cat)
@@ -10075,22 +10075,22 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new cat = MenuInfo(menu,item);
+new cat=MenuInfo(menu,item);
 menu_destroy(menu);
 if(cat==24){ShowPerkMenu(id);return PLUGIN_HANDLED;}
 if(cat==25){Exchange(id);ShowCosmeticMenu(id);return PLUGIN_HANDLED;}
 if(cat==26){ShowLaserShop531(id);return PLUGIN_HANDLED;}
-if(cat == 9)
+if(cat==9)
 {
 g_iSet[id]^= SET_NO_COS;
 Chat(id,(g_iSet[id]& SET_NO_COS)? "COS_HIDE_ON" : "COS_HIDE_OFF");
 SaveData(id);
 ShowCosmeticMenu(id);
 }
-else if(cat == 23)CommunityEffectMenu(id);
-else if(cat == 21 || cat == 22)
+else if(cat==23)CommunityEffectMenu(id);
+else if(cat==21||cat==22)
 CommunityCoinMenu(id,cat - 21);
-else if(cat >= 3)
+else if(cat>=3)
 ShowCmList(id,cat - 3);
 else
 ShowCosList(id,cat);
@@ -10101,14 +10101,14 @@ ShowCosList(id,cat)
 new title[320],item[128],nm[48];
 static const CATKEY[3][]={"COS_CAT_TRAIL","COS_CAT_KFX","COS_CAT_IFX"};
 VexHead(id,title,charsmax(title),CATKEY[cat]);
-new menu = VexMenuCreate(title,"menu_coslist_handler");
-new sel = CosSelected(id,cat);
-formatex(item,charsmax(item),sel == 0 ? "\y%L \r[*\r]" : "\y%L",id,"COS_NONE");
+new menu=VexMenuCreate(title,"menu_coslist_handler");
+new sel=CosSelected(id,cat);
+formatex(item,charsmax(item),sel==0 ? "\y%L \r[*\r]" : "\y%L",id,"COS_NONE");
 MenuAdd(menu,item,cat * 100);
-for(new i = 0;i < CosCount(cat);i++)
+for(new i=0;i < CosCount(cat);i++)
 {
 CosName(id,cat,i,nm,charsmax(nm));
-if(sel == i + 1)
+if(sel==i + 1)
 formatex(item,charsmax(item),"\y%s \r[%L\r]",nm,id,"COS_EQUIPPED");
 else if(g_iCosOwned[id]& CosBit(cat,i))
 formatex(item,charsmax(item),"\y%s \r[%L]",nm,id,"COS_OWNED");
@@ -10125,34 +10125,34 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new v = MenuInfo(menu,item);
+new v=MenuInfo(menu,item);
 menu_destroy(menu);
 if(!is_user_connected(id))
 return PLUGIN_HANDLED;
-new cat = v / 100,idx = v % 100;
-if(cat < 0 || cat > 2)
+new cat=v / 100,idx=v % 100;
+if(cat < 0||cat > 2)
 return PLUGIN_HANDLED;
 new nm[48],bool:changed;
-if(idx == 0)
+if(idx==0)
 {
 if(CosSelected(id,cat)!= 0)
 {
 CosSetSelected(id,cat,0);
-if(cat == 0)
+if(cat==0)
 KillTrail(id);
-changed = true;
+changed=true;
 }
 Chat(id,"COS_OFF");
 }
 else
 {
-new i = idx - 1;
-if(i >= CosCount(cat))
+new i=idx - 1;
+if(i>=CosCount(cat))
 return PLUGIN_HANDLED;
 CosName(id,cat,i,nm,charsmax(nm));
 if(!(g_iCosOwned[id]& CosBit(cat,i)))
 {
-new price = CosPrice(id,cat,i);
+new price=CosPrice(id,cat,i);
 if(g_iVC[id]< price)
 {
 Chat(id,"COS_NOVC",price);
@@ -10166,20 +10166,20 @@ Chat(id,"COS_BOUGHT",nm,price);
 CosPreview(id,cat,i);
 new name[32];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBuyBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBuyBcast);p++)
 {
-if(p == id || !is_user_connected(p)|| is_user_bot(p))
+if(p==id||!is_user_connected(p)|| is_user_bot(p))
 continue;
 new pn[48];
 CosName(p,cat,i,pn,charsmax(pn));
 client_print_color(p,id,"%s %L",ChatTag("COS_BOUGHT_ALL"),p,"COS_BOUGHT_ALL",name,pn);
 }
-changed = true;
+changed=true;
 }
 if(CosSelected(id,cat)!= idx)
 {
 CosSetSelected(id,cat,idx);
-changed = true;
+changed=true;
 }
 Chat(id,"COS_EQUIP",nm);
 }
@@ -10190,35 +10190,35 @@ return PLUGIN_HANDLED;
 }
 CmParse(const args[][],argc)
 {
-new c = -1;
-for(new k = 0;k < CM_CATS;k++)
-if(equali(args[0],CM_TABLE[k]))c = k;
-if(c < 0 || argc < 5)
+new c=-1;
+for(new k=0;k < CM_CATS;k++)
+if(equali(args[0],CM_TABLE[k]))c=k;
+if(c < 0||argc < 5)
 return;
-if(c == 2)
+if(c==2)
 return;
-new i = str_to_num(args[1])- 1;
-if(i < 0 || i >= CM_MAX)
+new i=str_to_num(args[1])- 1;
+if(i < 0||i>=CM_MAX)
 {
 log_amx("[Vexmira] %s: gecersiz no %s (1-%d)",args[0],args[1],CM_MAX);
 return;
 }
-if(c==1 && i==5)return;
+if(c==1&&i==5)return;
 copy(g_szCmEn[c][i],charsmax(g_szCmEn[][]),args[2]);
 copy(g_szCmTr[c][i],charsmax(g_szCmTr[][]),args[3]);
 copy(g_szCmMdl[c][i],charsmax(g_szCmMdl[][]),args[4]);
 g_iCmPrice[c][i]=(argc > 5)? max(0,str_to_num(args[5])): 100;
 g_iCmVip[c][i]=(argc > 6)? str_to_num(args[6]): 0;
-new a =(c == 1)? CMA_FOLLOW :((c == 2)? CMA_HEAD : CMA_BACK);
+new a =(c==1)? CMA_FOLLOW :((c==2)? CMA_HEAD : CMA_BACK);
 if(argc > 7)
 {
-if(equali(args[7],"bone"))a = CMA_BONE;
-else if(equali(args[7],"head"))a = CMA_HEAD;
-else if(equali(args[7],"back"))a = CMA_BACK;
-else if(equali(args[7],"follow"))a = CMA_FOLLOW;
+if(equali(args[7],"bone"))a=CMA_BONE;
+else if(equali(args[7],"head"))a=CMA_HEAD;
+else if(equali(args[7],"back"))a=CMA_BACK;
+else if(equali(args[7],"follow"))a=CMA_FOLLOW;
 }
 g_iCmAtt[c][i]= a;
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 {
 g_fCmOfs[c][i][k]=(argc > 8 + k)? floatclamp(str_to_float(args[8 + k]),-128.0,128.0): 0.0;
 g_fCmAng[c][i][k]=(argc > 11 + k)? str_to_float(args[11 + k]): 0.0;
@@ -10236,10 +10236,10 @@ g_szCmMdl[c][i][0]= 0;
 }
 CmPrecache()
 {
-for(new c = 0;c < CM_CATS;c++)
+for(new c=0;c < CM_CATS;c++)
 {
 g_iCmN[c]= 0;
-for(new i = 0;i < CM_MAX;i++)
+for(new i=0;i < CM_MAX;i++)
 {
 g_bCmOk[c][i]=(g_szCmMdl[c][i][0]&& PcModel(g_szCmMdl[c][i]))? true : false;
 if(g_bCmOk[c][i]){
@@ -10265,9 +10265,9 @@ copy(out,len,(equali(lg,"tr")&& g_szCmTr[c][i][0])? g_szCmTr[c][i]: g_szCmEn[c][
 }
 CmPrice(id,c,i)
 {
-new p = g_iCmPrice[c][i]*(100 - VipDiscPct(id))/ 100;
+new p=g_iCmPrice[c][i]*(100 - VipDiscPct(id))/ 100;
 if(CmDealIdx()== c * 16 + i)
-p = p *(100 - CmDealPct())/ 100;
+p=p *(100 - CmDealPct())/ 100;
 return max(0,p);
 }
 CmDealPct()
@@ -10278,21 +10278,21 @@ CmDealIdx()
 {
 if(CmDealPct()<= 0)
 return -1;
-new total = g_iCmN[0]+ g_iCmN[1]+ g_iCmN[2];
-if(total <= 0)
+new total=g_iCmN[0]+ g_iCmN[1]+ g_iCmN[2];
+if(total<=0)
 return -1;
 new k =(get_systime()/ 86400)% total;
-for(new c = 0;c < CM_CATS;c++)
-for(new i = 0;i < CM_MAX;i++)
-if(g_bCmOk[c][i]&& g_iCmPrice[c][i]> 0 && k-- == 0)
+for(new c=0;c < CM_CATS;c++)
+for(new i=0;i < CM_MAX;i++)
+if(g_bCmOk[c][i]&& g_iCmPrice[c][i]> 0&&k--==0)
 return c * 16 + i;
 return -1;
 }
 CmPrevRemove(id)
 {
-new ent = g_iCmPrev[id];
+new ent=g_iCmPrev[id];
 g_iCmPrev[id]= 0;
-if(ent > 0 && ent < OVH_MAXENT)
+if(ent > 0&&ent < OVH_MAXENT)
 {
 if(g_iCmOwn[ent]== id)
 g_iCmOwn[ent]= 0;
@@ -10306,22 +10306,22 @@ new Float:o[3],Float:vo[3],Float:va[3];
 get_entvar(id,var_origin,o);
 get_entvar(id,var_view_ofs,vo);
 get_entvar(id,var_v_angle,va);
-new Float:yaw = va[1]* 3.14159265 / 180.0;
-new Float:d =(c == 0)? 64.0 : 44.0;
+new Float:yaw=va[1]* 3.14159265 / 180.0;
+new Float:d =(c==0)? 64.0 : 44.0;
 t[0]= o[0]+ floatcos(yaw)* d;
 t[1]= o[1]+ floatsin(yaw)* d;
-t[2]= o[2]+ vo[2]+((c == 0)? -6.0 :((c == 2)? -5.0 : -2.0));
+t[2]= o[2]+ vo[2]+((c==0)? -6.0 :((c==2)? -5.0 : -2.0));
 }
 CmPreview(id,c,i)
 {
 CmPrevRemove(id);
-new secs = get_pcvar_num(g_pCosPreview);
-if(secs <= 0 || !g_bCmOk[c][i])
+new secs=get_pcvar_num(g_pCosPreview);
+if(secs<=0||!g_bCmOk[c][i])
 return;
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return;
-if(ent >= OVH_MAXENT)
+if(ent>=OVH_MAXENT)
 {
 set_entvar(ent,var_flags,FL_KILLME);
 return;
@@ -10353,8 +10353,8 @@ Chat(id,"COS_PREV_START",nm,clamp(secs,3,30));
 }
 CmPrevTick(id,Float:now,bool:conn)
 {
-new ent = g_iCmPrev[id];
-if(!conn || now >= g_fCmPrevEnd[id]|| !CmValid(ent,id))
+new ent=g_iCmPrev[id];
+if(!conn||now>=g_fCmPrevEnd[id]|| !CmValid(ent,id))
 {
 CmPrevRemove(id);
 return;
@@ -10368,19 +10368,19 @@ engfunc(EngFunc_SetOrigin,ent,t);
 set_entvar(ent,var_velocity,v);
 return;
 }
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 v[k]=(t[k]- o[k])* 8.0;
 set_entvar(ent,var_velocity,v);
 }
 bool:CmValid(ent,id)
 {
-return(ent > g_iMax && ent < OVH_MAXENT && !is_nullent(ent)&& get_entvar(ent,var_iuser2)== CM_MAGIC && get_entvar(ent,var_iuser1)== id)? true : false;
+return(ent > g_iMax&&ent < OVH_MAXENT&&!is_nullent(ent)&& get_entvar(ent,var_iuser2)== CM_MAGIC&&get_entvar(ent,var_iuser1)== id)? true : false;
 }
 CmRemove(id,c)
 {
-new ent = g_iCmEnt[id][c];
+new ent=g_iCmEnt[id][c];
 g_iCmEnt[id][c]= 0;
-if(ent > 0 && ent < OVH_MAXENT)
+if(ent > 0&&ent < OVH_MAXENT)
 {
 if(g_iCmOwn[ent]== id)
 g_iCmOwn[ent]= 0;
@@ -10390,12 +10390,12 @@ set_entvar(ent,var_flags,FL_KILLME);
 }
 CmWanted(id,c)
 {
-if(!is_user_alive(id)|| g_bZombie[id]|| g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]|| g_bMinion[id])
+if(!is_user_alive(id)|| g_bBoss[id]|| g_bMinion[id]) // v10: zombies (also Nemesis / Assassin) wear their wings / pet / cosmetics too; the anchor comes from their own model
 return 0;
-new v = CmSel(id,c);
-if(v < 1 || v > CM_MAX)
+new v=CmSel(id,c);
+if(v < 1||v > CM_MAX)
 return 0;
-new i = v - 1;
+new i=v - 1;
 if(!g_bCmOk[c][i]||(g_iCmVip[c][i]&& !IsVip(id)))
 return 0;
 return v;
@@ -10406,28 +10406,28 @@ return clamp(floatround((v - a)* 255.0 /(b - a)),0,255);
 }
 CmCtl(id,c,i,bool:duck,ctl[4])
 {
-new Float:top = duck ? g_fOvhDuck[id]: g_fOvhStand[id];
-new Float:z = g_fCmOfs[c][i][2];
+new Float:top=duck ? g_fOvhDuck[id]: g_fOvhStand[id];
+new Float:z=g_fCmOfs[c][i][2];
 switch(g_iCmAtt[c][i])
 {
-case CMA_HEAD: z += top;
-case CMA_BACK: z += top - 18.0;
-case CMA_FOLLOW: z += top - 10.0;
+case CMA_HEAD: z+=top;
+case CMA_BACK: z+=top - 18.0;
+case CMA_FOLLOW: z+=top - 10.0;
 }
-new Float:sc = g_fCmScale[c][i]> 0.05 ? g_fCmScale[c][i]: 1.0;
-new Float:fx = g_fCmOfs[c][i][0],Float:fy = g_fCmOfs[c][i][1];
-if(c == 0 &&(g_iCmAtt[c][i]== CMA_BACK || g_iCmAtt[c][i]== CMA_BONE)&& g_iCosBone50[id][0]>= 0)
+new Float:sc=g_fCmScale[c][i]> 0.05 ? g_fCmScale[c][i]: 1.0;
+new Float:fx=g_fCmOfs[c][i][0],Float:fy=g_fCmOfs[c][i][1];
+if(c==0 &&(g_iCmAtt[c][i]== CMA_BACK||g_iCmAtt[c][i]== CMA_BONE)&& g_iCosBone50[id][0]>= 0)
 {
 new Float:an[3];
-for(new k = 0;k < 3;k++)an[k]= g_fCosAnchor50[id][0][k];
-if(floatabs(an[0])< 40.0 && floatabs(an[1])< 40.0 && an[2]> -30.0 && an[2]< 60.0 &&(an[0]!= 0.0 || an[2]!= 0.0))
+for(new k=0;k < 3;k++)an[k]= g_fCosAnchor50[id][0][k];
+if(floatabs(an[0])< 40.0&&floatabs(an[1])< 40.0&&an[2]> -30.0&&an[2]< 60.0 &&(an[0]!= 0.0||an[2]!= 0.0))
 {
 new Float:ang[3];get_entvar(id,var_angles,ang);
-new Float:yw = ang[1]* 0.0174532925,Float:cs = floatcos(yw),Float:sn = floatsin(yw);
-fx += floatclamp(an[0]* cs + an[1]* sn + 0.2,-8.0,8.0);
-fy += floatclamp(-an[0]* sn + an[1]* cs,-4.0,4.0);
-new Float:ps = Float:get_entvar(id,var_scale);
-z += floatclamp(an[2]- 13.8 *(ps > 0.05 ? ps : 1.0),-24.0,12.0);
+new Float:yw=ang[1]* 0.0174532925,Float:cs=floatcos(yw),Float:sn=floatsin(yw);
+fx+=floatclamp(an[0]* cs + an[1]* sn + 0.2,-8.0,8.0);
+fy+=floatclamp(-an[0]* sn + an[1]* cs,-4.0,4.0);
+new Float:ps=Float:get_entvar(id,var_scale);
+z+=floatclamp(an[2]- 13.8 *(ps > 0.05 ? ps : 1.0),-24.0,12.0);
 g_fWingDz60[id]= an[2];
 }
 }
@@ -10446,10 +10446,10 @@ set_pev(ent,pev_controller_2,ctl[2]);
 }
 CmSpawn(id,c,i)
 {
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
-if(ent >= OVH_MAXENT)
+if(ent>=OVH_MAXENT)
 {
 set_entvar(ent,var_flags,FL_KILLME);
 return 0;
@@ -10480,33 +10480,33 @@ CmTick(Float:now)
 {
 if(!g_iCmN[0]&& !g_iCmN[1]&& !g_iCmN[2])
 return;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
-new bool:conn = is_user_connected(id)? true : false;
+new bool:conn=is_user_connected(id)? true : false;
 if(!g_iCmSelPk[id]&& !g_iCmPrev[id]&& !g_iCmEnt[id][0]&& !g_iCmEnt[id][1]&& !g_iCmEnt[id][2])continue;
 if(g_iCmPrev[id])
 {CmPrevTick(id,now,conn);new info48=g_iCmPrevInfo[id];if(CmValid(g_iCmPrev[id],id))CommunityCosAnimate(g_iCmPrev[id],info48/16,info48%16,now);}
-for(new c = 0;c < CM_CATS;c++)
+for(new c=0;c < CM_CATS;c++)
 {
-new ent = g_iCmEnt[id][c];
-new want = conn ? CmWanted(id,c): 0;
-if(ent &&(!CmValid(ent,id)|| !want || g_iCmInfo[ent]!= c * 16 + want - 1))
+new ent=g_iCmEnt[id][c];
+new want=conn ? CmWanted(id,c): 0;
+if(ent &&(!CmValid(ent,id)|| !want||g_iCmInfo[ent]!= c * 16 + want - 1))
 {
 CmRemove(id,c);
-ent = 0;
+ent=0;
 }
 if(!want)
 continue;
-new i = want - 1;
+new i=want - 1;
 if(!ent)
 {
-ent = CmSpawn(id,c,i);
+ent=CmSpawn(id,c,i);
 if(!ent)
 continue;
 }
 OvhModelTops(id);
 CommunityCosOrigin(ent,id,c,i);
-if(c==1 && g_fCmOfs[c][i][2]<0.0){new Float:po49[3];get_entvar(ent,var_origin,po49);g_fPetFloor49[id]=po49[2];CommunityPetMove49(id);}
+if(c==1&&g_fCmOfs[c][i][2]<0.0){new Float:po49[3];get_entvar(ent,var_origin,po49);g_fPetFloor49[id]=po49[2];CommunityPetMove49(id);}
 CommunityCosState48(ent,id,c,i);
 if(get_entvar(ent,var_movetype)!= MOVETYPE_FOLLOW)CommunityCosAnimate(ent,c,i,now);
 }
@@ -10516,24 +10516,25 @@ CmPack(es,ent,host)
 {
 if(!get_orig_retval())
 return FMRES_IGNORED;
-new id = g_iCmOwn[ent];
-if(!(1 <= id <= g_iMax))
+new id=g_iCmOwn[ent];
+if(!(1<=id<=g_iMax))
 return FMRES_IGNORED;
 if(g_iCmInfo[ent]>= 100)
 {
-if(host != id)
+if(host!=id)
 set_es(es,ES_Effects,get_es(es,ES_Effects)| EF_NODRAW);
 return FMRES_IGNORED;
 }
-if(host != id &&(g_iSet[host]& SET_NO_COS)&& get_pcvar_num(g_pCosHide))
+if(host!=id &&(g_fCloak[id]>get_gametime()||(get_entvar(id,var_rendermode)!=kRenderNormal&&Float:get_entvar(id,var_renderamt)<60.0))){set_es(es,ES_Effects,get_es(es,ES_Effects)| EF_NODRAW);return FMRES_IGNORED;} // an invisible zombie does not show its wings / pet
+if(host!=id &&(g_iSet[host]& SET_NO_COS)&& get_pcvar_num(g_pCosHide))
 {
 set_es(es,ES_Effects,get_es(es,ES_Effects)| EF_NODRAW);
 return FMRES_IGNORED;
 }
-new c = g_iCmInfo[ent]/ 16,i = g_iCmInfo[ent]% 16;
-if(c >= CM_CATS || i >= CM_MAX)
+new c=g_iCmInfo[ent]/ 16,i=g_iCmInfo[ent]% 16;
+if(c>=CM_CATS||i>=CM_MAX)
 return FMRES_IGNORED;
-new att = g_iCmAtt[c][i];
+new att=g_iCmAtt[c][i];
 if(c==1){
 new Float:po49[3],Float:pa564[3],Float:old564[3];get_entvar(id,var_origin,po49);get_entvar(id,var_angles,pa564);get_entvar(ent,var_vuser1,old564);
 new Float:y564=pa564[1]*0.0174532925;
@@ -10542,7 +10543,7 @@ po49[1]+=(g_fCmOfs[c][i][0]*floatsin(y564)+g_fCmOfs[c][i][1]*floatcos(y564))*g_f
 po49[2]=g_fPetFloor49[id]+po49[2]-old564[2];
 pa564[0]=g_fCmAng[c][i][0];pa564[1]+=g_fCmAng[c][i][1];pa564[2]=g_fCmAng[c][i][2];
 set_es(es,ES_Origin,po49);set_es(es,ES_Angles,pa564);
-}else if(c!=1 && get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW){
+}else if(c!=1&&get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW){
 if(get_pcvar_num(g_pCosSmooth532)){set_es(es,ES_MoveType,MOVETYPE_STEP);set_es(es,ES_AnimTime,get_gametime());}
 new Float:po49[3];get_entvar(id,var_origin,po49);
 new Float:eo49[3],Float:old49[3];get_entvar(ent,var_origin,eo49);get_entvar(ent,var_vuser1,old49);
@@ -10553,7 +10554,7 @@ po49[0]+=x51*floatcos(dy51)-y51*floatsin(dy51);po49[1]+=x51*floatsin(dy51)+y51*f
 ya51[0]=g_fCmAng[c][i][0];ya51[1]+=g_fCmAng[c][i][1];ya51[2]=g_fCmAng[c][i][2];set_es(es,ES_Angles,ya51);
 set_es(es,ES_Origin,po49);
 }
-if(att != CMA_FOLLOW &&((host == id &&(!g_iCamera47[id]|| is_nullent(g_iCamera47[id])))||(get_entvar(host,var_iuser1)== 4 && get_entvar(host,var_iuser2)== id)))
+if(att!=CMA_FOLLOW &&((host==id &&(!g_iCamera47[id]|| is_nullent(g_iCamera47[id])))||(get_entvar(host,var_iuser1)== 4&&get_entvar(host,var_iuser2)== id)))
 {
 set_es(es,ES_Effects,get_es(es,ES_Effects)| EF_NODRAW);
 return FMRES_IGNORED;
@@ -10565,11 +10566,11 @@ ShowCmList(id,c)
 new title[320],item[128],nm[32],hsub[64];
 formatex(hsub,charsmax(hsub),"%L",id,"COS_SUB");
 VexHead(id,title,charsmax(title),CM_CATKEY[c],hsub);
-new menu = VexMenuCreate(title,"menu_cmlist_handler");
-new sel = CmSel(id,c);
-formatex(item,charsmax(item),sel == 0 ? "\y%L \r[\y*\r]" : "\y%L",id,"COS_NONE");
+new menu=VexMenuCreate(title,"menu_cmlist_handler");
+new sel=CmSel(id,c);
+formatex(item,charsmax(item),sel==0 ? "\y%L \r[\y*\r]" : "\y%L",id,"COS_NONE");
 MenuAdd(menu,item,c * 100);
-for(new i = 0;i < CM_MAX;i++)
+for(new i=0;i < CM_MAX;i++)
 {
 if(!g_bCmOk[c][i])
 continue;
@@ -10577,7 +10578,7 @@ CmName(id,c,i,nm,charsmax(nm));
 new vt[16];
 if(g_iCmVip[c][i])
 copy(vt,charsmax(vt)," \r[\yVIP\r]");
-if(sel == i + 1)
+if(sel==i + 1)
 formatex(item,charsmax(item),"\y%s%s \r[\y%L\r]",nm,vt,id,"COS_EQUIPPED");
 else if(g_iCmOwned[id]&(1 <<(c * 8 + i)))
 formatex(item,charsmax(item),"\y%s%s \r[%L]",nm,vt,id,"COS_OWNED");
@@ -10596,14 +10597,14 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new v = MenuInfo(menu,item);
+new v=MenuInfo(menu,item);
 menu_destroy(menu);
 if(!is_user_connected(id))
 return PLUGIN_HANDLED;
-new c = v / 100,idx = v % 100;
-if(c < 0 || c >= CM_CATS)
+new c=v / 100,idx=v % 100;
+if(c < 0||c>=CM_CATS)
 return PLUGIN_HANDLED;
-if(idx == 0)
+if(idx==0)
 {
 CmSetSel(id,c,0);
 Chat(id,"COS_OFF");
@@ -10611,8 +10612,8 @@ SaveData(id);
 ShowCmList(id,c);
 return PLUGIN_HANDLED;
 }
-new i = idx - 1,nm[32];
-if(i >= CM_MAX || !g_bCmOk[c][i])
+new i=idx - 1,nm[32];
+if(i>=CM_MAX||!g_bCmOk[c][i])
 return PLUGIN_HANDLED;
 CmName(id,c,i,nm,charsmax(nm));
 if(g_iCmVip[c][i]&& !IsVip(id))
@@ -10621,7 +10622,7 @@ Chat(id,"VIP_ONLY");
 ShowCmList(id,c);
 return PLUGIN_HANDLED;
 }
-new bit = 1 <<(c * 8 + i);
+new bit=1 <<(c * 8 + i);
 if(!(g_iCmOwned[id]& bit))
 {
 ShowCmBuy(id,c,i);
@@ -10639,8 +10640,8 @@ new title[320],item[128],nm[32],hsub[96];
 CmName(id,c,i,nm,charsmax(nm));
 formatex(hsub,charsmax(hsub),"%s - %d VC (%L: %d VC)",nm,CmPrice(id,c,i),id,"COS_YOUR_VC",g_iVC[id]);
 VexHead(id,title,charsmax(title),CM_CATKEY[c],hsub);
-new menu = VexMenuCreate(title,"menu_cmbuy_handler");
-new base = c * 100 + i;
+new menu=VexMenuCreate(title,"menu_cmbuy_handler");
+new base=c * 100 + i;
 formatex(item,charsmax(item),"\y%L \r[%d VC]",id,"COS_BUY_ITEM",CmPrice(id,c,i));
 MenuAdd(menu,item,10000 + base);
 if(get_pcvar_num(g_pCosPreview)> 0)
@@ -10659,20 +10660,20 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new v = MenuInfo(menu,item);
+new v=MenuInfo(menu,item);
 menu_destroy(menu);
 if(!is_user_connected(id))
 return PLUGIN_HANDLED;
-new act = v / 10000,c =(v % 10000)/ 100,i = v % 100;
-if(c < 0 || c >= CM_CATS || i < 0 || i >= CM_MAX || !g_bCmOk[c][i])
+new act=v / 10000,c =(v % 10000)/ 100,i=v % 100;
+if(c < 0||c>=CM_CATS||i < 0||i>=CM_MAX||!g_bCmOk[c][i])
 return PLUGIN_HANDLED;
-if(act == 2)
+if(act==2)
 {
 CmPreview(id,c,i);
 ShowCmBuy(id,c,i);
 return PLUGIN_HANDLED;
 }
-if(act != 1)
+if(act!=1)
 {
 ShowCmList(id,c);
 return PLUGIN_HANDLED;
@@ -10683,9 +10684,9 @@ return PLUGIN_HANDLED;
 }
 CmDoBuy(id,c,i)
 {
-if(c < 0 || c >= CM_CATS || i < 0 || i >= CM_MAX || !g_bCmOk[c][i])
+if(c < 0||c>=CM_CATS||i < 0||i>=CM_MAX||!g_bCmOk[c][i])
 return 0;
-new nm[32],bit = 1 <<(c * 8 + i);
+new nm[32],bit=1 <<(c * 8 + i);
 CmName(id,c,i,nm,charsmax(nm));
 if(g_iCmVip[c][i]&& !IsVip(id))
 {
@@ -10694,7 +10695,7 @@ return 0;
 }
 if(!(g_iCmOwned[id]& bit))
 {
-new price = CmPrice(id,c,i);
+new price=CmPrice(id,c,i);
 if(g_iVC[id]< price)
 {
 Chat(id,"COS_NOVC",price);
@@ -10719,11 +10720,11 @@ read_argv(2,cat,charsmax(cat));
 read_argv(3,no,charsmax(no));
 new id =(who[0]== '#')? str_to_num(who[1]): 0;
 if(!id)
-for(new p = 1;p <= g_iMax;p++)
-if(is_user_connected(p)&& is_user_alive(p)&& !g_bZombie[p]){id = p;break;}
-new c = equali(cat,"wing")? 0 :(equali(cat,"pet")? 1 :(equali(cat,"hat")? 2 : -1));
-new i = str_to_num(no)- 1;
-if(!(1 <= id <= g_iMax)|| !is_user_connected(id)|| c < 0 || i < 0 || i >= CM_MAX || !g_bCmOk[c][i])
+for(new p=1;p<=g_iMax;p++)
+if(is_user_connected(p)&& is_user_alive(p)&& !g_bZombie[p]){id=p;break;}
+new c=equali(cat,"wing")? 0 :(equali(cat,"pet")? 1 :(equali(cat,"hat")? 2 : -1));
+new i=str_to_num(no)- 1;
+if(!(1<=id<=g_iMax)|| !is_user_connected(id)|| c < 0||i < 0||i>=CM_MAX||!g_bCmOk[c][i])
 {
 server_print("[Vexmira] vex_cos_give: gecersiz (oyuncu / kategori / no / dosya)");
 return PLUGIN_HANDLED;
@@ -10745,25 +10746,25 @@ server_print("[Vexmira] cos model %s: top stand %.1f duck %.1f -> hat %.1f wing 
 mdl,st,du,st,st - 18.0,st - 10.0);
 return PLUGIN_HANDLED;
 }
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
-for(new c = 0;c < CM_CATS;c++)
+for(new c=0;c < CM_CATS;c++)
 {
-new ent = g_iCmEnt[id][c];
-if(!ent || !CmValid(ent,id))
+new ent=g_iCmEnt[id][c];
+if(!ent||!CmValid(ent,id))
 continue;
 new Float:o[3],Float:po[3];
 get_entvar(ent,var_origin,o);
 get_entvar(id,var_origin,po);
-new k0 = pev(ent,pev_controller_0),k1 = pev(ent,pev_controller_1),k2 = pev(ent,pev_controller_2);
+new k0=pev(ent,pev_controller_0),k1=pev(ent,pev_controller_1),k2=pev(ent,pev_controller_2);
 server_print("[Vexmira] cos #%d %s ent=%d mt=%d aim=%d d=(%.0f %.0f %.0f) ctl=%d/%d/%d ofs=(fwd %.1f right %.1f up %.1f) top=%.1f/%.1f mdl=%s alive=%d z=%d spine=%.1f duck=%d",
 id,CM_TABLE[c],ent,get_entvar(ent,var_movetype),get_entvar(ent,var_aiment),o[0]- po[0],o[1]- po[1],o[2]- po[2],
 k0,k1,k2,CM_CTL_X0 +(CM_CTL_X1 - CM_CTL_X0)* float(k0)/ 255.0,-(CM_CTL_Y0 +(CM_CTL_Y1 - CM_CTL_Y0)* float(k1)/ 255.0),
 CM_CTL_Z0 +(CM_CTL_Z1 - CM_CTL_Z0)* float(k2)/ 255.0,g_fOvhStand[id],g_fOvhDuck[id],g_szOvhMdl[id],is_user_alive(id),g_bZombie[id],g_fWingDz60[id],(get_entvar(id,var_flags)& FL_DUCKING)? 1 : 0);
 }
 }
-new n,e = -1;
-while((e = engfunc(EngFunc_FindEntityByString,e,"classname","vex_cosmodel"))> 0)
+new n,e=-1;
+while((e=engfunc(EngFunc_FindEntityByString,e,"classname","vex_cosmodel"))> 0)
 n++;
 server_print("[Vexmira] cos ents total=%d",n);
 return PLUGIN_HANDLED;
@@ -10796,18 +10797,18 @@ InfectFx(idx,o);
 DrawTrail(id,idx)
 {
 new r,g,b;
-if(idx == 5)
+if(idx==5)
 {
 new c =(g_iFrame / 2)% 6;
-r = RAINBOW_RGB[c][0];
-g = RAINBOW_RGB[c][1];
-b = RAINBOW_RGB[c][2];
+r=RAINBOW_RGB[c][0];
+g=RAINBOW_RGB[c][1];
+b=RAINBOW_RGB[c][2];
 }
 else
 {
-r = TRAIL_RGB[idx][0];
-g = TRAIL_RGB[idx][1];
-b = TRAIL_RGB[idx][2];
+r=TRAIL_RGB[idx][0];
+g=TRAIL_RGB[idx][1];
+b=TRAIL_RGB[idx][2];
 }
 message_begin(MSG_BROADCAST,SVC_TEMPENTITY);
 write_byte(TE_KILLBEAM);
@@ -10817,8 +10818,8 @@ message_begin(MSG_BROADCAST,SVC_TEMPENTITY);
 write_byte(TE_BEAMFOLLOW);
 write_short(id);
 write_short(g_sprBeam);
-write_byte(idx == 5 ? 16 : 12);
-write_byte(idx >= 4 ? 5 : 4);
+write_byte(idx==5 ? 16 : 12);
+write_byte(idx>=4 ? 5 : 4);
 write_byte(r);
 write_byte(g);
 write_byte(b);
@@ -10827,11 +10828,11 @@ message_end();
 }
 bool:TrailAllowed(id)
 {
-if(!is_user_alive(id)|| g_bZombie[id])
+if(!is_user_alive(id)|| g_bBoss[id]|| g_bMinion[id]) // v10: zombies have their trail too
 return false;
 if(g_fCloak[id]> get_gametime()|| g_iJob[id]== JOB_GHOST)
 return false;
-if(g_iEvent == EV_SPEED)
+if(g_iEvent==EV_SPEED)
 return false;
 return true;
 }
@@ -10847,7 +10848,7 @@ message_end();
 }
 DrawVipTrail(id)
 {
-new c = g_iVipAura[id]? g_iVipAura[id]: 2;
+new c=g_iVipAura[id]? g_iVipAura[id]: 2;
 message_begin(MSG_BROADCAST,SVC_TEMPENTITY);
 write_byte(TE_KILLBEAM);
 write_short(id);
@@ -10868,14 +10869,14 @@ TickCosmetics()
 {
 if(g_iFrame % 2)
 return;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
 new bool:want =(g_iTrailSel[id]> 0 ||(IsVip(id)&& g_bVipTrail[id]))? true : false;
-if(!want || !TrailAllowed(id))
+if(!want||!TrailAllowed(id))
 {
-if(g_iEvent != EV_SPEED)
+if(g_iEvent!=EV_SPEED)
 KillTrail(id);
 else
 g_bTrailOn[id]= false;
@@ -10890,7 +10891,7 @@ g_bTrailOn[id]= true;
 }
 CosKillFx(killer,const Float:o[3])
 {
-if(!(1 <= killer <= g_iMax)|| !g_iKfxSel[killer])
+if(!(1<=killer<=g_iMax)|| !g_iKfxSel[killer])
 return;
 KillFx(g_iKfxSel[killer]- 1,o);
 }
@@ -10910,7 +10911,7 @@ case 1:
 FxRingEx(o,255,200,30,220,14,5);
 FxLight(o,255,200,30,20,10,20);
 FxSparks(o);
-top = o;
+top=o;
 top[2]+= 120.0;
 FxSpriteTrail(o,top,g_sprFlare,14,8,2,30,20);
 }
@@ -10935,15 +10936,15 @@ FxLight(o,200,0,160,18,8,20);
 }
 case 5:
 {
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
-new c = random(6);
+new c=random(6);
 new Float:p[3];
-p = o;
+p=o;
 p[2]+= 40.0 + 30.0 * float(i);
 FxRingEx(p,RAINBOW_RGB[c][0],RAINBOW_RGB[c][1],RAINBOW_RGB[c][2],120 + 50 * i,8,4);
 }
-top = o;
+top=o;
 top[2]+= 160.0;
 FxSpriteTrail(o,top,g_sprFlare,20,10,2,40,30);
 FxSparks(top);
@@ -10952,7 +10953,7 @@ FxSparks(top);
 }
 CosInfectFx(zombie,const Float:o[3])
 {
-if(!(1 <= zombie <= g_iMax)|| !g_iIfxSel[zombie])
+if(!(1<=zombie<=g_iMax)|| !g_iIfxSel[zombie])
 return;
 InfectFx(g_iIfxSel[zombie]- 1,o);
 }
@@ -10980,8 +10981,8 @@ FxRingEx(o,255,0,0,280,14,5);
 }
 TickFlares()
 {
-new Float:now = get_gametime();
-for(new f = 0;f < MAX_FLARES;f++)
+new Float:now=get_gametime();
+for(new f=0;f < MAX_FLARES;f++)
 {
 if(g_fFlareEnd[f]<= now)
 continue;
@@ -10990,13 +10991,13 @@ FxLight(g_fFlarePos[f],255,60,60,45,12,2);
 }
 AddFlare(const Float:o[3])
 {
-new best,Float:min_end = 999999.0;
-for(new f = 0;f < MAX_FLARES;f++)
+new best,Float:min_end=999999.0;
+for(new f=0;f < MAX_FLARES;f++)
 {
 if(g_fFlareEnd[f]< min_end)
 {
-min_end = g_fFlareEnd[f];
-best = f;
+min_end=g_fFlareEnd[f];
+best=f;
 }
 }
 g_fFlarePos[best][0]= o[0];
@@ -11006,16 +11007,16 @@ g_fFlareEnd[best]= get_gametime()+ floatmax(1.0,get_pcvar_float(g_pNadeFlareTime
 }
 WeaponIdType:GetActiveWeaponId(id)
 {
-new item = get_member(id,m_pActiveItem);
+new item=get_member(id,m_pActiveItem);
 if(is_nullent(item))
 return WEAPON_NONE;
 return get_member(item,m_iId);
 }
 public rg_DropPlayerItemPost(id,const pszItemName[])
 {
-if(!(1 <= id <= g_iMax)|| !g_iSpecW[id]|| !is_user_connected(id))
+if(!(1<=id<=g_iMax)|| !g_iSpecW[id]|| !is_user_connected(id))
 return HC_CONTINUE;
-for(new s = 0;s < NUM_SPECIAL;s++)
+for(new s=0;s < NUM_SPECIAL;s++)
 {
 if((g_iSpecW[id]&(1 << s))&& !rg_has_item_by_name(id,SW_BASE_ENT[s]))
 g_iSpecW[id]&= ~(1 << s);
@@ -11030,7 +11031,7 @@ return -1;
 }
 ModeSlot(mm,WeaponIdType:wid)
 {
-for(new s = 0;s < MW_SLOTS;s++)
+for(new s=0;s < MW_SLOTS;s++)
 {
 if(MW_ENT[mm][s][0]&& MW_ID[mm][s]== wid)
 return s;
@@ -11039,11 +11040,11 @@ return -1;
 }
 GiveModeWeapons(id,mm)
 {
-for(new s = 0;s < MW_SLOTS;s++)
+for(new s=0;s < MW_SLOTS;s++)
 {
 if(!MW_ENT[mm][s][0])
 continue;
-new ent = rg_give_item(id,MW_ENT[mm][s],GT_REPLACE);
+new ent=rg_give_item(id,MW_ENT[mm][s],GT_REPLACE);
 if(!is_nullent(ent)&& MW_CLIP[mm][s]> 0)
 {
 rg_set_iteminfo(ent,ItemInfo_iMaxClip,MW_CLIP[mm][s]);
@@ -11055,7 +11056,7 @@ rg_set_user_bpammo(id,MW_ID[mm][s],MW_BP[mm][s]);
 }
 VxLeanResources()
 {
-new Snapshot:it = TrieSnapshotCreate(g_tRes);
+new Snapshot:it=TrieSnapshotCreate(g_tRes);
 new key[64],path[192];
 for(new index;index < TrieSnapshotLength(it);index++)
 {
@@ -11069,7 +11070,7 @@ TrieSnapshotDestroy(it);
 VxDisableSW533()
 {
 static const K[][]={"SW4_VMODEL","SW4_PMODEL","SW4_WMODEL","SW4_FIRE"};
-for(new i = 0;i < sizeof K;i++)TrieSetString(g_tRes,K[i],"");
+for(new i=0;i < sizeof K;i++)TrieSetString(g_tRes,K[i],"");
 }
 VxDefaults()
 {
@@ -11099,7 +11100,7 @@ g_bVxReady[sw]=bool:(g_szSWView[sw][0]&&g_szSWPlayer[sw][0]&&g_szVxWorld[sw][0])
 new count=7;
 for(new j;j<count;j++)
 {
-if(j >= 1 && j <= 3)continue;
+if(j>=1&&j<=3)continue;
 formatex(path,charsmax(path),"vexmira/arena51/arsenal/%s/%s.wav",VX_FOLDER[sw],VX_SOUND[j]);
 formatex(full,charsmax(full),"sound/%s",path);
 if(!file_exists(full)|| !PcSound(path))g_bVxReady[sw]=false;
@@ -11131,7 +11132,7 @@ g_iVxShots[id]=0;set_entvar(weapon,var_fuser2,0.0);
 }
 VxGive(id,sw)
 {
-if(sw<0 || sw>=NUM_SPECIAL || !CommunityAlive(id)|| !g_bVxReady[sw])return 0;
+if(sw<0||sw>=NUM_SPECIAL||!CommunityAlive(id)|| !g_bVxReady[sw])return 0;
 rg_drop_items_by_slot(id,PRIMARY_WEAPON_SLOT);CommunityRemoveWeapons(id);
 g_bVxGiving[id]=true;new w=rg_give_item(id,"weapon_ak47",GT_REPLACE);g_bVxGiving[id]=false;
 if(is_nullent(w))return 0;
@@ -11210,7 +11211,7 @@ return FMRES_SUPERCEDE;
 public VxSendAnim(weapon,anim,skiplocal)
 {
 new sw=VxIndex(weapon);if(sw<0)return HC_CONTINUE;
-new mapped=V50_IDLE[sw];if(anim==1)mapped=V50_RELOAD[sw];else if(anim==2)mapped=V50_DRAW[sw];else if(anim>=3 && anim<=5)mapped=V50_FIRE[sw][anim-3];
+new mapped=V50_IDLE[sw];if(anim==1)mapped=V50_RELOAD[sw];else if(anim==2)mapped=V50_DRAW[sw];else if(anim>=3&&anim<=5)mapped=V50_FIRE[sw][anim-3];
 SetHookChainArg(2,ATYPE_INTEGER,mapped);SetHookChainArg(3,ATYPE_INTEGER,0);return HC_CONTINUE;
 }
 public VxClientDataPost(id,sendweapons,cd)
@@ -11223,7 +11224,7 @@ new weapon=get_member(id,m_pActiveItem);g_iVxShots[id]++;VxAnim(id,weapon,V50_FI
 if(sw==0)VxPierce51(id);
 if(sw==1){FxSprite(g_fVxEnd[id],g_iSkillSpr51[1],8,140);VxRadius(g_fVxEnd[id],id,id,sw,75.0,35.0);}
 if(sw==3)VxPellets51(id);
-if(sw==5 && !(g_iVxShots[id]%2))FxBeamEx(g_fVxStart[id],g_fVxEnd[id],g_iLaserBeam51,80,215,255,4,0,1,140);
+if(sw==5&&!(g_iVxShots[id]%2))FxBeamEx(g_fVxStart[id],g_fVxEnd[id],g_iLaserBeam51,80,215,255,4,0,1,140);
 if(g_iVxShots[id]%max(3,get_pcvar_num(g_pSixTracer)))return;
 FxBeamEx(g_fVxStart[id],g_fVxEnd[id],g_sprBeam,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],3,0,1,150);
 }
@@ -11383,8 +11384,8 @@ console_print(id,"[Arsenal8] slot=%d give=%s",sw,VxGive(target,sw)?"OK":"FAILED"
 }
 SpecialIndex(id,WeaponIdType:wid)
 {
-if(id<1 || id>g_iMax || !is_user_alive(id)|| g_bZombie[id])return -1;
-new sw=VxIndex(get_member(id,m_pActiveItem));return sw>=0 && SW_BASE_ID[sw]==wid?sw:-1;
+if(id<1||id>g_iMax||!is_user_alive(id)|| g_bZombie[id])return -1;
+new sw=VxIndex(get_member(id,m_pActiveItem));return sw>=0&&SW_BASE_ID[sw]==wid?sw:-1;
 }
 Ignite(victim,attacker,ticks)
 {
@@ -11420,12 +11421,12 @@ ChainLightning(victim,attacker,Float:chainDamage)
 {
 if(g_bChaining)
 return;
-g_bChaining = true;
+g_bChaining=true;
 new Float:vo[3],Float:po[3],hits;
 get_entvar(victim,var_origin,vo);
-for(new p = 1;p <= g_iMax && hits < 2;p++)
+for(new p=1;p<=g_iMax&&hits < 2;p++)
 {
-if(p == victim || !is_user_alive(p)|| !g_bZombie[p])
+if(p==victim||!is_user_alive(p)|| !g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
 if(get_distance_f(vo,po)> 320.0)
@@ -11436,40 +11437,40 @@ hits++;
 }
 if(hits)
 EmitKey(victim,"ZAP");
-g_bChaining = false;
+g_bChaining=false;
 }
 public rg_HasRestrictItem(id,ItemID:item,ItemRestType:type)
 {
 if(!g_bZombie[id])
 {
-if(type == ITEM_TYPE_BUYING)
+if(type==ITEM_TYPE_BUYING)
 {
 SetHookChainReturn(ATYPE_BOOL,true);
 return HC_SUPERCEDE;
 }
 return HC_CONTINUE;
 }
-if(item == ITEM_KNIFE ||(item == ITEM_C4 && type != ITEM_TYPE_BUYING))
+if(item==ITEM_KNIFE ||(item==ITEM_C4&&type!=ITEM_TYPE_BUYING))
 return HC_CONTINUE;
 SetHookChainReturn(ATYPE_BOOL,true);
 return HC_SUPERCEDE;
 }
 public rg_DefaultDeploy(weapon,szViewModel[],szWeaponModel[],iAnim,szAnimExt[],skiplocal)
 {
-new id = get_member(weapon,m_pPlayer);
-if(!(1 <= id <= g_iMax))
+new id=get_member(weapon,m_pPlayer);
+if(!(1<=id<=g_iMax))
 return HC_CONTINUE;
 if(TabDeploy61(weapon,id))
 return HC_CONTINUE;
-new WeaponIdType:wid = get_member(weapon,m_iId);
+new WeaponIdType:wid=get_member(weapon,m_iId);
 if(g_bZombie[id])
 {
-if(wid == WEAPON_HEGRENADE){
+if(wid==WEAPON_HEGRENADE){
 if(VxModelOk(g_szInfV531))SetHookChainArg(2,ATYPE_STRING,g_szInfV531);
 if(VxModelOk(g_szInfP531))SetHookChainArg(3,ATYPE_STRING,g_szInfP531);
 return HC_CONTINUE;
 }
-if(wid != WEAPON_KNIFE)
+if(wid!=WEAPON_KNIFE)
 return HC_CONTINUE;
 new claw[96];
 if(g_bBoss[id]&& g_szBClaw[g_iBossType][0])copy(claw,charsmax(claw),g_szBClaw[g_iBossType]);
@@ -11485,25 +11486,25 @@ SetHookChainArg(3,ATYPE_STRING,"");
 return HC_CONTINUE;
 }
 if(CommunityExtra(id)&& VxIndex(weapon)<0)return HC_CONTINUE;
-if(wid == WEAPON_KNIFE && g_iCommunitySel[id][1]>= 5 && g_iCommunitySel[id][1]<= KN_TOTAL && KnifeReady47(g_iCommunitySel[id][1]-1)&& CommunityAlive(id)
+if(wid==WEAPON_KNIFE&&g_iCommunitySel[id][1]>= 5&&g_iCommunitySel[id][1]<= KN_TOTAL&&KnifeReady47(g_iCommunitySel[id][1]-1)&& CommunityAlive(id)
 && !ZcCall(ZC_HEV,ZCOP_has,id)&& !ZcCall(ZC_JETPACK,ZCOP_has,id)){
 SetHookChainArg(2,ATYPE_STRING,g_szMkV[g_iCommunitySel[id][1]-5]);
 SetHookChainArg(3,ATYPE_STRING,g_szMkP[g_iCommunitySel[id][1]-5]);
 return HC_CONTINUE;
 }
-new mm = ModeOf(id),ms =(mm >= 0)? ModeSlot(mm,wid): -1;
-if(ms >= 0)
+new mm=ModeOf(id),ms =(mm>=0)? ModeSlot(mm,wid): -1;
+if(ms>=0)
 {
-new w = _:wid;
+new w=_:wid;
 if(g_szMwV[mm][ms][0])SetHookChainArg(2,ATYPE_STRING,g_szMwV[mm][ms]);
 else if(g_szWepV[w][0])SetHookChainArg(2,ATYPE_STRING,g_szWepV[w]);
 if(g_szMwP[mm][ms][0])SetHookChainArg(3,ATYPE_STRING,g_szMwP[mm][ms]);
 else if(g_szWepP[w][0])SetHookChainArg(3,ATYPE_STRING,g_szWepP[w]);
 return HC_CONTINUE;
 }
-new sw = VxIndex(weapon);
+new sw=VxIndex(weapon);
 if(sw<0)sw=SpecialIndex(id,wid);
-if(sw >= 0)
+if(sw>=0)
 {
 g_iSpecW[id]=(1<<sw);SetHookChainArg(4,ATYPE_INTEGER,V50_DRAW[sw]);SetHookChainArg(6,ATYPE_INTEGER,0);
 if(g_szSWView[sw][0])
@@ -11512,8 +11513,8 @@ if(g_szSWPlayer[sw][0])
 SetHookChainArg(3,ATYPE_STRING,g_szSWPlayer[sw]);
 return HC_CONTINUE;
 }
-new w = _:wid;
-if(w == CSW_KNIFE && IsVip(id)&& g_szVipKnifeV[0])
+new w=_:wid;
+if(w==CSW_KNIFE&&IsVip(id)&& g_szVipKnifeV[0])
 {
 SetHookChainArg(2,ATYPE_STRING,g_szVipKnifeV);
 if(g_szVipKnifeP[0])
@@ -11531,38 +11532,38 @@ return HC_CONTINUE;
 }
 public fw_PrimaryAttackPost(weapon)
 {
-new id = get_member(weapon,m_pPlayer);
-if(!(1 <= id <= g_iMax)|| !is_user_alive(id)|| g_bZombie[id])
+new id=get_member(weapon,m_pPlayer);
+if(!(1<=id<=g_iMax)|| !is_user_alive(id)|| g_bZombie[id])
 return HAM_IGNORED;
-new WeaponIdType:wid = get_member(weapon,m_iId);
-new bool:arsenalShot = false;
-new arsenal = VxIndex(weapon);
-if(arsenal >= 0)
+new WeaponIdType:wid=get_member(weapon,m_iId);
+new bool:arsenalShot=false;
+new arsenal=VxIndex(weapon);
+if(arsenal>=0)
 {
 if(g_bVxAltHandled[id]){g_bVxAltHandled[id]= false;return HAM_IGNORED;}
-arsenalShot = bool:(g_iVxAttack[id]== weapon && g_iVxClip[id]> 0
+arsenalShot=bool:(g_iVxAttack[id]== weapon&&g_iVxClip[id]> 0
 && get_member(weapon,m_Weapon_iClip)< g_iVxClip[id]);
 g_iVxAttack[id]= 0;
 if(!arsenalShot)return HAM_IGNORED;
 }
-if(g_bUnlClip[id]&& !(get_entvar(weapon,var_impulse)>= 5380 && get_entvar(weapon,var_impulse)< 5380 + 16))
+if(g_bUnlClip[id]&& !(get_entvar(weapon,var_impulse)>= 5380&&get_entvar(weapon,var_impulse)< 5380 + 16))
 {
-new clip =(arsenal >= 0)? SW_CLIP[arsenal]: rg_get_weapon_info(wid,WI_GUN_CLIP_SIZE);
+new clip =(arsenal>=0)? SW_CLIP[arsenal]: rg_get_weapon_info(wid,WI_GUN_CLIP_SIZE);
 if(clip > 0)
 set_member(weapon,m_Weapon_iClip,clip);
 }
-new mm = ModeOf(id),ms =(mm >= 0)? ModeSlot(mm,wid): -1;
-if(ms >= 0)
+new mm=ModeOf(id),ms =(mm>=0)? ModeSlot(mm,wid): -1;
+if(ms>=0)
 {
 new key[24];
 formatex(key,charsmax(key),"%s_W%d_SOUND",MW_KEY[mm],ms + 1);
 EmitKey(id,key,CHAN_WEAPON);
 return HAM_IGNORED;
 }
-new sw = SpecialIndex(id,wid);
+new sw=SpecialIndex(id,wid);
 if(sw < 0)
 return HAM_IGNORED;
-new Float:minReady = floatclamp(SW_RATE[sw],0.05,5.0);
+new Float:minReady=floatclamp(SW_RATE[sw],0.05,5.0);
 set_member(weapon,m_Weapon_flNextPrimaryAttack,minReady);
 if(Float:get_member(weapon,m_Weapon_flTimeWeaponIdle)< minReady)
 set_member(weapon,m_Weapon_flTimeWeaponIdle,minReady);
@@ -11575,12 +11576,12 @@ punch[1]*= SW_RECOIL[sw];
 punch[2]*= SW_RECOIL[sw];
 set_entvar(id,var_punchangle,punch);
 }
-if(arsenal >= 0)
+if(arsenal>=0)
 {
 if(arsenalShot)VxShot(id,arsenal);
 return HAM_IGNORED;
 }
-if((sw % 8 == 1 || sw % 8 == 5)&&(g_iFrame + id)% 2)
+if((sw % 8==1||sw % 8==5)&&(g_iFrame + id)% 2)
 return HAM_IGNORED;
 new Float:start[3],Float:end[3],Float:ofs[3],Float:ang[3],Float:fwd[3];
 get_entvar(id,var_origin,start);
@@ -11605,7 +11606,7 @@ return HAM_IGNORED;
 }
 public rg_ThrowHe(id,Float:vecStart[3],Float:vecVelocity[3],Float:time,team,usEvent)
 {
-new ent = GetHookChainReturn(ATYPE_INTEGER);
+new ent=GetHookChainReturn(ATYPE_INTEGER);
 if(is_nullent(ent))
 return;
 if(g_bZombie[id]&& g_iInfNades[id]> 0)
@@ -11626,7 +11627,7 @@ NadeOnThrow(id,ent,0);
 }
 public rg_ThrowSmoke(id,Float:vecStart[3],Float:vecVelocity[3],Float:time,usEvent)
 {
-new ent = GetHookChainReturn(ATYPE_INTEGER);
+new ent=GetHookChainReturn(ATYPE_INTEGER);
 if(is_nullent(ent))
 return;
 if(!g_bZombie[id]&& g_iFrostNades[id]> 0)
@@ -11639,7 +11640,7 @@ NadeOnThrow(id,ent,1);
 }
 public rg_ThrowFlash(id,Float:vecStart[3],Float:vecVelocity[3],Float:time)
 {
-new ent = GetHookChainReturn(ATYPE_INTEGER);
+new ent=GetHookChainReturn(ATYPE_INTEGER);
 if(is_nullent(ent))
 return;
 if(!g_bZombie[id]&& g_iFlares[id]> 0)
@@ -11650,12 +11651,12 @@ FxTrail(ent,255,60,60);
 }
 NadeOnThrow(id,ent,2);
 }
-new g_sprShock531,g_iDecScorch531 = -1,g_pNadeFx531;
+new g_sprShock531,g_iDecScorch531=-1,g_pNadeFx531;
 NadeFxPrecache531()
 {
-g_sprShock531 = VxPcStock531("sprites/shockwave.spr");
+g_sprShock531=VxPcStock531("sprites/shockwave.spr");
 new path[96];
-for(new i = 0;i < FX532_TOTAL;i++)
+for(new i=0;i < FX532_TOTAL;i++)
 {
 formatex(path,charsmax(path),"sprites/vexmira/fx532/%s.spr",FX532_NAME[i]);
 g_iFx532[i]= VxPcStock531(path);
@@ -11666,33 +11667,33 @@ stock bool:Fx532Ok(){return g_iFx532[X_FIREBALL]&& g_iFx532[X_FROSTBURST]&& g_iF
 VxPcStock531(const path[])
 {
 if(!file_exists(path,true))return 0;
-if(contain(path,"/fx532/")!= -1 && max(g_iTotMdl,g_iPcMdl)>= 430){log_amx("[AssetGuard] model listesi dolu, efekt sprite'i atlandi: %s",path);return 0;}
+if(contain(path,"/fx532/")!= -1&&max(g_iTotMdl,g_iPcMdl)>= 430){log_amx("[AssetGuard] model listesi dolu, efekt sprite'i atlandi: %s",path);return 0;}
 new idx =(!VxPcOk531())? 0 : precache_model(path);
-if(idx > g_iPcMdl)g_iPcMdl = idx;
+if(idx > g_iPcMdl)g_iPcMdl=idx;
 return idx;
 }
 stock NxBegin(const Float:o[3]){engfunc(EngFunc_MessageBegin,MSG_PVS,SVC_TEMPENTITY,o,0);}
-stock NxCoord(const Float:o[3],Float:dz = 0.0){engfunc(EngFunc_WriteCoord,o[0]);engfunc(EngFunc_WriteCoord,o[1]);engfunc(EngFunc_WriteCoord,o[2]+ dz);}
-stock NxRing(const Float:o[3],spr,r,g,b,radius,width,life,bright,Float:dz = 0.0)
+stock NxCoord(const Float:o[3],Float:dz=0.0){engfunc(EngFunc_WriteCoord,o[0]);engfunc(EngFunc_WriteCoord,o[1]);engfunc(EngFunc_WriteCoord,o[2]+ dz);}
+stock NxRing(const Float:o[3],spr,r,g,b,radius,width,life,bright,Float:dz=0.0)
 {
 if(get_cvar_num("vex_dbg_nxmask")& 1)return;
-if(spr <= 0)return;
+if(spr<=0)return;
 NxBegin(o);write_byte(TE_BEAMCYLINDER);NxCoord(o,dz);
 engfunc(EngFunc_WriteCoord,o[0]);engfunc(EngFunc_WriteCoord,o[1]);engfunc(EngFunc_WriteCoord,o[2]+ dz + float(radius));
 write_short(spr);write_byte(0);write_byte(0);write_byte(life);write_byte(width);write_byte(0);
 write_byte(r);write_byte(g);write_byte(b);write_byte(bright);write_byte(0);message_end();
 }
-stock NxExplo(const Float:o[3],spr,scale,rate,Float:dz = 0.0)
+stock NxExplo(const Float:o[3],spr,scale,rate,Float:dz=0.0)
 {
 if(get_cvar_num("vex_dbg_nxmask")& 2)return;
-if(spr <= 0)return;
+if(spr<=0)return;
 NxBegin(o);write_byte(TE_EXPLOSION);NxCoord(o,dz);write_short(spr);write_byte(scale);write_byte(rate);
 write_byte(TE_EXPLFLAG_NOSOUND | TE_EXPLFLAG_NODLIGHTS | TE_EXPLFLAG_NOPARTICLES);message_end();
 }
-stock NxSprite(const Float:o[3],spr,scale,bright,Float:dz = 0.0)
+stock NxSprite(const Float:o[3],spr,scale,bright,Float:dz=0.0)
 {
 if(get_cvar_num("vex_dbg_nxmask")& 4)return;
-if(spr <= 0)return;
+if(spr<=0)return;
 NxBegin(o);write_byte(TE_SPRITE);NxCoord(o,dz);write_short(spr);write_byte(scale);write_byte(bright);message_end();
 }
 stock NxLight(const Float:o[3],r,g,b,radius,life,decay)
@@ -11704,14 +11705,14 @@ write_byte(life);write_byte(decay);message_end();
 stock NxField(const Float:o[3],spr,radius,count,flags,life)
 {
 if(get_cvar_num("vex_dbg_nxmask")& 16)return;
-if(spr <= 0)return;
+if(spr<=0)return;
 NxBegin(o);write_byte(TE_FIREFIELD);NxCoord(o,4.0);write_short(radius);write_short(spr);
 write_byte(count);write_byte(flags);write_byte(life);message_end();
 }
-stock NxShower(const Float:o[3],spr,count,life,scale,speed,rnd,Float:up = 40.0)
+stock NxShower(const Float:o[3],spr,count,life,scale,speed,rnd,Float:up=40.0)
 {
 if(get_cvar_num("vex_dbg_nxmask")& 32)return;
-if(spr <= 0)return;
+if(spr<=0)return;
 NxBegin(o);write_byte(TE_SPRITETRAIL);NxCoord(o,4.0);NxCoord(o,up);
 write_short(spr);write_byte(count);write_byte(life);write_byte(scale);write_byte(speed);write_byte(rnd);message_end();
 }
@@ -11722,10 +11723,10 @@ NxBegin(o);write_byte(TE_STREAK_SPLASH);NxCoord(o,4.0);
 engfunc(EngFunc_WriteCoord,0.0);engfunc(EngFunc_WriteCoord,0.0);engfunc(EngFunc_WriteCoord,1.0);
 write_byte(color);write_short(count);write_short(speed);write_short(rnd);message_end();
 }
-stock NxSmoke(const Float:o[3],spr,scale,fps,Float:dz = 0.0)
+stock NxSmoke(const Float:o[3],spr,scale,fps,Float:dz=0.0)
 {
 if(get_cvar_num("vex_dbg_nxmask")& 128)return;
-if(spr <= 0)return;
+if(spr<=0)return;
 NxBegin(o);write_byte(TE_SMOKE);NxCoord(o,dz);write_short(spr);write_byte(scale);write_byte(fps);message_end();
 }
 stock NxDecal(const Float:o[3],decal)
@@ -11737,21 +11738,21 @@ NxBegin(o);write_byte(TE_WORLDDECAL);NxCoord(o,-2.0);write_byte(decal);message_e
 NxShakeNear(const Float:o[3],Float:radius,amp)
 {
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| is_user_bot(p)||(g_iSet[p]& SET_NO_FX))continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
+new Float:d=get_distance_f(o,po);
 if(d > radius)continue;
-new a = floatround(float(amp)*(1.0 - d / radius))+ 1;
+new a=floatround(float(amp)*(1.0 - d / radius))+ 1;
 message_begin(MSG_ONE_UNRELIABLE,g_msgShake,_,p);
 write_short(a << 12);write_short(1 << 12);write_short(10 << 12);message_end();
 }
 }
 NxGround(const Float:o[3],Float:out[3])
 {
-new Float:e[3];out = o;e = o;e[2]-= 64.0;
-new tr = create_tr2();
+new Float:e[3];out=o;e=o;e[2]-= 64.0;
+new tr=create_tr2();
 engfunc(EngFunc_TraceLine,o,e,IGNORE_MONSTERS,0,tr);
 new Float:fr;get_tr2(tr,TR_flFraction,fr);
 if(fr < 1.0)get_tr2(tr,TR_vecEndPos,out);
@@ -11796,7 +11797,7 @@ NadeFxOld531(o,kind,stage);
 }
 NadeFx532(const Float:o[3],kind,stage)
 {
-new ring = g_iFx532[X_RING];
+new ring=g_iFx532[X_RING];
 switch(kind)
 {
 case 0:
@@ -11814,7 +11815,7 @@ NxRing(o,ring,255,230,160,230,26,3,255,3.0);
 NxShower(o,g_iFx532[X_EMBER],30,14,3,40,26);
 NxStreak(o,0x6B,50,220,160);
 NxShakeNear(o,420.0,9);
-if(g_iDecScorch531 < 0)g_iDecScorch531 = engfunc(EngFunc_DecalIndex,"{scorch1");
+if(g_iDecScorch531 < 0)g_iDecScorch531=engfunc(EngFunc_DecalIndex,"{scorch1");
 NxDecal(o,g_iDecScorch531);
 }
 case 1:
@@ -11895,7 +11896,7 @@ case 4:{NxField(o,g_iFx532[X_TOXICMIST],100,10,TEFIRE_ADD532 | TEFIRE_FLAG_SOMEF
 }
 NadeFxOld531(const Float:o[3],kind,stage)
 {
-new ring = g_sprShock531 ? g_sprShock531 : g_sprRing;
+new ring=g_sprShock531 ? g_sprShock531 : g_sprRing;
 if(stage)return;
 switch(kind)
 {
@@ -11908,16 +11909,16 @@ case 3:{NxExplo(o,g_sprFx[FXS_EXTOXIC]? g_sprFx[FXS_EXTOXIC]: g_sprExplode,26,14
 public rg_ExplodeHe(ent,tracehandle,bits)
 {
 NadeCleanup(ent);
-new type = get_entvar(ent,var_impulse);
+new type=get_entvar(ent,var_impulse);
 if(get_entvar(ent,var_iuser4)== NM_CLUSTER + 1)
 NadeCluster(ent,type);
 set_entvar(ent,var_iuser4,0);
-if(type != NADE_FIRE && type != NADE_INFECT)
+if(type!=NADE_FIRE&&type!=NADE_INFECT)
 return HC_CONTINUE;
-new owner = get_entvar(ent,var_owner);
+new owner=get_entvar(ent,var_owner);
 new Float:o[3],Float:po[3];
 get_entvar(ent,var_origin,o);
-if(type == NADE_FIRE)
+if(type==NADE_FIRE)
 {
 if(!NadeFxEpic531(o,0))
 {
@@ -11928,9 +11929,9 @@ FxSprite(o,g_sprFire,18,200);
 FxLight(o,255,100,40,22,6,32);
 }
 EmitKey(ent,"NADE_FIRE",CHAN_WEAPON,ATTN_NORM);Radio52(7);
-new Float:frad = get_pcvar_float(g_pNadeFireRad),Float:fdmg = get_pcvar_float(g_pNadeFireDmg);
-new burn = max(1,get_pcvar_num(g_pNadeFireBurn));
-for(new p = 1;p <= g_iMax;p++)
+new Float:frad=get_pcvar_float(g_pNadeFireRad),Float:fdmg=get_pcvar_float(g_pNadeFireDmg);
+new burn=max(1,get_pcvar_num(g_pNadeFireBurn));
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !g_bZombie[p])
 continue;
@@ -11952,9 +11953,9 @@ if(!FxExploEl(o,EL_TOXIC,24,14))
 FxSprite(o,g_sprSmoke,30,200);
 }
 PlayKey(0,"NADE_INFECT");
-if(g_bRoundActive && AllowsInfection()&& is_user_connected(owner)&& g_bZombie[owner])
+if(g_bRoundActive&&AllowsInfection()&& is_user_connected(owner)&& g_bZombie[owner])
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p]|| g_bSurvivor[p]|| g_bSniper[p])
 continue;
@@ -11988,8 +11989,8 @@ FxStreak(o,7,60,300);
 FxLight(o,0,150,255,40,15,20);
 }
 EmitKey(ent,"NADE_FROST",CHAN_WEAPON,ATTN_NORM);Radio52(8);
-new Float:rad = get_pcvar_float(g_pNadeFrostRad),Float:ft = get_pcvar_float(g_pNadeFrostTime);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=get_pcvar_float(g_pNadeFrostRad),Float:ft=get_pcvar_float(g_pNadeFrostTime);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !g_bZombie[p])
 continue;
@@ -12020,8 +12021,8 @@ return HC_SUPERCEDE;
 }
 GiveNadeStack(id,const ent[],WeaponIdType:wid)
 {
-new cur = rg_get_user_bpammo(id,wid);
-if(cur <= 0)
+new cur=rg_get_user_bpammo(id,wid);
+if(cur<=0)
 rg_give_item(id,ent);
 else
 rg_set_user_bpammo(id,wid,cur + 1);
@@ -12032,13 +12033,13 @@ new title[320],item[64];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_GUNS_SUB");
 VexHead(id,title,charsmax(title),"MENU_PRIMARY",hsub);
-new menu = VexMenuCreate(title,"menu_primary_handler");
+new menu=VexMenuCreate(title,"menu_primary_handler");
 new st[32];
 VexOnOff(id,(g_iSet[id]& SET_NO_AUTOGUN)? false : true,st,charsmax(st));
 formatex(item,charsmax(item),"\y%L %s",id,"SET_6",st);
 MenuAdd(menu,item,900);
 menu_addblank(menu,0);
-for(new i = 0;i < sizeof PRIM_NAME;i++)
+for(new i=0;i < sizeof PRIM_NAME;i++)
 {
 if(g_iLevel[id]>= PRIM_LVL[i])
 formatex(item,charsmax(item),"\y%s",PRIM_NAME[i]);
@@ -12055,9 +12056,9 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-if(sel == 900)
+if(sel==900)
 {
 g_iSet[id]^= SET_NO_AUTOGUN;
 SaveData(id);
@@ -12078,8 +12079,8 @@ ShowSecondaryMenu(id)
 {
 new title[320],item[64];
 VexHead(id,title,charsmax(title),"MENU_SECONDARY");
-new menu = VexMenuCreate(title,"menu_secondary_handler");
-for(new i = 0;i < sizeof SEC_NAME;i++)
+new menu=VexMenuCreate(title,"menu_secondary_handler");
+for(new i=0;i < sizeof SEC_NAME;i++)
 {
 if(g_iLevel[id]>= SEC_LVL[i])
 formatex(item,charsmax(item),"\y%s",SEC_NAME[i]);
@@ -12096,7 +12097,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 if(g_iLevel[id]< SEC_LVL[sel])
 {
@@ -12115,15 +12116,15 @@ GiveLoadout(id)
 {
 if(!is_user_alive(id)|| g_bZombie[id]|| g_bSurvivor[id]|| g_bSniper[id])
 return;
-if(g_iPrim[id]< 0 || g_iSec[id]< 0)
+if(g_iPrim[id]< 0||g_iSec[id]< 0)
 return;
-new bool:regun = false;
-if(g_bRoundActive && g_bGunsGiven[id])
+new bool:regun=false;
+if(g_bRoundActive&&g_bGunsGiven[id])
 {
 if(IsVip(id)&& get_pcvar_num(g_pVipRegun)&& !g_bVipRegun[id])
 {
 g_bVipRegun[id]= true;
-regun = true;
+regun=true;
 Chat(id,"VIP_REGUN");
 }
 else
@@ -12132,15 +12133,15 @@ Chat(id,"GUNS_ONCE");
 return;
 }
 }
-if(g_bRoundActive && !regun)
+if(g_bRoundActive&&!regun)
 {
-for(new w = 0;w < sizeof PRIM_ENT;w++)
+for(new w=0;w < sizeof PRIM_ENT;w++)
 {
 if(rg_find_weapon_bpack_by_name(id,PRIM_ENT[w]))
 return;
 }
 }
-new p = g_iPrim[id],s = g_iSec[id];
+new p=g_iPrim[id],s=g_iSec[id];
 rg_give_item(id,SEC_ENT[s],GT_REPLACE);
 rg_set_user_bpammo(id,WeaponIdType:rg_get_weapon_info(SEC_ENT[s],WI_ID),SEC_AMMO[s]);
 rg_give_item(id,PRIM_ENT[p],GT_REPLACE);
@@ -12174,7 +12175,7 @@ g_iFlares[id]= max(1,g_iFlares[id]);
 if(rg_get_user_bpammo(id,WEAPON_FLASHBANG)<= 0)
 rg_give_item(id,"weapon_flashbang");
 }
-if(g_iJob[id]== JOB_DEMO || g_iJob[id]== JOB_GRENADIER)
+if(g_iJob[id]== JOB_DEMO||g_iJob[id]== JOB_GRENADIER)
 {
 g_iFireNades[id]++;
 GiveNadeStack(id,"weapon_hegrenade",WEAPON_HEGRENADE);
@@ -12200,7 +12201,7 @@ bool:LasersAllowed()
 {
 if(!get_pcvar_num(g_pLmEnable))
 return false;
-if(g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss))
+if(g_iMode==MODE_BOSS&&!get_pcvar_num(g_pLmBoss))
 return false;
 if(LmModeBlocked(g_iMode))
 return false;
@@ -12212,22 +12213,22 @@ new const LM_MODE_KEYS[MODE_TOTAL][]=
 };
 bool:LmModeBlocked(mode)
 {
-if(!(0 <= mode < MODE_TOTAL))
+if(!(0<=mode < MODE_TOTAL))
 return false;
 new str[64];
 get_pcvar_string(g_pLmBlockModes,str,charsmax(str));
-if(g_iLmBlockMask < 0 || !equal(str,g_szLmBlockCache))
+if(g_iLmBlockMask < 0||!equal(str,g_szLmBlockCache))
 {
 copy(g_szLmBlockCache,charsmax(g_szLmBlockCache),str);
-g_iLmBlockMask = 0;
+g_iLmBlockMask=0;
 replace_all(str,charsmax(str),","," ");
-new tok[16],pos,len = strlen(str);
+new tok[16],pos,len=strlen(str);
 while(pos < len)
 {
-while(pos < len && str[pos]== ' ')
+while(pos < len&&str[pos]== ' ')
 pos++;
 new n;
-while(pos < len && str[pos]!= ' ')
+while(pos < len&&str[pos]!= ' ')
 {
 if(n < charsmax(tok))
 tok[n++]= str[pos];
@@ -12238,12 +12239,12 @@ if(!n)
 continue;
 if(isdigit(tok[0]))
 {
-new m = str_to_num(tok);
-if(0 <= m < MODE_TOTAL)
+new m=str_to_num(tok);
+if(0<=m < MODE_TOTAL)
 g_iLmBlockMask |=(1 << m);
 continue;
 }
-for(new m = 0;m < MODE_TOTAL;m++)
+for(new m=0;m < MODE_TOTAL;m++)
 {
 if(equali(tok,LM_MODE_KEYS[m]))
 g_iLmBlockMask |=(1 << m);
@@ -12254,9 +12255,9 @@ return(g_iLmBlockMask &(1 << mode))? true : false;
 }
 public srv_GiantBuild533()
 {
-g_bBossBuild565 = true;
-new key[24],nm[128],out[48],ok,all,before = vxe_giant_new();
-for(new i = 0;i < NUM_BOSSES;i++)
+g_bBossBuild565=true;
+new key[24],nm[128],out[48],ok,all,before=vxe_giant_new();
+for(new i=0;i < NUM_BOSSES;i++)
 {
 formatex(key,charsmax(key),"B%d_MODEL",i);
 if(!TrieGetString(g_tRes,key,nm,charsmax(nm))|| !nm[0])continue;
@@ -12264,8 +12265,8 @@ all++;
 if(GmBossGiant(nm,out,charsmax(out))){ok++;server_print("[GiantBoss] %s -> models/player/%s/%s.mdl",nm,out,out);}
 else server_print("[GiantBoss] %s: olusturulamadi (model yok / klasor izni)",nm);
 }
-g_bBossBuild565 = false;
-new made = vxe_giant_new()- before;
+g_bBossBuild565=false;
+new made=vxe_giant_new()- before;
 server_print("[GiantBoss] %d / %d dev boss modeli hazir (%d yeni uretildi, %d zaten vardi - var olan dosyaya DOKUNULMAZ).",ok,all,made,ok - made);
 if(made > 0)
 {
@@ -12286,30 +12287,30 @@ server_cmd("changelevel %s",map);
 public srv_DbgSlim534()
 {
 new a[160],b[160],t[8];read_argv(1,a,charsmax(a));read_argv(2,b,charsmax(b));read_argv(3,t,charsmax(t));
-new bool:ok = GsSlim(a,b,str_to_num(t));
+new bool:ok=GsSlim(a,b,str_to_num(t));
 server_print("[GiantBoss] slim %s -> %s : %d (%d -> %d bytes)",a,b,ok,file_size(a,0),ok ? file_size(b,0): 0);
 return PLUGIN_HANDLED;
 }
 public srv_DbgGiant()
 {
 new nm[128],out[48];read_argv(1,nm,charsmax(nm));
-new bool:ok = GmBossGiant(nm,out,charsmax(out));
+new bool:ok=GmBossGiant(nm,out,charsmax(out));
 server_print("[GiantBoss] test %s -> %d %s",nm,ok,out);
 return PLUGIN_HANDLED;
 }
 public srv_DbgLmWall532()
 {
 new a[16],Float:o[3],Float:yaw,zm;
-for(new k = 0;k < 3;k++){read_argv(1 + k,a,charsmax(a));o[k]= str_to_float(a);}
-read_argv(4,a,charsmax(a));yaw = str_to_float(a);read_argv(5,a,charsmax(a));zm = str_to_num(a);
-new owner;for(new p = 1;p <= g_iMax;p++)if(is_user_alive(p)){owner = p;break;}
+for(new k=0;k < 3;k++){read_argv(1 + k,a,charsmax(a));o[k]= str_to_float(a);}
+read_argv(4,a,charsmax(a));yaw=str_to_float(a);read_argv(5,a,charsmax(a));zm=str_to_num(a);
+new owner;for(new p=1;p<=g_iMax;p++)if(is_user_alive(p)){owner=p;break;}
 if(!owner)return PLUGIN_HANDLED;
 new Float:e[3];e[0]= o[0]+ floatcos(yaw,degrees)* 800.0;e[1]= o[1]+ floatsin(yaw,degrees)* 800.0;e[2]= o[2];
-new tr = create_tr2();engfunc(EngFunc_TraceLine,o,e,IGNORE_MONSTERS,0,tr);
+new tr=create_tr2();engfunc(EngFunc_TraceLine,o,e,IGNORE_MONSTERS,0,tr);
 new Float:fr,Float:hit[3],Float:n[3];get_tr2(tr,TR_flFraction,fr);get_tr2(tr,TR_vecEndPos,hit);get_tr2(tr,TR_vecPlaneNormal,n);free_tr2(tr);
-if(fr >= 1.0){server_print("[lmwall] duvar yok");return PLUGIN_HANDLED;}
-new old = g_bZombie[owner];g_bZombie[owner]= zm ? true : false;
-new ent = CreateMine(owner,hit,n);
+if(fr>=1.0){server_print("[lmwall] duvar yok");return PLUGIN_HANDLED;}
+new old=g_bZombie[owner];g_bZombie[owner]= zm ? true : false;
+new ent=CreateMine(owner,hit,n);
 g_bZombie[owner]= old;
 server_print("[lmwall] mine %d at %.0f %.0f %.0f normal %.2f %.2f %.2f dist %.0f",ent,hit[0],hit[1],hit[2],n[0],n[1],n[2],fr * 800.0);
 log_amx("[lmwall] mine %d at %.0f %.0f %.0f normal %.2f %.2f %.2f dist %.0f",ent,hit[0],hit[1],hit[2],n[0],n[1],n[2],fr * 800.0);
@@ -12317,43 +12318,43 @@ return PLUGIN_HANDLED;
 }
 public srv_DbgCard532()
 {
-new a[8];read_argv(1,a,charsmax(a));new note = str_to_num(a);read_argv(2,a,charsmax(a));new arg = str_to_num(a);
-for(new p = 1;p <= g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p))log_amx("[Vexmira] debug kart %d -> #%d : %d",note,p,CsoNotify(p,note,arg));
+new a[8];read_argv(1,a,charsmax(a));new note=str_to_num(a);read_argv(2,a,charsmax(a));new arg=str_to_num(a);
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p))log_amx("[Vexmira] debug kart %d -> #%d : %d",note,p,CsoNotify(p,note,arg));
 read_argv(3,a,charsmax(a));
 if(equal(a,"shot")){new d[2];d[0]= note;d[1]= arg;set_task(0.35,"task_DbgCardShot533",0,d,2);}
 return PLUGIN_HANDLED;
 }
 public task_DbgCardShot533(const d[])
 {
-for(new p = 1;p <= g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p))client_cmd(p,"screenshot scrshots/kart_%02d_%02d.png",d[0],d[1]);
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p))client_cmd(p,"screenshot scrshots/kart_%02d_%02d.png",d[0],d[1]);
 }
 public srv_DbgRadio532()
 {
-new a[8];read_argv(1,a,charsmax(a));g_fRadioBusy52 = 0.0;new i = str_to_num(a);if(i >= 0 && i < 15)g_fRadioAt52[i]= 0.0;Radio52(i);
+new a[8];read_argv(1,a,charsmax(a));g_fRadioBusy52=0.0;new i=str_to_num(a);if(i>=0&&i < 15)g_fRadioAt52[i]= 0.0;Radio52(i);
 return PLUGIN_HANDLED;
 }
 public srv_DbgNadeFx()
 {
 new a[16],Float:o[3];
-read_argv(1,a,charsmax(a));new kind = str_to_num(a);
-for(new k = 0;k < 3;k++){read_argv(2 + k,a,charsmax(a));o[k]= str_to_float(a);}
+read_argv(1,a,charsmax(a));new kind=str_to_num(a);
+for(new k=0;k < 3;k++){read_argv(2 + k,a,charsmax(a));o[k]= str_to_float(a);}
 read_argv(2,a,charsmax(a));
 if(equal(a,"aim"))
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| is_user_bot(p))continue;
 new Float:st[3],Float:vo[3],Float:an[3],Float:fw[3],Float:en[3];
 get_entvar(p,var_origin,st);get_entvar(p,var_view_ofs,vo);xs_vec_add(st,vo,st);
 get_entvar(p,var_v_angle,an);an[0]= floatmax(an[0],10.0);angle_vector(an,ANGLEVECTOR_FORWARD,fw);
 xs_vec_mul_scalar(fw,260.0,en);xs_vec_add(st,en,en);
-new tr = create_tr2();engfunc(EngFunc_TraceLine,st,en,IGNORE_MONSTERS,p,tr);get_tr2(tr,TR_vecEndPos,o);free_tr2(tr);
+new tr=create_tr2();engfunc(EngFunc_TraceLine,st,en,IGNORE_MONSTERS,p,tr);get_tr2(tr,TR_vecEndPos,o);free_tr2(tr);
 break;
 }
 }
 new data[4];data[0]= kind;data[1]= floatround(o[0]);data[2]= floatround(o[1]);data[3]= floatround(o[2]);
-read_argv(5,a,charsmax(a));new rep = max(1,str_to_num(a));
-for(new r = 0;r < rep;r++)set_task(0.1 + float(r)* 2.5,"task_DbgNadeFx",0,data,sizeof data);
+read_argv(5,a,charsmax(a));new rep=max(1,str_to_num(a));
+for(new r=0;r < rep;r++)set_task(0.1 + float(r)* 2.5,"task_DbgNadeFx",0,data,sizeof data);
 return PLUGIN_HANDLED;
 }
 public task_DbgNadeFx(const d[])
@@ -12364,10 +12365,10 @@ NadeFxEpic531(o,d[0]);
 public srv_DbgBuy()
 {
 new a[8],sw[32],who[8];read_argv(1,a,charsmax(a));read_argv(2,sw,charsmax(sw));read_argv(3,who,charsmax(who));
-new it = str_to_num(a),n;
-if(a[0]== 'j' || a[0]== 'k' || a[0]== 's' || a[0]== 'w')
+new it=str_to_num(a),n;
+if(a[0]== 'j'||a[0]== 'k'||a[0]== 's'||a[0]== 'w')
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)||(equal(who,"real")&& is_user_bot(p)))continue;
 g_iAP[p]+= 5000;g_iVC[p]+= 5000;
@@ -12383,11 +12384,11 @@ return PLUGIN_HANDLED;
 }
 if(equal(a,"z"))
 {
-for(new p = 1;p <= g_iMax;p++)if(is_user_alive(p)&& !is_user_bot(p)&& !g_bZombie[p]){MakeZombie(p);n++;}
+for(new p=1;p<=g_iMax;p++)if(is_user_alive(p)&& !is_user_bot(p)&& !g_bZombie[p]){MakeZombie(p);n++;}
 log_amx("[Vexmira] DBGBUY zombie humans=%d",n);
 return PLUGIN_HANDLED;
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| ITEM_TEAM[it]!=(g_bZombie[p]? 1 : 0))continue;
 if(equal(who,"real")&& is_user_bot(p))continue;
@@ -12403,9 +12404,9 @@ public srv_DbgSwTest()
 if(!get_pcvar_num(g_pDbgDirs))
 return PLUGIN_HANDLED;
 new id;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(is_user_alive(p)&& !g_bZombie[p]&& !g_bSurvivor[p]&& !g_bSniper[p]){id = p;break;}
+if(is_user_alive(p)&& !g_bZombie[p]&& !g_bSurvivor[p]&& !g_bSniper[p]){id=p;break;}
 }
 if(!id)
 {
@@ -12413,19 +12414,19 @@ log_amx("[Vexmira] SWTEST no living human");
 return PLUGIN_HANDLED;
 }
 new bad;
-for(new i = 0;i < NUM_SPECIAL;i++)
+for(new i=0;i < NUM_SPECIAL;i++)
 {
 g_iSpecW[id]=(1 << i);
-new weapon = VxGive(id,i);
+new weapon=VxGive(id,i);
 if(is_nullent(weapon)){log_amx("[Vexmira] SWTEST slot=%d give FAILED",i);bad++;continue;}
 set_member(weapon,m_Weapon_iClip,SW_CLIP[i]);
 rg_set_user_bpammo(id,SW_BASE_ID[i],SW_BPAMMO[i]);
 set_member(weapon,m_Weapon_flNextPrimaryAttack,0.0);
 ExecuteHamB(Ham_Weapon_PrimaryAttack,weapon);
-new Float:na = Float:get_member(weapon,m_Weapon_flNextPrimaryAttack);
-new clip = get_member(weapon,m_Weapon_iClip),bp = rg_get_user_bpammo(id,SW_BASE_ID[i]);
-new si = SpecialIndex(id,SW_BASE_ID[i]);
-new bool:ok =(si == i && clip >= 0 && clip <= SW_CLIP[i]&& bp > 0 && na >= 0.0 && na <= 5.0);
+new Float:na=Float:get_member(weapon,m_Weapon_flNextPrimaryAttack);
+new clip=get_member(weapon,m_Weapon_iClip),bp=rg_get_user_bpammo(id,SW_BASE_ID[i]);
+new si=SpecialIndex(id,SW_BASE_ID[i]);
+new bool:ok =(si==i&&clip>=0&&clip<=SW_CLIP[i]&& bp > 0&&na>=0.0&&na<=5.0);
 if(!ok)bad++;
 log_amx("[Vexmira] SWTEST slot=%d ent=%s idx=%d clip=%d/%d bp=%d next=%.2f %s",i,SW_BASE_ENT[i],si,clip,SW_CLIP[i],bp,na,ok ? "OK" : "BAD");
 }
@@ -12440,26 +12441,26 @@ if(!get_pcvar_num(g_pDbgDirs))
 return PLUGIN_HANDLED;
 new arg[8];
 read_argv(1,arg,charsmax(arg));
-new bool:force = equali(arg,"force")? true : false;
-new bool:allowed = LasersAllowed();
+new bool:force=equali(arg,"force")? true : false;
+new bool:allowed=LasersAllowed();
 new planted,tries;
-for(new id = 1;id <= g_iMax && planted < 4;id++)
+for(new id=1;id<=g_iMax&&planted < 4;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
 tries++;
-if(!allowed && !force)
+if(!allowed&&!force)
 continue;
 new Float:eye[3],Float:end[3],Float:pos[3],Float:nrm[3],Float:frac;
 ZcEye(id,eye);
-for(new k = 0;k < 8;k++)
+for(new k=0;k < 8;k++)
 {
 end[0]= eye[0]+ floatcos(float(k)* 45.0,degrees)* 128.0;
 end[1]= eye[1]+ floatsin(float(k)* 45.0,degrees)* 128.0;
 end[2]= eye[2]- 16.0;
 engfunc(EngFunc_TraceLine,eye,end,IGNORE_MONSTERS,id,0);
 get_tr2(0,TR_flFraction,frac);
-if(frac >= 1.0)
+if(frac>=1.0)
 continue;
 get_tr2(0,TR_vecEndPos,pos);
 get_tr2(0,TR_vecPlaneNormal,nrm);
@@ -12475,14 +12476,14 @@ return PLUGIN_HANDLED;
 }
 LmDenyReason(id)
 {
-if(g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss))
+if(g_iMode==MODE_BOSS&&!get_pcvar_num(g_pLmBoss))
 {
 LmMessage(id,"LM_NO_BOSS");
 return;
 }
 if(get_pcvar_num(g_pLmEnable)&& LmModeBlocked(g_iMode))
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fLmMsg[id])
 return;
 g_fLmMsg[id]= now + 1.0;
@@ -12500,10 +12501,10 @@ LmModeStart()
 if(!LmModeBlocked(g_iMode))
 return;
 new had[33],ent,n;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 {
-new o = get_entvar(ent,var_iuser1);
-if(1 <= o <= g_iMax)
+new o=get_entvar(ent,var_iuser1);
+if(1<=o<=g_iMax)
 had[o]= 1;
 n++;
 }
@@ -12513,7 +12514,7 @@ RemoveAllMines();
 log_amx("[Vexmira] lazer kapali mod (%d) basladi: %d mayin kaldirildi, kalan %d",g_iMode,n,CountMines(0));
 new key[16],name[48];
 formatex(key,charsmax(key),"MODE_NAME_%d",g_iMode);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!had[p]|| !is_user_connected(p))
 continue;
@@ -12524,7 +12525,7 @@ Chat(p,"LM_MODE_REMOVED",name);
 MaxMines(id)
 {
 if(g_bZombie[id])return 1;
-new m = IsVip(id)? get_pcvar_num(g_pLmMaxVip): get_pcvar_num(g_pLmMax);
+new m=IsVip(id)? get_pcvar_num(g_pLmMaxVip): get_pcvar_num(g_pLmMax);
 if(g_iJob[id]== JOB_ENGINEER)
 m++;
 return max(0,m);
@@ -12532,7 +12533,7 @@ return max(0,m);
 RoundMines(id)
 {
 if(g_bZombie[id])return 1;
-new m = IsVip(id)? get_pcvar_num(g_pLmPerRoundVip): get_pcvar_num(g_pLmPerRound);
+new m=IsVip(id)? get_pcvar_num(g_pLmPerRoundVip): get_pcvar_num(g_pLmPerRound);
 if(g_iJob[id]== JOB_ENGINEER)
 m++;
 return clamp(m,0,20);
@@ -12541,9 +12542,9 @@ new g_iMinesHuman60[33];
 RemoveZombieMines60(id)
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 {
-if(get_entvar(ent,var_iuser1)!= id || get_entvar(ent,var_iuser4)!= 1)continue;
+if(get_entvar(ent,var_iuser1)!= id||get_entvar(ent,var_iuser4)!= 1)continue;
 new Float:o[3];get_entvar(ent,var_origin,o);FxSparks(o);
 MineRemove(ent);
 }
@@ -12558,7 +12559,7 @@ g_iMines[id]= RoundMines(id);
 }
 bool:IsMine(ent)
 {
-if(ent <= g_iMax || is_nullent(ent))
+if(ent<=g_iMax||is_nullent(ent))
 return false;
 new cls[20];
 get_entvar(ent,var_classname,cls,charsmax(cls));
@@ -12567,9 +12568,9 @@ return equal(cls,LM_CLASS)? true : false;
 CountMines(id)
 {
 new ent,n;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 {
-if(!id || get_entvar(ent,var_iuser1)== id)
+if(!id||get_entvar(ent,var_iuser1)== id)
 n++;
 }
 return n;
@@ -12583,10 +12584,10 @@ public cmd_radio3(id)
 {
 if(!get_pcvar_num(g_pLmEnable)|| !is_user_alive(id))
 return PLUGIN_CONTINUE;
-new mine = AimedMine(id,get_pcvar_float(g_pLmTakeRange));
+new mine=AimedMine(id,get_pcvar_float(g_pLmTakeRange));
 if(!mine)
 return PLUGIN_CONTINUE;
-if(get_entvar(mine,var_iuser1)!= id || get_entvar(mine,var_impulse)!=get_user_userid(id))
+if(get_entvar(mine,var_iuser1)!= id||get_entvar(mine,var_impulse)!=get_user_userid(id))
 return PLUGIN_CONTINUE;
 cmd_lm_take(id);
 return PLUGIN_HANDLED;
@@ -12612,9 +12613,9 @@ remove_task(id + TASK_LMTAKE);
 if(is_user_connected(id))
 rg_send_bartime(id,0,false);
 }
-LmMessage(id,const key[],val = 0)
+LmMessage(id,const key[],val=0)
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fLmMsg[id])
 return;
 g_fLmMsg[id]= now + 1.0;
@@ -12630,7 +12631,7 @@ if(!LasersAllowed())
 LmDenyReason(id);
 return PLUGIN_HANDLED;
 }
-if(!g_bRoundActive && !g_bCounting && !get_member_game(m_bFreezePeriod))
+if(!g_bRoundActive&&!g_bCounting&&!get_member_game(m_bFreezePeriod))
 return PLUGIN_HANDLED;
 if(g_iMines[id]<= 0)
 {
@@ -12657,8 +12658,8 @@ else
 LmMessage(id,"LM_NO_WALL");
 return PLUGIN_HANDLED;
 }
-new Float:t = get_pcvar_float(g_pLmPlantTime);
-if(t <= 0.05)
+new Float:t=get_pcvar_float(g_pLmPlantTime);
+if(t<=0.05)
 {
 g_iPlantAction[id]= 1;
 get_entvar(id,var_origin,g_fPlantPos[id]);
@@ -12676,13 +12677,13 @@ public cmd_lm_take(id)
 {
 if(!is_user_alive(id)|| g_iPlantAction[id])
 return PLUGIN_HANDLED;
-new mine = AimedMine(id,get_pcvar_float(g_pLmTakeRange));
+new mine=AimedMine(id,get_pcvar_float(g_pLmTakeRange));
 if(!mine)
 {
 LmMessage(id,"LM_AIM_MINE");
 return PLUGIN_HANDLED;
 }
-if(get_entvar(mine,var_iuser1)!= id || get_entvar(mine,var_impulse)!=get_user_userid(id))
+if(get_entvar(mine,var_iuser1)!= id||get_entvar(mine,var_impulse)!=get_user_userid(id))
 {
 LmMessage(id,"LM_NOT_YOURS");
 return PLUGIN_HANDLED;
@@ -12690,8 +12691,8 @@ return PLUGIN_HANDLED;
 get_entvar(id,var_origin,g_fPlantPos[id]);
 g_iLmTakeEnt[id]= mine;
 g_iPlantAction[id]= 2;
-new Float:t = get_pcvar_float(g_pLmTakeTime);
-if(t <= 0.05)
+new Float:t=get_pcvar_float(g_pLmTakeTime);
+if(t<=0.05)
 {
 task_PlantDone(id + TASK_PLANT);
 return PLUGIN_HANDLED;
@@ -12705,14 +12706,14 @@ return PLUGIN_HANDLED;
 }
 public task_LmTakeCheck(tid)
 {
-new id = tid - TASK_LMTAKE;
+new id=tid - TASK_LMTAKE;
 if(g_iPlantAction[id]!= 2)
 {
 remove_task(tid);
 return;
 }
-new mine = g_iLmTakeEnt[id];
-if(!is_user_alive(id)|| !mine || is_nullent(mine))
+new mine=g_iLmTakeEnt[id];
+if(!is_user_alive(id)|| !mine||is_nullent(mine))
 {
 LmTakeCancel(id,"LM_TAKE_CANCEL");
 return;
@@ -12737,24 +12738,24 @@ Chat(id,key);
 }
 public task_PlantDone(tid)
 {
-new id = tid - TASK_PLANT;
-new action = g_iPlantAction[id];
+new id=tid - TASK_PLANT;
+new action=g_iPlantAction[id];
 g_iPlantAction[id]= 0;
 if(!is_user_alive(id)|| !action)
 return;
-new takeEnt = g_iLmTakeEnt[id];
+new takeEnt=g_iLmTakeEnt[id];
 g_iLmTakeEnt[id]= 0;
 remove_task(id + TASK_LMTAKE);
 new Float:o[3];
 get_entvar(id,var_origin,o);
-if(get_distance_f(o,g_fPlantPos[id])>(action == 2 ? 96.0 : 48.0))
+if(get_distance_f(o,g_fPlantPos[id])>(action==2 ? 96.0 : 48.0))
 {
 Chat(id,"LM_MOVED");
 return;
 }
-if(action == 1)
+if(action==1)
 {
-if(!LasersAllowed()|| g_iMines[id]<= 0 || CountMines(id)>= MaxMines(id))
+if(!LasersAllowed()|| g_iMines[id]<= 0||CountMines(id)>= MaxMines(id))
 return;
 new Float:pos[3],Float:normal[3],Float:hitDistance;
 if(!FindPlantSpot(id,pos,normal,hitDistance))
@@ -12774,17 +12775,17 @@ Chat(id,"LM_PLANTED",g_iMines[id]);
 }
 else
 {
-new mine = AimedMine(id,get_pcvar_float(g_pLmTakeRange)+ 10.0);
-if(!mine ||(takeEnt && mine != takeEnt))
+new mine=AimedMine(id,get_pcvar_float(g_pLmTakeRange)+ 10.0);
+if(!mine ||(takeEnt&&mine!=takeEnt))
 return;
-new owner = get_entvar(mine,var_iuser1);
-if(owner != id || get_entvar(mine,var_impulse)!=get_user_userid(id))
+new owner=get_entvar(mine,var_iuser1);
+if(owner!=id||get_entvar(mine,var_impulse)!=get_user_userid(id))
 return;
 new Float:mo[3];
 get_entvar(mine,var_origin,mo);
 FxSparks(mo);
 MineRemove(mine);
-if(owner == id)
+if(owner==id)
 g_iMines[id]++;
 else if(is_user_connected(owner))
 g_iMines[owner]++;
@@ -12794,7 +12795,7 @@ Chat(id,"LM_TAKEN",g_iMines[id]);
 }
 bool:FindPlantSpot(id,Float:pos[3],Float:normal[3],&Float:hitDistance)
 {
-hitDistance = 0.0;
+hitDistance=0.0;
 new Float:start[3],Float:end[3],Float:ofs[3],Float:ang[3],Float:fwd[3];
 get_entvar(id,var_origin,start);
 get_entvar(id,var_view_ofs,ofs);
@@ -12804,33 +12805,33 @@ start[2]+= ofs[2];
 get_entvar(id,var_v_angle,ang);
 engfunc(EngFunc_MakeVectors,ang);
 global_get(glb_v_forward,fwd);
-new Float:range = floatclamp(get_pcvar_float(g_pLmRange),48.0,256.0);
-new Float:traceRange = floatmax(range,8192.0),Float:endDist;
+new Float:range=floatclamp(get_pcvar_float(g_pLmRange),48.0,256.0);
+new Float:traceRange=floatmax(range,8192.0),Float:endDist;
 end[0]= start[0]+ fwd[0]* traceRange;
 end[1]= start[1]+ fwd[1]* traceRange;
 end[2]= start[2]+ fwd[2]* traceRange;
-new tr = create_tr2();
+new tr=create_tr2();
 engfunc(EngFunc_TraceLine,start,end,IGNORE_MONSTERS,id,tr);
 new Float:frac;
 get_tr2(tr,TR_flFraction,frac);
-new hit = get_tr2(tr,TR_pHit);
+new hit=get_tr2(tr,TR_pHit);
 get_tr2(tr,TR_vecEndPos,pos);
 get_tr2(tr,TR_vecPlaneNormal,normal);
-new bool:badTrace = get_tr2(tr,TR_StartSolid)|| get_tr2(tr,TR_AllSolid);
+new bool:badTrace=get_tr2(tr,TR_StartSolid)|| get_tr2(tr,TR_AllSolid);
 free_tr2(tr);
-if(badTrace || frac >= 1.0)
+if(badTrace||frac>=1.0)
 return false;
-new Float:nLen = floatsqroot(normal[0]* normal[0]+ normal[1]* normal[1]+ normal[2]* normal[2]);
+new Float:nLen=floatsqroot(normal[0]* normal[0]+ normal[1]* normal[1]+ normal[2]* normal[2]);
 if(nLen < 0.5)
 {
-hitDistance = -1.0;
+hitDistance=-1.0;
 return false;
 }
-for(new ni = 0;ni < 3;ni++)normal[ni]/= nLen;
-endDist = get_distance_f(start,pos);
+for(new ni=0;ni < 3;ni++)normal[ni]/= nLen;
+endDist=get_distance_f(start,pos);
 if(endDist > range + 1.0)
 {
-hitDistance = endDist;
+hitDistance=endDist;
 return false;
 }
 if(hit > 0)
@@ -12840,7 +12841,7 @@ get_entvar(hit,var_classname,cls,charsmax(cls));
 if(!equal(cls,"func_wall")&& !equal(cls,"func_illusionary"))
 return false;
 }
-hitDistance = endDist;
+hitDistance=endDist;
 if(!EpicLaserEndpoint(id,pos,normal)){hitDistance=-1.0;return false;}
 return true;
 }
@@ -12848,7 +12849,7 @@ AimedMine(id,Float:range)
 {
 new target,body;
 get_user_aiming(id,target,body,floatround(range));
-if(target > g_iMax && IsMine(target))
+if(target > g_iMax&&IsMine(target))
 return target;
 new Float:eye[3],Float:ofs[3],Float:ang[3],Float:fwd[3],Float:mo[3];
 get_entvar(id,var_origin,eye);
@@ -12859,49 +12860,49 @@ eye[2]+= ofs[2];
 get_entvar(id,var_v_angle,ang);
 engfunc(EngFunc_MakeVectors,ang);
 global_get(glb_v_forward,fwd);
-new ent,best,Float:bestScore = -1.0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+new ent,best,Float:bestScore=-1.0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 {
 get_entvar(ent,var_origin,mo);
-new Float:d = get_distance_f(eye,mo);
-if(d > range || d < 1.0)
+new Float:d=get_distance_f(eye,mo);
+if(d > range||d < 1.0)
 continue;
 new Float:dot =((mo[0]- eye[0])* fwd[0]+(mo[1]- eye[1])* fwd[1]+(mo[2]- eye[2])* fwd[2])/ d;
 new Float:need =(d < 70.0)? 0.55 : 0.82;
 if(dot < need)
 continue;
-new Float:score = dot - d / 2000.0;
+new Float:score=dot - d / 2000.0;
 if(get_entvar(ent,var_iuser1)== id)
-score += 0.05;
+score+=0.05;
 if(score > bestScore)
 {
-bestScore = score;
-best = ent;
+bestScore=score;
+best=ent;
 }
 }
 return best;
 }
 MinePreset(bool:tripmine,bool:c4,bool:fellBack)
 {
-g_fMineAxE = Float:{1.0,0.0,0.0};
-g_fMineAxU = Float:{0.0,0.0,1.0};
-g_fMineAngOfs = Float:{0.0,0.0,0.0};
+g_fMineAxE=Float:{1.0,0.0,0.0};
+g_fMineAxU=Float:{0.0,0.0,1.0};
+g_fMineAngOfs=Float:{0.0,0.0,0.0};
 if(tripmine)
 {
-g_fMineOff = 8.0;
-g_fMineEmit = Float:{0.0,0.0,0.0};
+g_fMineOff=8.0;
+g_fMineEmit=Float:{0.0,0.0,0.0};
 }
 else if(c4)
 {
-g_fMineAxE = Float:{0.0,0.0,1.0};
-g_fMineAxU = Float:{1.0,0.0,0.0};
-g_fMineOff = 0.5;
-g_fMineEmit = Float:{0.0,0.0,5.0};
+g_fMineAxE=Float:{0.0,0.0,1.0};
+g_fMineAxU=Float:{1.0,0.0,0.0};
+g_fMineOff=0.5;
+g_fMineEmit=Float:{0.0,0.0,5.0};
 }
 else
 {
-g_fMineOff = 0.3;
-g_fMineEmit = Float:{10.3,0.0,0.0};
+g_fMineOff=0.3;
+g_fMineEmit=Float:{10.3,0.0,0.0};
 }
 if(fellBack)
 return;
@@ -12909,7 +12910,7 @@ new txt[48],a[16],b[16],c[16];
 copy(txt,charsmax(txt),GetResString("LASERMINE_OFFSET",""));
 trim(txt);
 if(txt[0])
-g_fMineOff = floatclamp(str_to_float(txt),-16.0,32.0);
+g_fMineOff=floatclamp(str_to_float(txt),-16.0,32.0);
 copy(txt,charsmax(txt),GetResString("LASERMINE_EMITTER",""));
 if(parse(txt,a,charsmax(a),b,charsmax(b),c,charsmax(c))== 3)
 {
@@ -12931,16 +12932,16 @@ new Float:W[3];
 W[0]= g_fMineAxE[1]* g_fMineAxU[2]- g_fMineAxE[2]* g_fMineAxU[1];
 W[1]= g_fMineAxE[2]* g_fMineAxU[0]- g_fMineAxE[0]* g_fMineAxU[2];
 W[2]= g_fMineAxE[0]* g_fMineAxU[1]- g_fMineAxE[1]* g_fMineAxU[0];
-new Float:de = g_fMineAxE[0]* v[0]+ g_fMineAxE[1]* v[1]+ g_fMineAxE[2]* v[2];
-new Float:du = g_fMineAxU[0]* v[0]+ g_fMineAxU[1]* v[1]+ g_fMineAxU[2]* v[2];
-new Float:dw = W[0]* v[0]+ W[1]* v[1]+ W[2]* v[2];
-for(new i = 0;i < 3;i++)
+new Float:de=g_fMineAxE[0]* v[0]+ g_fMineAxE[1]* v[1]+ g_fMineAxE[2]* v[2];
+new Float:du=g_fMineAxU[0]* v[0]+ g_fMineAxU[1]* v[1]+ g_fMineAxU[2]* v[2];
+new Float:dw=W[0]* v[0]+ W[1]* v[1]+ W[2]* v[2];
+for(new i=0;i < 3;i++)
 out[i]= de * n[i]+ du * u[i]+ dw * w[i];
 }
 MineOrient(id,const Float:n[3],Float:ang[3],Float:emit[3])
 {
 new Float:u[3],Float:w[3],Float:d;
-if(floatabs(n[2])< 0.7 || !is_user_connected(id))
+if(floatabs(n[2])< 0.7||!is_user_connected(id))
 {
 u[2]= 1.0;
 }
@@ -12951,16 +12952,16 @@ get_entvar(id,var_v_angle,va);
 u[0]= floatcos(va[1],degrees);
 u[1]= floatsin(va[1],degrees);
 }
-d = u[0]* n[0]+ u[1]* n[1]+ u[2]* n[2];
-for(new i = 0;i < 3;i++)
+d=u[0]* n[0]+ u[1]* n[1]+ u[2]* n[2];
+for(new i=0;i < 3;i++)
 u[i]-= d * n[i];
-d = floatsqroot(u[0]* u[0]+ u[1]* u[1]+ u[2]* u[2]);
+d=floatsqroot(u[0]* u[0]+ u[1]* u[1]+ u[2]* u[2]);
 if(d < 0.01)
 {
 u[0]= 1.0 - n[0]* n[0];u[1]= -n[0]* n[1];u[2]= -n[0]* n[2];
-d = floatmax(0.001,floatsqroot(u[0]* u[0]+ u[1]* u[1]+ u[2]* u[2]));
+d=floatmax(0.001,floatsqroot(u[0]* u[0]+ u[1]* u[1]+ u[2]* u[2]));
 }
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 u[i]/= d;
 w[0]= n[1]* u[2]- n[2]* u[1];
 w[1]= n[2]* u[0]- n[0]* u[2];
@@ -12975,7 +12976,7 @@ global_get(glb_v_right,ry);
 global_get(glb_v_up,uz);
 MineMap(fx,n,u,w,X);
 MineMap(uz,n,u,w,Z);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 tmp[i]= g_fMineEmit[0]* fx[i]- g_fMineEmit[1]* ry[i]+ g_fMineEmit[2]* uz[i];
 MineMap(tmp,n,u,w,emit);
 engfunc(EngFunc_VecToAngles,X,ang);
@@ -12989,7 +12990,7 @@ ang[2]= floatatan2(Z[0]* r0[0]+ Z[1]* r0[1]+ Z[2]* r0[2],Z[0]* u0[0]+ Z[1]* u0[1
 }
 CreateMine(id,const Float:surf[3],const Float:normal[3])
 {
-if(!(1 <= id <= g_iMax)|| !is_user_connected(id))
+if(!(1<=id<=g_iMax)|| !is_user_connected(id))
 return 0;
 new bool:zombieMine =(g_bZombie[id]!= 0);
 new model[96];
@@ -12997,32 +12998,32 @@ if(zombieMine)
 copy(model,charsmax(model),g_szMineZombieModel);
 else
 copy(model,charsmax(model),g_szMineHumanModel);
-if(!model[0]||(zombieMine && g_iMineZombieModelIndex <= 0)||(!zombieMine && g_iMineHumanModelIndex <= 0))
+if(!model[0]||(zombieMine&&g_iMineZombieModelIndex<=0)||(!zombieMine&&g_iMineHumanModelIndex<=0))
 return 0;
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
 set_entvar(ent,var_classname,LM_CLASS);
-new bool:stockTrip = containi(model,"tripmine")!= -1;
+new bool:stockTrip=containi(model,"tripmine")!= -1;
 MinePreset(stockTrip,false,stockTrip);
 VxSM(ent,model);
 set_entvar(ent,var_body,stockTrip ? 3 : g_iMineBody);
 set_entvar(ent,var_sequence,stockTrip ? 7 : g_iMineSeq);
 set_entvar(ent,var_skin,stockTrip ? 0 : g_iMineSkin);
 set_entvar(ent,var_framerate,0.0);
-if(!stockTrip && g_szMineDeploySeq[0])
+if(!stockTrip&&g_szMineDeploySeq[0])
 AnimByName(ent,g_szMineDeploySeq,g_iMineSeq,1.0);
-else if(!stockTrip && g_szMineSeqName[0])
+else if(!stockTrip&&g_szMineSeqName[0])
 AnimByName(ent,g_szMineSeqName,g_iMineSeq,1.0);
 set_entvar(ent,var_movetype,MOVETYPE_FLY);
 set_entvar(ent,var_solid,SOLID_NOT);
 new Float:ang[3],Float:emit[3],Float:pos[3],Float:beamStart[3],Float:mins[3],Float:maxs[3];
 MineOrient(id,normal,ang,emit);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 pos[i]= surf[i]+ normal[i]* g_fMineOff;
 beamStart[i]= pos[i]+ emit[i]+ normal[i]* 0.5;
-new Float:back = -normal[i]* g_fMineOff;
+new Float:back=-normal[i]* g_fMineOff;
 mins[i]= floatmin(floatmin(0.0,back),emit[i])- 3.0;
 maxs[i]= floatmax(floatmax(0.0,back),emit[i])+ 3.0;
 }
@@ -13030,7 +13031,7 @@ engfunc(EngFunc_SetSize,ent,mins,maxs);
 engfunc(EngFunc_SetOrigin,ent,pos);
 set_entvar(ent,var_angles,ang);
 set_entvar(ent,var_vuser3,beamStart);
-new Float:hp = float(max(50,get_pcvar_num(g_pLmHealth)));
+new Float:hp=float(max(50,get_pcvar_num(g_pLmHealth)));
 set_entvar(ent,var_takedamage,DAMAGE_YES);
 set_entvar(ent,var_health,hp);
 set_entvar(ent,var_max_health,hp);
@@ -13062,11 +13063,11 @@ switch(get_pcvar_num(g_pLmColorMode))
 {
 case 1:
 {
-new owner = get_entvar(ent,var_iuser1);
+new owner=get_entvar(ent,var_iuser1);
 new c =(owner > 0)?(owner % sizeof LM_PALETTE): 0;
-r = LM_PALETTE[c][0];
-g = LM_PALETTE[c][1];
-b = LM_PALETTE[c][2];
+r=LM_PALETTE[c][0];
+g=LM_PALETTE[c][1];
+b=LM_PALETTE[c][2];
 return;
 }
 case 2:
@@ -13074,34 +13075,34 @@ case 2:
 new txt[16],cr[4],cg[4],cb[4];
 get_pcvar_string(g_pLmColor,txt,charsmax(txt));
 parse(txt,cr,charsmax(cr),cg,charsmax(cg),cb,charsmax(cb));
-r = clamp(str_to_num(cr),0,255);
-g = clamp(str_to_num(cg),0,255);
-b = clamp(str_to_num(cb),0,255);
+r=clamp(str_to_num(cr),0,255);
+g=clamp(str_to_num(cg),0,255);
+b=clamp(str_to_num(cb),0,255);
 return;
 }
 case 3:
 {
-if(get_entvar(ent,var_iuser4)){r = 85;g = 255;b = 110;}
-else{r = 35;g = 175;b = 255;}
+if(get_entvar(ent,var_iuser4)){r=85;g=255;b=110;}
+else{r=35;g=175;b=255;}
 return;
 }
 }
-new Float:hp = Float:get_entvar(ent,var_health);
-new Float:mx = floatmax(1.0,Float:get_entvar(ent,var_max_health));
-new pct = floatround(hp * 100.0 / mx);
-if(pct > 60){r = 0;g = 200;b = 255;}
-else if(pct > 30){r = 255;g = 190;b = 0;}
-else{r = 255;g = 40;b = 40;}
+new Float:hp=Float:get_entvar(ent,var_health);
+new Float:mx=floatmax(1.0,Float:get_entvar(ent,var_max_health));
+new pct=floatround(hp * 100.0 / mx);
+if(pct > 60){r=0;g=200;b=255;}
+else if(pct > 30){r=255;g=190;b=0;}
+else{r=255;g=40;b=40;}
 }
-bool:BeamHitsPlayer(const Float:a[3],const Float:b[3],p,Float:pad = 2.0)
+bool:BeamHitsPlayer(const Float:a[3],const Float:b[3],p,Float:pad=2.0)
 {
 new Float:mins[3],Float:maxs[3],Float:vel[3];
 get_entvar(p,var_absmin,mins);
 get_entvar(p,var_absmax,maxs);
 get_entvar(p,var_velocity,vel);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
-new Float:d = vel[i]* 0.1;
+new Float:d=vel[i]* 0.1;
 if(d > 0.0)
 mins[i]-= d;
 else
@@ -13113,10 +13114,10 @@ return SegmentHitsBox(a,b,mins,maxs);
 }
 bool:SegmentHitsBox(const Float:a[3],const Float:b[3],const Float:mins[3],const Float:maxs[3])
 {
-new Float:tmin = 0.0,Float:tmax = 1.0;
-for(new i = 0;i < 3;i++)
+new Float:tmin=0.0,Float:tmax=1.0;
+for(new i=0;i < 3;i++)
 {
-new Float:d = b[i]- a[i];
+new Float:d=b[i]- a[i];
 if(floatabs(d)< 0.0001)
 {
 if(a[i]< mins[i]|| a[i]> maxs[i])
@@ -13127,14 +13128,14 @@ new Float:t1 =(mins[i]- a[i])/ d;
 new Float:t2 =(maxs[i]- a[i])/ d;
 if(t1 > t2)
 {
-new Float:tt = t1;
-t1 = t2;
-t2 = tt;
+new Float:tt=t1;
+t1=t2;
+t2=tt;
 }
 if(t1 > tmin)
-tmin = t1;
+tmin=t1;
 if(t2 < tmax)
-tmax = t2;
+tmax=t2;
 if(tmin > tmax)
 return false;
 }
@@ -13143,31 +13144,31 @@ return true;
 stock ClosestOnSegment(const Float:a[3],const Float:b[3],const Float:p[3],Float:out[3])
 {
 new Float:ab[3],Float:len2,Float:t;
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 ab[i]= b[i]- a[i];
-len2 = ab[0]* ab[0]+ ab[1]* ab[1]+ ab[2]* ab[2];
+len2=ab[0]* ab[0]+ ab[1]* ab[1]+ ab[2]* ab[2];
 if(len2 < 0.001)
 {
-out = a;
+out=a;
 return;
 }
 t =((p[0]- a[0])* ab[0]+(p[1]- a[1])* ab[1]+(p[2]- a[2])* ab[2])/ len2;
-t = floatclamp(t,0.0,1.0);
-for(new i = 0;i < 3;i++)
+t=floatclamp(t,0.0,1.0);
+for(new i=0;i < 3;i++)
 out[i]= a[i]+ ab[i]* t;
 }
 public fw_MineThink(ent)
 {
 if(is_nullent(ent))
 return;
-new owner = get_entvar(ent,var_iuser1);
+new owner=get_entvar(ent,var_iuser1);
 if(!is_user_connected(owner)||(!get_pcvar_num(g_pLmKeep534)&&(!is_user_alive(owner)||(g_bZombie[owner]&& !get_entvar(ent,var_iuser4)))))
 {
 MineDestroy(ent,false);
 return;
 }
-new bool:mz = get_entvar(ent,var_iuser4)? true : false;
-new Float:now = get_gametime();
+new bool:mz=get_entvar(ent,var_iuser4)? true : false;
+new Float:now=get_gametime();
 new Float:o[3],Float:normal[3];
 get_entvar(ent,var_origin,o);
 get_entvar(ent,var_vuser1,normal);
@@ -13175,9 +13176,9 @@ new Float:start[3],Float:end[3];
 get_entvar(ent,var_vuser3,start);
 if(get_entvar(ent,var_iuser2)== 0)
 {
-if(now >= Float:get_entvar(ent,var_fuser1))
+if(now>=Float:get_entvar(ent,var_fuser1))
 {
-new Float:maxr = floatclamp(get_pcvar_float(g_pLmMaxRange),64.0,1024.0);
+new Float:maxr=floatclamp(get_pcvar_float(g_pLmMaxRange),64.0,1024.0);
 end[0]= start[0]+ normal[0]* maxr;
 end[1]= start[1]+ normal[1]* maxr;
 end[2]= start[2]+ normal[2]* maxr;
@@ -13204,42 +13205,42 @@ if(MineEmpCheck(ent,o,now))
 set_entvar(ent,var_nextthink,now + 0.1);
 return;
 }
-new beam = get_entvar(ent,var_iuser3);
-if(now >= Float:get_entvar(ent,var_fuser4))
+new beam=get_entvar(ent,var_iuser3);
+if(now>=Float:get_entvar(ent,var_fuser4))
 {
 set_entvar(ent,var_fuser4,now + 0.5);
 set_entvar(ent,var_effects,get_entvar(ent,var_effects)& ~EF_NODRAW);
 set_entvar(ent,var_renderamt,255.0);
-new bool:lost =(beam <= 0 || is_nullent(beam)||(get_entvar(beam,var_flags)& FL_KILLME))? true : false;
+new bool:lost =(beam<=0||is_nullent(beam)||(get_entvar(beam,var_flags)& FL_KILLME))? true : false;
 if(!lost)
 {
 new cls[8];get_entvar(beam,var_classname,cls,charsmax(cls));
-if(!equal(cls,"beam")|| get_entvar(beam,var_iuser1)!= BEAM_MARK_LM)lost = true;
+if(!equal(cls,"beam")|| get_entvar(beam,var_iuser1)!= BEAM_MARK_LM)lost=true;
 }
-if(lost && get_entvar(ent,var_playerclass)< 3)
+if(lost&&get_entvar(ent,var_playerclass)< 3)
 {
 set_entvar(ent,var_playerclass,get_entvar(ent,var_playerclass)+ 1);
 new r,g,b;MineColor(ent,r,g,b);get_entvar(ent,var_vuser2,end);
-beam = MineMakeBeam538(ent,start,end,r,g,b);
-if(++g_iLmRepair538 <= 5)log_amx("[Vexmira] lazer isini kayboldu, yeniden kuruldu (mayin %d, toplam %d)",ent,g_iLmRepair538);
+beam=MineMakeBeam538(ent,start,end,r,g,b);
+if(++g_iLmRepair538<=5)log_amx("[Vexmira] lazer isini kayboldu, yeniden kuruldu (mayin %d, toplam %d)",ent,g_iLmRepair538);
 }
 }
-if(beam > 0 && !is_nullent(beam))
+if(beam > 0&&!is_nullent(beam))
 MineBeamAnimate(ent,beam,now);
-if(get_entvar(ent,var_solid)== SOLID_NOT && !PlayerNear(o,30.0))
+if(get_entvar(ent,var_solid)== SOLID_NOT&&!PlayerNear(o,30.0))
 {
 set_entvar(ent,var_solid,SOLID_BBOX);
 engfunc(EngFunc_SetOrigin,ent,o);
 }
-new Float:flash = Float:get_entvar(ent,var_fuser2);
-if(flash > 0.0 && now >= flash)
+new Float:flash=Float:get_entvar(ent,var_fuser2);
+if(flash > 0.0&&now>=flash)
 {
 set_entvar(ent,var_fuser2,0.0);
 MineRefreshColor(ent);
 }
 get_entvar(ent,var_vuser2,end);
 new Float:po[3],Float:hitp[3];
-for(new z = 1;z <= g_iMax;z++)
+for(new z=1;z<=g_iMax;z++)
 {
 if(!is_user_alive(z)||((g_bZombie[z]? true : false)== mz)|| g_fBurrow[z]> now)
 continue;
@@ -13261,14 +13262,14 @@ set_entvar(ent,var_nextthink,now + 0.1);
 }
 MineMakeBeam538(ent,const Float:start[3],const Float:end[3],r,g,b)
 {
-new beam = BeamCreate(start,end,r,g,b,clamp(get_pcvar_num(g_pLmBeamWidth),1,100),200);
+new beam=BeamCreate(start,end,r,g,b,clamp(get_pcvar_num(g_pLmBeamWidth),1,100),200);
 if(beam)
 {
 set_entvar(beam,var_iuser1,BEAM_MARK_LM);
 set_entvar(beam,var_iuser2,get_entvar(ent,var_iuser4));
 set_entvar(beam,var_iuser3,ent);
 set_entvar(beam,var_fuser1,float(clamp(get_pcvar_num(g_pLmBeamWidth),1,100)));
-new bt = g_iFx532[get_entvar(ent,var_iuser4)? X_BEAMW : X_BEAM];
+new bt=g_iFx532[get_entvar(ent,var_iuser4)? X_BEAMW : X_BEAM];
 if(bt > 0)
 {
 set_entvar(beam,var_model,get_entvar(ent,var_iuser4)? "sprites/vexmira/fx532/beam_wide.spr" : "sprites/vexmira/fx532/beam.spr");
@@ -13285,46 +13286,46 @@ LzPrice531(i)
 new txt[64],p[4][12];
 get_pcvar_string(g_pLzPrices531,txt,charsmax(txt));
 parse(txt,p[0],charsmax(p[]),p[1],charsmax(p[]),p[2],charsmax(p[]),p[3],charsmax(p[]));
-new v = str_to_num(p[clamp(i,0,3)]);
+new v=str_to_num(p[clamp(i,0,3)]);
 return v > 0 ? v : 300 + 150 * i;
 }
 bool:LzTr531(id)
 {
 new lg[4];get_user_info(id,"lang",lg,charsmax(lg));
-return(g_iLang[id]== 2 || equali(lg,"tr"))? true : false;
+return(g_iLang[id]== 2||equali(lg,"tr"))? true : false;
 }
 LzStyle531(mine,beam,style,Float:now)
 {
-new Float:width = Float:get_entvar(beam,var_fuser1);
-new r,g,b,bright = 230,noise = 0,Float:scroll = 0.0,Float:w = width;
+new Float:width=Float:get_entvar(beam,var_fuser1);
+new r,g,b,bright=230,noise=0,Float:scroll=0.0,Float:w=width;
 switch(style)
 {
 case 1:
 {
-new Float:pl = 0.5 + 0.5 * floatsin(now * 9.0);
-r = 40 + floatround(60.0 * pl);g = 200 + floatround(55.0 * pl);b = 255;
-scroll = 60.0;w = width + 3.0 * pl;bright = 200 + floatround(55.0 * pl);
+new Float:pl=0.5 + 0.5 * floatsin(now * 9.0);
+r=40 + floatround(60.0 * pl);g=200 + floatround(55.0 * pl);b=255;
+scroll=60.0;w=width + 3.0 * pl;bright=200 + floatround(55.0 * pl);
 }
 case 2:
 {
-new Float:t = now * 1.6 - float(floatround(now * 1.6,floatround_floor));
-new Float:beat =(t < 0.12)? 1.0 :((t > 0.22 && t < 0.32)? 0.75 : 0.25);
-r = 255;g = 10 + floatround(40.0 * beat);b = 20;
-bright = 120 + floatround(135.0 * beat);w = width + 4.0 * beat;noise = 2;
+new Float:t=now * 1.6 - float(floatround(now * 1.6,floatround_floor));
+new Float:beat =(t < 0.12)? 1.0 :((t > 0.22&&t < 0.32)? 0.75 : 0.25);
+r=255;g=10 + floatround(40.0 * beat);b=20;
+bright=120 + floatround(135.0 * beat);w=width + 4.0 * beat;noise=2;
 }
 case 3:
 {
-r = 120 + random_num(0,60);g = 255;b = 30 + random_num(0,40);
-noise = 10 + random_num(0,8);scroll = 25.0;bright = 210;
+r=120 + random_num(0,60);g=255;b=30 + random_num(0,40);
+noise=10 + random_num(0,8);scroll=25.0;bright=210;
 }
 default:
 {
 new Float:h =(now * 0.35 - float(floatround(now * 0.35,floatround_floor)))* 6.0;
-new hi = floatround(h,floatround_floor),Float:f = h - float(hi);
-new q = floatround(255.0 *(1.0 - f)),t2 = floatround(255.0 * f);
-switch(hi % 6){case 0:{r = 255;g = t2;b = 0;}case 1:{r = q;g = 255;b = 0;}case 2:{r = 0;g = 255;b = t2;}
-case 3:{r = 0;g = q;b = 255;}case 4:{r = t2;g = 0;b = 255;}default:{r = 255;g = 0;b = q;}}
-scroll = 30.0;bright = 240;w = width + 1.0;
+new hi=floatround(h,floatround_floor),Float:f=h - float(hi);
+new q=floatround(255.0 *(1.0 - f)),t2=floatround(255.0 * f);
+switch(hi % 6){case 0:{r=255;g=t2;b=0;}case 1:{r=q;g=255;b=0;}case 2:{r=0;g=255;b=t2;}
+case 3:{r=0;g=q;b=255;}case 4:{r=t2;g=0;b=255;}default:{r=255;g=0;b=q;}}
+scroll=30.0;bright=240;w=width + 1.0;
 }
 }
 set_entvar(beam,var_scale,floatclamp(w,1.0,100.0));
@@ -13335,19 +13336,19 @@ if(Float:get_entvar(beam,var_fuser2)<= now)
 {
 set_entvar(beam,var_fuser2,now + 0.6);
 new Float:e[3];get_entvar(mine,var_vuser2,e);
-if(style == 1 || style == 3){NxBegin(e);write_byte(TE_SPARKS);NxCoord(e);message_end();}
+if(style==1||style==3){NxBegin(e);write_byte(TE_SPARKS);NxCoord(e);message_end();}
 NxLight(e,r,g,b,6,4,10);
 }
 }
 ShowLaserShop531(id)
 {
 new title[320],item[160];
-new bool:tr = LzTr531(id);
+new bool:tr=LzTr531(id);
 formatex(title,charsmax(title),"\y%s^n\d%s^n",tr ? "Lazer Isinlari" : "Laser Beams",tr ? "Kendi lazer mayinlarinin isini (kalici)" : "Beam style of your own laser mines (permanent)");
-new menu = VexMenuCreate(title,"menu_lzshop_handler531");
+new menu=VexMenuCreate(title,"menu_lzshop_handler531");
 formatex(item,charsmax(item),"%s%s",tr ? "Takim rengi (varsayilan)" : "Team colour (default)",g_iLzSel531[id]== 0 ? " \r[*]" : "");
 MenuAdd(menu,item,0);
-for(new i = 0;i < 4;i++)
+for(new i=0;i < 4;i++)
 {
 if(g_iLzSel531[id]== i + 1)formatex(item,charsmax(item),"\y%s \r[%s]",tr ? LZ_TR531[i]: LZ_EN531[i],tr ? "TAKILI" : "EQUIPPED");
 else if(g_iLzOwned531[id]&(1 << i))formatex(item,charsmax(item),"\w%s \d[%s]",tr ? LZ_TR531[i]: LZ_EN531[i],tr ? "SAHIP" : "OWNED");
@@ -13360,13 +13361,13 @@ MenuFinish(id,menu);
 public menu_lzshop_handler531(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-new v = MenuInfo(menu,item);menu_destroy(menu);
-if(v == 999){ShowCosmeticMenu(id);return PLUGIN_HANDLED;}
-if(v < 0 || v > 4)return PLUGIN_HANDLED;
-new bool:tr = LzTr531(id);
-if(v > 0 && !(g_iLzOwned531[id]&(1 <<(v - 1))))
+new v=MenuInfo(menu,item);menu_destroy(menu);
+if(v==999){ShowCosmeticMenu(id);return PLUGIN_HANDLED;}
+if(v < 0||v > 4)return PLUGIN_HANDLED;
+new bool:tr=LzTr531(id);
+if(v > 0&&!(g_iLzOwned531[id]&(1 <<(v - 1))))
 {
-new price = LzPrice531(v - 1);
+new price=LzPrice531(v - 1);
 if(g_iVC[id]< price){Chat(id,"COS_NOVC",price);ShowLaserShop531(id);return PLUGIN_HANDLED;}
 g_iVC[id]-= price;g_iLzOwned531[id]|= 1 <<(v - 1);
 PlayKey(id,"SHOP_BUY");VxItemFxRGB531(id,0,220,255);
@@ -13384,21 +13385,21 @@ if(Float:get_entvar(mine,var_fuser2)> now)
 BeamColor(beam,255,255,255,255);
 return;
 }
-new bool:zombieMine = get_entvar(beam,var_iuser2)? true : false;
-new owner531 = get_entvar(mine,var_iuser1);
-if(1 <= owner531 <= g_iMax && g_iLzSel531[owner531]> 0 &&(g_iLzOwned531[owner531]&(1 <<(g_iLzSel531[owner531]- 1))))
+new bool:zombieMine=get_entvar(beam,var_iuser2)? true : false;
+new owner531=get_entvar(mine,var_iuser1);
+if(1<=owner531<=g_iMax&&g_iLzSel531[owner531]> 0 &&(g_iLzOwned531[owner531]&(1 <<(g_iLzSel531[owner531]- 1))))
 {
 LzStyle531(mine,beam,g_iLzSel531[owner531],now);
 return;
 }
 set_entvar(beam,var_body,0);
 set_entvar(beam,var_animtime,zombieMine ? 22.0 : 45.0);
-new Float:rate = zombieMine ? 3.2 : 5.0;
-new Float:pulse = 0.5 + 0.5 * floatsin(now * rate);
+new Float:rate=zombieMine ? 3.2 : 5.0;
+new Float:pulse=0.5 + 0.5 * floatsin(now * rate);
 new r,g,b;
 MineTeamColor(zombieMine,r,g,b);
-new bright = 175 + floatround(pulse * 80.0);
-new baseWidth = floatround(Float:get_entvar(beam,var_fuser1));
+new bright=175 + floatround(pulse * 80.0);
+new baseWidth=floatround(Float:get_entvar(beam,var_fuser1));
 set_entvar(beam,var_scale,float(clamp(baseWidth + floatround(pulse *(zombieMine ? 4.0 : 3.0)),1,100)));
 BeamColor(beam,r,g,b,bright);
 if(Float:get_entvar(beam,var_fuser2)<= now)
@@ -13411,20 +13412,20 @@ if(!zombieMine){NxBegin(e);write_byte(TE_SPARKS);NxCoord(e);message_end();}
 }
 MineTeamColor(bool:zombieMine,&r,&g,&b)
 {
-if(zombieMine){r = 85;g = 255;b = 110;}
-else{r = 35;g = 175;b = 255;}
+if(zombieMine){r=85;g=255;b=110;}
+else{r=35;g=175;b=255;}
 }
 SolidWhenFree538(ent,const Float:o[3])
 {
 if(get_entvar(ent,var_solid)!= SOLID_NOT)return;
 new Float:mn[3],Float:mx[3],Float:pmn[3],Float:pmx[3];
 get_entvar(ent,var_mins,mn);get_entvar(ent,var_maxs,mx);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))continue;
 get_entvar(p,var_absmin,pmn);get_entvar(p,var_absmax,pmx);
-if(pmn[0]< o[0]+ mx[0]+ 4.0 && pmx[0]> o[0]+ mn[0]- 4.0 && pmn[1]< o[1]+ mx[1]+ 4.0 && pmx[1]> o[1]+ mn[1]- 4.0
-&& pmn[2]< o[2]+ mx[2]+ 4.0 && pmx[2]> o[2]+ mn[2]- 4.0)return;
+if(pmn[0]< o[0]+ mx[0]+ 4.0&&pmx[0]> o[0]+ mn[0]- 4.0&&pmn[1]< o[1]+ mx[1]+ 4.0&&pmx[1]> o[1]+ mn[1]- 4.0
+&& pmn[2]< o[2]+ mx[2]+ 4.0&&pmx[2]> o[2]+ mn[2]- 4.0)return;
 }
 set_entvar(ent,var_solid,SOLID_BBOX);
 engfunc(EngFunc_SetOrigin,ent,o);
@@ -13432,7 +13433,7 @@ engfunc(EngFunc_SetOrigin,ent,o);
 bool:PlayerNear(const Float:o[3],Float:dist)
 {
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))
 continue;
@@ -13444,33 +13445,33 @@ return false;
 }
 MineHit(ent,owner,zombie,const Float:point[3])
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fLmCd[zombie])
 return;
 g_fLmCd[zombie]= now + 0.25;
 new bool:special =(g_bBoss[zombie]|| g_bNemesis[zombie]|| g_bAssassin[zombie])? true : false;
-new bool:mz = get_entvar(ent,var_iuser4)? true : false;
-new bool:oneshot = !mz && get_pcvar_num(g_pLmOneShot)? true : false;
+new bool:mz=get_entvar(ent,var_iuser4)? true : false;
+new bool:oneshot=!mz&&get_pcvar_num(g_pLmOneShot)? true : false;
 new Float:dmg;
 if(special)
-dmg = get_pcvar_float(g_pLmSpecialDmg);
+dmg=get_pcvar_float(g_pLmSpecialDmg);
 else if(oneshot)
-dmg = 999999.0;
+dmg=999999.0;
 else
-dmg = get_pcvar_float(g_pLmDamage);
-if(mz)dmg = get_pcvar_float(g_pLmZDmg534);
-if(!is_user_connected(owner)||(g_bZombie[owner]? true : false)!= mz)owner = 0;
+dmg=get_pcvar_float(g_pLmDamage);
+if(mz)dmg=get_pcvar_float(g_pLmZDmg534);
+if(!is_user_connected(owner)||(g_bZombie[owner]? true : false)!= mz)owner=0;
 new r,g,b;
 MineColor(ent,r,g,b);
 FxSparks(point);
 FxLight(point,r,g,b,16,4,30);
 FadeOne(zombie,r,g,b,120,0.35);
 EmitKey(ent,"LM_HIT");
-new beam = get_entvar(ent,var_iuser3);
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser3);
+if(beam > 0&&!is_nullent(beam))
 BeamColor(beam,255,255,255,255);
 set_entvar(ent,var_fuser2,now + 0.15);
-if(!oneshot || special)
+if(!oneshot||special)
 {
 new Float:vel[3];
 get_entvar(zombie,var_velocity,vel);
@@ -13479,15 +13480,15 @@ vel[1]= -vel[1]* 0.9;
 vel[2]= 180.0;
 set_entvar(zombie,var_velocity,vel);
 }
-new bool:wasAlive = is_user_alive(zombie)? true : false;
+new bool:wasAlive=is_user_alive(zombie)? true : false;
 ExecuteHamB(Ham_TakeDamage,zombie,ent,owner,dmg,DMG_ENERGYBEAM);
-if(wasAlive && !is_user_alive(zombie))
+if(wasAlive&&!is_user_alive(zombie))
 {
 FxSprite(point,g_sprExplode,6,220);
 FxStreak(point,7,40,220);
 FxLight(point,r,g,b,30,6,30);
 EmitKey(ent,"LM_KILL");
-if(1 <= owner <= g_iMax && !g_bZombie[owner]){g_iLmKills60[owner]++;if(g_iLmKills60[owner]>= 100)GrantAch(owner,19);}
+if(1<=owner<=g_iMax&&!g_bZombie[owner]){g_iLmKills60[owner]++;if(g_iLmKills60[owner]>= 100)GrantAch(owner,19);}
 if(!is_nullent(ent))
 MineDamage(ent,get_pcvar_float(g_pLmKillWear),0);
 }
@@ -13496,15 +13497,15 @@ MineDamage(ent,get_pcvar_float(g_pLmWear),zombie);
 }
 MineDamage(ent,Float:amount,attacker)
 {
-if(amount <= 0.0)
+if(amount<=0.0)
 return;
-new Float:hp = Float:get_entvar(ent,var_health)- amount;
-if(hp <= 0.0)
+new Float:hp=Float:get_entvar(ent,var_health)- amount;
+if(hp<=0.0)
 {
-new owner = get_entvar(ent,var_iuser1);
+new owner=get_entvar(ent,var_iuser1);
 if(is_user_connected(owner))
 {
-if(attacker && is_user_connected(attacker))
+if(attacker&&is_user_connected(attacker))
 {
 new name[32];
 get_user_name(attacker,name,charsmax(name));
@@ -13523,8 +13524,8 @@ MineRefreshColor(ent)
 {
 new r,g,b;
 MineColor(ent,r,g,b);
-new beam = get_entvar(ent,var_iuser3);
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser3);
+if(beam > 0&&!is_nullent(beam))
 BeamColor(beam,r,g,b,200);
 new Float:c[3];
 c[0]= float(r);
@@ -13534,7 +13535,7 @@ set_entvar(ent,var_rendercolor,c);
 }
 public fw_EntTakeDamage(ent,inflictor,attacker,Float:damage,bits)
 {
-if(ent <= g_iMax || is_nullent(ent))
+if(ent<=g_iMax||is_nullent(ent))
 return HAM_IGNORED;
 new cls[20];
 get_entvar(ent,var_classname,cls,charsmax(cls));
@@ -13546,10 +13547,10 @@ if(equal(cls,SPORE_CLASS))
 return SporeTakeDamage(ent,attacker,damage);
 if(!equal(cls,LM_CLASS))
 return HAM_IGNORED;
-new bool:mz = get_entvar(ent,var_iuser4)? true : false;
-if(!(1 <= attacker <= g_iMax)|| !is_user_connected(attacker)||(g_bZombie[attacker]? true : false)== mz)
+new bool:mz=get_entvar(ent,var_iuser4)? true : false;
+if(!(1<=attacker<=g_iMax)|| !is_user_connected(attacker)||(g_bZombie[attacker]? true : false)== mz)
 return HAM_SUPERCEDE;
-new Float:mult = g_bZombie[attacker]? get_pcvar_float(g_pLmZMult): get_pcvar_float(g_pLmHumanMult534);
+new Float:mult=g_bZombie[attacker]? get_pcvar_float(g_pLmZMult): get_pcvar_float(g_pLmHumanMult534);
 if(g_bNemesis[attacker]|| g_bAssassin[attacker]|| g_bBoss[attacker])
 mult *= 2.5;
 new Float:o[3];
@@ -13570,9 +13571,9 @@ FxExplosion(o);
 FxSparks(o);
 FxRingSmall(o,255,80,0);
 EmitKey(ent,"LM_BREAK");
-new owner = get_entvar(ent,var_iuser1);
+new owner=get_entvar(ent,var_iuser1);
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)||(g_bZombie[p]? true : false)==(get_entvar(ent,var_iuser4)? true : false))
 continue;
@@ -13587,8 +13588,8 @@ MineRemove(ent)
 {
 if(is_nullent(ent))
 return;
-new beam = get_entvar(ent,var_iuser3);
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser3);
+if(beam > 0&&!is_nullent(beam))
 set_entvar(beam,var_flags,FL_KILLME);
 SetThink(ent,"");
 set_entvar(ent,var_iuser1,0);
@@ -13601,7 +13602,7 @@ set_entvar(ent,var_flags,FL_KILLME);
 RemovePlayerMines(id,bool:fx)
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 {
 if(get_entvar(ent,var_iuser1)!= id)
 continue;
@@ -13617,16 +13618,16 @@ MineRemove(ent);
 RemoveAllMines()
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 MineRemove(ent);
-ent = 0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname","beam"))> 0)
+ent=0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","beam"))> 0)
 {
-new mark = get_entvar(ent,var_iuser1);
-if(mark == BEAM_MARK_LM || mark == BEAM_MARK_NADE || mark == BEAM_MARK_DROP)
+new mark=get_entvar(ent,var_iuser1);
+if(mark==BEAM_MARK_LM||mark==BEAM_MARK_NADE||mark==BEAM_MARK_DROP)
 set_entvar(ent,var_flags,FL_KILLME);
 }
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(g_iPlantAction[id])
 CancelPlant(id);
@@ -13636,9 +13637,9 @@ bool:MineAimInfo(id)
 {
 new target,body;
 get_user_aiming(id,target,body,600);
-if(target <= g_iMax || !IsMine(target))
+if(target<=g_iMax||!IsMine(target))
 return false;
-new owner = get_entvar(target,var_iuser1),name[32];
+new owner=get_entvar(target,var_iuser1),name[32];
 if(is_user_connected(owner))
 get_user_name(owner,name,charsmax(name));
 else
@@ -13646,14 +13647,14 @@ copy(name,charsmax(name),"-");
 new r,g,b;
 MineColor(target,r,g,b);
 set_hudmessage(r,g,b,-1.0,Y_AIM,0,0.0,0.9,0.0,0.1,3);
-show_hudmessage(id,"%L",id,(owner == id)? "LM_AIM_INFO_MINE" : "LM_AIM_INFO",name,floatround(Float:get_entvar(target,var_health)),floatround(Float:get_entvar(target,var_max_health)));
+show_hudmessage(id,"%L",id,(owner==id)? "LM_AIM_INFO_MINE" : "LM_AIM_INFO",name,floatround(Float:get_entvar(target,var_health)),floatround(Float:get_entvar(target,var_max_health)));
 return true;
 }
 TickMineHints()
 {
-if(!g_bRoundActive || !LasersAllowed()|| g_iFrame % 5)
+if(!g_bRoundActive||!LasersAllowed()|| g_iFrame % 5)
 return;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| is_user_bot(id)|| g_bMineHint[id]|| g_iMines[id]<= 0)
 continue;
@@ -13669,15 +13670,15 @@ new title[320],item[96];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"LM_MENU_SUB",g_iMines[id],CountMines(id),MaxMines(id));
 VexHead(id,title,charsmax(title),"LM_MENU",hsub);
-new menu = VexMenuCreate(title,"menu_mine_handler");
-new bool:ok = LasersAllowed();
+new menu=VexMenuCreate(title,"menu_mine_handler");
+new bool:ok=LasersAllowed();
 formatex(item,charsmax(item),ok ? "\y%L" : "\y%L \r[%L]",id,"LM_M_PLANT",id,"MENU_LOCKED");MenuAdd(menu,item,1);
 formatex(item,charsmax(item),"\y%L",id,"LM_M_TAKE");MenuAdd(menu,item,2);
 formatex(item,charsmax(item),"\y%L",id,"LM_M_INFO");MenuAdd(menu,item,3);
 formatex(item,charsmax(item),"\y%L",id,"LM_M_BIND");MenuAdd(menu,item,4);
 if(!ok)
 {
-formatex(item,charsmax(item),"\r%L",id,(g_iMode == MODE_BOSS && !get_pcvar_num(g_pLmBoss))? "LM_NO_BOSS_SHORT" :(get_pcvar_num(g_pLmEnable)&& LmModeBlocked(g_iMode))? "LM_NO_MODE_SHORT" : "LM_DISABLED_SHORT");
+formatex(item,charsmax(item),"\r%L",id,(g_iMode==MODE_BOSS&&!get_pcvar_num(g_pLmBoss))? "LM_NO_BOSS_SHORT" :(get_pcvar_num(g_pLmEnable)&& LmModeBlocked(g_iMode))? "LM_NO_MODE_SHORT" : "LM_DISABLED_SHORT");
 VexAddText(menu,item,0);
 }
 else
@@ -13694,7 +13695,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 switch(sel)
 {
@@ -13731,15 +13732,15 @@ return -1;
 }
 bool:NadeModeAllowed(slot,mode,bool:zombie)
 {
-if(mode == NM_NORMAL)
+if(mode==NM_NORMAL)
 return true;
 if(zombie)
-return(mode == NM_IMPACT)? true : false;
+return(mode==NM_IMPACT)? true : false;
 switch(slot)
 {
 case 0: return true;
-case 1: return(mode == NM_IMPACT || mode == NM_SENSOR || mode == NM_LASER)? true : false;
-case 2: return(mode == NM_IMPACT)? true : false;
+case 1: return(mode==NM_IMPACT||mode==NM_SENSOR||mode==NM_LASER)? true : false;
+case 2: return(mode==NM_IMPACT)? true : false;
 }
 return false;
 }
@@ -13757,20 +13758,20 @@ public fw_NadeAttack2(weapon)
 {
 if(!get_pcvar_num(g_pNadeModes))
 return HAM_IGNORED;
-new id = get_member(weapon,m_pPlayer);
-if(!(1 <= id <= g_iMax)|| !is_user_alive(id))
+new id=get_member(weapon,m_pPlayer);
+if(!(1<=id<=g_iMax)|| !is_user_alive(id))
 return HAM_IGNORED;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 set_member(weapon,m_Weapon_flNextSecondaryAttack,0.35);
 if(now < g_fNadeHud[id])
 return HAM_SUPERCEDE;
 g_fNadeHud[id]= now + 0.3;
-new slot = GrenadeSlot(WeaponIdType:get_member(weapon,m_iId));
+new slot=GrenadeSlot(WeaponIdType:get_member(weapon,m_iId));
 if(slot < 0)
 return HAM_IGNORED;
-new bool:zm = g_bZombie[id]? true : false;
-new m = g_iNadeMode[id][slot];
-for(new i = 0;i < NUM_NMODES;i++)
+new bool:zm=g_bZombie[id]? true : false;
+new m=g_iNadeMode[id][slot];
+for(new i=0;i < NUM_NMODES;i++)
 {
 m =(m + 1)% NUM_NMODES;
 if(NadeModeAllowed(slot,m,zm))
@@ -13785,11 +13786,11 @@ public fw_NadeDeploy(weapon)
 {
 if(!get_pcvar_num(g_pNadeModes))
 return HAM_IGNORED;
-new id = get_member(weapon,m_pPlayer);
-if(!(1 <= id <= g_iMax)|| !is_user_alive(id))
+new id=get_member(weapon,m_pPlayer);
+if(!(1<=id<=g_iMax)|| !is_user_alive(id))
 return HAM_IGNORED;
-new slot = GrenadeSlot(WeaponIdType:get_member(weapon,m_iId));
-if(slot >= 0)
+new slot=GrenadeSlot(WeaponIdType:get_member(weapon,m_iId));
+if(slot>=0)
 {
 if(!NadeModeAllowed(slot,g_iNadeMode[id][slot],g_bZombie[id]? true : false))
 g_iNadeMode[id][slot]= NM_NORMAL;
@@ -13801,10 +13802,10 @@ NadeOnThrow(id,ent,slot)
 {
 if(!get_pcvar_num(g_pNadeModes)|| is_nullent(ent))
 return;
-new mode = g_iNadeMode[id][slot];
-if(!NadeModeAllowed(slot,mode,g_bZombie[id]? true : false)|| mode == NM_NORMAL)
+new mode=g_iNadeMode[id][slot];
+if(!NadeModeAllowed(slot,mode,g_bZombie[id]? true : false)|| mode==NM_NORMAL)
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 set_entvar(ent,var_iuser4,mode + 1);
 set_entvar(ent,var_iuser3,0);
 set_entvar(ent,var_iuser2,0);
@@ -13849,21 +13850,21 @@ set_entvar(ent,var_nextthink,get_gametime()+ 0.01);
 }
 public fw_GrenadeTouch(ent,other)
 {
-new mode = get_entvar(ent,var_iuser4)- 1;
-if(mode != NM_IMPACT && mode != NM_HOMING && mode != NM_LASER)
+new mode=get_entvar(ent,var_iuser4)- 1;
+if(mode!=NM_IMPACT&&mode!=NM_HOMING&&mode!=NM_LASER)
 return HAM_IGNORED;
-if(other == get_entvar(ent,var_owner))
+if(other==get_entvar(ent,var_owner))
 return HAM_IGNORED;
-if(mode == NM_LASER)
+if(mode==NM_LASER)
 {
 if(get_entvar(ent,var_iuser3)!= 0)
 return HAM_SUPERCEDE;
 if(other > 0)
 {
-if(other <= g_iMax || get_entvar(other,var_solid)!= SOLID_BSP)
+if(other<=g_iMax||get_entvar(other,var_solid)!= SOLID_BSP)
 return HAM_IGNORED;
-new mt = get_entvar(other,var_movetype);
-if(mt != MOVETYPE_NONE && mt != MOVETYPE_PUSH)
+new mt=get_entvar(other,var_movetype);
+if(mt!=MOVETYPE_NONE&&mt!=MOVETYPE_PUSH)
 return HAM_IGNORED;
 }
 NadeStick(ent);
@@ -13886,7 +13887,7 @@ NadeStick(ent)
 new Float:o[3],Float:vel[3],Float:dir[3],Float:a[3],Float:b[3],Float:normal[3],Float:pos[3];
 get_entvar(ent,var_origin,o);
 get_entvar(ent,var_velocity,vel);
-new Float:len = floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]+ vel[2]* vel[2]);
+new Float:len=floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]+ vel[2]* vel[2]);
 if(len < 1.0)
 {
 dir[0]= 0.0;
@@ -13900,16 +13901,16 @@ dir[1]= vel[1]/ len;
 dir[2]= vel[2]/ len;
 }
 new bool:found;
-new tr = create_tr2();
-for(new attempt = 0;attempt < 2 && !found;attempt++)
+new tr=create_tr2();
+for(new attempt=0;attempt < 2&&!found;attempt++)
 {
-if(attempt == 1)
+if(attempt==1)
 {
 dir[0]= 0.0;
 dir[1]= 0.0;
 dir[2]= -1.0;
 }
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 a[i]= o[i]- dir[i]* 24.0;
 b[i]= o[i]+ dir[i]* 32.0;
@@ -13917,17 +13918,17 @@ b[i]= o[i]+ dir[i]* 32.0;
 engfunc(EngFunc_TraceLine,a,b,IGNORE_MONSTERS,ent,tr);
 new Float:frac;
 get_tr2(tr,TR_flFraction,frac);
-if(frac < 1.0 && !get_tr2(tr,TR_AllSolid))
+if(frac < 1.0&&!get_tr2(tr,TR_AllSolid))
 {
 get_tr2(tr,TR_vecEndPos,pos);
 get_tr2(tr,TR_vecPlaneNormal,normal);
-found = true;
+found=true;
 }
 }
 free_tr2(tr);
 if(!found)
 {
-pos = o;
+pos=o;
 normal[0]= -dir[0];
 normal[1]= -dir[1];
 normal[2]= -dir[2];
@@ -13944,7 +13945,7 @@ new Float:ang[3];
 engfunc(EngFunc_VecToAngles,normal,ang);
 ang[0]+= 90.0;
 set_entvar(ent,var_angles,ang);
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 set_entvar(ent,var_vuser2,normal);
 set_entvar(ent,var_iuser3,1);
 set_entvar(ent,var_fuser4,now + floatmax(0.2,get_pcvar_float(g_pNadeLaserArm)));
@@ -13955,11 +13956,11 @@ public task_NadeTick()
 {
 if(!get_pcvar_num(g_pNadeModes))
 return;
-new ent,Float:now = get_gametime();
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname","grenade"))> 0)
+new ent,Float:now=get_gametime();
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","grenade"))> 0)
 {
-new mode = get_entvar(ent,var_iuser4)- 1;
-if(mode != NM_SENSOR && mode != NM_LASER && mode != NM_HOMING)
+new mode=get_entvar(ent,var_iuser4)- 1;
+if(mode!=NM_SENSOR&&mode!=NM_LASER&&mode!=NM_HOMING)
 continue;
 if(get_entvar(ent,var_flags)& FL_KILLME)
 continue;
@@ -13985,7 +13986,7 @@ if(vel[0]* vel[0]+ vel[1]* vel[1]+ vel[2]* vel[2]>= 400.0)
 return false;
 new Float:o[3],Float:down[3],Float:frac;
 get_entvar(ent,var_origin,o);
-down = o;
+down=o;
 down[2]-= 10.0;
 engfunc(EngFunc_TraceLine,o,down,IGNORE_MONSTERS,ent,0);
 get_tr2(0,TR_flFraction,frac);
@@ -13998,14 +13999,14 @@ get_entvar(z,var_origin,zo);
 engfunc(EngFunc_TraceLine,o,zo,IGNORE_MONSTERS,ent,0);
 new Float:frac;
 get_tr2(0,TR_flFraction,frac);
-return(frac >= 0.99)? true : false;
+return(frac>=0.99)? true : false;
 }
 NadeSensor(ent,Float:now)
 {
-new st = get_entvar(ent,var_iuser3);
+new st=get_entvar(ent,var_iuser3);
 new Float:o[3],Float:eye[3];
 get_entvar(ent,var_origin,o);
-eye = o;
+eye=o;
 eye[2]+= 10.0;
 if(now > Float:get_entvar(ent,var_fuser1)&& st < 3)
 {
@@ -14030,7 +14031,7 @@ case 1:
 {
 if(now < Float:get_entvar(ent,var_fuser4))
 {
-if(now >= Float:get_entvar(ent,var_fuser3))
+if(now>=Float:get_entvar(ent,var_fuser3))
 {
 set_entvar(ent,var_fuser3,now + 0.5);
 FxLight(o,255,200,0,5,4,10);
@@ -14043,24 +14044,24 @@ EmitKey(ent,"NADE_BEEP",CHAN_ITEM);
 }
 case 2:
 {
-new Float:radius = floatmax(50.0,get_pcvar_float(g_pNadeProx));
-if(now >= Float:get_entvar(ent,var_fuser3))
+new Float:radius=floatmax(50.0,get_pcvar_float(g_pNadeProx));
+if(now>=Float:get_entvar(ent,var_fuser3))
 {
 set_entvar(ent,var_fuser3,now + 1.0);
 new Float:ring[3];
-ring = o;
+ring=o;
 ring[2]-= 4.0;
 FxRingEx(ring,255,30,30,floatround(radius),4,6,120);
 FxLight(o,255,0,0,6,5,10);
 EmitKey(ent,"NADE_BEEP",CHAN_ITEM,ATTN_STATIC);
 }
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-if(get_distance_f(o,po)> radius || !NadeSees(ent,eye,p))
+if(get_distance_f(o,po)> radius||!NadeSees(ent,eye,p))
 continue;
 set_entvar(ent,var_iuser3,3);
 set_entvar(ent,var_fuser4,now + 0.25);
@@ -14071,17 +14072,17 @@ return;
 }
 default:
 {
-if(now >= Float:get_entvar(ent,var_fuser4))
+if(now>=Float:get_entvar(ent,var_fuser4))
 NadeDetonateNow(ent);
 }
 }
 }
 NadeLaser(ent,Float:now)
 {
-new st = get_entvar(ent,var_iuser3);
+new st=get_entvar(ent,var_iuser3);
 new Float:o[3],Float:normal[3],Float:start[3],Float:end[3];
 get_entvar(ent,var_origin,o);
-if(now > Float:get_entvar(ent,var_fuser1)&& st >= 1)
+if(now > Float:get_entvar(ent,var_fuser1)&& st>=1)
 {
 NadeCleanup(ent);
 NadeDetonateNow(ent);
@@ -14099,7 +14100,7 @@ case 1:
 if(now < Float:get_entvar(ent,var_fuser4))
 return;
 get_entvar(ent,var_vuser2,normal);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 start[i]= o[i]+ normal[i]* 4.0;
 end[i]= start[i]+ normal[i]* floatmax(64.0,get_pcvar_float(g_pNadeLaser));
@@ -14108,7 +14109,7 @@ engfunc(EngFunc_TraceLine,start,end,IGNORE_MONSTERS,ent,0);
 get_tr2(0,TR_vecEndPos,end);
 set_entvar(ent,var_vuser1,start);
 set_entvar(ent,var_vuser3,end);
-new beam = BeamCreate(start,end,255,20,40,6,210);
+new beam=BeamCreate(start,end,255,20,40,6,210);
 if(beam)
 set_entvar(beam,var_iuser1,BEAM_MARK_NADE);
 set_entvar(ent,var_iuser2,beam);
@@ -14121,7 +14122,7 @@ case 2:
 get_entvar(ent,var_vuser1,start);
 get_entvar(ent,var_vuser3,end);
 new Float:po[3],Float:hitp[3];
-for(new z = 1;z <= g_iMax;z++)
+for(new z=1;z<=g_iMax;z++)
 {
 if(!is_user_alive(z)|| !g_bZombie[z])
 continue;
@@ -14136,7 +14137,7 @@ engfunc(EngFunc_SetOrigin,ent,hitp);
 NadeDetonateNow(ent);
 return;
 }
-if(now >= Float:get_entvar(ent,var_fuser3))
+if(now>=Float:get_entvar(ent,var_fuser3))
 {
 set_entvar(ent,var_fuser3,now + 1.5);
 FxLight(o,255,0,0,5,5,10);
@@ -14148,23 +14149,23 @@ NadeHoming(ent,Float:now)
 {
 if(now - Float:get_entvar(ent,var_fuser4)< 0.25)
 return;
-new Float:o[3],Float:po[3],best,Float:bd = get_pcvar_float(g_pNadeHoming);
+new Float:o[3],Float:po[3],best,Float:bd=get_pcvar_float(g_pNadeHoming);
 get_entvar(ent,var_origin,o);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
-if(d >= bd)
+new Float:d=get_distance_f(o,po);
+if(d>=bd)
 continue;
 engfunc(EngFunc_TraceLine,o,po,IGNORE_MONSTERS,ent,0);
 new Float:frac;
 get_tr2(0,TR_flFraction,frac);
 if(frac < 1.0)
 continue;
-bd = d;
-best = p;
+bd=d;
+best=p;
 }
 if(!best)
 return;
@@ -14172,7 +14173,7 @@ get_entvar(best,var_origin,po);
 po[2]+= 10.0;
 new Float:vel[3],Float:want[3];
 get_entvar(ent,var_velocity,vel);
-new Float:d = floatmax(1.0,get_distance_f(o,po));
+new Float:d=floatmax(1.0,get_distance_f(o,po));
 want[0]=(po[0]- o[0])/ d * 560.0;
 want[1]=(po[1]- o[1])/ d * 560.0;
 want[2]=(po[2]- o[2])/ d * 560.0;
@@ -14183,10 +14184,10 @@ set_entvar(ent,var_velocity,vel);
 }
 NadeCleanup(ent)
 {
-if(get_entvar(ent,var_iuser4)- 1 != NM_LASER)
+if(get_entvar(ent,var_iuser4)- 1!=NM_LASER)
 return;
-new beam = get_entvar(ent,var_iuser2);
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser2);
+if(beam > 0&&!is_nullent(beam))
 set_entvar(beam,var_flags,FL_KILLME);
 set_entvar(ent,var_iuser2,0);
 }
@@ -14194,12 +14195,12 @@ NadeCluster(ent,type)
 {
 new Float:o[3];
 get_entvar(ent,var_origin,o);
-new owner = get_entvar(ent,var_owner);
-new count = clamp(get_pcvar_num(g_pCluster),1,8);
-for(new i = 0;i < count;i++)
+new owner=get_entvar(ent,var_owner);
+new count=clamp(get_pcvar_num(g_pCluster),1,8);
+for(new i=0;i < count;i++)
 {
-new Float:a = float(i)*(360.0 / float(count))+ random_float(-20.0,20.0);
-new Float:dist = random_float(90.0,160.0);
+new Float:a=float(i)*(360.0 / float(count))+ random_float(-20.0,20.0);
+new Float:dist=random_float(90.0,160.0);
 new params[5];
 params[0]= _:(o[0]+ floatcos(a,degrees)* dist);
 params[1]= _:(o[1]+ floatsin(a,degrees)* dist);
@@ -14215,14 +14216,14 @@ new Float:o[3],Float:po[3];
 o[0]= Float:params[0];
 o[1]= Float:params[1];
 o[2]= Float:params[2];
-new owner = params[3];
+new owner=params[3];
 if(!is_user_connected(owner))
-owner = 0;
+owner=0;
 FxExplosion(o);
 FxSparks(o);
 FxRingSmall(o,255,120,0);
 EmitKeyPos(o,"NADE_CLUSTER");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !g_bZombie[p])
 continue;
@@ -14245,9 +14246,9 @@ new title[320],item[128],key[16],nm[32];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"NMENU_SUB");
 VexHead(id,title,charsmax(title),"NMENU_TITLE",hsub);
-new menu = VexMenuCreate(title,"menu_nade_handler");
+new menu=VexMenuCreate(title,"menu_nade_handler");
 static const SLOTKEY[3][]={"NMENU_HE","NMENU_FROST","NMENU_FLARE"};
-for(new s = 0;s < 3;s++)
+for(new s=0;s < 3;s++)
 {
 formatex(key,charsmax(key),"NMODE_%d",g_iNadeMode[id][s]);
 formatex(nm,charsmax(nm),"%L",id,key);
@@ -14265,11 +14266,11 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-if(sel == 9)
+if(sel==9)
 {
-for(new i = 0;i < NUM_NMODES;i++)
+for(new i=0;i < NUM_NMODES;i++)
 {
 new key[16];
 formatex(key,charsmax(key),"NMODE_DESC_%d",i);
@@ -14277,11 +14278,11 @@ Chat(id,key);
 }
 return PLUGIN_HANDLED;
 }
-if(0 <= sel <= 2)
+if(0<=sel<=2)
 {
 new bool:zm =(is_user_alive(id)&& g_bZombie[id])? true : false;
-new m = g_iNadeMode[id][sel];
-for(new i = 0;i < NUM_NMODES;i++)
+new m=g_iNadeMode[id][sel];
+for(new i=0;i < NUM_NMODES;i++)
 {
 m =(m + 1)% NUM_NMODES;
 if(NadeModeAllowed(sel,m,zm))
@@ -14298,21 +14299,21 @@ return PLUGIN_HANDLED;
 #define DROP_GLOW_Z 32.0
 TickAirdrop()
 {
-if(!get_pcvar_num(g_pAirdrop)|| !g_bRoundActive || !g_szDropModel[0])
+if(!get_pcvar_num(g_pAirdrop)|| !g_bRoundActive||!g_szDropModel[0])
 return;
-if(g_iMode == MODE_ARMAGEDDON || g_iMode == MODE_SWARM)
+if(g_iMode==MODE_ARMAGEDDON||g_iMode==MODE_SWARM)
 return;
-new every =(g_iEvent == EV_SUPPLY)? 20 : max(20,get_pcvar_num(g_pAirdropEvery));
+new every =(g_iEvent==EV_SUPPLY)? 20 : max(20,get_pcvar_num(g_pAirdropEvery));
 if(++g_iAirdropClock < every)
 return;
-g_iAirdropClock = 0;
+g_iAirdropClock=0;
 if(RoundTimeLeft()> 25)
 SpawnAirdrop();
 }
 SpawnAirdrop()
 {
 new alive[32],n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 alive[n++]= id;
@@ -14321,7 +14322,7 @@ if(!n)
 return;
 new Float:from[3],Float:base[3],Float:top[3],Float:frac;
 get_entvar(alive[random(n)],var_origin,from);
-base = from;
+base=from;
 base[0]+= random_float(-220.0,220.0);
 base[1]+= random_float(-220.0,220.0);
 engfunc(EngFunc_TraceLine,from,base,IGNORE_MONSTERS,0,0);
@@ -14329,26 +14330,26 @@ get_tr2(0,TR_flFraction,frac);
 if(frac < 1.0)
 {
 get_tr2(0,TR_vecEndPos,base);
-new Float:dx = base[0]- from[0],Float:dy = base[1]- from[1];
-new Float:len = floatsqroot(dx * dx + dy * dy);
+new Float:dx=base[0]- from[0],Float:dy=base[1]- from[1];
+new Float:len=floatsqroot(dx * dx + dy * dy);
 if(len > 30.0)
 {
 base[0]-= dx / len * 24.0;
 base[1]-= dy / len * 24.0;
 }
 else
-base = from;
+base=from;
 }
 if(engfunc(EngFunc_PointContents,base)== CONTENTS_SOLID)
-base = from;
-top = base;
+base=from;
+top=base;
 top[2]+= 700.0;
 engfunc(EngFunc_TraceLine,base,top,IGNORE_MONSTERS,0,0);
 get_tr2(0,TR_vecEndPos,top);
 top[2]-= 40.0;
 if(top[2]- base[2]< 80.0)
 top[2]= base[2]+ 40.0;
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return;
 set_entvar(ent,var_classname,DROP_CLASS);
@@ -14371,7 +14372,7 @@ set_entvar(ent,var_fuser1,get_gametime()+ 75.0);
 set_entvar(ent,var_iuser1,0);
 if(g_iSupplySigil47){
 new sig=CreateSafe51("info_target");
-if(sig && !is_nullent(sig)){
+if(sig&&!is_nullent(sig)){
 set_entvar(sig,var_classname,"vex_supply_sigil47");VxSM(sig,"models/vexmira/epic/supply_sigil47.mdl");
 set_entvar(sig,var_solid,SOLID_NOT);set_entvar(sig,var_movetype,MOVETYPE_NOCLIP);set_entvar(sig,var_scale,0.7);
 set_entvar(sig,var_iuser4,470048);set_entvar(ent,var_euser1,sig);
@@ -14389,20 +14390,20 @@ if(get_pcvar_num(g_pDropBeacon))
 set_entvar(ent,var_effects,EF_DIMLIGHT);
 new Float:sky[3];
 DropSkyPoint(top,sky);
-new beam = BeamCreate(top,sky,255,200,40,60,160);
+new beam=BeamCreate(top,sky,255,200,40,60,160);
 if(beam)
 {
 set_entvar(beam,var_iuser1,BEAM_MARK_DROP);
 set_entvar(beam,var_renderfx,0);
 }
 set_entvar(ent,var_iuser2,beam);
-new core = BeamCreate(top,sky,255,255,200,14,230);
+new core=BeamCreate(top,sky,255,255,200,14,230);
 if(core)
 set_entvar(core,var_iuser1,BEAM_MARK_DROP);
 set_entvar(ent,var_iuser4,core);
 if(g_szSprBeacon[0])
 {
-new spr = CreateSafe51("info_target");
+new spr=CreateSafe51("info_target");
 if(!is_nullent(spr))
 {
 set_entvar(spr,var_classname,"vex_dropglow");
@@ -14414,7 +14415,7 @@ set_entvar(spr,var_scale,1.2);
 set_entvar(spr,var_movetype,MOVETYPE_NOCLIP);
 set_entvar(spr,var_solid,SOLID_NOT);
 new Float:gp[3];
-gp = top;
+gp=top;
 gp[2]+= DROP_GLOW_Z;
 engfunc(EngFunc_SetOrigin,spr,gp);
 set_entvar(spr,var_velocity,Float:{0.0,0.0,0.0});
@@ -14431,7 +14432,7 @@ public fw_DropThink(ent)
 {
 if(is_nullent(ent))
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now > Float:get_entvar(ent,var_fuser1)|| !g_bRoundActive)
 {
 DropRemove(ent);
@@ -14440,11 +14441,11 @@ return;
 new Float:o[3],Float:sky[3];
 get_entvar(ent,var_origin,o);
 new sig47=get_entvar(ent,var_euser1);
-if(sig47>0 && !is_nullent(sig47)){
+if(sig47>0&&!is_nullent(sig47)){
 new Float:so47[3],Float:sa47[3];so47=o;so47[2]+=42.0;sa47[1]=float(floatround(now*80.0)%360);
 engfunc(EngFunc_SetOrigin,sig47,so47);set_entvar(sig47,var_angles,sa47);
 }
-new bool:landed = get_entvar(ent,var_iuser1)? true : false;
+new bool:landed=get_entvar(ent,var_iuser1)? true : false;
 if(!landed){
 new Float:dest48[3];dest48=o;dest48[2]-=80.0*floatclamp(now-Float:get_entvar(ent,var_fuser2),0.0,0.25);
 new tr48=create_tr2();engfunc(EngFunc_TraceLine,o,dest48,IGNORE_MONSTERS,ent,tr48);
@@ -14453,11 +14454,11 @@ if(get_tr2(tr48,TR_StartSolid)||get_tr2(tr48,TR_AllSolid)){free_tr2(tr48);DropRe
 if(fr48<1.0){get_tr2(tr48,TR_vecEndPos,dest48);dest48[2]+=0.5;landed=true;}
 free_tr2(tr48);engfunc(EngFunc_SetOrigin,ent,dest48);o=dest48;
 set_entvar(ent,var_fuser2,now);
-if(now-Float:get_entvar(ent,var_fuser3)>14.0 && !landed){DropRemove(ent);return;}
+if(now-Float:get_entvar(ent,var_fuser3)>14.0&&!landed){DropRemove(ent);return;}
 }
-if(landed && !get_entvar(ent,var_iuser1))
+if(landed&&!get_entvar(ent,var_iuser1))
 {
-landed = true;
+landed=true;
 set_entvar(ent,var_iuser1,1);
 if(g_szDropSeqFall[0])
 {
@@ -14470,20 +14471,20 @@ EmitKey(ent,"AIRDROP_LAND");
 ZoneSpawn(o,70.0,255,200,40,Float:get_entvar(ent,var_fuser1)- now,ent,false);
 }
 new Float:ct[3],Float:vel[3];
-ct = o;
+ct=o;
 ct[2]+= DROP_TOP_Z;
 DropSkyPoint(ct,sky);
-new beam = get_entvar(ent,var_iuser2);
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser2);
+if(beam > 0&&!is_nullent(beam))
 BeamPoints(beam,ct,sky);
-new core = get_entvar(ent,var_iuser4);
-if(core > 0 && !is_nullent(core))
+new core=get_entvar(ent,var_iuser4);
+if(core > 0&&!is_nullent(core))
 BeamPoints(core,ct,sky);
-new glow = get_entvar(ent,var_iuser3);
-if(glow > 0 && !is_nullent(glow))
+new glow=get_entvar(ent,var_iuser3);
+if(glow > 0&&!is_nullent(glow))
 {
 new Float:gp[3];
-gp = o;
+gp=o;
 gp[2]+= DROP_GLOW_Z;
 engfunc(EngFunc_SetOrigin,glow,gp);
 vel[0]= vel[1]= vel[2]= 0.0;
@@ -14494,7 +14495,7 @@ FxBeamEx(o,sky,g_sprBeam,255,200,40,60,0,11,200);
 if(landed)
 {
 FxLight(o,255,200,40,28,11,5);
-if(g_iFrame % 2 == 0)
+if(g_iFrame % 2==0)
 FxRingSmall(o,255,200,40);
 }
 set_entvar(ent,var_nextthink,now +(landed ? 1.0 : 0.1));
@@ -14502,7 +14503,7 @@ set_entvar(ent,var_nextthink,now +(landed ? 1.0 : 0.1));
 DropSkyPoint(const Float:o[3],Float:sky[3])
 {
 new Float:top[3];
-top = o;
+top=o;
 top[2]+= 1500.0;
 engfunc(EngFunc_TraceLine,o,top,IGNORE_MONSTERS,0,0);
 get_tr2(0,TR_vecEndPos,sky);
@@ -14512,16 +14513,16 @@ DropRemove(ent)
 if(is_nullent(ent))
 return;
 new sig47=get_entvar(ent,var_euser1);
-if(sig47>0 && !is_nullent(sig47))engfunc(EngFunc_RemoveEntity,sig47);
+if(sig47>0&&!is_nullent(sig47))engfunc(EngFunc_RemoveEntity,sig47);
 set_entvar(ent,var_euser1,0);
-new b = get_entvar(ent,var_iuser2);
-if(b > 0 && !is_nullent(b))
+new b=get_entvar(ent,var_iuser2);
+if(b > 0&&!is_nullent(b))
 set_entvar(b,var_flags,FL_KILLME);
-b = get_entvar(ent,var_iuser4);
-if(b > 0 && !is_nullent(b))
+b=get_entvar(ent,var_iuser4);
+if(b > 0&&!is_nullent(b))
 set_entvar(b,var_flags,FL_KILLME);
-b = get_entvar(ent,var_iuser3);
-if(b > 0 && !is_nullent(b))
+b=get_entvar(ent,var_iuser3);
+if(b > 0&&!is_nullent(b))
 set_entvar(b,var_flags,FL_KILLME);
 SetTouch(ent,"");
 SetThink(ent,"");
@@ -14530,7 +14531,7 @@ set_entvar(ent,var_flags,FL_KILLME);
 }
 public fw_DropTouch(ent,other)
 {
-if(is_nullent(ent)|| !(1 <= other <= g_iMax)|| !is_user_alive(other))
+if(is_nullent(ent)|| !(1<=other<=g_iMax)|| !is_user_alive(other))
 return;
 if(get_entvar(ent,var_flags)& FL_KILLME)
 return;
@@ -14559,27 +14560,27 @@ AirdropLoot(other,name);
 }
 AirdropLoot(id,const name[])
 {
-new bonus47 = random_num(60,100),coins47 = random_num(2,4);
+new bonus47=random_num(60,100),coins47=random_num(2,4);
 AddAP(id,bonus47,false,true);
 g_iVC[id]+= coins47;
 client_print(id,print_chat,"[VEXMIRA] Supply bonusu: +%d AP / +%d VC ve ek odul!",bonus47,coins47);
-new roll = random_num(1,100);
+new roll=random_num(1,100);
 if(g_bSurvivor[id]|| g_bSniper[id])
-roll = random_num(1,50);
+roll=random_num(1,50);
 new key[20],amount;
-if(roll <= 30)
+if(roll<=30)
 {
-amount = random_num(10,25);
+amount=random_num(10,25);
 AddAP(id,amount,false,true);
 copy(key,charsmax(key),"LOOT_AP");
 }
-else if(roll <= 50)
+else if(roll<=50)
 {
 HealTo(id,60,MaxHumanHP(id)+ 60);
 rg_set_user_armor(id,min(250,rg_get_user_armor(id)+ 100),ARMOR_VESTHELM);
 copy(key,charsmax(key),"LOOT_HP");
 }
-else if(roll <= 64)
+else if(roll<=64)
 {
 g_iFireNades[id]= max(1,g_iFireNades[id]);
 g_iFrostNades[id]= max(1,g_iFrostNades[id]);
@@ -14589,27 +14590,27 @@ rg_give_item(id,"weapon_smokegrenade");
 rg_give_item(id,"weapon_flashbang");
 copy(key,charsmax(key),"LOOT_NADES");
 }
-else if(roll <= 76 && LasersAllowed()&& get_pcvar_num(g_pAirdropLaser))
+else if(roll<=76&&LasersAllowed()&& get_pcvar_num(g_pAirdropLaser))
 {
 g_iMines[id]= min(RoundMines(id)+ 2,g_iMines[id]+ 1);
 copy(key,charsmax(key),"LOOT_MINE");
 }
-else if(roll <= 84)
+else if(roll<=84)
 {
 g_bUnlClip[id]= 1;
 copy(key,charsmax(key),"LOOT_CLIP");
 }
-else if(roll <= 92)
+else if(roll<=92)
 {
 g_bDmgAmp[id]= 1;
 copy(key,charsmax(key),"LOOT_DMG");
 }
-else if(roll <= 98)
+else if(roll<=98)
 {
-new sw = random(NUM_SPECIAL);
+new sw=random(NUM_SPECIAL);
 VxGive(id,sw);
 copy(key,charsmax(key),"LOOT_SW");
-amount = sw;
+amount=sw;
 }
 else
 {
@@ -14617,7 +14618,7 @@ g_iVC[id]+= 3;
 copy(key,charsmax(key),"LOOT_VC");
 }
 new loot[64],txt[128];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -14630,7 +14631,7 @@ formatex(loot,charsmax(loot),"%L",p,swk);
 else
 formatex(loot,charsmax(loot),"%L",p,key,amount);
 client_print_color(p,id,"%s %L",ChatTag("AIRDROP_GOT"),p,"AIRDROP_GOT",name,loot);
-if(p == id)
+if(p==id)
 {
 formatex(txt,charsmax(txt),"%L^n%s",p,"AIRDROP_YOU",loot);
 HudText(p,SL_PERS,CLR_REWARD,3.0,txt);
@@ -14641,10 +14642,10 @@ SaveData(id);
 RemoveAllDrops()
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",DROP_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",DROP_CLASS))> 0)
 DropRemove(ent);
-ent = 0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname","vex_dropglow"))> 0)
+ent=0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","vex_dropglow"))> 0)
 set_entvar(ent,var_flags,FL_KILLME);
 }
 bool:DropCompass(id,out[],len)
@@ -14652,17 +14653,17 @@ bool:DropCompass(id,out[],len)
 out[0]= 0;
 if(!get_pcvar_num(g_pDropCompass))
 return false;
-new Float:o[3],Float:co[3],best,Float:bd = 999999.0;
+new Float:o[3],Float:co[3],best,Float:bd=999999.0;
 get_entvar(id,var_origin,o);
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",DROP_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",DROP_CLASS))> 0)
 {
 get_entvar(ent,var_origin,co);
-new Float:d = get_distance_f(o,co);
+new Float:d=get_distance_f(o,co);
 if(d < bd)
 {
-bd = d;
-best = ent;
+bd=d;
+best=ent;
 }
 }
 if(!best)
@@ -14670,12 +14671,12 @@ return false;
 get_entvar(best,var_origin,co);
 new Float:ang[3];
 get_entvar(id,var_v_angle,ang);
-new Float:want = floatatan2(co[1]- o[1],co[0]- o[0],degrees);
-new Float:diff = want - ang[1];
+new Float:want=floatatan2(co[1]- o[1],co[0]- o[0],degrees);
+new Float:diff=want - ang[1];
 while(diff > 180.0)
-diff -= 360.0;
+diff-=360.0;
 while(diff < -180.0)
-diff += 360.0;
+diff+=360.0;
 new arrow[8];
 if(floatabs(diff)<= 30.0)
 copy(arrow,charsmax(arrow),"^^^^");
@@ -14692,7 +14693,7 @@ new bool:g_bModelSwap51;
 public fw_SetModelPost(ent,const model[])
 {
 if(g_bModelSwap51)return FMRES_IGNORED;
-if(ent <= g_iMax || model[0]!= 'm' || is_nullent(ent))
+if(ent<=g_iMax||model[0]!= 'm'||is_nullent(ent))
 return FMRES_IGNORED;
 if(CommunityWorldModel(ent,model))return FMRES_IGNORED;
 if(equal(model,"models/vexmira_ze/skins/vexmira_w_ak47.mdl"))
@@ -14700,8 +14701,8 @@ if(equal(model,"models/vexmira_ze/skins/vexmira_w_ak47.mdl"))
 new cls[16];get_entvar(ent,var_classname,cls,charsmax(cls));
 if(equal(cls,"weaponbox"))
 {
-new weapon = get_member(ent,m_WeaponBox_rgpPlayerItems,1),sw = VxIndex(weapon);
-if(sw >= 0 && g_bVxReady[sw])
+new weapon=get_member(ent,m_WeaponBox_rgpPlayerItems,1),sw=VxIndex(weapon);
+if(sw>=0&&g_bVxReady[sw])
 {
 new Float:mins[3],Float:maxs[3];
 get_entvar(ent,var_mins,mins);get_entvar(ent,var_maxs,maxs);
@@ -14714,20 +14715,20 @@ return FMRES_IGNORED;
 }
 if(!equal(model,"models/w_",9))
 return FMRES_IGNORED;
-new slot = -1;
-if(equal(model[9],"hegrenade.mdl"))slot = 0;
-else if(equal(model[9],"smokegrenade.mdl"))slot = 1;
-else if(equal(model[9],"flashbang.mdl"))slot = 2;
+new slot=-1;
+if(equal(model[9],"hegrenade.mdl"))slot=0;
+else if(equal(model[9],"smokegrenade.mdl"))slot=1;
+else if(equal(model[9],"flashbang.mdl"))slot=2;
 if(slot < 0)
 return FMRES_IGNORED;
 new cls[12];
 get_entvar(ent,var_classname,cls,charsmax(cls));
 if(!equal(cls,"grenade"))
 return FMRES_IGNORED;
-new owner = get_entvar(ent,var_owner);
-if(1 <= owner <= g_iMax && g_bZombie[owner])
+new owner=get_entvar(ent,var_owner);
+if(1<=owner<=g_iMax&&g_bZombie[owner])
 {
-if(slot == 0 && g_szInfW531[0]&& !equal(model,g_szInfW531)&& VxModelOk(g_szInfW531))
+if(slot==0&&g_szInfW531[0]&& !equal(model,g_szInfW531)&& VxModelOk(g_szInfW531))
 {
 new Float:zmins[3],Float:zmaxs[3];
 get_entvar(ent,var_mins,zmins);get_entvar(ent,var_maxs,zmaxs);
@@ -14766,7 +14767,7 @@ g_bZombie[id]= 1;
 g_bAlpha[id]= false;
 g_iMinesHuman60[id]= g_iMines[id];
 g_iMines[id]= LasersAllowed()? 1 : 0;
-if(g_iEvent==EV_TITAN && g_bFirst[id])client_print(id,print_chat,"[VEXMIRA] TITAN: R ile yer darbesi. Bekleme: 18 saniye.");
+if(g_iEvent==EV_TITAN&&g_bFirst[id])client_print(id,print_chat,"[VEXMIRA] TITAN: R ile yer darbesi. Bekleme: 18 saniye.");
 g_fInfectTime[id]= get_gametime();
 g_fCool[id]= 0.0;
 g_fLeapCool[id]= 0.0;
@@ -14800,32 +14801,32 @@ ShowClassMenu(id);
 ApplyZombieStats(id)
 {
 new Float:hp,Float:grav,model[32];
-new cls = g_iClass[id];
+new cls=g_iClass[id];
 if(g_bNemesis[id])
 {
-hp = float(get_pcvar_num(g_pNemHP)+ get_pcvar_num(g_pNemHPPer)* CountPlaying());
-if(g_iMode == MODE_ARMAGEDDON)
+hp=float(get_pcvar_num(g_pNemHP)+ get_pcvar_num(g_pNemHPPer)* CountPlaying());
+if(g_iMode==MODE_ARMAGEDDON)
 hp *= 0.5;
-grav = get_pcvar_float(g_pNemGrav);
+grav=get_pcvar_float(g_pNemGrav);
 copy(model,charsmax(model),g_szNemModel);
 }
 else if(g_bAssassin[id])
 {
-hp = float(get_pcvar_num(g_pAsnHP)+ get_pcvar_num(g_pAsnHPPer)* CountPlaying());
-grav = get_pcvar_float(g_pAsnGrav);
+hp=float(get_pcvar_num(g_pAsnHP)+ get_pcvar_num(g_pAsnHPPer)* CountPlaying());
+grav=get_pcvar_float(g_pAsnGrav);
 copy(model,charsmax(model),g_szAsnModel);
 }
 else if(g_bMinion[id])
 {
-hp = float(max(1,get_pcvar_num(g_pMinionHP)));
-grav = 0.8;
+hp=float(max(1,get_pcvar_num(g_pMinionHP)));
+grav=0.8;
 copy(model,charsmax(model),g_szZModel[0]);
 }
 else
 {
-hp = float(get_pcvar_num(g_bFirst[id]? g_pFirstHP : g_pZombieHP)+ max(0,get_pcvar_num(g_pZHPPer))* CountPlaying())* CLASS_HP[cls];
+hp=float(get_pcvar_num(g_bFirst[id]? g_pFirstHP : g_pZombieHP)+ max(0,get_pcvar_num(g_pZHPPer))* CountPlaying())* CLASS_HP[cls];
 hp *= 1.0 + 0.06 * float(g_iPerk[id][PK_HIDE]);
-grav = CLASS_GRAV[cls];
+grav=CLASS_GRAV[cls];
 copy(model,charsmax(model),g_szZModel[cls]);
 switch(g_iEvent)
 {
@@ -14833,23 +14834,23 @@ case EV_BLOODMOON: hp *= 1.5;
 case EV_HORDE: hp *= 0.6;
 case EV_TITAN: if(g_bFirst[id])hp *= 4.0;
 }
-if(g_iMode == MODE_SURVIVOR || g_iMode == MODE_SNIPER)
+if(g_iMode==MODE_SURVIVOR||g_iMode==MODE_SNIPER)
 hp *= 0.6;
-else if(g_iMode == MODE_SWARM || g_iMode == MODE_PLAGUE)
+else if(g_iMode==MODE_SWARM||g_iMode==MODE_PLAGUE)
 hp *= 0.75;
 }
-if(g_iEvent == EV_LOWGRAV)
+if(g_iEvent==EV_LOWGRAV)
 grav *= 0.55;
 g_iMaxHP[id]= floatround(hp);
 set_entvar(id,var_health,hp);
 set_entvar(id,var_max_health,hp);
 SetGravity(id,grav);
 rg_set_user_armor(id,0,ARMOR_NONE);
-if(g_iEvent == EV_TITAN && g_bFirst[id]&& g_bTitan47 && !g_bBoss[id])
+if(g_iEvent==EV_TITAN&&g_bFirst[id]&& g_bTitan47&&!g_bBoss[id])
 VxSetUserModel(id,"vex_titan48",true);
 else if(model[0])
 VxSetUserModel(id,model,true);
-rg_set_user_footsteps(id,g_bAssassin[id]||(cls == 5 && !g_bNemesis[id])? true : false);
+rg_set_user_footsteps(id,g_bAssassin[id]||(cls==5&&!g_bNemesis[id])? true : false);
 ApplyRender(id);
 rg_reset_maxspeed(id);
 }
@@ -14858,11 +14859,11 @@ ClearZombieRoles(id)
 if(g_bBoss[id])
 {
 g_bBoss[id]= 0;
-if(g_iBoss == id)
+if(g_iBoss==id)
 {
 BossCleanup();
-g_iBoss = 0;
-g_fBossIntro = 0.0;
+g_iBoss=0;
+g_fBossIntro=0.0;
 remove_task(TASK_BOSSCAST);
 remove_task(TASK_BOSSHIT);
 remove_task(TASK_BOSSFX);
@@ -14900,7 +14901,7 @@ else
 GiveModeWeapons(id,0);
 ZcCall(ZC_MINIGUN,ZCOP_give,id);
 g_iMaxHP[id]= get_pcvar_num(g_pSurvHP);
-if(g_iMode == MODE_ARMAGEDDON)
+if(g_iMode==MODE_ARMAGEDDON)
 g_iMaxHP[id]/= 2;
 if(g_szSurvModel[0])VxSetUserModel(id,g_szSurvModel,true);
 }
@@ -14946,7 +14947,7 @@ rg_reset_maxspeed(id);
 RemoveZombieMines60(id);
 if(g_bLmGiven[id])g_iMines[id]= LasersAllowed()? max(0,g_iMinesHuman60[id]): 0;
 GiveRoundMines(id);
-if(g_iPrim[id]>= 0 && g_iSec[id]>= 0)
+if(g_iPrim[id]>= 0&&g_iSec[id]>= 0)
 GiveLoadout(id);
 else
 ShowPrimaryMenu(id);
@@ -14962,9 +14963,9 @@ ChatAllS("ANTIDOTE_ALL",name);
 }
 ApplyHumanModel(id)
 {
-new v = g_iCommunitySel[id][0];
-if(v > 0 && v <= 5 &&(g_iCommunityOwned[id][0]&(1 <<(v-1)))&& CommunityCtReady(v-1)){VxSetUserModel(id,COMMUNITY_CT[v-1],true);return;}
-new flags = get_user_flags(id);
+new v=g_iCommunitySel[id][0];
+if(v > 0&&v<=5 &&(g_iCommunityOwned[id][0]&(1 <<(v-1)))&& CommunityCtReady(v-1)){VxSetUserModel(id,COMMUNITY_CT[v-1],true);return;}
+new flags=get_user_flags(id);
 if((flags & ADMIN_BAN)&& g_szAdminModel[0])
 VxSetUserModel(id,g_szAdminModel,true);
 else if(((flags & ADMIN_LEVEL_H)|| IsVip(id))&& g_szVipModel[0])
@@ -14983,11 +14984,11 @@ FixGravity(id)
 {
 if(g_fGrav[id]<= 0.0)
 return;
-new Float:cur = Float:get_entvar(id,var_gravity);
+new Float:cur=Float:get_entvar(id,var_gravity);
 if(floatabs(cur - g_fGrav[id])<= 0.001)
 return;
 if(!(get_entvar(id,var_flags)& FL_ONGROUND)&&(get_entvar(id,var_button)& IN_USE)
-&& get_entvar(id,var_movetype)!= MOVETYPE_FLY && get_entvar(id,var_waterlevel)< 2)
+&& get_entvar(id,var_movetype)!= MOVETYPE_FLY&&get_entvar(id,var_waterlevel)< 2)
 return;
 set_entvar(id,var_gravity,g_fGrav[id]);
 if(get_pcvar_num(g_pDbgDirs)&& g_iDirLogN[DIR_GRAV]< DIR_LOG_MAX)
@@ -15002,11 +15003,11 @@ public srv_DbgHookTest()
 if(!get_pcvar_num(g_pDbgDirs))
 return PLUGIN_HANDLED;
 new n;
-for(new id = 1;id <= g_iMax && n < 3;id++)
+for(new id=1;id<=g_iMax&&n < 3;id++)
 {
 if(!is_user_alive(id)|| !is_user_bot(id)|| !g_bZombie[id]|| g_bMinion[id]|| g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id])
 continue;
-new t = ZcNearestHuman(id,900.0);
+new t=ZcNearestHuman(id,900.0);
 if(!t)
 continue;
 g_iClass[id]= ZC_BUTCHER;
@@ -15022,7 +15023,7 @@ public srv_DbgGravTest()
 if(!get_pcvar_num(g_pDbgDirs))
 return PLUGIN_HANDLED;
 new n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_fGrav[id]<= 0.0)
 continue;
@@ -15036,12 +15037,12 @@ ApplyHumanGravity(id)
 {
 if(g_bZombie[id])
 return;
-new Float:gr = 1.0;
+new Float:gr=1.0;
 if(g_iJob[id]== JOB_PARA)
-gr = 0.75;
+gr=0.75;
 if(g_bBoots[id])
-gr = floatmin(gr,float(clamp(ITEM_VAL[IT_BOOTS],10,100))/ 100.0);
-if(g_iEvent == EV_LOWGRAV)
+gr=floatmin(gr,float(clamp(ITEM_VAL[IT_BOOTS],10,100))/ 100.0);
+if(g_iEvent==EV_LOWGRAV)
 gr *= 0.5;
 SetGravity(id,gr);
 }
@@ -15094,7 +15095,7 @@ else if(g_bMinion[id])
 set_user_rendering(id,kRenderFxGlowShell,150,0,200,kRenderNormal,10);
 else if(g_bZombie[id])
 {
-new c = g_iClass[id];
+new c=g_iClass[id];
 set_user_rendering(id,kRenderFxGlowShell,CLASS_RGB[c][0],CLASS_RGB[c][1],CLASS_RGB[c][2],kRenderNormal,g_bAlpha[id]? 22 : 6);
 }
 else if(!g_bZombie[id]&& g_iJob[id]== JOB_GHOST)
@@ -15103,7 +15104,7 @@ else if(!g_bZombie[id]&& g_iEShield[id]> 0)
 set_user_rendering(id,kRenderFxGlowShell,0,255,255,kRenderNormal,18);
 else if(IsVip(id)&& g_iVipAura[id])
 {
-new a = g_iVipAura[id];
+new a=g_iVipAura[id];
 set_user_rendering(id,kRenderFxGlowShell,VIP_AURA_RGB[a][0],VIP_AURA_RGB[a][1],VIP_AURA_RGB[a][2],kRenderNormal,8);
 }
 else
@@ -15111,13 +15112,13 @@ set_user_rendering(id);
 }
 Infect(victim,attacker)
 {
-if(victim<1 || victim>g_iMax || !is_user_alive(victim)|| g_bZombie[victim])return;
+if(victim<1||victim>g_iMax||!is_user_alive(victim)|| g_bZombie[victim])return;
 vxe_weapon_stop(victim);
 new vname[32],aname[32];
 get_user_name(victim,vname,charsmax(vname));
 get_user_name(attacker,aname,charsmax(aname));
 MakeZombie(victim);
-if(g_bZombie[victim]&& attacker!=victim && attacker>=1 && attacker<=g_iMax && is_user_connected(attacker)&& g_bZombie[attacker]&& !g_bBoss[attacker]&& !g_bNemesis[attacker]&& !g_bAssassin[attacker])vxe_zup_add(attacker,1,g_iClass[attacker]);
+if(g_bZombie[victim]&& attacker!=victim&&attacker>=1&&attacker<=g_iMax&&is_user_connected(attacker)&& g_bZombie[attacker]&& !g_bBoss[attacker]&& !g_bNemesis[attacker]&& !g_bAssassin[attacker])vxe_zup_add(attacker,1,g_iClass[attacker]);
 if(attacker!=victim)AchInfect60(attacker);
 new Float:vo[3];
 get_entvar(victim,var_origin,vo);
@@ -15133,7 +15134,7 @@ g_iRoundInf[attacker]++;
 g_iMapInf[attacker]++;
 QuestEvent(attacker,4,1);
 CheckEvolve(attacker);
-if(g_iClass[attacker]== 4 && !g_bMinion[attacker])
+if(g_iClass[attacker]== 4&&!g_bMinion[attacker])
 HealTo(attacker,400,g_iMaxHP[attacker]);
 Reward(attacker,get_pcvar_num(g_pInfectXP),get_pcvar_num(g_pInfectAP));
 PayBounty(attacker,victim);
@@ -15142,10 +15143,10 @@ CsoNotify(attacker,CN_INFD);
 Chat(attacker,"YOU_INFECTOR",vname);
 if(!g_bFirstInfect)
 {
-g_bFirstInfect = true;
+g_bFirstInfect=true;
 LiveAll(victim,"LIVE_FIRSTINF",3,vname);
 }
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
 if(is_user_connected(p))
 client_print_color(p,victim,"%s %L",ChatTag("INFECTED_BY"),p,"INFECTED_BY",vname,aname);
@@ -15157,18 +15158,18 @@ public fw_CmdStart(id,uc_handle,seed)
 if(is_user_alive(id)&& !g_bZombie[id])VxCommand(id,uc_handle);
 if(!is_user_alive(id))
 return FMRES_IGNORED;
-new imp = get_uc(uc_handle,UC_Impulse);
+new imp=get_uc(uc_handle,UC_Impulse);
 if(!g_bZombie[id])
 {
-if(imp == 100 && CommunityInspect(id)){set_uc(uc_handle,UC_Impulse,0);return FMRES_HANDLED;}
-if(imp == 100 && g_fNoLight[id]> get_gametime())
+if(imp==100&&CommunityInspect(id)){set_uc(uc_handle,UC_Impulse,0);return FMRES_HANDLED;}
+if(imp==100&&g_fNoLight[id]> get_gametime())
 {
 set_uc(uc_handle,UC_Impulse,0);
 LightsBlockedMsg(id);
 }
 return FMRES_IGNORED;
 }
-if(imp == 100 &&(g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]))
+if(imp==100 &&(g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]))
 {
 set_uc(uc_handle,UC_Impulse,0);
 SkillTrigger(id,2);
@@ -15229,8 +15230,8 @@ SkillTrigger(id,slot)
 {
 if(!is_user_alive(id)|| !g_bZombie[id])
 return;
-new Float:now = get_gametime();
-slot = clamp(slot,1,2);
+new Float:now=get_gametime();
+slot=clamp(slot,1,2);
 if(now - g_fSkillTrig[id][slot]< 0.2)
 return;
 g_fSkillTrig[id][slot]= now;
@@ -15249,7 +15250,7 @@ if(g_fFrozen[id]> now)
 SkillDeny(id,"SKILL_STUNNED",floatround(g_fFrozen[id]- now,floatround_ceil));
 return;
 }
-if(slot == 1)
+if(slot==1)
 {
 if(g_bBoss[id])
 BossUseR(id);
@@ -15266,7 +15267,7 @@ SpecialFSkill(id);
 else
 UseAbility(id);
 }
-SkillDeny(id,const key[],val = 0)
+SkillDeny(id,const key[],val=0)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 return;
@@ -15284,7 +15285,7 @@ SkillDeny(id,"LIGHTS_BLOCKED",floatround(g_fNoLight[id]- get_gametime(),floatrou
 }
 SpecialLeap(id)
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(g_bBoss[id]&& g_fBossIntro > now)
 {
 SkillDeny(id,"SKILL_BOSS_INTRO",floatround(g_fBossIntro - now,floatround_ceil));
@@ -15300,7 +15301,7 @@ if(!(get_entvar(id,var_flags)& FL_ONGROUND))
 SkillDeny(id,"SKILL_NEED_GROUND");
 return;
 }
-new Float:cd = floatmax(1.0,get_pcvar_float(g_pSpecialLeapCd));
+new Float:cd=floatmax(1.0,get_pcvar_float(g_pSpecialLeapCd));
 LeapForward(id,g_bAssassin[id]? 850.0 :(g_bBoss[id]? 720.0 : 650.0),320.0);
 g_fLeapCool[id]= now +(g_bAssassin[id]? cd * 0.66 : cd);
 new Float:o[3];
@@ -15313,7 +15314,7 @@ EmitKey(id,"ABILITY_LEAP");
 }
 SpecialFSkill(id)
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fFCool[id])
 {
 SkillDeny(id,"ABILITY_COOL",floatround(g_fFCool[id]- now,floatround_ceil));
@@ -15323,7 +15324,7 @@ new Float:o[3];
 get_entvar(id,var_origin,o);
 if(g_bNemesis[id])
 {
-new Float:dur = floatmax(1.0,get_pcvar_float(g_pNemRageTime));
+new Float:dur=floatmax(1.0,get_pcvar_float(g_pNemRageTime));
 g_fRage[id]= now + dur;
 g_fFCool[id]= now + floatmax(dur + 1.0,get_pcvar_float(g_pNemRageCd));
 FxRingEx(o,255,30,0,320,30,5);
@@ -15338,7 +15339,7 @@ ChatAllS("NEM_RAGE_ALL",name);
 }
 else
 {
-new Float:dur = floatmax(1.0,get_pcvar_float(g_pAsnVeilTime));
+new Float:dur=floatmax(1.0,get_pcvar_float(g_pAsnVeilTime));
 g_fRage[id]= now + dur;
 g_fCloak[id]= now + dur;
 g_fFCool[id]= now + floatmax(dur + 1.0,get_pcvar_float(g_pAsnVeilCd));
@@ -15360,18 +15361,18 @@ vel[0]= fwd[0]* power;
 vel[1]= fwd[1]* power;
 vel[2]= up;
 set_entvar(id,var_velocity,vel);
-if(g_iDirLogN[DIR_LEAP]< DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+if(g_iDirLogN[DIR_LEAP]< DIR_LOG_MAX&&get_pcvar_num(g_pDbgDirs))
 {
 new Float:hv[3],Float:hf[3];
-hv = vel;hv[2]= 0.0;
-hf = fwd;hf[2]= 0.0;
+hv=vel;hv[2]= 0.0;
+hf=fwd;hf[2]= 0.0;
 DirCheck(DIR_LEAP,"leap",hv,hf);
 }
 }
 UseAbility538(id)
 {
-if(g_iEvent==EV_TITAN && g_bFirst[id]&& !g_bBoss[id]){TitanStomp47(id);return;}
-new Float:now = get_gametime();
+if(g_iEvent==EV_TITAN&&g_bFirst[id]&& !g_bBoss[id]){TitanStomp47(id);return;}
+new Float:now=get_gametime();
 if(now < g_fCool[id])
 {
 SkillDeny(id,"ABILITY_COOL",floatround(g_fCool[id]- now,floatround_ceil));
@@ -15382,7 +15383,7 @@ if(g_fBurrow[id]> now)
 SkillDeny(id,"SKILL_BURROWED");
 return;
 }
-new cls = clamp(g_iClass[id],0,NUM_CLASSES - 1);
+new cls=clamp(g_iClass[id],0,NUM_CLASSES - 1);
 new Float:o[3],Float:po[3];
 get_entvar(id,var_origin,o);
 switch(cls)
@@ -15416,7 +15417,7 @@ case 3:
 {
 FxRing(o,220,220,255,450);
 EmitZombieSound(id,"ABILITY","ABILITY_SCREAM");
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_alive(t)|| g_bZombie[t])
 continue;
@@ -15446,7 +15447,7 @@ case 6:
 FxRing(o,120,255,0,280);
 FxSprite(o,g_sprSmoke,25,200);
 EmitZombieSound(id,"ABILITY","ABILITY_TOXIC");
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_alive(t)|| g_bZombie[t])
 continue;
@@ -15462,7 +15463,7 @@ case 7:
 FxRing(o,0,200,255,320);
 FxLight(o,0,200,255,30,12,20);
 EmitZombieSound(id,"ABILITY","ABILITY_FROST");
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_alive(t)|| g_bZombie[t])
 continue;
@@ -15480,17 +15481,17 @@ new Float:ang[3],Float:fwd[3],Float:dir[3],Float:eye[3];
 get_entvar(id,var_v_angle,ang);
 engfunc(EngFunc_MakeVectors,ang);
 global_get(glb_v_forward,fwd);
-eye = o;
+eye=o;
 eye[2]+= 20.0;
 EmitZombieSound(id,"ABILITY","ZOMBIE_ACID");
 new hits;
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_alive(t)|| g_bZombie[t])
 continue;
 get_entvar(t,var_origin,po);
-new Float:dist = get_distance_f(o,po);
-if(dist > 420.0 || dist < 1.0)
+new Float:dist=get_distance_f(o,po);
+if(dist > 420.0||dist < 1.0)
 continue;
 dir[0]=(po[0]- o[0])/ dist;
 dir[1]=(po[1]- o[1])/ dist;
@@ -15517,13 +15518,13 @@ EmitZombieSound(id,"ABILITY","ZOMBIE_SHOCK");
 FxLava(o);
 FxRing(o,255,80,0,320);
 FxRing(o,255,200,0,200);
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_alive(t)|| g_bZombie[t])
 continue;
 get_entvar(t,var_origin,po);
-new Float:dist = get_distance_f(o,po);
-if(dist > 300.0 || dist < 1.0)
+new Float:dist=get_distance_f(o,po);
+if(dist > 300.0||dist < 1.0)
 continue;
 new Float:vel[3];
 vel[0]=(po[0]- o[0])/ dist * 600.0;
@@ -15540,9 +15541,9 @@ EmitZombieSound(id,"ABILITY","ZOMBIE_HEAL");
 FxImplosion(o,200,40,8);
 FxRing(o,255,0,180,450);
 HealTo(id,g_iMaxHP[id]/ 10,g_iMaxHP[id]);
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
-if(t == id || !is_user_alive(t)|| !g_bZombie[t]|| g_bBoss[t])
+if(t==id||!is_user_alive(t)|| !g_bZombie[t]|| g_bBoss[t])
 continue;
 get_entvar(t,var_origin,po);
 if(get_distance_f(o,po)> 450.0)
@@ -15560,7 +15561,7 @@ ang[0]= 0.0;
 engfunc(EngFunc_MakeVectors,ang);
 global_get(glb_v_forward,fwd);
 new bool:found;
-for(new step = 8;step >= 2;step--)
+for(new step=8;step>=2;step--)
 {
 dest[0]= o[0]+ fwd[0]* 40.0 * float(step);
 dest[1]= o[1]+ fwd[1]* 40.0 * float(step);
@@ -15572,8 +15573,8 @@ if(frac < 1.0)
 continue;
 if(IsHullFree(id,dest))
 {
-best = dest;
-found = true;
+best=dest;
+found=true;
 break;
 }
 }
@@ -15615,7 +15616,7 @@ BomberExplode(victim,const Float:o[3])
 new Float:po[3];
 FxExplosion(o);
 FxRing(o,120,255,0,260);
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_alive(t)|| g_bZombie[t])
 continue;
@@ -15629,7 +15630,7 @@ ExecuteHamB(Ham_TakeDamage,t,0,victim,35.0,DMG_ACID);
 }
 public task_ZombieVision()
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| !g_bZombie[id]|| is_user_bot(id)||(g_iSet[id]& SET_NO_ZVISION))
 continue;
@@ -15655,8 +15656,8 @@ new title[320],item[160],k1[16],k2[20],n1[32],n2[72];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_CLASS_SUB");
 VexHead(id,title,charsmax(title),"MENU_CLASS",hsub);
-new menu = VexMenuCreate(title,"menu_class_handler");
-for(new i = 0;i < NUM_CLASSES;i++)
+new menu=VexMenuCreate(title,"menu_class_handler");
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(k1,charsmax(k1),"CLASS_%d",i);
 formatex(k2,charsmax(k2),"CLASS_DESC_%d",i);
@@ -15679,9 +15680,9 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new cls = MenuInfo(menu,item);
+new cls=MenuInfo(menu,item);
 menu_destroy(menu);
-if(cls < 0 || cls >= NUM_CLASSES)
+if(cls < 0||cls>=NUM_CLASSES)
 return PLUGIN_HANDLED;
 if(g_iLevel[id]< CLASS_LVL[cls])
 {
@@ -15693,7 +15694,7 @@ g_iClassPicked[id]= 1;
 ChatKeyName(id,"CLASS_CHOSEN","CLASS_",cls);
 PlayKey(id,"UI_CLASS_SELECT");
 if(is_user_alive(id)&& g_bZombie[id]&& !g_bBoss[id]&& !g_bMinion[id]&& !g_bNemesis[id]&& !g_bAssassin[id]
-&& get_gametime()- g_fInfectTime[id]< 10.0 && !g_bClassSwitched[id])
+&& get_gametime()- g_fInfectTime[id]< 10.0&&!g_bClassSwitched[id])
 {
 g_iClass[id]= cls;
 g_iClassNext[id]= -1;
@@ -15715,8 +15716,8 @@ return PLUGIN_HANDLED;
 }
 CheckEvolve(id)
 {
-new need = get_pcvar_num(g_pEvolve);
-if(need <= 0 || g_bAlpha[id]|| !g_bZombie[id]|| g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]|| g_bMinion[id])
+new need=get_pcvar_num(g_pEvolve);
+if(need<=0||g_bAlpha[id]|| !g_bZombie[id]|| g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id]|| g_bMinion[id])
 return;
 if(g_iRoundInf[id]< need)
 return;
@@ -15741,16 +15742,16 @@ HudTo(id,SL_PERS,CLR_ZOMBIE,3.0,"EVOLVE_HUD");
 new g_iZupCtx538,Float:g_fZupMul538[2],g_iZcKind538[ZCV_TOTAL];
 Float:ZcF(c)
 {
-new Float:v = get_pcvar_float(g_pZc[c]);
-if(g_iZupCtx538 && g_iZcKind538[c])v *= g_fZupMul538[g_iZcKind538[c]- 1];
+new Float:v=get_pcvar_float(g_pZc[c]);
+if(g_iZupCtx538&&g_iZcKind538[c])v *= g_fZupMul538[g_iZcKind538[c]- 1];
 return v;
 }
 ZupMarks538()
 {
 static const RAD[]={ZCV_HOOK_RANGE,ZCV_HUNT_RAD,ZCV_WEB_RANGE,ZCV_MAG_RAD,ZCV_VOLT_RAD,ZCV_BUR_RAD,ZCV_SIR_RAD,ZCV_SPO_RAD,ZCV_NM_RAD};
 static const DMG[]={ZCV_HOOK_DMG,ZCV_HUNT_DMG,ZCV_CHG_DMG,ZCV_WEB_DMG,ZCV_MAG_DMG,ZCV_VOLT_DMG,ZCV_BUR_DMG};
-for(new i = 0;i < sizeof RAD;i++)g_iZcKind538[RAD[i]]= 1;
-for(new i = 0;i < sizeof DMG;i++)g_iZcKind538[DMG[i]]= 2;
+for(new i=0;i < sizeof RAD;i++)g_iZcKind538[RAD[i]]= 1;
+for(new i=0;i < sizeof DMG;i++)g_iZcKind538[DMG[i]]= 2;
 }
 UseAbility(id)
 {
@@ -15759,12 +15760,12 @@ new lvl =(g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id])? 0 : clamp(vxe_zup_lev
 new cd=lvl?clamp(vxe_zup_stat(id,cls,0),0,lvl):0;
 new rad=lvl?clamp(vxe_zup_stat(id,cls,1),0,lvl):0;
 new dmg=lvl?clamp(vxe_zup_stat(id,cls,2),0,lvl):0;
-new Float:before = g_fCool[id];
+new Float:before=g_fCool[id];
 g_fZupMul538[0]= 1.0 + 0.06 * float(rad);g_fZupMul538[1]= 1.0 + 0.08 * float(dmg);
-g_iZupCtx538 = lvl ? id : 0;
+g_iZupCtx538=lvl ? id : 0;
 UseAbility538(id);
-g_iZupCtx538 = 0;
-if(g_fCool[id]> before && is_user_alive(id))
+g_iZupCtx538=0;
+if(g_fCool[id]> before&&is_user_alive(id))
 {
 if(lvl)g_fCool[id]= get_gametime()+(g_fCool[id]- get_gametime())* floatmax(0.4,1.0 - 0.06 * float(cd));
 vxe_zup_used(id,lvl);
@@ -15776,7 +15777,7 @@ return get_pcvar_num(g_pZc[c]);
 }
 bool:IsClassZombie(id,cls)
 {
-if(!(1 <= id <= g_iMax)|| !g_bZombie[id]|| g_bMinion[id]|| g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id])
+if(!(1<=id<=g_iMax)|| !g_bZombie[id]|| g_bMinion[id]|| g_bBoss[id]|| g_bNemesis[id]|| g_bAssassin[id])
 return false;
 return(g_iClass[id]== cls)? true : false;
 }
@@ -15812,7 +15813,7 @@ ZcEye(a,ea);
 ZcEye(b,eb);
 engfunc(EngFunc_TraceLine,ea,eb,IGNORE_MONSTERS,a,0);
 get_tr2(0,TR_flFraction,frac);
-return(frac >= 1.0)? true : false;
+return(frac>=1.0)? true : false;
 }
 stock ZcNameOf(id,out[],len)
 {
@@ -15823,14 +15824,14 @@ copy(out,len,"?");
 }
 LightsOut(p,Float:dur)
 {
-new Float:until = get_gametime()+ dur;
+new Float:until=get_gametime()+ dur;
 if(g_fNoLight[p]< until)
 g_fNoLight[p]= until;
-new eff = get_entvar(p,var_effects);
+new eff=get_entvar(p,var_effects);
 if(eff & EF_DIMLIGHT)
 {
 set_entvar(p,var_effects,eff & ~EF_DIMLIGHT);
-if(g_msgFlashlight && !is_user_bot(p))
+if(g_msgFlashlight&&!is_user_bot(p))
 {
 message_begin(MSG_ONE,g_msgFlashlight,_,p);
 write_byte(0);
@@ -15841,7 +15842,7 @@ message_end();
 if(get_member(p,m_bNightVisionOn))
 {
 set_member(p,m_bNightVisionOn,false);
-if(g_msgNVGToggle && !is_user_bot(p))
+if(g_msgNVGToggle&&!is_user_bot(p))
 {
 message_begin(MSG_ONE,g_msgNVGToggle,_,p);
 write_byte(0);
@@ -15870,7 +15871,7 @@ return false;
 }
 bool:ZProjValid(ent)
 {
-if(ent <= g_iMax || is_nullent(ent))
+if(ent<=g_iMax||is_nullent(ent))
 return false;
 new cls[16];
 get_entvar(ent,var_classname,cls,charsmax(cls));
@@ -15878,13 +15879,13 @@ return equal(cls,ZPROJ_CLASS)? true : false;
 }
 ZProjSpawn(owner,type,Float:speed,Float:range)
 {
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
 new Float:eye[3],Float:dir[3],Float:start[3],Float:vel[3],Float:ang[3],Float:frac;
 ZcEye(owner,eye);
 ZcAimDir(owner,dir);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 start[i]= eye[i]+ dir[i]* 18.0;
 vel[i]= dir[i]* floatclamp(speed,200.0,4000.0);
@@ -15895,7 +15896,7 @@ get_tr2(0,TR_flFraction,frac);
 if(frac < 1.0)
 get_tr2(0,TR_vecEndPos,start);
 set_entvar(ent,var_classname,ZPROJ_CLASS);
-if(type == ZP_HOOK && g_szHookModel[0])
+if(type==ZP_HOOK&&g_szHookModel[0])
 {
 VxSM(ent,g_szHookModel);
 set_entvar(ent,var_renderfx,kRenderFxGlowShell);
@@ -15905,7 +15906,7 @@ set_entvar(ent,var_renderamt,6.0);
 else
 {
 new spr[64];
-if(type == ZP_WEB && g_szSprWeb[0])
+if(type==ZP_WEB&&g_szSprWeb[0])
 copy(spr,charsmax(spr),g_szSprWeb);
 else
 copy(spr,charsmax(spr),g_szSprOrb);
@@ -15914,11 +15915,11 @@ if(spr[0])
 VxSM(ent,spr);
 set_entvar(ent,var_rendermode,kRenderTransAdd);
 set_entvar(ent,var_renderamt,230.0);
-if(type == ZP_WEB)
+if(type==ZP_WEB)
 set_entvar(ent,var_rendercolor,Float:{220.0,190.0,255.0});
 else
 set_entvar(ent,var_rendercolor,Float:{200.0,40.0,40.0});
-set_entvar(ent,var_scale,(type == ZP_WEB)? 0.35 : 0.25);
+set_entvar(ent,var_scale,(type==ZP_WEB)? 0.35 : 0.25);
 }
 }
 set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
@@ -15936,7 +15937,7 @@ set_entvar(ent,var_fuser1,0.0);
 set_entvar(ent,var_fuser2,floatclamp(range,100.0,4000.0));
 set_entvar(ent,var_fuser3,0.0);
 set_entvar(ent,var_vuser1,start);
-if(type == ZP_HOOK)
+if(type==ZP_HOOK)
 {
 new Float:hand[3];
 ZcHand(owner,hand);
@@ -15947,9 +15948,9 @@ SetThink(ent,"fw_ZProjThink");
 set_entvar(ent,var_nextthink,get_gametime()+ 0.02);
 return ent;
 }
-ChainBeamCreate(const Float:a[3],const Float:b[3],owner = 0)
+ChainBeamCreate(const Float:a[3],const Float:b[3],owner=0)
 {
-new beam = CreateSafe51("beam");
+new beam=CreateSafe51("beam");
 if(is_nullent(beam))
 return 0;
 set_entvar(beam,var_flags,get_entvar(beam,var_flags)| FL_CUSTOMENTITY);
@@ -15972,8 +15973,8 @@ set_entvar(beam,var_frame,0.0);
 set_entvar(beam,var_animtime,0.0);
 set_entvar(beam,var_skin,0);
 set_entvar(beam,var_sequence,0);
-set_entvar(beam,var_rendermode,(1 <= owner <= g_iMax)? BEAM_ENTPOINT : BEAM_POINTS);
-if(1 <= owner <= g_iMax)
+set_entvar(beam,var_rendermode,(1<=owner<=g_iMax)? BEAM_ENTPOINT : BEAM_POINTS);
+if(1<=owner<=g_iMax)
 set_entvar(beam,var_sequence,BeamEntHand(owner));
 set_entvar(beam,var_iuser1,BEAM_MARK_HOOK);
 BeamPoints(beam,a,b);
@@ -15981,22 +15982,22 @@ return beam;
 }
 bool:ZProjOwnerOk(owner,type)
 {
-if(!g_bRoundActive || !is_user_alive(owner))
+if(!g_bRoundActive||!is_user_alive(owner))
 return false;
-return IsClassZombie(owner,(type == ZP_HOOK)? ZC_BUTCHER : ZC_ARACHNE);
+return IsClassZombie(owner,(type==ZP_HOOK)? ZC_BUTCHER : ZC_ARACHNE);
 }
 public fw_ZProjThink(ent)
 {
 if(is_nullent(ent))
 return;
-new owner = get_entvar(ent,var_iuser1),type = get_entvar(ent,var_iuser2);
+new owner=get_entvar(ent,var_iuser1),type=get_entvar(ent,var_iuser2);
 if(!ZProjOwnerOk(owner,type))
 {
 ZProjRemove(ent);
 return;
 }
-new Float:now = get_gametime();
-new victim = get_entvar(ent,var_iuser4);
+new Float:now=get_gametime();
+new victim=get_entvar(ent,var_iuser4);
 if(victim)
 {
 HookPullThink(ent,owner,victim,now);
@@ -16009,17 +16010,17 @@ engfunc(EngFunc_TraceLine,last,cur,IGNORE_MONSTERS,ent,0);
 get_tr2(0,TR_flFraction,frac);
 get_tr2(0,TR_vecEndPos,wall);
 if(frac < 1.0)
-seg = wall;
+seg=wall;
 else
-seg = cur;
-new best,Float:bestD = 999999.0,Float:mins[3],Float:maxs[3],Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+seg=cur;
+new best,Float:bestD=999999.0,Float:mins[3],Float:maxs[3],Float:po[3];
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_absmin,mins);
 get_entvar(p,var_absmax,maxs);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 mins[i]-= 10.0;
 maxs[i]+= 10.0;
@@ -16027,11 +16028,11 @@ maxs[i]+= 10.0;
 if(!SegmentHitsBox(last,seg,mins,maxs))
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(last,po);
+new Float:d=get_distance_f(last,po);
 if(d < bestD)
 {
-bestD = d;
-best = p;
+bestD=d;
+best=p;
 }
 }
 if(best)
@@ -16044,33 +16045,33 @@ if(frac < 1.0)
 ZProjMiss(ent,owner,type,wall);
 return;
 }
-new Float:trav = Float:get_entvar(ent,var_fuser1)+ get_distance_f(last,cur);
+new Float:trav=Float:get_entvar(ent,var_fuser1)+ get_distance_f(last,cur);
 set_entvar(ent,var_fuser1,trav);
 set_entvar(ent,var_vuser1,cur);
-if(trav >= Float:get_entvar(ent,var_fuser2))
+if(trav>=Float:get_entvar(ent,var_fuser2))
 {
 ZProjMiss(ent,owner,type,cur);
 return;
 }
-if(type == ZP_HOOK)
+if(type==ZP_HOOK)
 {
-new beam = get_entvar(ent,var_iuser3),Float:hand[3];
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser3),Float:hand[3];
+if(beam > 0&&!is_nullent(beam))
 {
 ZcHand(owner,hand);
 BeamPoints(beam,hand,cur);
-if(g_iDirLogN[DIR_HOOK]< DIR_LOG_MAX && trav > 60.0 && get_pcvar_num(g_pDbgDirs))
+if(g_iDirLogN[DIR_HOOK]< DIR_LOG_MAX&&trav > 60.0&&get_pcvar_num(g_pDbgDirs))
 {
 new Float:oo[3],Float:aim[3],Float:seg2[3];
 get_entvar(owner,var_origin,oo);
 get_entvar(ent,var_velocity,aim);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 seg2[i]= cur[i]- oo[i];
 DirCheck(DIR_HOOK,"hook_beam",seg2,aim);
 }
 }
 }
-else if(Float:get_entvar(ent,var_fuser4)== 0.0 && trav > 20.0)
+else if(Float:get_entvar(ent,var_fuser4)== 0.0&&trav > 20.0)
 {
 set_entvar(ent,var_fuser4,1.0);
 FxTrail(ent,190,120,255);
@@ -16083,7 +16084,7 @@ new Float:po[3],name[32],vname[32];
 get_entvar(p,var_origin,po);
 ZcNameOf(owner,name,charsmax(name));
 ZcNameOf(p,vname,charsmax(vname));
-if(type == ZP_WEB)
+if(type==ZP_WEB)
 {
 WebHit(owner,p);
 ZProjRemove(ent);
@@ -16097,7 +16098,7 @@ SkillDeny(owner,"HOOK_IMMUNE");
 ZProjRemove(ent);
 return;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 g_iHookedBy[p]= owner;
 set_entvar(ent,var_iuser4,p);
 set_entvar(ent,var_fuser3,now + floatclamp(ZcF(ZCV_HOOK_TIME),0.2,5.0));
@@ -16113,7 +16114,7 @@ ShakeOne(p);
 FadeOne(p,150,0,0,100,0.6);
 HudToS(p,SL_ALERT,CLR_DANGER,2.0,"HOOK_PULLED",name);
 HudToS(owner,SL_PERS,CLR_ZOMBIE,1.6,"HOOK_GOT_YOU",vname);
-new Float:dmg = ZcF(ZCV_HOOK_DMG);
+new Float:dmg=ZcF(ZCV_HOOK_DMG);
 if(dmg > 0.0)
 ExecuteHamB(Ham_TakeDamage,p,0,owner,dmg,DMG_SLASH);
 if(!is_nullent(ent))
@@ -16121,7 +16122,7 @@ set_entvar(ent,var_nextthink,now + 0.02);
 }
 ZProjMiss(ent,owner,type,const Float:pos[3])
 {
-if(type == ZP_WEB)
+if(type==ZP_WEB)
 {
 FxSprite(pos,g_sprWeb ? g_sprWeb : g_sprSmoke,g_sprWeb ? 4 : 6,200);
 EmitKeyPos(pos,"ARACHNE_WEBHIT");
@@ -16138,16 +16139,16 @@ HookPullThink(ent,owner,victim,Float:now)
 {
 new bool:stop;
 if(!is_user_alive(victim)|| g_bZombie[victim]|| g_iHookedBy[victim]!= owner)
-stop = true;
-else if(now >= Float:get_entvar(ent,var_fuser3))
-stop = true;
+stop=true;
+else if(now>=Float:get_entvar(ent,var_fuser3))
+stop=true;
 else
 {
 new Float:oo[3],Float:vv[3];
 get_entvar(owner,var_origin,oo);
 get_entvar(victim,var_origin,vv);
-if(get_distance_f(oo,vv)<= 60.0 || !ZcVisible(owner,victim))
-stop = true;
+if(get_distance_f(oo,vv)<= 60.0||!ZcVisible(owner,victim))
+stop=true;
 }
 if(stop)
 {
@@ -16158,8 +16159,8 @@ new Float:vo[3],Float:hand[3];
 get_entvar(victim,var_origin,vo);
 vo[2]+= 10.0;
 engfunc(EngFunc_SetOrigin,ent,vo);
-new beam = get_entvar(ent,var_iuser3);
-if(beam > 0 && !is_nullent(beam))
+new beam=get_entvar(ent,var_iuser3);
+if(beam > 0&&!is_nullent(beam))
 {
 ZcHand(owner,hand);
 BeamPoints(beam,hand,vo);
@@ -16168,8 +16169,8 @@ set_entvar(ent,var_nextthink,now + 0.02);
 }
 HookPullVictim(id)
 {
-new b = g_iHookedBy[id];
-if(!(1 <= b <= g_iMax)|| !is_user_alive(b)|| g_bZombie[id])
+new b=g_iHookedBy[id];
+if(!(1<=b<=g_iMax)|| !is_user_alive(b)|| g_bZombie[id])
 {
 g_iHookedBy[id]= 0;
 return;
@@ -16177,11 +16178,11 @@ return;
 new Float:bo[3],Float:po[3],Float:dir[3],Float:vel[3];
 get_entvar(b,var_origin,bo);
 get_entvar(id,var_origin,po);
-new Float:d = get_distance_f(bo,po);
+new Float:d=get_distance_f(bo,po);
 if(d < 1.0)
 return;
-new Float:spd = floatclamp(ZcF(ZCV_HOOK_PULL),100.0,1500.0);
-for(new i = 0;i < 3;i++)
+new Float:spd=floatclamp(ZcF(ZCV_HOOK_PULL),100.0,1500.0);
+for(new i=0;i < 3;i++)
 {
 dir[i]=(bo[i]- po[i])/ d;
 vel[i]= dir[i]* spd;
@@ -16189,20 +16190,20 @@ vel[i]= dir[i]* spd;
 if((get_entvar(id,var_flags)& FL_ONGROUND)&& vel[2]< 90.0)
 vel[2]= 90.0;
 set_entvar(id,var_velocity,vel);
-if(g_iDirLogN[DIR_PULL]< DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+if(g_iDirLogN[DIR_PULL]< DIR_LOG_MAX&&get_pcvar_num(g_pDbgDirs))
 DirCheck(DIR_PULL,"hook_pull",vel,dir);
 }
 ZProjRemove(ent)
 {
 if(is_nullent(ent))
 return;
-new owner = get_entvar(ent,var_iuser1),type = get_entvar(ent,var_iuser2),victim = get_entvar(ent,var_iuser4);
-new beam = get_entvar(ent,var_iuser3);
-if(beam > 0 && !is_nullent(beam))
+new owner=get_entvar(ent,var_iuser1),type=get_entvar(ent,var_iuser2),victim=get_entvar(ent,var_iuser4);
+new beam=get_entvar(ent,var_iuser3);
+if(beam > 0&&!is_nullent(beam))
 set_entvar(beam,var_flags,FL_KILLME);
-if(type == ZP_HOOK &&(1 <= owner <= g_iMax)&& g_iHookEnt[owner]== ent)
+if(type==ZP_HOOK &&(1<=owner<=g_iMax)&& g_iHookEnt[owner]== ent)
 g_iHookEnt[owner]= 0;
-if((1 <= victim <= g_iMax)&& g_iHookedBy[victim]== owner)
+if((1<=victim<=g_iMax)&& g_iHookedBy[victim]== owner)
 {
 g_iHookedBy[victim]= 0;
 if(is_user_alive(victim)&& !g_bZombie[victim])
@@ -16228,9 +16229,9 @@ set_entvar(ent,var_flags,FL_KILLME);
 RemoveOwnedProj(id)
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",ZPROJ_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",ZPROJ_CLASS))> 0)
 {
-if(get_entvar(ent,var_iuser1)== id || get_entvar(ent,var_iuser4)== id)
+if(get_entvar(ent,var_iuser1)== id||get_entvar(ent,var_iuser4)== id)
 ZProjRemove(ent);
 }
 }
@@ -16242,7 +16243,7 @@ SkillDeny(id,"SKILL_HOOK_BUSY");
 return false;
 }
 g_iHookEnt[id]= 0;
-new ent = ZProjSpawn(id,ZP_HOOK,ZcF(ZCV_HOOK_SPEED),ZcF(ZCV_HOOK_RANGE));
+new ent=ZProjSpawn(id,ZP_HOOK,ZcF(ZCV_HOOK_SPEED),ZcF(ZCV_HOOK_RANGE));
 if(!ent)
 return false;
 g_iHookEnt[id]= ent;
@@ -16270,7 +16271,7 @@ return true;
 }
 PounceThink(id)
 {
-new Float:t = get_gametime()- g_fPounce[id];
+new Float:t=get_gametime()- g_fPounce[id];
 if(t > 2.5)
 {
 g_fPounce[id]= 0.0;
@@ -16285,7 +16286,7 @@ return;
 }
 new Float:o[3],Float:po[3];
 get_entvar(id,var_origin,o);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -16303,9 +16304,9 @@ g_fPounce[id]= 0.0;
 new Float:o[3],Float:po[3],vname[32],name[32],hits;
 get_entvar(id,var_origin,o);
 ZcNameOf(id,name,charsmax(name));
-new Float:rad = floatclamp(ZcF(ZCV_HUNT_RAD),20.0,400.0)+ 16.0;
-new Float:stun = floatclamp(ZcF(ZCV_HUNT_STUN),0.1,5.0),Float:dmg = ZcF(ZCV_HUNT_DMG);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=floatclamp(ZcF(ZCV_HUNT_RAD),20.0,400.0)+ 16.0;
+new Float:stun=floatclamp(ZcF(ZCV_HUNT_STUN),0.1,5.0),Float:dmg=ZcF(ZCV_HUNT_DMG);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -16348,7 +16349,7 @@ return false;
 new Float:dir[3];
 ZcAimDir(id,dir);
 dir[2]= 0.0;
-new Float:len = floatsqroot(dir[0]* dir[0]+ dir[1]* dir[1]);
+new Float:len=floatsqroot(dir[0]* dir[0]+ dir[1]* dir[1]);
 if(len < 0.1)
 {
 SkillDeny(id,"SKILL_NO_SPACE");
@@ -16356,7 +16357,7 @@ return false;
 }
 dir[0]/= len;
 dir[1]/= len;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 g_fChargeDir[id]= dir;
 g_fChargeT0[id]= now;
 g_fCharge[id]= now + floatclamp(ZcF(ZCV_CHG_TIME),0.3,5.0);
@@ -16373,14 +16374,14 @@ return true;
 }
 ChargeThink(id)
 {
-new Float:now = get_gametime();
-if(now >= g_fCharge[id]|| !is_user_alive(id)|| g_fFrozen[id]> now)
+new Float:now=get_gametime();
+if(now>=g_fCharge[id]|| !is_user_alive(id)|| g_fFrozen[id]> now)
 {
 ChargeEnd(id,false);
 return;
 }
 new Float:o[3],Float:vel[3],Float:ahead[3],Float:frac,Float:normal[3];
-new Float:spd = floatclamp(ZcF(ZCV_CHG_SPEED),200.0,1500.0);
+new Float:spd=floatclamp(ZcF(ZCV_CHG_SPEED),200.0,1500.0);
 get_entvar(id,var_origin,o);
 get_entvar(id,var_velocity,vel);
 vel[0]= g_fChargeDir[id][0]* spd;
@@ -16392,19 +16393,19 @@ ahead[2]= o[2];
 engfunc(EngFunc_TraceLine,o,ahead,IGNORE_MONSTERS,id,0);
 get_tr2(0,TR_flFraction,frac);
 get_tr2(0,TR_vecPlaneNormal,normal);
-if(frac < 1.0 && normal[2]< 0.7 && now - g_fChargeT0[id]> 0.12)
+if(frac < 1.0&&normal[2]< 0.7&&now - g_fChargeT0[id]> 0.12)
 {
 ChargeEnd(id,true);
 return;
 }
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p]||(g_iChargeHit[id]&(1 <<(p - 1))))
 continue;
 get_entvar(p,var_origin,po);
-new Float:dx = po[0]- o[0],Float:dy = po[1]- o[1];
-if(dx * dx + dy * dy > 56.0 * 56.0 || floatabs(po[2]- o[2])> 64.0)
+new Float:dx=po[0]- o[0],Float:dy=po[1]- o[1];
+if(dx * dx + dy * dy > 56.0 * 56.0||floatabs(po[2]- o[2])> 64.0)
 continue;
 g_iChargeHit[id]|=(1 <<(p - 1));
 ChargeHitHuman(id,p,dx,dy);
@@ -16415,11 +16416,11 @@ return;
 ChargeHitHuman(id,p,Float:dx,Float:dy)
 {
 new Float:dir[3],Float:perp[2],Float:vel[3],name[32];
-dir = g_fChargeDir[id];
+dir=g_fChargeDir[id];
 perp[0]= -dir[1];
 perp[1]= dir[0];
 new Float:side =(dx * perp[0]+ dy * perp[1]>= 0.0)? 1.0 : -1.0;
-new Float:push = floatclamp(ZcF(ZCV_CHG_PUSH),0.0,2000.0);
+new Float:push=floatclamp(ZcF(ZCV_CHG_PUSH),0.0,2000.0);
 vel[0]= perp[0]* side * push + dir[0]* push * 0.6;
 vel[1]= perp[1]* side * push + dir[1]* push * 0.6;
 vel[2]= 260.0;
@@ -16433,7 +16434,7 @@ FadeOne(p,200,120,60,120,0.6);
 EmitKey(p,"CHARGER_IMPACT",CHAN_BODY);
 ZcNameOf(id,name,charsmax(name));
 HudToS(p,SL_ALERT,CLR_DANGER,1.6,"CHARGER_HIT",name);
-new Float:dmg = ZcF(ZCV_CHG_DMG);
+new Float:dmg=ZcF(ZCV_CHG_DMG);
 if(dmg > 0.0)
 ExecuteHamB(Ham_TakeDamage,p,0,id,dmg,DMG_CLUB);
 }
@@ -16473,7 +16474,7 @@ ApplyRender(id);
 }
 bool:ArachneWeb(id)
 {
-new ent = ZProjSpawn(id,ZP_WEB,ZcF(ZCV_WEB_SPEED),ZcF(ZCV_WEB_RANGE));
+new ent=ZProjSpawn(id,ZP_WEB,ZcF(ZCV_WEB_SPEED),ZcF(ZCV_WEB_RANGE));
 if(!ent)
 return false;
 EmitZombieSound(id,"ABILITY","ZOMBIE_ACID");
@@ -16482,9 +16483,9 @@ return true;
 }
 WebHit(owner,p)
 {
-new Float:now = get_gametime(),Float:po[3],name[32],vname[32];
+new Float:now=get_gametime(),Float:po[3],name[32],vname[32];
 get_entvar(p,var_origin,po);
-new Float:root = floatclamp(ZcF(ZCV_WEB_ROOT),0.0,5.0),Float:slow = floatclamp(ZcF(ZCV_WEB_SLOW),0.0,10.0);
+new Float:root=floatclamp(ZcF(ZCV_WEB_ROOT),0.0,5.0),Float:slow=floatclamp(ZcF(ZCV_WEB_SLOW),0.0,10.0);
 if(g_bSurvivor[p]|| g_bSniper[p])
 SlowHuman(p,root + slow);
 else
@@ -16504,7 +16505,7 @@ ZcNameOf(owner,name,charsmax(name));
 ZcNameOf(p,vname,charsmax(vname));
 HudToS(p,SL_ALERT,CLR_DANGER,2.0,"ARACHNE_WEBBED",name);
 HudToS(owner,SL_PERS,CLR_ZOMBIE,1.4,"ARACHNE_HIT_YOU",vname);
-new Float:dmg = ZcF(ZCV_WEB_DMG);
+new Float:dmg=ZcF(ZCV_WEB_DMG);
 if(dmg > 0.0)
 ExecuteHamB(Ham_TakeDamage,p,0,owner,dmg,DMG_GENERIC);
 }
@@ -16529,22 +16530,22 @@ FxSprite(o,g_sprFire ? g_sprFire : g_sprExplode,4,200);
 }
 LavaDamage()
 {
-new Float:now = get_gametime(),Float:po[3];
-new Float:dmg = floatmax(0.0,ZcF(ZCV_MAG_DMG))* 0.5;
-for(new s = 0;s < MAX_POOLS;s++)
+new Float:now=get_gametime(),Float:po[3];
+new Float:dmg=floatmax(0.0,ZcF(ZCV_MAG_DMG))* 0.5;
+for(new s=0;s < MAX_POOLS;s++)
 {
-if(g_iPoolType[s]!= 2 || g_fPoolEnd[s]< now)
+if(g_iPoolType[s]!= 2||g_fPoolEnd[s]< now)
 continue;
-new owner = g_iPoolOwner[s];
-if(!(1 <= owner <= g_iMax)|| !is_user_connected(owner)|| !g_bZombie[owner])
-owner = 0;
-new Float:rad = g_fPoolRad[s]+ 16.0;
-for(new p = 1;p <= g_iMax;p++)
+new owner=g_iPoolOwner[s];
+if(!(1<=owner<=g_iMax)|| !is_user_connected(owner)|| !g_bZombie[owner])
+owner=0;
+new Float:rad=g_fPoolRad[s]+ 16.0;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-if(get_distance_f(g_fPoolPos[s],po)> rad || floatabs(po[2]- g_fPoolPos[s][2])> 60.0)
+if(get_distance_f(g_fPoolPos[s],po)> rad||floatabs(po[2]- g_fPoolPos[s][2])> 60.0)
 continue;
 g_iBurn[p]= max(g_iBurn[p],1);
 g_iBurnBy[p]= owner;
@@ -16559,16 +16560,16 @@ bool:VoltEmp(id)
 new Float:o[3],Float:po[3],Float:mo[3],Float:eye[3];
 get_entvar(id,var_origin,o);
 ZcEye(id,eye);
-new Float:now = get_gametime();
-new Float:rad = floatclamp(ZcF(ZCV_VOLT_RAD),50.0,2000.0);
-new Float:mineOff = floatclamp(ZcF(ZCV_VOLT_MINE),0.0,60.0);
-new Float:lightOff = floatclamp(ZcF(ZCV_VOLT_LIGHT),0.0,60.0);
-new Float:dmg = ZcF(ZCV_VOLT_DMG),Float:slow = floatclamp(ZcF(ZCV_VOLT_SLOW),0.0,10.0);
+new Float:now=get_gametime();
+new Float:rad=floatclamp(ZcF(ZCV_VOLT_RAD),50.0,2000.0);
+new Float:mineOff=floatclamp(ZcF(ZCV_VOLT_MINE),0.0,60.0);
+new Float:lightOff=floatclamp(ZcF(ZCV_VOLT_LIGHT),0.0,60.0);
+new Float:dmg=ZcF(ZCV_VOLT_DMG),Float:slow=floatclamp(ZcF(ZCV_VOLT_SLOW),0.0,10.0);
 new mines;
 if(mineOff > 0.0)
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",LM_CLASS))> 0)
 {
 get_entvar(ent,var_origin,mo);
 if(get_distance_f(o,mo)> rad)
@@ -16581,7 +16582,7 @@ mines++;
 }
 new name[32];
 ZcNameOf(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -16612,20 +16613,20 @@ return true;
 }
 bool:MineEmpCheck(ent,const Float:o[3],Float:now)
 {
-new Float:emp = Float:get_entvar(ent,var_fuser3);
-if(emp <= 0.0)
+new Float:emp=Float:get_entvar(ent,var_fuser3);
+if(emp<=0.0)
 return false;
-new beam = get_entvar(ent,var_iuser3);
+new beam=get_entvar(ent,var_iuser3);
 if(emp > now)
 {
-if(beam > 0 && !is_nullent(beam))
+if(beam > 0&&!is_nullent(beam))
 set_entvar(beam,var_effects,get_entvar(beam,var_effects)| EF_NODRAW);
 if(random_num(1,8)== 1)
 FxSparks(o);
 return true;
 }
 set_entvar(ent,var_fuser3,0.0);
-if(beam > 0 && !is_nullent(beam))
+if(beam > 0&&!is_nullent(beam))
 set_entvar(beam,var_effects,get_entvar(beam,var_effects)& ~EF_NODRAW);
 EmitKey(ent,"LM_ACTIVATE");
 new r,g,b;
@@ -16651,14 +16652,14 @@ EmitZombieSound(id,"ABILITY","ABILITY_CLOAK");
 HudTo(id,SL_PERS,CLR_ZOMBIE,2.5,"MIMIC_YOU");
 return true;
 }
-MimicReveal(id,victim = 0)
+MimicReveal(id,victim=0)
 {
 if(g_fDisguise[id]<= 0.0)
 return;
 g_fDisguise[id]= 0.0;
 if(!is_user_alive(id)|| !g_bZombie[id])
 return;
-new cls = clamp(g_iClass[id],0,NUM_CLASSES - 1);
+new cls=clamp(g_iClass[id],0,NUM_CLASSES - 1);
 if(g_szZModel[cls][0])
 VxSetUserModel(id,g_szZModel[cls],true);
 else
@@ -16715,9 +16716,9 @@ rg_reset_maxspeed(id);
 new Float:o[3],Float:po[3],name[32];
 get_entvar(id,var_origin,o);
 ZcNameOf(id,name,charsmax(name));
-new Float:rad = floatclamp(ZcF(ZCV_BUR_RAD),50.0,1000.0),Float:up = floatclamp(ZcF(ZCV_BUR_UP),0.0,1500.0);
-new Float:dmg = ZcF(ZCV_BUR_DMG);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=floatclamp(ZcF(ZCV_BUR_RAD),50.0,1000.0),Float:up=floatclamp(ZcF(ZCV_BUR_UP),0.0,1500.0);
+new Float:dmg=ZcF(ZCV_BUR_DMG);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -16754,14 +16755,14 @@ bool:SirenLure(id)
 new Float:o[3],Float:po[3],name[32],hits;
 get_entvar(id,var_origin,o);
 ZcNameOf(id,name,charsmax(name));
-new Float:now = get_gametime();
-new Float:rad = floatclamp(ZcF(ZCV_SIR_RAD),50.0,2000.0),Float:dur = floatclamp(ZcF(ZCV_SIR_TIME),0.5,10.0);
-for(new p = 1;p <= g_iMax;p++)
+new Float:now=get_gametime();
+new Float:rad=floatclamp(ZcF(ZCV_SIR_RAD),50.0,2000.0),Float:dur=floatclamp(ZcF(ZCV_SIR_TIME),0.5,10.0);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-if(get_distance_f(o,po)> rad || !ZcVisible(id,p))
+if(get_distance_f(o,po)> rad||!ZcVisible(id,p))
 continue;
 g_fLure[p]= now + dur;
 g_iLureBy[p]= id;
@@ -16787,18 +16788,18 @@ LureEnd(p,bool:clearFade)
 new bool:was =(g_fLure[p]> get_gametime())? true : false;
 g_fLure[p]= 0.0;
 g_iLureBy[p]= 0;
-if(clearFade && was)
+if(clearFade&&was)
 FadeClear(p);
 }
 LureTick(p,Float:now)
 {
-new s = g_iLureBy[p];
-if(now >= g_fLure[p])
+new s=g_iLureBy[p];
+if(now>=g_fLure[p])
 {
 LureEnd(p,false);
 return;
 }
-if(!(1 <= s <= g_iMax)|| !is_user_alive(s)|| !IsClassZombie(s,ZC_SIREN))
+if(!(1<=s<=g_iMax)|| !is_user_alive(s)|| !IsClassZombie(s,ZC_SIREN))
 {
 LureEnd(p,true);
 return;
@@ -16806,17 +16807,17 @@ return;
 new Float:so[3],Float:po[3],Float:vel[3];
 get_entvar(s,var_origin,so);
 get_entvar(p,var_origin,po);
-new Float:dx = so[0]- po[0],Float:dy = so[1]- po[1];
-new Float:d = floatsqroot(dx * dx + dy * dy);
+new Float:dx=so[0]- po[0],Float:dy=so[1]- po[1];
+new Float:d=floatsqroot(dx * dx + dy * dy);
 if(d > 48.0)
 {
-new Float:pull = floatclamp(ZcF(ZCV_SIR_PULL),0.0,800.0);
+new Float:pull=floatclamp(ZcF(ZCV_SIR_PULL),0.0,800.0);
 get_entvar(p,var_velocity,vel);
 vel[0]= vel[0]* 0.5 + dx / d * pull;
 vel[1]= vel[1]* 0.5 + dy / d * pull;
 set_entvar(p,var_velocity,vel);
 }
-if(g_iZcTick % 3 == 0)
+if(g_iZcTick % 3==0)
 {
 so[2]+= 20.0;
 po[2]+= 10.0;
@@ -16838,21 +16839,21 @@ return true;
 }
 bool:SporePlant(id)
 {
-new Float:now = get_gametime();
-new maxp = clamp(ZcN(ZCV_SPO_MAX),1,6);
-new ent,n,oldest,Float:oldT = 999999.0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",SPORE_CLASS))> 0)
+new Float:now=get_gametime();
+new maxp=clamp(ZcN(ZCV_SPO_MAX),1,6);
+new ent,n,oldest,Float:oldT=999999.0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",SPORE_CLASS))> 0)
 {
 if(get_entvar(ent,var_iuser1)!= id)
 continue;
 n++;
 if(Float:get_entvar(ent,var_fuser4)< oldT)
 {
-oldT = Float:get_entvar(ent,var_fuser4);
-oldest = ent;
+oldT=Float:get_entvar(ent,var_fuser4);
+oldest=ent;
 }
 }
-if(n >= maxp && oldest)
+if(n>=maxp&&oldest)
 {
 SporeRemove(oldest,true);
 n--;
@@ -16860,7 +16861,7 @@ n--;
 new Float:o[3],Float:pos[3];
 get_entvar(id,var_origin,o);
 FloorAt(o,pos);
-ent = CreateSafe51("info_target");
+ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return false;
 set_entvar(ent,var_classname,SPORE_CLASS);
@@ -16888,7 +16889,7 @@ set_entvar(ent,var_scale,0.45);
 }
 pos[2]+= 14.0;
 }
-new Float:hp = float(clamp(ZcN(ZCV_SPO_HP),1,5000));
+new Float:hp=float(clamp(ZcN(ZCV_SPO_HP),1,5000));
 set_entvar(ent,var_movetype,MOVETYPE_NONE);
 set_entvar(ent,var_solid,SOLID_NOT);
 engfunc(EngFunc_SetSize,ent,Float:{-10.0,-10.0,0.0},Float:{10.0,10.0,22.0});
@@ -16912,9 +16913,9 @@ public fw_SporeThink(ent)
 {
 if(is_nullent(ent))
 return;
-new owner = get_entvar(ent,var_iuser1);
-new Float:now = get_gametime();
-if(!g_bRoundActive || !is_user_alive(owner)|| !IsClassZombie(owner,ZC_SPOREMOTHER)|| now >= Float:get_entvar(ent,var_fuser2))
+new owner=get_entvar(ent,var_iuser1);
+new Float:now=get_gametime();
+if(!g_bRoundActive||!is_user_alive(owner)|| !IsClassZombie(owner,ZC_SPOREMOTHER)|| now>=Float:get_entvar(ent,var_fuser2))
 {
 SporeRemove(ent,true);
 return;
@@ -16922,10 +16923,10 @@ return;
 new Float:o[3],Float:po[3];
 get_entvar(ent,var_origin,o);
 SolidWhenFree538(ent,o);
-if(now >= Float:get_entvar(ent,var_fuser1))
+if(now>=Float:get_entvar(ent,var_fuser1))
 {
-new Float:rad = floatclamp(ZcF(ZCV_SPO_RAD),20.0,600.0);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=floatclamp(ZcF(ZCV_SPO_RAD),20.0,600.0);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -16946,10 +16947,10 @@ SporeBurst(ent,owner)
 new Float:o[3],Float:po[3],name[32];
 get_entvar(ent,var_origin,o);
 ZcNameOf(owner,name,charsmax(name));
-new Float:rad = floatclamp(ZcF(ZCV_SPO_RAD),20.0,600.0)* 1.4;
-new ticks = clamp(ZcN(ZCV_SPO_POISON),0,30),Float:slow = floatclamp(ZcF(ZCV_SPO_SLOW),0.0,10.0);
+new Float:rad=floatclamp(ZcF(ZCV_SPO_RAD),20.0,600.0)* 1.4;
+new ticks=clamp(ZcN(ZCV_SPO_POISON),0,30),Float:slow=floatclamp(ZcF(ZCV_SPO_SLOW),0.0,10.0);
 new hits;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -16973,15 +16974,15 @@ FxParticles(o,120,60,8);
 FxRingEx(o,110,200,60,floatround(rad),14,4);
 FxLight(o,110,220,60,30,8,20);
 EmitKeyPos(o,"SPOREMOTHER_BURST");
-if(hits && is_user_connected(owner))
+if(hits&&is_user_connected(owner))
 HudTo(owner,SL_PERS,CLR_ZOMBIE,1.5,"SPORE_BURST_YOU",hits);
 SporeRemove(ent,false);
 }
 SporeTakeDamage(ent,attacker,Float:damage)
 {
-if(!(1 <= attacker <= g_iMax)|| !is_user_connected(attacker)|| g_bZombie[attacker])
+if(!(1<=attacker<=g_iMax)|| !is_user_connected(attacker)|| g_bZombie[attacker])
 return HAM_SUPERCEDE;
-new Float:hp = Float:get_entvar(ent,var_health)- damage;
+new Float:hp=Float:get_entvar(ent,var_health)- damage;
 if(hp > 0.0)
 {
 set_entvar(ent,var_health,hp);
@@ -16991,7 +16992,7 @@ if(random_num(1,3)== 1)
 FxParticles(o,20,60,2);
 return HAM_SUPERCEDE;
 }
-new owner = get_entvar(ent,var_iuser1);
+new owner=get_entvar(ent,var_iuser1);
 if(is_user_connected(owner))
 {
 new name[32];
@@ -17023,7 +17024,7 @@ set_entvar(ent,var_flags,FL_KILLME);
 RemovePlayerSpores(id)
 {
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",SPORE_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",SPORE_CLASS))> 0)
 {
 if(get_entvar(ent,var_iuser1)== id)
 SporeRemove(ent,true);
@@ -17034,14 +17035,14 @@ bool:NightmareTerror(id)
 new Float:o[3],Float:po[3],name[32],hits;
 get_entvar(id,var_origin,o);
 ZcNameOf(id,name,charsmax(name));
-new Float:now = get_gametime();
-new Float:rad = floatclamp(ZcF(ZCV_NM_RAD),50.0,2000.0),Float:blind = floatclamp(ZcF(ZCV_NM_BLIND),0.5,10.0);
-for(new p = 1;p <= g_iMax;p++)
+new Float:now=get_gametime();
+new Float:rad=floatclamp(ZcF(ZCV_NM_RAD),50.0,2000.0),Float:blind=floatclamp(ZcF(ZCV_NM_BLIND),0.5,10.0);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-if(get_distance_f(o,po)> rad || !ZcVisible(id,p))
+if(get_distance_f(o,po)> rad||!ZcVisible(id,p))
 continue;
 g_fBlind[p]= now + blind;
 FadeEx(p,0,0,0,252,0.7,floatmax(0.1,blind - 0.7));
@@ -17064,17 +17065,17 @@ return true;
 }
 Float:ZcActiveLeft(id)
 {
-new Float:now = get_gametime(),Float:m = 0.0;
+new Float:now=get_gametime(),Float:m=0.0;
 new Float:t[6];
 t[0]= g_fCharge[id];t[1]= g_fBurrow[id];t[2]= g_fDisguise[id];
 t[3]= g_fFortify[id];t[4]= g_fTerror[id];t[5]= g_fLava[id];
-for(new i = 0;i < sizeof t;i++)
+for(new i=0;i < sizeof t;i++)
 {
 if(t[i]- now > m)
-m = t[i]- now;
+m=t[i]- now;
 }
 if(g_iHookEnt[id]&& ZProjValid(g_iHookEnt[id]))
-m = floatmax(m,0.1);
+m=floatmax(m,0.1);
 return m;
 }
 ZcPreThink(id)
@@ -17085,7 +17086,7 @@ if(!g_bZombie[id])
 return;
 if(g_fCharge[id]> 0.0)
 ChargeThink(id);
-if(g_fPounce[id]> 0.0 && is_user_alive(id))
+if(g_fPounce[id]> 0.0&&is_user_alive(id))
 PounceThink(id);
 }
 public task_ZcTick()
@@ -17093,18 +17094,18 @@ public task_ZcTick()
 g_iZcTick++;
 if(!g_bRoundActive)
 return;
-new Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id))
 continue;
-if(g_fFrozen[id]> 0.0 && now > g_fFrozen[id])
+if(g_fFrozen[id]> 0.0&&now > g_fFrozen[id])
 {
 g_fFrozen[id]= 0.0;
 ApplyRender(id);
 rg_reset_maxspeed(id);
 }
-if(g_fSlow[id]> 0.0 && now > g_fSlow[id])
+if(g_fSlow[id]> 0.0&&now > g_fSlow[id])
 {
 g_fSlow[id]= 0.0;
 rg_reset_maxspeed(id);
@@ -17114,7 +17115,7 @@ ZcTickZombie(id,now);
 else
 ZcTickHuman(id,now);
 }
-if(g_iZcTick % 5 == 0)
+if(g_iZcTick % 5==0)
 {
 LavaDamage();
 if(ZcN(ZCV_BOT))
@@ -17123,7 +17124,7 @@ BotAbilities();
 }
 ZcTickZombie(id,Float:now)
 {
-if(g_fFortify[id]> 0.0 && now > g_fFortify[id])
+if(g_fFortify[id]> 0.0&&now > g_fFortify[id])
 {
 g_fFortify[id]= 0.0;
 ApplyRender(id);
@@ -17136,18 +17137,18 @@ g_fTerror[id]= 0.0;
 rg_reset_maxspeed(id);
 ApplyRender(id);
 }
-else if(g_iZcTick % 3 == 0)
+else if(g_iZcTick % 3==0)
 {
 new Float:o[3];
 get_entvar(id,var_origin,o);
 FxLight(o,140,0,0,12,4,10);
 }
 }
-if(g_fDisguise[id]> 0.0 && now > g_fDisguise[id])
+if(g_fDisguise[id]> 0.0&&now > g_fDisguise[id])
 MimicReveal(id);
 if(g_fBurrow[id]> 0.0)
 {
-if(now >= g_fBurrow[id])
+if(now>=g_fBurrow[id])
 BurrowErupt(id);
 else
 {
@@ -17155,7 +17156,7 @@ new Float:o[3],Float:fl[3];
 get_entvar(id,var_origin,o);
 FloorAt(o,fl);
 FxParticles(fl,24,22,2);
-if(g_iZcTick % 3 == 0)
+if(g_iZcTick % 3==0)
 FxSprite(fl,g_sprSmoke,5,90);
 }
 }
@@ -17172,7 +17173,7 @@ if((get_entvar(id,var_flags)& FL_ONGROUND)&& get_distance_f(o,g_fLavaPos[id])>= 
 g_fLavaPos[id]= o;
 MagmaPool(id,o);
 }
-if(g_iZcTick % 2 == 0)
+if(g_iZcTick % 2==0)
 FxLight(o,255,90,0,14,3,10);
 }
 }
@@ -17185,21 +17186,21 @@ if(g_fWebbed[id]> 0.0)
 {
 if(now > g_fWebbed[id])
 g_fWebbed[id]= 0.0;
-else if(g_iZcTick % 5 == 0)
+else if(g_iZcTick % 5==0)
 {
 new Float:o[3];
 get_entvar(id,var_origin,o);
 FxSprite(o,g_sprWeb ? g_sprWeb : g_sprSmoke,g_sprWeb ? 3 : 4,160);
 }
 }
-if(g_fNoLight[id]> 0.0 && now > g_fNoLight[id])
+if(g_fNoLight[id]> 0.0&&now > g_fNoLight[id])
 g_fNoLight[id]= 0.0;
-if(g_fBlind[id]> 0.0 && now > g_fBlind[id])
+if(g_fBlind[id]> 0.0&&now > g_fBlind[id])
 g_fBlind[id]= 0.0;
 }
 ZcCleanup(id)
 {
-if(!(1 <= id <= 32))
+if(!(1<=id<=32))
 return;
 if(g_iHookEnt[id]&& ZProjValid(g_iHookEnt[id]))
 ZProjRemove(g_iHookEnt[id]);
@@ -17213,7 +17214,7 @@ if(g_fDisguise[id]> 0.0)
 g_fDisguise[id]= 0.0;
 if(is_user_alive(id)&& g_bZombie[id])
 {
-new cls = clamp(g_iClass[id],0,NUM_CLASSES - 1);
+new cls=clamp(g_iClass[id],0,NUM_CLASSES - 1);
 if(g_szZModel[cls][0])
 VxSetUserModel(id,g_szZModel[cls],true);
 else
@@ -17221,27 +17222,27 @@ rg_reset_user_model(id,true);
 rg_set_user_footsteps(id,false);
 }
 }
-new bool:render =(g_fCharge[id]> 0.0 || g_fFortify[id]> 0.0 || g_fTerror[id]> 0.0)? true : false;
+new bool:render =(g_fCharge[id]> 0.0||g_fFortify[id]> 0.0||g_fTerror[id]> 0.0)? true : false;
 g_fPounce[id]= 0.0;
 g_fCharge[id]= 0.0;
 g_iChargeHit[id]= 0;
 g_fLava[id]= 0.0;
 g_fFortify[id]= 0.0;
 g_fTerror[id]= 0.0;
-if(render && is_user_alive(id))
+if(render&&is_user_alive(id))
 {
 ApplyRender(id);
 rg_reset_maxspeed(id);
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(g_iLureBy[p]== id)
 LureEnd(p,true);
 }
 if(g_iHookedBy[id])
 {
-new b = g_iHookedBy[id];
-if((1 <= b <= g_iMax)&& g_iHookEnt[b]&& ZProjValid(g_iHookEnt[b]))
+new b=g_iHookedBy[id];
+if((1<=b<=g_iMax)&& g_iHookEnt[b]&& ZProjValid(g_iHookEnt[b]))
 ZProjRemove(g_iHookEnt[b]);
 g_iHookedBy[id]= 0;
 }
@@ -17255,21 +17256,21 @@ g_fWebbed[id]= 0.0;
 }
 ZcCleanupAll()
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 ZcCleanup(id);
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",ZPROJ_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",ZPROJ_CLASS))> 0)
 ZProjRemove(ent);
-ent = 0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",SPORE_CLASS))> 0)
+ent=0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",SPORE_CLASS))> 0)
 SporeRemove(ent,false);
-ent = 0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname","beam"))> 0)
+ent=0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","beam"))> 0)
 {
 if(get_entvar(ent,var_iuser1)== BEAM_MARK_HOOK)
 set_entvar(ent,var_flags,FL_KILLME);
 }
-for(new s = 0;s < MAX_POOLS;s++)
+for(new s=0;s < MAX_POOLS;s++)
 {
 if(g_iPoolType[s]== 2)
 g_fPoolEnd[s]= 0.0;
@@ -17282,18 +17283,18 @@ new const Float:BOT_SKILL_RANGE[NUM_CLASSES]=
 };
 stock ZcNearestHuman(id,Float:range)
 {
-new Float:o[3],Float:po[3],best,Float:bestD = range;
+new Float:o[3],Float:po[3],best,Float:bestD=range;
 get_entvar(id,var_origin,o);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
-if(d > bestD || !ZcVisible(id,p))
+new Float:d=get_distance_f(o,po);
+if(d > bestD||!ZcVisible(id,p))
 continue;
-bestD = d;
-best = p;
+bestD=d;
+best=p;
 }
 return best;
 }
@@ -17303,7 +17304,7 @@ new Float:eye[3],Float:po[3],Float:dir[3],Float:ang[3];
 ZcEye(id,eye);
 get_entvar(t,var_origin,po);
 po[2]+= 8.0;
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 dir[i]= po[i]- eye[i];
 engfunc(EngFunc_VecToAngles,dir,ang);
 ang[0]= -ang[0];
@@ -17313,16 +17314,16 @@ set_entvar(id,var_angles,ang);
 }
 BotAbilities()
 {
-new Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| !is_user_bot(id)|| !g_bZombie[id]|| g_bMinion[id]|| g_fFrozen[id]> now)
 continue;
 if(g_bBoss[id])
 {
-if(g_fBossIntro > now || now < g_fLeapCool[id]|| random_num(1,100)> 30)
+if(g_fBossIntro > now||now < g_fLeapCool[id]|| random_num(1,100)> 30)
 continue;
-new t = ZcNearestHuman(id,800.0);
+new t=ZcNearestHuman(id,800.0);
 if(t)
 {
 ZcFace(id,t);
@@ -17332,12 +17333,12 @@ continue;
 }
 if(g_bNemesis[id]|| g_bAssassin[id])
 {
-new t = ZcNearestHuman(id,750.0);
+new t=ZcNearestHuman(id,750.0);
 if(!t)
 continue;
-if(now >= g_fFCool[id]&& random_num(1,100)<= 35)
+if(now>=g_fFCool[id]&& random_num(1,100)<= 35)
 SkillTrigger(id,2);
-else if(now >= g_fLeapCool[id]&& random_num(1,100)<= 30)
+else if(now>=g_fLeapCool[id]&& random_num(1,100)<= 30)
 {
 ZcFace(id,t);
 SkillTrigger(id,1);
@@ -17346,10 +17347,10 @@ continue;
 }
 if(now < g_fCool[id]|| random_num(1,100)> 45)
 continue;
-new cls = clamp(g_iClass[id],0,NUM_CLASSES - 1);
-if(cls == ZC_LEECH && Float:get_entvar(id,var_health)> float(g_iMaxHP[id])* 0.6)
+new cls=clamp(g_iClass[id],0,NUM_CLASSES - 1);
+if(cls==ZC_LEECH&&Float:get_entvar(id,var_health)> float(g_iMaxHP[id])* 0.6)
 continue;
-new t = ZcNearestHuman(id,(cls == ZC_LEECH)? 900.0 : BOT_SKILL_RANGE[cls]);
+new t=ZcNearestHuman(id,(cls==ZC_LEECH)? 900.0 : BOT_SKILL_RANGE[cls]);
 if(!t)
 continue;
 ZcFace(id,t);
@@ -17358,31 +17359,31 @@ SkillTrigger(id,1);
 }
 StartBoss(players[32],n)
 {
-new boss = players[random(n)];
-new humans = max(1,n - 1);
+new boss=players[random(n)];
+new humans=max(1,n - 1);
 BossCleanup();
-g_iBoss = boss;
+g_iBoss=boss;
 MsEvent(ME_BOSS);
-g_iBossTick = 0;
-g_iBossPhase = 1;
-g_bEnraged = false;
-g_fBossRCool = get_gametime()+ 4.0;
-g_fBossRLast = get_gametime()+ 2.5;
+g_iBossTick=0;
+g_iBossPhase=1;
+g_bEnraged=false;
+g_fBossRCool=get_gametime()+ 4.0;
+g_fBossRLast=get_gametime()+ 2.5;
 g_bBoss[boss]= 1;
 g_fEpicG[boss]=get_gametime()+6.0;
 g_bZombie[boss]= 1;
-g_fEclipseEnd = 0.0;
-g_fBlizzardEnd = 0.0;
-for(new p = 1;p <= g_iMax;p++)
+g_fEclipseEnd=0.0;
+g_fBlizzardEnd=0.0;
+for(new p=1;p<=g_iMax;p++)
 g_iBossDmg[p]= 0;
 rg_set_user_team(boss,TEAM_TERRORIST,MODEL_UNASSIGNED,true,false);
 rg_remove_all_items(boss);
 rg_give_item(boss,"weapon_knife");
 RemovePlayerMines(boss,false);
-new Float:hp = get_pcvar_float(g_pBossHP)* BOSS_HP_MULT[g_iBossType]+ get_pcvar_float(g_pBossHPPer)* float(humans);
+new Float:hp=get_pcvar_float(g_pBossHP)* BOSS_HP_MULT[g_iBossType]+ get_pcvar_float(g_pBossHPPer)* float(humans);
 if(g_bFinalBoss)
 hp *= floatmax(1.0,get_pcvar_float(g_pBossFinal));
-g_iBossMaxHP = max(1000,floatround(hp));
+g_iBossMaxHP=max(1000,floatround(hp));
 g_iMaxHP[boss]= g_iBossMaxHP;
 set_entvar(boss,var_health,float(g_iBossMaxHP));
 set_entvar(boss,var_max_health,float(g_iBossMaxHP));
@@ -17393,18 +17394,18 @@ VxSetUserModel(boss,g_szBModel[g_iBossType],true);
 new stepKey[24];
 rg_set_user_footsteps(boss,BossSndKey("STEP",stepKey,charsmax(stepKey))? true : false);
 ApplyRender(boss);
-g_fBossIntro = get_gametime()+ 2.5;
+g_fBossIntro=get_gametime()+ 2.5;
 rg_reset_maxspeed(boss);
 set_entvar(boss,var_velocity,Float:{0.0,0.0,0.0});
 new name[32],key[20],Float:o[3];
 get_user_name(boss,name,charsmax(name));
 get_entvar(boss,var_origin,o);
-new r = BOSS_RGB[g_iBossType][0],g = BOSS_RGB[g_iBossType][1],b = BOSS_RGB[g_iBossType][2];
+new r=BOSS_RGB[g_iBossType][0],g=BOSS_RGB[g_iBossType][1],b=BOSS_RGB[g_iBossType][2];
 FadeAll(0,0,0,220,0.8);
 FxTeleport(o);
 FxLava(o);
 FxFunnel(o,g_sprFlare,false);
-for(new i = 0;i < 5;i++)
+for(new i=0;i < 5;i++)
 FxSkyStrike(o,r,g,b);
 FxRingEx(o,r,g,b,700,40,8);
 FxRingEx(o,255,255,255,400,20,6);
@@ -17412,7 +17413,7 @@ FxDisk(o,r,g,b,350,10);
 FxExplosion(o);
 FxLight(o,r,g,b,60,30,10);
 ShakeAll(14,3.0,6);
-for(new k531 = 0;k531 < 3;k531++)
+for(new k531=0;k531 < 3;k531++)
 {
 new d531[6];d531[0]= floatround(o[0]);d531[1]= floatround(o[1]);d531[2]= floatround(o[2]);d531[3]= r;d531[4]= g;d531[5]= b;
 set_task(0.5 + 0.65 * float(k531),"task_BossAftershock531",0,d531,sizeof d531);
@@ -17431,7 +17432,7 @@ formatex(skn,charsmax(skn),"%L",boss,sk);
 Chat(boss,"BSK_FIRST_SKILL",skn);
 }
 new nm[32],spaced[64],txt[128];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -17450,7 +17451,7 @@ VoiceReset(boss);
 EpicBossStart(boss);
 set_task(0.9,"task_BossFlash",TASK_INTRO);
 set_task(2.5,"task_BossIntroEnd",TASK_INTRO + 1);
-if(g_bArB536 && g_iArHN536 > 0 && get_pcvar_num(g_pArenaTp536))set_task(0.5,"task_Arena536",TASK_INTRO + 2);
+if(g_bArB536&&g_iArHN536 > 0&&get_pcvar_num(g_pArenaTp536))set_task(0.5,"task_Arena536",TASK_INTRO + 2);
 }
 public task_BossFlash()
 {
@@ -17460,9 +17461,9 @@ FadeAll(BOSS_RGB[g_iBossType][0],BOSS_RGB[g_iBossType][1],BOSS_RGB[g_iBossType][
 }
 public task_BossIntroEnd()
 {
-if(!g_iBoss || !is_user_alive(g_iBoss))
+if(!g_iBoss||!is_user_alive(g_iBoss))
 return;
-g_fBossIntro = 0.0;
+g_fBossIntro=0.0;
 rg_reset_maxspeed(g_iBoss);
 new Float:o[3];
 get_entvar(g_iBoss,var_origin,o);
@@ -17481,54 +17482,54 @@ if(g_bEnraged)
 dmg *= 1.3;
 if(g_bFinalBoss)
 dmg *= 1.15;
-if(0 <= g_iBossType < NUM_BOSSES && get_gametime()>= g_fFxHitT[id])
+if(0<=g_iBossType < NUM_BOSSES&&get_gametime()>= g_fFxHitT[id])
 {
 g_fFxHitT[id]= get_gametime()+ 0.4;
 new Float:vo[3];
 get_entvar(id,var_origin,vo);
 FxElSmall(vo,BOSS_ELEM[g_iBossType],6);
 }
-ExecuteHamB(Ham_TakeDamage,id,0,(g_iBoss && is_user_connected(g_iBoss))? g_iBoss : 0,dmg,bits);
+ExecuteHamB(Ham_TakeDamage,id,0,(g_iBoss&&is_user_connected(g_iBoss))? g_iBoss : 0,dmg,bits);
 }
 TickBoss()
 {
-new Float:now = get_gametime();
-if(g_fEclipseEnd > 0.0 && now > g_fEclipseEnd)
+new Float:now=get_gametime();
+if(g_fEclipseEnd > 0.0&&now > g_fEclipseEnd)
 EndEclipse();
-if(g_fBlizzardEnd > 0.0 && now > g_fBlizzardEnd)
+if(g_fBlizzardEnd > 0.0&&now > g_fBlizzardEnd)
 EndBlizzard();
-if(!g_iBoss || !is_user_alive(g_iBoss))
+if(!g_iBoss||!is_user_alive(g_iBoss))
 return;
-new boss = g_iBoss;
+new boss=g_iBoss;
 new Float:o[3],Float:po[3];
 get_entvar(boss,var_origin,o);
-new r = BOSS_RGB[g_iBossType][0],g = BOSS_RGB[g_iBossType][1],b = BOSS_RGB[g_iBossType][2];
-new hp = floatround(Float:get_entvar(boss,var_health));
-new pct = hp * 100 / max(1,g_iBossMaxHP);
-new p2 = clamp(get_pcvar_num(g_pBossPhase2),2,99),p3 = clamp(get_pcvar_num(g_pBossPhase3),1,p2 - 1);
+new r=BOSS_RGB[g_iBossType][0],g=BOSS_RGB[g_iBossType][1],b=BOSS_RGB[g_iBossType][2];
+new hp=floatround(Float:get_entvar(boss,var_health));
+new pct=hp * 100 / max(1,g_iBossMaxHP);
+new p2=clamp(get_pcvar_num(g_pBossPhase2),2,99),p3=clamp(get_pcvar_num(g_pBossPhase3),1,p2 - 1);
 new phase =(pct > p2)? 1 :(pct > p3)? 2 : 3;
 if(phase > g_iBossPhase)
 {
-g_iBossPhase = phase;
+g_iBossPhase=phase;
 BossPhaseChange();
 }
 BossHud(hp,pct);
 FxLight(o,r,g,b,g_bEnraged ? 55 : 42,11,5);
-if(g_iFrame % 2 == 0)
+if(g_iFrame % 2==0)
 {
 FxFollow(boss,r,g,b,18,10);
-if(g_bHeadMarkAt && !g_iOvhBar[boss]&& !g_iOvhEmb[boss])
+if(g_bHeadMarkAt&&!g_iOvhBar[boss]&& !g_iOvhEmb[boss])
 FxHeadMark(boss,g_sprHeadMark,21,true);
 new Float:feet[3];
-feet = o;
+feet=o;
 feet[2]-= 30.0;
 FxRingEx(feet,r,g,b,160,10,4,160);
 }
-if(g_iFrame % 3 == 0)
+if(g_iFrame % 3==0)
 {
 FxRing(o,r,g,b,280);
 FxImplosion(o,120,20,4);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -17542,7 +17543,7 @@ BossHurt(p,6.0,DMG_CRUSH);
 BossPassive(boss,o);
 if(g_fBlizzardEnd > now)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -17552,29 +17553,29 @@ BossHurt(p,4.0,DMG_FREEZE);
 }
 }
 BossAutoR();
-new interval =(g_iBossPhase == 1)? 9 :(g_iBossPhase == 2)? 7 : 5;
-if(get_pcvar_num(g_pBossAutoAbil)&& g_fBossIntro <= now && ++g_iBossTick >= interval && !task_exists(TASK_BOSSCAST))
+new interval =(g_iBossPhase==1)? 9 :(g_iBossPhase==2)? 7 : 5;
+if(get_pcvar_num(g_pBossAutoAbil)&& g_fBossIntro<=now&&++g_iBossTick>=interval&&!task_exists(TASK_BOSSCAST))
 {
-g_iBossTick = 0;
+g_iBossTick=0;
 if(!BossAutoOldSkill())
 {
-new ability = 0;
-if(g_iBossPhase >= 2 && random_num(0,1))
-ability = 1;
+new ability=0;
+if(g_iBossPhase>=2&&random_num(0,1))
+ability=1;
 BossTelegraph(ability);
 }
 }
 }
 BossPassive(boss,const Float:o[3])
 {
-new Float:po[3],Float:now = get_gametime();
+new Float:po[3],Float:now=get_gametime();
 switch(g_iBossType)
 {
 case 1:
 {
-if(g_iFrame % 6 == 0)
+if(g_iFrame % 6==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -17587,7 +17588,7 @@ FadeOne(p,200,210,255,90,0.6);
 case 3:
 {
 FxSprite(o,g_sprExplode,6,160);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -17602,7 +17603,7 @@ g_iBurnBy[p]= boss;
 case 5:
 {
 FxStreak(o,7,30,160);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -17618,19 +17619,19 @@ FadeOne(p,120,200,255,50,0.5);
 case 6:
 {
 FxSparks(o);
-if(g_iFrame % 2 == 0)
+if(g_iFrame % 2==0)
 {
-new best,Float:bd = 300.0;
-for(new p = 1;p <= g_iMax;p++)
+new best,Float:bd=300.0;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
+new Float:d=get_distance_f(o,po);
 if(d < bd)
 {
-bd = d;
-best = p;
+bd=d;
+best=p;
 }
 }
 if(best)
@@ -17645,19 +17646,19 @@ EmitKey(best,"ZAP");
 case 7:
 {
 HealTo(boss,max(10,g_iBossMaxHP / 250),g_iBossMaxHP);
-if(g_iFrame % 2 == 0)
+if(g_iFrame % 2==0)
 FxSprite(o,g_sprSmoke,15,120);
 }
 case 8:
 {
 FxImplosion(o,200,30,5);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
-if(d > 340.0 || d < 40.0)
+new Float:d=get_distance_f(o,po);
+if(d > 340.0||d < 40.0)
 continue;
 new Float:vel[3];
 get_entvar(p,var_velocity,vel);
@@ -17673,17 +17674,17 @@ BossPhaseChange()
 UiAll52(59,2.5,8);
 new Float:o[3],key[20];
 get_entvar(g_iBoss,var_origin,o);
-g_fBossRCool = get_gametime()+ 1.0;
+g_fBossRCool=get_gametime()+ 1.0;
 BossSkillUnlock();
-new r = BOSS_RGB[g_iBossType][0],g = BOSS_RGB[g_iBossType][1],b = BOSS_RGB[g_iBossType][2];
+new r=BOSS_RGB[g_iBossType][0],g=BOSS_RGB[g_iBossType][1],b=BOSS_RGB[g_iBossType][2];
 FxLava(o);
 FxRingEx(o,r,g,b,800,50,7);
 FxSkyStrike(o,r,g,b);
 FxSkyStrike(o,255,255,255);
 FxFunnel(o,g_sprFlare,true);
-if(g_iBossPhase == 3)
+if(g_iBossPhase==3)
 {
-g_bEnraged = true;
+g_bEnraged=true;
 rg_reset_maxspeed(g_iBoss);
 HudAll(SL_ALERT,CLR_DANGER,3.0,"BOSS_ENRAGE");
 FadeAll(255,0,0,120,1.5);
@@ -17691,7 +17692,7 @@ ShakeAll(15,2.5,7);
 PlayKey(0,"BOSS_ENRAGE");
 EmitBossSound("PHASE");
 ApplyRender(g_iBoss);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_FOG))
 SendFog(p,120,0,0,true);
@@ -17717,19 +17718,19 @@ BossTelegraph(ability)
 {
 new Float:o[3],key[20];
 get_entvar(g_iBoss,var_origin,o);
-new r = BOSS_RGB[g_iBossType][0],g = BOSS_RGB[g_iBossType][1],b = BOSS_RGB[g_iBossType][2];
+new r=BOSS_RGB[g_iBossType][0],g=BOSS_RGB[g_iBossType][1],b=BOSS_RGB[g_iBossType][2];
 formatex(key,charsmax(key),ability ? "BOSS_WARN2_%d" : "BOSS_WARN_%d",g_iBossType);
 HudAll(SL_ALERT,CLR_WARN,1.5,key);
-new radius = BossAbilityRadius(ability);
+new radius=BossAbilityRadius(ability);
 if(radius > 0)
 {
 ZoneSpawn(o,float(radius),r,g,b,g_bEnraged ? 1.2 : 1.5,g_iBoss,false);
 new Float:feet[3];
-feet = o;
+feet=o;
 feet[2]-= 30.0;
-g_bFxReliable = true;
+g_bFxReliable=true;
 FxRingEx(feet,255,30,30,radius,8,15);
-g_bFxReliable = false;
+g_bFxReliable=false;
 }
 FxRing(o,255,0,0,150);
 FxImplosion(o,200,40,10);
@@ -17741,7 +17742,7 @@ set_task(g_bEnraged ? 1.2 : 1.5,"task_BossCast",TASK_BOSSCAST,params,1);
 }
 public task_BossCast(params[])
 {
-if(!g_iBoss || !is_user_alive(g_iBoss)|| !g_bRoundActive)
+if(!g_iBoss||!is_user_alive(g_iBoss)|| !g_bRoundActive)
 return;
 new Float:bo[3],key[20];
 get_entvar(g_iBoss,var_origin,bo);
@@ -17779,11 +17780,11 @@ case 8: BossEclipse(bo);
 }
 }
 }
-BossAoE(const Float:c[3],Float:radius,Float:dmg,r,g,b,Float:up = 0.0)
+BossAoE(const Float:c[3],Float:radius,Float:dmg,r,g,b,Float:up=0.0)
 {
 new Float:po[3],Float:vel[3],hits;
 FxBossElement(c,radius);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -17822,8 +17823,8 @@ FxRing(bo,220,220,255,750);
 FxRing(bo,160,160,255,500);
 FxImplosion(bo,255,60,8);
 FxLight(bo,200,200,255,45,10,30);
-new Float:po[3],Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:po[3],Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -17850,12 +17851,12 @@ HealTo(g_iBoss,g_iBossMaxHP / 20,g_iBossMaxHP);
 SummonMinions(maxCount)
 {
 new c;
-for(new id = 1;id <= g_iMax && c < maxCount;id++)
+for(new id=1;id<=g_iMax&&c < maxCount;id++)
 {
 if(!is_user_connected(id)|| is_user_alive(id))
 continue;
-new TeamName:t = get_member(id,m_iTeam);
-if(t != TEAM_CT && t != TEAM_TERRORIST)
+new TeamName:t=get_member(id,m_iTeam);
+if(t!=TEAM_CT&&t!=TEAM_TERRORIST)
 continue;
 g_bForceZombie[id]= 1;
 g_bMinion[id]= 1;
@@ -17874,7 +17875,7 @@ FxRing(bo,255,40,0,360);
 FxExplosion(bo);
 FxLight(bo,255,120,0,50,12,25);
 new Float:po[3];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -17891,19 +17892,19 @@ BossHurt(id,20.0,DMG_BURN);
 BossReaper(const Float:bo[3])
 {
 new alive[32],n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 alive[n++]= id;
 }
 if(!n)
 return;
-new target = alive[random(n)];
+new target=alive[random(n)];
 new Float:dest[3],Float:test[3];
 get_entvar(target,var_origin,dest);
 FxTeleport(bo);
 FxRing(bo,120,0,200,300);
-test = dest;
+test=dest;
 test[0]+= 70.0;
 test[2]+= 20.0;
 if(IsHullFree(g_iBoss,test))
@@ -17919,8 +17920,8 @@ FxTeleport(dest);
 FxRing(dest,120,0,200,350);
 FxLight(dest,150,0,200,45,12,25);
 BossAoE(dest,300.0,45.0,120,0,200);
-new Float:now = get_gametime(),Float:po[3];
-for(new id = 1;id <= g_iMax;id++)
+new Float:now=get_gametime(),Float:po[3];
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -17940,8 +17941,8 @@ FxRingEx(bo,220,240,255,340,20,6);
 FxDisk(bo,0,150,255,460,6);
 FxStreak(bo,7,150,450);
 FxLight(bo,0,190,255,55,12,20);
-new Float:po[3],Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:po[3],Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -17959,10 +17960,10 @@ BossHurt(id,18.0,DMG_FREEZE);
 }
 BossBlizzard()
 {
-g_fBlizzardEnd = get_gametime()+ 6.0;
+g_fBlizzardEnd=get_gametime()+ 6.0;
 PlayKey(0,"FROST_NOVA");
 PlayKey(0,"THUNDER");
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
@@ -17978,8 +17979,8 @@ ShakeOne(id);
 }
 EndBlizzard()
 {
-g_fBlizzardEnd = 0.0;
-for(new id = 1;id <= g_iMax;id++)
+g_fBlizzardEnd=0.0;
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
@@ -17991,19 +17992,19 @@ rg_reset_maxspeed(id);
 BossThunder()
 {
 new alive[32],n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 alive[n++]= id;
 }
-for(new i = 0;i < 4 && n > 0;i++)
+for(new i=0;i < 4&&n > 0;i++)
 {
-new pick = random(n);
+new pick=random(n);
 new Float:o[3];
 get_entvar(alive[pick],var_origin,o);
 alive[pick]= alive[n - 1];
 n--;
-ZoneSpawn(o,170.0,255,240,80,1.2 + 0.25 * float(i),0,i == 0);
+ZoneSpawn(o,170.0,255,240,80,1.2 + 0.25 * float(i),0,i==0);
 o[2]-= 30.0;
 new params[3];
 params[0]= _:o[0];
@@ -18025,13 +18026,13 @@ FxSkyStrike(o,255,255,255);
 FxRingEx(o,255,240,80,260,20,5);
 FxStreak(o,5,60,300);
 PlayKey(0,"THUNDER");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !(g_iSet[p]& SET_NO_FX))
 FadeOne(p,255,255,255,60,0.2);
 }
-new Float:po[3],Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:po[3],Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -18046,9 +18047,9 @@ BossHurt(id,40.0,DMG_SHOCK);
 }
 BossChain(const Float:bo[3])
 {
-new Float:po[3],Float:now = get_gametime();
+new Float:po[3],Float:now=get_gametime();
 PlayKey(0,"THUNDER");
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -18073,15 +18074,15 @@ FxRingEx(bo,255,240,80,700,20,5);
 BossAcidPools()
 {
 new alive[32],n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 alive[n++]= id;
 }
-new Float:now = get_gametime();
-for(new i = 0;i < 3 && n > 0;i++)
+new Float:now=get_gametime();
+for(new i=0;i < 3&&n > 0;i++)
 {
-new pick = random(n);
+new pick=random(n);
 new Float:o[3];
 get_entvar(alive[pick],var_origin,o);
 alive[pick]= alive[n - 1];
@@ -18094,14 +18095,14 @@ PlayKey(0,"ACID_POOL");
 }
 TickPools()
 {
-new Float:now = get_gametime(),Float:po[3];
-for(new s = 0;s < sizeof g_fPoolEnd;s++)
+new Float:now=get_gametime(),Float:po[3];
+for(new s=0;s < sizeof g_fPoolEnd;s++)
 {
 if(g_fPoolEnd[s]< now)
 continue;
 new Float:rad =(g_fPoolRad[s]> 0.0)? g_fPoolRad[s]: 150.0;
-new bool:fire =(g_iPoolType[s]== 1 || g_iPoolType[s]== 2)? true : false;
-if(g_iFrame % 2 == 0)
+new bool:fire =(g_iPoolType[s]== 1||g_iPoolType[s]== 2)? true : false;
+if(g_iFrame % 2==0)
 {
 if(fire)
 FxSprite(g_fPoolPos[s],g_sprFire ? g_sprFire : g_sprExplode,(g_iPoolType[s]== 2)? 4 : 6,180);
@@ -18110,7 +18111,7 @@ FxSprite(g_fPoolPos[s],g_sprSmoke,12,140);
 }
 if(g_iPoolType[s]== 2)
 continue;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id))
 continue;
@@ -18147,7 +18148,7 @@ FxImplosion(bo,250,60,8);
 SummonMinions(2);
 HealTo(g_iBoss,g_iBossMaxHP / 25,g_iBossMaxHP);
 new Float:po[3];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -18161,8 +18162,8 @@ FadeOne(id,110,255,0,120,1.0);
 }
 BossGravityWell(const Float:bo[3])
 {
-g_fBossFxPos = bo;
-g_iBossFxStep = 0;
+g_fBossFxPos=bo;
+g_iBossFxStep=0;
 PlayKey(0,"GRAVITY_WELL");
 FxFunnel(bo,g_sprFlare,false);
 FxDisk(bo,220,0,140,260,18);
@@ -18170,32 +18171,32 @@ set_task(0.1,"task_GravityPull",TASK_BOSSFX,_,_,"a",16);
 }
 public task_GravityPull()
 {
-if(!g_iBoss || !is_user_alive(g_iBoss)|| !g_bRoundActive)
+if(!g_iBoss||!is_user_alive(g_iBoss)|| !g_bRoundActive)
 {
 remove_task(TASK_BOSSFX);
 return;
 }
 new Float:c[3],Float:po[3],Float:vel[3];
-c = g_fBossFxPos;
+c=g_fBossFxPos;
 g_iBossFxStep++;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
 get_entvar(id,var_origin,po);
-new Float:d = get_distance_f(c,po);
-if(d > 750.0 || d < 30.0)
+new Float:d=get_distance_f(c,po);
+if(d > 750.0||d < 30.0)
 continue;
 vel[0]=(c[0]- po[0])/ d * 360.0;
 vel[1]=(c[1]- po[1])/ d * 360.0;
 vel[2]= 40.0;
 set_entvar(id,var_velocity,vel);
-if(g_iBossFxStep % 4 == 0)
+if(g_iBossFxStep % 4==0)
 FxBeamEx(po,c,g_sprLightning,220,0,140,20,40,4);
 }
-if(g_iBossFxStep % 5 == 0)
+if(g_iBossFxStep % 5==0)
 FxImplosion(c,255,60,6);
-if(g_iBossFxStep >= 16)
+if(g_iBossFxStep>=16)
 {
 FxExplosion(c);
 FxRingEx(c,220,0,140,420,50,6);
@@ -18207,11 +18208,11 @@ BossAoE(c,280.0,40.0,220,0,140,380.0);
 }
 BossEclipse(const Float:bo[3])
 {
-g_fEclipseEnd = get_gametime()+ 7.0;
+g_fEclipseEnd=get_gametime()+ 7.0;
 PlayKey(0,"ECLIPSE");
 FxFunnel(bo,g_sprFlare,true);
 engfunc(EngFunc_LightStyle,0,"a");
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
@@ -18224,14 +18225,14 @@ rg_reset_maxspeed(g_iBoss);
 }
 EndEclipse()
 {
-g_fEclipseEnd = 0.0;
+g_fEclipseEnd=0.0;
 engfunc(EngFunc_LightStyle,0,g_szLight);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id))
 SendFogForEvent(id);
 }
-if(g_iBoss && is_user_alive(g_iBoss))
+if(g_iBoss&&is_user_alive(g_iBoss))
 {
 ApplyRender(g_iBoss);
 rg_reset_maxspeed(g_iBoss);
@@ -18246,7 +18247,7 @@ set_task(0.5,"task_BruteImpact",TASK_BOSSHIT);
 }
 public task_BruteImpact()
 {
-if(!g_iBoss || !is_user_alive(g_iBoss))
+if(!g_iBoss||!is_user_alive(g_iBoss))
 return;
 new Float:o[3];
 get_entvar(g_iBoss,var_origin,o);
@@ -18258,9 +18259,9 @@ BossAoE(o,260.0,40.0,255,160,0,300.0);
 }
 BossWail()
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 EmitBossSound("SCREAM");
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -18285,21 +18286,21 @@ PlayKey(0,"BOSS_SUMMON");
 BossMeteorRain()
 {
 new alive[32],n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 alive[n++]= id;
 }
-for(new i = 0;i < 3 && n > 0;i++)
+for(new i=0;i < 3&&n > 0;i++)
 {
-new pick = random(n);
+new pick=random(n);
 new Float:o[3];
-new victim = alive[pick];
+new victim=alive[pick];
 alive[pick]= alive[n - 1];
 n--;
 if(!MeteorSpot(victim,o))
 continue;
-ZoneSpawn(o,200.0,255,80,0,1.2 + 0.2 * float(i),0,i == 0);
+ZoneSpawn(o,200.0,255,80,0,1.2 + 0.2 * float(i),0,i==0);
 FxLight(o,255,60,0,30,15,5);
 new params[4];
 params[0]= _:o[0];
@@ -18314,7 +18315,7 @@ BossHarvest(const Float:bo[3])
 new Float:po[3],total;
 EmitBossSound("SCREAM");
 FxImplosion(bo,255,80,12);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| g_bZombie[id])
 continue;
@@ -18324,18 +18325,18 @@ continue;
 FxBeam(po,bo,g_sprLightning,120,0,200,25);
 FadeOne(id,120,0,200,120,1.0);
 BossHurt(id,15.0,DMG_GENERIC);
-total += 15;
+total+=15;
 }
 if(total)
 HealTo(g_iBoss,total * 12,g_iBossMaxHP);
 }
 BossDeath(victim,const Float:o[3],const killer[])
 {
-new type = g_iBossType;
-new r = BOSS_RGB[type][0],g = BOSS_RGB[type][1],b = BOSS_RGB[type][2];
+new type=g_iBossType;
+new r=BOSS_RGB[type][0],g=BOSS_RGB[type][1],b=BOSS_RGB[type][2];
 BossCleanup();
-g_iBoss = 0;
-g_fBossIntro = 0.0;
+g_iBoss=0;
+g_fBossIntro=0.0;
 MsEvent(ME_BOSS_DEAD);
 remove_task(TASK_BOSSCAST);
 remove_task(TASK_BOSSHIT);
@@ -18344,9 +18345,9 @@ remove_task(TASK_INTRO);
 remove_task(TASK_INTRO + 1);
 remove_task(TASK_INTRO + 2);
 remove_task(TASK_INTRO + 3);
-for(new i = 0;i < 4;i++)
+for(new i=0;i < 4;i++)
 remove_task(TASK_BOSSHIT + 10 + i);
-for(new s = 0;s < sizeof g_fPoolEnd;s++)
+for(new s=0;s < sizeof g_fPoolEnd;s++)
 g_fPoolEnd[s]= 0.0;
 if(g_fEclipseEnd > 0.0)
 EndEclipse();
@@ -18372,15 +18373,15 @@ params[2]= _:o[2];
 set_task(0.4,"task_BossBoom",TASK_BOSSHIT + 20,params,3);
 set_task(0.8,"task_BossBoom",TASK_BOSSHIT + 21,params,3);
 set_task(1.3,"task_BossBoom",TASK_BOSSHIT + 22,params,3);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p))
 SendFogForEvent(p);
 }
 BossDamageBoard();
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p != victim && g_bMinion[p]&& is_user_alive(p))
+if(p!=victim&&g_bMinion[p]&& is_user_alive(p))
 user_kill(p,1);
 }
 }
@@ -18397,15 +18398,15 @@ FxRing(o,255,255,255,220);
 BossDamageBoard()
 {
 new ids[3],dmg[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| g_iBossDmg[p]<= 0)
 continue;
-for(new r = 0;r < 3;r++)
+for(new r=0;r < 3;r++)
 {
 if(g_iBossDmg[p]> dmg[r])
 {
-for(new s = 2;s > r;s--)
+for(new s=2;s > r;s--)
 {
 ids[s]= ids[s - 1];
 dmg[s]= dmg[s - 1];
@@ -18428,28 +18429,28 @@ PRIZE[2]= str_to_num(a3);
 }
 ChatAll("BOSS_BOARD_TITLE");
 new name[32],names[3][32];
-for(new r = 0;r < 3;r++)
+for(new r=0;r < 3;r++)
 {
 if(!ids[r])
 break;
 get_user_name(ids[r],name,charsmax(name));
 copy(names[r],18,name);
 AddAP(ids[r],PRIZE[r],false,false);
-if(r == 0)
+if(r==0)
 g_iVC[ids[r]]+= 2;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,ids[r],"%s %L",ChatTag("BOSS_BOARD_LINE"),p,"BOSS_BOARD_LINE",r + 1,name,dmg[r],PRIZE[r]);
 }
 }
 new txt[128];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
 formatex(txt,charsmax(txt),"%L",p,"BOSS_BOARD_HUD");
-for(new r = 0;r < 3 && ids[r];r++)
+for(new r=0;r < 3&&ids[r];r++)
 format(txt,charsmax(txt),"%s^n#%d  %s  -  %d",txt,r + 1,names[r],dmg[r]);
 HudText(p,SL_ALERT,CLR_REWARD,4.5,txt);
 }
@@ -18458,14 +18459,14 @@ public cmd_bossinfo(id)
 {
 new key[20];
 Chat(id,"BOSSINFO_TITLE");
-for(new b = 0;b < NUM_BOSSES;b++)
+for(new b=0;b < NUM_BOSSES;b++)
 {
-if(g_iBossLoadN > 0 && !BossIsLoaded(b))
+if(g_iBossLoadN > 0&&!BossIsLoaded(b))
 continue;
 formatex(key,charsmax(key),"BOSS_INFO_%d",b);
 Chat(id,key);
 }
-new left = RoundsToBoss();
+new left=RoundsToBoss();
 if(left > 0)
 Chat(id,"BOSS_NEXT_IN",left);
 return PLUGIN_HANDLED;
@@ -18501,7 +18502,7 @@ BossAimPoint(Float:range,Float:out[3])
 new Float:eye[3],Float:fwd[3],Float:end[3];
 BossEye(eye);
 BossFwd(fwd,false);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 end[i]= eye[i]+ fwd[i]* range;
 engfunc(EngFunc_TraceLine,eye,end,IGNORE_MONSTERS,g_iBoss,0);
 get_tr2(0,TR_vecEndPos,out);
@@ -18513,32 +18514,32 @@ get_entvar(p,var_origin,po);
 engfunc(EngFunc_TraceLine,a,po,IGNORE_MONSTERS,g_iBoss,0);
 new Float:frac;
 get_tr2(0,TR_flFraction,frac);
-return(frac >= 0.98)? true : false;
+return(frac>=0.98)? true : false;
 }
 BossPickHuman(Float:range,Float:minDot)
 {
 new Float:eye[3],Float:fwd[3],Float:po[3];
 BossEye(eye);
 BossFwd(fwd,false);
-new best,Float:bestDot = minDot,nearest,Float:nd = range;
-for(new p = 1;p <= g_iMax;p++)
+new best,Float:bestDot=minDot,nearest,Float:nd=range;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(eye,po);
-if(d > range || d < 1.0 || !BossSees(eye,p))
+new Float:d=get_distance_f(eye,po);
+if(d > range||d < 1.0||!BossSees(eye,p))
 continue;
 new Float:dot =((po[0]- eye[0])* fwd[0]+(po[1]- eye[1])* fwd[1]+(po[2]- eye[2])* fwd[2])/ d;
 if(dot > bestDot)
 {
-bestDot = dot;
-best = p;
+bestDot=dot;
+best=p;
 }
 if(d < nd)
 {
-nd = d;
-nearest = p;
+nd=d;
+nearest=p;
 }
 }
 return best ? best : nearest;
@@ -18547,7 +18548,7 @@ bool:HumanInRange(Float:range)
 {
 new Float:bo[3],Float:po[3];
 get_entvar(g_iBoss,var_origin,bo);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -18557,7 +18558,7 @@ return true;
 }
 return false;
 }
-BskTask(Float:delay,const func[],const Float:o[3],extra = 0)
+BskTask(Float:delay,const func[],const Float:o[3],extra=0)
 {
 new params[5];
 params[0]= g_iBossSerial;
@@ -18570,7 +18571,7 @@ set_task(delay,func,TASK_BSK + g_iBskSlot,params,sizeof params);
 }
 bool:BskValid(const params[])
 {
-return(params[0]== g_iBossSerial && g_iBoss && is_user_alive(g_iBoss)&& g_bRoundActive && !g_bRoundEnded)? true : false;
+return(params[0]== g_iBossSerial&&g_iBoss&&is_user_alive(g_iBoss)&& g_bRoundActive&&!g_bRoundEnded)? true : false;
 }
 BskPos(const params[],Float:o[3])
 {
@@ -18582,36 +18583,36 @@ PushFrom(p,const Float:c[3],Float:force,Float:up)
 {
 new Float:po[3],Float:vel[3];
 get_entvar(p,var_origin,po);
-new Float:dx = po[0]- c[0],Float:dy = po[1]- c[1];
-new Float:len = floatsqroot(dx * dx + dy * dy);
+new Float:dx=po[0]- c[0],Float:dy=po[1]- c[1];
+new Float:len=floatsqroot(dx * dx + dy * dy);
 if(len < 1.0)
 {
-dx = 1.0;
-dy = 0.0;
-len = 1.0;
+dx=1.0;
+dy=0.0;
+len=1.0;
 }
 get_entvar(p,var_velocity,vel);
 vel[0]= dx / len * force;
 vel[1]= dy / len * force;
 vel[2]= up;
 set_entvar(p,var_velocity,vel);
-if(g_iDirLogN[DIR_PUSH]< DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+if(g_iDirLogN[DIR_PUSH]< DIR_LOG_MAX&&get_pcvar_num(g_pDbgDirs))
 {
 new Float:hv[3],Float:away[3];
 hv[0]= vel[0];hv[1]= vel[1];
 away[0]= dx;away[1]= dy;
-DirCheck(DIR_PUSH,force >= 0.0 ? "boss_push" : "boss_pushin",hv,away);
+DirCheck(DIR_PUSH,force>=0.0 ? "boss_push" : "boss_pushin",hv,away);
 }
 }
 PullTo(p,const Float:c[3],Float:force)
 {
 new Float:po[3],Float:vel[3];
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(c,po);
+new Float:d=get_distance_f(c,po);
 if(d < 24.0)
 return;
 get_entvar(p,var_velocity,vel);
-if(g_iDirLogN[DIR_DRAW]< DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+if(g_iDirLogN[DIR_DRAW]< DIR_LOG_MAX&&get_pcvar_num(g_pDbgDirs))
 {
 new Float:add[3],Float:to[3];
 add[0]=(c[0]- po[0])/ d * force;add[1]=(c[1]- po[1])/ d * force;
@@ -18620,7 +18621,7 @@ DirCheck(DIR_DRAW,"boss_pull",add,to);
 }
 vel[0]+=(c[0]- po[0])/ d * force;
 vel[1]+=(c[1]- po[1])/ d * force;
-new Float:sp = floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]);
+new Float:sp=floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]);
 if(sp > 520.0)
 {
 vel[0]= vel[0]/ sp * 520.0;
@@ -18630,7 +18631,7 @@ set_entvar(p,var_velocity,vel);
 }
 SlowHuman(p,Float:dur)
 {
-new Float:t = get_gametime()+ dur;
+new Float:t=get_gametime()+ dur;
 if(g_fSlow[p]< t)
 g_fSlow[p]= t;
 rg_reset_maxspeed(p);
@@ -18652,7 +18653,7 @@ BskAnnounce(ph)
 new key[16],tkey[16],nm[48],tip[64],txt[128];
 formatex(key,charsmax(key),"BSK_%d_%d",g_iBossType,ph);
 formatex(tkey,charsmax(tkey),"BSKT_%d_%d",g_iBossType,ph);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -18663,7 +18664,7 @@ HudText(p,SL_ALERT,UI_R,UI_G,UI_B,1.6,txt);
 }
 formatex(key,charsmax(key),"B%d_R%d",g_iBossType,ph);
 EmitKey(g_iBoss,key,CHAN_STATIC,ATTN_NONE);
-if(g_iBoss && is_user_alive(g_iBoss)&& 0 <= g_iBossType < NUM_BOSSES)
+if(g_iBoss&&is_user_alive(g_iBoss)&& 0<=g_iBossType < NUM_BOSSES)
 {
 new Float:bo[3];
 get_entvar(g_iBoss,var_origin,bo);
@@ -18672,9 +18673,9 @@ FxElSmall(bo,BOSS_ELEM[g_iBossType],8 + clamp(ph,1,3)* 3);
 }
 public BossUseR(id)
 {
-if(id != g_iBoss || !is_user_alive(id))
+if(id!=g_iBoss||!is_user_alive(id))
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(g_fBossIntro > now)
 {
 SkillDeny(id,"SKILL_BOSS_INTRO",floatround(g_fBossIntro - now,floatround_ceil));
@@ -18685,45 +18686,45 @@ if(now < g_fBossRCool)
 SkillDeny(id,"ABILITY_COOL",floatround(g_fBossRCool - now,floatround_ceil));
 return;
 }
-if(g_iBossChannel != CH_NONE || task_exists(TASK_BOSSCAST))
+if(g_iBossChannel!=CH_NONE||task_exists(TASK_BOSSCAST))
 {
 SkillDeny(id,"BSK_BUSY");
 return;
 }
 BossCastR(clamp(g_iBossPhase,1,3));
 }
-bool:BossCastR(ph,bool:setCool = true)
+bool:BossCastR(ph,bool:setCool=true)
 {
 new bool:ok;
 switch(g_iBossType * 10 + ph)
 {
-case 1: ok = Bsk_BruteStomp();
-case 2: ok = Bsk_BruteShatter();
-case 3: ok = Bsk_BruteWrath();
-case 11: ok = Bsk_BansheeLance();
-case 12: ok = Bsk_BansheeShriek();
-case 13: ok = Bsk_BansheeRequiem();
-case 21: ok = Bsk_OverlordPrison();
-case 22: ok = Bsk_OverlordLegion();
-case 23: ok = Bsk_OverlordNova();
-case 31: ok = Bsk_InfernoBreath();
-case 32: ok = Bsk_InfernoPillars();
-case 33: ok = Bsk_InfernoNova();
-case 41: ok = Bsk_ReaperStep();
-case 42: ok = Bsk_ReaperChains();
-case 43: ok = Bsk_ReaperMark();
-case 51: ok = Bsk_FrostShards();
-case 52: ok = Bsk_FrostTomb();
-case 53: ok = Bsk_FrostZero();
-case 61: ok = Bsk_StormOrb();
-case 62: ok = Bsk_StormDash();
-case 63: ok = Bsk_StormTempest();
-case 71: ok = Bsk_HiveSpit();
-case 72: ok = Bsk_HiveCloud();
-case 73: ok = Bsk_HiveEggs();
-case 81: ok = Bsk_VoidBolt();
-case 82: ok = Bsk_VoidSingularity();
-case 83: ok = Bsk_VoidHorizon();
+case 1: ok=Bsk_BruteStomp();
+case 2: ok=Bsk_BruteShatter();
+case 3: ok=Bsk_BruteWrath();
+case 11: ok=Bsk_BansheeLance();
+case 12: ok=Bsk_BansheeShriek();
+case 13: ok=Bsk_BansheeRequiem();
+case 21: ok=Bsk_OverlordPrison();
+case 22: ok=Bsk_OverlordLegion();
+case 23: ok=Bsk_OverlordNova();
+case 31: ok=Bsk_InfernoBreath();
+case 32: ok=Bsk_InfernoPillars();
+case 33: ok=Bsk_InfernoNova();
+case 41: ok=Bsk_ReaperStep();
+case 42: ok=Bsk_ReaperChains();
+case 43: ok=Bsk_ReaperMark();
+case 51: ok=Bsk_FrostShards();
+case 52: ok=Bsk_FrostTomb();
+case 53: ok=Bsk_FrostZero();
+case 61: ok=Bsk_StormOrb();
+case 62: ok=Bsk_StormDash();
+case 63: ok=Bsk_StormTempest();
+case 71: ok=Bsk_HiveSpit();
+case 72: ok=Bsk_HiveCloud();
+case 73: ok=Bsk_HiveEggs();
+case 81: ok=Bsk_VoidBolt();
+case 82: ok=Bsk_VoidSingularity();
+case 83: ok=Bsk_VoidHorizon();
 }
 if(!ok)
 {
@@ -18734,24 +18735,24 @@ show_dhudmessage(g_iBoss,"%L",g_iBoss,"BSK_NO_TARGET");
 }
 return false;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 BskAnnounce(ph);
 EpicBossCastFx();
 rg_set_animation(g_iBoss,PLAYER_ATTACK1);
 if(setCool)
 {
-g_fBossRCool = now + BSK_COOL[g_iBossType][ph - 1]* floatmax(0.1,get_pcvar_float(g_pBossRCdMult));
-g_fBossRLast = now;
+g_fBossRCool=now + BSK_COOL[g_iBossType][ph - 1]* floatmax(0.1,get_pcvar_float(g_pBossRCdMult));
+g_fBossRLast=now;
 }
 return true;
 }
 BossAutoR()
 {
-new idle = get_pcvar_num(g_pBossRAuto);
-if(idle <= 0 || g_iBossChannel != CH_NONE)
+new idle=get_pcvar_num(g_pBossRAuto);
+if(idle<=0||g_iBossChannel!=CH_NONE)
 return;
-new Float:now = get_gametime();
-if(g_fBossIntro > now || now < g_fBossRCool)
+new Float:now=get_gametime();
+if(g_fBossIntro > now||now < g_fBossRCool)
 return;
 if(!is_user_bot(g_iBoss)&& now - g_fBossRLast < float(idle))
 return;
@@ -18761,10 +18762,10 @@ BossCastR(clamp(g_iBossPhase,1,3));
 }
 bool:BossAutoOldSkill()
 {
-if(g_iBossPhase < 2 || g_iBossChannel != CH_NONE || random_num(1,100)> 40)
+if(g_iBossPhase < 2||g_iBossChannel!=CH_NONE||random_num(1,100)> 40)
 return false;
-new ph = random_num(1,g_iBossPhase - 1);
-new t = BossPickHuman(1200.0,-1.0);
+new ph=random_num(1,g_iBossPhase - 1);
+new t=BossPickHuman(1200.0,-1.0);
 if(t)
 BossFace(t);
 return BossCastR(ph,false)? true : false;
@@ -18774,7 +18775,7 @@ BossFace(t)
 new Float:bo[3],Float:po[3],Float:dir[3],Float:ang[3];
 get_entvar(g_iBoss,var_origin,bo);
 get_entvar(t,var_origin,po);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 dir[i]= po[i]- bo[i];
 engfunc(EngFunc_VecToAngles,dir,ang);
 ang[0]= -ang[0];
@@ -18784,22 +18785,22 @@ set_entvar(g_iBoss,var_angles,ang);
 }
 StartChannel(type,Float:dur)
 {
-g_iBossChannel = type;
-g_fBossChannelEnd = get_gametime()+ dur;
-g_iBossChannelTick = 0;
+g_iBossChannel=type;
+g_fBossChannelEnd=get_gametime()+ dur;
+g_iBossChannelTick=0;
 remove_task(TASK_BCHAN);
 set_task(0.1,"task_BossChannel",TASK_BCHAN,_,_,"b");
 }
 EndChannel(bool:bossAlive)
 {
-new type = g_iBossChannel;
-g_iBossChannel = CH_NONE;
+new type=g_iBossChannel;
+g_iBossChannel=CH_NONE;
 remove_task(TASK_BCHAN);
 switch(type)
 {
 case CH_TITAN:
 {
-g_fBossBuffEnd = 0.0;
+g_fBossBuffEnd=0.0;
 if(bossAlive)
 {
 ApplyRender(g_iBoss);
@@ -18808,7 +18809,7 @@ rg_reset_maxspeed(g_iBoss);
 }
 case CH_CHAINS:
 {
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 g_iBossTethers[i]= 0;
 }
 case CH_ZERO,CH_TEMPEST:
@@ -18827,7 +18828,7 @@ get_entvar(g_iBoss,var_origin,bo);
 FxRingEx(bo,220,0,140,floatround(BskRad(3)),50,6);
 FxRingEx(bo,255,255,255,floatround(BskRad(3)* 0.6),20,5);
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -18842,31 +18843,31 @@ ShakeAll(10,1.0,5);
 }
 public task_BossChannel()
 {
-new Float:now = get_gametime();
-new bool:alive =(g_iBoss && is_user_alive(g_iBoss)&& g_bRoundActive)? true : false;
-if(!alive || now >= g_fBossChannelEnd)
+new Float:now=get_gametime();
+new bool:alive =(g_iBoss&&is_user_alive(g_iBoss)&& g_bRoundActive)? true : false;
+if(!alive||now>=g_fBossChannelEnd)
 {
 EndChannel(alive);
 return;
 }
 g_iBossChannelTick++;
-new tick = g_iBossChannelTick;
+new tick=g_iBossChannelTick;
 new Float:bo[3],Float:po[3];
 get_entvar(g_iBoss,var_origin,bo);
 switch(g_iBossChannel)
 {
 case CH_TITAN:
 {
-if(tick % 10 == 0)
+if(tick % 10==0)
 {
-new Float:rad = BskRad(3);
+new Float:rad=BskRad(3);
 new Float:feet[3];
-feet = bo;
+feet=bo;
 feet[2]-= 30.0;
 FxRingEx(feet,255,90,0,floatround(rad),24,4);
 FxLava(bo);
 ShakeAll(4,0.6,4);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -18877,18 +18878,18 @@ PushFrom(p,bo,520.0,220.0);
 BossHurt(p,BskDmg(3),DMG_CRUSH);
 }
 }
-if(tick % 2 == 0)
+if(tick % 2==0)
 FxLight(bo,255,80,0,40,3,30);
 }
 case CH_REQUIEM:
 {
-if(tick % 10 == 0)
+if(tick % 10==0)
 {
-new Float:rad = BskRad(3),hits;
+new Float:rad=BskRad(3),hits;
 FxRingEx(bo,200,210,255,floatround(rad * 0.5),30,5);
 FxRingEx(bo,255,255,255,floatround(rad * 0.25),14,4);
 FxImplosion(bo,255,50,6);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -18907,12 +18908,12 @@ HealTo(g_iBoss,g_iBossMaxHP * hits / 100,g_iBossMaxHP);
 }
 case CH_CHAINS:
 {
-if(tick % 5 == 0)
+if(tick % 5==0)
 {
-new Float:rad = BskRad(2)* 1.4,any;
-for(new i = 0;i < 3;i++)
+new Float:rad=BskRad(2)* 1.4,any;
+for(new i=0;i < 3;i++)
 {
-new t = g_iBossTethers[i];
+new t=g_iBossTethers[i];
 if(!t)
 continue;
 if(!is_user_alive(t)|| g_bZombie[t])
@@ -18936,14 +18937,14 @@ BossHurt(t,BskDmg(2),DMG_GENERIC);
 HealTo(g_iBoss,floatround(BskDmg(2)* 6.0),g_iBossMaxHP);
 }
 if(!any)
-g_fBossChannelEnd = now;
+g_fBossChannelEnd=now;
 }
 }
 case CH_ZERO:
 {
-if(tick % 20 == 0)
+if(tick % 20==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -18965,12 +18966,12 @@ BossHurt(p,BskDmg(3)* 0.5,DMG_FREEZE);
 case CH_DASH:
 {
 static Float:last[3];
-if(tick == 1)
-last = bo;
+if(tick==1)
+last=bo;
 FxBeamEx(last,bo,g_sprLightning,255,240,80,40,40,8);
-last = bo;
-new Float:rad = BskRad(2);
-for(new p = 1;p <= g_iMax;p++)
+last=bo;
+new Float:rad=BskRad(2);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p]||(g_iDashHit &(1 <<(p - 1))))
 continue;
@@ -18988,17 +18989,17 @@ EmitKey(p,"ZAP");
 }
 case CH_TEMPEST:
 {
-if(tick % 7 == 1)
+if(tick % 7==1)
 {
 new list[32],n;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_alive(p)&& !g_bZombie[p])
 list[n++]= p;
 }
 if(n)
 {
-new t = list[random(n)];
+new t=list[random(n)];
 get_entvar(t,var_origin,po);
 po[0]+= random_float(-40.0,40.0);
 po[1]+= random_float(-40.0,40.0);
@@ -19008,7 +19009,7 @@ FxSprite(po,g_sprTarget,4,220);
 BskTask(0.65,"task_TempestHit",po);
 }
 }
-if(tick % 25 == 0)
+if(tick % 25==0)
 {
 FadeAll(255,255,255,80,0.25);
 PlayKey(0,"LIGHTNING");
@@ -19016,17 +19017,17 @@ PlayKey(0,"LIGHTNING");
 }
 case CH_CLOUD:
 {
-if(tick % 5 == 0)
+if(tick % 5==0)
 {
-new Float:rad = BskRad(2),Float:puff[3];
-for(new k = 0;k < 2;k++)
+new Float:rad=BskRad(2),Float:puff[3];
+for(new k=0;k < 2;k++)
 {
-puff = bo;
+puff=bo;
 puff[0]+= random_float(-rad * 0.6,rad * 0.6);
 puff[1]+= random_float(-rad * 0.6,rad * 0.6);
 FxSprite(puff,g_sprSmoke,18,140);
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))
 continue;
@@ -19048,9 +19049,9 @@ FadeOne(p,110,255,0,80,0.6);
 case CH_SINGULARITY:
 {
 new Float:c[3];
-c = g_fBossChannelPos;
-new Float:rad = BskRad(2);
-for(new p = 1;p <= g_iMax;p++)
+c=g_fBossChannelPos;
+new Float:rad=BskRad(2);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19058,10 +19059,10 @@ get_entvar(p,var_origin,po);
 if(get_distance_f(c,po)> rad)
 continue;
 PullTo(p,c,60.0);
-if(tick % 5 == 0)
+if(tick % 5==0)
 FxBeamEx(po,c,g_sprLightning,220,0,140,18,40,4);
 }
-if(tick % 5 == 0)
+if(tick % 5==0)
 {
 FxImplosion(c,255,50,5);
 FxLight(c,200,0,160,30,6,10);
@@ -19069,10 +19070,10 @@ FxLight(c,200,0,160,30,6,10);
 }
 case CH_HORIZON:
 {
-new Float:rad = BskRad(3);
-if(tick % 2 == 0)
+new Float:rad=BskRad(3);
+if(tick % 2==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19082,10 +19083,10 @@ continue;
 PullTo(p,bo,45.0);
 }
 }
-if(tick % 10 == 0)
+if(tick % 10==0)
 {
 FxImplosion(bo,255,60,8);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19103,9 +19104,9 @@ bool:Bsk_BruteStomp()
 {
 new Float:bo[3],Float:feet[3];
 get_entvar(g_iBoss,var_origin,bo);
-feet = bo;
+feet=bo;
 feet[2]-= 30.0;
-new Float:rad = BskRad(1);
+new Float:rad=BskRad(1);
 FxLava(bo);
 FxExplosion(bo);
 FxRingEx(feet,255,120,0,floatround(rad),30,5);
@@ -19122,19 +19123,19 @@ bool:Bsk_BruteShatter()
 new Float:bo[3],Float:fwd[3],Float:prev[3],Float:pt[3];
 get_entvar(g_iBoss,var_origin,bo);
 BossFwd(fwd,true);
-prev = bo;
-for(new i = 1;i <= 7;i++)
+prev=bo;
+for(new i=1;i<=7;i++)
 {
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 pt[k]= bo[k]+ fwd[k]* 95.0 * float(i);
 engfunc(EngFunc_TraceLine,prev,pt,IGNORE_MONSTERS,g_iBoss,0);
 new Float:frac;
 get_tr2(0,TR_flFraction,frac);
 if(frac < 1.0)
 break;
-prev = pt;
-new Float:delay = 0.35 + 0.12 * float(i);
-ZoneSpawn(pt,BskRad(2),255,140,0,delay,0,i == 1);
+prev=pt;
+new Float:delay=0.35 + 0.12 * float(i);
+ZoneSpawn(pt,BskRad(2),255,140,0,delay,0,i==1);
 BskTask(delay,"task_BruteEruption",pt);
 }
 ShakeAll(6,1.0,5);
@@ -19157,7 +19158,7 @@ bool:Bsk_BruteWrath()
 {
 new Float:bo[3];
 get_entvar(g_iBoss,var_origin,bo);
-g_fBossBuffEnd = get_gametime()+ 6.0;
+g_fBossBuffEnd=get_gametime()+ 6.0;
 StartChannel(CH_TITAN,6.0);
 ApplyRender(g_iBoss);
 rg_reset_maxspeed(g_iBoss);
@@ -19172,30 +19173,30 @@ bool:Bsk_BansheeLance()
 new Float:eye[3],Float:fwd[3],Float:po[3],Float:pt[3];
 BossEye(eye);
 BossFwd(fwd,false);
-new Float:rad = BskRad(1);
-for(new i = 1;i <= 6;i++)
+new Float:rad=BskRad(1);
+for(new i=1;i<=6;i++)
 {
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 pt[k]= eye[k]+ fwd[k]* rad * float(i)/ 6.0;
 FxRingEx(pt,210,220,255,30 + i * 22,10,3,200);
 }
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 pt[k]= eye[k]+ fwd[k]* rad;
 FxBeamEx(eye,pt,g_sprBeam,210,220,255,60,20,4);
 FxImplosion(eye,120,30,4);
 new hits;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(eye,po);
-if(d > rad || d < 1.0)
+new Float:d=get_distance_f(eye,po);
+if(d > rad||d < 1.0)
 continue;
 new Float:dir[3];
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 dir[k]=(po[k]- eye[k])/ d;
-if(dir[0]* fwd[0]+ dir[1]* fwd[1]+ dir[2]* fwd[2]< 0.82 || !BossSees(eye,p))
+if(dir[0]* fwd[0]+ dir[1]* fwd[1]+ dir[2]* fwd[2]< 0.82||!BossSees(eye,p))
 continue;
 new Float:vel[3];
 vel[0]= dir[0]* 650.0;
@@ -19212,7 +19213,7 @@ return true;
 }
 bool:Bsk_BansheeShriek()
 {
-new t = BossPickHuman(1300.0,0.3);
+new t=BossPickHuman(1300.0,0.3);
 if(!t)
 return false;
 new Float:to[3],Float:tang[3],Float:fwd[3],Float:dest[3];
@@ -19225,13 +19226,13 @@ new bool:found;
 static const Float:OFF[][2]={{-75.0,0.0},{0.0,75.0},{0.0,-75.0},{75.0,0.0},{-110.0,0.0}};
 new Float:right[3];
 global_get(glb_v_right,right);
-for(new i = 0;i < sizeof OFF && !found;i++)
+for(new i=0;i < sizeof OFF&&!found;i++)
 {
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 dest[k]= to[k]+ fwd[k]* OFF[i][0]+ right[k]* OFF[i][1];
 dest[2]= to[2]+ 8.0;
 if(IsHullFree(g_iBoss,dest))
-found = true;
+found=true;
 }
 if(!found)
 return false;
@@ -19244,11 +19245,11 @@ set_entvar(g_iBoss,var_velocity,Float:{0.0,0.0,0.0});
 BossFace(t);
 set_entvar(g_iBoss,var_fixangle,1);
 FxTeleport(dest);
-new Float:rad = BskRad(2),Float:po[3];
+new Float:rad=BskRad(2),Float:po[3];
 FxRingEx(dest,220,230,255,floatround(rad),30,5);
 FxRingEx(dest,255,255,255,floatround(rad * 0.5),14,4);
 FxImplosion(dest,200,50,6);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19267,27 +19268,27 @@ bool:Bsk_BansheeRequiem()
 new Float:bo[3];
 get_entvar(g_iBoss,var_origin,bo);
 StartChannel(CH_REQUIEM,5.2);
-g_iBossChannelTick = 9;
+g_iBossChannelTick=9;
 FxFunnel(bo,g_sprFlare,false);
 FadeAll(200,210,255,90,1.5);
 return true;
 }
 bool:Bsk_OverlordPrison()
 {
-new t = BossPickHuman(BskRad(1),0.6);
+new t=BossPickHuman(BskRad(1),0.6);
 if(!t)
 return false;
 new Float:to[3],Float:a[3],Float:b[3];
 get_entvar(t,var_origin,to);
 RootHuman(t,2.5);
 set_user_rendering(t,kRenderFxGlowShell,150,0,220,kRenderNormal,30);
-for(new i = 0;i < 8;i++)
+for(new i=0;i < 8;i++)
 {
-new Float:ang = float(i)* 45.0;
+new Float:ang=float(i)* 45.0;
 a[0]= to[0]+ floatcos(ang,degrees)* 34.0;
 a[1]= to[1]+ floatsin(ang,degrees)* 34.0;
 a[2]= to[2]- 36.0;
-b = a;
+b=a;
 b[2]= to[2]+ 44.0;
 FxBeamEx(a,b,g_sprBeam,170,60,255,18,0,25,230);
 }
@@ -19307,18 +19308,18 @@ SummonMinions(4);
 FxFunnel(bo,g_sprFlare,true);
 FxRingEx(bo,150,0,200,floatround(BskRad(2)),30,6);
 FxTeleport(bo);
-new Float:rad = BskRad(2),total;
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=BskRad(2),total;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-if(get_distance_f(bo,po)> rad || !BossSees(bo,p))
+if(get_distance_f(bo,po)> rad||!BossSees(bo,p))
 continue;
 FxBeamEx(po,bo,g_sprLightning,150,0,200,25,30,6);
 FadeOne(p,120,0,180,110,0.8);
 BossHurt(p,BskDmg(2),DMG_GENERIC);
-total += floatround(BskDmg(2));
+total+=floatround(BskDmg(2));
 }
 HealTo(g_iBoss,g_iBossMaxHP / 25 + total * 4,g_iBossMaxHP);
 return true;
@@ -19327,10 +19328,10 @@ bool:Bsk_OverlordNova()
 {
 new Float:bo[3];
 get_entvar(g_iBoss,var_origin,bo);
-new Float:w = BskRad(3);
+new Float:w=BskRad(3);
 ZoneSpawn(bo,w * 3.0,150,0,220,2.4,0,true);
 FxFunnel(bo,g_sprFlare,false);
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 BskTask(0.6 + 0.6 * float(k),"task_NovaBand",bo,k);
 return true;
 }
@@ -19340,24 +19341,24 @@ if(!BskValid(params))
 return;
 new Float:o[3],Float:po[3];
 BskPos(params,o);
-new k = params[4];
-new Float:w = BskRad(3);
-new Float:inner = w * float(k),Float:outer = w * float(k + 1);
+new k=params[4];
+new Float:w=BskRad(3);
+new Float:inner=w * float(k),Float:outer=w * float(k + 1);
 new Float:feet[3];
-feet = o;
+feet=o;
 feet[2]-= 30.0;
 FxRingEx(feet,170,0,255,floatround(outer),40,4);
 FxRingEx(feet,255,255,255,floatround(outer * 0.92),12,3);
 FxImplosion(o,200,40,4);
 FxElSmall(o,EL_VOID,12);
 EmitKeyPos(o,"BOSS_SUMMON");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
-if(d < inner || d > outer)
+new Float:d=get_distance_f(o,po);
+if(d < inner||d > outer)
 continue;
 FadeOne(p,150,0,220,150,0.8);
 ShakeOne(p);
@@ -19370,27 +19371,27 @@ bool:Bsk_InfernoBreath()
 new Float:eye[3],Float:fwd[3],Float:po[3],Float:pt[3];
 BossEye(eye);
 BossFwd(fwd,false);
-new Float:rad = BskRad(1);
-new spr = g_sprFire ? g_sprFire : g_sprExplode;
-for(new i = 1;i <= 6;i++)
+new Float:rad=BskRad(1);
+new spr=g_sprFire ? g_sprFire : g_sprExplode;
+for(new i=1;i<=6;i++)
 {
-for(new k = 0;k < 3;k++)
+for(new k=0;k < 3;k++)
 pt[k]= eye[k]+ fwd[k]* rad * float(i)/ 6.0;
 pt[2]-= 20.0;
 FxSprite(pt,spr,4 + i * 2,220);
-if(i % 2 == 0)
+if(i % 2==0)
 FxLight(pt,255,110,0,20,5,30);
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(eye,po);
-if(d > rad || d < 1.0)
+new Float:d=get_distance_f(eye,po);
+if(d > rad||d < 1.0)
 continue;
 new Float:dot =((po[0]- eye[0])* fwd[0]+(po[1]- eye[1])* fwd[1]+(po[2]- eye[2])* fwd[2])/ d;
-if(dot < 0.75 || !BossSees(eye,p))
+if(dot < 0.75||!BossSees(eye,p))
 continue;
 BurnHuman(p,5);
 FadeOne(p,255,110,0,130,0.8);
@@ -19401,20 +19402,20 @@ return true;
 bool:Bsk_InfernoPillars()
 {
 new list[32],n,Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_alive(p)&& !g_bZombie[p])
 list[n++]= p;
 }
 if(!n)
 return false;
-for(new i = 0;i < 5 && n > 0;i++)
+for(new i=0;i < 5&&n > 0;i++)
 {
-new pick = random(n);
+new pick=random(n);
 get_entvar(list[pick],var_origin,po);
 list[pick]= list[n - 1];
 n--;
-ZoneSpawn(po,BskRad(2),255,90,0,1.2 + 0.15 * float(i),0,i == 0);
+ZoneSpawn(po,BskRad(2),255,90,0,1.2 + 0.15 * float(i),0,i==0);
 BskTask(1.2 + 0.15 * float(i),"task_FirePillar",po);
 }
 return true;
@@ -19425,9 +19426,9 @@ if(!BskValid(params))
 return;
 new Float:o[3],Float:po[3],Float:h[3];
 BskPos(params,o);
-new spr = g_sprFire ? g_sprFire : g_sprExplode;
-h = o;
-for(new i = 0;i < 4;i++)
+new spr=g_sprFire ? g_sprFire : g_sprExplode;
+h=o;
+for(new i=0;i < 4;i++)
 {
 h[2]= o[2]- 20.0 + 60.0 * float(i);
 FxSprite(h,spr,10,240);
@@ -19437,8 +19438,8 @@ if(!FxExploEl(o,EL_FIRE,20,15))
 FxExplosion(o);
 FxLight(o,255,100,0,35,6,30);
 EmitKeyPos(o,"NADE_FIRE");
-new Float:rad = BskRad(2);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=BskRad(2);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19458,7 +19459,7 @@ bool:Bsk_InfernoNova()
 {
 new Float:bo[3];
 get_entvar(g_iBoss,var_origin,bo);
-g_fBossIntro = get_gametime()+ 2.0;
+g_fBossIntro=get_gametime()+ 2.0;
 set_entvar(g_iBoss,var_velocity,Float:{0.0,0.0,0.0});
 rg_reset_maxspeed(g_iBoss);
 set_user_rendering(g_iBoss,kRenderFxGlowShell,255,200,0,kRenderNormal,80);
@@ -19474,10 +19475,10 @@ if(!BskValid(params))
 return;
 new Float:o[3],Float:po[3];
 get_entvar(g_iBoss,var_origin,o);
-g_fBossIntro = 0.0;
+g_fBossIntro=0.0;
 rg_reset_maxspeed(g_iBoss);
 ApplyRender(g_iBoss);
-new Float:rad = BskRad(3);
+new Float:rad=BskRad(3);
 if(!FxExploEl(o,EL_FIRE,36,15))
 FxExplosion(o);
 FxLava(o);
@@ -19487,26 +19488,26 @@ FxLight(o,255,140,0,80,10,20);
 FxSkyStrike(o,255,140,0);
 ShakeAll(16,2.5,8);
 PlayKey(0,"BOSS_SLAM");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p))
 continue;
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
+new Float:d=get_distance_f(o,po);
 if(d > rad)
 continue;
-new Float:k = floatmax(0.15,1.0 - d / rad);
+new Float:k=floatmax(0.15,1.0 - d / rad);
 FadeOne(p,255,120,0,200,1.2);
 PushFrom(p,o,600.0,260.0);
 BurnHuman(p,4);
 BossHurt(p,BskDmg(3)* k,DMG_BURN | DMG_BLAST);
 }
 new Float:pt[3];
-for(new i = 0;i < 4;i++)
+for(new i=0;i < 4;i++)
 {
-new Float:a = float(i)* 90.0 + random_float(-25.0,25.0);
+new Float:a=float(i)* 90.0 + random_float(-25.0,25.0);
 pt[0]= o[0]+ floatcos(a,degrees)* rad * 0.45;
 pt[1]= o[1]+ floatsin(a,degrees)* rad * 0.45;
 pt[2]= o[2];
@@ -19520,13 +19521,13 @@ BossAimPoint(BskRad(1),aim);
 BossFwd(fwd,true);
 get_entvar(g_iBoss,var_origin,bo);
 new bool:found;
-for(new k = 1;k <= 10 && !found;k++)
+for(new k=1;k<=10&&!found;k++)
 {
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 dest[i]= aim[i]- fwd[i]* 40.0 * float(k);
 dest[2]= aim[2]+ 36.0;
 if(IsHullFree(g_iBoss,dest))
-found = true;
+found=true;
 }
 if(!found)
 return false;
@@ -19536,7 +19537,7 @@ engfunc(EngFunc_SetOrigin,g_iBoss,dest);
 set_entvar(g_iBoss,var_velocity,Float:{0.0,0.0,0.0});
 FxTeleport(dest);
 FxImplosion(dest,150,40,5);
-g_fBossEmpower = get_gametime()+ 3.0;
+g_fBossEmpower=get_gametime()+ 3.0;
 set_user_rendering(g_iBoss,kRenderFxGlowShell,120,0,200,kRenderNormal,60);
 if(!is_user_bot(g_iBoss))
 client_print(g_iBoss,print_center,"%L",g_iBoss,"BSK_EMPOWER");
@@ -19546,25 +19547,25 @@ bool:Bsk_ReaperChains()
 {
 new Float:bo[3],Float:po[3];
 get_entvar(g_iBoss,var_origin,bo);
-new Float:rad = BskRad(2);
-for(new i = 0;i < 3;i++)
+new Float:rad=BskRad(2);
+for(new i=0;i < 3;i++)
 g_iBossTethers[i]= 0;
 new found;
-for(new pass = 0;pass < 3;pass++)
+for(new pass=0;pass < 3;pass++)
 {
-new best,Float:bd = rad;
-for(new p = 1;p <= g_iMax;p++)
+new best,Float:bd=rad;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
-if(p == g_iBossTethers[0]|| p == g_iBossTethers[1]|| p == g_iBossTethers[2])
+if(p==g_iBossTethers[0]|| p==g_iBossTethers[1]|| p==g_iBossTethers[2])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(bo,po);
-if(d < bd && BossSees(bo,p))
+new Float:d=get_distance_f(bo,po);
+if(d < bd&&BossSees(bo,p))
 {
-bd = d;
-best = p;
+bd=d;
+best=p;
 }
 }
 if(!best)
@@ -19575,24 +19576,24 @@ client_print(best,print_center,"%L",best,"BSK_CHAINED");
 if(!found)
 return false;
 StartChannel(CH_CHAINS,4.0);
-g_iBossChannelTick = 4;
+g_iBossChannelTick=4;
 FxImplosion(bo,200,40,6);
 return true;
 }
 bool:Bsk_ReaperMark()
 {
 new Float:po[3],n;
-new Float:rad = BskRad(3);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=BskRad(3);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-ZoneSpawn(po,rad,160,0,255,3.0,0,n == 0);
+ZoneSpawn(po,rad,160,0,255,3.0,0,n==0);
 if(g_sprTarget)
 FxSprite(po,g_sprTarget,5,230);
 BskTask(3.0,"task_DeathMark",po);
-if(g_sprMark && !is_user_bot(p))
+if(g_sprMark&&!is_user_bot(p))
 FxHeadMark(p,g_sprMark,30,g_bMarkAt);
 client_print(p,print_center,"%L",p,"BSK_MARKED");
 n++;
@@ -19605,15 +19606,15 @@ if(!BskValid(params))
 return;
 new Float:o[3],Float:po[3],Float:top[3];
 BskPos(params,o);
-top = o;
+top=o;
 top[2]+= 600.0;
 FxBeamEx(top,o,g_sprLightning,130,0,220,50,30,4);
 FxImplosion(o,160,50,4);
 FxSprite(o,g_sprExplode,8,180);
 FxLight(o,130,0,220,30,5,30);
 EmitKeyPos(o,"ZAP");
-new Float:rad = BskRad(3);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=BskRad(3);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19629,22 +19630,22 @@ bool:Bsk_FrostShards()
 {
 new Float:eye[3],Float:ang[3],Float:fwd[3],Float:end[3],Float:hitp[3];
 BossEye(eye);
-new Float:rad = BskRad(1);
-for(new k = -2;k <= 2;k++)
+new Float:rad=BskRad(1);
+for(new k=-2;k<=2;k++)
 {
 get_entvar(g_iBoss,var_v_angle,ang);
 ang[1]+= float(k)* 10.0;
 engfunc(EngFunc_MakeVectors,ang);
 global_get(glb_v_forward,fwd);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 end[i]= eye[i]+ fwd[i]* rad;
 engfunc(EngFunc_TraceLine,eye,end,DONT_IGNORE_MONSTERS,g_iBoss,0);
 get_tr2(0,TR_vecEndPos,hitp);
-new hit = get_tr2(0,TR_pHit);
+new hit=get_tr2(0,TR_pHit);
 FxBeamEx(eye,hitp,g_sprBeam,150,220,255,22,0,4,230);
 FxSparks(hitp);
 FxStreak(hitp,7,20,160);
-if(1 <= hit <= g_iMax && is_user_alive(hit)&& !g_bZombie[hit])
+if(1<=hit<=g_iMax&&is_user_alive(hit)&& !g_bZombie[hit])
 {
 SlowHuman(hit,2.5);
 FadeOne(hit,150,210,255,140,1.0);
@@ -19656,7 +19657,7 @@ return true;
 }
 bool:Bsk_FrostTomb()
 {
-new t = BossPickHuman(BskRad(2),0.6);
+new t=BossPickHuman(BskRad(2),0.6);
 if(!t)
 return false;
 new Float:to[3],Float:po[3];
@@ -19672,9 +19673,9 @@ FadeOne(t,150,210,255,200,3.0);
 BossHurt(t,BskDmg(2),DMG_FREEZE);
 FxBeamEntPoint(g_iBoss,to,g_sprBeam,150,220,255,30,10,5);
 client_print(t,print_center,"%L",t,"BSK_TOMB_YOU");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p == t || !is_user_alive(p)|| g_bZombie[p])
+if(p==t||!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
 if(get_distance_f(to,po)<= 160.0)
@@ -19684,10 +19685,10 @@ return true;
 }
 bool:Bsk_FrostZero()
 {
-g_fBlizzardEnd = get_gametime()+ 8.0;
+g_fBlizzardEnd=get_gametime()+ 8.0;
 StartChannel(CH_ZERO,8.0);
-g_iBossChannelTick = 10;
-for(new id = 1;id <= g_iMax;id++)
+g_iBossChannelTick=10;
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
@@ -19704,7 +19705,7 @@ FadeOne(id,200,230,255,140,2.0);
 ShakeOne(id);
 }
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print(p,print_center,"%L",p,"BSK_ZERO_TIP");
@@ -19716,7 +19717,7 @@ bool:Bsk_StormOrb()
 new Float:eye[3],Float:fwd[3],Float:o[3],Float:vel[3];
 BossEye(eye);
 BossFwd(fwd,false);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 o[i]= eye[i]+ fwd[i]* 40.0;
 vel[i]= fwd[i]* 280.0;
@@ -19726,7 +19727,7 @@ return ProjSpawn(PJ_ORB,o,vel,255,240,80,1.1,5.0,MOVETYPE_FLY,0.0)> 0;
 }
 bool:Bsk_StormDash()
 {
-g_iDashHit = 0;
+g_iDashHit=0;
 LeapForward(g_iBoss,1300.0,160.0);
 StartChannel(CH_DASH,0.7);
 FxFollow(g_iBoss,255,240,80,8,20);
@@ -19736,7 +19737,7 @@ bool:Bsk_StormTempest()
 {
 StartChannel(CH_TEMPEST,8.0);
 engfunc(EngFunc_LightStyle,0,"c");
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
@@ -19759,13 +19760,13 @@ FxSkyStrike(o,255,255,255);
 FxRingEx(o,255,240,80,floatround(BskRad(3))+ 60,20,5);
 FxStreak(o,5,50,260);
 EmitKeyPos(o,"THUNDER");
-new Float:rad = BskRad(3);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=BskRad(3);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
-new Float:d = get_distance_f(o,po);
+new Float:d=get_distance_f(o,po);
 if(d < 600.0)
 FadeOne(p,255,255,255,50,0.2);
 if(d > rad)
@@ -19780,7 +19781,7 @@ bool:Bsk_HiveSpit()
 new Float:eye[3],Float:fwd[3],Float:o[3],Float:vel[3];
 BossEye(eye);
 BossFwd(fwd,false);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 o[i]= eye[i]+ fwd[i]* 30.0;
 vel[i]= fwd[i]* 950.0;
@@ -19802,9 +19803,9 @@ bool:Bsk_HiveEggs()
 new Float:bo[3],Float:pt[3];
 get_entvar(g_iBoss,var_origin,bo);
 new made;
-for(new i = 0;i < 4;i++)
+for(new i=0;i < 4;i++)
 {
-new Float:a = float(i)* 90.0 + random_float(-20.0,20.0);
+new Float:a=float(i)* 90.0 + random_float(-20.0,20.0);
 pt[0]= bo[0]+ floatcos(a,degrees)* 130.0;
 pt[1]= bo[1]+ floatsin(a,degrees)* 130.0;
 pt[2]= bo[2];
@@ -19813,7 +19814,7 @@ get_tr2(0,TR_vecEndPos,pt);
 if(EggSpawn(pt))
 made++;
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_alive(p)&& !g_bZombie[p]&& !is_user_bot(p))
 client_print(p,print_center,"%L",p,"BSK_EGGS_TIP");
@@ -19822,7 +19823,7 @@ return made > 0;
 }
 EggSpawn(const Float:o[3])
 {
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
 new Float:pos[3];
@@ -19858,7 +19859,7 @@ pos[2]+= 14.0;
 engfunc(EngFunc_SetSize,ent,Float:{-14.0,-14.0,-14.0},Float:{14.0,14.0,14.0});
 }
 engfunc(EngFunc_SetOrigin,ent,pos);
-new Float:hp = 150.0 + 40.0 * float(CountHumans(true));
+new Float:hp=150.0 + 40.0 * float(CountHumans(true));
 set_entvar(ent,var_takedamage,DAMAGE_YES);
 set_entvar(ent,var_health,hp);
 set_entvar(ent,var_max_health,hp);
@@ -19876,18 +19877,18 @@ public fw_EggThink(ent)
 if(is_nullent(ent))
 return;
 {new Float:eo[3];get_entvar(ent,var_origin,eo);SolidWhenFree538(ent,eo);}
-if(get_entvar(ent,var_iuser3)!= g_iBossSerial || !g_bRoundActive)
+if(get_entvar(ent,var_iuser3)!= g_iBossSerial||!g_bRoundActive)
 {
 set_entvar(ent,var_flags,FL_KILLME);
 return;
 }
-new Float:o[3],Float:now = get_gametime();
+new Float:o[3],Float:now=get_gametime();
 get_entvar(ent,var_origin,o);
 if(g_szEggModel[0])
 o[2]+= 12.0;
-if(now >= Float:get_entvar(ent,var_fuser1))
+if(now>=Float:get_entvar(ent,var_fuser1))
 {
-if(g_iBoss && is_user_alive(g_iBoss))
+if(g_iBoss&&is_user_alive(g_iBoss))
 {
 AcidSplash(o,BskRad(3),BskDmg(3));
 SummonMinions(1);
@@ -19900,14 +19901,14 @@ set_entvar(ent,var_nextthink,now + 0.5);
 }
 EggTakeDamage(ent,attacker,Float:damage)
 {
-if(!(1 <= attacker <= g_iMax)|| !is_user_connected(attacker)|| g_bZombie[attacker])
+if(!(1<=attacker<=g_iMax)|| !is_user_connected(attacker)|| g_bZombie[attacker])
 return HAM_SUPERCEDE;
-new Float:hp = Float:get_entvar(ent,var_health)- damage;
+new Float:hp=Float:get_entvar(ent,var_health)- damage;
 new Float:o[3];
 get_entvar(ent,var_origin,o);
 if(g_szEggModel[0])
 o[2]+= 12.0;
-if(hp <= 0.0)
+if(hp<=0.0)
 {
 FxSprite(o,g_sprSmoke,15,180);
 FxStreak(o,2,40,200);
@@ -19930,7 +19931,7 @@ FxSprite(o,g_sprSmoke,20,180);
 FxStreak(o,2,40,220);
 EmitKeyPos(o,"ACID_POOL");
 AddPool(o,0,6.0,rad);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19948,12 +19949,12 @@ bool:Bsk_VoidBolt()
 new Float:eye[3],Float:fwd[3],Float:o[3],Float:vel[3];
 BossEye(eye);
 BossFwd(fwd,false);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 {
 o[i]= eye[i]+ fwd[i]* 40.0;
 vel[i]= fwd[i]* 1100.0;
 }
-new Float:life = floatmax(0.3,BskRad(1)/ 1100.0);
+new Float:life=floatmax(0.3,BskRad(1)/ 1100.0);
 return ProjSpawn(PJ_VOID,o,vel,220,0,140,0.8,life,MOVETYPE_FLY,0.0)> 0;
 }
 bool:Bsk_VoidSingularity()
@@ -19962,9 +19963,9 @@ new Float:c[3];
 BossAimPoint(700.0,c);
 new Float:fwd[3];
 BossFwd(fwd,false);
-for(new i = 0;i < 3;i++)
+for(new i=0;i < 3;i++)
 c[i]-= fwd[i]* 24.0;
-g_fBossChannelPos = c;
+g_fBossChannelPos=c;
 StartChannel(CH_SINGULARITY,4.0);
 ZoneSpawn(c,BskRad(2),220,0,140,4.0,0,true);
 FxFunnel(c,g_sprFlare,false);
@@ -19973,7 +19974,7 @@ return true;
 SingularityCollapse()
 {
 new Float:c[3],Float:po[3];
-c = g_fBossChannelPos;
+c=g_fBossChannelPos;
 if(!FxExploEl(c,EL_VOID,30,12))
 FxExplosion(c);
 FxRingEx(c,220,0,140,300,50,6);
@@ -19981,7 +19982,7 @@ FxRingEx(c,255,255,255,200,20,5);
 FxLava(c);
 ShakeAll(10,1.2,6);
 EmitKeyPos(c,"GRAVITY_WELL");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -19998,14 +19999,14 @@ bool:Bsk_VoidHorizon()
 new Float:bo[3];
 get_entvar(g_iBoss,var_origin,bo);
 BossEclipse(bo);
-g_fEclipseEnd = get_gametime()+ 6.0;
+g_fEclipseEnd=get_gametime()+ 6.0;
 StartChannel(CH_HORIZON,6.0);
 ZoneSpawn(bo,BskRad(3),220,0,140,6.0,g_iBoss,false);
 return true;
 }
 ProjSpawn(type,const Float:o[3],const Float:vel[3],r,g,b,Float:scale,Float:life,movetype,Float:gravity)
 {
-new ent = CreateSafe51("info_target");
+new ent=CreateSafe51("info_target");
 if(is_nullent(ent))
 return 0;
 set_entvar(ent,var_classname,PROJ_CLASS);
@@ -20051,20 +20052,20 @@ public fw_ProjThink(ent)
 {
 if(is_nullent(ent))
 return;
-new Float:now = get_gametime();
-new type = get_entvar(ent,var_iuser1);
-if(get_entvar(ent,var_iuser3)!= g_iBossSerial || !g_iBoss || !is_user_alive(g_iBoss)|| !g_bRoundActive)
+new Float:now=get_gametime();
+new type=get_entvar(ent,var_iuser1);
+if(get_entvar(ent,var_iuser3)!= g_iBossSerial||!g_iBoss||!is_user_alive(g_iBoss)|| !g_bRoundActive)
 {
 ProjKill(ent);
 return;
 }
 new Float:o[3],Float:po[3];
 get_entvar(ent,var_origin,o);
-if(now >= Float:get_entvar(ent,var_fuser1))
+if(now>=Float:get_entvar(ent,var_fuser1))
 {
-if(type == PJ_ACID)
+if(type==PJ_ACID)
 AcidSplash(o,BskRad(1),BskDmg(1));
-else if(type == PJ_VOID)
+else if(type==PJ_VOID)
 FxImplosion(o,120,30,4);
 else
 {
@@ -20078,13 +20079,13 @@ switch(type)
 {
 case PJ_ORB:
 {
-new tick = get_entvar(ent,var_iuser2)+ 1;
+new tick=get_entvar(ent,var_iuser2)+ 1;
 set_entvar(ent,var_iuser2,tick);
 FxLight(o,255,240,80,18,2,10);
-if(tick % 3 == 0)
+if(tick % 3==0)
 {
-new Float:rad = BskRad(1);
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=BskRad(1);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -20102,7 +20103,7 @@ set_entvar(ent,var_nextthink,now + 0.1);
 }
 case PJ_VOID:
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -20123,7 +20124,7 @@ VoidBoltHit(ent,p)
 new Float:bo[3],Float:po[3],Float:vel[3];
 get_entvar(g_iBoss,var_origin,bo);
 get_entvar(p,var_origin,po);
-new Float:d = floatmax(1.0,get_distance_f(bo,po));
+new Float:d=floatmax(1.0,get_distance_f(bo,po));
 vel[0]=(bo[0]- po[0])/ d * 750.0;
 vel[1]=(bo[1]- po[1])/ d * 750.0;
 vel[2]= 180.0;
@@ -20138,25 +20139,25 @@ ProjKill(ent);
 }
 public fw_ProjTouch(ent,other)
 {
-if(is_nullent(ent)|| other == g_iBoss)
+if(is_nullent(ent)|| other==g_iBoss)
 return;
-new type = get_entvar(ent,var_iuser1);
+new type=get_entvar(ent,var_iuser1);
 new Float:o[3];
 get_entvar(ent,var_origin,o);
-if(1 <= other <= g_iMax)
+if(1<=other<=g_iMax)
 {
 if(!is_user_alive(other)|| g_bZombie[other])
 return;
-if(type == PJ_ACID)
+if(type==PJ_ACID)
 {
 AcidSplash(o,BskRad(1),BskDmg(1));
 ProjKill(ent);
 }
-else if(type == PJ_VOID)
+else if(type==PJ_VOID)
 VoidBoltHit(ent,other);
 return;
 }
-if(other > 0 && get_entvar(other,var_solid)!= SOLID_BSP)
+if(other > 0&&get_entvar(other,var_solid)!= SOLID_BSP)
 return;
 switch(type)
 {
@@ -20197,24 +20198,24 @@ write_byte(220);
 write_byte(0);
 message_end();
 }
-AddPool(const Float:o[3],type,Float:life,Float:radius,owner = 0)
+AddPool(const Float:o[3],type,Float:life,Float:radius,owner=0)
 {
-new Float:now = get_gametime(),slot = -1,Float:oldest = 999999.0,oldi;
-for(new s = 0;s < sizeof g_fPoolEnd;s++)
+new Float:now=get_gametime(),slot=-1,Float:oldest=999999.0,oldi;
+for(new s=0;s < sizeof g_fPoolEnd;s++)
 {
 if(g_fPoolEnd[s]< now)
 {
-slot = s;
+slot=s;
 break;
 }
 if(g_fPoolEnd[s]< oldest)
 {
-oldest = g_fPoolEnd[s];
-oldi = s;
+oldest=g_fPoolEnd[s];
+oldi=s;
 }
 }
 if(slot < 0)
-slot = oldi;
+slot=oldi;
 new Float:pos[3];
 FloorAt(o,pos);
 g_fPoolPos[slot]= pos;
@@ -20222,9 +20223,9 @@ g_fPoolEnd[slot]= now + life;
 g_iPoolType[slot]= type;
 g_fPoolRad[slot]= radius;
 g_iPoolOwner[slot]= owner;
-if(type == 2)
+if(type==2)
 ZoneSpawn(pos,radius,255,90,0,life,0,false);
-else if(type == 1)
+else if(type==1)
 ZoneSpawn(pos,radius,255,80,0,life,0,false);
 else
 ZoneSpawn(pos,radius,110,255,0,life,0,false);
@@ -20233,18 +20234,18 @@ BossCleanup()
 {
 g_iBossSerial++;
 remove_task(TASK_EPIC_MUSIC);
-if(g_iBossChannel != CH_NONE)
+if(g_iBossChannel!=CH_NONE)
 EndChannel(false);
 remove_task(TASK_BCHAN);
-g_fBossBuffEnd = 0.0;
-g_fBossEmpower = 0.0;
-for(new i = 0;i < 3;i++)
+g_fBossBuffEnd=0.0;
+g_fBossEmpower=0.0;
+for(new i=0;i < 3;i++)
 g_iBossTethers[i]= 0;
 new ent;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",PROJ_CLASS))> 0)
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",PROJ_CLASS))> 0)
 ProjKill(ent);
-ent = 0;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname",EGG_CLASS))> 0)
+ent=0;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname",EGG_CLASS))> 0)
 {
 SetThink(ent,"");
 set_entvar(ent,var_takedamage,DAMAGE_NO);
@@ -20255,12 +20256,12 @@ RemoveAllZones();
 }
 BossSkillUnlock()
 {
-if(!g_iBoss || !is_user_connected(g_iBoss))
+if(!g_iBoss||!is_user_connected(g_iBoss))
 return;
 new key[16],nm[48],name[32];
 formatex(key,charsmax(key),"BSK_%d_%d",g_iBossType,clamp(g_iBossPhase,1,3));
 get_user_name(g_iBoss,name,charsmax(name));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -20307,18 +20308,18 @@ new key[24];
 if(!BossSndKey(ev,key,charsmax(key)))
 return false;
 PlayKey(0,key);
-return(key[0]== 'B' && key[1]!= 'O')? true : false;
+return(key[0]== 'B'&&key[1]!= 'O')? true : false;
 }
-EmitBossSound(const ev[],Float:attn = ATTN_NONE,Float:vol = VOL_NORM)
+EmitBossSound(const ev[],Float:attn=ATTN_NONE,Float:vol=VOL_NORM)
 {
-if(!g_iBoss || !is_user_connected(g_iBoss))
+if(!g_iBoss||!is_user_connected(g_iBoss))
 return;
 new key[24],path[128];
 if(!BossSndKey(ev,key,charsmax(key))|| !TrieGetString(g_tRes,key,path,charsmax(path))|| containi(path,".mp3")!= -1)
 return;
 EmitSafe(g_iBoss,CHAN_STATIC,path,vol,attn,0,PITCH_NORM);
 }
-bool:EmitSpecialSound(id,const ev[],chan = CHAN_VOICE,Float:attn = ATTN_NORM,Float:vol = VOL_NORM)
+bool:EmitSpecialSound(id,const ev[],chan=CHAN_VOICE,Float:attn=ATTN_NORM,Float:vol=VOL_NORM)
 {
 if(!(g_bNemesis[id]|| g_bAssassin[id]))
 return false;
@@ -20348,23 +20349,23 @@ return;
 }
 if(g_fSndIdle[id]<= 0.0)
 g_fSndIdle[id]= now + random_float(3.0,6.0);
-else if(now >= g_fSndIdle[id]&& g_fBossIntro <= now)
+else if(now>=g_fSndIdle[id]&& g_fBossIntro<=now)
 {
-new Float:lo = floatmax(2.0,get_pcvar_float(g_pBossIdleMin));
-new Float:hi = floatmax(lo,get_pcvar_float(g_pBossIdleMax));
+new Float:lo=floatmax(2.0,get_pcvar_float(g_pBossIdleMin));
+new Float:hi=floatmax(lo,get_pcvar_float(g_pBossIdleMax));
 g_fSndIdle[id]= now + random_float(lo,hi);
-if(g_bBoss[id]&& id == g_iBoss)
+if(g_bBoss[id]&& id==g_iBoss)
 EmitBossSound("IDLE",ATTN_NORM,0.9);
 else
 EmitSpecialSound(id,"IDLE",CHAN_VOICE,ATTN_NORM,0.9);
 }
-if(!g_bBoss[id]|| id != g_iBoss)
+if(!g_bBoss[id]|| id!=g_iBoss)
 return;
 if(!(get_entvar(id,var_flags)& FL_ONGROUND))
 return;
 new Float:v[3];
 get_entvar(id,var_velocity,v);
-new Float:sp = floatsqroot(v[0]* v[0]+ v[1]* v[1]);
+new Float:sp=floatsqroot(v[0]* v[0]+ v[1]* v[1]);
 if(sp < 50.0)
 return;
 g_fStepDist[id]+= sp * 0.05;
@@ -20374,16 +20375,16 @@ g_fStepDist[id]= 0.0;
 new key[24],path[128];
 if(!BossSndKey("STEP",key,charsmax(key))|| !TrieGetString(g_tRes,key,path,charsmax(path)))
 return;
-new Float:vol = floatclamp(0.55 + sp / 600.0,0.55,1.0);
+new Float:vol=floatclamp(0.55 + sp / 600.0,0.55,1.0);
 EmitSafe(id,CHAN_BODY,path,vol,ATTN_NORM,0,PITCH_NORM - 4 + random(9));
 }
 SpecialVoice(ent,const ev[])
 {
-new Float:now = get_gametime();
-new bool:boss =(g_bBoss[ent]&& ent == g_iBoss)? true : false;
+new Float:now=get_gametime();
+new bool:boss =(g_bBoss[ent]&& ent==g_iBoss)? true : false;
 if(equal(ev,"PAIN"))
 {
-if(now >= g_fSndPain[ent])
+if(now>=g_fSndPain[ent])
 {
 g_fSndPain[ent]= now + floatmax(boss?3.0:0.8,get_pcvar_float(g_pBossPainCd));
 if(boss)
@@ -20404,7 +20405,7 @@ if(equal(ev,"DIE"))
 {
 return FMRES_SUPERCEDE;
 }
-if(now >= g_fSndAtk[ent])
+if(now>=g_fSndAtk[ent])
 {
 g_fSndAtk[ent]= now + floatmax(boss?1.4:0.6,get_pcvar_float(g_pBossAtkCd));
 if(boss)
@@ -20420,12 +20421,12 @@ return FMRES_SUPERCEDE;
 }
 BossKillTaunt(attacker)
 {
-if(!g_bBoss[attacker]|| attacker != g_iBoss)
+if(!g_bBoss[attacker]|| attacker!=g_iBoss)
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fSndKill)
 return;
-g_fSndKill = now + 8.0;
+g_fSndKill=now + 8.0;
 EmitBossSound("KILL");
 }
 VoiceReset(id)
@@ -20456,8 +20457,8 @@ public rg_RestartRound()
 {
 set_task(0.2,"BDoor536_RestoreAll");
 SkyNextRound531();
-g_bModePicked47 = false;
-g_bForcedRound47 = false;
+g_bModePicked47=false;
+g_bForcedRound47=false;
 for(new reset47=1;reset47<=32;reset47++){BannerRemove47(reset47);GaugeRemove47(reset47);}
 VxClear();
 MsRoundRestart();
@@ -20471,44 +20472,44 @@ set_task(0.8,"task_AmbientRestore",TASK_AMBREST);
 remove_task(TASK_ANNOUNCE);
 remove_task(TASK_BOSSCAST);
 remove_task(TASK_BOSSHIT);
-g_iMapVoteWait = 0;
+g_iMapVoteWait=0;
 remove_task(TASK_BOSSFX);
 remove_task(TASK_INTRO);
-g_iBossPhase = 0;
-g_bRoundActive = false;
-g_bRoundEnded = false;
-g_bCounting = false;
-g_bWaiting = false;
-g_bEnraged = false;
-g_bLastAnn = false;
-g_bFirstInfect = false;
-g_bFirstBlood = false;
-g_iBoss = 0;
-g_iBossTick = 0;
-g_iMeteorTick = 0;
-g_iGlobalInfBombs = 0;
-g_iAirdropClock = 0;
-g_fEclipseEnd = 0.0;
-g_fBlizzardEnd = 0.0;
-for(new i = 0;i < sizeof g_fPoolEnd;i++)
+g_iBossPhase=0;
+g_bRoundActive=false;
+g_bRoundEnded=false;
+g_bCounting=false;
+g_bWaiting=false;
+g_bEnraged=false;
+g_bLastAnn=false;
+g_bFirstInfect=false;
+g_bFirstBlood=false;
+g_iBoss=0;
+g_iBossTick=0;
+g_iMeteorTick=0;
+g_iGlobalInfBombs=0;
+g_iAirdropClock=0;
+g_fEclipseEnd=0.0;
+g_fBlizzardEnd=0.0;
+for(new i=0;i < sizeof g_fPoolEnd;i++)
 g_fPoolEnd[i]= 0.0;
-for(new f = 0;f < MAX_FLARES;f++)
+for(new f=0;f < MAX_FLARES;f++)
 g_fFlareEnd[f]= 0.0;
 RemoveAllMines();
 RemoveAllDrops();
 BossCleanup();
 ZcCleanupAll();
 OvhRemoveAll();
-g_fSndKill = 0.0;
+g_fSndKill=0.0;
 TrieClear(g_tRoundBuys);
-g_iStartTries = 0;
-g_bAnnounced = false;
+g_iStartTries=0;
+g_bAnnounced=false;
 remove_task(TASK_INTRO + 1);
 remove_task(TASK_INTRO + 2);
 remove_task(TASK_INTRO + 3);
-for(new t = 0;t < 30;t++)
+for(new t=0;t < 30;t++)
 remove_task(TASK_BOSSHIT + t);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 g_bZombie[id]= 0;g_bNemesis[id]= 0;g_bAssassin[id]= 0;g_bSurvivor[id]= 0;g_bSniper[id]= 0;
 g_bBoss[id]= 0;g_bMinion[id]= 0;g_bFirst[id]= 0;g_bForceZombie[id]= 0;
@@ -20518,16 +20519,16 @@ ResetRoundData(id);
 ResetLifeData(id);
 }
 if(get_member_game(m_bCompleteReset))
-g_iRound = 1;
+g_iRound=1;
 else
-g_iRound = get_member_game(m_iTotalRoundsPlayed)+ 2;
-new total = RoundsTotal();
+g_iRound=get_member_game(m_iTotalRoundsPlayed)+ 2;
+new total=RoundsTotal();
 if(g_iRound > total)
 {
 if(get_cvar_num("mp_maxrounds")> 0)
 {
-g_iMode = MODE_INFECTION;
-g_iEvent = EV_NONE;
+g_iMode=MODE_INFECTION;
+g_iEvent=EV_NONE;
 ApplyWorldEvent();
 return;
 }
@@ -20541,14 +20542,14 @@ set_task(1.2,"task_Announce",TASK_ANNOUNCE);
 }
 RoundsTotal()
 {
-new m = get_cvar_num("mp_maxrounds");
+new m=get_cvar_num("mp_maxrounds");
 return(m > 0)? m : max(1,get_pcvar_num(g_pRoundsTotal));
 }
 bool:RoundInList(pcvar,round)
 {
 new list[128],tmp[8],pos;
 get_pcvar_string(pcvar,list,charsmax(list));
-while((pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+while((pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 if(str_to_num(tmp)== round)
 return true;
@@ -20562,13 +20563,13 @@ get_pcvar_string(g_pBossRounds,list,charsmax(list));
 trim(list);
 if(list[0])
 return RoundInList(g_pBossRounds,round);
-new every = max(1,get_pcvar_num(g_pBossEvery));
-return(round > 1 && round % every == 0)? true : false;
+new every=max(1,get_pcvar_num(g_pBossEvery));
+return(round > 1&&round % every==0)? true : false;
 }
 RoundsToBoss()
 {
-new total = RoundsTotal();
-for(new r = g_iRound + 1;r <= total;r++)
+new total=RoundsTotal();
+for(new r=g_iRound + 1;r<=total;r++)
 {
 if(IsBossRound(r))
 return r - g_iRound;
@@ -20577,23 +20578,23 @@ return 0;
 }
 ShuffleBosses()
 {
-new n = BossBagSize();
-new last =(g_iBossBagPos > 0 && g_iBossBagPos <= n)? g_iBossBag[n - 1]: -1;
-for(new i = 0;i < n;i++)
+new n=BossBagSize();
+new last =(g_iBossBagPos > 0&&g_iBossBagPos<=n)? g_iBossBag[n - 1]: -1;
+for(new i=0;i < n;i++)
 g_iBossBag[i]= g_iBossLoadN > 0 ? g_iBossLoadList[i]: i;
-for(new i = n - 1;i > 0;i--)
+for(new i=n - 1;i > 0;i--)
 {
-new j = random(i + 1),t = g_iBossBag[i];
+new j=random(i + 1),t=g_iBossBag[i];
 g_iBossBag[i]= g_iBossBag[j];
 g_iBossBag[j]= t;
 }
-if(n > 1 && g_iBossBag[0]== last)
+if(n > 1&&g_iBossBag[0]== last)
 {
-new t = g_iBossBag[0];
+new t=g_iBossBag[0];
 g_iBossBag[0]= g_iBossBag[n - 1];
 g_iBossBag[n - 1]= t;
 }
-g_iBossBagPos = 0;
+g_iBossBagPos=0;
 }
 BossBagSize()
 {
@@ -20601,82 +20602,82 @@ return g_iBossLoadN > 0 ? g_iBossLoadN : NUM_BOSSES;
 }
 NextBoss()
 {
-if(g_iBossBagPos >= BossBagSize())
+if(g_iBossBagPos>=BossBagSize())
 ShuffleBosses();
 return g_iBossBag[clamp(g_iBossBagPos++,0,NUM_BOSSES - 1)];
 }
 PickSpecialMode(players)
 {
 new total,w[MODE_TOTAL];
-for(new m = MODE_NEMESIS;m < MODE_BOSS;m++)
+for(new m=MODE_NEMESIS;m < MODE_BOSS;m++)
 {
-if(m == g_iLastSpecial || players < MODE_MINPL[m])
+if(m==g_iLastSpecial||players < MODE_MINPL[m])
 continue;
 w[m]= max(1,MODE_CHANCE[m]);
-total += w[m];
+total+=w[m];
 }
 if(!total)
 return MODE_INFECTION;
-new roll = random_num(1,total),acc;
-for(new m = MODE_NEMESIS;m < MODE_BOSS;m++)
+new roll=random_num(1,total),acc;
+for(new m=MODE_NEMESIS;m < MODE_BOSS;m++)
 {
-acc += w[m];
-if(w[m]&& roll <= acc)
+acc+=w[m];
+if(w[m]&& roll<=acc)
 return m;
 }
 return MODE_INFECTION;
 }
-stock Shuffle534(arr[],n){for(new i = n - 1;i > 0;i--){new j = random(i + 1),t = arr[i];arr[i]= arr[j];arr[j]= t;}}
+stock Shuffle534(arr[],n){for(new i=n - 1;i > 0;i--){new j=random(i + 1),t=arr[i];arr[i]= arr[j];arr[j]= t;}}
 BuildPlan534()
 {
-new total = clamp(RoundsTotal(),1,63);
-g_iPlanTotal534 = total;
+new total=clamp(RoundsTotal(),1,63);
+g_iPlanTotal534=total;
 new list[64],n;
-for(new r = 0;r < 64;r++){g_iPlanMode534[r]= MODE_INFECTION;g_iPlanEv534[r]= EV_NONE;}
-for(new r = 2;r <= total;r++)if(!IsBossRound(r))list[n++]= r;
+for(new r=0;r < 64;r++){g_iPlanMode534[r]= MODE_INFECTION;g_iPlanEv534[r]= EV_NONE;}
+for(new r=2;r<=total;r++)if(!IsBossRound(r))list[n++]= r;
 new sp[MODE_TOTAL],ns;
-for(new m = MODE_NEMESIS;m < MODE_BOSS;m++)sp[ns++]= m;
+for(new m=MODE_NEMESIS;m < MODE_BOSS;m++)sp[ns++]= m;
 Shuffle534(sp,ns);
-new bool:used[64],cnt = min(ns,n);
-for(new i = 0;i < cnt;i++)
+new bool:used[64],cnt=min(ns,n);
+for(new i=0;i < cnt;i++)
 {
-new idx = clamp((i * n)/ cnt +(n / cnt)/ 2,0,n - 1);
+new idx=clamp((i * n)/ cnt +(n / cnt)/ 2,0,n - 1);
 while(used[idx])idx =(idx + 1)% n;
 used[idx]= true;
 g_iPlanMode534[list[idx]]= sp[i];
 }
 new ev[EV_TOTAL],ne;
-for(new e = EV_BLOODMOON;e < EV_TOTAL;e++)ev[ne++]= e;
+for(new e=EV_BLOODMOON;e < EV_TOTAL;e++)ev[ne++]= e;
 Shuffle534(ev,ne);
 new k,slot;
-for(new idx = 0;idx < n;idx++)
+for(new idx=0;idx < n;idx++)
 {
 if(used[idx])continue;
-new r = list[idx];
+new r=list[idx];
 if(k < ne)g_iPlanEv534[r]= ev[k++];
-if(slot++ % 4 == 1)g_iPlanMode534[r]= MODE_MULTI;
+if(slot++ % 4==1)g_iPlanMode534[r]= MODE_MULTI;
 }
 if(k < ne)g_iPlanEv534[1]= ev[k++];
 new txt[512],len;
-for(new r = 1;r <= total && len < charsmax(txt)- 12;r++)
-len += formatex(txt[len],charsmax(txt)- len,"%d:%s%d ",r,IsBossRound(r)? "B" :(g_iPlanMode534[r]>= MODE_NEMESIS ? "S" :(g_iPlanMode534[r]== MODE_MULTI ? "M" : "I")),
+for(new r=1;r<=total&&len < charsmax(txt)- 12;r++)
+len+=formatex(txt[len],charsmax(txt)- len,"%d:%s%d ",r,IsBossRound(r)? "B" :(g_iPlanMode534[r]>= MODE_NEMESIS ? "S" :(g_iPlanMode534[r]== MODE_MULTI ? "M" : "I")),
 IsBossRound(r)? 0 :(g_iPlanMode534[r]>= MODE_NEMESIS ? g_iPlanMode534[r]: g_iPlanEv534[r]));
 log_amx("[Vexmira] tam rotasyon plani (%d round, %d ozel mod, %d/%d event): %s",total,cnt,k,ne,txt);
 }
 public cmd_Plan534(id)
 {
-if(id && !(get_user_flags(id)& ADMIN_BAN))return PLUGIN_HANDLED;
+if(id&&!(get_user_flags(id)& ADMIN_BAN))return PLUGIN_HANDLED;
 if(!g_iPlanTotal534)BuildPlan534();
 new txt[160],len;
 console_print(id,"[Vexmira] rotasyon=%d round=%d/%d plan=%d",get_pcvar_num(g_pFullRot534),g_iRound,RoundsTotal(),g_iPlanTotal534);
-for(new r = 1;r <= g_iPlanTotal534;r++)
+for(new r=1;r<=g_iPlanTotal534;r++)
 {
 new mk[24],ek[24];
 formatex(mk,charsmax(mk),"MODE_NAME_%d",IsBossRound(r)? MODE_BOSS : g_iPlanMode534[r]);
 formatex(ek,charsmax(ek),"EV_NAME_%d",g_iPlanEv534[r]);
-len = formatex(txt,charsmax(txt),"  %2d: %L",r,id ? id : LANG_SERVER,mk);
+len=formatex(txt,charsmax(txt),"  %2d: %L",r,id ? id : LANG_SERVER,mk);
 if(g_iPlanEv534[r]&& !IsBossRound(r))formatex(txt[len],charsmax(txt)- len," + event %d",g_iPlanEv534[r]);
-console_print(id,"%s%s",txt,r == g_iRound ? "   <== simdi" : "");
+console_print(id,"%s%s",txt,r==g_iRound ? "   <== simdi" : "");
 #pragma unused ek
 }
 return PLUGIN_HANDLED;
@@ -20684,95 +20685,95 @@ return PLUGIN_HANDLED;
 PickMode()
 {
 if(g_bModePicked47)return;
-if(get_pcvar_num(g_pFullRot534)&&(g_iPlanTotal534 != clamp(RoundsTotal(),1,63)||(g_iRound == 1 && !g_bPlanR1534)))
-{BuildPlan534();g_bPlanR1534 = true;}
-if(g_iRound > 1)g_bPlanR1534 = false;
-new bool:plan = get_pcvar_num(g_pFullRot534)&& g_iRound >= 1 && g_iRound <= g_iPlanTotal534 && g_iPlanTotal534 == clamp(RoundsTotal(),1,63);
-g_bModePicked47 = true;
-g_bForcedRound47 =(g_iForceMode >= 0);
-new players = CountPlaying();
-g_iMode = MODE_INFECTION;
-g_bFinalBoss = false;
-if(g_iForceMode >= 0)
+if(get_pcvar_num(g_pFullRot534)&&(g_iPlanTotal534!=clamp(RoundsTotal(),1,63)||(g_iRound==1&&!g_bPlanR1534)))
+{BuildPlan534();g_bPlanR1534=true;}
+if(g_iRound > 1)g_bPlanR1534=false;
+new bool:plan=get_pcvar_num(g_pFullRot534)&& g_iRound>=1&&g_iRound<=g_iPlanTotal534&&g_iPlanTotal534==clamp(RoundsTotal(),1,63);
+g_bModePicked47=true;
+g_bForcedRound47 =(g_iForceMode>=0);
+new players=CountPlaying();
+g_iMode=MODE_INFECTION;
+g_bFinalBoss=false;
+if(g_iForceMode>=0)
 {
-g_iMode = g_iForceMode;
-g_iForceMode = -1;
+g_iMode=g_iForceMode;
+g_iForceMode=-1;
 }
-else if(IsBossRound(g_iRound)&& players >= MODE_MINPL[MODE_BOSS])
-g_iMode = MODE_BOSS;
+else if(IsBossRound(g_iRound)&& players>=MODE_MINPL[MODE_BOSS])
+g_iMode=MODE_BOSS;
 else if(plan)
 {
-new pm = g_iPlanMode534[g_iRound];
-if(players >= MODE_MINPL[pm])g_iMode = pm;
-else if(pm >= MODE_NEMESIS && pm < MODE_BOSS)
+new pm=g_iPlanMode534[g_iRound];
+if(players>=MODE_MINPL[pm])g_iMode=pm;
+else if(pm>=MODE_NEMESIS&&pm < MODE_BOSS)
 {
-for(new r = g_iRound + 1;r <= g_iPlanTotal534;r++)
+for(new r=g_iRound + 1;r<=g_iPlanTotal534;r++)
 if(!IsBossRound(r)&& g_iPlanMode534[r]< MODE_NEMESIS){g_iPlanMode534[r]= pm;break;}
 }
 }
 else if(RoundInList(g_pSpecialRounds,g_iRound))
-g_iMode = PickSpecialMode(players);
-else if(g_iRound >= 3 && random_num(1,100)<= get_pcvar_num(g_pMultiChance))
-g_iMode = MODE_MULTI;
-if(g_iMode == MODE_BOSS)
+g_iMode=PickSpecialMode(players);
+else if(g_iRound>=3&&random_num(1,100)<= get_pcvar_num(g_pMultiChance))
+g_iMode=MODE_MULTI;
+if(g_iMode==MODE_BOSS)
 {
-g_bFinalBoss =(g_iRound >= RoundsTotal())? true : false;
-if(g_iForceBoss >= 0 && g_iForceBoss < NUM_BOSSES && BossIsLoaded(g_iForceBoss))
+g_bFinalBoss =(g_iRound>=RoundsTotal())? true : false;
+if(g_iForceBoss>=0&&g_iForceBoss < NUM_BOSSES&&BossIsLoaded(g_iForceBoss))
 {
-g_iBossType = g_iForceBoss;
-g_iForceBoss = -1;
+g_iBossType=g_iForceBoss;
+g_iForceBoss=-1;
 }
 else
-g_iBossType = NextBoss();
+g_iBossType=NextBoss();
 }
-else if(g_iMode >= MODE_NEMESIS)
-g_iLastSpecial = g_iMode;
-new last = g_iEvent;
-if(g_iMode != MODE_INFECTION && g_iMode != MODE_MULTI)
-g_iEvent = EV_NONE;
-else if(g_iForceEvent >= 0)
+else if(g_iMode>=MODE_NEMESIS)
+g_iLastSpecial=g_iMode;
+new last=g_iEvent;
+if(g_iMode!=MODE_INFECTION&&g_iMode!=MODE_MULTI)
+g_iEvent=EV_NONE;
+else if(g_iForceEvent>=0)
 {
-g_iEvent = g_iForceEvent;
-g_iForceEvent = -1;
+g_iEvent=g_iForceEvent;
+g_iForceEvent=-1;
 }
 else if(plan)
-g_iEvent = g_iPlanEv534[g_iRound];
-else if(g_iRound > 1 && random_num(1,100)<= get_pcvar_num(g_pEventChance))
+g_iEvent=g_iPlanEv534[g_iRound];
+else if(g_iRound > 1&&random_num(1,100)<= get_pcvar_num(g_pEventChance))
 {
-g_iEvent = random_num(EV_BLOODMOON,EV_TOTAL - 1);
-if(g_iEvent == last)
+g_iEvent=random_num(EV_BLOODMOON,EV_TOTAL - 1);
+if(g_iEvent==last)
 g_iEvent =(g_iEvent + random_num(1,EV_TOTAL - 2))% EV_TOTAL;
-if(g_iEvent == EV_NONE)
-g_iEvent = EV_BLOODMOON;
+if(g_iEvent==EV_NONE)
+g_iEvent=EV_BLOODMOON;
 }
 else
-g_iEvent = EV_NONE;
+g_iEvent=EV_NONE;
 }
 public task_Announce()
 {
-g_bAnnounced = true;
+g_bAnnounced=true;
 new key[20];
-new total = RoundsTotal();
-for(new p = 1;p <= g_iMax;p++)
+new total=RoundsTotal();
+for(new p=1;p<=g_iMax;p++)
 if(is_user_connected(p))CsoNotify(p,CN_ROUND,g_iRound);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,print_team_default,"%s %L",ChatTag("ROUND_CHAT2"),p,"ROUND_CHAT2",g_iRound,total);
 }
 AssignQuests();
-if(g_iRound >= total)
+if(g_iRound>=total)
 {
 PlayKey(0,"FINAL_ROUND");
 PlayVoxAll("VOX_FINAL");
 ChatAll("FINAL_ROUND_CHAT");
 }
-else if(total - g_iRound == 2)
+else if(total - g_iRound==2)
 ChatAll("ROUNDS_LEFT_2");
-if(g_iMode == MODE_BOSS)
+if(g_iMode==MODE_BOSS)
 {
 formatex(key,charsmax(key),"BOSS_ANN_%d",g_iBossType);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p))
 CsoNotify(p,CN_BOSS);
@@ -20785,7 +20786,7 @@ if(get_pcvar_num(g_pLmEnable)&& !get_pcvar_num(g_pLmBoss))
 ChatAll("LM_BOSS_BLOCKED");
 return;
 }
-if(g_iMode != MODE_INFECTION && g_iMode != MODE_MULTI)
+if(g_iMode!=MODE_INFECTION&&g_iMode!=MODE_MULTI)
 {
 formatex(key,charsmax(key),"MODE_ANN_%d",g_iMode);
 VexLocalizedAnnounceAll(key,255,170,55,3.6);
@@ -20793,7 +20794,7 @@ FadeAll(255,80,0,50,1.2);
 BossTeaser();
 return;
 }
-if(g_iEvent != EV_NONE)
+if(g_iEvent!=EV_NONE)
 {
 formatex(key,charsmax(key),"EV_ANN_%d",g_iEvent);
 new r,g,b;
@@ -20810,33 +20811,33 @@ EventColor(ev,&r,&g,&b)
 {
 switch(ev)
 {
-case EV_BLOODMOON,EV_VAMPIRE:{r = 255;g = 40;b = 40;}
-case EV_FOG:{r = 190;g = 200;b = 210;}
-case EV_SPEED:{r = 0;g = 230;b = 255;}
-case EV_LOWGRAV:{r = 150;g = 120;b = 255;}
-case EV_DOUBLEDMG,EV_HEADHUNTER:{r = 255;g = 130;b = 0;}
-case EV_NIGHT,EV_BLACKOUT:{r = 120;g = 120;b = 255;}
-case EV_PLAGUE,EV_HORDE:{r = 120;g = 255;b = 0;}
-case EV_SUPPLY,EV_GOLDRUSH:{r = 255;g = 210;b = 0;}
-case EV_BERSERK,EV_TITAN:{r = 255;g = 70;b = 0;}
-case EV_ADRENALINE:{r = 0;g = 255;b = 140;}
-case EV_METEOR:{r = 255;g = 100;b = 0;}
-case EV_STORM:{r = 230;g = 240;b = 255;}
-default:{r = 0;g = 200;b = 255;}
+case EV_BLOODMOON,EV_VAMPIRE:{r=255;g=40;b=40;}
+case EV_FOG:{r=190;g=200;b=210;}
+case EV_SPEED:{r=0;g=230;b=255;}
+case EV_LOWGRAV:{r=150;g=120;b=255;}
+case EV_DOUBLEDMG,EV_HEADHUNTER:{r=255;g=130;b=0;}
+case EV_NIGHT,EV_BLACKOUT:{r=120;g=120;b=255;}
+case EV_PLAGUE,EV_HORDE:{r=120;g=255;b=0;}
+case EV_SUPPLY,EV_GOLDRUSH:{r=255;g=210;b=0;}
+case EV_BERSERK,EV_TITAN:{r=255;g=70;b=0;}
+case EV_ADRENALINE:{r=0;g=255;b=140;}
+case EV_METEOR:{r=255;g=100;b=0;}
+case EV_STORM:{r=230;g=240;b=255;}
+default:{r=0;g=200;b=255;}
 }
 }
 public rg_FreezeEnd()
 {
-g_iCountdown = get_pcvar_num(g_pCountdown);
-g_bCounting = true;
+g_iCountdown=get_pcvar_num(g_pCountdown);
+g_bCounting=true;
 MsFreezeEnd();
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id))
 continue;
 ApplyHumanGravity(id);
 rg_reset_maxspeed(id);
-if(g_iEvent == EV_SUPPLY && !g_bZombie[id])
+if(g_iEvent==EV_SUPPLY&&!g_bZombie[id])
 {
 g_iFireNades[id]++;
 rg_give_item(id,"weapon_hegrenade");
@@ -20844,15 +20845,15 @@ rg_set_user_armor(id,200,ARMOR_VESTHELM);
 g_iFrostNades[id]++;
 rg_give_item(id,"weapon_smokegrenade");
 }
-if(g_iEvent == EV_SPEED)
+if(g_iEvent==EV_SPEED)
 SpeedRushFx(id);
 }
-if(g_iEvent == EV_SUPPLY)
-g_iAirdropClock = 5;
+if(g_iEvent==EV_SUPPLY)
+g_iAirdropClock=5;
 }
 public rg_RoundEnd(WinStatus:status,ScenarioEventEndRound:event,Float:tmDelay)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 LmTakeCancel(p);
 OnRoundEnd(status);
 }
@@ -20861,77 +20862,77 @@ OnRoundEnd(WinStatus:status)
 VxClear();
 if(g_bRoundEnded)
 return;
-g_bRoundEnded = true;
-g_bCounting = false;
+g_bRoundEnded=true;
+g_bCounting=false;
 StopRoundMusic();
 ZcCleanupAll();
 OvhRemoveAll();
-new bool:wasActive = g_bRoundActive;
-g_bRoundActive = false;
+new bool:wasActive=g_bRoundActive;
+g_bRoundActive=false;
 MsRoundEnd(status,wasActive);
 CsoFlushAll();
 if(!wasActive)
 return;
 RoundAch60(status);
 EpicRoundFinish(status);
-if(status == WINSTATUS_CTS || status == WINSTATUS_TERRORISTS)
+if(status==WINSTATUS_CTS||status==WINSTATUS_TERRORISTS)
 {
-new note = status == WINSTATUS_CTS ? CN_HWIN : CN_ZWIN;
-for(new p = 1;p <= g_iMax;p++)
+new note=status==WINSTATUS_CTS ? CN_HWIN : CN_ZWIN;
+for(new p=1;p<=g_iMax;p++)
 if(is_user_connected(p))CsoNotify(p,note);
 }
-if(status == WINSTATUS_CTS)
+if(status==WINSTATUS_CTS)
 {
 g_iHumanStreak++;
-g_iZombieStreak = 0;
-if(g_iHumanStreak >= 3)
+g_iZombieStreak=0;
+if(g_iHumanStreak>=3)
 LiveAll(0,"LIVE_HSTREAK",2,g_iHumanStreak);
 Radio52(5);
-new xp = get_pcvar_num(g_pWinHXP),ap = get_pcvar_num(g_pWinHAP);
+new xp=get_pcvar_num(g_pWinHXP),ap=get_pcvar_num(g_pWinHAP);
 switch(g_iMode)
 {
-case MODE_BOSS:{xp = xp * 14 / 5;ap = ap * 5 / 2;}
-case MODE_SURVIVOR,MODE_SNIPER:{xp = xp * 8 / 5;ap = ap * 5 / 3;}
-case MODE_NEMESIS,MODE_ASSASSIN:{xp = xp * 12 / 5;ap = ap * 2;}
-case MODE_ARMAGEDDON,MODE_PLAGUE:{xp = xp * 2;ap = ap * 5 / 3;}
+case MODE_BOSS:{xp=xp * 14 / 5;ap=ap * 5 / 2;}
+case MODE_SURVIVOR,MODE_SNIPER:{xp=xp * 8 / 5;ap=ap * 5 / 3;}
+case MODE_NEMESIS,MODE_ASSASSIN:{xp=xp * 12 / 5;ap=ap * 2;}
+case MODE_ARMAGEDDON,MODE_PLAGUE:{xp=xp * 2;ap=ap * 5 / 3;}
 }
 new players[32];
-new n = GetHumans(players);
-for(new i = 0;i < n;i++)
+new n=GetHumans(players);
+for(new i=0;i < n;i++)
 {
 g_iWins[players[i]]++;
 Reward(players[i],xp,ap);
 QuestEvent(players[i],7,1);
 }
-if(n == 1 && g_bLastAnn && !g_bSurvivor[players[0]]&& !g_bSniper[players[0]])
+if(n==1&&g_bLastAnn&&!g_bSurvivor[players[0]]&& !g_bSniper[players[0]])
 GrantAch(players[0],7);
 }
-else if(status == WINSTATUS_TERRORISTS)
+else if(status==WINSTATUS_TERRORISTS)
 {
 g_iZombieStreak++;
-g_iHumanStreak = 0;
-if(g_iZombieStreak >= 3)
+g_iHumanStreak=0;
+if(g_iZombieStreak>=3)
 LiveAll(0,"LIVE_ZSTREAK",2,g_iZombieStreak);
 Radio52(6);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& g_bZombie[id]&& !g_bMinion[id])
 Reward(id,get_pcvar_num(g_pWinZXP),get_pcvar_num(g_pWinZAP));
 }
 }
-if(status == WINSTATUS_CTS || status == WINSTATUS_TERRORISTS)
+if(status==WINSTATUS_CTS||status==WINSTATUS_TERRORISTS)
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id)&& IsVip(id)&&(g_bZombie[id]|| is_user_alive(id)))
 g_iVC[id]+= VipRoundVC(id);
 }
 RoundSummary();
 }
-if(g_iRound >= RoundsTotal())
+if(g_iRound>=RoundsTotal())
 set_task(1.5,"task_MapEndAwards");
 MapOnRoundEnd();
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id))
 SaveData(id);
@@ -20941,26 +20942,26 @@ SaveTop();LbWrite60();
 RoundSummary()
 {
 new mvp,bestScore;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
-new score = g_iRoundDmg[id]+ g_iRoundInf[id]* 600 + g_iRoundKills[id]* 250;
+new score=g_iRoundDmg[id]+ g_iRoundInf[id]* 600 + g_iRoundKills[id]* 250;
 if(score > bestScore)
 {
-bestScore = score;
-mvp = id;
+bestScore=score;
+mvp=id;
 }
 }
 new name[32],txt[128];
-g_iRoundMvp = mvp;
+g_iRoundMvp=mvp;
 if(mvp)
 {
 get_user_name(mvp,name,charsmax(name));
-new vc = get_pcvar_num(g_pMvpVC),ap = get_pcvar_num(g_pMvpAP);
+new vc=get_pcvar_num(g_pMvpVC),ap=get_pcvar_num(g_pMvpAP);
 g_iVC[mvp]+= vc;
 AddAP(mvp,ap,false,false);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -20978,7 +20979,7 @@ FxLight(o,255,200,40,30,20,10);
 set_user_rendering(mvp,kRenderFxGlowShell,255,200,40,kRenderNormal,20);
 }
 }
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
@@ -20990,15 +20991,15 @@ public task_MapEndAwards()
 {
 if(g_bMapAwards)
 return;
-g_bMapAwards = true;
+g_bMapAwards=true;
 new topK,topI,topB,vK,vI,vB;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
-if(g_iMapKills[id]> vK){vK = g_iMapKills[id];topK = id;}
-if(g_iMapInf[id]> vI){vI = g_iMapInf[id];topI = id;}
-if(g_iMapBossDmg[id]> vB){vB = g_iMapBossDmg[id];topB = id;}
+if(g_iMapKills[id]> vK){vK=g_iMapKills[id];topK=id;}
+if(g_iMapInf[id]> vI){vI=g_iMapInf[id];topI=id;}
+if(g_iMapBossDmg[id]> vB){vB=g_iMapBossDmg[id];topB=id;}
 }
 HudAll(SL_ANN,CLR_REWARD,5.0,"MAPEND_HUD");
 PlayKey(0,"MAP_END");
@@ -21023,7 +21024,7 @@ get_user_name(topB,name,charsmax(name));
 g_iVC[topB]+= 5;
 MapAwardLine("MAPEND_BOSS",topB,name,vB);
 }
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id))
 SaveData(id);
@@ -21031,7 +21032,7 @@ SaveData(id);
 }
 MapAwardLine(const key[],who,const name[],val)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,who,"%s %L",ChatTag(key),p,key,name,val);
@@ -21039,16 +21040,16 @@ client_print_color(p,who,"%s %L",ChatTag(key),p,key,name,val);
 }
 CheckWin()
 {
-if(!g_bRoundActive || g_bRoundEnded)
+if(!g_bRoundActive||g_bRoundEnded)
 return;
-new humans = CountHumans(true);
-new zombies = CountZombies(true);
-if(humans == 0)
+new humans=CountHumans(true);
+new zombies=CountZombies(true);
+if(humans==0)
 {
 EndRound(WINSTATUS_TERRORISTS);
 return;
 }
-if(zombies == 0)
+if(zombies==0)
 {
 EndRound(WINSTATUS_CTS);
 return;
@@ -21061,46 +21062,46 @@ EndRound(WinStatus:status)
 if(g_bRoundEnded)
 return;
 OnRoundEnd(status);
-if(status == WINSTATUS_CTS)
+if(status==WINSTATUS_CTS)
 rg_update_teamscores(1,0,true);
-else if(status == WINSTATUS_TERRORISTS)
+else if(status==WINSTATUS_TERRORISTS)
 rg_update_teamscores(0,1,true);
-rg_round_end(5.0,status,status == WINSTATUS_CTS ? ROUND_CTS_WIN : ROUND_TERRORISTS_WIN,"","",true);
+rg_round_end(5.0,status,status==WINSTATUS_CTS ? ROUND_CTS_WIN : ROUND_TERRORISTS_WIN,"","",true);
 }
 RoundTimeLeft()
 {
-new Float:start = Float:get_member_game(m_fRoundStartTime);
-new total = get_member_game(m_iRoundTimeSecs);
+new Float:start=Float:get_member_game(m_fRoundStartTime);
+new total=get_member_game(m_iRoundTimeSecs);
 return floatround(float(total)-(get_gametime()- start),floatround_ceil);
 }
 Float:RespawnDelay(id)
 {
-new Float:d = get_pcvar_float(g_pRespawn);
+new Float:d=get_pcvar_float(g_pRespawn);
 if(IsElite(id))
-d -= 2.0;
+d-=2.0;
 else if(IsVip(id))
-d -= 1.0;
+d-=1.0;
 return floatmax(1.0,d);
 }
 bool:AllowsInfection()
 {
-return(g_iMode == MODE_INFECTION || g_iMode == MODE_MULTI)? true : false;
+return(g_iMode==MODE_INFECTION||g_iMode==MODE_MULTI)? true : false;
 }
 bool:AllowsRespawn()
 {
 if(g_bRespawnOff)
 return false;
-return(g_iMode == MODE_INFECTION || g_iMode == MODE_MULTI)? true : false;
+return(g_iMode==MODE_INFECTION||g_iMode==MODE_MULTI)? true : false;
 }
 CountPlaying()
 {
 new n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id))
 continue;
-new TeamName:t = get_member(id,m_iTeam);
-if(t == TEAM_TERRORIST || t == TEAM_CT)
+new TeamName:t=get_member(id,m_iTeam);
+if(t==TEAM_TERRORIST||t==TEAM_CT)
 n++;
 }
 return n;
@@ -21108,7 +21109,7 @@ return n;
 CountHumans(bool:alive)
 {
 new n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(alive ? is_user_alive(id): is_user_connected(id))
 {
@@ -21121,7 +21122,7 @@ return n;
 CountZombies(bool:alive)
 {
 new n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(alive ? is_user_alive(id): is_user_connected(id))
 {
@@ -21134,7 +21135,7 @@ return n;
 GetHumans(players[32])
 {
 new n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 players[n++]= id;
@@ -21145,7 +21146,7 @@ public task_Tick()
 {
 g_iFrame++;
 MsTick();
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 g_iPlaySec[id]++;
@@ -21154,26 +21155,26 @@ if(g_bCounting)
 {
 if(g_iCountdown > 0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
-if(g_iCountdown <= 5)
+if(g_iCountdown<=5)
 set_dhudmessage(CLR_DANGER,-1.0,Y_COUNT,0,0.0,1.0,0.0,0.0);
 else
 set_dhudmessage(THEME_A[g_iTheme[p]][0],THEME_A[g_iTheme[p]][1],THEME_A[g_iTheme[p]][2],-1.0,Y_COUNT,0,0.0,1.0,0.0,0.0);
-if(g_iCountdown <= 15)VexCountdown(p,g_iCountdown);
+if(g_iCountdown<=15)VexCountdown(p,g_iCountdown);
 }
-if(g_iCountdown <= 10)
+if(g_iCountdown<=10)
 {
 if(g_bVoxCountdown)
 {
 new snd[32];
 formatex(snd,charsmax(snd),"vexmira/epic/count/%s.wav",VOX_NUM[g_iCountdown]);
-static cdHave[11];new cdi = clamp(g_iCountdown,0,10);
+static cdHave[11];new cdi=clamp(g_iCountdown,0,10);
 if(!cdHave[cdi])cdHave[cdi]= file_exists(fmt("sound/%s",snd),true)? 1 : 2;
-if(g_iEpicCountdown==1 || cdHave[cdi]==2)formatex(snd,charsmax(snd),"vox/%s.wav",VOX_NUM[g_iCountdown]);
-for(new p = 1;p <= g_iMax;p++)
+if(g_iEpicCountdown==1||cdHave[cdi]==2)formatex(snd,charsmax(snd),"vox/%s.wav",VOX_NUM[g_iCountdown]);
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !(g_iSet[p]& SET_NO_AMB))
 VxClientCmd527(p,"spk ^"%s^"",snd);
@@ -21186,7 +21187,7 @@ g_iCountdown--;
 }
 else
 {
-g_bCounting = false;
+g_bCounting=false;
 StartMode();
 }
 }
@@ -21194,17 +21195,17 @@ if(g_bWaiting)
 {
 if(CountPlaying()>= 2)
 {
-g_bWaiting = false;
+g_bWaiting=false;
 ChatAll("GAME_COMMENCING");
-if(g_iRound <= 1)
+if(g_iRound<=1)
 set_member_game(m_bCompleteReset,true);
 rg_round_end(3.0,WINSTATUS_DRAW,ROUND_GAME_COMMENCE,"","",false);
 }
-else if(g_iFrame % 3 == 0)
+else if(g_iFrame % 3==0)
 ShowWaiting();
 }
-if((g_bRoundActive || g_bCounting)&& g_fEclipseEnd <= get_gametime()
-&&(g_iEvent == EV_BLOODMOON || g_iEvent == EV_NIGHT || g_iMode == MODE_BOSS || g_iMode == MODE_ASSASSIN)
+if((g_bRoundActive||g_bCounting)&& g_fEclipseEnd<=get_gametime()
+&&(g_iEvent==EV_BLOODMOON||g_iEvent==EV_NIGHT||g_iMode==MODE_BOSS||g_iMode==MODE_ASSASSIN)
 && random_num(1,9)== 1)
 Lightning();
 DrawHud();
@@ -21213,17 +21214,17 @@ TickLotto();
 TickVip();
 TickCosmetics();
 TickMineHints();
-if(g_iFrame % 130 == 65 && get_pcvar_num(g_pLiveChatter))
+if(g_iFrame % 130==65&&get_pcvar_num(g_pLiveChatter))
 LiveChatter();
 TickFlares();
-new tipInt = get_pcvar_num(g_pTipInterval);
-if(tipInt > 0 && ++g_iTipClock >= max(20,tipInt))
+new tipInt=get_pcvar_num(g_pTipInterval);
+if(tipInt > 0&&++g_iTipClock>=max(20,tipInt))
 {
-g_iTipClock = 0;
+g_iTipClock=0;
 g_iTipIdx =(g_iTipIdx % NUM_TIPS)+ 1;
 new k[10];
 formatex(k,charsmax(k),"TIP_%d",g_iTipIdx);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_ADS))
 Chat(p,k);
@@ -21231,9 +21232,9 @@ Chat(p,k);
 }
 if(!g_bRoundActive)
 return;
-if(g_iMode != MODE_BOSS && g_iFrame % 25 == 0 && random_num(1,3)== 1)
+if(g_iMode!=MODE_BOSS&&g_iFrame % 25==0&&random_num(1,3)== 1)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !(g_iSet[p]& SET_NO_AMB))
 PlayKey(p,"AMBIENT");
@@ -21241,10 +21242,10 @@ PlayKey(p,"AMBIENT");
 }
 TickAutoVote();
 MapVoteTick();
-new tl = RoundTimeLeft();
-if(tl == 30)
+new tl=RoundTimeLeft();
+if(tl==30)
 LiveAll(0,"LIVE_30S",3);
-else if(tl == 10)
+else if(tl==10)
 CsoHudAll(CN_TEN,0,SL_ALERT,CLR_WARN,2.0,"HUD_10S");
 TickPlayers();
 TickBoss();
@@ -21257,7 +21258,7 @@ CheckWin();
 }
 ShowWaiting()
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -21268,7 +21269,7 @@ show_dhudmessage(p,"%L",p,"WAITING_PLAYERS",CountPlaying());
 Lightning()
 {
 engfunc(EngFunc_LightStyle,0,"z");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p))
 continue;
@@ -21286,13 +21287,13 @@ engfunc(EngFunc_LightStyle,0,(g_fEclipseEnd > get_gametime())? "a" : g_szLight);
 }
 TickRespawns()
 {
-new Float:now = get_gametime();
-for(new id = 1;id <= g_iMax;id++)
+new Float:now=get_gametime();
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_alive(id))
 continue;
-new TeamName:t = get_member(id,m_iTeam);
-if(t != TEAM_TERRORIST && t != TEAM_CT)
+new TeamName:t=get_member(id,m_iTeam);
+if(t!=TEAM_TERRORIST&&t!=TEAM_CT)
 continue;
 if(g_fRespawnAt[id]== 0.0)
 {
@@ -21300,7 +21301,7 @@ if(AllowsRespawn()&& RoundTimeLeft()> 20)
 g_fRespawnAt[id]= now + RespawnDelay(id);
 continue;
 }
-if(now >= g_fRespawnAt[id])
+if(now>=g_fRespawnAt[id])
 {
 g_fRespawnAt[id]= 0.0;
 if(!AllowsRespawn())
@@ -21319,24 +21320,24 @@ show_dhudmessage(id,"%L",id,"RESPAWN_IN",floatround(g_fRespawnAt[id]- now,floatr
 }
 TickMeteor()
 {
-if(g_iEvent != EV_METEOR)
+if(g_iEvent!=EV_METEOR)
 return;
 if(++g_iMeteorTick < clamp(get_pcvar_num(g_pMeteorEvery),2,60))
 return;
-g_iMeteorTick = 0;
+g_iMeteorTick=0;
 new alive[32],n;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_alive(id)&& !g_bZombie[id])
 alive[n++]= id;
 }
 if(!n)
 return;
-new cnt = clamp(get_pcvar_num(g_pMeteorCount),1,4);
-for(new k = 0;k < cnt && n > 0;k++)
+new cnt=clamp(get_pcvar_num(g_pMeteorCount),1,4);
+for(new k=0;k < cnt&&n > 0;k++)
 {
-new pick = random(n);
-new victim = alive[pick];
+new pick=random(n);
+new victim=alive[pick];
 alive[pick]= alive[--n];
 new Float:o[3];
 if(!MeteorSpot(victim,o))
@@ -21356,10 +21357,10 @@ bool:MeteorSpot(id,Float:out[3])
 new Float:base[3],Float:ang[3],Float:end[3],Float:frac,Float:po[3];
 get_entvar(id,var_origin,base);
 get_entvar(id,var_v_angle,ang);
-for(new tries = 0;tries < 6;tries++)
+for(new tries=0;tries < 6;tries++)
 {
-new Float:yaw = ang[1]+ float(random_num(-1,1))* 90.0 + random_float(-25.0,25.0);
-new Float:dist = random_float(96.0,220.0);
+new Float:yaw=ang[1]+ float(random_num(-1,1))* 90.0 + random_float(-25.0,25.0);
+new Float:dist=random_float(96.0,220.0);
 end[0]= base[0]+ floatcos(yaw,degrees)* dist;
 end[1]= base[1]+ floatsin(yaw,degrees)* dist;
 end[2]= base[2];
@@ -21371,17 +21372,17 @@ continue;
 end[0]= out[0];end[1]= out[1];end[2]= out[2]- 512.0;
 engfunc(EngFunc_TraceLine,out,end,IGNORE_MONSTERS,id,0);
 get_tr2(0,TR_flFraction,frac);
-if(frac >= 1.0)
+if(frac>=1.0)
 continue;
 get_tr2(0,TR_vecEndPos,out);
 out[2]+= 4.0;
-new bool:clear = true;
-for(new p = 1;p <= g_iMax;p++)
+new bool:clear=true;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))
 continue;
 get_entvar(p,var_origin,po);
-if(get_distance_f(out,po)< 80.0){clear = false;break;}
+if(get_distance_f(out,po)< 80.0){clear=false;break;}
 }
 if(clear)
 return true;
@@ -21402,21 +21403,21 @@ FxExplosion(o);
 FxLava(o);
 FxRing(o,255,140,0,320);
 PlayKey(0,"METEOR");
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id))
 continue;
-if(bossMeteor && g_bZombie[id])
+if(bossMeteor&&g_bZombie[id])
 continue;
 get_entvar(id,var_origin,po);
-new Float:d = get_distance_f(o,po);
+new Float:d=get_distance_f(o,po);
 if(d > 220.0)
 continue;
 ShakeOne(id);
 FadeOne(id,255,140,0,100,0.8);
-new Float:fall = 1.0 - 0.75 *(d / 220.0);
+new Float:fall=1.0 - 0.75 *(d / 220.0);
 if(bossMeteor)
-ExecuteHamB(Ham_TakeDamage,id,0,(g_iBoss && is_user_connected(g_iBoss))? g_iBoss : 0,30.0 * fall,DMG_BLAST);
+ExecuteHamB(Ham_TakeDamage,id,0,(g_iBoss&&is_user_connected(g_iBoss))? g_iBoss : 0,30.0 * fall,DMG_BLAST);
 else
 ExecuteHamB(Ham_TakeDamage,id,0,0,g_bZombie[id]? 150.0 * fall : 20.0 * fall,DMG_BLAST);
 }
@@ -21424,32 +21425,32 @@ ExecuteHamB(Ham_TakeDamage,id,0,0,g_bZombie[id]? 150.0 * fall : 20.0 * fall,DMG_
 StartMode()
 {
 new players[32];
-new n = GetHumans(players);
+new n=GetHumans(players);
 if(n < 2)
 {
-if(CountPlaying()> n && g_iStartTries < 3)
+if(CountPlaying()> n&&g_iStartTries < 3)
 {
 g_iStartTries++;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_alive(p))
 continue;
-new TeamName:t = get_member(p,m_iTeam);
-if(t == TEAM_TERRORIST || t == TEAM_CT)
+new TeamName:t=get_member(p,m_iTeam);
+if(t==TEAM_TERRORIST||t==TEAM_CT)
 {
 g_bForceZombie[p]= 0;
 rg_round_respawn(p);
 }
 }
-g_iCountdown = 1;
-g_bCounting = true;
+g_iCountdown=1;
+g_bCounting=true;
 return;
 }
-g_bWaiting = true;
+g_bWaiting=true;
 ShowWaiting();
 return;
 }
-g_iStartTries = 0;
+g_iStartTries=0;
 if(!g_bAnnounced)
 {
 remove_task(TASK_ANNOUNCE);
@@ -21459,15 +21460,15 @@ ApplyWorldEvent();
 ApplyHostname();
 task_Announce();
 }
-new required47 = g_bForcedRound47 ? 2 : MODE_MINPL[g_iMode];
+new required47=g_bForcedRound47 ? 2 : MODE_MINPL[g_iMode];
 if(n < required47)
 {
 log_amx("[Vexmira] Mode %d waiting: %d/%d players; selection preserved.",g_iMode,n,required47);
-g_iCountdown = 5;
-g_bCounting = true;
+g_iCountdown=5;
+g_bCounting=true;
 return;
 }
-g_bRoundActive = true;
+g_bRoundActive=true;
 LmModeStart();
 switch(g_iMode)
 {
@@ -21481,7 +21482,7 @@ case MODE_PLAGUE: StartPlague(players,n);
 case MODE_ARMAGEDDON: StartArmageddon(players,n);
 case MODE_BOSS: StartBoss(players,n);
 }
-if(g_iMode == MODE_ASSASSIN)
+if(g_iMode==MODE_ASSASSIN)
 {
 copy(g_szLight,charsmax(g_szLight),"a");
 engfunc(EngFunc_LightStyle,0,g_szLight);
@@ -21492,29 +21493,29 @@ for(new intro47=1;intro47<=g_iMax;intro47++)if(is_user_alive(intro47))SigilSpawn
 }
 PickRandom(players[32],&n)
 {
-new idx = random(n);
-new id = players[idx];
+new idx=random(n);
+new id=players[idx];
 players[idx]= players[n - 1];
 n--;
 return id;
 }
 StartInfection(players[32],n)
 {
-new count = 1;
-if(g_iMode == MODE_MULTI)
-count = max(2,n / 4);
-else if(g_iEvent == EV_HORDE)
-count = max(2,n / 3);
-else if(g_iEvent == EV_PLAGUE)
-count = max(2,n / 4);
-else if(n >= 12)
-count = 2;
-if(g_iEvent == EV_TITAN)
-count = 1;
-count = min(count,n - 1);
-for(new i = 0;i < count;i++)
+new count=1;
+if(g_iMode==MODE_MULTI)
+count=max(2,n / 4);
+else if(g_iEvent==EV_HORDE)
+count=max(2,n / 3);
+else if(g_iEvent==EV_PLAGUE)
+count=max(2,n / 4);
+else if(n>=12)
+count=2;
+if(g_iEvent==EV_TITAN)
+count=1;
+count=min(count,n - 1);
+for(new i=0;i < count;i++)
 {
-new id = PickRandom(players,n);
+new id=PickRandom(players,n);
 g_bFirst[id]= 1;
 MakeZombie(id);
 Chat(id,"YOU_FIRST_ZOMBIE");
@@ -21530,7 +21531,7 @@ FadeAll(0,120,0,50,1.0);
 }
 StartNemesis(players[32],n,bool:assassin)
 {
-new id = PickRandom(players,n);
+new id=PickRandom(players,n);
 if(assassin)
 g_bAssassin[id]= 1;
 else
@@ -21546,10 +21547,10 @@ ShakeAll(8,1.5,4);
 }
 StartSurvivor(players[32],n,bool:sniper)
 {
-new id = PickRandom(players,n);
+new id=PickRandom(players,n);
 MakeSurvivor(id,sniper);
 AnnounceRole(id,sniper ? "ROLE_SNIPER" : "ROLE_SURVIVOR");
-for(new i = 0;i < n;i++)
+for(new i=0;i < n;i++)
 {
 g_bFirst[players[i]]= 0;
 MakeZombie(players[i]);
@@ -21562,10 +21563,10 @@ FadeAll(0,100,255,60,1.5);
 }
 StartSwarm(players[32],n)
 {
-new count = n / 2;
-for(new i = 0;i < count;i++)
+new count=n / 2;
+for(new i=0;i < count;i++)
 {
-new id = PickRandom(players,n);
+new id=PickRandom(players,n);
 MakeZombie(id);
 }
 HudAll(SL_ALERT,CLR_WARN,3.0,"MODE_START_6");
@@ -21573,17 +21574,17 @@ PlayKey(0,"MODE_START");
 }
 StartPlague(players[32],n)
 {
-new surv = PickRandom(players,n);
+new surv=PickRandom(players,n);
 MakeSurvivor(surv,false);
 AnnounceRole(surv,"ROLE_SURVIVOR");
-new nem = PickRandom(players,n);
+new nem=PickRandom(players,n);
 g_bNemesis[nem]= 1;
 MakeZombie(nem);
 AnnounceRole(nem,"ROLE_NEMESIS");
-new count = n / 2;
-for(new i = 0;i < count;i++)
+new count=n / 2;
+for(new i=0;i < count;i++)
 {
-new id = PickRandom(players,n);
+new id=PickRandom(players,n);
 MakeZombie(id);
 }
 HudAll(SL_ALERT,CLR_DANGER,3.5,"MODE_START_7");
@@ -21592,14 +21593,14 @@ FadeAll(150,0,255,60,1.5);
 }
 StartArmageddon(players[32],n)
 {
-new half = n / 2;
-for(new i = 0;i < half;i++)
+new half=n / 2;
+for(new i=0;i < half;i++)
 {
-new id = PickRandom(players,n);
+new id=PickRandom(players,n);
 g_bNemesis[id]= 1;
 MakeZombie(id);
 }
-for(new i = 0;i < n;i++)
+for(new i=0;i < n;i++)
 MakeSurvivor(players[i],false);
 HudAll(SL_ALERT,CLR_DANGER,4.0,"MODE_START_8");
 PlaySpecialIntro(false);
@@ -21627,41 +21628,41 @@ return PLUGIN_HANDLED;
 }
 StartVote(starter,type)
 {
-if(g_iVoteType || g_bMapVoting)
+if(g_iVoteType||g_bMapVoting)
 {
 if(starter)
 Chat(starter,"VOTE_RUNNING");
 return;
 }
-g_iVoteType = type;
-g_iVoteLeft = VOTE_TIME;
+g_iVoteType=type;
+g_iVoteLeft=VOTE_TIME;
 new pool[32],n;
-if(type == 1)
+if(type==1)
 {
-for(new m = MODE_MULTI;m < MODE_BOSS;m++)
+for(new m=MODE_MULTI;m < MODE_BOSS;m++)
 pool[n++]= m;
 }
 else
 {
-for(new e = 1;e < EV_TOTAL;e++)
+for(new e=1;e < EV_TOTAL;e++)
 pool[n++]= e;
 }
-for(new i = 0;i < VOTE_OPTS;i++)
+for(new i=0;i < VOTE_OPTS;i++)
 {
-new pick = random(n);
+new pick=random(n);
 g_iVoteOpt[i]= pool[pick];
 pool[pick]= pool[n - 1];
 n--;
 g_iVoteCount[i]= 0;
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 g_iVoted[p]= -1;
 new name[32];
 if(starter)
 get_user_name(starter,name,charsmax(name));
 else
 copy(name,charsmax(name),"Vexmira");
-FunAll(starter,type == 1 ? "VOTE_START_MODE" : "VOTE_START_EVENT",name,VOTE_TIME);
+FunAll(starter,type==1 ? "VOTE_START_MODE" : "VOTE_START_EVENT",name,VOTE_TIME);
 PlayKey(0,"UI_VOTE_START");
 remove_task(TASK_VOTE);
 set_task(1.0,"task_VoteTick",TASK_VOTE,_,_,"a",VOTE_TIME + 1);
@@ -21671,12 +21672,12 @@ public task_VoteTick()
 {
 if(!g_iVoteType)
 return;
-if(g_iVoteLeft <= 0)
+if(g_iVoteLeft<=0)
 {
 FinishVote();
 return;
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p)|| g_iVoted[p]>= 0)
 continue;
@@ -21688,7 +21689,7 @@ g_iVoteLeft--;
 new g_iVoteMenu[33]={-1,...};
 VoteDisconnect(id)
 {
-if(g_iVoteType && 0 <= g_iVoted[id]< VOTE_OPTS)
+if(g_iVoteType&&0<=g_iVoted[id]< VOTE_OPTS)
 g_iVoteCount[g_iVoted[id]]= max(0,g_iVoteCount[g_iVoted[id]]- VipVoteW(id));
 g_iVoted[id]= -1;
 }
@@ -21696,25 +21697,25 @@ bool:VoteMenuOpen(id)
 {
 new m,nm,pg;
 player_menu_info(id,m,nm,pg);
-return(nm != -1 && nm == g_iVoteMenu[id])? true : false;
+return(nm!=-1&&nm==g_iVoteMenu[id])? true : false;
 }
 bool:AnyMenuOpen(id)
 {
 new m,nm,pg;
 if(!player_menu_info(id,m,nm,pg))
 return false;
-return(m > 0 || nm != -1)? true : false;
+return(m > 0||nm!=-1)? true : false;
 }
 ShowVoteMenu(id)
 {
 new title[320],item[96],key[16],nm[40];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"VOTE_LEFT",g_iVoteLeft);
-if(g_iVoteType == 1)VexHead(id,title,charsmax(title),"VOTE_TITLE_MODE",hsub);else VexHead(id,title,charsmax(title),"VOTE_TITLE_EVENT",hsub);
-new menu = VexMenuCreate(title,"menu_vote_handler");
-for(new i = 0;i < VOTE_OPTS;i++)
+if(g_iVoteType==1)VexHead(id,title,charsmax(title),"VOTE_TITLE_MODE",hsub);else VexHead(id,title,charsmax(title),"VOTE_TITLE_EVENT",hsub);
+new menu=VexMenuCreate(title,"menu_vote_handler");
+for(new i=0;i < VOTE_OPTS;i++)
 {
-formatex(key,charsmax(key),g_iVoteType == 1 ? "MODE_NAME_%d" : "EV_NAME_%d",g_iVoteOpt[i]);
+formatex(key,charsmax(key),g_iVoteType==1 ? "MODE_NAME_%d" : "EV_NAME_%d",g_iVoteOpt[i]);
 formatex(nm,charsmax(nm),"%L",id,key);
 if(g_iVoted[id]== i)
 formatex(item,charsmax(item),"\y%s \r[ %d %L\r ] \y<",nm,g_iVoteCount[i],id,"VOTE_VOTES");
@@ -21732,21 +21733,21 @@ menu_display(id,menu,0,1);
 }
 public menu_vote_handler(id,menu,item)
 {
-if(item < 0 || !g_iVoteType)
+if(item < 0||!g_iVoteType)
 {
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new opt = MenuInfo(menu,item);
+new opt=MenuInfo(menu,item);
 menu_destroy(menu);
-if(g_iVoted[id]>= 0 || opt < 0 || opt >= VOTE_OPTS)
+if(g_iVoted[id]>= 0||opt < 0||opt>=VOTE_OPTS)
 return PLUGIN_HANDLED;
 g_iVoted[id]= opt;
 g_iVoteCount[opt]+= VipVoteW(id);
 new name[32],key[16];
 get_user_name(id,name,charsmax(name));
-formatex(key,charsmax(key),g_iVoteType == 1 ? "MODE_NAME_%d" : "EV_NAME_%d",g_iVoteOpt[opt]);
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+formatex(key,charsmax(key),g_iVoteType==1 ? "MODE_NAME_%d" : "EV_NAME_%d",g_iVoteOpt[opt]);
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -21759,26 +21760,26 @@ return PLUGIN_HANDLED;
 }
 FinishVote()
 {
-new best = -1,bestc = 0,ties[VOTE_OPTS],nt;
-for(new i = 0;i < VOTE_OPTS;i++)
+new best=-1,bestc=0,ties[VOTE_OPTS],nt;
+for(new i=0;i < VOTE_OPTS;i++)
 {
 if(g_iVoteCount[i]> bestc)
 {
-bestc = g_iVoteCount[i];
-nt = 0;
+bestc=g_iVoteCount[i];
+nt=0;
 ties[nt++]= i;
 }
 else if(g_iVoteCount[i]== bestc)
 ties[nt++]= i;
 }
-best = ties[random(nt)];
+best=ties[random(nt)];
 new key[16];
-formatex(key,charsmax(key),g_iVoteType == 1 ? "MODE_NAME_%d" : "EV_NAME_%d",g_iVoteOpt[best]);
-if(g_iVoteType == 1)
-g_iForceMode = g_iVoteOpt[best];
+formatex(key,charsmax(key),g_iVoteType==1 ? "MODE_NAME_%d" : "EV_NAME_%d",g_iVoteOpt[best]);
+if(g_iVoteType==1)
+g_iForceMode=g_iVoteOpt[best];
 else
-g_iForceEvent = g_iVoteOpt[best];
-for(new p = 1;p <= g_iMax;p++)
+g_iForceEvent=g_iVoteOpt[best];
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -21790,17 +21791,17 @@ if(VoteMenuOpen(p))
 show_menu(p,0,"^n",1);
 }
 PlayKey(0,"UI_VOTE_END");
-g_iVoteType = 0;
+g_iVoteType=0;
 remove_task(TASK_VOTE);
 }
 TickAutoVote()
 {
-new every = get_pcvar_num(g_pVoteEvery);
-if(every <= 0 || g_iVoteType || g_bMapVoting || g_iForceMode >= 0 || g_iRound % every != 0)
+new every=get_pcvar_num(g_pVoteEvery);
+if(every<=0||g_iVoteType||g_bMapVoting||g_iForceMode>=0||g_iRound % every!=0)
 return;
 if(IsBossRound(g_iRound + 1)|| RoundInList(g_pSpecialRounds,g_iRound + 1))
 return;
-if(RoundTimeLeft()== 75 && CountPlaying()>= 2)
+if(RoundTimeLeft()== 75&&CountPlaying()>= 2)
 StartVote(0,random_num(1,3)== 1 ? 2 : 1);
 }
 public cmd_roundplan(id)
@@ -21813,7 +21814,7 @@ get_pcvar_string(g_pSpecialRounds,list,charsmax(list));
 client_print_color(id,print_team_default,"%s %L",ChatTag("PLAN_3"),id,"PLAN_3",list);
 list[0]= 0;
 new nm[40],key[16];
-for(new i = 0;i < g_iBossLoadN;i++)
+for(new i=0;i < g_iBossLoadN;i++)
 {
 formatex(key,charsmax(key),"BOSS_NAME_%d",g_iBossLoadList[i]);
 formatex(nm,charsmax(nm),"%s%L",i ? ", " : "",id,key);
@@ -21883,17 +21884,17 @@ switch(g_iEvent)
 {
 case EV_SPEED:
 {
-if(g_iFrame % 6 == 0)
+if(g_iFrame % 6==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_AMB))
 PlayKey(p,"SPEED_WIND");
 }
 }
-if(g_iFrame % 3 == 0)
+if(g_iFrame % 3==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))
 continue;
@@ -21908,12 +21909,12 @@ FxRingEx(o,0,220,255,90,4,3,140);
 }
 case EV_STORM:
 {
-if(g_iFrame % 5 == 0)
+if(g_iFrame % 5==0)
 StormStrike();
 }
 case EV_BLACKOUT,EV_NIGHT:
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !g_bZombie[p]|| g_bBoss[p])
 continue;
@@ -21921,7 +21922,7 @@ get_entvar(p,var_origin,o);
 o[2]+= 26.0;
 FxLight(o,255,0,0,5,11,2);
 }
-if(g_iEvent == EV_BLACKOUT && g_iFrame % 9 == 0 && random_num(0,1))
+if(g_iEvent==EV_BLACKOUT&&g_iFrame % 9==0&&random_num(0,1))
 {
 engfunc(EngFunc_LightStyle,0,"d");
 remove_task(TASK_LIGHT);
@@ -21931,9 +21932,9 @@ PlayKey(0,"BLACKOUT");
 }
 case EV_BLOODMOON:
 {
-if(g_iFrame % 10 == 0)
+if(g_iFrame % 10==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_FX))
 FadeOne(p,160,0,0,50,1.5);
@@ -21942,9 +21943,9 @@ FadeOne(p,160,0,0,50,1.5);
 }
 case EV_LOWGRAV:
 {
-if(g_iFrame % 3 == 0)
+if(g_iFrame % 3==0)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)||(get_entvar(p,var_flags)& FL_ONGROUND))
 continue;
@@ -21959,14 +21960,14 @@ StormStrike()
 {
 new list[32],n;
 new bool:zombie =(random_num(1,100)<= 75)? true : false;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_alive(p)&&(g_bZombie[p]? true : false)== zombie)
 list[n++]= p;
 }
 if(!n)
 return;
-new target = list[random(n)];
+new target=list[random(n)];
 new Float:o[3],Float:po[3];
 get_entvar(target,var_origin,o);
 o[0]+= random_float(-60.0,60.0);
@@ -21975,12 +21976,12 @@ FxSkyStrike(o,200,220,255);
 FxSkyStrike(o,255,255,255);
 FxRingEx(o,200,220,255,220,16,5);
 PlayKey(0,"STORM_STRIKE");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !(g_iSet[p]& SET_NO_FX))
 FadeOne(p,255,255,255,50,0.2);
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))
 continue;
@@ -22000,8 +22001,8 @@ ExecuteHamB(Ham_TakeDamage,p,0,0,10.0,DMG_SHOCK);
 }
 RegisterSay(const en[],const tr[],const handler[])
 {
-new fid = get_func_id(handler);
-if(fid == -1)
+new fid=get_func_id(handler);
+if(fid==-1)
 {
 log_amx("[Vexmira] Komut fonksiyonu bulunamadi: %s",handler);
 return;
@@ -22027,7 +22028,7 @@ bool:RunChatCommand(id,const msg[])
 {
 new word[32];
 new i,j;
-for(i = 1;msg[i]&& msg[i]!= ' ' && j < charsmax(word);i++)
+for(i=1;msg[i]&& msg[i]!= ' '&&j < charsmax(word);i++)
 word[j++]= msg[i];
 word[j]= 0;
 strtolower(word);
@@ -22098,9 +22099,9 @@ get_user_name(id,name,charsmax(name));
 get_user_ip(id,ip,charsmax(ip),1);
 if(g_bGeoIP)
 geoip_country_ex(ip,country,charsmax(country));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
-if(!is_user_connected(p)|| is_user_bot(p)|| p == id)
+if(!is_user_connected(p)|| is_user_bot(p)|| p==id)
 continue;
 if(country[0])
 client_print_color(p,print_team_default,"%s %L",ChatTag("JOIN_CONNECTING_C"),p,"JOIN_CONNECTING_C",name,country);
@@ -22158,14 +22159,14 @@ ForceJoinHuman(id)
 {
 if(!is_user_connected(id)|| is_user_alive(id))
 return;
-if(get_member(id,m_iTeam)!= TEAM_CT && !rg_join_team(id,TEAM_CT))
+if(get_member(id,m_iTeam)!= TEAM_CT&&!rg_join_team(id,TEAM_CT))
 rg_set_user_team(id,TEAM_CT,MODEL_UNASSIGNED,true,false);
 remove_task(id + TASK_JOINCLASS);
 set_task(0.2,"task_JoinClassAuto",id + TASK_JOINCLASS);
 }
 public task_AutoJoinHuman(tid)
 {
-new id = tid - TASK_AUTOTEAM;
+new id=tid - TASK_AUTOTEAM;
 if(!is_user_connected(id)|| is_user_alive(id)|| !get_pcvar_num(g_pAutoJoinHumans))
 return;
 if(get_member(id,m_iTeam)!= TEAM_CT)
@@ -22175,7 +22176,7 @@ task_JoinClassAuto(id + TASK_JOINCLASS);
 }
 public task_JoinClassAuto(tid)
 {
-new id = tid - TASK_JOINCLASS;
+new id=tid - TASK_JOINCLASS;
 if(!is_user_connected(id)|| is_user_alive(id)|| get_member(id,m_iTeam)!= TEAM_CT)
 return;
 engclient_cmd(id,"joinclass","5");
@@ -22193,7 +22194,7 @@ bool:AuthReady(id)
 {
 new auth[35];
 get_user_authid(id,auth,charsmax(auth));
-return(auth[0]&& containi(auth,"PENDING")== -1 && containi(auth,"UNKNOWN")== -1)? true : false;
+return(auth[0]&& containi(auth,"PENDING")== -1&&containi(auth,"UNKNOWN")== -1)? true : false;
 }
 DoLoad(id)
 {
@@ -22220,7 +22221,7 @@ DoLoad(id);
 }
 public task_LoadFallback(tid)
 {
-new id = tid - TASK_LOADWAIT;
+new id=tid - TASK_LOADWAIT;
 if(is_user_connected(id)&& !g_bLoaded[id]&& AuthReady(id))
 DoLoad(id);
 }
@@ -22229,7 +22230,7 @@ StoreRoundBuys(id)
 if(!g_bLoaded[id]|| !g_szKey[id][0]|| !g_bRoundActive)
 return;
 new data[NUM_ITEMS + 1];
-for(new i = 0;i < NUM_ITEMS;i++)
+for(new i=0;i < NUM_ITEMS;i++)
 data[i]= g_iBought[id][i];
 data[NUM_ITEMS]= g_bVipFreeUsed[id];
 TrieSetArray(g_tRoundBuys,g_szKey[id],data,sizeof data);
@@ -22239,23 +22240,23 @@ RestoreRoundBuys(id)
 new data[NUM_ITEMS + 1];
 if(!g_szKey[id][0]|| !TrieGetArray(g_tRoundBuys,g_szKey[id],data,sizeof data))
 return;
-for(new i = 0;i < NUM_ITEMS;i++)
+for(new i=0;i < NUM_ITEMS;i++)
 g_iBought[id][i]= data[i];
 g_bVipFreeUsed[id]= data[NUM_ITEMS];
 }
 public task_JoinAnnounce(tid)
 {
-new id = tid - TASK_JOIN;
+new id=tid - TASK_JOIN;
 if(!is_user_connected(id))
 return;
 LoadVip(id);
-if(get_pcvar_num(g_pJoinMsg)&& get_gametime()- g_fMapStart >= 40.0)
+if(get_pcvar_num(g_pJoinMsg)&& get_gametime()- g_fMapStart>=40.0)
 {
 LiveJoin(id);
 TopJoinAnnounce(id);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p != id && is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_AMB))
+if(p!=id&&is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_AMB))
 PlayKey(p,"PLAYER_JOIN");
 }
 }
@@ -22274,7 +22275,7 @@ CommunityRemoveKnives(id);
 remove_task(id + 64000);
 SixLeave(id,drop,message);
 VxClear(id);g_bVxRightHeld[id]= false;
-for(new c = 0;c < CM_CATS;c++)
+for(new c=0;c < CM_CATS;c++)
 CmRemove(id,c);
 CmPrevRemove(id);
 g_iCsoCur[id]= -1;
@@ -22294,25 +22295,25 @@ remove_task(id + TASK_LOADOUT);
 remove_task(id + TASK_JOIN);
 remove_task(id + TASK_SLOT);
 remove_task(id + TASK_VIPMSG);
-if(drop && is_user_connected(id)&& get_pcvar_num(g_pJoinMsg))
+if(drop&&is_user_connected(id)&& get_pcvar_num(g_pJoinMsg))
 LiveLeave(id);
 if(g_bSlotting[id])
 g_iAP[id]+= g_iSlotBet[id];
-if(!drop && g_iTickets[id]> 0)
+if(!drop&&g_iTickets[id]> 0)
 g_iAP[id]+= g_iTickets[id]* 10;
 g_iBounty[id]= 0;
 g_iTickets[id]= 0;
 g_bSlotting[id]= 0;
 StoreRoundBuys(id);
 SaveData(id);
-new bool:wasZombie = g_bZombie[id]? true : false;
+new bool:wasZombie=g_bZombie[id]? true : false;
 if(g_bBoss[id])
-g_iBoss = 0;
+g_iBoss=0;
 VoteDisconnect(id);
 MapVoteDisconnect(id);
 ResetPlayer(id);
 RtvCheck(id);
-if(g_bRoundActive && !g_bRoundEnded && wasZombie && AllowsInfection())
+if(g_bRoundActive&&!g_bRoundEnded&&wasZombie&&AllowsInfection())
 {
 if(CountZombies(true)== 0)
 task_ReplaceZombie();
@@ -22320,13 +22321,13 @@ task_ReplaceZombie();
 }
 public task_ReplaceZombie()
 {
-if(!g_bRoundActive || g_bRoundEnded || CountZombies(true)> 0)
+if(!g_bRoundActive||g_bRoundEnded||CountZombies(true)> 0)
 return;
 new players[32];
-new n = GetHumans(players);
+new n=GetHumans(players);
 if(n < 2)
 return;
-new pick = players[random(n)];
+new pick=players[random(n)];
 g_bFirst[pick]= 1;
 MakeZombie(pick);
 ChatAll("ZOMBIE_REPLACED");
@@ -22350,7 +22351,7 @@ g_iNadeMode[id][0]= 0;g_iNadeMode[id][1]= 0;g_iNadeMode[id][2]= 0;
 g_iQuest[id]= -1;g_bAlpha[id]= false;g_iMines[id]= 0;
 g_iCosOwned[id]= 0;g_iTrailSel[id]= 0;g_iKfxSel[id]= 0;g_iIfxSel[id]= 0;g_iLzOwned531[id]= 0;g_iLzSel531[id]= 0;
 g_iCmOwned[id]= 0;g_iCmSelPk[id]= 0;
-for(new c = 0;c < 2;c++){g_iCommunityOwned[id][c]= 0;g_iCommunitySel[id][c]= 0;}
+for(new c=0;c < 2;c++){g_iCommunityOwned[id][c]= 0;g_iCommunitySel[id][c]= 0;}
 g_szKey[id][0]= 0;g_bLoaded[id]= false;g_iClassNext[id]= -1;g_iJobNext[id]= -1;
 g_bTrailOn[id]= false;
 g_bLmGiven[id]= false;
@@ -22358,11 +22359,11 @@ g_iCases60[id]= 0;g_iTrades60[id]= 0;g_iLmKills60[id]= 0;g_iKnifeKills60[id]= 0;
 g_iLifeKills60[id]= 0;g_iRoundInf60[id]= 0;g_bTab60[id]= false;g_bTabSent61[id]= false;g_iTradeTo60[id]= 0;g_iTradeFrom60[id]= 0;
 g_iAfkSec[id]= 0;
 g_fNextBeat[id]= 0.0;
-for(new i = 0;i < NUM_PERKS;i++)
+for(new i=0;i < NUM_PERKS;i++)
 g_iPerk[id][i]= 0;
 g_iHumanSkin[id]= g_iHumanModelN > 0 ? random(g_iHumanModelN): 0;
-if(g_iRoundMvp == id)
-g_iRoundMvp = 0;
+if(g_iRoundMvp==id)
+g_iRoundMvp=0;
 g_fFxHitT[id]= 0.0;
 g_fFxHealT[id]= 0.0;
 ResetPlayerLate(id);
@@ -22375,7 +22376,7 @@ g_iRoundDmg[id]= 0;g_iRoundInf[id]= 0;g_iRoundAP[id]= 0;g_iRoundXP[id]= 0;
 g_iRoundKills[id]= 0;g_iRoundHS[id]= 0;g_bQuestDone[id]= false;g_bAlpha[id]= false;
 g_iMines[id]= 0;g_iPlantAction[id]= 0;
 g_bVipFreeUsed[id]= 0;
-for(new i = 0;i < NUM_ITEMS;i++)
+for(new i=0;i < NUM_ITEMS;i++)
 g_iBought[id][i]= 0;
 }
 ResetLifeData(id)
@@ -22397,7 +22398,7 @@ VoiceReset(id);
 }
 public task_Welcome(tid)
 {
-new id =(tid >= TASK_WELCOME2)? tid - TASK_WELCOME2 : tid - TASK_WELCOME;
+new id =(tid>=TASK_WELCOME2)? tid - TASK_WELCOME2 : tid - TASK_WELCOME;
 if(!is_user_connected(id)|| is_user_bot(id)|| g_bWelcomed[id])
 return;
 g_bWelcomed[id]= true;
@@ -22405,7 +22406,7 @@ remove_task(id + TASK_WELCOME2);
 set_task(12.0,"task_TabHint60",id + 6070700);
 new name[32];
 get_user_name(id,name,charsmax(name));
-new t = g_iTheme[id];
+new t=g_iTheme[id];
 HudToS(id,SL_ANN,THEME_A[t][0],THEME_A[t][1],THEME_A[t][2],6.0,"WELCOME_HUD",name);
 PlayKey(id,"WELCOME");
 FadeOne(id,THEME_A[t][0],THEME_A[t][1],THEME_A[t][2],60,1.2);
@@ -22417,7 +22418,7 @@ set_task(3.0,"task_DailyHint",id + TASK_WELCOME);
 }
 public task_DailyHint(tid)
 {
-new id = tid - TASK_WELCOME;
+new id=tid - TASK_WELCOME;
 if(is_user_connected(id))
 Chat(id,"DAILY_READY");
 }
@@ -22425,7 +22426,7 @@ public msg_Motd(msgid,dest,id)
 {
 if(!get_pcvar_num(g_pMotd))
 return PLUGIN_CONTINUE;
-if(1 <= id <= g_iMax && !g_bMotdShown[id])
+if(1<=id<=g_iMax&&!g_bMotdShown[id])
 {
 g_bMotdShown[id]= true;
 set_task(0.3,"task_ShowMotd",id + TASK_MOTD);
@@ -22434,7 +22435,7 @@ return PLUGIN_HANDLED;
 }
 public task_ShowMotd(tid)
 {
-new id = tid - TASK_MOTD;
+new id=tid - TASK_MOTD;
 if(!is_user_connected(id)|| is_user_bot(id))
 return;
 new file[128];
@@ -22457,7 +22458,7 @@ new cur[8];
 get_user_info(id,"lang",cur,charsmax(cur));
 if(equali(cur,"tr"))
 g_iLang[id]= 2;
-else if(g_bGeoIP && !is_user_bot(id))
+else if(g_bGeoIP&&!is_user_bot(id))
 {
 new ip[32],code[3];
 get_user_ip(id,ip,charsmax(ip),1);
@@ -22485,14 +22486,14 @@ set_user_info(id,"lang",g_iLang[id]== 2 ? "tr" : "en");
 SetLanguage(id,lang)
 {
 g_iLang[id]= lang;
-set_user_info(id,"lang",lang == 2 ? "tr" : "en");
+set_user_info(id,"lang",lang==2 ? "tr" : "en");
 SaveData(id);
 Chat(id,"LANG_CHANGED");
 }
 public cmd_menu(id)
 {
-new TeamName:t = get_member(id,m_iTeam);
-if(t != TEAM_TERRORIST && t != TEAM_CT)
+new TeamName:t=get_member(id,m_iTeam);
+if(t!=TEAM_TERRORIST&&t!=TEAM_CT)
 return PLUGIN_CONTINUE;
 ShowMainMenu(id);
 return PLUGIN_HANDLED;
@@ -22541,7 +22542,7 @@ return PLUGIN_HANDLED;
 }
 public cmd_help(id)
 {
-for(new i = 1;i <= 6;i++)
+for(new i=1;i<=6;i++)
 {
 new key[12];
 formatex(key,charsmax(key),"HELP_%d",i);
@@ -22552,7 +22553,7 @@ return PLUGIN_HANDLED;
 ShowModesInfo(id)
 {
 new key[16];
-for(new m = 0;m < MODE_TOTAL;m++)
+for(new m=0;m < MODE_TOTAL;m++)
 {
 formatex(key,charsmax(key),"MODE_DESC_%d",m);
 Chat(id,key);
@@ -22562,7 +22563,7 @@ public cmd_unstuck(id)
 {
 if(!is_user_alive(id))
 return PLUGIN_HANDLED;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fUnstuck[id])
 {
 Chat(id,"UNSTUCK_WAIT",floatround(g_fUnstuck[id]- now,floatround_ceil));
@@ -22582,7 +22583,7 @@ static const Float:OFFS[][3]=
 {32.0,32.0,18.0},{-32.0,-32.0,18.0},{32.0,-32.0,18.0},{-32.0,32.0,18.0},
 {0.0,0.0,72.0},{64.0,0.0,0.0},{-64.0,0.0,0.0},{0.0,64.0,0.0},{0.0,-64.0,0.0}
 };
-for(new i = 0;i < sizeof OFFS;i++)
+for(new i=0;i < sizeof OFFS;i++)
 {
 t[0]= o[0]+ OFFS[i][0];
 t[1]= o[1]+ OFFS[i][1];
@@ -22617,7 +22618,7 @@ remove_quotes(msg);
 trim(msg);
 if(!msg[0]|| msg[0]== '@')
 return PLUGIN_CONTINUE;
-if(msg[0]== '/' || msg[0]== '!')
+if(msg[0]== '/'||msg[0]== '!')
 {
 if(HandleArgCommand(id,msg)|| RunChatCommand(id,msg))
 return PLUGIN_HANDLED;
@@ -22627,28 +22628,28 @@ new mapWord;
 if(MapVoteOn())
 {
 if(equali(msg,"rtv")|| equali(msg,"rockthevote"))
-mapWord = 1;
+mapWord=1;
 else if(equali(msg,"nextmap"))
-mapWord = 2;
+mapWord=2;
 else if(equali(msg,"maps"))
-mapWord = 3;
+mapWord=3;
 }
 static const PASS[][]={"rtv","rockthevote","nominate","nextmap","timeleft","thetime","currentmap","ff","motd"};
-for(new i = 0;i < sizeof PASS && !mapWord;i++)
+for(new i=0;i < sizeof PASS&&!mapWord;i++)
 {
-if(equali(msg,PASS[i])||(containi(msg,PASS[i])== 0 && msg[strlen(PASS[i])]== ' '))
+if(equali(msg,PASS[i])||(containi(msg,PASS[i])== 0&&msg[strlen(PASS[i])]== ' '))
 return PLUGIN_CONTINUE;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now - g_fLastSay[id]< 0.7)
 return PLUGIN_HANDLED;
 g_fLastSay[id]= now;
 new name[32],staff[16],tname[32],pre[24],role[16];
 get_user_name(id,name,charsmax(name));
 GetStaffTag(id,staff,charsmax(staff));
-new bool:alive = is_user_alive(id)? true : false;
-new TeamName:myTeam = get_member(id,m_iTeam);
-new flags = get_user_flags(id);
+new bool:alive=is_user_alive(id)? true : false;
+new TeamName:myTeam=get_member(id,m_iTeam);
+new flags=get_user_flags(id);
 new bc[3];
 if(flags &(ADMIN_RCON | ADMIN_BAN))
 copy(bc,charsmax(bc),"^4");
@@ -22656,23 +22657,23 @@ else if(IsVip(id))
 copy(bc,charsmax(bc),"^3");
 else
 copy(bc,charsmax(bc),"^1");
-new sender = id;
+new sender=id;
 if(g_iStyle[id]== 1)
 {
 if(flags & ADMIN_RCON)
-sender = print_team_red;
+sender=print_team_red;
 else if(flags & ADMIN_BAN)
-sender = print_team_blue;
+sender=print_team_blue;
 else if(!IsVip(id))
-sender = print_team_grey;
+sender=print_team_grey;
 }
-for(new t = 1;t <= g_iMax;t++)
+for(new t=1;t<=g_iMax;t++)
 {
 if(!is_user_connected(t))
 continue;
-if(!alive && is_user_alive(t))
+if(!alive&&is_user_alive(t))
 continue;
-if(teamOnly && get_member(t,m_iTeam)!= myTeam)
+if(teamOnly&&get_member(t,m_iTeam)!= myTeam)
 continue;
 formatex(pre,charsmax(pre),"%s%s",
 teamOnly ? "(Team) " : "",
@@ -22697,7 +22698,7 @@ return PLUGIN_HANDLED;
 }
 GetStaffTag(id,tag[],len)
 {
-new flags = get_user_flags(id);
+new flags=get_user_flags(id);
 if(flags & ADMIN_RCON)
 copy(tag,len,"[OWNER] ");
 else if(flags & ADMIN_BAN)
@@ -22723,21 +22724,21 @@ else if(g_bZombie[id])formatex(out,len," ^3[%L]^1",viewer,"TAG_ZOMBIE");
 }
 TickPlayers()
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 new Float:o[3];
 new humans,last;
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id))
 continue;
 get_entvar(id,var_origin,o);
-if(g_fFrozen[id]> 0.0 && now > g_fFrozen[id])
+if(g_fFrozen[id]> 0.0&&now > g_fFrozen[id])
 {
 g_fFrozen[id]= 0.0;
 ApplyRender(id);
 rg_reset_maxspeed(id);
 }
-if(g_fSlow[id]> 0.0 && now > g_fSlow[id])
+if(g_fSlow[id]> 0.0&&now > g_fSlow[id])
 {
 g_fSlow[id]= 0.0;
 rg_reset_maxspeed(id);
@@ -22747,9 +22748,9 @@ if(g_iBurn[id]> 0)
 g_iBurn[id]--;
 FxLight(o,255,120,0,20,8,10);
 FxSprite(o,g_sprExplode,3,200);
-new attacker = g_iBurnBy[id];
+new attacker=g_iBurnBy[id];
 if(!is_user_connected(attacker))
-attacker = 0;
+attacker=0;
 ExecuteHamB(Ham_TakeDamage,id,0,attacker,get_pcvar_float(g_bZombie[id]? g_pZombieBurnDmg : g_pBurnDmg),DMG_BURN);
 if(!is_user_alive(id))
 continue;
@@ -22760,85 +22761,85 @@ g_iPoison[id]--;
 FxSprite(o,g_sprSmoke,6,120);
 if(!(g_iSet[id]& SET_NO_FX))
 FadeOne(id,110,255,0,50,0.6);
-new pz = g_iPoisonBy[id];
+new pz=g_iPoisonBy[id];
 if(!is_user_connected(pz))
-pz = 0;
+pz=0;
 ExecuteHamB(Ham_TakeDamage,id,0,pz,6.0,DMG_POISON);
 if(!is_user_alive(id))
 continue;
 }
-if(g_iEvent == EV_SPEED && !is_user_bot(id)&& get_member(id,m_iFOV)== 90)
+if(g_iEvent==EV_SPEED&&!is_user_bot(id)&& get_member(id,m_iFOV)== 90)
 {
-new WeaponIdType:aw = GetActiveWeaponId(id);
-if(aw != WEAPON_AWP && aw != WEAPON_SCOUT && aw != WEAPON_G3SG1 && aw != WEAPON_SG550 && aw != WEAPON_AUG && aw != WEAPON_SG552 && aw != WEAPON_FAMAS)
+new WeaponIdType:aw=GetActiveWeaponId(id);
+if(aw!=WEAPON_AWP&&aw!=WEAPON_SCOUT&&aw!=WEAPON_G3SG1&&aw!=WEAPON_SG550&&aw!=WEAPON_AUG&&aw!=WEAPON_SG552&&aw!=WEAPON_FAMAS)
 {
-new fov = clamp(get_pcvar_num(g_pSpeedFov),90,120);
+new fov=clamp(get_pcvar_num(g_pSpeedFov),90,120);
 set_member(id,m_iFOV,fov);
 set_entvar(id,var_fov,float(fov));
 }
 }
 if(g_bZombie[id])
 {
-if(g_iEvent == EV_SPEED && g_iFrame % 2 == 1)
+if(g_iEvent==EV_SPEED&&g_iFrame % 2==1)
 FxFollow(id,255,40,40,6,5);
-if(g_fBurst[id]> 0.0 && now > g_fBurst[id])
+if(g_fBurst[id]> 0.0&&now > g_fBurst[id])
 {
 g_fBurst[id]= 0.0;
 rg_reset_maxspeed(id);
 }
-if((g_fShield[id]> 0.0 && now > g_fShield[id])||(g_fCloak[id]> 0.0 && now > g_fCloak[id])
-||(g_fMadness[id]> 0.0 && now > g_fMadness[id]))
+if((g_fShield[id]> 0.0&&now > g_fShield[id])||(g_fCloak[id]> 0.0&&now > g_fCloak[id])
+||(g_fMadness[id]> 0.0&&now > g_fMadness[id]))
 {
 if(now > g_fShield[id])g_fShield[id]= 0.0;
 if(now > g_fCloak[id])g_fCloak[id]= 0.0;
 if(now > g_fMadness[id])g_fMadness[id]= 0.0;
 ApplyRender(id);
 }
-if(!g_bBoss[id]&& g_fDisguise[id]<= now && g_fBurrow[id]<= now && random_num(1,15)== 1)
+if(!g_bBoss[id]&& g_fDisguise[id]<= now&&g_fBurrow[id]<= now&&random_num(1,15)== 1)
 EmitZombieSound(id,"IDLE","ZOMBIE_IDLE");
 if(g_bZRegen[id])
 HealTo(id,max(1,ITEM_VAL[IT_ZREGEN]),g_iMaxHP[id]);
-if(g_iEvent == EV_BERSERK && !g_bBoss[id])
+if(g_iEvent==EV_BERSERK&&!g_bBoss[id])
 HealTo(id,40,g_iMaxHP[id]);
 if(g_bBoss[id]|| g_bNemesis[id])
 FxLight(o,255,20,20,30,11,5);
 else if(g_bAssassin[id])
 FxLight(o,90,0,140,18,11,5);
-else if(g_fCloak[id]<= 0.0 && g_fDisguise[id]<= now && g_fBurrow[id]<= now)
+else if(g_fCloak[id]<= 0.0&&g_fDisguise[id]<= now&&g_fBurrow[id]<= now)
 {
-new c = g_bMinion[id]? 0 : g_iClass[id];
+new c=g_bMinion[id]? 0 : g_iClass[id];
 FxLight(o,CLASS_RGB[c][0],CLASS_RGB[c][1],CLASS_RGB[c][2],14,11,5);
 }
 }
 else
 {
 humans++;
-last = id;
-if(g_iEvent == EV_ADRENALINE)
+last=id;
+if(g_iEvent==EV_ADRENALINE)
 HealTo(id,3,MaxHumanHP(id));
-if(g_iJob[id]== JOB_MEDIC && !g_bSurvivor[id]&& !g_bSniper[id])
+if(g_iJob[id]== JOB_MEDIC&&!g_bSurvivor[id]&& !g_bSniper[id])
 HealTo(id,2,MaxHumanHP(id));
 if(g_iJob[id]== JOB_DOCTOR)
 DoctorAura(id,o);
-if(g_fCloak[id]> 0.0 && now > g_fCloak[id])
+if(g_fCloak[id]> 0.0&&now > g_fCloak[id])
 {
 g_fCloak[id]= 0.0;
 ApplyRender(id);
 }
-if(g_fHBoost[id]> 0.0 && now > g_fHBoost[id])
+if(g_fHBoost[id]> 0.0&&now > g_fHBoost[id])
 {
 g_fHBoost[id]= 0.0;
 rg_reset_maxspeed(id);
 }
-if(g_iJob[id]== JOB_GUNNER && g_iFrame % 10 == 0)
+if(g_iJob[id]== JOB_GUNNER&&g_iFrame % 10==0)
 RefillAmmo(id);
 if(g_bSurvivor[id]|| g_bSniper[id])
 FxLight(o,0,120,255,20,11,5);
-if(g_iEvent == EV_SPEED && g_iFrame % 2 == 0)
+if(g_iEvent==EV_SPEED&&g_iFrame % 2==0)
 FxFollow(id,0,220,255,6,4);
-if(get_entvar(id,var_health)< 30.0 && !is_user_bot(id))
+if(get_entvar(id,var_health)< 30.0&&!is_user_bot(id))
 {
-if(now >= g_fNextBeat[id])
+if(now>=g_fNextBeat[id])
 {
 PlayKey(id,"HEARTBEAT");
 g_fNextBeat[id]= now + 1.1;
@@ -22848,9 +22849,9 @@ FadeOne(id,255,0,0,45,0.9);
 }
 }
 }
-if(humans == 1 && !g_bLastAnn && AllowsInfection())
+if(humans==1&&!g_bLastAnn&&AllowsInfection())
 {
-g_bLastAnn = true;
+g_bLastAnn=true;
 MsEvent(ME_LASTHUMAN);
 new name[32];
 get_user_name(last,name,charsmax(name));
@@ -22866,36 +22867,36 @@ set_entvar(last,var_health,Float:get_entvar(last,var_health)+ get_pcvar_float(g_
 }
 RefillAmmo(id)
 {
-for(new i = 0;i < sizeof PRIM_ENT;i++)
+for(new i=0;i < sizeof PRIM_ENT;i++)
 {
-new WeaponIdType:w = WeaponIdType:rg_get_weapon_info(PRIM_ENT[i],WI_ID);
-new we = rg_find_weapon_bpack_by_name(id,PRIM_ENT[i]);
-if(we > 0 && !VxIsSpecialWeapon531(id,we))
+new WeaponIdType:w=WeaponIdType:rg_get_weapon_info(PRIM_ENT[i],WI_ID);
+new we=rg_find_weapon_bpack_by_name(id,PRIM_ENT[i]);
+if(we > 0&&!VxIsSpecialWeapon531(id,we))
 rg_set_user_bpammo(id,w,max(rg_get_user_bpammo(id,w),PRIM_AMMO[i]));
 }
-for(new i = 0;i < sizeof SEC_ENT;i++)
+for(new i=0;i < sizeof SEC_ENT;i++)
 {
-new WeaponIdType:w = WeaponIdType:rg_get_weapon_info(SEC_ENT[i],WI_ID);
+new WeaponIdType:w=WeaponIdType:rg_get_weapon_info(SEC_ENT[i],WI_ID);
 if(rg_find_weapon_bpack_by_name(id,SEC_ENT[i]))
 rg_set_user_bpammo(id,w,max(rg_get_user_bpammo(id,w),SEC_AMMO[i]));
 }
 }
 HealTo(id,amount,maxhp)
 {
-new Float:hp = Float:get_entvar(id,var_health);
+new Float:hp=Float:get_entvar(id,var_health);
 if(hp < float(maxhp))
 {
 set_entvar(id,var_health,floatmin(float(maxhp),hp + float(amount)));
-if(amount >= 5)
+if(amount>=5)
 FxHeal(id);
 }
 }
 DoctorAura(id,const Float:o[3])
 {
 new Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p == id || !is_user_alive(p)|| g_bZombie[p])
+if(p==id||!is_user_alive(p)|| g_bZombie[p])
 continue;
 get_entvar(p,var_origin,po);
 if(get_distance_f(o,po)<= 300.0)
@@ -22904,13 +22905,13 @@ HealTo(p,3,MaxHumanHP(p));
 }
 MaxHumanHP(id)
 {
-new hp = max(1,get_pcvar_num(g_pHumanHP))+ 10 * g_iPerk[id][PK_VITALITY];
+new hp=max(1,get_pcvar_num(g_pHumanHP))+ 10 * g_iPerk[id][PK_VITALITY];
 if(g_iJob[id]== JOB_GUARDIAN)
-hp += 50;
+hp+=50;
 else if(g_iJob[id]== JOB_JUGGERNAUT)
-hp += 100;
+hp+=100;
 if(g_bSurvivor[id]|| g_bSniper[id])
-hp = g_iMaxHP[id];
+hp=g_iMaxHP[id];
 return hp;
 }
 SendDeathMsg(killer,victim,const weapon[])
@@ -22951,7 +22952,7 @@ if(g_bForceZombie[id])
 g_bForceZombie[id]= 0;
 g_bBoss[id]= 0;
 MakeZombie(id);
-if(g_bMinion[id]&& g_iBoss && is_user_alive(g_iBoss))
+if(g_bMinion[id]&& g_iBoss&&is_user_alive(g_iBoss))
 {
 new Float:o[3];
 get_entvar(g_iBoss,var_origin,o);
@@ -22983,15 +22984,15 @@ rg_set_user_team(id,TEAM_CT,MODEL_UNASSIGNED,true,false);
 rg_set_user_footsteps(id,g_iJob[id]== JOB_NINJA ? true : false);
 ApplyHumanModel(id);
 set_user_rendering(id);
-new hp = MaxHumanHP(id);
+new hp=MaxHumanHP(id);
 g_iMaxHP[id]= hp;
 set_entvar(id,var_health,float(hp));
 set_entvar(id,var_max_health,float(hp));
 ApplyHumanGravity(id);
-new armor = 15 * g_iPerk[id][PK_PLATING];
-if(g_iJob[id]== JOB_HEAVY)armor += 100;
-if(g_iJob[id]== JOB_ELITE)armor += 25;
-armor += VipArmor(id);
+new armor=15 * g_iPerk[id][PK_PLATING];
+if(g_iJob[id]== JOB_HEAVY)armor+=100;
+if(g_iJob[id]== JOB_ELITE)armor+=25;
+armor+=VipArmor(id);
 if(armor > 0)
 rg_set_user_armor(id,min(armor,250),ARMOR_VESTHELM);
 if(IsVip(id))
@@ -23008,10 +23009,10 @@ set_task(1.5,"task_Welcome",id + TASK_WELCOME);
 }
 public task_Loadout(tid)
 {
-new id = tid - TASK_LOADOUT;
+new id=tid - TASK_LOADOUT;
 if(!is_user_alive(id)|| g_bZombie[id]|| g_bSurvivor[id]|| g_bSniper[id])
 return;
-if(g_iPrim[id]>= 0 && g_iSec[id]>= 0 && !(g_iSet[id]& SET_NO_AUTOGUN))
+if(g_iPrim[id]>= 0&&g_iSec[id]>= 0&&!(g_iSet[id]& SET_NO_AUTOGUN))
 GiveLoadout(id);
 else if(!is_user_bot(id))
 ShowPrimaryMenu(id);
@@ -23030,27 +23031,27 @@ if(!g_bRoundActive)
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
-if(1<=attacker<=g_iMax && attacker!=victim && is_user_connected(attacker)&& g_bZombie[attacker]==g_bZombie[victim]){
+if(1<=attacker<=g_iMax&&attacker!=victim&&is_user_connected(attacker)&& g_bZombie[attacker]==g_bZombie[victim]){
 SetHookChainReturn(ATYPE_INTEGER,0);return HC_SUPERCEDE;
 }
-new Float:now = get_gametime();
-new Float:dmg = damage;
+new Float:now=get_gametime();
+new Float:dmg=damage;
 if(!g_bZombie[victim]&& ZcCall(ZC_HEV,ZCOP_has,victim))dmg *= 0.8;
-new bool:isPlayer =(1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker))? true : false;
-g_iReflVictim = 0;
+new bool:isPlayer =(1<=attacker<=g_iMax&&attacker!=victim&&is_user_connected(attacker))? true : false;
+g_iReflVictim=0;
 if(g_bZombie[victim]&& g_fMadness[victim]> now)
 {
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
-if((g_bZombie[victim]&& g_fBurrow[victim]> now)||(isPlayer && g_bZombie[attacker]&& g_fBurrow[attacker]> now))
+if((g_bZombie[victim]&& g_fBurrow[victim]> now)||(isPlayer&&g_bZombie[attacker]&& g_fBurrow[attacker]> now))
 {
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
 if((bits & DMG_BURN)&& IsClassZombie(victim,ZC_MAGMA)&& get_pcvar_num(g_pZc[ZCV_MAG_IMMUNE]))
 {
-if(isPlayer && !is_user_bot(attacker)&& random_num(1,4)== 1)
+if(isPlayer&&!is_user_bot(attacker)&& random_num(1,4)== 1)
 SkillDeny(attacker,"MAGMA_IMMUNE");
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
@@ -23059,18 +23060,18 @@ if(isPlayer)
 {
 if(g_bZombie[attacker]&& !g_bZombie[victim])
 {
-if(inflictor != attacker)
+if(inflictor!=attacker)
 return HC_CONTINUE;
 FxClawHit(victim);
-new Float:mimicMult = 1.0;
+new Float:mimicMult=1.0;
 if(g_fDisguise[attacker]> now)
 {
-mimicMult = floatclamp(get_pcvar_float(g_pZc[ZCV_MIM_MULT]),1.0,10.0);
+mimicMult=floatclamp(get_pcvar_float(g_pZc[ZCV_MIM_MULT]),1.0,10.0);
 MimicReveal(attacker,victim);
 }
 if(g_bBoss[attacker])
 {
-dmg = get_pcvar_float(g_pBossDmg);
+dmg=get_pcvar_float(g_pBossDmg);
 if(g_bEnraged)
 dmg *= 1.25;
 if(g_bFinalBoss)
@@ -23078,7 +23079,7 @@ dmg *= 1.15;
 if(g_fBossEmpower > now)
 {
 dmg *= 2.0;
-g_fBossEmpower = 0.0;
+g_fBossEmpower=0.0;
 ApplyRender(attacker);
 new Float:vo[3];
 get_entvar(victim,var_origin,vo);
@@ -23088,20 +23089,20 @@ FxSprite(vo,g_sprExplode,5,200);
 }
 else if(g_bNemesis[attacker]|| g_bAssassin[attacker])
 {
-new bool:nem = g_bNemesis[attacker]? true : false;
+new bool:nem=g_bNemesis[attacker]? true : false;
 if(g_bSurvivor[victim]|| g_bSniper[victim])
-dmg = get_pcvar_float(g_pNemVsSurv);
+dmg=get_pcvar_float(g_pNemVsSurv);
 else if(get_pcvar_num(nem ? g_pNemOneShot : g_pAsnOneShot))
-dmg = 999999.0;
+dmg=999999.0;
 else
-dmg = get_pcvar_float(nem ? g_pNemDmg : g_pAsnDmg);
-if(g_fRage[attacker]> now && dmg < 9000.0)
+dmg=get_pcvar_float(nem ? g_pNemDmg : g_pAsnDmg);
+if(g_fRage[attacker]> now&&dmg < 9000.0)
 dmg *= 1.3;
 }
 else if(g_bMinion[attacker])
-dmg = get_pcvar_float(g_pMinionDmg);
+dmg=get_pcvar_float(g_pMinionDmg);
 else if(g_bSurvivor[victim]|| g_bSniper[victim])
-dmg = 30.0 * mimicMult;
+dmg=30.0 * mimicMult;
 else if(AllowsInfection())
 {
 dmg *= mimicMult;
@@ -23115,7 +23116,7 @@ FadeOne(victim,0,255,255,80,0.4);
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
-if(g_iJob[victim]== JOB_LUCKY && random_num(1,100)<= 7)
+if(g_iJob[victim]== JOB_LUCKY&&random_num(1,100)<= 7)
 {
 Chat(victim,"LUCKY_DODGE");
 SetHookChainReturn(ATYPE_INTEGER,0);
@@ -23127,7 +23128,7 @@ SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
 new ArmorType:atype;
-new armor = rg_get_user_armor(victim,atype);
+new armor=rg_get_user_armor(victim,atype);
 if(get_pcvar_num(g_pArmorProtect)&& armor > 0)
 {
 rg_set_user_armor(victim,max(0,armor - max(1,floatround(dmg))),atype);
@@ -23142,10 +23143,10 @@ Infect(victim,attacker);
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
-dmg = 9999.0;
+dmg=9999.0;
 }
 else
-dmg = get_pcvar_float(g_pZombieDmg)* mimicMult;
+dmg=get_pcvar_float(g_pZombieDmg)* mimicMult;
 if(g_bRage[attacker]&& dmg < 9000.0)
 dmg *= 1.0 + float(max(0,ITEM_VAL[IT_RAGE]))/ 100.0;
 if(g_bAlpha[attacker]&& dmg < 9000.0)
@@ -23153,28 +23154,28 @@ dmg *= 1.2;
 }
 else if(!g_bZombie[attacker]&& g_bZombie[victim])
 {
-new Float:m = 1.0;
-new WeaponIdType:wid = GetActiveWeaponId(attacker);
-new bool:bulletHit =(inflictor == attacker &&(bits & DMG_BULLET))? true : false;
-new bool:headshot =(bulletHit && get_member(victim,m_LastHitGroup)== HIT_HEAD)? true : false;
-new mm = ModeOf(attacker),ms =(mm >= 0)? ModeSlot(mm,wid): -1;
-if(ms >= 0)
+new Float:m=1.0;
+new WeaponIdType:wid=GetActiveWeaponId(attacker);
+new bool:bulletHit =(inflictor==attacker &&(bits & DMG_BULLET))? true : false;
+new bool:headshot =(bulletHit&&get_member(victim,m_LastHitGroup)== HIT_HEAD)? true : false;
+new mm=ModeOf(attacker),ms =(mm>=0)? ModeSlot(mm,wid): -1;
+if(ms>=0)
 {
 if(MW_DMG[mm][ms]> 50.0)
 {
 if(bulletHit)
-dmg = MW_DMG[mm][ms];
+dmg=MW_DMG[mm][ms];
 }
 else
 m *= MW_DMG[mm][ms];
 }
-else if(mm == 0)
+else if(mm==0)
 m *= 1.5;
-if(g_iEvent == EV_DOUBLEDMG)
+if(g_iEvent==EV_DOUBLEDMG)
 m *= 2.0;
-if(g_iEvent == EV_HEADHUNTER && headshot)
+if(g_iEvent==EV_HEADHUNTER&&headshot)
 m *= 2.0;
-m += 0.03 * float(g_iPerk[attacker][PK_FIREPOWER]);
+m+=0.03 * float(g_iPerk[attacker][PK_FIREPOWER]);
 switch(g_iJob[attacker])
 {
 case JOB_MARKSMAN: m *= 1.2;
@@ -23188,23 +23189,23 @@ if(g_iJob[attacker]== JOB_ELITE)
 m *= 1.1;
 if(g_bDmgAmp[attacker])
 m *= 1.0 + float(max(0,ITEM_VAL[IT_DMGAMP]))/ 100.0;
-new sw = SpecialIndex(attacker,wid),Float:sg538 = 0.0;
-if(sw >= 0 && inflictor == attacker &&(bits & DMG_BULLET))
+new sw=SpecialIndex(attacker,wid),Float:sg538=0.0;
+if(sw>=0&&inflictor==attacker &&(bits & DMG_BULLET))
 m *= SW_MULT[sw]* floatclamp(get_pcvar_float(g_pSwDmg531),0.1,20.0);
-else if(bulletHit && sw < 0 && ms < 0 &&(sg538 = vxe_sw_hit(attacker,victim,_:wid,headshot,(g_bBoss[victim]|| g_bNemesis[victim]|| g_bAssassin[victim])? 1 : 0))> 0.0)
+else if(bulletHit&&sw < 0&&ms < 0 &&(sg538=vxe_sw_hit(attacker,victim,_:wid,headshot,(g_bBoss[victim]|| g_bNemesis[victim]|| g_bAssassin[victim])? 1 : 0))> 0.0)
 m *= sg538 * floatclamp(get_pcvar_float(g_pSwDmg531),0.1,20.0);
-else if(bulletHit && ms < 0)
+else if(bulletHit&&ms < 0)
 m *= floatclamp(get_pcvar_float(g_pGunDmg536),0.1,10.0);
-else if(!bulletHit && wid == WEAPON_KNIFE && g_iCommunitySel[attacker][1]>= 1 && g_iCommunitySel[attacker][1]<= KN_TOTAL)
+else if(!bulletHit&&wid==WEAPON_KNIFE&&g_iCommunitySel[attacker][1]>= 1&&g_iCommunitySel[attacker][1]<= KN_TOTAL)
 {
 if(g_iCommunitySel[attacker][1]<= 4)m *= floatclamp(get_pcvar_float(g_pSkDmg538),0.1,20.0);
 SkKnock538(victim,attacker,g_iCommunitySel[attacker][1]>= 5 ? g_fMkKb[g_iCommunitySel[attacker][1]- 5]: 1.0);
 }
-if(bulletHit && headshot && g_bZombie[victim])Polish536_HeadshotSnd(attacker);
+if(bulletHit&&headshot&&g_bZombie[victim])Polish536_HeadshotSnd(attacker);
 dmg *= m;
-if(g_bZombie[victim]&& !g_bBoss[victim])dmg = vxe_zarmor_hit(victim,dmg);
+if(g_bZombie[victim]&& !g_bBoss[victim])dmg=vxe_zarmor_hit(victim,dmg);
 if(g_bBoss[victim]|| g_bNemesis[victim]|| g_bAssassin[victim])
-dmg = floatmin(dmg,floatmax(100.0,get_pcvar_float(g_pSpecCap)));
+dmg=floatmin(dmg,floatmax(100.0,get_pcvar_float(g_pSpecCap)));
 }
 }
 if(g_bZombie[victim])
@@ -23220,26 +23221,26 @@ dmg *= 0.7;
 if(g_fFortify[victim]> now)
 {
 dmg *=(100.0 - floatclamp(get_pcvar_float(g_pZc[ZCV_BUL_REDUCE]),0.0,95.0))/ 100.0;
-if(isPlayer && !g_bZombie[attacker]&& !g_bReflecting && dmg > 0.0)
+if(isPlayer&&!g_bZombie[attacker]&& !g_bReflecting&&dmg > 0.0)
 {
-g_iReflVictim = victim;
-g_iReflAttacker = attacker;
-g_fReflAmount = floatmin(dmg * floatclamp(get_pcvar_float(g_pZc[ZCV_BUL_REFLECT]),0.0,100.0)/ 100.0,60.0);
+g_iReflVictim=victim;
+g_iReflAttacker=attacker;
+g_fReflAmount=floatmin(dmg * floatclamp(get_pcvar_float(g_pZc[ZCV_BUL_REFLECT]),0.0,100.0)/ 100.0,60.0);
 }
 }
 }
 else if(dmg < 9000.0)
 {
-if(g_iJob[victim]== JOB_HEAVY && !g_bSurvivor[victim])
+if(g_iJob[victim]== JOB_HEAVY&&!g_bSurvivor[victim])
 dmg *= 0.85;
 }
-if(isPlayer && !g_bZombie[attacker]&& g_bZombie[victim]&&
-GetActiveWeaponId(attacker)==WEAPON_KNIFE && g_iCommunitySel[attacker][1]>0 &&
+if(isPlayer&&!g_bZombie[attacker]&& g_bZombie[victim]&&
+GetActiveWeaponId(attacker)==WEAPON_KNIFE&&g_iCommunitySel[attacker][1]>0 &&
 (bits &(DMG_SLASH|DMG_CLUB))&& dmg>0.0)
 dmg=floatmax(dmg,(g_bBoss[victim]||g_bNemesis[victim]||g_bAssassin[victim])?45.0:100.0);
-if(isPlayer && !g_bZombie[attacker]&& g_bZombie[victim])
+if(isPlayer&&!g_bZombie[attacker]&& g_bZombie[victim])
 {
-new idmg = floatround(floatmin(dmg,Float:get_entvar(victim,var_health)));
+new idmg=floatround(floatmin(dmg,Float:get_entvar(victim,var_health)));
 g_iRoundDmg[attacker]+= idmg;
 if(g_bBoss[victim])
 {
@@ -23248,15 +23249,15 @@ g_iMapBossDmg[attacker]+= idmg;
 }
 g_iDmgBank[attacker]+= idmg;
 QuestEvent(attacker,1,idmg);
-new per = max(50,get_pcvar_num(g_pDmgPerAP));
+new per=max(50,get_pcvar_num(g_pDmgPerAP));
 if(g_iDmgBank[attacker]>= per)
 {
-new gained = g_iDmgBank[attacker]/ per;
+new gained=g_iDmgBank[attacker]/ per;
 g_iDmgBank[attacker]%= per;
 AddAP(attacker,gained);
 }
 }
-if(dmg != damage)
+if(dmg!=damage)
 SetHookChainArg(4,ATYPE_FLOAT,dmg);
 return HC_CONTINUE;
 }
@@ -23278,7 +23279,7 @@ p[0]-= floatclamp(damage / 12.0,2.0,7.0);p[1]+= random_float(-3.0,3.0);p[2]+= ra
 set_entvar(victim,var_punchangle,p);
 if(!is_user_bot(victim))
 {
-new amp = clamp(floatround(damage * 80.0),1500,9000);
+new amp=clamp(floatround(damage * 80.0),1500,9000);
 message_begin(MSG_ONE_UNRELIABLE,g_msgShake,_,victim);
 write_short(amp);write_short(1 << 11);write_short(1 << 13);message_end();
 }
@@ -23287,7 +23288,7 @@ write_short(amp);write_short(1 << 11);write_short(1 << 13);message_end();
 }
 public rg_TakeDamagePost(victim,inflictor,attacker,Float:damage,bits)
 {
-if(damage>0.0 && 1<=attacker<=g_iMax && attacker!=victim && 1<=victim<=g_iMax &&
+if(damage>0.0&&1<=attacker<=g_iMax&&attacker!=victim&&1<=victim<=g_iMax &&
 is_user_connected(attacker)&& is_user_connected(victim)&& g_bZombie[attacker]!=g_bZombie[victim])
 {
 new Float:hitNow565=get_gametime();
@@ -23297,28 +23298,28 @@ if(hitNow565>=g_fHurtFeel565[victim]&& !is_user_bot(victim)&& !(g_iSet[victim]&S
 {g_fHurtFeel565[victim]=hitNow565+0.28;FadeOne(victim,170,25,25,22,0.12);}
 HitFeel60(victim,attacker,damage);
 }
-if(damage>0.0 && 1<=attacker<=g_iMax && 1<=victim<=g_iMax && is_user_alive(attacker)&& is_user_alive(victim)&&
+if(damage>0.0&&1<=attacker<=g_iMax&&1<=victim<=g_iMax&&is_user_alive(attacker)&& is_user_alive(victim)&&
 g_bZombie[victim]&& !g_bZombie[attacker]&& GetActiveWeaponId(attacker)==WEAPON_KNIFE &&
-g_iCommunitySel[attacker][1]>=1 && g_iCommunitySel[attacker][1]<=4 &&(bits &(DMG_SLASH|DMG_CLUB))&& !g_bNoKB[victim])
+g_iCommunitySel[attacker][1]>=1&&g_iCommunitySel[attacker][1]<=4 &&(bits &(DMG_SLASH|DMG_CLUB))&& !g_bNoKB[victim])
 {g_iMkPushBy[victim]=attacker;g_fMkPushPower[victim]=1.0;RequestFrame("MeleePushFrame48",victim);}
-if(g_bHm538 && damage > 0.0 && 1 <= attacker <= g_iMax && attacker != victim && 1 <= victim <= g_iMax && g_bZombie[victim]&& !g_bZombie[attacker]&& is_user_alive(victim))
+if(g_bHm538&&damage > 0.0&&1<=attacker<=g_iMax&&attacker!=victim&&1<=victim<=g_iMax&&g_bZombie[victim]&& !g_bZombie[attacker]&& is_user_alive(victim))
 HitMark538(attacker,(bits & DMG_BULLET)&& get_member(victim,m_LastHitGroup)== HIT_HEAD ? 1 : 0);
-if(1 <= victim <= g_iMax && g_iPlantAction[victim]== 2 && damage > 0.0)
+if(1<=victim<=g_iMax&&g_iPlantAction[victim]== 2&&damage > 0.0)
 LmTakeCancel(victim,"LM_TAKE_HURT");
-if(g_iReflVictim && g_iReflVictim == victim && g_iReflAttacker == attacker)
+if(g_iReflVictim&&g_iReflVictim==victim&&g_iReflAttacker==attacker)
 {
-new Float:refl = g_fReflAmount;
-g_iReflVictim = 0;
-g_iReflAttacker = 0;
-g_fReflAmount = 0.0;
+new Float:refl=g_fReflAmount;
+g_iReflVictim=0;
+g_iReflAttacker=0;
+g_fReflAmount=0.0;
 if(is_user_alive(attacker)&& !g_bZombie[attacker]&& !g_bReflecting)
 {
-refl = floatmin(refl,Float:get_entvar(attacker,var_health)- 1.0);
-if(refl >= 1.0)
+refl=floatmin(refl,Float:get_entvar(attacker,var_health)- 1.0);
+if(refl>=1.0)
 {
-g_bReflecting = true;
+g_bReflecting=true;
 ExecuteHamB(Ham_TakeDamage,attacker,0,is_user_connected(victim)? victim : 0,refl,DMG_GENERIC);
-g_bReflecting = false;
+g_bReflecting=false;
 if(random_num(1,3)== 1)
 {
 new Float:ao[3];
@@ -23330,17 +23331,17 @@ FadeOne(attacker,130,150,130,50,0.2);
 }
 }
 }
-if(!(1 <= attacker <= g_iMax)|| attacker == victim || !is_user_connected(attacker))
+if(!(1<=attacker<=g_iMax)|| attacker==victim||!is_user_connected(attacker))
 return;
-if(g_bZombie[attacker]|| !g_bZombie[victim]|| damage <= 0.0)
+if(g_bZombie[attacker]|| !g_bZombie[victim]|| damage<=0.0)
 return;
-new WeaponIdType:wid = GetActiveWeaponId(attacker);
-new bool:bullet =(inflictor == attacker &&(bits & DMG_BULLET))? true : false;
-new bool:headshot =(bullet && get_member(victim,m_LastHitGroup)== HIT_HEAD)? true : false;
+new WeaponIdType:wid=GetActiveWeaponId(attacker);
+new bool:bullet =(inflictor==attacker &&(bits & DMG_BULLET))? true : false;
+new bool:headshot =(bullet&&get_member(victim,m_LastHitGroup)== HIT_HEAD)? true : false;
 if(!g_bHud4&&!is_user_bot(attacker)&& !(g_iSet[attacker]& SET_NO_DMGNUM))
 {
-new Float:x = 0.52 + random_float(-0.02,0.04);
-new Float:y = 0.45 + random_float(-0.02,0.04);
+new Float:x=0.52 + random_float(-0.02,0.04);
+new Float:y=0.45 + random_float(-0.02,0.04);
 if(headshot)
 {
 set_hudmessage(255,200,40,x,y,0,0.0,0.5,0.0,0.15,4);
@@ -23351,7 +23352,7 @@ else if(g_bBoss[victim])
 set_hudmessage(BOSS_RGB[g_iBossType][0],BOSS_RGB[g_iBossType][1],BOSS_RGB[g_iBossType][2],x,y,0,0.0,0.45,0.0,0.15,4);
 show_hudmessage(attacker,"-%d",floatround(damage));
 }
-else if(g_iEvent == EV_DOUBLEDMG)
+else if(g_iEvent==EV_DOUBLEDMG)
 {
 set_hudmessage(255,120,0,x,y,0,0.0,0.45,0.0,0.15,4);
 show_hudmessage(attacker,"%d  x2",floatround(damage));
@@ -23364,53 +23365,53 @@ show_hudmessage(attacker,"%d",floatround(damage));
 }
 if(!is_user_alive(victim))
 return;
-new sw = SpecialIndex(attacker,wid);
-new mm = ModeOf(attacker),ms =(mm >= 0)? ModeSlot(mm,wid): -1;
-new fx =(sw >= 0)? SW_EFFECT[sw]:((ms >= 0)? MW_FX[mm][ms]: SWE_NONE);
-if(bullet && get_pcvar_num(g_pKnockback))
+new sw=SpecialIndex(attacker,wid);
+new mm=ModeOf(attacker),ms =(mm>=0)? ModeSlot(mm,wid): -1;
+new fx =(sw>=0)? SW_EFFECT[sw]:((ms>=0)? MW_FX[mm][ms]: SWE_NONE);
+if(bullet&&get_pcvar_num(g_pKnockback))
 {
-new Float:kbDamage = damage;
-if(fx == SWE_VOID)
+new Float:kbDamage=damage;
+if(fx==SWE_VOID)
 kbDamage *= 1.35;
 ApplyKnockback(victim,attacker,wid,kbDamage);
 }
-new Float:steal = 0.0;
+new Float:steal=0.0;
 if(g_iJob[attacker]== JOB_VAMPIRE)
-steal += 0.05;
-if(g_iEvent == EV_VAMPIRE)
-steal += 0.05;
-if(fx == SWE_VAMPIRE)
-steal += 0.05;
+steal+=0.05;
+if(g_iEvent==EV_VAMPIRE)
+steal+=0.05;
+if(fx==SWE_VAMPIRE)
+steal+=0.05;
 if(steal > 0.0)
 HealTo(attacker,max(1,floatround(damage * steal)),MaxHumanHP(attacker)+ 50);
 if(!bullet)
 return;
-if(g_iJob[attacker]== JOB_PYRO && random_num(1,100)<= 15)
+if(g_iJob[attacker]== JOB_PYRO&&random_num(1,100)<= 15)
 Ignite(victim,attacker,3);
-if(g_iJob[attacker]== JOB_CRYO && random_num(1,100)<= 10)
+if(g_iJob[attacker]== JOB_CRYO&&random_num(1,100)<= 10)
 Freeze(victim,1.0);
 switch(fx)
 {
 case SWE_FIRE: if(random_num(1,100)<= 20)Ignite(victim,attacker,3);
 case SWE_LIGHTNING:
 {
-new chain =(sw >= 0)? SW_CHAIN_DMG[sw]: 25;
-if(chain > 0 && sw < 0 && ms < 0)ChainLightning(victim,attacker,float(chain));
+new chain =(sw>=0)? SW_CHAIN_DMG[sw]: 25;
+if(chain > 0&&sw < 0&&ms < 0)ChainLightning(victim,attacker,float(chain));
 }
 case SWE_ICE: if(random_num(1,100)<= 25)Freeze(victim,1.5);
 case SWE_EXPLOSIVE:
 {
-if(sw < 0 && ms < 0 && random_num(1,100)<= 12)
+if(sw < 0&&ms < 0&&random_num(1,100)<= 12)
 {
 new Float:origin[3],Float:other[3];
 get_entvar(victim,var_origin,origin);
-if(sw >= 0)
+if(sw>=0)
 FxRing(origin,SW_RGB[sw][0],SW_RGB[sw][1],SW_RGB[sw][2],140);
 else
 FxRing(origin,255,140,40,140);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p == victim || !is_user_alive(p)|| !g_bZombie[p]|| g_bBoss[p])
+if(p==victim||!is_user_alive(p)|| !g_bZombie[p]|| g_bBoss[p])
 continue;
 get_entvar(p,var_origin,other);
 if(get_distance_f(origin,other)<= 140.0)
@@ -23424,9 +23425,9 @@ bool:HasCommanderNear(id)
 {
 new Float:o[3],Float:po[3];
 get_entvar(id,var_origin,o);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p == id || !is_user_alive(p)|| g_bZombie[p]|| g_iJob[p]!= JOB_COMMANDER)
+if(p==id||!is_user_alive(p)|| g_bZombie[p]|| g_iJob[p]!= JOB_COMMANDER)
 continue;
 get_entvar(p,var_origin,po);
 if(get_distance_f(o,po)<= 400.0)
@@ -23440,10 +23441,10 @@ if(g_bBoss[victim]|| g_bNoKB[victim]|| g_fFrozen[victim]> get_gametime())
 return;
 if(g_fCharge[victim]> get_gametime()|| g_fFortify[victim]> get_gametime()|| g_fBurrow[victim]> get_gametime())
 return;
-new w = _:wid;
-if(w < 0 || w > 30 || KB_POWER[w]<= 0.0)
+new w=_:wid;
+if(w < 0||w > 30||KB_POWER[w]<= 0.0)
 return;
-new Float:power = KB_POWER[w]* floatclamp(get_pcvar_float(g_pKBMult),0.0,3.0);
+new Float:power=KB_POWER[w]* floatclamp(get_pcvar_float(g_pKBMult),0.0,3.0);
 if(g_bNemesis[victim]|| g_bAssassin[victim])
 power *= 0.25;
 else if(!g_bMinion[victim])
@@ -23461,20 +23462,20 @@ get_entvar(attacker,var_origin,ao);
 dir[0]= vo[0]- ao[0];
 dir[1]= vo[1]- ao[1];
 dir[2]= 0.0;
-new Float:len = floatsqroot(dir[0]* dir[0]+ dir[1]* dir[1]);
+new Float:len=floatsqroot(dir[0]* dir[0]+ dir[1]* dir[1]);
 if(len < 1.0)
 return;
-new Float:kbMax = floatclamp(get_pcvar_float(g_pKBMax536),100.0,2000.0);
-new Float:force = power * floatmin(damage,60.0)* 0.35;
+new Float:kbMax=floatclamp(get_pcvar_float(g_pKBMax536),100.0,2000.0);
+new Float:force=power * floatmin(damage,60.0)* 0.35;
 if(len > 600.0)force *= 0.6;else if(len > 300.0)force *= 1.0 -(len - 300.0)/ 750.0;
 if(!(get_entvar(victim,var_flags)& FL_ONGROUND))force *= 1.2;
 get_entvar(victim,var_velocity,vel);
 vel[0]= vel[0]* 0.8 + dir[0]/ len * force;
 vel[1]= vel[1]* 0.8 + dir[1]/ len * force;
-new Float:hs = floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]);
+new Float:hs=floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]);
 if(hs > kbMax){vel[0]*= kbMax / hs;vel[1]*= kbMax / hs;}
 set_entvar(victim,var_velocity,vel);
-if(g_iDirLogN[DIR_KNOCK]< DIR_LOG_MAX && get_pcvar_num(g_pDbgDirs))
+if(g_iDirLogN[DIR_KNOCK]< DIR_LOG_MAX&&get_pcvar_num(g_pDbgDirs))
 {
 new Float:add[3];
 add[0]= dir[0]/ len * force;
@@ -23492,7 +23493,7 @@ if(v[0]!= v[0]|| v[1]!= v[1]|| v[2]!= v[2]|| vector_length(v)< 1.0)
 {
 new Float:o[3],Float:ao[3];
 get_entvar(victim,var_origin,o);
-if(attacker != victim && attacker > 0 && is_entity(attacker))
+if(attacker!=victim&&attacker > 0&&is_entity(attacker))
 {
 get_entvar(attacker,var_origin,ao);
 v[0]= o[0]- ao[0];
@@ -23501,12 +23502,12 @@ v[2]= 0.0;
 }
 if(vector_length(v)< 1.0)
 {
-new Float:yaw = random_float(0.0,360.0);
+new Float:yaw=random_float(0.0,360.0);
 v[0]= floatcos(yaw,degrees);
 v[1]= floatsin(yaw,degrees);
 v[2]= 0.0;
 }
-new Float:len = vector_length(v);
+new Float:len=vector_length(v);
 v[0]= v[0]/ len * 200.0;
 v[1]= v[1]/ len * 200.0;
 v[2]= 0.0;
@@ -23516,27 +23517,27 @@ return HC_CONTINUE;
 }
 public rg_PlayerKilled(victim,attacker,gib)
 {
-if(g_bHm538 && 1 <= attacker <= g_iMax && attacker != victim && g_bZombie[victim]&& !g_bZombie[attacker])HitMark538(attacker,2);
-if(1 <= attacker <= g_iMax && attacker != victim && g_bZombie[attacker]&& !g_bZombie[victim]&& !g_bBoss[attacker]&& !g_bNemesis[attacker]&& !g_bAssassin[attacker])vxe_zup_add(attacker,2,g_iClass[attacker]);
+if(g_bHm538&&1<=attacker<=g_iMax&&attacker!=victim&&g_bZombie[victim]&& !g_bZombie[attacker])HitMark538(attacker,2);
+if(1<=attacker<=g_iMax&&attacker!=victim&&g_bZombie[attacker]&& !g_bZombie[victim]&& !g_bBoss[attacker]&& !g_bNemesis[attacker]&& !g_bAssassin[attacker])vxe_zup_add(attacker,2,g_iClass[attacker]);
 vxe_weapon_stop(victim);
 CameraRemove47(victim);
 GaugeRemove47(victim);
 BannerShow47(victim,3,3.5);
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 CommunityRemoveWeapons(victim);
 CommunityRemoveKnives(victim);
 remove_task(victim + 64000);
-new bool:valid =(1 <= attacker <= g_iMax && attacker != victim && is_user_connected(attacker))? true : false;
+new bool:valid =(1<=attacker<=g_iMax&&attacker!=victim&&is_user_connected(attacker))? true : false;
 ZcCleanup(victim);
 OvhRemove(victim);
 g_iSpecW[victim]= 0;
-if(valid && g_bBoss[attacker]&& !g_bZombie[victim])
+if(valid&&g_bBoss[attacker]&& !g_bZombie[victim])
 BossKillTaunt(attacker);
 new Float:o[3];
 get_entvar(victim,var_origin,o);
 if(g_bBoss[victim]|| g_bNemesis[victim]|| g_bAssassin[victim])
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 new name[32];
 if(valid)
 get_user_name(attacker,name,charsmax(name));
@@ -23549,55 +23550,55 @@ if(g_bBoss[victim])
 BossDeath(victim,o,name);
 else
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 ChatAllS(g_bNemesis[victim]? "NEMESIS_DOWN" : "ASSASSIN_DOWN",name);
 if(!EmitSpecialSound(victim,"DEATH",CHAN_VOICE,ATTN_NONE))
 PlayKey(0,"BOSS_DEATH");
 }
-if(valid && !g_bZombie[attacker])
+if(valid&&!g_bZombie[attacker])
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 g_iBossK[attacker]++;
 g_iVC[attacker]+= g_bBoss[victim]? get_pcvar_num(g_pBossKillVC): max(0,get_pcvar_num(g_pBossKillVC)- 1);
 Reward(attacker,get_pcvar_num(g_bBoss[victim]? g_pBossKillXP : g_pSpecKillXP),get_pcvar_num(g_bBoss[victim]? g_pBossKillAP : g_pSpecKillAP));
 }
-if(valid && !g_bZombie[attacker])
+if(valid&&!g_bZombie[attacker])
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
-for(new p = 1;p <= g_iMax;p++)
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+for(new p=1;p<=g_iMax;p++)
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
-if(is_user_alive(p)&& !g_bZombie[p]&& p != attacker)
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(is_user_alive(p)&& !g_bZombie[p]&& p!=attacker)
 Reward(p,30,5);
 }
 }
 }
 else if(g_bZombie[victim])
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 FxBlood(o,12);
 FxParticles(o,40,70,6);
-if(g_iClass[victim]== 6 && !g_bMinion[victim])
+if(g_iClass[victim]== 6&&!g_bMinion[victim])
 BomberExplode(victim,o);
-if(valid && !g_bZombie[attacker])
+if(valid&&!g_bZombie[attacker])
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 g_iKills[attacker]++;
 AchKill60(attacker,victim);
 g_iMapKills[attacker]++;
 g_iRoundKills[attacker]++;
 if(g_iJob[attacker]== JOB_HUNTER)
 AddAP(attacker,2,true,false);
-new kxp = get_pcvar_num(g_pKillXP);
+new kxp=get_pcvar_num(g_pKillXP);
 Reward(attacker,g_bAlpha[victim]? kxp * 5 / 2 : kxp,get_pcvar_num(g_pKillAP)+(g_bAlpha[victim]? 4 : 0));
 KillStreak(attacker,victim);
 QuestEvent(attacker,0,1);
 CosKillFx(attacker,o);
 }
 }
-else if(valid && g_bZombie[attacker])
+else if(valid&&g_bZombie[attacker])
 {
-if(attacker>=1 && attacker<=32 && attacker!=victim && is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
+if(attacker>=1&&attacker<=32&&attacker!=victim&&is_user_alive(attacker)&& IsVip(attacker)&&(g_iSet[attacker]&E46_VIP_KILL))EpicVipFx(attacker);
 Reward(attacker,10,3);
 }
 if(valid)
@@ -23605,7 +23606,7 @@ PayBounty(attacker,victim);
 g_iBounty[victim]= 0;
 if(!g_bZombie[victim]&& !get_pcvar_num(g_pLmKeep534))
 RemovePlayerMines(victim,true);
-if(g_bZombie[victim]&& g_bRoundActive && AllowsRespawn()&& !g_bMinion[victim]&& !is_user_bot(victim))
+if(g_bZombie[victim]&& g_bRoundActive&&AllowsRespawn()&& !g_bMinion[victim]&& !is_user_bot(victim))
 Chat(victim,"YOU_DIED_ZOMBIE",floatround(RespawnDelay(victim)));
 g_bBoss[victim]= 0;
 KillTrail(victim);
@@ -23614,7 +23615,7 @@ g_fFrozen[victim]= 0.0;g_fSlow[victim]= 0.0;
 g_iBurn[victim]= 0;
 g_iStreak[victim]= 0;
 set_user_rendering(victim);
-if(g_bRoundActive && AllowsRespawn()&& !g_bMinion[victim]&& RoundTimeLeft()> 20)
+if(g_bRoundActive&&AllowsRespawn()&& !g_bMinion[victim]&& RoundTimeLeft()> 20)
 g_fRespawnAt[victim]= get_gametime()+ RespawnDelay(victim);
 else
 g_fRespawnAt[victim]= 0.0;
@@ -23624,12 +23625,12 @@ KillStreak(attacker,victim)
 {
 if(is_user_bot(attacker))
 {
-g_bFirstBlood = true;
+g_bFirstBlood=true;
 return;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 new bool:hs =(get_member(victim,m_LastHitGroup)== HIT_HEAD)? true : false;
-new bool:nade = get_member(victim,m_bKilledByGrenade)? true : false;
+new bool:nade=get_member(victim,m_bKilledByGrenade)? true : false;
 g_iStreak[attacker]++;
 if(now - g_fLastKill[attacker]<= floatclamp(get_pcvar_float(g_pComboTime),2.0,15.0))
 g_iMulti[attacker]++;
@@ -23639,41 +23640,41 @@ g_fLastKill[attacker]= now;
 new km;
 new bool:knife =(get_user_weapon(attacker)== CSW_KNIFE)? true : false;
 if(g_iMulti[attacker]>= 2)
-km = CN_KM1 + clamp(g_iMulti[attacker],2,5)- 1;
-else if(!g_bFirstBlood && CsoNoteOn(CN_FIRST))
-km = CN_FIRST;
+km=CN_KM1 + clamp(g_iMulti[attacker],2,5)- 1;
+else if(!g_bFirstBlood&&CsoNoteOn(CN_FIRST))
+km=CN_FIRST;
 else if(knife)
-km = CN_KNIFE;
+km=CN_KNIFE;
 else if(nade)
-km = CN_NADE;
+km=CN_NADE;
 else if(hs)
-km = CN_HS;
+km=CN_HS;
 else
-km = CN_KM1;
-g_bFirstBlood = true;
-new bool:shown = CsoNotify(attacker,km);
+km=CN_KM1;
+g_bFirstBlood=true;
+new bool:shown=CsoNotify(attacker,km);
 new ktxt[96];
 if(hs)
 {
 g_iHS[attacker]++;
 g_iRoundHS[attacker]++;
 QuestEvent(attacker,2,1);
-new hsap = get_pcvar_num(g_pHsAP);
-AddAP(attacker,g_iEvent == EV_HEADHUNTER ? hsap * 3 : hsap,true,false);
+new hsap=get_pcvar_num(g_pHsAP);
+AddAP(attacker,g_iEvent==EV_HEADHUNTER ? hsap * 3 : hsap,true,false);
 formatex(ktxt,charsmax(ktxt),"%L",attacker,"HUD_HEADSHOT");
-if(!shown && !(g_iSet[attacker]& SET_NO_STREAK)&& g_iMulti[attacker]< 2)
+if(!shown&&!(g_iSet[attacker]& SET_NO_STREAK)&& g_iMulti[attacker]< 2)
 PlayKey(attacker,"HEADSHOT");
 }
 if(g_iMulti[attacker]>= 2)
 {
-new m = min(g_iMulti[attacker],6);
+new m=min(g_iMulti[attacker],6);
 new key[16];
 formatex(key,charsmax(key),"MULTI_%d",m);
 if(ktxt[0])
 format(ktxt,charsmax(ktxt),"%s^n%L",ktxt,attacker,key);
 else
 formatex(ktxt,charsmax(ktxt),"%L",attacker,key);
-if(!(g_iSet[attacker]& SET_NO_STREAK)&&(!shown || m >= 6))
+if(!(g_iSet[attacker]& SET_NO_STREAK)&&(!shown||m>=6))
 {
 switch(m)
 {
@@ -23688,22 +23689,22 @@ AddAP(attacker,m - 1,true,false);
 }
 if(ktxt[0]&& !shown)
 HudText(attacker,SL_KILL,CLR_WARN,1.2,ktxt);
-new s = g_iStreak[attacker];
-if(s == 5 || s == 10 || s == 15 ||(s > 15 && s % 5 == 0))
+new s=g_iStreak[attacker];
+if(s==5||s==10||s==15 ||(s > 15&&s % 5==0))
 {
 new name[32],key[16];
 get_user_name(attacker,name,charsmax(name));
-formatex(key,charsmax(key),"STREAK_%d",s >= 15 ? 15 : s);
-for(new p = 1;p <= g_iMax;p++)
+formatex(key,charsmax(key),"STREAK_%d",s>=15 ? 15 : s);
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p))
 continue;
 client_print_color(p,attacker,"%s %L",ChatTag(key),p,key,name,s);
 if(!(g_iSet[p]& SET_NO_STREAK))
-PlayKey(p,s >= 15 ? "STREAK_15" :(s >= 10 ? "STREAK_10" : "STREAK_5"));
+PlayKey(p,s>=15 ? "STREAK_15" :(s>=10 ? "STREAK_10" : "STREAK_5"));
 }
 AddAP(attacker,s / 2,true,true);
-g_iVC[attacker]+=(s >= 15)? 1 : 0;
+g_iVC[attacker]+=(s>=15)? 1 : 0;
 }
 }
 public fw_ClientKill(id)
@@ -23719,13 +23720,13 @@ public rg_ResetMaxSpeed(id)
 {
 if(!is_user_alive(id))
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(g_fFrozen[id]> now)
 {
 set_entvar(id,var_maxspeed,1.0);
 return;
 }
-new Float:spd = Float:get_entvar(id,var_maxspeed);
+new Float:spd=Float:get_entvar(id,var_maxspeed);
 if(g_bBoss[id]&& g_fBossIntro > now)
 {
 set_entvar(id,var_maxspeed,1.0);
@@ -23733,7 +23734,7 @@ return;
 }
 if(g_bBoss[id])
 {
-spd = float(BOSS_SPD[g_iBossType]);
+spd=float(BOSS_SPD[g_iBossType]);
 if(g_bEnraged)
 spd *= 1.2;
 if(g_fEclipseEnd > now)
@@ -23743,22 +23744,22 @@ spd *= 1.4;
 }
 else if(g_bNemesis[id])
 {
-spd = get_pcvar_float(g_pNemSpeed);
+spd=get_pcvar_float(g_pNemSpeed);
 if(g_fRage[id]> now)
 spd *= 1.25;
 }
 else if(g_bAssassin[id])
 {
-spd = get_pcvar_float(g_pAsnSpeed);
+spd=get_pcvar_float(g_pAsnSpeed);
 if(g_fRage[id]> now)
 spd *= 1.2;
 }
 else if(g_bZombie[id])
 {
-spd = float(CLASS_SPD[g_bMinion[id]? 0 : g_iClass[id]])* get_pcvar_float(g_pZSpeed);
-if(g_iEvent == EV_SPEED)
+spd=float(CLASS_SPD[g_bMinion[id]? 0 : g_iClass[id]])* get_pcvar_float(g_pZSpeed);
+if(g_iEvent==EV_SPEED)
 spd *= get_pcvar_float(g_pSpeedZombie);
-else if(g_iEvent == EV_BERSERK)
+else if(g_iEvent==EV_BERSERK)
 spd *= 1.15;
 if(g_bAlpha[id])
 spd *= 1.08;
@@ -23771,20 +23772,20 @@ spd *= floatclamp(get_pcvar_float(g_pZc[ZCV_BUR_SPEED]),0.5,3.0);
 if(g_fTerror[id]> now)
 spd *= floatclamp(get_pcvar_float(g_pZc[ZCV_NM_SPEED]),0.5,3.0);
 if(g_fCharge[id]> now)
-spd = floatmax(spd,get_pcvar_float(g_pZc[ZCV_CHG_SPEED]));
+spd=floatmax(spd,get_pcvar_float(g_pZc[ZCV_CHG_SPEED]));
 }
 else
 {
-new Float:m = get_pcvar_float(g_pHSpeed);
-if(g_iEvent == EV_SPEED)m *= get_pcvar_float(g_pSpeedHuman);
+new Float:m=get_pcvar_float(g_pHSpeed);
+if(g_iEvent==EV_SPEED)m *= get_pcvar_float(g_pSpeedHuman);
 if(g_fBlizzardEnd > now)m *= 0.6;
-if(g_iEvent == EV_ADRENALINE)m *= 1.08;
+if(g_iEvent==EV_ADRENALINE)m *= 1.08;
 if(g_bSerum[id])m *= 1.0 + float(max(0,ITEM_VAL[IT_SERUM]))/ 100.0;
 if(g_iJob[id]== JOB_SCOUT)m *= 1.12;
 if(g_iJob[id]== JOB_NINJA)m *= 1.06;
 if(g_iJob[id]== JOB_JUGGERNAUT)m *= 0.95;
 if(g_fHBoost[id]> now)m *= 1.4;
-m += 0.02 * float(g_iPerk[id][PK_AGILITY]);
+m+=0.02 * float(g_iPerk[id][PK_AGILITY]);
 spd *= m;
 }
 if(g_fSlow[id]> now)
@@ -23793,7 +23794,7 @@ set_entvar(id,var_maxspeed,spd);
 }
 public rg_FallDamage(id)
 {
-if(g_bZombie[id]|| g_iJob[id]== JOB_PARA || g_bBoots[id])
+if(g_bZombie[id]|| g_iJob[id]== JOB_PARA||g_bBoots[id])
 {
 SetHookChainReturn(ATYPE_FLOAT,0.0);
 return HC_SUPERCEDE;
@@ -23802,7 +23803,7 @@ return HC_CONTINUE;
 }
 public fw_EmitSound(ent,channel,const sample[],Float:volume,Float:attn,flags,pitch)
 {
-if(g_bEmitting || !(1 <= ent <= g_iMax)|| !g_bZombie[ent]|| !is_user_connected(ent))
+if(g_bEmitting||!(1<=ent<=g_iMax)|| !g_bZombie[ent]|| !is_user_connected(ent))
 return FMRES_IGNORED;
 new ev[12],fallback[20];
 if(equal(sample,"weapons/knife_slash",19)){copy(ev,charsmax(ev),"SLASH");copy(fallback,charsmax(fallback),"ZOMBIE_SLASH");}
@@ -23816,8 +23817,8 @@ return FMRES_IGNORED;
 new key[24],path[256];
 if(g_bBoss[ent]|| g_bNemesis[ent]|| g_bAssassin[ent])
 {
-new r = SpecialVoice(ent,ev);
-if(r != -1)
+new r=SpecialVoice(ent,ev);
+if(r!=-1)
 return r;
 if(equal(ev,"PAIN"))
 return equal(sample,"player/pl_pain",14)? FMRES_SUPERCEDE : FMRES_IGNORED;
@@ -23827,7 +23828,7 @@ if((!TrieGetString(g_tRes,key,path,charsmax(path))|| !path[0])
 &&(!TrieGetString(g_tRes,fallback,path,charsmax(path))|| !path[0]))
 return FMRES_IGNORED;
 SndPick531(path,charsmax(path));
-if(containi(path,".mp3")!= -1 || equal(path,sample))
+if(containi(path,".mp3")!= -1||equal(path,sample))
 return FMRES_IGNORED;
 EmitSafe(ent,channel,path,volume,attn,flags,pitch);
 return FMRES_SUPERCEDE;
@@ -23846,9 +23847,9 @@ ZcPreThink(id);
 if(!is_user_alive(id))
 return FMRES_IGNORED;
 FixGravity(id);
-if(g_iEvent == EV_SPEED)
+if(g_iEvent==EV_SPEED)
 set_entvar(id,var_fuser2,0.0);
-new maxj = MaxAirJumps(id);
+new maxj=MaxAirJumps(id);
 if(!maxj)
 return FMRES_IGNORED;
 if(get_entvar(id,var_flags)& FL_ONGROUND)
@@ -23856,9 +23857,9 @@ if(get_entvar(id,var_flags)& FL_ONGROUND)
 g_iJumps[id]= maxj;
 return FMRES_IGNORED;
 }
-new btn = get_entvar(id,var_button);
-new old = get_entvar(id,var_oldbuttons);
-if((btn & IN_JUMP)&& !(old & IN_JUMP)&& g_iJumps[id]> 0 && g_fFrozen[id]< get_gametime())
+new btn=get_entvar(id,var_button);
+new old=get_entvar(id,var_oldbuttons);
+if((btn & IN_JUMP)&& !(old & IN_JUMP)&& g_iJumps[id]> 0&&g_fFrozen[id]< get_gametime())
 {
 new Float:vel[3];
 g_iJumps[id]--;
@@ -23871,7 +23872,7 @@ if(IsVip(id))
 new Float:o[3];
 get_entvar(id,var_origin,o);
 o[2]-= 30.0;
-new c = g_iVipAura[id]? g_iVipAura[id]: 2;
+new c=g_iVipAura[id]? g_iVipAura[id]: 2;
 FxRingSmall(o,VIP_AURA_RGB[c][0],VIP_AURA_RGB[c][1],VIP_AURA_RGB[c][2]);
 }
 }
@@ -23879,15 +23880,15 @@ return FMRES_IGNORED;
 }
 public rg_PlayerJump(id)
 {
-if(g_iEvent != EV_SPEED || !is_user_alive(id)|| !(get_entvar(id,var_flags)& FL_ONGROUND))
+if(g_iEvent!=EV_SPEED||!is_user_alive(id)|| !(get_entvar(id,var_flags)& FL_ONGROUND))
 return HC_CONTINUE;
 new Float:vel[3];
 get_entvar(id,var_velocity,vel);
-new Float:len = floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]);
-new Float:cap = Float:get_entvar(id,var_maxspeed)* 1.25;
-if(len > 50.0 && len < cap)
+new Float:len=floatsqroot(vel[0]* vel[0]+ vel[1]* vel[1]);
+new Float:cap=Float:get_entvar(id,var_maxspeed)* 1.25;
+if(len > 50.0&&len < cap)
 {
-new Float:k = floatmin(1.12,cap / len);
+new Float:k=floatmin(1.12,cap / len);
 vel[0]*= k;
 vel[1]*= k;
 set_entvar(id,var_velocity,vel);
@@ -23914,7 +23915,7 @@ new title[320],item[128];
 new hsub[96];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_MAIN_SUB");
 VexHead(id,title,charsmax(title),"MENU_MAIN",hsub);
-new menu = VexMenuCreate(title,"menu_main_handler");
+new menu=VexMenuCreate(title,"menu_main_handler");
 PlayKey(id,"UI_OPEN");
 new bool:adm =(get_user_flags(id)& ADMIN_BAN)? true : false;
 MainItem60(id,menu,"MAINH_2",3,"");
@@ -23922,7 +23923,7 @@ MainItem60(id,menu,"MAINH_1",HUB_MARKET,"");
 MainItem60(id,menu,"MAINH_10",HUB_VC,"");
 MainItem60(id,menu,"MAINH_3",HUB_CLASS,"");
 menu_addblank(menu,0);
-MainItem60(id,menu,"MAINH_4",HUB_CHAR,(g_iDailyDay[id]< VXDAY)? " \r(!)" :((g_iQuest[id]>= 0 && g_bQuestDone[id])? " \y[OK]" : ""));
+MainItem60(id,menu,"MAINH_4",HUB_CHAR,(g_iDailyDay[id]< VXDAY)? " \r(!)" :((g_iQuest[id]>= 0&&g_bQuestDone[id])? " \y[OK]" : ""));
 MainItem60(id,menu,"MAINH_9",24,"");
 MainItem60(id,menu,"MAINH_5",HUB_FUN,"");
 formatex(item,charsmax(item),"%s",IsVip(id)? " \y[*]" : "");
@@ -23935,7 +23936,7 @@ MainItem60(id,menu,const key[],sel,const extra[])
 {
 new t[96],item[128];
 formatex(t,charsmax(t),"%L",id,key);
-new p = contain(t," (");
+new p=contain(t," (");
 if(p > 0){t[p]= 0;formatex(item,charsmax(item),"\w%s \d(%s%s",t,t[p + 2],extra);}
 else formatex(item,charsmax(item),"\w%s%s",t,extra);
 MenuAdd(menu,item,sel);
@@ -23945,28 +23946,28 @@ ShowHub(id,hub)
 new title[320],item[96],key[16];
 formatex(key,charsmax(key),"HUB_%d",hub - 200);
 VexHead(id,title,charsmax(title),key);
-new menu = VexMenuCreate(title,"menu_main_handler");
+new menu=VexMenuCreate(title,"menu_main_handler");
 new list[8],n;
 switch(hub)
 {
-case HUB_MARKET:{n = sizeof HUB_MARKET_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_MARKET_ITEMS[i];}
-case HUB_CLASS:{n = sizeof HUB_CLASS_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_CLASS_ITEMS[i];}
-case HUB_CHAR:{n = sizeof HUB_CHAR_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_CHAR_ITEMS[i];}
-case HUB_FUN:{n = sizeof HUB_FUN_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_FUN_ITEMS[i];}
-case HUB_VIPADM:{n = sizeof HUB_VIPADM_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_VIPADM_ITEMS[i];}
-case HUB_VC:{n = sizeof HUB_VC_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_VC_ITEMS[i];}
+case HUB_MARKET:{n=sizeof HUB_MARKET_ITEMS;for(new i=0;i < n;i++)list[i]= HUB_MARKET_ITEMS[i];}
+case HUB_CLASS:{n=sizeof HUB_CLASS_ITEMS;for(new i=0;i < n;i++)list[i]= HUB_CLASS_ITEMS[i];}
+case HUB_CHAR:{n=sizeof HUB_CHAR_ITEMS;for(new i=0;i < n;i++)list[i]= HUB_CHAR_ITEMS[i];}
+case HUB_FUN:{n=sizeof HUB_FUN_ITEMS;for(new i=0;i < n;i++)list[i]= HUB_FUN_ITEMS[i];}
+case HUB_VIPADM:{n=sizeof HUB_VIPADM_ITEMS;for(new i=0;i < n;i++)list[i]= HUB_VIPADM_ITEMS[i];}
+case HUB_VC:{n=sizeof HUB_VC_ITEMS;for(new i=0;i < n;i++)list[i]= HUB_VC_ITEMS[i];}
 }
-for(new k = 0;k < n;k++)
+for(new k=0;k < n;k++)
 {
-new c = list[k];
+new c=list[k];
 if(c > 30)
 formatex(key,charsmax(key),"PROF_%d",c - 30);
 else
 formatex(key,charsmax(key),"MAIN_%d",c);
 formatex(item,charsmax(item),"\y%L",id,key);
-if(c == 6 && g_iDailyDay[id]< VXDAY)
+if(c==6&&g_iDailyDay[id]< VXDAY)
 add(item,charsmax(item)," \r(!)");
-if(c == 20 && g_iQuest[id]>= 0 && g_bQuestDone[id])
+if(c==20&&g_iQuest[id]>= 0&&g_bQuestDone[id])
 add(item,charsmax(item)," \r[OK\r]");
 MenuAdd(menu,item,c);
 }
@@ -23984,7 +23985,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 PlayKey(id,"UI_MENU_SELECT");
 MainDispatch(id,sel);
@@ -24031,7 +24032,7 @@ ShowProfileMenu(id)
 {
 new title[320],item[64];
 VexHead(id,title,charsmax(title),"MENU_PROFILE");
-new menu = VexMenuCreate(title,"menu_profile_handler");
+new menu=VexMenuCreate(title,"menu_profile_handler");
 formatex(item,charsmax(item),"\y%L",id,"PROF_1");MenuAdd(menu,item,1);
 formatex(item,charsmax(item),"\y%L",id,"PROF_2");MenuAdd(menu,item,2);
 formatex(item,charsmax(item),"\y%L",id,"PROF_3");MenuAdd(menu,item,3);
@@ -24045,7 +24046,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 switch(sel)
 {
@@ -24062,8 +24063,8 @@ new title[320],item[160],k1[12],k2[16],n1[32],n2[72];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_JOB_SUB");
 VexHead(id,title,charsmax(title),"MENU_JOB",hsub);
-new menu = VexMenuCreate(title,"menu_job_handler");
-for(new i = 0;i < NUM_JOBS;i++)
+new menu=VexMenuCreate(title,"menu_job_handler");
+for(new i=0;i < NUM_JOBS;i++)
 {
 formatex(k1,charsmax(k1),"JOB_%d",i);
 formatex(k2,charsmax(k2),"JOB_DESC_%d",i);
@@ -24086,7 +24087,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new job = MenuInfo(menu,item);
+new job=MenuInfo(menu,item);
 menu_destroy(menu);
 if(g_iLevel[id]< JOB_LVL[job])
 {
@@ -24112,8 +24113,8 @@ ShowStyleMenu(id)
 {
 new title[320],item[160],k1[12],k2[16],n1[32],n2[64];
 VexHead(id,title,charsmax(title),"MENU_STYLE");
-new menu = VexMenuCreate(title,"menu_style_handler");
-for(new i = 0;i < NUM_STYLES;i++)
+new menu=VexMenuCreate(title,"menu_style_handler");
+for(new i=0;i < NUM_STYLES;i++)
 {
 formatex(k1,charsmax(k1),"STYLE_%d",i);
 formatex(k2,charsmax(k2),"STYLE_DESC_%d",i);
@@ -24146,8 +24147,8 @@ new title[320],item[96],key[12],onoff[32],tn[24];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_SETTINGS_SUB");
 VexHead(id,title,charsmax(title),"MENU_SETTINGS",hsub);
-new menu = VexMenuCreate(title,"menu_settings_handler");
-for(new i = 0;i < 10;i++)
+new menu=VexMenuCreate(title,"menu_settings_handler");
+for(new i=0;i < 10;i++)
 {
 formatex(key,charsmax(key),"SET_%d",i);
 VexOnOff(id,(g_iSet[id]&(1 << i))? false : true,onoff,charsmax(onoff));
@@ -24176,23 +24177,23 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 if(sel < 10)
 {
 g_iSet[id]^=(1 << sel);
-if(sel == 7)
+if(sel==7)
 SendFogForEvent(id);
-if(sel == 3)AmbientClient49(id);
+if(sel==3)AmbientClient49(id);
 }
 else if(sel==24)g_iSet[id]^=SET_NO_RADIO52;
-else if(sel == 20)
+else if(sel==20)
 g_iTheme[id]=(g_iTheme[id]+ 1)% NUM_THEMES;
-else if(sel == 23)
+else if(sel==23)
 g_iHudPos[id]=(g_iHudPos[id]+ 1)% NUM_HUDPOS;
-else if(sel == 21)
+else if(sel==21)
 SetLanguage(id,g_iLang[id]== 2 ? 1 : 2);
-else if(sel == 22)
+else if(sel==22)
 {
 ShowFpsMenu(id);
 return PLUGIN_HANDLED;
@@ -24205,7 +24206,7 @@ ShowLangMenu(id)
 {
 new title[320];
 VexHead(id,title,charsmax(title),"MENU_LANG");
-new menu = VexMenuCreate(title,"menu_lang_handler");
+new menu=VexMenuCreate(title,"menu_lang_handler");
 MenuAdd(menu,g_iLang[id]== 1 ? "\yEnglish \r[*\r]" : "\yEnglish",1);
 MenuAdd(menu,g_iLang[id]== 2 ? "\yTurkce \r[*\r]" : "\yTurkce",2);
 MenuFinish(id,menu);
@@ -24217,7 +24218,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new l = MenuInfo(menu,item);
+new l=MenuInfo(menu,item);
 menu_destroy(menu);
 SetLanguage(id,l);
 ShowMainMenu(id);
@@ -24229,7 +24230,7 @@ new title[320],item[96];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_FPS_SUB");
 VexHead(id,title,charsmax(title),"MENU_FPS",hsub);
-new menu = VexMenuCreate(title,"menu_fps_handler");
+new menu=VexMenuCreate(title,"menu_fps_handler");
 formatex(item,charsmax(item),"\y%L",id,"FPS_1");MenuAdd(menu,item,1);
 formatex(item,charsmax(item),"\y%L",id,"FPS_2");MenuAdd(menu,item,2);
 formatex(item,charsmax(item),"\y%L",id,"FPS_3");MenuAdd(menu,item,3);
@@ -24244,7 +24245,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 switch(sel)
 {
@@ -24270,7 +24271,7 @@ case 5: PrintNetConfig(id);
 SendFogForEvent(id);
 AmbientClient49(id);
 SaveData(id);
-if(sel <= 3)
+if(sel<=3)
 ShowFpsMenu(id);
 return PLUGIN_HANDLED;
 }
@@ -24318,7 +24319,7 @@ Chat(id,"FPS_PRINTED");
 new const SLOT_SYM[][]={"7","BAR","ZOMBI","BEYIN","KURU KAFA","ALTIN"};
 bool:FunReady(id)
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fFunCd[id])
 {
 Chat(id,"FUN_WAIT",floatround(g_fFunCd[id]- now,floatround_ceil));
@@ -24346,8 +24347,8 @@ public cmd_dice(id)
 if(!FunReady(id))return PLUGIN_HANDLED;
 new name[32];
 get_user_name(id,name,charsmax(name));
-new r = random_num(1,6);
-FunAll(id,r == 6 ? "FUN_DICE_6" : "FUN_DICE",name,r);
+new r=random_num(1,6);
+FunAll(id,r==6 ? "FUN_DICE_6" : "FUN_DICE",name,r);
 return PLUGIN_HANDLED;
 }
 public cmd_coin(id)
@@ -24361,8 +24362,8 @@ return PLUGIN_HANDLED;
 FunRoll(id,const arg[])
 {
 if(!FunReady(id))return;
-new mx = str_to_num(arg);
-if(mx < 2 || mx > 1000000)mx = 100;
+new mx=str_to_num(arg);
+if(mx < 2||mx > 1000000)mx=100;
 new name[32];
 get_user_name(id,name,charsmax(name));
 FunAll(id,"FUN_ROLL",name,random_num(1,mx),mx);
@@ -24378,7 +24379,7 @@ if(!FunReady(id))return;
 new name[32],key[12];
 get_user_name(id,name,charsmax(name));
 formatex(key,charsmax(key),"BALL_%d",random_num(1,NUM_BALL));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -24391,7 +24392,7 @@ public cmd_joke(id)
 if(!FunReady(id))return PLUGIN_HANDLED;
 new key[12];
 formatex(key,charsmax(key),"JOKE_%d",random_num(1,NUM_JOKES));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,print_team_default,"%s %L",ChatTag(key),p,key);
@@ -24403,7 +24404,7 @@ FunMe(id,const text[])
 if(!text[0]|| !FunReady(id))return;
 new name[32];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,id,"^4* ^3%s^1 %s",name,text);
@@ -24451,11 +24452,11 @@ public cmd_who(id)
 {
 new name[32],tag[16],count;
 Chat(id,"FUN_WHO_TITLE");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
-new flags = get_user_flags(p);
+new flags=get_user_flags(p);
 if(flags & ADMIN_RCON)copy(tag,charsmax(tag),"OWNER");
 else if(flags & ADMIN_BAN)copy(tag,charsmax(tag),"ADMIN");
 else if(IsElite(p))copy(tag,charsmax(tag),"ELITE");
@@ -24485,7 +24486,7 @@ return PLUGIN_HANDLED;
 }
 public cmd_rules(id)
 {
-for(new i = 1;i <= NUM_RULES;i++)
+for(new i=1;i<=NUM_RULES;i++)
 {
 new key[12];
 formatex(key,charsmax(key),"RULE_%d",i);
@@ -24495,8 +24496,8 @@ return PLUGIN_HANDLED;
 }
 FunSlot(id,const arg[])
 {
-new bet = str_to_num(arg);
-if(bet < 5 || bet > 200)
+new bet=str_to_num(arg);
+if(bet < 5||bet > 200)
 {
 Chat(id,"SLOT_USAGE");
 return;
@@ -24519,7 +24520,7 @@ set_task(0.1,"task_SlotFrame",TASK_SLOT + id,params,2);
 }
 public task_SlotFrame(params[])
 {
-new id = params[0],frame = params[1];
+new id=params[0],frame=params[1];
 if(!is_user_connected(id))
 return;
 if(frame < 4)
@@ -24533,14 +24534,14 @@ p2[1]= frame + 1;
 set_task(0.3,"task_SlotFrame",TASK_SLOT + id,p2,2);
 return;
 }
-new a = random(sizeof SLOT_SYM),b = random(sizeof SLOT_SYM),c = random(sizeof SLOT_SYM);
-if(random_num(1,100)<= 5)b = a;
-if(random_num(1,100)<= 3)c = a;
-new win,bet = g_iSlotBet[id];
-if(a == b && b == c)
-win =(a == 0)? bet * 10 : bet * 5;
-else if(a == b || b == c || a == c)
-win = bet * 3 / 2;
+new a=random(sizeof SLOT_SYM),b=random(sizeof SLOT_SYM),c=random(sizeof SLOT_SYM);
+if(random_num(1,100)<= 5)b=a;
+if(random_num(1,100)<= 3)c=a;
+new win,bet=g_iSlotBet[id];
+if(a==b&&b==c)
+win =(a==0)? bet * 10 : bet * 5;
+else if(a==b||b==c||a==c)
+win=bet * 3 / 2;
 new stxt[64];
 formatex(stxt,charsmax(stxt),"[ %s ] [ %s ] [ %s ]",SLOT_SYM[a],SLOT_SYM[b],SLOT_SYM[c]);
 HudText(id,SL_PERS,win ? 0 : 255,win ? 255 : 90,win ? 140 : 90,3.0,stxt);
@@ -24549,7 +24550,7 @@ if(win)
 {
 AddAP(id,win,false,false);
 PlayKey(id,"SHOP_BUY");
-if(win >= bet * 5)
+if(win>=bet * 5)
 {
 new name[32];
 get_user_name(id,name,charsmax(name));
@@ -24576,23 +24577,23 @@ return;
 }
 AddAP(id,-LOTTO_TICKET,false,false);
 g_iTickets[id]++;
-g_iLottoPot += LOTTO_TICKET;
-new left = 600 -(g_iLottoClock % 600);
+g_iLottoPot+=LOTTO_TICKET;
+new left=600 -(g_iLottoClock % 600);
 Chat(id,"LOTTO_BOUGHT",g_iTickets[id],g_iLottoPot + 50,left / 60);
 }
 TickLotto()
 {
 g_iLottoClock++;
-if(g_iLottoClock % 600 == 540 && g_iLottoPot > 0)
+if(g_iLottoClock % 600==540&&g_iLottoPot > 0)
 ChatAll("LOTTO_SOON",g_iLottoPot + 50);
-if(g_iLottoClock % 600 != 0)
+if(g_iLottoClock % 600!=0)
 return;
 new total,players;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(g_iTickets[p]> 0 && is_user_connected(p))
+if(g_iTickets[p]> 0&&is_user_connected(p))
 {
-total += g_iTickets[p];
+total+=g_iTickets[p];
 players++;
 }
 }
@@ -24600,31 +24601,31 @@ if(!total)
 return;
 if(players < 2)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(g_iTickets[p]> 0 && is_user_connected(p))
+if(g_iTickets[p]> 0&&is_user_connected(p))
 {
 AddAP(p,g_iTickets[p]* LOTTO_TICKET,false,false);
 Chat(p,"LOTTO_REFUND");
 }
 g_iTickets[p]= 0;
 }
-g_iLottoPot = 0;
+g_iLottoPot=0;
 return;
 }
-new pick = random_num(1,total),acc,winner;
-for(new p = 1;p <= g_iMax;p++)
+new pick=random_num(1,total),acc,winner;
+for(new p=1;p<=g_iMax;p++)
 {
-if(g_iTickets[p]<= 0 || !is_user_connected(p))
+if(g_iTickets[p]<= 0||!is_user_connected(p))
 continue;
-acc += g_iTickets[p];
-if(pick <= acc)
+acc+=g_iTickets[p];
+if(pick<=acc)
 {
-winner = p;
+winner=p;
 break;
 }
 }
-new prize = g_iLottoPot + 50;
+new prize=g_iLottoPot + 50;
 if(winner)
 {
 new name[32];
@@ -24633,31 +24634,31 @@ AddAP(winner,prize,false,false);
 FunAll(winner,"LOTTO_WINNER",name,prize,g_iTickets[winner]);
 PlayKey(0,"MVP");
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 g_iTickets[p]= 0;
-g_iLottoPot = 0;
+g_iLottoPot=0;
 }
 ParseTargetAmount(id,const arg[],&target,&amount)
 {
 new buf[96];
 copy(buf,charsmax(buf),arg);
 trim(buf);
-new sp = -1;
-for(new i = strlen(buf)- 1;i >= 0;i--)
+new sp=-1;
+for(new i=strlen(buf)- 1;i>=0;i--)
 {
 if(buf[i]== ' ')
 {
-sp = i;
+sp=i;
 break;
 }
 }
-if(sp <= 0)
+if(sp<=0)
 return 0;
-amount = str_to_num(buf[sp + 1]);
+amount=str_to_num(buf[sp + 1]);
 buf[sp]= 0;
 trim(buf);
-target = find_player_ex(FindPlayer_MatchNameSubstring | FindPlayer_CaseInsensitive | FindPlayer_ExcludeBots,buf);
-if(!target || target == id)
+target=find_player_ex(FindPlayer_MatchNameSubstring | FindPlayer_CaseInsensitive | FindPlayer_ExcludeBots,buf);
+if(!target||target==id)
 return 0;
 return 1;
 }
@@ -24674,7 +24675,7 @@ if(g_iAP[id]< amount)
 Chat(id,"SHOP_NOAP");
 return;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fGiftCd[id])
 {
 Chat(id,"FUN_WAIT",floatround(g_fGiftCd[id]- now,floatround_ceil));
@@ -24717,9 +24718,9 @@ PlayKey(0,"STREAK_5");
 }
 PayBounty(killer,victim)
 {
-if(g_iBounty[victim]<= 0 || !is_user_connected(killer)|| killer == victim)
+if(g_iBounty[victim]<= 0||!is_user_connected(killer)|| killer==victim)
 return;
-new n1[32],n2[32],amount = g_iBounty[victim];
+new n1[32],n2[32],amount=g_iBounty[victim];
 g_iBounty[victim]= 0;
 get_user_name(killer,n1,charsmax(n1));
 get_user_name(victim,n2,charsmax(n2));
@@ -24730,7 +24731,7 @@ PlayKey(killer,"MVP");
 stock FunAll(sender,const key[],any:...)
 {
 new fmt[191],msg[191];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -24750,8 +24751,8 @@ new title[320],item[96],key[12];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_FUN_SUB");
 VexHead(id,title,charsmax(title),"MENU_FUN",hsub);
-new menu = VexMenuCreate(title,"menu_fun_handler");
-for(new i = 1;i <= 12;i++)
+new menu=VexMenuCreate(title,"menu_fun_handler");
+for(new i=1;i<=12;i++)
 {
 formatex(key,charsmax(key),"FUNM_%d",i);
 formatex(item,charsmax(item),"\y%L",id,key);
@@ -24766,7 +24767,7 @@ if(item < 0)
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 switch(sel)
 {
@@ -24783,7 +24784,7 @@ case 10: cmd_time(id);
 case 11: cmd_rules(id);
 case 12: cmd_founders(id);
 }
-if(sel <= 6)
+if(sel<=6)
 ShowFunMenu(id);
 return PLUGIN_HANDLED;
 }
@@ -24791,7 +24792,7 @@ stock LiveAll(sender,const base[],count,any:...)
 {
 new key[24],fmt[191],msg[191];
 formatex(key,charsmax(key),"%s_%d",base,random_num(1,count));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -24811,13 +24812,13 @@ LiveAll(id,"LIVE_JOINNEW",3,name);
 else
 {
 new days =(get_systime()- g_iLastSeen[id])/ 86400;
-if(days >= 2)
+if(days>=2)
 LiveAll(id,"LIVE_JOINBACK",3,name,days);
 else
 LiveAll(id,"LIVE_JOINSOON",3,name);
 }
-new humans = CountPlaying()+ 1;
-if(humans == 10 || humans == 16 || humans == 24 || humans == 32)
+new humans=CountPlaying()+ 1;
+if(humans==10||humans==16||humans==24||humans==32)
 LiveAll(0,"LIVE_CROWD",2,humans);
 }
 LiveLeave(id)
@@ -24827,41 +24828,41 @@ return;
 new name[32];
 get_user_name(id,name,charsmax(name));
 LiveAll(0,"LIVE_LEAVE",3,name);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p != id && is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_AMB))
+if(p!=id&&is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_AMB))
 PlayKey(p,"PLAYER_LEAVE");
 }
 }
 LiveReply(id,const msg[])
 {
-new Float:now = get_gametime();
-if(now < g_fReplyCd || now < g_fPlayerReplyCd[id]|| is_user_bot(id))
+new Float:now=get_gametime();
+if(now < g_fReplyCd||now < g_fPlayerReplyCd[id]|| is_user_bot(id))
 return;
 new low[160];
 copy(low,charsmax(low),msg);
 strtolower(low);
 new base[24],count;
 if(equal(low,"sa")|| equal(low,"slm")|| equal(low,"sea")|| containi(low,"selam")!= -1
-|| containi(low,"merhaba")!= -1 || equal(low,"hi")|| equal(low,"hello")|| equal(low,"hey"))
-{copy(base,charsmax(base),"LIVE_HELLO");count = 4;}
+|| containi(low,"merhaba")!= -1||equal(low,"hi")|| equal(low,"hello")|| equal(low,"hey"))
+{copy(base,charsmax(base),"LIVE_HELLO");count=4;}
 else if(equal(low,"gg")|| equal(low,"ggwp")|| equal(low,"gg wp"))
-{copy(base,charsmax(base),"LIVE_GG");count = 3;}
-else if(containi(low,"iyi geceler")!= -1 || equal(low,"gn")|| containi(low,"good night")!= -1 || containi(low,"bb")== 0)
-{copy(base,charsmax(base),"LIVE_BYE");count = 3;}
-else if(containi(low,"naber")!= -1 || containi(low,"nasilsin")!= -1 || containi(low,"how are you")!= -1)
-{copy(base,charsmax(base),"LIVE_HOW");count = 3;}
+{copy(base,charsmax(base),"LIVE_GG");count=3;}
+else if(containi(low,"iyi geceler")!= -1||equal(low,"gn")|| containi(low,"good night")!= -1||containi(low,"bb")== 0)
+{copy(base,charsmax(base),"LIVE_BYE");count=3;}
+else if(containi(low,"naber")!= -1||containi(low,"nasilsin")!= -1||containi(low,"how are you")!= -1)
+{copy(base,charsmax(base),"LIVE_HOW");count=3;}
 else if(containi(low,"vexmira")!= -1)
-{copy(base,charsmax(base),"LIVE_CALL");count = 3;}
-else if(containi(low,"tesekkur")!= -1 || containi(low,"sagol")!= -1 || equal(low,"ty")|| containi(low,"thanks")!= -1)
-{copy(base,charsmax(base),"LIVE_THANKS");count = 2;}
-else if(containi(low,"vip")!= -1 &&(containi(low,"nasil")!= -1 || containi(low,"how")!= -1 || containi(low,"fiyat")!= -1))
-{copy(base,charsmax(base),"LIVE_VIPASK");count = 1;}
-else if(containi(low,"lag")!= -1 || containi(low,"fps")!= -1)
-{copy(base,charsmax(base),"LIVE_LAG");count = 2;}
+{copy(base,charsmax(base),"LIVE_CALL");count=3;}
+else if(containi(low,"tesekkur")!= -1||containi(low,"sagol")!= -1||equal(low,"ty")|| containi(low,"thanks")!= -1)
+{copy(base,charsmax(base),"LIVE_THANKS");count=2;}
+else if(containi(low,"vip")!= -1 &&(containi(low,"nasil")!= -1||containi(low,"how")!= -1||containi(low,"fiyat")!= -1))
+{copy(base,charsmax(base),"LIVE_VIPASK");count=1;}
+else if(containi(low,"lag")!= -1||containi(low,"fps")!= -1)
+{copy(base,charsmax(base),"LIVE_LAG");count=2;}
 else
 return;
-g_fReplyCd = now + 6.0;
+g_fReplyCd=now + 6.0;
 g_fPlayerReplyCd[id]= now + 25.0;
 new params[2];
 params[0]= id;
@@ -24871,7 +24872,7 @@ set_task(random_float(0.8,1.6),"task_LiveReply",TASK_REPLY,params,2);
 }
 public task_LiveReply(params[])
 {
-new id = params[0];
+new id=params[0];
 if(!is_user_connected(id))
 return;
 new name[32];
@@ -24887,19 +24888,19 @@ LiveAll(id,g_szReplyBase,params[1],name);
 }
 LiveChatter()
 {
-new pick = random_num(1,5);
-if(pick == 1)
+new pick=random_num(1,5);
+if(pick==1)
 {
 new best,top;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& g_iMapKills[p]> top)
 {
-top = g_iMapKills[p];
-best = p;
+top=g_iMapKills[p];
+best=p;
 }
 }
-if(best && top >= 5)
+if(best&&top>=5)
 {
 new name[32];
 get_user_name(best,name,charsmax(name));
@@ -24907,21 +24908,21 @@ LiveAll(best,"LIVE_TOPKILL",3,name,top);
 return;
 }
 }
-if(pick == 2 && g_iHumanStreak >= 3)
+if(pick==2&&g_iHumanStreak>=3)
 {
 LiveAll(0,"LIVE_HSTREAK",2,g_iHumanStreak);
 return;
 }
-if(pick == 2 && g_iZombieStreak >= 3)
+if(pick==2&&g_iZombieStreak>=3)
 {
 LiveAll(0,"LIVE_ZSTREAK",2,g_iZombieStreak);
 return;
 }
-if(pick == 3)
+if(pick==3)
 {
 new h[4];
 get_time("%H",h,charsmax(h));
-new hour = str_to_num(h);
+new hour=str_to_num(h);
 new part =(hour < 6)? 0 :(hour < 12)? 1 :(hour < 18)? 2 : 3;
 new key[16];
 formatex(key,charsmax(key),"LIVE_TIME%d",part);
@@ -24932,11 +24933,11 @@ LiveAll(0,"LIVE_RANDOM",10);
 }
 TickAfk()
 {
-new limit = get_pcvar_num(g_pAfkTime);
-if(limit <= 0 || !g_bRoundActive)
+new limit=get_pcvar_num(g_pAfkTime);
+if(limit<=0||!g_bRoundActive)
 return;
 new Float:o[3],Float:a[3];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)|| is_user_bot(id)|| is_user_hltv(id))
 {
@@ -24950,7 +24951,7 @@ continue;
 }
 get_entvar(id,var_origin,o);
 get_entvar(id,var_v_angle,a);
-if(get_distance_f(o,g_fAfkPos[id])> 4.0 || floatabs(a[1]- g_fAfkAng[id][1])> 0.5 || floatabs(a[0]- g_fAfkAng[id][0])> 0.5)
+if(get_distance_f(o,g_fAfkPos[id])> 4.0||floatabs(a[1]- g_fAfkAng[id][1])> 0.5||floatabs(a[0]- g_fAfkAng[id][0])> 0.5)
 {
 g_fAfkPos[id]= o;
 g_fAfkAng[id]= a;
@@ -25003,13 +25004,13 @@ if(!cmd_access(id,level,cid,2))
 return PLUGIN_HANDLED;
 new arg[8];
 read_argv(1,arg,charsmax(arg));
-new m = str_to_num(arg);
-if(m < 0 || m >= MODE_TOTAL)
+new m=str_to_num(arg);
+if(m < 0||m>=MODE_TOTAL)
 {
 console_print(id,"[Vexmira] 0-%d",MODE_TOTAL - 1);
 return PLUGIN_HANDLED;
 }
-g_iForceMode = m;
+g_iForceMode=m;
 AdminNotify(id,"ADM_NEXT_MODE",m);
 return PLUGIN_HANDLED;
 }
@@ -25019,13 +25020,13 @@ if(!cmd_access(id,level,cid,2))
 return PLUGIN_HANDLED;
 new arg[8];
 read_argv(1,arg,charsmax(arg));
-new e = str_to_num(arg);
-if(e < 0 || e >= EV_TOTAL)
+new e=str_to_num(arg);
+if(e < 0||e>=EV_TOTAL)
 {
 console_print(id,"[Vexmira] 0-%d",EV_TOTAL - 1);
 return PLUGIN_HANDLED;
 }
-g_iForceEvent = e;
+g_iForceEvent=e;
 AdminNotify(id,"ADM_NEXT_EVENT",e);
 return PLUGIN_HANDLED;
 }
@@ -25036,7 +25037,7 @@ if(id)
 get_user_name(id,name,charsmax(name));
 else
 copy(name,charsmax(name),"SERVER");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&&(get_user_flags(p)& ADMIN_BAN))
 client_print_color(p,print_team_red,"%s %L",ChatTag(key),p,key,name,val);
@@ -25050,10 +25051,10 @@ return;
 new who[32],amt[12];
 read_argv(1,who,charsmax(who));
 read_argv(2,amt,charsmax(amt));
-new target = cmd_target(id,who,CMDTARGET_ALLOW_SELF);
+new target=cmd_target(id,who,CMDTARGET_ALLOW_SELF);
 if(!target)
 return;
-new n = str_to_num(amt);
+new n=str_to_num(amt);
 switch(type)
 {
 case 0: AddAP(target,n,false);
@@ -25074,9 +25075,9 @@ new who[40],sdays[8],stier[4];
 read_argv(1,who,charsmax(who));
 read_argv(2,sdays,charsmax(sdays));
 read_argv(3,stier,charsmax(stier));
-new days = str_to_num(sdays);
-new tier = clamp(str_to_num(stier),1,2);
-if(days <= 0 || g_hVipVault == INVALID_HANDLE)
+new days=str_to_num(sdays);
+new tier=clamp(str_to_num(stier),1,2);
+if(days<=0||g_hVipVault==INVALID_HANDLE)
 {
 console_print(id,"[Vexmira] vex_vip_add <isim|#userid|STEAM_ID> <gun> <1|2>");
 return PLUGIN_HANDLED;
@@ -25086,27 +25087,27 @@ if(equal(who,"STEAM_",6)|| equal(who,"VALVE_",6))
 copy(key,charsmax(key),who);
 else
 {
-target = cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
+target=cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
 if(!target)
 return PLUGIN_HANDLED;
 GetKey(target,key,charsmax(key));
 }
-new val[32],base = get_systime();
+new val[32],base=get_systime();
 if(nvault_get(g_hVipVault,key,val,charsmax(val)))
 {
 new t[8],e[16];
 parse(val,t,charsmax(t),e,charsmax(e));
 if(str_to_num(e)> base)
-base = str_to_num(e);
+base=str_to_num(e);
 }
-new expire = base + clamp(days,1,3650)* 86400;
+new expire=base + clamp(days,1,3650)* 86400;
 formatex(val,charsmax(val),"%d %d",tier,expire);
 nvault_set(g_hVipVault,key,val);
 new aname[32];
 if(id)get_user_name(id,aname,charsmax(aname));else copy(aname,charsmax(aname),"CONSOLE");
 log_to_file("vexmira_vip.log","VIP EKLENDI: %s tier=%d gun=%d bitis=%d (admin: %s)",key,tier,days,expire,aname);
 console_print(id,"[Vexmira] VIP OK: %s  tier %d  +%d gun",key,tier,days);
-if(target && is_user_connected(target))
+if(target&&is_user_connected(target))
 {
 LoadVip(target);
 Chat(target,"VIP_GRANTED",days);
@@ -25124,12 +25125,12 @@ if(equal(who,"STEAM_",6)|| equal(who,"VALVE_",6))
 copy(key,charsmax(key),who);
 else
 {
-target = cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
+target=cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
 if(!target)
 return PLUGIN_HANDLED;
 GetKey(target,key,charsmax(key));
 }
-if(g_hVipVault != INVALID_HANDLE)
+if(g_hVipVault!=INVALID_HANDLE)
 nvault_remove(g_hVipVault,key);
 log_to_file("vexmira_vip.log","VIP SILINDI: %s",key);
 console_print(id,"[Vexmira] VIP silindi: %s",key);
@@ -25142,7 +25143,7 @@ public cmd_vip_list(id,level,cid)
 if(!cmd_access(id,level,cid,1))
 return PLUGIN_HANDLED;
 console_print(id,"[Vexmira] Online VIP listesi:");
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| !IsVip(p))
 continue;
@@ -25168,15 +25169,15 @@ new title[320],item[96];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MENU_ADMIN_SUB");
 VexHead(id,title,charsmax(title),"MENU_ADMIN",hsub);
-new menu = VexMenuCreate(title,"menu_admin_handler");
-for(new i = 1;i <= 20;i++)
+new menu=VexMenuCreate(title,"menu_admin_handler");
+for(new i=1;i<=20;i++)
 {
 new key[12];
 formatex(key,charsmax(key),"ADMM_%d",i);
 formatex(item,charsmax(item),"\y%L",id,key);
-if(i == 17)
+if(i==17)
 add(item,charsmax(item),g_bRespawnOff ? " \r[OFF]" : " \y[ON]");
-else if(i == 18)
+else if(i==18)
 add(item,charsmax(item),get_pcvar_num(g_pLmEnable)? " \y[ON]" : " \r[OFF]");
 MenuAdd(menu,item,i);
 }
@@ -25184,12 +25185,12 @@ MenuFinish(id,menu);
 }
 public menu_admin_handler(id,menu,item)
 {
-if(item < 0 || !(get_user_flags(id)& ADMIN_BAN))
+if(item < 0||!(get_user_flags(id)& ADMIN_BAN))
 {
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
 new name[32];
 get_user_name(id,name,charsmax(name));
@@ -25213,17 +25214,17 @@ rg_round_end(2.0,WINSTATUS_DRAW,ROUND_END_DRAW,"","",false);
 }
 case 12,13:
 {
-if(g_bRoundActive && !g_bRoundEnded)
+if(g_bRoundActive&&!g_bRoundEnded)
 {
-AdminNotify(id,sel == 12 ? "ADM_END_HUMANS" : "ADM_END_ZOMBIES",0);
-EndRound(sel == 12 ? WINSTATUS_CTS : WINSTATUS_TERRORISTS);
+AdminNotify(id,sel==12 ? "ADM_END_HUMANS" : "ADM_END_ZOMBIES",0);
+EndRound(sel==12 ? WINSTATUS_CTS : WINSTATUS_TERRORISTS);
 }
 else
 Chat(id,"ADM_NOT_ACTIVE");
 }
 case 14:
 {
-if(g_bRoundActive && g_szDropModel[0])
+if(g_bRoundActive&&g_szDropModel[0])
 {
 SpawnAirdrop();
 AdminNotify(id,"ADM_AIRDROP",0);
@@ -25233,7 +25234,7 @@ Chat(id,"ADM_NOT_ACTIVE");
 }
 case 15:
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| g_bZombie[p])
 continue;
@@ -25247,7 +25248,7 @@ PlayKey(0,"AIRDROP_LOOT");
 }
 case 16:
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 AddAP(p,50,false,true);
@@ -25257,12 +25258,12 @@ PlayKey(0,"DAILY");
 }
 case 17:
 {
-g_bRespawnOff = !g_bRespawnOff;
+g_bRespawnOff=!g_bRespawnOff;
 AdminNotify(id,g_bRespawnOff ? "ADM_RESPAWN_OFF" : "ADM_RESPAWN_ON",0);
 }
 case 18:
 {
-new on = get_pcvar_num(g_pLmEnable)? 0 : 1;
+new on=get_pcvar_num(g_pLmEnable)? 0 : 1;
 set_pcvar_num(g_pLmEnable,on);
 if(!on)
 RemoveAllMines();
@@ -25270,12 +25271,12 @@ AdminNotify(id,on ? "ADM_LASER_ON" : "ADM_LASER_OFF",0);
 }
 case 19:
 {
-new n = LoadMainConfig(false);
+new n=LoadMainConfig(false);
 AdminNotify(id,"ADM_RELOADED",n);
 }
 case 20: AdminStartMapVote(id,true);
 }
-if(sel >= 11 && sel != 20)
+if(sel>=11&&sel!=20)
 ShowAdminMenu(id);
 return PLUGIN_HANDLED;
 }
@@ -25283,8 +25284,8 @@ ShowAdminEnvMenu(id)
 {
 new title[320],item[96],key[16];
 VexHead(id,title,charsmax(title),"ADMM_8");
-new menu = VexMenuCreate(title,"menu_admenv");
-for(new i = 0;i <= 9;i++)
+new menu=VexMenuCreate(title,"menu_admenv");
+for(new i=0;i<=9;i++)
 {
 formatex(key,charsmax(key),"ADME_%d",i);
 formatex(item,charsmax(item),"\y%L",id,key);
@@ -25296,24 +25297,24 @@ MenuFinish(id,menu);
 }
 public menu_admenv(id,menu,item)
 {
-if(item < 0 || !(get_user_flags(id)& ADMIN_BAN)){menu_destroy(menu);return PLUGIN_HANDLED;}
-new sel = MenuInfo(menu,item);
+if(item < 0||!(get_user_flags(id)& ADMIN_BAN)){menu_destroy(menu);return PLUGIN_HANDLED;}
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-if(sel == 10)
+if(sel==10)
 {
 ShowAdminEnvDetail(id);
 return PLUGIN_HANDLED;
 }
 AdminSetEnv(sel);
-AdminNotify(id,sel == 0 ? "ADM_ENV_RESET" : "ADM_ENV_SET",sel);
+AdminNotify(id,sel==0 ? "ADM_ENV_RESET" : "ADM_ENV_SET",sel);
 ShowAdminEnvMenu(id);
 return PLUGIN_HANDLED;
 }
 AdminSetEnv(sel)
 {
-if(sel <= 0)
+if(sel<=0)
 {
-g_bAdminEnvOverride = false;
+g_bAdminEnvOverride=false;
 SetMapAmbienceMuted(false);
 ApplyWorldEvent();
 return;
@@ -25325,13 +25326,13 @@ static const F[10][4]=
 {180,190,210,22},{150,150,150,45},{60,70,90,35},{100,0,10,30},{0,0,0,40}
 };
 static const W[10]={0,0,0,0,1,2,0,1,0,0};
-g_bAdminEnvOverride = true;
-g_iAdminEnvLight = L[sel];
-for(new c = 0;c < 4;c++)
+g_bAdminEnvOverride=true;
+g_iAdminEnvLight=L[sel];
+for(new c=0;c < 4;c++)
 g_iAdminEnvFog[c]= F[sel][c];
-g_iAdminEnvWeather = W[sel];
+g_iAdminEnvWeather=W[sel];
 ApplyWorldEvent();
-if(sel == 7)
+if(sel==7)
 Lightning();
 }
 ShowAdminEnvDetail(id)
@@ -25340,17 +25341,17 @@ if(!g_bAdminEnvOverride)
 {
 new light,fog[4],weather;
 CurrentEnv(light,fog,weather);
-g_iAdminEnvLight = light;
-for(new c = 0;c < 4;c++)
+g_iAdminEnvLight=light;
+for(new c=0;c < 4;c++)
 g_iAdminEnvFog[c]= fog[c];
-g_iAdminEnvWeather = weather;
-g_bAdminEnvOverride = true;
+g_iAdminEnvWeather=weather;
+g_bAdminEnvOverride=true;
 }
 new title[320],item[112],menu;
 new hsub[96];
 formatex(hsub,charsmax(hsub),"[\yL %c\r] [\yF %d\r] [\yRGB %d/%d/%d\r] [\yW %d\r]",g_iAdminEnvLight,g_iAdminEnvFog[3],g_iAdminEnvFog[0],g_iAdminEnvFog[1],g_iAdminEnvFog[2],g_iAdminEnvWeather);
 VexHead(id,title,charsmax(title),"ADME_DETAIL",hsub);
-menu = VexMenuCreate(title,"menu_admenv_detail");
+menu=VexMenuCreate(title,"menu_admenv_detail");
 formatex(item,charsmax(item),"\y%L \r[%c]",id,"ADME_LIGHT",g_iAdminEnvLight);MenuAdd(menu,item,1);
 formatex(item,charsmax(item),"\y%L \r[%d]",id,"ADME_FOG_DENSITY",g_iAdminEnvFog[3]);MenuAdd(menu,item,2);
 formatex(item,charsmax(item),"\y%L \r[%d]",id,"ADME_FOG_RED",g_iAdminEnvFog[0]);MenuAdd(menu,item,3);
@@ -25364,17 +25365,17 @@ MenuFinish(id,menu);
 }
 public menu_admenv_detail(id,menu,item)
 {
-if(item < 0 || !(get_user_flags(id)& ADMIN_BAN)){menu_destroy(menu);return PLUGIN_HANDLED;}
-new sel = MenuInfo(menu,item);
+if(item < 0||!(get_user_flags(id)& ADMIN_BAN)){menu_destroy(menu);return PLUGIN_HANDLED;}
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-if(sel == 9)
+if(sel==9)
 {
 ShowAdminEnvMenu(id);
 return PLUGIN_HANDLED;
 }
-if(sel == 8)
+if(sel==8)
 {
-g_bAdminEnvOverride = false;
+g_bAdminEnvOverride=false;
 SetMapAmbienceMuted(false);
 ApplyWorldEvent();
 AdminNotify(id,"ADM_ENV_RESET",0);
@@ -25386,7 +25387,7 @@ switch(sel)
 case 1:
 {
 g_iAdminEnvLight++;
-if(g_iAdminEnvLight > 'z')g_iAdminEnvLight = 'a';
+if(g_iAdminEnvLight > 'z')g_iAdminEnvLight='a';
 }
 case 2: g_iAdminEnvFog[3]=(g_iAdminEnvFog[3]>= 80)? 0 : g_iAdminEnvFog[3]+ 10;
 case 3: g_iAdminEnvFog[0]=(g_iAdminEnvFog[0]> 223)? 0 : g_iAdminEnvFog[0]+ 32;
@@ -25401,11 +25402,11 @@ return PLUGIN_HANDLED;
 }
 SetMapAmbienceMuted(bool:mute)
 {
-g_bAmbMuted = mute;
+g_bAmbMuted=mute;
 remove_task(TASK_AMBREST);
 if(mute)
 {
-for(new i = 0;i < g_iAmbN;i++)
+for(new i=0;i < g_iAmbN;i++)
 {
 if(!g_bAmbOn[i]|| !g_szAmbSnd[i][0]|| !pev_valid(g_iAmbEnt[i]))
 continue;
@@ -25419,8 +25420,8 @@ ShowAdminModeMenu(id,bool:now)
 {
 new title[320],item[96],key[16];
 if(now)VexHead(id,title,charsmax(title),"ADMM_2");else VexHead(id,title,charsmax(title),"ADMM_1");
-new menu = VexMenuCreate(title,now ? "menu_admmode_now" : "menu_admmode_next");
-for(new m = 0;m < MODE_TOTAL;m++)
+new menu=VexMenuCreate(title,now ? "menu_admmode_now" : "menu_admmode_next");
+for(new m=0;m < MODE_TOTAL;m++)
 {
 formatex(key,charsmax(key),"MODE_NAME_%d",m);
 formatex(item,charsmax(item),"\y%L",id,key);
@@ -25431,20 +25432,20 @@ MenuFinish(id,menu);
 public menu_admmode_next(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-g_iForceMode = MenuInfo(menu,item);
+g_iForceMode=MenuInfo(menu,item);
 menu_destroy(menu);
 AdminNotify(id,"ADM_NEXT_MODE",g_iForceMode);
-if(g_iForceMode == MODE_BOSS)
+if(g_iForceMode==MODE_BOSS)
 ShowAdminBossMenu(id,false);
 return PLUGIN_HANDLED;
 }
 public menu_admmode_now(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-g_iForceMode = MenuInfo(menu,item);
+g_iForceMode=MenuInfo(menu,item);
 menu_destroy(menu);
 AdminNotify(id,"ADM_NOW_MODE",g_iForceMode);
-if(g_iForceMode == MODE_BOSS)
+if(g_iForceMode==MODE_BOSS)
 {
 ShowAdminBossMenu(id,true);
 return PLUGIN_HANDLED;
@@ -25456,10 +25457,10 @@ ShowAdminBossMenu(id,bool:now)
 {
 new title[320],item[96],key[16];
 VexHead(id,title,charsmax(title),"ADM_BOSS_PICK");
-new menu = VexMenuCreate(title,now ? "menu_admboss_now" : "menu_admboss_next");
+new menu=VexMenuCreate(title,now ? "menu_admboss_now" : "menu_admboss_next");
 formatex(item,charsmax(item),"\y%L",id,"ADM_BOSS_RANDOM");
 MenuAdd(menu,item,99);
-for(new b = 0;b < NUM_BOSSES;b++)
+for(new b=0;b < NUM_BOSSES;b++)
 {
 if(!BossIsLoaded(b))
 continue;
@@ -25472,21 +25473,21 @@ MenuFinish(id,menu);
 public menu_admboss_next(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-new b = MenuInfo(menu,item);
+new b=MenuInfo(menu,item);
 menu_destroy(menu);
-g_iForceBoss =(b == 99)? -1 : b;
-g_iForceMode = MODE_BOSS;
-AdminNotify(id,"ADM_NEXT_BOSS",b == 99 ? -1 : b);
+g_iForceBoss =(b==99)? -1 : b;
+g_iForceMode=MODE_BOSS;
+AdminNotify(id,"ADM_NEXT_BOSS",b==99 ? -1 : b);
 return PLUGIN_HANDLED;
 }
 public menu_admboss_now(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-new b = MenuInfo(menu,item);
+new b=MenuInfo(menu,item);
 menu_destroy(menu);
-g_iForceBoss =(b == 99)? -1 : b;
-g_iForceMode = MODE_BOSS;
-AdminNotify(id,"ADM_NOW_BOSS",b == 99 ? -1 : b);
+g_iForceBoss =(b==99)? -1 : b;
+g_iForceMode=MODE_BOSS;
+AdminNotify(id,"ADM_NOW_BOSS",b==99 ? -1 : b);
 rg_round_end(2.0,WINSTATUS_DRAW,ROUND_END_DRAW,"","",false);
 return PLUGIN_HANDLED;
 }
@@ -25496,16 +25497,16 @@ if(!cmd_access(id,level,cid,2))
 return PLUGIN_HANDLED;
 new arg[8];
 read_argv(1,arg,charsmax(arg));
-new b = str_to_num(arg);
-if(b < -1 || b >= NUM_BOSSES)
+new b=str_to_num(arg);
+if(b < -1||b>=NUM_BOSSES)
 {
 console_print(id,"[Vexmira] -1 .. %d",NUM_BOSSES - 1);
 return PLUGIN_HANDLED;
 }
-if(b >= 0 && !BossIsLoaded(b))
+if(b>=0&&!BossIsLoaded(b))
 {
 new list[64],nm[8];
-for(new i = 0;i < g_iBossLoadN;i++)
+for(new i=0;i < g_iBossLoadN;i++)
 {
 formatex(nm,charsmax(nm),"%s%d",i ? " " : "",g_iBossLoadList[i]);
 add(list,charsmax(list),nm);
@@ -25513,8 +25514,8 @@ add(list,charsmax(list),nm);
 console_print(id,"[Vexmira] Boss %d bu haritada yuklu degil (precache butcesi). Yuklu: %s  (vex_res BOSS_PRELOAD_LIST)",b,list);
 return PLUGIN_HANDLED;
 }
-g_iForceBoss = b;
-g_iForceMode = MODE_BOSS;
+g_iForceBoss=b;
+g_iForceMode=MODE_BOSS;
 AdminNotify(id,"ADM_NEXT_MODE",MODE_BOSS);
 return PLUGIN_HANDLED;
 }
@@ -25522,8 +25523,8 @@ ShowAdminEventMenu(id,bool:now)
 {
 new title[320],item[96],key[16];
 if(now)VexHead(id,title,charsmax(title),"ADMM_4");else VexHead(id,title,charsmax(title),"ADMM_3");
-new menu = VexMenuCreate(title,now ? "menu_admevent_now" : "menu_admevent");
-for(new e = 1;e < EV_TOTAL;e++)
+new menu=VexMenuCreate(title,now ? "menu_admevent_now" : "menu_admevent");
+for(new e=1;e < EV_TOTAL;e++)
 {
 formatex(key,charsmax(key),"EV_NAME_%d",e);
 formatex(item,charsmax(item),"\y%L",id,key);
@@ -25534,7 +25535,7 @@ MenuFinish(id,menu);
 public menu_admevent(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-g_iForceEvent = MenuInfo(menu,item);
+g_iForceEvent=MenuInfo(menu,item);
 menu_destroy(menu);
 AdminNotify(id,"ADM_NEXT_EVENT",g_iForceEvent);
 return PLUGIN_HANDLED;
@@ -25542,8 +25543,8 @@ return PLUGIN_HANDLED;
 public menu_admevent_now(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-g_iForceEvent = MenuInfo(menu,item);
-g_iForceMode = MODE_INFECTION;
+g_iForceEvent=MenuInfo(menu,item);
+g_iForceMode=MODE_INFECTION;
 menu_destroy(menu);
 AdminNotify(id,"ADM_NOW_EVENT",g_iForceEvent);
 rg_round_end(2.0,WINSTATUS_DRAW,ROUND_END_DRAW,"","",false);
@@ -25553,8 +25554,8 @@ ShowAdminPlayers(id)
 {
 new title[320],item[96],name[32];
 VexHead(id,title,charsmax(title),"ADMM_4");
-new menu = VexMenuCreate(title,"menu_admplayers");
-for(new p = 1;p <= g_iMax;p++)
+new menu=VexMenuCreate(title,"menu_admplayers");
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p))
 continue;
@@ -25567,9 +25568,9 @@ MenuFinish(id,menu);
 public menu_admplayers(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-new uid = MenuInfo(menu,item);
+new uid=MenuInfo(menu,item);
 menu_destroy(menu);
-new target = find_player_ex(FindPlayer_MatchUserId,uid);
+new target=find_player_ex(FindPlayer_MatchUserId,uid);
 if(!target)
 {
 Chat(id,"ADM_GONE");
@@ -25581,8 +25582,8 @@ return PLUGIN_HANDLED;
 }
 ShowAdminActions(id)
 {
-new target = find_player_ex(FindPlayer_MatchUserId,g_iAdmTarget[id]);
-if(!target || !is_user_connected(target))
+new target=find_player_ex(FindPlayer_MatchUserId,g_iAdmTarget[id]);
+if(!target||!is_user_connected(target))
 {
 Chat(id,"ADM_GONE");
 return;
@@ -25592,8 +25593,8 @@ get_user_name(target,name,charsmax(name));
 new hsub[96];
 formatex(hsub,charsmax(hsub),"[\y%s\r] [\yLv %d\r] [\y%d AP\r] [\y%d VC\r]",name,g_iLevel[target],g_iAP[target],g_iVC[target]);
 VexHead(id,title,charsmax(title),"ADMM_4",hsub);
-new menu = VexMenuCreate(title,"menu_admactions");
-for(new i = 1;i <= 17;i++)
+new menu=VexMenuCreate(title,"menu_admactions");
+for(new i=1;i<=17;i++)
 {
 new key[12];
 formatex(key,charsmax(key),"ADMA_%d",i);
@@ -25606,21 +25607,21 @@ MenuFinish(id,menu);
 public menu_admactions(id,menu,item)
 {
 if(item < 0){menu_destroy(menu);return PLUGIN_HANDLED;}
-new sel = MenuInfo(menu,item);
+new sel=MenuInfo(menu,item);
 menu_destroy(menu);
-new target = find_player_ex(FindPlayer_MatchUserId,g_iAdmTarget[id]);
-if(!target || !is_user_connected(target)|| !(get_user_flags(id)& ADMIN_BAN))
+new target=find_player_ex(FindPlayer_MatchUserId,g_iAdmTarget[id]);
+if(!target||!is_user_connected(target)|| !(get_user_flags(id)& ADMIN_BAN))
 {
 Chat(id,"ADM_GONE");
 return PLUGIN_HANDLED;
 }
-if((sel == 2 || sel == 3 ||(sel >= 10 && sel <= 12))&& !(get_user_flags(id)& ADMIN_RCON))
+if((sel==2||sel==3 ||(sel>=10&&sel<=12))&& !(get_user_flags(id)& ADMIN_RCON))
 {
 Chat(id,"ADM_NEED_OWNER");
 ShowAdminActions(id);
 return PLUGIN_HANDLED;
 }
-new bool:alive = is_user_alive(target)? true : false;
+new bool:alive=is_user_alive(target)? true : false;
 new aname[32],tname[32],key[16];
 get_user_name(id,aname,charsmax(aname));
 get_user_name(target,tname,charsmax(tname));
@@ -25631,10 +25632,10 @@ switch(sel)
 case 1: AddAP(target,100,false,true);
 case 2: g_iVC[target]+= 10;
 case 3: Reward(target,1000,0);
-case 4: if(alive && !g_bZombie[target]&& g_bRoundActive){MakeZombie(target);CheckWin();}
-case 5: if(alive && g_bZombie[target]&& g_bRoundActive){MakeHuman(target);CheckWin();}
-case 6: if(alive && g_bRoundActive){ClearZombieRoles(target);g_bSurvivor[target]= 0;g_bSniper[target]= 0;g_bNemesis[target]= 1;MakeZombie(target);CheckWin();}
-case 7: if(alive && g_bRoundActive){MakeSurvivor(target,false);CheckWin();}
+case 4: if(alive&&!g_bZombie[target]&& g_bRoundActive){MakeZombie(target);CheckWin();}
+case 5: if(alive&&g_bZombie[target]&& g_bRoundActive){MakeHuman(target);CheckWin();}
+case 6: if(alive&&g_bRoundActive){ClearZombieRoles(target);g_bSurvivor[target]= 0;g_bSniper[target]= 0;g_bNemesis[target]= 1;MakeZombie(target);CheckWin();}
+case 7: if(alive&&g_bRoundActive){MakeSurvivor(target,false);CheckWin();}
 case 8:
 {
 if(!alive)
@@ -25645,19 +25646,19 @@ rg_round_respawn(target);
 }
 }
 case 9: if(alive)user_kill(target,1);
-case 10,11: GiveVipDays(id,target,30,sel == 10 ? 1 : 2);
+case 10,11: GiveVipDays(id,target,30,sel==10 ? 1 : 2);
 case 12:
 {
 new k[48];
 GetKey(target,k,charsmax(k));
-if(g_hVipVault != INVALID_HANDLE)
+if(g_hVipVault!=INVALID_HANDLE)
 nvault_remove(g_hVipVault,k);
 LoadVip(target);
 }
-case 13: if(alive && g_bRoundActive){ClearZombieRoles(target);g_bSurvivor[target]= 0;g_bSniper[target]= 0;g_bAssassin[target]= 1;MakeZombie(target);CheckWin();}
-case 14: if(alive && g_bRoundActive){MakeSurvivor(target,true);CheckWin();}
-case 15: if(alive && !g_bZombie[target]){g_iMines[target]+= 3;Chat(target,"LM_GIFT",3);}
-case 16: if(alive && !g_bZombie[target]){g_bNadesGiven[target]= false;GiveStartNades(target);}
+case 13: if(alive&&g_bRoundActive){ClearZombieRoles(target);g_bSurvivor[target]= 0;g_bSniper[target]= 0;g_bAssassin[target]= 1;MakeZombie(target);CheckWin();}
+case 14: if(alive&&g_bRoundActive){MakeSurvivor(target,true);CheckWin();}
+case 15: if(alive&&!g_bZombie[target]){g_iMines[target]+= 3;Chat(target,"LM_GIFT",3);}
+case 16: if(alive&&!g_bZombie[target]){g_bNadesGiven[target]= false;GiveStartNades(target);}
 case 17:
 {
 if(alive)
@@ -25669,7 +25670,7 @@ ApplyRender(target);
 }
 }
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&&(get_user_flags(p)& ADMIN_BAN))
 {
@@ -25685,16 +25686,16 @@ return PLUGIN_HANDLED;
 }
 GiveVipDays(admin,target,days,tier)
 {
-if(g_hVipVault == INVALID_HANDLE)
+if(g_hVipVault==INVALID_HANDLE)
 return;
-new key[48],val[32],base = get_systime();
+new key[48],val[32],base=get_systime();
 GetKey(target,key,charsmax(key));
 if(nvault_get(g_hVipVault,key,val,charsmax(val)))
 {
 new t[8],e[16];
 parse(val,t,charsmax(t),e,charsmax(e));
 if(str_to_num(e)> base)
-base = str_to_num(e);
+base=str_to_num(e);
 }
 formatex(val,charsmax(val),"%d %d",tier,base + clamp(days,1,3650)* 86400);
 nvault_set(g_hVipVault,key,val);
@@ -25707,26 +25708,26 @@ VipWelcome(target);
 }
 public fw_AmbientPost(ent,const Float:pos[3],const sample[],Float:vol,Float:attn,flags,pitch)
 {
-if(g_bAmbReplay || ent <= MaxClients || !pev_valid(ent)|| !sample[0])
+if(g_bAmbReplay||ent<=MaxClients||!pev_valid(ent)|| !sample[0])
 return FMRES_IGNORED;
 new cls[20];
 pev(ent,pev_classname,cls,charsmax(cls));
 if(!equal(cls,"ambient_generic")||(pev(ent,pev_spawnflags)& 32))
 return FMRES_IGNORED;
-new slot = -1;
-for(new i = 0;i < g_iAmbN;i++)
+new slot=-1;
+for(new i=0;i < g_iAmbN;i++)
 {
 if(g_iAmbEnt[i]== ent)
 {
-slot = i;
+slot=i;
 break;
 }
 }
 if(slot < 0)
 {
-if(g_iAmbN >= MAX_AMB)
+if(g_iAmbN>=MAX_AMB)
 return FMRES_IGNORED;
-slot = g_iAmbN++;
+slot=g_iAmbN++;
 g_iAmbEnt[slot]= ent;
 g_bAmbOn[slot]= false;
 }
@@ -25757,17 +25758,17 @@ public task_AmbientRestore()
 if(g_bAmbMuted)
 return;
 new Float:o[3],n;
-g_bAmbReplay = true;
-for(new i = 0;i < g_iAmbN;i++)
+g_bAmbReplay=true;
+for(new i=0;i < g_iAmbN;i++)
 {
-new ent = g_iAmbEnt[i];
+new ent=g_iAmbEnt[i];
 if(!g_bAmbOn[i]|| !g_szAmbSnd[i][0]|| !pev_valid(ent))
 continue;
 pev(ent,pev_origin,o);
 engfunc(EngFunc_EmitAmbientSound,ent,o,g_szAmbSnd[i],g_fAmbVol[i],g_fAmbAttn[i],0,g_iAmbPitch[i]);
 n++;
 }
-g_bAmbReplay = false;
+g_bAmbReplay=false;
 if(n)
 g_iAmbRestored++;
 }
@@ -25799,7 +25800,7 @@ new g_iMsExEv[MS_MAXEX],Float:g_fMsExDelay[MS_MAXEX],g_iMsExFirst[MS_MAXEX],g_iM
 new g_szMsMkName[MS_MAXMK][2][32],Float:g_fMsMkPos[MS_MAXMK][3],g_iMsMkSpr[MS_MAXMK],g_iMsMkBeam[MS_MAXMK],g_iMsMkN;
 new g_iMsCmdOf[OVH_MAXENT];
 new g_iMsCmdType[MS_MAXCMD],g_iMsCmdArg[MS_MAXCMD],g_iMsCmdRound[MS_MAXCMD],Float:g_fMsCmdNext[MS_MAXCMD],g_iMsCmdN;
-new g_iMsRound = 1,bool:g_bMsObjDone[3],bool:g_bMsLive,g_iMsSec,Float:g_fMsMsgNext;
+new g_iMsRound=1,bool:g_bMsObjDone[3],bool:g_bMsLive,g_iMsSec,Float:g_fMsMsgNext;
 new bool:g_bMsSeen[33],g_iMsStep[33],g_iMsTries[33];
 new g_szMsSndLine[96],g_szMsSndMsg[96],g_szMsSndObj[96];
 #define MS_MAXLK 8
@@ -25835,7 +25836,7 @@ new const MFX_NAME[][]={"","flare","smoke","sparks","dust","ring","light","spot"
 "clear","safe","unstuck","snd","fog"};
 new g_szRdKey[MS_MAXRADIO][24],g_szRdFile[MS_MAXRADIO][2][48],g_szRdSub[MS_MAXRADIO][2][MS_LEN];
 new Float:g_fRdLen[MS_MAXRADIO],bool:g_bRdChat[MS_MAXRADIO],bool:g_bRdLow[MS_MAXRADIO],Float:g_fRdNext[MS_MAXRADIO],g_iRdN,g_iRdChatN;
-new Float:g_fRdBusy,g_iRdPending = -1,g_iRdLastChat = -1,g_iRdChatIn,g_iRdLock = -1;
+new Float:g_fRdBusy,g_iRdPending=-1,g_iRdLastChat=-1,g_iRdChatIn,g_iRdLock=-1;
 new g_iMsMsgRadio[MS_MAXMSG],g_iMeRadio[ME_NUM],g_pMsRadio,g_pMsChatter;
 new g_szMmPath[MS_MAXMODEL][64],Float:g_fMmPos[MS_MAXMODEL][4],g_szMmFollow[MS_MAXMODEL][32],g_szMmName[MS_MAXMODEL][32];
 new g_iMmSeq[MS_MAXMODEL],Float:g_fMmFr[MS_MAXMODEL],g_iMmRm[MS_MAXMODEL],g_iMmRa[MS_MAXMODEL],g_iMmFx[MS_MAXMODEL];
@@ -25853,16 +25854,16 @@ return g_iLang[id]== 2 ? 1 : 0;
 }
 MsInit()
 {
-g_pMsStory = register_cvar("vex_map_story","1");
-g_pMsObj = register_cvar("vex_map_objectives","1");
-g_pMsMarkers = register_cvar("vex_map_markers","1");
-g_pMsRewards = register_cvar("vex_map_rewards","1");
-g_pMsEvents = register_cvar("vex_map_events","1");
-g_pMsDebug = register_cvar("vex_map_debug","0");
-g_pMsRoundTime = register_cvar("vex_roundtime","0");
-g_pMsRadio = register_cvar("vex_map_radio","1");
-g_pMsChatter = register_cvar("vex_map_chatter","70");
-g_pMsAmb = register_cvar("vex_map_ambience","100");
+g_pMsStory=register_cvar("vex_map_story","1");
+g_pMsObj=register_cvar("vex_map_objectives","1");
+g_pMsMarkers=register_cvar("vex_map_markers","1");
+g_pMsRewards=register_cvar("vex_map_rewards","1");
+g_pMsEvents=register_cvar("vex_map_events","1");
+g_pMsDebug=register_cvar("vex_map_debug","0");
+g_pMsRoundTime=register_cvar("vex_roundtime","0");
+g_pMsRadio=register_cvar("vex_map_radio","1");
+g_pMsChatter=register_cvar("vex_map_chatter","70");
+g_pMsAmb=register_cvar("vex_map_ambience","100");
 RegisterSay("story","hikaye","cmd_MsStory");
 register_srvcmd("vex_map_status","srv_MsStatus");
 TrieGetString(g_tRes,"UI_OPEN",g_szMsSndLine,charsmax(g_szMsSndLine));
@@ -25872,14 +25873,14 @@ MsModelsSpawn();
 MsLoadIni();
 MsRadioLink();
 new name[32];
-for(new e = 0;e < ME_NUM;e++)
+for(new e=0;e < ME_NUM;e++)
 {
 formatex(name,charsmax(name),"vex_%s",ME_NAME[e]);
 g_iMeFirst[e]= g_iMeN;
 g_iMeCnt[e]= MsCollect(name);
 }
-new ent = -1,tn[64];
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname","trigger_relay"))> 0)
+new ent=-1,tn[64];
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","trigger_relay"))> 0)
 {
 pev(ent,pev_targetname,tn,charsmax(tn));
 if(equal(tn,"vexcmd_",7)&& ent < OVH_MAXENT)
@@ -25887,22 +25888,22 @@ MsParseCmd(ent,tn);
 }
 if(g_iMsCmdN)
 VxRegisterHam524(Ham_Use,"trigger_relay","fw_MsRelayUse",0);
-for(new m = 0;m < g_iMsMkN;m++)
+for(new m=0;m < g_iMsMkN;m++)
 MsMkCreate(m);
 MsLockInit();
 new total;
-for(new e = 0;e < ME_NUM;e++)
-total += g_iMeCnt[e];
+for(new e=0;e < ME_NUM;e++)
+total+=g_iMeCnt[e];
 log_amx("[Vexmira] Harita senaryosu: ini=%d hikaye=%d/%d gorev=%d mesaj=%d ek-olay=%d isaret=%d | vex_* hedef=%d vexcmd=%d",
 g_bMsIni,g_iMsStoryN[0],g_iMsStoryN[1],g_iMsObjN,g_iMsMsgN,g_iMsExN,g_iMsMkN,total,g_iMsCmdN);
 }
 MsLockInit()
 {
 new hooked,ent,n,cls[32];
-for(new k = 0;k < g_iMsLkN;k++)
+for(new k=0;k < g_iMsLkN;k++)
 {
 g_iMsLkMsg[k]= -1;
-for(new i = 0;i < g_iMsMsgN;i++)
+for(new i=0;i < g_iMsMsgN;i++)
 {
 if(equali(g_szMsLkKey[k],g_szMsMsgKey[i]))
 {
@@ -25910,18 +25911,18 @@ g_iMsLkMsg[k]= i;
 break;
 }
 }
-n = 0;
-ent = -1;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"targetname",g_szMsLkTn[k]))> 0)
+n=0;
+ent=-1;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"targetname",g_szMsLkTn[k]))> 0)
 {
 pev(ent,pev_classname,cls,charsmax(cls));
-if(ent < OVH_MAXENT && equal(cls,"func_button"))
+if(ent < OVH_MAXENT&&equal(cls,"func_button"))
 {
 g_iMsLockOf[ent]= k + 1;
 n++;
 }
 }
-if(g_iMsLkMsg[k]< 0 || !n)
+if(g_iMsLkMsg[k]< 0||!n)
 log_amx("[Vexmira] map kilit '%s' yok sayildi (mesaj=%d buton=%d)",g_szMsLkTn[k],g_iMsLkMsg[k]+ 1,n);
 else
 hooked++;
@@ -25931,14 +25932,14 @@ VxRegisterHam524(Ham_Use,"func_button","fw_MsButtonUse",0);
 }
 public fw_MsButtonUse(ent,caller,activator,type,Float:value)
 {
-if(ent <= 0 || ent >= OVH_MAXENT || !g_iMsLockOf[ent]|| !(1 <= activator <= g_iMax))
+if(ent<=0||ent>=OVH_MAXENT||!g_iMsLockOf[ent]|| !(1<=activator<=g_iMax))
 return HAM_IGNORED;
-new k = g_iMsLockOf[ent]- 1,msg = g_iMsLkMsg[k];
-if(msg < 0 || g_bMsObjDone[g_iMsLkObj[k]]|| !is_user_connected(activator))
+new k=g_iMsLockOf[ent]- 1,msg=g_iMsLkMsg[k];
+if(msg < 0||g_bMsObjDone[g_iMsLkObj[k]]|| !is_user_connected(activator))
 return HAM_IGNORED;
 if(g_bMsLkHint[k])
 {
-for(new j = 0;j < g_iMsLkN;j++)
+for(new j=0;j < g_iMsLkN;j++)
 {
 if(g_bMsLkHint[j]&& g_iMsLkObj[j]== g_iMsLkObj[k]&& g_iMsLkRound[j]== g_iMsRound)
 return HAM_IGNORED;
@@ -25946,7 +25947,7 @@ return HAM_IGNORED;
 g_iMsLkRound[k]= g_iMsRound;
 if(get_pcvar_num(g_pMsDebug))
 log_amx("[Vexmira] map ipucu '%s' #%d -> %s",g_szMsLkTn[k],activator,g_szMsMsgKey[msg]);
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id)||(is_user_alive(id)&& g_bZombie[id]))
 continue;
@@ -25956,7 +25957,7 @@ client_print(id,print_console,"%s",g_szMsMsg[msg][MsLang(id)]);
 MsRadio(g_iMsMsgRadio[msg],0.3);
 return HAM_IGNORED;
 }
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fMsLkNext[activator])
 return HAM_IGNORED;
 g_fMsLkNext[activator]= now + 2.0;
@@ -25972,24 +25973,24 @@ return HAM_IGNORED;
 }
 MsMkRefresh()
 {
-new bool:mk = get_pcvar_num(g_pMsMarkers)!= 0,cur = -1;
-for(new k = 0;k < g_iMsObjN;k++)
+new bool:mk=get_pcvar_num(g_pMsMarkers)!= 0,cur=-1;
+for(new k=0;k < g_iMsObjN;k++)
 {
 if(!g_bMsObjDone[k])
 {
-cur = k;
+cur=k;
 break;
 }
 }
-for(new m = 0;m < g_iMsMkN;m++)
-MsMkShow(m,mk &&(m >= g_iMsObjN ||(!g_bMsObjDone[m]&&(!g_bMsSeq || m == cur))));
+for(new m=0;m < g_iMsMkN;m++)
+MsMkShow(m,mk &&(m>=g_iMsObjN ||(!g_bMsObjDone[m]&&(!g_bMsSeq||m==cur))));
 }
 MsCollect(const name[])
 {
-new ent = -1,n;
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"targetname",name))> 0)
+new ent=-1,n;
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"targetname",name))> 0)
 {
-if(g_iMeN >= ME_MAXENT)
+if(g_iMeN>=ME_MAXENT)
 {
 log_amx("[Vexmira] Harita senaryosu: hedef listesi dolu (%d), %s atlandi",ME_MAXENT,name);
 break;
@@ -26003,51 +26004,51 @@ return n;
 }
 MsParseCmd(ent,const tn[])
 {
-if(g_iMsCmdN >= MS_MAXCMD)
+if(g_iMsCmdN>=MS_MAXCMD)
 {
 log_amx("[Vexmira] Harita senaryosu: en fazla %d vexcmd, %s atlandi",MS_MAXCMD,tn);
 return;
 }
-new type,arg = -1;
+new type,arg=-1;
 if(equal(tn[7],"msg_",4))
 {
-for(new i = 0;i < g_iMsMsgN;i++)
+for(new i=0;i < g_iMsMsgN;i++)
 {
 if(equali(tn[11],g_szMsMsgKey[i]))
 {
-arg = i;
+arg=i;
 break;
 }
 }
-type = MC_MSG;
+type=MC_MSG;
 }
 else if(equal(tn[7],"reward_h_",9)|| equal(tn[7],"reward_z_",9))
 {
 type =(tn[14]== 'h')? MC_RH : MC_RZ;
-arg = str_to_num(tn[16]);
-if(!isdigit(tn[16])|| arg < 1 || arg > 50)
-arg = -1;
+arg=str_to_num(tn[16]);
+if(!isdigit(tn[16])|| arg < 1||arg > 50)
+arg=-1;
 }
-else if(equal(tn[7],"obj_",4)&& tn[11]>= '1' && tn[11]<= '3' && equal(tn[12],"_done"))
+else if(equal(tn[7],"obj_",4)&& tn[11]>= '1'&&tn[11]<= '3'&&equal(tn[12],"_done"))
 {
-type = MC_OBJ;
-arg = tn[11]- '1';
+type=MC_OBJ;
+arg=tn[11]- '1';
 }
 else if(equal(tn[7],"radio_",6))
 {
-type = MC_RADIO;
-arg = MsRadioFind(tn[13]);
+type=MC_RADIO;
+arg=MsRadioFind(tn[13]);
 }
 else if(equal(tn[7],"fx_",3))
 {
-type = MC_FX;
-for(new k = 0;k < g_iFxKeyN;k++)
+type=MC_FX;
+for(new k=0;k < g_iFxKeyN;k++)
 {
 if(equali(tn[10],g_szFxKey[k]))
-arg = k;
+arg=k;
 }
 }
-if(!type || arg < 0)
+if(!type||arg < 0)
 {
 log_amx("[Vexmira] Harita senaryosu: tanimsiz vexcmd '%s' (varlik %d) yok sayildi",tn,ent);
 return;
@@ -26060,9 +26061,9 @@ g_iMsCmdOf[ent]= g_iMsCmdN;
 }
 MsApplyRoundTime()
 {
-new Float:rt = g_fMsRoundTime;
-if(rt <= 0.0 && g_pMsRoundTime)
-rt = floatclamp(get_pcvar_float(g_pMsRoundTime),0.0,60.0);
+new Float:rt=g_fMsRoundTime;
+if(rt<=0.0&&g_pMsRoundTime)
+rt=floatclamp(get_pcvar_float(g_pMsRoundTime),0.0,60.0);
 new base[16];
 get_localinfo("vex_rt_base",base,charsmax(base));
 if(rt > 0.0)
@@ -26104,57 +26105,57 @@ new map[32],path[160];
 get_mapname(map,charsmax(map));
 get_configsdir(path,charsmax(path));
 format(path,charsmax(path),"%s/vexmira_maps/%s.ini",path,map);
-new fp = fopen(path,"rt");
+new fp=fopen(path,"rt");
 if(!fp)
 return;
-g_bMsIni = true;
-new line[512],sec = MSS_NONE,lang,ln,bad,objN[2];
+g_bMsIni=true;
+new line[512],sec=MSS_NONE,lang,ln,bad,objN[2];
 new key[64],val[192],a[MS_LEN],b[MS_LEN];
 while(!feof(fp))
 {
 fgets(fp,line,charsmax(line));
 ln++;
-new c = contain(line," ;");
-if(c != -1)
+new c=contain(line," ;");
+if(c!=-1)
 line[c]= 0;
 trim(line);
-if(!line[0]|| line[0]== ';' || line[0]== '#' ||(line[0]== '/' && line[1]== '/'))
+if(!line[0]|| line[0]== ';'||line[0]== '#' ||(line[0]== '/'&&line[1]== '/'))
 continue;
 if(line[0]== '[')
 {
-lang = 0;
-if(equali(line,"[info]"))sec = MSS_INFO;
-else if(equali(line,"[story_en]"))sec = MSS_STORY;
-else if(equali(line,"[story_tr]")){sec = MSS_STORY;lang = 1;}
-else if(equali(line,"[objective_en]"))sec = MSS_OBJ;
-else if(equali(line,"[objective_tr]")){sec = MSS_OBJ;lang = 1;}
-else if(equali(line,"[messages]"))sec = MSS_MSG;
-else if(equali(line,"[events]"))sec = MSS_EV;
-else if(equali(line,"[markers]"))sec = MSS_MK;
-else if(equali(line,"[locks]")){sec = MSS_LOCK;g_bMsSeq = true;}
-else if(equali(line,"[hints]"))sec = MSS_HINT;
-else if(equali(line,"[fx]"))sec = MSS_FX;
-else if(equali(line,"[ambience]"))sec = MSS_AMB;
-else if(equali(line,"[arena]"))sec = MSS_ARENA;
+lang=0;
+if(equali(line,"[info]"))sec=MSS_INFO;
+else if(equali(line,"[story_en]"))sec=MSS_STORY;
+else if(equali(line,"[story_tr]")){sec=MSS_STORY;lang=1;}
+else if(equali(line,"[objective_en]"))sec=MSS_OBJ;
+else if(equali(line,"[objective_tr]")){sec=MSS_OBJ;lang=1;}
+else if(equali(line,"[messages]"))sec=MSS_MSG;
+else if(equali(line,"[events]"))sec=MSS_EV;
+else if(equali(line,"[markers]"))sec=MSS_MK;
+else if(equali(line,"[locks]")){sec=MSS_LOCK;g_bMsSeq=true;}
+else if(equali(line,"[hints]"))sec=MSS_HINT;
+else if(equali(line,"[fx]"))sec=MSS_FX;
+else if(equali(line,"[ambience]"))sec=MSS_AMB;
+else if(equali(line,"[arena]"))sec=MSS_ARENA;
 else if(equali(line,"[radio]")|| equali(line,"[chatter]")|| equali(line,"[models]"))
-sec = MSS_SKIP;
+sec=MSS_SKIP;
 else
 {
-sec = MSS_NONE;
+sec=MSS_NONE;
 MsBad(path,ln,line,bad);
 }
 continue;
 }
-if(sec == MSS_EV)
+if(sec==MSS_EV)
 {
 if(!MsParseEvent(line))
 MsBad(path,ln,line,bad);
 continue;
 }
-if(sec == MSS_SKIP)
+if(sec==MSS_SKIP)
 continue;
-new eq = contain(line,"=");
-if(eq < 1 || sec == MSS_NONE)
+new eq=contain(line,"=");
+if(eq < 1||sec==MSS_NONE)
 {
 MsBad(path,ln,line,bad);
 continue;
@@ -26174,8 +26175,8 @@ case MSS_INFO:
 {
 if(equali(key,"name_en"))copy(g_szMsName[0],charsmax(g_szMsName[]),val);
 else if(equali(key,"name_tr"))copy(g_szMsName[1],charsmax(g_szMsName[]),val);
-else if(equali(key,"sequential"))g_bMsSeq = str_to_num(val)!= 0;
-else if(equali(key,"roundtime"))g_fMsRoundTime = floatclamp(str_to_float(val),0.0,60.0);
+else if(equali(key,"sequential"))g_bMsSeq=str_to_num(val)!= 0;
+else if(equali(key,"roundtime"))g_fMsRoundTime=floatclamp(str_to_float(val),0.0,60.0);
 else MsBad(path,ln,line,bad);
 }
 case MSS_STORY:
@@ -26194,7 +26195,7 @@ copy(g_szMsObj[lang][objN[lang]++],MS_LEN - 1,val);
 }
 case MSS_MSG:
 {
-if(g_iMsMsgN >= MS_MAXMSG || strlen(key)> 23)
+if(g_iMsMsgN>=MS_MAXMSG||strlen(key)> 23)
 {
 MsBad(path,ln,line,bad);
 continue;
@@ -26223,8 +26224,8 @@ MsBad(path,ln,line,bad);
 case MSS_LOCK,MSS_HINT:
 {
 new so[8],sk[24];
-if(g_iMsLkN >= MS_MAXLK || strlen(key)> 31 || parse(val,so,charsmax(so),sk,charsmax(sk))!= 2
-|| !(1 <= str_to_num(so)<= 3))
+if(g_iMsLkN>=MS_MAXLK||strlen(key)> 31||parse(val,so,charsmax(so),sk,charsmax(sk))!= 2
+|| !(1<=str_to_num(so)<= 3))
 {
 MsBad(path,ln,line,bad);
 continue;
@@ -26232,13 +26233,13 @@ continue;
 copy(g_szMsLkTn[g_iMsLkN],31,key);
 copy(g_szMsLkKey[g_iMsLkN],23,sk);
 g_iMsLkObj[g_iMsLkN]= str_to_num(so)- 1;
-g_bMsLkHint[g_iMsLkN]= sec == MSS_HINT;
+g_bMsLkHint[g_iMsLkN]= sec==MSS_HINT;
 g_iMsLkN++;
 }
 case MSS_MK:
 {
 new Float:p[3],sx[16],sy[16],sz[16];
-if(g_iMsMkN >= MS_MAXMK || parse(val,sx,charsmax(sx),sy,charsmax(sy),sz,charsmax(sz))!= 3)
+if(g_iMsMkN>=MS_MAXMK||parse(val,sx,charsmax(sx),sy,charsmax(sy),sz,charsmax(sz))!= 3)
 {
 MsBad(path,ln,line,bad);
 continue;
@@ -26246,7 +26247,7 @@ continue;
 p[0]= str_to_float(sx);
 p[1]= str_to_float(sy);
 p[2]= str_to_float(sz);
-if(floatabs(p[0])> 4096.0 || floatabs(p[1])> 4096.0 || floatabs(p[2])> 4096.0)
+if(floatabs(p[0])> 4096.0||floatabs(p[1])> 4096.0||floatabs(p[2])> 4096.0)
 {
 MsBad(path,ln,line,bad);
 continue;
@@ -26260,20 +26261,20 @@ g_iMsMkN++;
 }
 }
 fclose(fp);
-for(new l = 0;l < 2;l++)
+for(new l=0;l < 2;l++)
 {
-new o = 1 - l;
+new o=1 - l;
 if(!g_szMsName[l][0])
 copy(g_szMsName[l],charsmax(g_szMsName[]),g_szMsName[o]);
 if(!g_iMsStoryN[l])
 {
-for(new i = 0;i < g_iMsStoryN[o];i++)
+for(new i=0;i < g_iMsStoryN[o];i++)
 copy(g_szMsStory[l][i],MS_LEN - 1,g_szMsStory[o][i]);
 g_iMsStoryN[l]= g_iMsStoryN[o];
 }
 }
-g_iMsObjN = max(objN[0],objN[1]);
-for(new i = 0;i < g_iMsObjN;i++)
+g_iMsObjN=max(objN[0],objN[1]);
+for(new i=0;i < g_iMsObjN;i++)
 {
 if(!g_szMsObj[0][i][0])copy(g_szMsObj[0][i],MS_LEN - 1,g_szMsObj[1][i]);
 if(!g_szMsObj[1][i][0])copy(g_szMsObj[1][i],MS_LEN - 1,g_szMsObj[0][i]);
@@ -26284,13 +26285,13 @@ log_amx("[Vexmira] %s: %d hatali satir atlandi",path,bad);
 MsBad(const path[],ln,const line[],&bad)
 {
 bad++;
-if(bad <= 8)
+if(bad<=8)
 log_amx("[Vexmira] %s satir %d atlandi: %s",path,ln,line);
 }
 MsSplitPipe(const src[],a[MS_LEN],b[MS_LEN])
 {
-new p = contain(src,"|");
-if(p == -1)
+new p=contain(src,"|");
+if(p==-1)
 {
 copy(a,MS_LEN - 1,src);
 copy(b,MS_LEN - 1,src);
@@ -26310,19 +26311,19 @@ copy(a,MS_LEN - 1,b);
 bool:MsParseEvent(const line[])
 {
 new ev[24],dl[16],tn[64];
-if(g_iMsExN >= MS_MAXEX || parse(line,ev,charsmax(ev),dl,charsmax(dl),tn,charsmax(tn))!= 3)
+if(g_iMsExN>=MS_MAXEX||parse(line,ev,charsmax(ev),dl,charsmax(dl),tn,charsmax(tn))!= 3)
 return false;
-new e = -1;
-for(new i = 0;i < ME_NUM;i++)
+new e=-1;
+for(new i=0;i < ME_NUM;i++)
 {
 if(equali(ev,ME_NAME[i]))
 {
-e = i;
+e=i;
 break;
 }
 }
-new Float:d = str_to_float(dl);
-if(e < 0 || d < 0.0 || d > 600.0 || !tn[0])
+new Float:d=str_to_float(dl);
+if(e < 0||d < 0.0||d > 600.0||!tn[0])
 return false;
 g_iMsExEv[g_iMsExN]= e;
 g_fMsExDelay[g_iMsExN]= d;
@@ -26336,10 +26337,10 @@ return true;
 MsMkCreate(m)
 {
 new Float:o[3],Float:top[3];
-o = g_fMsMkPos[m];
+o=g_fMsMkPos[m];
 if(g_szSprBeacon[0])
 {
-new spr = CreateSafe51("info_target");
+new spr=CreateSafe51("info_target");
 if(!is_nullent(spr)&& spr < OVH_MAXENT)
 {
 set_entvar(spr,var_classname,"vex_mapmarker");
@@ -26356,10 +26357,10 @@ g_iMsMkSpr[m]= spr;
 g_iMsMkOf[spr]= m + 1;
 }
 }
-top = o;
+top=o;
 top[2]+= 360.0;
-new beam = BeamCreate(o,top,0,170,255,26,90);
-if(beam && beam < OVH_MAXENT)
+new beam=BeamCreate(o,top,0,170,255,26,90);
+if(beam&&beam < OVH_MAXENT)
 {
 set_entvar(beam,var_classname,"vex_mapmarker");
 g_iMsMkBeam[m]= beam;
@@ -26369,10 +26370,10 @@ g_iMsMkOf[beam]= m + 1;
 MsMkShow(m,bool:on)
 {
 new e;
-for(new i = 0;i < 2;i++)
+for(new i=0;i < 2;i++)
 {
-e = i ? g_iMsMkBeam[m]: g_iMsMkSpr[m];
-if(!e || !pev_valid(e))
+e=i ? g_iMsMkBeam[m]: g_iMsMkSpr[m];
+if(!e||!pev_valid(e))
 continue;
 if(on)
 set_entvar(e,var_effects,get_entvar(e,var_effects)& ~EF_NODRAW);
@@ -26384,8 +26385,8 @@ bool:MsMkHidden(host)
 {
 if(is_user_alive(host))
 return g_bZombie[host]!= 0;
-new TeamName:t = get_member(host,m_iTeam);
-return t != TEAM_CT;
+new TeamName:t=get_member(host,m_iTeam);
+return t!=TEAM_CT;
 }
 MsMkPack(es,host)
 {
@@ -26399,10 +26400,10 @@ new map[32];
 get_mapname(map,charsmax(map));
 log_amx("[Vexmira] map durum %s: ini=%d round=%d live=%d sn=%d gorev=%d done=%d%d%d isaret=%d komut=%d",
 map,g_bMsIni,g_iMsRound,g_bMsLive,g_iMsSec,g_iMsObjN,g_bMsObjDone[0],g_bMsObjDone[1],g_bMsObjDone[2],g_iMsMkN,g_iMsCmdN);
-for(new m = 0;m < g_iMsMkN;m++)
+for(new m=0;m < g_iMsMkN;m++)
 {
 new see,hid;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p))
 continue;
@@ -26411,7 +26412,7 @@ hid++;
 else
 see++;
 }
-new spr = g_iMsMkSpr[m],beam = g_iMsMkBeam[m];
+new spr=g_iMsMkSpr[m],beam=g_iMsMkBeam[m];
 log_amx("[Vexmira] map isaret %d '%s': sprite #%d beam #%d nodraw=%d | gorebilen=%d gizli=%d",
 m + 1,g_szMsMkName[m][0],spr,beam,spr ?((get_entvar(spr,var_effects)& EF_NODRAW)? 1 : 0): -1,see,hid);
 }
@@ -26419,9 +26420,9 @@ return PLUGIN_HANDLED;
 }
 MsFireRange(first,cnt)
 {
-for(new i = first,end = first + cnt;i < end;i++)
+for(new i=first,end=first + cnt;i < end;i++)
 {
-new ent = g_iMeEnt[i];
+new ent=g_iMeEnt[i];
 if(pev_valid(ent)&& pev(ent,pev_targetname)== g_iMeTn[i])
 ExecuteHamB(Ham_Use,ent,0,0,3,0.0);
 }
@@ -26432,9 +26433,9 @@ if(!get_pcvar_num(g_pMsEvents))
 return;
 if(g_iMeCnt[ev])
 MsFireRange(g_iMeFirst[ev],g_iMeCnt[ev]);
-for(new x = 0;x < g_iMsExN;x++)
+for(new x=0;x < g_iMsExN;x++)
 {
-if(g_iMsExEv[x]!= ev || !g_iMsExCnt[x])
+if(g_iMsExEv[x]!= ev||!g_iMsExCnt[x])
 continue;
 if(g_fMsExDelay[x]<= 0.0)
 MsFireRange(g_iMsExFirst[x],g_iMsExCnt[x]);
@@ -26450,8 +26451,8 @@ log_amx("[Vexmira] map olay: vex_%s (%d hedef)",ME_NAME[ev],g_iMeCnt[ev]);
 }
 public task_MsExtra(tid)
 {
-new x = tid - TASK_MSEX;
-if(x >= 0 && x < g_iMsExN)
+new x=tid - TASK_MSEX;
+if(x>=0&&x < g_iMsExN)
 {
 MsFireRange(g_iMsExFirst[x],g_iMsExCnt[x]);
 if(get_pcvar_num(g_pMsDebug))
@@ -26461,20 +26462,20 @@ log_amx("[Vexmira] map ek olay %d (%s +%.1f sn, %d hedef)",x,ME_NAME[g_iMsExEv[x
 MsRoundRestart()
 {
 g_iMsRound++;
-g_bMsLive = false;
-g_iMsSec = 0;
-for(new k = 0;k < 3;k++)
+g_bMsLive=false;
+g_iMsSec=0;
+for(new k=0;k < 3;k++)
 g_bMsObjDone[k]= false;
-for(new x = 0;x < g_iMsExN;x++)
+for(new x=0;x < g_iMsExN;x++)
 remove_task(TASK_MSEX + x);
-for(new x = 0;x < g_iFxN;x++)
+for(new x=0;x < g_iFxN;x++)
 remove_task(TASK_MSFX + x);
-for(new x = 0;x < g_iMsAmbN;x++)
+for(new x=0;x < g_iMsAmbN;x++)
 g_iAmbIn[x]= 0;
 remove_task(TASK_MSRADIO);
-g_iRdPending = -1;
-g_fRdBusy = 0.0;
-g_iRdChatIn = 0;
+g_iRdPending=-1;
+g_fRdBusy=0.0;
+g_iRdChatIn=0;
 remove_task(TASK_MSRS);
 set_task(0.2,"task_MsRoundStart",TASK_MSRS);
 }
@@ -26486,12 +26487,12 @@ MsEvent(ME_ROUND_START);
 }
 MsFreezeEnd()
 {
-g_bMsLive = true;
-g_iMsSec = 0;
+g_bMsLive=true;
+g_iMsSec=0;
 MsEvent(ME_FREEZE_END);
-if(g_iMsObjN && get_pcvar_num(g_pMsObj))
+if(g_iMsObjN&&get_pcvar_num(g_pMsObj))
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&&(!is_user_bot(id)|| get_pcvar_num(g_pMsDebug)>= 2))
 MsShowObjectives(id,true);
@@ -26500,12 +26501,12 @@ MsShowObjectives(id,true);
 }
 MsRoundEnd(WinStatus:status,bool:wasActive)
 {
-g_bMsLive = false;
+g_bMsLive=false;
 if(!wasActive)
 return;
-if(status == WINSTATUS_CTS)
+if(status==WINSTATUS_CTS)
 MsEvent(ME_WIN_HUMANS);
-else if(status == WINSTATUS_TERRORISTS)
+else if(status==WINSTATUS_TERRORISTS)
 MsEvent(ME_WIN_ZOMBIES);
 }
 MsModeStart()
@@ -26526,16 +26527,16 @@ MsEvent(ME_SURVIVOR);
 MsTick()
 {
 RadioTick52();
-if(g_bMsLive && ++g_iMsSec % 60 == 0)
+if(g_bMsLive&&++g_iMsSec % 60==0)
 MsEvent(ME_MINUTE);
 MsChatterTick();
 MsAmbTick();
 }
 MsParseAmb(const val[])
 {
-if(g_iMsAmbN >= MS_MAXAMB)
+if(g_iMsAmbN>=MS_MAXAMB)
 return 0;
-new src[384],tok[32],a = g_iMsAmbN,n;
+new src[384],tok[32],a=g_iMsAmbN,n;
 copy(src,charsmax(src),val);
 if(!MsTok(src,tok,charsmax(tok)))
 return 0;
@@ -26546,11 +26547,11 @@ g_iAmbMax[a]= clamp(str_to_num(tok),g_iAmbMin[a],3600);
 g_iAmbFxN[a]= 0;
 while(MsTok(src,tok,charsmax(tok))&& g_iAmbFxN[a]< MS_AMBPICK)
 {
-new kx = -1;
-for(new k = 0;k < g_iFxKeyN;k++)
+new kx=-1;
+for(new k=0;k < g_iFxKeyN;k++)
 {
 if(equali(g_szFxKey[k],tok))
-kx = k;
+kx=k;
 }
 if(kx < 0)
 return 0;
@@ -26566,10 +26567,10 @@ return 1;
 }
 MsAmbTick()
 {
-new pct = get_pcvar_num(g_pMsAmb);
-if(!g_bMsLive || pct <= 0 || !get_pcvar_num(g_pMsEvents))
+new pct=get_pcvar_num(g_pMsAmb);
+if(!g_bMsLive||pct<=0||!get_pcvar_num(g_pMsEvents))
 return;
-for(new a = 0;a < g_iMsAmbN;a++)
+for(new a=0;a < g_iMsAmbN;a++)
 {
 if(g_iAmbIn[a]<= 0)
 {
@@ -26579,8 +26580,8 @@ continue;
 if(--g_iAmbIn[a]> 0)
 continue;
 g_iAmbIn[a]= max(3,random_num(g_iAmbMin[a],g_iAmbMax[a])* 100 / pct);
-new pick = random_num(0,g_iAmbFxN[a]- 1);
-if(pick == g_iAmbLast[a]&& g_iAmbFxN[a]> 1)
+new pick=random_num(0,g_iAmbFxN[a]- 1);
+if(pick==g_iAmbLast[a]&& g_iAmbFxN[a]> 1)
 pick =(pick + 1)% g_iAmbFxN[a];
 g_iAmbLast[a]= pick;
 MsFxFire(g_iAmbFx[a][pick]);
@@ -26611,34 +26612,34 @@ new map[32],path[160];
 get_mapname(map,charsmax(map));
 get_configsdir(path,charsmax(path));
 format(path,charsmax(path),"%s/vexmira_maps/%s.ini",path,map);
-new fp = fopen(path,"rt");
+new fp=fopen(path,"rt");
 if(!fp)
 return;
 new line[512],sec,key[32],val[480],tok[64],full[96],c;
 while(!feof(fp))
 {
 fgets(fp,line,charsmax(line));
-c = contain(line," ;");
-if(c != -1)
+c=contain(line," ;");
+if(c!=-1)
 line[c]= 0;
 trim(line);
-if(!line[0]|| line[0]== ';' || line[0]== '#')
+if(!line[0]|| line[0]== ';'||line[0]== '#')
 continue;
 if(line[0]== '[')
 {
-sec = equali(line,"[radio]")? 1 :(equali(line,"[chatter]")? 2 :(equali(line,"[models]")? 3
+sec=equali(line,"[radio]")? 1 :(equali(line,"[chatter]")? 2 :(equali(line,"[models]")? 3
 :(equali(line,"[fx]")? 4 : 0)));
 continue;
 }
 if(!sec)
 continue;
-c = contain(line,"=");
+c=contain(line,"=");
 if(c < 1)
 continue;
 copy(key,min(c,charsmax(key)),line);
 trim(key);
 copy(val,charsmax(val),line[c + 1]);
-if(sec == 4)
+if(sec==4)
 {
 if(MsTok(val,tok,charsmax(tok))&& equali(tok,"snd")&& MsTok(val,tok,charsmax(tok)))
 {
@@ -26650,13 +26651,13 @@ log_amx("[Vexmira] map [fx] ses yok: %s",full);
 }
 continue;
 }
-if(sec == 3)
+if(sec==3)
 {
-if(g_iMmN >= MS_MAXMODEL || !MsTok(val,tok,charsmax(tok)))
+if(g_iMmN>=MS_MAXMODEL||!MsTok(val,tok,charsmax(tok)))
 continue;
 if(!file_exists(tok))
 continue;
-new m = g_iMmN;
+new m=g_iMmN;
 copy(g_szMmPath[m],charsmax(g_szMmPath[]),tok);
 g_fMmFr[m]= 1.0;
 g_iMmRa[m]= 255;
@@ -26665,14 +26666,14 @@ g_iMmCol[m]= 0xFFFFFF;
 new n;
 while(MsTok(val,tok,charsmax(tok)))
 {
-if(tok[0]== '@' && !n)
+if(tok[0]== '@'&&!n)
 {
 copy(g_szMmFollow[m],charsmax(g_szMmFollow[]),tok[1]);
-n = 4;
+n=4;
 }
 else if(contain(tok,":")> 0)
 {
-new k = contain(tok,":"),Float:f = str_to_float(tok[k + 1]),v = str_to_num(tok[k + 1]);
+new k=contain(tok,":"),Float:f=str_to_float(tok[k + 1]),v=str_to_num(tok[k + 1]);
 if(equal(tok,"seq:",4))g_iMmSeq[m]= v;
 else if(equal(tok,"fr:",3))g_fMmFr[m]= f;
 else if(equal(tok,"rm:",3))g_iMmRm[m]= v;
@@ -26693,15 +26694,15 @@ if(!PcModel(g_szMmPath[m],false)){log_amx("[VexMap] Decor skipped (not precached
 g_iMmN++;
 continue;
 }
-if(g_iRdN >= MS_MAXRADIO || strlen(key)> 23)
+if(g_iRdN>=MS_MAXRADIO||strlen(key)> 23)
 continue;
-new r = g_iRdN,a[MS_LEN],b[MS_LEN];
+new r=g_iRdN,a[MS_LEN],b[MS_LEN];
 MsTok(val,tok,charsmax(tok));
 g_bRdLow[r]= tok[0]== '-';
 g_fRdLen[r]= floatclamp(floatabs(str_to_float(tok)),0.5,15.0);
 new rl[8];copy(rl,charsmax(rl),GetResString("CSO_LANG","tr"));
-new keep = equali(rl,"both")? 3 :(equali(rl,"en")? 1 : 2);
-for(new l = 0;l < 2;l++)
+new keep=equali(rl,"both")? 3 :(equali(rl,"en")? 1 : 2);
+for(new l=0;l < 2;l++)
 {
 MsTok(val,tok,charsmax(tok));
 formatex(full,charsmax(full),"sound/vexmira/radio/%s",tok);
@@ -26719,18 +26720,18 @@ MsSplitPipe(val,a,b);
 copy(g_szRdSub[r][0],MS_LEN - 1,a);
 copy(g_szRdSub[r][1],MS_LEN - 1,b);
 copy(g_szRdKey[r],charsmax(g_szRdKey[]),key);
-g_bRdChat[r]= sec == 2;
-if(sec == 2)
+g_bRdChat[r]= sec==2;
+if(sec==2)
 g_iRdChatN++;
 g_iRdN++;
 }
 fclose(fp);
-if(g_iRdN || g_iMmN)
+if(g_iRdN||g_iMmN)
 log_amx("[Vexmira] harita v3.7: telsiz satiri %d (sohbet %d), dekor modeli %d",g_iRdN,g_iRdChatN,g_iMmN);
 }
 MsRadioFind(const key[])
 {
-for(new r = 0;r < g_iRdN;r++)
+for(new r=0;r < g_iRdN;r++)
 {
 if(!g_bRdChat[r]&& equali(g_szRdKey[r],key))
 return r;
@@ -26740,21 +26741,21 @@ return -1;
 MsRadioLink()
 {
 new k[32];
-for(new i = 0;i < MS_MAXMSG;i++)
+for(new i=0;i < MS_MAXMSG;i++)
 g_iMsMsgRadio[i]= i < g_iMsMsgN ? MsRadioFind(g_szMsMsgKey[i]): -1;
-for(new e = 0;e < ME_NUM;e++)
+for(new e=0;e < ME_NUM;e++)
 {
 formatex(k,charsmax(k),"ev_%s",ME_NAME[e]);
 g_iMeRadio[e]= MsRadioFind(k);
 g_iMeFx[e]= MsFxFind(k);
 }
-for(new i = 0;i < MS_MAXMSG;i++)
+for(new i=0;i < MS_MAXMSG;i++)
 g_iMsMsgFx[i]= i < g_iMsMsgN ? MsFxFind(g_szMsMsgKey[i]): -1;
-g_iRdLock = MsRadioFind("lock");
+g_iRdLock=MsRadioFind("lock");
 }
 MsFxFind(const key[])
 {
-for(new k = 0;k < g_iFxKeyN;k++)
+for(new k=0;k < g_iFxKeyN;k++)
 {
 if(equali(g_szFxKey[k],key))
 return k;
@@ -26764,7 +26765,7 @@ return -1;
 MsRadioSend(r,id)
 {
 if(g_iSet[id]&SET_NO_RADIO52)return;
-new l = MsLang(id);
+new l=MsLang(id);
 if(g_szRdFile[r][l][0])
 VxClientCmd527(id,"spk ^"vexmira/radio/%s^"",g_szRdFile[r][l]);
 if(g_szRdSub[r][l][0])
@@ -26772,120 +26773,120 @@ client_print_color(id,print_team_grey,"^4[%s]^1 %s",l ? "TELSIZ" : "RADIO",g_szR
 }
 MsRadioPlay(r)
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id)&& !is_user_bot(id))
 MsRadioSend(r,id);
 }
-g_fRdBusy = get_gametime()+ g_fRdLen[r]+ 0.4;
+g_fRdBusy=get_gametime()+ g_fRdLen[r]+ 0.4;
 if(get_pcvar_num(g_pMsDebug))
 log_amx("[Vexmira] map telsiz '%s' (%.1f sn)",g_szRdKey[r],g_fRdLen[r]);
 }
-MsRadio(r,Float:delay = 0.0)
+MsRadio(r,Float:delay=0.0)
 {
-if(r < 0 || r >= g_iRdN || !get_pcvar_num(g_pMsRadio))
+if(r < 0||r>=g_iRdN||!get_pcvar_num(g_pMsRadio))
 return;
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(g_bRdChat[r]|| g_bRdLow[r])
 {
-if(now >= floatmax(g_fRdBusy,g_fRadioBusy52)&& now >= g_fRdNext[r])
+if(now>=floatmax(g_fRdBusy,g_fRadioBusy52)&& now>=g_fRdNext[r])
 {
 g_fRdNext[r]= now + 20.0;
 MsRadioPlay(r);
 }
 return;
 }
-new Float:at = floatmax(now + delay,g_fRdBusy);
-if(at <= now + 0.01)
+new Float:at=floatmax(now + delay,g_fRdBusy);
+if(at<=now + 0.01)
 {
 MsRadioPlay(r);
 return;
 }
-g_iRdPending = r;
+g_iRdPending=r;
 remove_task(TASK_MSRADIO);
 set_task(at - now + 0.05,"task_MsRadioNext",TASK_MSRADIO);
-g_fRdBusy = floatmax(g_fRdBusy,at);
+g_fRdBusy=floatmax(g_fRdBusy,at);
 }
 public task_MsRadioNext()
 {
-new r = g_iRdPending;
-g_iRdPending = -1;
-if(r >= 0)
+new r=g_iRdPending;
+g_iRdPending=-1;
+if(r>=0)
 MsRadioPlay(r);
 }
 MsRadioTo(r,id)
 {
-if(r < 0 || !get_pcvar_num(g_pMsRadio)|| get_gametime()< g_fRdBusy || is_user_bot(id))
+if(r < 0||!get_pcvar_num(g_pMsRadio)|| get_gametime()< g_fRdBusy||is_user_bot(id))
 return;
 MsRadioSend(r,id);
 }
 MsChatterTick()
 {
-new avg = get_pcvar_num(g_pMsChatter);
-if(!g_bMsLive || !g_iRdChatN || avg <= 0)
+new avg=get_pcvar_num(g_pMsChatter);
+if(!g_bMsLive||!g_iRdChatN||avg<=0)
 return;
-if(g_iRdChatIn <= 0)
+if(g_iRdChatIn<=0)
 {
-g_iRdChatIn = random_num(avg / 2,avg);
+g_iRdChatIn=random_num(avg / 2,avg);
 return;
 }
 if(--g_iRdChatIn > 0)
 return;
-g_iRdChatIn = random_num(avg * 6 / 10,avg * 14 / 10);
-new pick = -1,n;
-for(new tries = 0;tries < 8 && pick < 0;tries++)
+g_iRdChatIn=random_num(avg * 6 / 10,avg * 14 / 10);
+new pick=-1,n;
+for(new tries=0;tries < 8&&pick < 0;tries++)
 {
-n = random_num(0,g_iRdChatN - 1);
-for(new r = 0;r < g_iRdN;r++)
+n=random_num(0,g_iRdChatN - 1);
+for(new r=0;r < g_iRdN;r++)
 {
-if(g_bRdChat[r]&& n-- == 0)
+if(g_bRdChat[r]&& n--==0)
 {
-if(r != g_iRdLastChat || g_iRdChatN == 1)
-pick = r;
+if(r!=g_iRdLastChat||g_iRdChatN==1)
+pick=r;
 break;
 }
 }
 }
-if(pick >= 0)
+if(pick>=0)
 {
-g_iRdLastChat = pick;
+g_iRdLastChat=pick;
 MsRadio(pick);
 }
 }
 MdlBounds539(const path[],Float:mn[3],Float:mx[3])
 {
 mn[0]= -40.0;mn[1]= -40.0;mn[2]= 0.0;mx[0]= 40.0;mx[1]= 40.0;mx[2]= 160.0;
-new fp = fopen(path,"rb",true);
+new fp=fopen(path,"rb",true);
 if(!fp)return;
 new id,raw,Float:v[12];
 fread(fp,id,BLOCK_INT);
-if(id == 0x54534449)
+if(id==0x54534449)
 {
 fseek(fp,88,SEEK_SET);
-for(new i = 0;i < 12;i++){fread(fp,raw,BLOCK_INT);v[i]= Float:raw;}
+for(new i=0;i < 12;i++){fread(fp,raw,BLOCK_INT);v[i]= Float:raw;}
 new Float:a[3],Float:b[3];
-for(new k = 0;k < 3;k++){a[k]= floatmin(v[k],v[6 + k]);b[k]= floatmax(v[3 + k],v[9 + k]);}
-if(b[0]- a[0]> 1.0 && b[2]- a[2]> 1.0 && b[2]- a[2]< 2000.0)
-for(new k = 0;k < 3;k++){mn[k]= a[k]- 8.0;mx[k]= b[k]+ 8.0;}
+for(new k=0;k < 3;k++){a[k]= floatmin(v[k],v[6 + k]);b[k]= floatmax(v[3 + k],v[9 + k]);}
+if(b[0]- a[0]> 1.0&&b[2]- a[2]> 1.0&&b[2]- a[2]< 2000.0)
+for(new k=0;k < 3;k++){mn[k]= a[k]- 8.0;mx[k]= b[k]+ 8.0;}
 }
 fclose(fp);
 }
 MsModelsSpawn()
 {
 new Float:o[3],Float:ang[3],Float:col[3],tgt;
-for(new m = 0;m < g_iMmN;m++)
+for(new m=0;m < g_iMmN;m++)
 {
-tgt = 0;
+tgt=0;
 if(g_szMmFollow[m][0])
 {
-tgt = engfunc(EngFunc_FindEntityByString,-1,"targetname",g_szMmFollow[m]);
-if(tgt <= 0)
+tgt=engfunc(EngFunc_FindEntityByString,-1,"targetname",g_szMmFollow[m]);
+if(tgt<=0)
 {
 log_amx("[Vexmira] map model %s: izlenecek varlik '%s' yok",g_szMmPath[m],g_szMmFollow[m]);
 continue;
 }
 }
-new e = CreateSafe51("info_target");
+new e=CreateSafe51("info_target");
 if(!pev_valid(e))
 continue;
 set_pev(e,pev_classname,"vex_mapmodel");
@@ -26899,7 +26900,7 @@ pev(tgt,pev_origin,o);
 set_pev(e,pev_movetype,MOVETYPE_FOLLOW);
 set_pev(e,pev_aiment,tgt);
 new Float:ofs[3],Float:mn[3],Float:mx[3];
-if(o[0]== 0.0 && o[1]== 0.0 && o[2]== 0.0)
+if(o[0]== 0.0&&o[1]== 0.0&&o[2]== 0.0)
 {
 pev(tgt,pev_absmin,mn);
 pev(tgt,pev_absmax,mx);
@@ -26924,8 +26925,8 @@ set_pev(e,pev_movetype,MOVETYPE_NONE);
 {
 new Float:bmn[3],Float:bmx[3];
 MdlBounds539(g_szMmPath[m],bmn,bmx);
-new Float:sc = g_fMmScale[m]> 0.01 ? g_fMmScale[m]: 1.0;
-for(new k = 0;k < 3;k++){
+new Float:sc=g_fMmScale[m]> 0.01 ? g_fMmScale[m]: 1.0;
+for(new k=0;k < 3;k++){
 bmn[k]*= sc;
 bmx[k]*= sc;
 }
@@ -26950,29 +26951,29 @@ set_pev(e,pev_rendercolor,col);
 }
 g_iMmEnt[m]= e;
 g_iMmTgt[m]= tgt;
-if(tgt && !g_bMmBrkHook)
+if(tgt&&!g_bMmBrkHook)
 {
 new cls[32];
 pev(tgt,pev_classname,cls,charsmax(cls));
 if(equal(cls,"func_breakable"))
 {
 VxRegisterHam524(Ham_Killed,"func_breakable","fw_MsBrkKilled",1);
-g_bMmBrkHook = true;
+g_bMmBrkHook=true;
 }
 }
 }
 }
 public fw_MsBrkKilled(ent)
 {
-for(new m = 0;m < g_iMmN;m++)
+for(new m=0;m < g_iMmN;m++)
 {
-if(g_iMmTgt[m]== ent && pev_valid(g_iMmEnt[m]))
+if(g_iMmTgt[m]== ent&&pev_valid(g_iMmEnt[m]))
 set_pev(g_iMmEnt[m],pev_effects,pev(g_iMmEnt[m],pev_effects)| EF_NODRAW);
 }
 }
 MsModelsReset()
 {
-for(new m = 0;m < g_iMmN;m++)
+for(new m=0;m < g_iMmN;m++)
 {
 if(g_iMmTgt[m]&& pev_valid(g_iMmEnt[m]))
 set_pev(g_iMmEnt[m],pev_effects,pev(g_iMmEnt[m],pev_effects)& ~EF_NODRAW);
@@ -26980,21 +26981,21 @@ set_pev(g_iMmEnt[m],pev_effects,pev(g_iMmEnt[m],pev_effects)& ~EF_NODRAW);
 }
 MsParseFx(const key[],const val[])
 {
-if(g_iFxN >= MS_MAXFX)
+if(g_iFxN>=MS_MAXFX)
 return 0;
-new src[384],tok[64],i = g_iFxN,type,n,np;
+new src[384],tok[64],i=g_iFxN,type,n,np;
 copy(src,charsmax(src),val);
 if(!MsTok(src,tok,charsmax(tok)))
 return 0;
-for(new t = 1;t < sizeof MFX_NAME;t++)
+for(new t=1;t < sizeof MFX_NAME;t++)
 {
 if(equali(tok,MFX_NAME[t]))
-type = t;
+type=t;
 }
 if(!type)
 return 0;
 g_szFxSnd[i][0]= 0;
-if(type == MFX_SND)
+if(type==MFX_SND)
 {
 if(!MsTok(src,tok,charsmax(tok))|| !TrieKeyExists(g_tSnd3D,tok))
 return 0;
@@ -27005,12 +27006,12 @@ g_iFxRep[i]= 1;
 g_fFxDt[i]= 0.5;
 g_fFxDelay[i]= 0.0;
 g_iFxCol[i]= 0xFFFFFF;
-for(new k = 0;k < 6;k++)
+for(new k=0;k < 6;k++)
 g_fFxP[i][k]= -1.0;
 while(MsTok(src,tok,charsmax(tok)))
 {
-new c = contain(tok,":");
-if(tok[0]== '@' && !n)
+new c=contain(tok,":");
+if(tok[0]== '@'&&!n)
 {
 g_iFxEnt[i]= engfunc(EngFunc_FindEntityByString,-1,"targetname",tok[1]);
 if(g_iFxEnt[i]<= 0)
@@ -27033,17 +27034,17 @@ g_fFxP[i][np++]= str_to_float(tok);
 }
 if(n < 3)
 return 0;
-new kx = -1;
-for(new k = 0;k < g_iFxKeyN;k++)
+new kx=-1;
+for(new k=0;k < g_iFxKeyN;k++)
 {
 if(equali(g_szFxKey[k],key))
-kx = k;
+kx=k;
 }
 if(kx < 0)
 {
-if(g_iFxKeyN >= MS_MAXFXKEY || strlen(key)> 23)
+if(g_iFxKeyN>=MS_MAXFXKEY||strlen(key)> 23)
 return 0;
-kx = g_iFxKeyN++;
+kx=g_iFxKeyN++;
 copy(g_szFxKey[kx],charsmax(g_szFxKey[]),key);
 }
 g_iFxKeyOf[i]= kx;
@@ -27060,8 +27061,8 @@ MsFxOrigin(i,Float:o[3])
 o[0]= g_fFxPos[i][0];
 o[1]= g_fFxPos[i][1];
 o[2]= g_fFxPos[i][2];
-new e = g_iFxEnt[i];
-if(e > 0 && pev_valid(e))
+new e=g_iFxEnt[i];
+if(e > 0&&pev_valid(e))
 {
 new Float:eo[3];
 pev(e,pev_origin,eo);
@@ -27072,9 +27073,9 @@ o[2]+= eo[2];
 }
 MsFxFire(kx)
 {
-for(new i = 0;i < g_iFxN;i++)
+for(new i=0;i < g_iFxN;i++)
 {
-if(g_iFxKeyOf[i]!= kx || g_iFxType[i]== MFX_SAFE)
+if(g_iFxKeyOf[i]!= kx||g_iFxType[i]== MFX_SAFE)
 continue;
 remove_task(TASK_MSFX + i);
 g_iFxLeft[i]= g_iFxRep[i];
@@ -27088,8 +27089,8 @@ log_amx("[Vexmira] map efekt '%s'",g_szFxKey[kx]);
 }
 public task_MsFx(tid)
 {
-new i = tid - TASK_MSFX;
-if(i < 0 || i >= g_iFxN)
+new i=tid - TASK_MSFX;
+if(i < 0||i>=g_iFxN)
 return;
 MsFxRun(i);
 if(--g_iFxLeft[i]> 0)
@@ -27097,12 +27098,12 @@ set_task(g_fFxDt[i],"task_MsFx",tid);
 }
 public task_MsFogEnd()
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 SendFogForEvent(p);
 }
 MsFxRun(i)
 {
-new Float:o[3],Float:q[3],r =(g_iFxCol[i]>> 16)& 255,g =(g_iFxCol[i]>> 8)& 255,b = g_iFxCol[i]& 255;
+new Float:o[3],Float:q[3],r =(g_iFxCol[i]>> 16)& 255,g =(g_iFxCol[i]>> 8)& 255,b=g_iFxCol[i]& 255;
 MsFxOrigin(i,o);
 switch(g_iFxType[i])
 {
@@ -27116,15 +27117,15 @@ return;
 }
 case MFX_SND:
 {
-new pit = floatround(MsFxP(i,2,100.0));
+new pit=floatround(MsFxP(i,2,100.0));
 engfunc(EngFunc_EmitAmbientSound,0,o,g_szFxSnd[i],floatclamp(MsFxP(i,0,1.0),0.05,1.0),
 floatclamp(MsFxP(i,1,0.8),0.0,4.0),0,clamp(pit + random_num(-5,5),50,200));
 return;
 }
 case MFX_FOG:
 {
-new dens = clamp(floatround(MsFxP(i,0,30.0)),1,400);
-for(new p = 1;p <= g_iMax;p++)
+new dens=clamp(floatround(MsFxP(i,0,30.0)),1,400);
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& !(g_iSet[p]& SET_NO_FOG))
 SendFogEx(p,r,g,b,dens);
@@ -27135,8 +27136,8 @@ return;
 }
 case MFX_SHAKE:
 {
-new Float:rad = MsFxP(i,0,600.0),Float:po[3];
-for(new p = 1;p <= g_iMax;p++)
+new Float:rad=MsFxP(i,0,600.0),Float:po[3];
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| is_user_bot(p))
 continue;
@@ -27152,7 +27153,7 @@ message_end();
 return;
 }
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!FxWants(p,o))
 continue;
@@ -27196,7 +27197,7 @@ message_end();
 }
 case MFX_SPARKS:
 {
-for(new k = 0,nk = clamp(floatround(MsFxP(i,0,2.0)),1,6);k < nk;k++)
+for(new k=0,nk=clamp(floatround(MsFxP(i,0,2.0)),1,6);k < nk;k++)
 {
 FxBegin(o,p);
 write_byte(TE_SPARKS);
@@ -27208,7 +27209,7 @@ message_end();
 }
 case MFX_DUST,MFX_RING:
 {
-new Float:rad = MsFxP(i,0,180.0);
+new Float:rad=MsFxP(i,0,180.0);
 FxBegin(o,p);
 write_byte(TE_BEAMCYLINDER);
 engfunc(EngFunc_WriteCoord,o[0]);
@@ -27231,9 +27232,9 @@ write_byte(0);
 message_end();
 if(g_iFxType[i]!= MFX_DUST)
 continue;
-for(new k = 0;k < 6;k++)
+for(new k=0;k < 6;k++)
 {
-new Float:a = float(k)* 60.0 + random_float(0.0,30.0);
+new Float:a=float(k)* 60.0 + random_float(0.0,30.0);
 FxBegin(o,p);
 write_byte(TE_SMOKE);
 engfunc(EngFunc_WriteCoord,o[0]+ floatcos(a,degrees)* rad * 0.6);
@@ -27262,8 +27263,8 @@ message_end();
 }
 case MFX_SPOT:
 {
-new e = g_iFxEnt[i];
-if(e <= 0 || !pev_valid(e))
+new e=g_iFxEnt[i];
+if(e<=0||!pev_valid(e))
 continue;
 q[0]= o[0]+ MsFxP(i,0,0.0);
 q[1]= o[1]+ MsFxP(i,1,0.0);
@@ -27305,16 +27306,16 @@ message_end();
 }
 stock bool:MsFxHullFree(const Float:o[3],ignore)
 {
-new tr = create_tr2();
+new tr=create_tr2();
 engfunc(EngFunc_TraceHull,o,o,0,HULL_HUMAN,ignore,tr);
-new bool:ok = !get_tr2(tr,TR_StartSolid)&& !get_tr2(tr,TR_AllSolid);
+new bool:ok=!get_tr2(tr,TR_StartSolid)&& !get_tr2(tr,TR_AllSolid);
 free_tr2(tr);
 return ok;
 }
 MsFxClear(i,const Float:mn[3],const Float:mx[3],bool:onlyStuck)
 {
-new Float:po[3],Float:best[3],Float:d,Float:bd,Float:s[3],e = g_iFxEnt[i],moved;
-for(new p = 1;p <= g_iMax;p++)
+new Float:po[3],Float:best[3],Float:d,Float:bd,Float:s[3],e=g_iFxEnt[i],moved;
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))
 continue;
@@ -27325,11 +27326,11 @@ if(onlyStuck)
 {
 if(MsFxHullFree(po,p))
 continue;
-if(e > 0 && pev_valid(e))
+if(e > 0&&pev_valid(e))
 {
 new Float:emx[3];
 pev(e,pev_absmax,emx);
-s = po;
+s=po;
 s[2]= emx[2]+ 37.0;
 if(MsFxHullFree(s,p))
 {
@@ -27339,26 +27340,26 @@ continue;
 }
 }
 }
-else if(e > 0 && pev_valid(e))
+else if(e > 0&&pev_valid(e))
 {
 new Float:emn[3];
 pev(e,pev_absmin,emn);
-if(pev(p,pev_groundentity)== e || po[2]> emn[2]+ 30.0)
+if(pev(p,pev_groundentity)== e||po[2]> emn[2]+ 30.0)
 continue;
 }
-bd = 999999.0;
+bd=999999.0;
 new found;
-for(new k = 0;k < g_iFxN;k++)
+for(new k=0;k < g_iFxN;k++)
 {
 if(g_iFxType[k]!= MFX_SAFE)
 continue;
-s = g_fFxPos[k];
-d = get_distance_f(po,s);
-if(d < bd && MsFxHullFree(s,p))
+s=g_fFxPos[k];
+d=get_distance_f(po,s);
+if(d < bd&&MsFxHullFree(s,p))
 {
-bd = d;
-best = s;
-found = 1;
+bd=d;
+best=s;
+found=1;
 }
 }
 if(!found)
@@ -27369,34 +27370,34 @@ moved++;
 if(!is_user_bot(p))
 client_print(p,print_center,"%s",MsLang(p)? "Inis alani - geri cekildin" : "Landing zone - you were moved clear");
 }
-if(moved && get_pcvar_num(g_pMsDebug))
+if(moved&&get_pcvar_num(g_pMsDebug))
 log_amx("[Vexmira] map efekt %s: %d oyuncu tasindi (%s)",MFX_NAME[g_iFxType[i]],moved,g_szFxKey[g_iFxKeyOf[i]]);
 }
 public fw_MsRelayUse(ent,caller,activator,type,Float:value)
 {
-if(ent > 0 && ent < OVH_MAXENT && g_iMsCmdOf[ent])
+if(ent > 0&&ent < OVH_MAXENT&&g_iMsCmdOf[ent])
 MsCommand(g_iMsCmdOf[ent]- 1);
 return HAM_IGNORED;
 }
 MsCommand(c)
 {
-new arg = g_iMsCmdArg[c];
+new arg=g_iMsCmdArg[c];
 if(get_pcvar_num(g_pMsDebug))
 log_amx("[Vexmira] map komut %d tur=%d arg=%d round=%d",c,g_iMsCmdType[c],arg,g_iMsRound);
 switch(g_iMsCmdType[c])
 {
 case MC_MSG:
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fMsCmdNext[c]|| now < g_fMsMsgNext)
 return;
 g_fMsCmdNext[c]= now + 4.0;
-g_fMsMsgNext = now + 1.0;
-for(new id = 1;id <= g_iMax;id++)
+g_fMsMsgNext=now + 1.0;
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
-new l = MsLang(id);
+new l=MsLang(id);
 HudText(id,SL_ANN,CLR_WARN,4.0,g_szMsMsg[arg][l]);
 client_print(id,print_console,"%s",g_szMsMsg[arg][l]);
 }
@@ -27413,11 +27414,11 @@ case MC_FX:
 MsFxFire(arg);
 case MC_RH,MC_RZ:
 {
-if(!get_pcvar_num(g_pMsRewards)|| g_bRoundEnded || g_iMsCmdRound[c]== g_iMsRound)
+if(!get_pcvar_num(g_pMsRewards)|| g_bRoundEnded||g_iMsCmdRound[c]== g_iMsRound)
 return;
 g_iMsCmdRound[c]= g_iMsRound;
-new bool:z = g_iMsCmdType[c]== MC_RZ;
-for(new id = 1;id <= g_iMax;id++)
+new bool:z=g_iMsCmdType[c]== MC_RZ;
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_alive(id)||(g_bZombie[id]!= 0)!= z)
 continue;
@@ -27433,15 +27434,15 @@ g_bMsObjDone[arg]= true;UiAll52(60,2.0,4);
 if(get_pcvar_num(g_pMsDebug))
 log_amx("[Vexmira] map gorev %d tamam -> isaretler yenilendi",arg + 1);
 MsMkRefresh();
-if(arg >= g_iMsObjN || !get_pcvar_num(g_pMsObj))
+if(arg>=g_iMsObjN||!get_pcvar_num(g_pMsObj))
 return;
-new bool:all = true;
-for(new k = 0;k < g_iMsObjN;k++)
+new bool:all=true;
+for(new k=0;k < g_iMsObjN;k++)
 {
 if(!g_bMsObjDone[k])
-all = false;
+all=false;
 }
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))
 continue;
@@ -27458,9 +27459,9 @@ VxClientCmd527(0,"spk ^"%s^"",g_szMsSndObj);
 }
 MsShowObjectives(id,bool:hud)
 {
-new l = MsLang(id),cur = -1,done;
+new l=MsLang(id),cur=-1,done;
 Chat(id,"MAP_OBJ_HEAD",g_szMsName[l][0]? g_szMsName[l]: "-");
-for(new k = 0;k < g_iMsObjN;k++)
+for(new k=0;k < g_iMsObjN;k++)
 {
 if(g_bMsObjDone[k])
 {
@@ -27470,12 +27471,12 @@ Chat(id,"MAP_OBJ_LINE_DONE",g_szMsObj[l][k]);
 else
 {
 if(cur < 0)
-cur = k;
-if(g_bMsSeq && cur != k)
+cur=k;
+if(g_bMsSeq&&cur!=k)
 Chat(id,"MAP_OBJ_LINE_LOCK",k + 1,g_iMsObjN,g_szMsObj[l][k]);
 else if(g_bMsSeq)
 Chat(id,"MAP_OBJ_LINE_CUR",k + 1,g_iMsObjN,g_szMsObj[l][k]);
-else if(k < g_iMsMkN && get_pcvar_num(g_pMsMarkers))
+else if(k < g_iMsMkN&&get_pcvar_num(g_pMsMarkers))
 Chat(id,"MAP_OBJ_LINE_MK",g_szMsObj[l][k],g_szMsMkName[k][l]);
 else
 Chat(id,"MAP_OBJ_LINE_OPEN",g_szMsObj[l][k]);
@@ -27483,11 +27484,11 @@ Chat(id,"MAP_OBJ_LINE_OPEN",g_szMsObj[l][k]);
 }
 if(get_pcvar_num(g_pMsDebug))
 log_amx("[Vexmira] map gorevler #%d: %d/%d tamam, acik=%d",id,done,g_iMsObjN,cur + 1);
-if(hud && cur >= 0)
+if(hud&&cur>=0)
 {
 new t[128];
 formatex(t,charsmax(t),"%L",id,"MAP_OBJ_CUR",cur + 1,g_iMsObjN,g_szMsObj[l][cur]);
-if(g_bMsSeq && cur < g_iMsMkN && get_pcvar_num(g_pMsMarkers))
+if(g_bMsSeq&&cur < g_iMsMkN&&get_pcvar_num(g_pMsMarkers))
 format(t,charsmax(t),"%s^n%L",t,id,"MAP_OBJ_CUR_MK",g_szMsMkName[cur][l]);
 HudText(id,SL_PERS,CLR_HUMAN,6.0,t);
 }
@@ -27513,14 +27514,14 @@ remove_task(TASK_MSSTORY + id);
 }
 public task_MsStory(tid)
 {
-new id = tid - TASK_MSSTORY;
+new id=tid - TASK_MSSTORY;
 if(!is_user_connected(id))
 return;
-new l = MsLang(id),step = g_iMsStep[id];
+new l=MsLang(id),step=g_iMsStep[id];
 if(step > g_iMsStoryN[l])
 return;
-new slot = step ? SL_PERS : SL_ANN;
-new Float:now = get_gametime();
+new slot=step ? SL_PERS : SL_ANN;
+new Float:now=get_gametime();
 if(now < g_fSlotEnd[id][slot]&& g_iMsTries[id]< 12)
 {
 g_iMsTries[id]++;
@@ -27539,8 +27540,8 @@ return;
 }
 new text[MS_LEN],len;
 copy(text,charsmax(text),g_szMsStory[l][step - 1]);
-len = strlen(text);
-new Float:type = float(len)* MS_CHART;
+len=strlen(text);
+new Float:type=float(len)* MS_CHART;
 set_dhudmessage(230,205,150,-1.0,SLOT_Y[SL_PERS],2,0.4,2.4,MS_CHART,0.5);
 show_dhudmessage(id,"%s",text);
 g_fSlotEnd[id][SL_PERS]= now + type + 2.4 + 1.0;
@@ -27560,31 +27561,31 @@ Chat(id,"MAP_NO_STORY");
 return PLUGIN_HANDLED;
 }
 MsStoryStart(id,0.1);
-if(g_iMsObjN && get_pcvar_num(g_pMsObj))
+if(g_iMsObjN&&get_pcvar_num(g_pMsObj))
 MsShowObjectives(id,false);
 return PLUGIN_HANDLED;
 }
 #define MAPV_MAX 8
 MapVoteInit()
 {
-g_pMapVote = register_cvar("vex_map_vote","1");
-g_pCosPreview = register_cvar("vex_cos_preview","10");
-g_pCosDeal = register_cvar("vex_cos_daily_deal","25");
-g_pCosHide = register_cvar("vex_cos_hide","1");
-g_pMapPool = register_cvar("vex_map_pool","zm_vexmira_icefy zm_vexmira_dust zm_vexmira_7door zm_vex_laboratory");
-g_pMapVoteRound = register_cvar("vex_map_vote_round","0");
-g_pMapVoteTime = register_cvar("vex_map_vote_time","20");
-g_pMapVoteExtend = register_cvar("vex_map_vote_extend","0");
-g_pMapExtendRounds = register_cvar("vex_map_extend_rounds","10");
-g_pMapChangeDelay = register_cvar("vex_map_change_delay","7.0");
-g_pMapChooserGuard = register_cvar("vex_map_vote_mapchooser","1");
-g_pRtvRatio = register_cvar("vex_rtv_ratio","0.60");
-g_pRtvMinPlayers = register_cvar("vex_rtv_minplayers","2");
-g_pRtvMinRound = register_cvar("vex_rtv_minround","3");
-g_pAmxNextmap = register_cvar("amx_nextmap","",FCVAR_SERVER | FCVAR_EXTDLL | FCVAR_SPONLY);
+g_pMapVote=register_cvar("vex_map_vote","1");
+g_pCosPreview=register_cvar("vex_cos_preview","10");
+g_pCosDeal=register_cvar("vex_cos_daily_deal","25");
+g_pCosHide=register_cvar("vex_cos_hide","1");
+g_pMapPool=register_cvar("vex_map_pool","zm_vexmira_icefy zm_vexmira_dust zm_vexmira_7door zm_vex_laboratory");
+g_pMapVoteRound=register_cvar("vex_map_vote_round","0");
+g_pMapVoteTime=register_cvar("vex_map_vote_time","20");
+g_pMapVoteExtend=register_cvar("vex_map_vote_extend","0");
+g_pMapExtendRounds=register_cvar("vex_map_extend_rounds","10");
+g_pMapChangeDelay=register_cvar("vex_map_change_delay","7.0");
+g_pMapChooserGuard=register_cvar("vex_map_vote_mapchooser","1");
+g_pRtvRatio=register_cvar("vex_rtv_ratio","0.60");
+g_pRtvMinPlayers=register_cvar("vex_rtv_minplayers","2");
+g_pRtvMinRound=register_cvar("vex_rtv_minround","3");
+g_pAmxNextmap=register_cvar("amx_nextmap","",FCVAR_SERVER | FCVAR_EXTDLL | FCVAR_SPONLY);
 get_mapname(g_szCurMap,charsmax(g_szCurMap));
 strtolower(g_szCurMap);
-for(new i = 0;i <= MAX_PLAYERS;i++)
+for(new i=0;i<=MAX_PLAYERS;i++)
 g_iMapVoted[i]= -1;
 RegisterSay("nextmap","sonrakiharita","cmd_nextmap");
 RegisterSay("maps","haritalar","cmd_maps");
@@ -27610,17 +27611,17 @@ MapCandidates(out[][32],maxn)
 {
 new list[256],tmp[32],pos,n;
 get_pcvar_string(g_pMapPool,list,charsmax(list));
-while(n < maxn &&(pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+while(n < maxn &&(pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 strtolower(tmp);
 if(!tmp[0]|| !MapExists(tmp))
 continue;
-new bool:dup = false;
-for(new i = 0;i < n;i++)
+new bool:dup=false;
+for(new i=0;i < n;i++)
 {
 if(equal(out[i],tmp))
 {
-dup = true;
+dup=true;
 break;
 }
 }
@@ -27631,10 +27632,10 @@ return n;
 }
 MapVoteRoundNum()
 {
-new total = RoundsTotal();
-new r = get_pcvar_num(g_pMapVoteRound);
-if(r <= 0)
-r = total - 1;
+new total=RoundsTotal();
+new r=get_pcvar_num(g_pMapVoteRound);
+if(r<=0)
+r=total - 1;
 return clamp(r,1,total);
 }
 bool:MapEndsByRounds()
@@ -27644,7 +27645,7 @@ return get_cvar_num("mp_maxrounds")> 0 ? true : false;
 SetNextMap(const map[])
 {
 copy(g_szNextMap,charsmax(g_szNextMap),map);
-g_bMapDecided = true;
+g_bMapDecided=true;
 if(g_pAmxNextmap)
 set_pcvar_string(g_pAmxNextmap,map);
 if(cvar_exists("nextmap"))
@@ -27653,21 +27654,21 @@ log_amx("[Vexmira] sonraki harita: %s",map);
 }
 MapPickFallback()
 {
-if(g_bMapDecided && g_szNextMap[0])
+if(g_bMapDecided&&g_szNextMap[0])
 return;
 new maps[MAPV_MAX][32];
-new n = MapCandidates(maps,MAPV_MAX);
+new n=MapCandidates(maps,MAPV_MAX);
 if(n > 0)
 SetNextMap(maps[random(n)]);
 }
 MapVoteTick()
 {
-if(g_bMapVoting || g_bMapChanging || !g_bRoundActive || g_bRoundEnded)
+if(g_bMapVoting||g_bMapChanging||!g_bRoundActive||g_bRoundEnded)
 {
-g_iMapVoteWait = 0;
+g_iMapVoteWait=0;
 return;
 }
-if(!MapVoteOn()|| !MapEndsByRounds()|| g_bMapDecided || g_iVoteType)
+if(!MapVoteOn()|| !MapEndsByRounds()|| g_bMapDecided||g_iVoteType)
 return;
 if(g_iRound < MapVoteRoundNum())
 return;
@@ -27677,58 +27678,58 @@ StartMapVote(0,false);
 }
 StartMapVote(starter,bool:changeNow)
 {
-if(g_bMapVoting || g_iVoteType)
+if(g_bMapVoting||g_iVoteType)
 {
 if(starter)
 Chat(starter,"VOTE_RUNNING");
 return false;
 }
 new maps[MAPV_MAX][32];
-new n = MapCandidates(maps,MAPV_MAX);
+new n=MapCandidates(maps,MAPV_MAX);
 new bool:ext =(get_pcvar_num(g_pMapVoteExtend)> 0 &&(changeNow ||(MapEndsByRounds()&& g_iMapExtends < 1)))? true : false;
-if(n == 0)
+if(n==0)
 {
 if(starter)
 Chat(starter,"MAPV_NONE");
 log_amx("[Vexmira] harita oylamasi: havuzda (vex_map_pool) baska gecerli harita yok");
-g_bMapDecided = true;
+g_bMapDecided=true;
 g_szNextMap[0]= 0;
 return false;
 }
-if(n == 1 && !ext)
+if(n==1&&!ext)
 {
 SetNextMap(maps[0]);
-g_bMapChangeNow = changeNow;
+g_bMapChangeNow=changeNow;
 ChatAllS("MAPV_ONLY",maps[0]);
 if(changeNow)
 MapChangeAfterRound();
 return true;
 }
-new lim = ext ? MAPV_MAX - 1 : MAPV_MAX;
-for(new i = n - 1;i > 0;i--)
+new lim=ext ? MAPV_MAX - 1 : MAPV_MAX;
+for(new i=n - 1;i > 0;i--)
 {
-new j = random(i + 1);
+new j=random(i + 1);
 new t[32];
 copy(t,charsmax(t),maps[i]);
 copy(maps[i],31,maps[j]);
 copy(maps[j],31,t);
 }
-g_iMapOptN = 0;
-for(new i = 0;i < n && g_iMapOptN < lim;i++)
+g_iMapOptN=0;
+for(new i=0;i < n&&g_iMapOptN < lim;i++)
 copy(g_szMapOpt[g_iMapOptN++],charsmax(g_szMapOpt[]),maps[i]);
-g_iMapExtOpt = -1;
+g_iMapExtOpt=-1;
 if(ext)
 {
-g_iMapExtOpt = g_iMapOptN;
+g_iMapExtOpt=g_iMapOptN;
 g_szMapOpt[g_iMapOptN++][0]= 0;
 }
-for(new i = 0;i < MAPV_MAX;i++)
+for(new i=0;i < MAPV_MAX;i++)
 g_iMapVotes[i]= 0;
-for(new p = 0;p <= MAX_PLAYERS;p++)
+for(new p=0;p<=MAX_PLAYERS;p++)
 g_iMapVoted[p]= -1;
-g_bMapVoting = true;
-g_bMapChangeNow = changeNow;
-g_iMapVoteLeft = clamp(get_pcvar_num(g_pMapVoteTime),5,60);
+g_bMapVoting=true;
+g_bMapChangeNow=changeNow;
+g_iMapVoteLeft=clamp(get_pcvar_num(g_pMapVoteTime),5,60);
 new name[32];
 if(starter)
 get_user_name(starter,name,charsmax(name));
@@ -27749,12 +27750,12 @@ if(!g_bMapVoting)
 remove_task(TASK_MAPVOTE);
 return;
 }
-if(g_iMapVoteLeft <= 0)
+if(g_iMapVoteLeft<=0)
 {
 FinishMapVote();
 return;
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
@@ -27767,11 +27768,11 @@ bool:MapVoteMenuOpen(id)
 {
 new m,nm,pg;
 player_menu_info(id,m,nm,pg);
-return(nm != -1 && nm == g_iMapVoteMenu[id])? true : false;
+return(nm!=-1&&nm==g_iMapVoteMenu[id])? true : false;
 }
 MapOptName(id,opt,out[],len)
 {
-if(opt == g_iMapExtOpt)
+if(opt==g_iMapExtOpt)
 {
 if(g_bMapChangeNow)
 formatex(out,len,"%L",id,"MAPV_STAY");
@@ -27784,24 +27785,24 @@ copy(out,len,g_szMapOpt[opt]);
 ShowMapVoteMenu(id)
 {
 new total;
-for(new i = 0;i < g_iMapOptN;i++)
-total += g_iMapVotes[i];
+for(new i=0;i < g_iMapOptN;i++)
+total+=g_iMapVotes[i];
 new title[320],item[128],nm[64],desc[48],key[48];
 new hsub[128];
 formatex(hsub,charsmax(hsub),"%L",id,"MAPV_LEFT",g_iMapVoteLeft,total);
 VexHead(id,title,charsmax(title),"MAPV_TITLE",hsub);
-new menu = VexMenuCreate(title,"menu_mapvote_handler");
-for(new i = 0;i < g_iMapOptN;i++)
+new menu=VexMenuCreate(title,"menu_mapvote_handler");
+for(new i=0;i < g_iMapOptN;i++)
 {
 MapOptName(id,i,nm,charsmax(nm));
 desc[0]= 0;
-if(i != g_iMapExtOpt)
+if(i!=g_iMapExtOpt)
 {
 formatex(key,charsmax(key),"MAPDESC_%s",g_szMapOpt[i]);
 if(GetLangTransKey(key)!= TransKey_Bad)
 formatex(desc,charsmax(desc)," \d%L",id,key);
 }
-new pct = total > 0 ?(g_iMapVotes[i]* 100 + total / 2)/ total : 0;
+new pct=total > 0 ?(g_iMapVotes[i]* 100 + total / 2)/ total : 0;
 if(g_iMapVoted[id]== i)
 formatex(item,charsmax(item),"\y%s%s \r[%d \r- %d%%\r] \y<",nm,desc,g_iMapVotes[i],pct);
 else
@@ -27820,34 +27821,34 @@ menu_display(id,menu,0,1);
 }
 public menu_mapvote_handler(id,menu,item)
 {
-if(item < 0 || !g_bMapVoting)
+if(item < 0||!g_bMapVoting)
 {
 menu_destroy(menu);
 return PLUGIN_HANDLED;
 }
-new opt = MenuInfo(menu,item);
+new opt=MenuInfo(menu,item);
 menu_destroy(menu);
-if(opt < 0 || opt >= g_iMapOptN || is_user_bot(id))
+if(opt < 0||opt>=g_iMapOptN||is_user_bot(id))
 return PLUGIN_HANDLED;
-new old = g_iMapVoted[id];
-if(old == opt)
+new old=g_iMapVoted[id];
+if(old==opt)
 {
 ShowMapVoteMenu(id);
 return PLUGIN_HANDLED;
 }
-if(0 <= old < g_iMapOptN)
+if(0<=old < g_iMapOptN)
 g_iMapVotes[old]= max(0,g_iMapVotes[old]- VipVoteW(id));
 g_iMapVoted[id]= opt;
 g_iMapVotes[opt]+= VipVoteW(id);
 PlayKey(id,"UI_MENU_SELECT");
 new name[32],nm[64];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax && get_pcvar_num(g_pChatBcast);p++)
+for(new p=1;p<=g_iMax&&get_pcvar_num(g_pChatBcast);p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
 MapOptName(p,opt,nm,charsmax(nm));
-client_print_color(p,id,"%s %L",ChatTag(old >= 0 ? "MAPV_RECAST" : "MAPV_CAST"),p,old >= 0 ? "MAPV_RECAST" : "MAPV_CAST",name,nm);
+client_print_color(p,id,"%s %L",ChatTag(old>=0 ? "MAPV_RECAST" : "MAPV_CAST"),p,old>=0 ? "MAPV_RECAST" : "MAPV_CAST",name,nm);
 }
 ShowMapVoteMenu(id);
 return PLUGIN_HANDLED;
@@ -27856,61 +27857,61 @@ FinishMapVote()
 {
 if(!g_bMapVoting)
 return;
-g_bMapVoting = false;
+g_bMapVoting=false;
 remove_task(TASK_MAPVOTE);
-new total,bestc = -1,ties[MAPV_MAX],nt;
-for(new i = 0;i < g_iMapOptN;i++)
-total += g_iMapVotes[i];
-for(new i = 0;i < g_iMapOptN;i++)
+new total,bestc=-1,ties[MAPV_MAX],nt;
+for(new i=0;i < g_iMapOptN;i++)
+total+=g_iMapVotes[i];
+for(new i=0;i < g_iMapOptN;i++)
 {
-if(total == 0 && i == g_iMapExtOpt)
+if(total==0&&i==g_iMapExtOpt)
 continue;
 if(g_iMapVotes[i]> bestc)
 {
-bestc = g_iMapVotes[i];
-nt = 0;
+bestc=g_iMapVotes[i];
+nt=0;
 ties[nt++]= i;
 }
 else if(g_iMapVotes[i]== bestc)
 ties[nt++]= i;
 }
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& MapVoteMenuOpen(p))
 show_menu(p,0,"^n",1);
 g_iMapVoted[p]= -1;
 }
-if(nt == 0)
+if(nt==0)
 return;
-new win = ties[random(nt)];
-new pct = total > 0 ?(bestc * 100 + total / 2)/ total : 0;
+new win=ties[random(nt)];
+new pct=total > 0 ?(bestc * 100 + total / 2)/ total : 0;
 PlayKey(0,"UI_VOTE_END");
-if(win == g_iMapExtOpt)
+if(win==g_iMapExtOpt)
 {
 RtvReset();
 if(g_bMapChangeNow)
 {
-g_bMapChangeNow = false;
+g_bMapChangeNow=false;
 ChatAll("MAPV_STAYED",bestc);
 HudAll(SL_ALERT,CLR_EVENT,3.5,"MAPV_STAYED_HUD");
 return;
 }
-new ext = clamp(get_pcvar_num(g_pMapExtendRounds),1,50);
+new ext=clamp(get_pcvar_num(g_pMapExtendRounds),1,50);
 g_iMapExtends++;
-g_iMapExtendTo = get_cvar_num("mp_maxrounds")+ ext;
+g_iMapExtendTo=get_cvar_num("mp_maxrounds")+ ext;
 set_cvar_num("mp_maxrounds",g_iMapExtendTo);
-g_bMapDecided = false;
-g_iMapVoteWait = 0;
+g_bMapDecided=false;
+g_iMapVoteWait=0;
 ChatAll("MAPV_EXTENDED",ext);
 HudAll(SL_ALERT,CLR_EVENT,3.5,"MAPV_EXTENDED_HUD",ext);
 return;
 }
 SetNextMap(g_szMapOpt[win]);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))
 continue;
-if(total == 0)
+if(total==0)
 client_print_color(p,print_team_default,"%s %L",ChatTag("MAPV_NOVOTES"),p,"MAPV_NOVOTES",g_szNextMap);
 else
 client_print_color(p,print_team_default,"%s %L",ChatTag("MAPV_RESULT"),p,"MAPV_RESULT",g_szNextMap,bestc,pct);
@@ -27922,22 +27923,22 @@ MapChangeAfterRound();
 }
 MapChangeAfterRound()
 {
-g_bMapChangeNow = true;
-if(g_bRoundActive && !g_bRoundEnded)
+g_bMapChangeNow=true;
+if(g_bRoundActive&&!g_bRoundEnded)
 ChatAllS("MAPV_ROUNDEND",g_szNextMap);
 else
 MapChangeBegin(false);
 }
 MapOnRoundEnd()
 {
-if(g_bMapChanging || !MapVoteOn())
+if(g_bMapChanging||!MapVoteOn())
 return;
-new bool:last =(MapEndsByRounds()&& g_iRound >= RoundsTotal())? true : false;
-if(!last && !g_bMapChangeNow)
+new bool:last =(MapEndsByRounds()&& g_iRound>=RoundsTotal())? true : false;
+if(!last&&!g_bMapChangeNow)
 return;
-if(last && !g_bMapDecided){
+if(last&&!g_bMapDecided){
 g_bMapChangeNow=true;
-if(g_bMapVoting || StartMapVote(0,false)){
+if(g_bMapVoting||StartMapVote(0,false)){
 set_task(0.2,"task_MapHold",TASK_MAPHOLD);
 return;
 }
@@ -27950,18 +27951,18 @@ if(g_bMapChanging)
 return;
 if(g_bMapVoting)
 FinishMapVote();
-if(!g_bMapDecided || !g_szNextMap[0])
+if(!g_bMapDecided||!g_szNextMap[0])
 {
-g_bMapDecided = false;
+g_bMapDecided=false;
 MapPickFallback();
 }
 if(!g_szNextMap[0])
 {
-g_bMapChangeNow = false;
+g_bMapChangeNow=false;
 return;
 }
-g_bMapChanging = true;
-if(!lastRound && !g_bMapAwards)
+g_bMapChanging=true;
+if(!lastRound&&!g_bMapAwards)
 set_task(1.5,"task_MapEndAwards");
 set_task(0.2,"task_MapHold",TASK_MAPHOLD);
 remove_task(TASK_MAPCHG);
@@ -27969,19 +27970,19 @@ set_task(floatclamp(get_pcvar_float(g_pMapChangeDelay),3.0,30.0),"task_MapInterm
 }
 public task_MapHold()
 {
-if(g_bMapChanging ||(g_bMapVoting && g_bRoundEnded && g_iRound>=RoundsTotal()))
+if(g_bMapChanging ||(g_bMapVoting&&g_bRoundEnded&&g_iRound>=RoundsTotal()))
 set_member_game(m_flRestartRoundTime,get_gametime()+ 60.0);
 }
 public task_MapIntermission()
 {
 if(!MapExists(g_szNextMap))
 {
-g_bMapDecided = false;
+g_bMapDecided=false;
 g_szNextMap[0]= 0;
 MapPickFallback();
 if(!g_szNextMap[0])
 {
-g_bMapChanging = false;
+g_bMapChanging=false;
 set_member_game(m_flRestartRoundTime,get_gametime()+ 1.0);
 return;
 }
@@ -28005,9 +28006,9 @@ public rg_ChangeLevel()
 if(g_bMapVoting)return HC_SUPERCEDE;
 if(!MapVoteOn())
 return HC_CONTINUE;
-if(!g_bMapDecided || !MapExists(g_szNextMap))
+if(!g_bMapDecided||!MapExists(g_szNextMap))
 {
-g_bMapDecided = false;
+g_bMapDecided=false;
 g_szNextMap[0]= 0;
 MapPickFallback();
 }
@@ -28019,22 +28020,22 @@ return HC_SUPERCEDE;
 }
 RtvReset()
 {
-g_iRtvCount = 0;
-for(new p = 0;p <= MAX_PLAYERS;p++)
+g_iRtvCount=0;
+for(new p=0;p<=MAX_PLAYERS;p++)
 g_bRtv[p]= false;
 }
-RtvNeeded(ignore = 0)
+RtvNeeded(ignore=0)
 {
-new humans = RtvHumans(ignore);
-new Float:ratio = floatclamp(get_pcvar_float(g_pRtvRatio),0.01,1.0);
+new humans=RtvHumans(ignore);
+new Float:ratio=floatclamp(get_pcvar_float(g_pRtvRatio),0.01,1.0);
 return max(1,floatround(float(humans)* ratio,floatround_ceil));
 }
-RtvHumans(ignore = 0)
+RtvHumans(ignore=0)
 {
 new humans;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p != ignore && is_user_connected(p)&& !is_user_bot(p)&& !is_user_hltv(p))
+if(p!=ignore&&is_user_connected(p)&& !is_user_bot(p)&& !is_user_hltv(p))
 humans++;
 }
 return humans;
@@ -28048,17 +28049,17 @@ if(!MapVoteOn()|| get_pcvar_float(g_pRtvRatio)<= 0.0)
 Chat(id,"RTV_OFF");
 return PLUGIN_HANDLED;
 }
-if(g_bMapChanging ||(g_bMapDecided && g_bMapChangeNow && g_szNextMap[0]))
+if(g_bMapChanging ||(g_bMapDecided&&g_bMapChangeNow&&g_szNextMap[0]))
 {
 Chat(id,"RTV_CHANGING",g_szNextMap);
 return PLUGIN_HANDLED;
 }
-if(g_bMapVoting || g_iVoteType)
+if(g_bMapVoting||g_iVoteType)
 {
 Chat(id,"VOTE_RUNNING");
 return PLUGIN_HANDLED;
 }
-if(g_bMapDecided && g_szNextMap[0])
+if(g_bMapDecided&&g_szNextMap[0])
 {
 Chat(id,"RTV_DECIDED",g_szNextMap);
 return PLUGIN_HANDLED;
@@ -28069,19 +28070,19 @@ if(!MapCandidates(cand,MAPV_MAX))
 Chat(id,"MAPV_NONE");
 return PLUGIN_HANDLED;
 }
-new minr = get_pcvar_num(g_pRtvMinRound);
+new minr=get_pcvar_num(g_pRtvMinRound);
 if(g_iRound < minr)
 {
 Chat(id,"RTV_TOO_EARLY",minr);
 return PLUGIN_HANDLED;
 }
-new minp = get_pcvar_num(g_pRtvMinPlayers);
+new minp=get_pcvar_num(g_pRtvMinPlayers);
 if(RtvHumans()< minp)
 {
 Chat(id,"RTV_MINPL",minp);
 return PLUGIN_HANDLED;
 }
-new need = RtvNeeded();
+new need=RtvNeeded();
 if(g_bRtv[id])
 {
 Chat(id,"RTV_ALREADY",g_iRtvCount,need);
@@ -28091,7 +28092,7 @@ g_bRtv[id]= true;
 g_iRtvCount++;
 new name[32];
 get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p))
 client_print_color(p,id,"%s %L",ChatTag("RTV_ROCKED"),p,"RTV_ROCKED",name,g_iRtvCount,need);
@@ -28099,9 +28100,9 @@ client_print_color(p,id,"%s %L",ChatTag("RTV_ROCKED"),p,"RTV_ROCKED",name,g_iRtv
 RtvCheck();
 return PLUGIN_HANDLED;
 }
-RtvCheck(ignore = 0)
+RtvCheck(ignore=0)
 {
-if(g_iRtvCount <= 0 || g_bMapVoting || g_bMapChanging || g_bMapDecided)
+if(g_iRtvCount<=0||g_bMapVoting||g_bMapChanging||g_bMapDecided)
 return;
 if(g_iRtvCount < RtvNeeded(ignore))
 return;
@@ -28111,20 +28112,20 @@ RtvReset();
 }
 MapVoteDisconnect(id)
 {
-if(g_bMapVoting && 0 <= g_iMapVoted[id]< g_iMapOptN)
+if(g_bMapVoting&&0<=g_iMapVoted[id]< g_iMapOptN)
 g_iMapVotes[g_iMapVoted[id]]= max(0,g_iMapVotes[g_iMapVoted[id]]- VipVoteW(id));
 g_iMapVoted[id]= -1;
 g_iMapVoteMenu[id]= -1;
 if(g_bRtv[id])
 {
 g_bRtv[id]= false;
-g_iRtvCount = max(0,g_iRtvCount - 1);
+g_iRtvCount=max(0,g_iRtvCount - 1);
 }
 }
 public cmd_nextmap(id)
 {
-if(g_bMapDecided && g_szNextMap[0])
-Chat(id,g_bMapChangeNow || g_bMapChanging ? "MAPV_NEXT_NOW" : "MAPV_NEXT_IS",g_szNextMap);
+if(g_bMapDecided&&g_szNextMap[0])
+Chat(id,g_bMapChangeNow||g_bMapChanging ? "MAPV_NEXT_NOW" : "MAPV_NEXT_IS",g_szNextMap);
 else if(MapVoteOn()&& MapEndsByRounds())
 Chat(id,"MAPV_NEXT_VOTE",MapVoteRoundNum(),RoundsTotal());
 else
@@ -28140,7 +28141,7 @@ public cmd_maps(id)
 {
 new list[256],tmp[32],pos,line[180],n;
 get_pcvar_string(g_pMapPool,list,charsmax(list));
-while((pos = argparse(list,pos,tmp,charsmax(tmp)))!= -1)
+while((pos=argparse(list,pos,tmp,charsmax(tmp)))!= -1)
 {
 strtolower(tmp);
 if(!tmp[0])
@@ -28151,7 +28152,7 @@ if(equal(tmp,g_szCurMap))
 format(line,charsmax(line),"%s^3%s*",line,tmp);
 else if(!MapExists(tmp))
 format(line,charsmax(line),"%s^1%s(-)",line,tmp);
-else if(g_bMapDecided && equal(tmp,g_szNextMap))
+else if(g_bMapDecided&&equal(tmp,g_szNextMap))
 format(line,charsmax(line),"%s^4%s>",line,tmp);
 else
 format(line,charsmax(line),"%s^4%s",line,tmp);
@@ -28172,14 +28173,14 @@ if(equali(arg,"cancel"))
 {
 if(g_bMapVoting)
 {
-g_bMapVoting = false;
+g_bMapVoting=false;
 remove_task(TASK_MAPVOTE);
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(is_user_connected(p)&& !is_user_bot(p)&& MapVoteMenuOpen(p))
 show_menu(p,0,"^n",1);
 }
-g_bMapChangeNow = false;
+g_bMapChangeNow=false;
 RtvReset();
 AdminNotify(id,"ADM_MAPVOTE_CANCEL",0);
 }
@@ -28199,7 +28200,7 @@ Chat(id,"RTV_CHANGING",g_szNextMap);
 console_print(id,"[Vexmira] harita zaten degisiyor: %s",g_szNextMap);
 return;
 }
-g_bMapDecided = false;
+g_bMapDecided=false;
 g_szNextMap[0]= 0;
 if(StartMapVote(id,changeNow))
 AdminNotify(id,"ADM_MAPVOTE",g_iMapOptN);
@@ -28218,12 +28219,12 @@ log_amx("[Vexmira] mapchooser.amxx yuklu: cift harita oylamasi olmasin diye DURA
 else
 log_amx("[Vexmira] UYARI: mapchooser.amxx yuklu ve vex_map_vote 1: iki ayri harita oylamasi olabilir. plugins.ini'den kaldirin.");
 }
-public VxcPcReady542(plugin,params)return(g_tMdlDone != Invalid_Trie && g_tRes != Invalid_Trie)? 1 : 0;
+public VxcPcReady542(plugin,params)return(g_tMdlDone!=Invalid_Trie&&g_tRes!=Invalid_Trie)? 1 : 0;
 public plugin_natives()
 {
 register_library("vexmira_core45");
 register_native("vxc_tab_value","N_TabValue622");register_native("vxc_tab_action","N_TabAct5");register_native("vxc_tab_link","N_TabLink5");register_native("vxc_board","N_Board5");register_native("vxc_tab_tok","N_TabTok5");register_native("vxc_reset","N_Reset6");register_native("vxc_ipad_card","N_Card7");register_native("vxc_hud","N_Hud64");
-register_native("vxc_tab_key","N_TabKey622");
+register_native("vxc_tab_key","N_TabKey622");register_native("vxc_wal9","N_Wal9");register_native("vxc_note9","N_Note9");register_native("vxc_res9","N_Res9");register_native("vxc_push9","N_Push9");register_native("vxc_stat9","N_Stat9");register_native("vxc_case9","N_Case9");
 register_native("vxc_tab_recover","N_TabRecover622");
 register_native("vxc_tab_credit","N_TabCredit622");
 register_native("vxc_tab_purchase","N_TabPurchase622");
@@ -28269,8 +28270,8 @@ if(!is_regamedll())
 set_fail_state("Vexmira requires ReGameDLL_CS + ReAPI; check meta list and amxx modules");
 return;
 }
-g_tRes = TrieCreate();
-g_tMdlTop = TrieCreate();
+g_tRes=TrieCreate();
+g_tMdlTop=TrieCreate();
 new Float:v48cache[2];
 v48cache[0]=59.444;v48cache[1]=58.067;TrieSetArray(g_tMdlTop,"vex_boss048",v48cache,2);
 v48cache[0]=34.342;v48cache[1]=32.659;TrieSetArray(g_tMdlTop,"vex_boss148",v48cache,2);
@@ -28282,17 +28283,17 @@ v48cache[0]=68.248;v48cache[1]=43.533;TrieSetArray(g_tMdlTop,"vex_boss648",v48ca
 v48cache[0]=41.794;v48cache[1]=38.217;TrieSetArray(g_tMdlTop,"vex_boss748",v48cache,2);
 v48cache[0]=46.493;v48cache[1]=37.655;TrieSetArray(g_tMdlTop,"vex_boss848",v48cache,2);
 v48cache[0]=90.587;v48cache[1]=60.575;TrieSetArray(g_tMdlTop,"vex_titan48",v48cache,2);
-g_tSndInfo = TrieCreate();
-g_tSnd2D = TrieCreate();
-g_tSnd3D = TrieCreate();
-g_tMdlDone = TrieCreate();
+g_tSndInfo=TrieCreate();
+g_tSnd2D=TrieCreate();
+g_tSnd3D=TrieCreate();
+g_tMdlDone=TrieCreate();
 ZcPcModel("models/vexmira/community/jetpack/rpgrocket.mdl");
 SetDefaultResources();
 VxDefaults();
 VxLeanResources();
 LoadMainConfig(true);
 vxe_prepare_audio_cfg();
-g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET","340")),40,480);
+g_iMdlBudget=clamp(str_to_num(GetResString("MODEL_BUDGET","340")),40,480);
 new skinKey[24];
 for(new skin=1;skin<31;skin++){
 formatex(skinKey,charsmax(skinKey),"V_%s",WEAPON_KEYNAME[skin]);
@@ -28310,21 +28311,21 @@ CsoPrecache();
 VxInfPrecache531();
 NadeFxPrecache531();
 register_forward(FM_EmitAmbientSound,"fw_AmbientPost",1);
-g_iSndBudget = clamp(str_to_num(GetResString("SOUND_BUDGET","200")),40,480);
-g_iSndBudget = clamp(min(g_iSndBudget,500 - 230 - g_iMapSnd531),40,480);
+g_iSndBudget=clamp(str_to_num(GetResString("SOUND_BUDGET","200")),40,480);
+g_iSndBudget=clamp(min(g_iSndBudget,500 - 230 - g_iMapSnd531),40,480);
 ItemSndPrecache533();
-g_iMdlBudget = clamp(str_to_num(GetResString("MODEL_BUDGET","250")),40,480);
+g_iMdlBudget=clamp(str_to_num(GetResString("MODEL_BUDGET","250")),40,480);
 new criticalKey[24];
 LoadWorldModels();
 CmPrecache();
-for(new w = 1;w < 31;w++)
+for(new w=1;w < 31;w++)
 {
 formatex(criticalKey,charsmax(criticalKey),"V_%s",WEAPON_KEYNAME[w]);
 GetFileModel(criticalKey,g_szWepV[w],charsmax(g_szWepV[]));
 formatex(criticalKey,charsmax(criticalKey),"P_%s",WEAPON_KEYNAME[w]);
 GetFileModel(criticalKey,g_szWepP[w],charsmax(g_szWepP[]));
 }
-for(new sw = 0;sw < NUM_SPECIAL;sw++)
+for(new sw=0;sw < NUM_SPECIAL;sw++)
 {
 formatex(criticalKey,charsmax(criticalKey),"SW%d_VMODEL",sw);
 GetFileModel(criticalKey,g_szSWView[sw],charsmax(g_szSWView[]));
@@ -28333,14 +28334,14 @@ GetFileModel(criticalKey,g_szSWPlayer[sw],charsmax(g_szSWPlayer[]));
 }
 PlanBossLoad();
 new path[128],key[24];
-for(new i = 0;i < sizeof SOUND_KEYS;i++)
+for(new i=0;i < sizeof SOUND_KEYS;i++)
 {
 if(!IsFallbackOnly(SOUND_KEYS[i]))
 PrecacheSoundKey(SOUND_KEYS[i]);
 }
 static const BEV3D[][]={"IDLE","PAIN","PAIN2","STEP","ATTACK"};
 static const BEV2D[][]={"DEATH","PHASE","KILL","R1","R2","R3"};
-for(new b = 0;b < NUM_BOSSES;b++)
+for(new b=0;b < NUM_BOSSES;b++)
 {
 if(!g_bBossLoaded[b])
 {
@@ -28349,12 +28350,12 @@ continue;
 }
 formatex(key,charsmax(key),"B%d_INTRO",b);
 PrecacheSoundKeyEx(key,true);
-for(new e = 0;e < sizeof BEV3D;e++)
+for(new e=0;e < sizeof BEV3D;e++)
 {
 formatex(key,charsmax(key),"B%d_%s",b,BEV3D[e]);
 PrecacheSoundKeyEx(key,false);
 }
-for(new e = 0;e < sizeof BEV2D;e++)
+for(new e=0;e < sizeof BEV2D;e++)
 {
 formatex(key,charsmax(key),"B%d_%s",b,BEV2D[e]);
 PrecacheSoundKeyEx(key,true);
@@ -28367,7 +28368,7 @@ PrecacheSoundKeyEx("NEMESIS_INTRO",true);
 PrecacheSoundKeyEx("ASSASSIN_INTRO",true);
 PrecacheSoundKeyEx("NEMESIS_DEATH",true);
 PrecacheSoundKeyEx("ASSASSIN_DEATH",true);
-for(new e = 0;e < sizeof SEV3D;e++)
+for(new e=0;e < sizeof SEV3D;e++)
 {
 formatex(key,charsmax(key),"NEMESIS_%s",SEV3D[e]);
 PrecacheSoundKeyEx(key,false);
@@ -28379,55 +28380,55 @@ PrecacheSoundKeyEx("UI_VOTE_END",true);
 PrecacheSoundKeyEx("UI_BOSS_BAR",true);
 PrecacheSoundKeyEx("UI_MENU_SELECT",true);
 PrecacheSoundKeyEx("UI_CLASS_SELECT",true);
-for(new i = 0;i < sizeof SOUND_KEYS_V3;i++)
+for(new i=0;i < sizeof SOUND_KEYS_V3;i++)
 PrecacheSoundKey(SOUND_KEYS_V3[i]);
 static const ZEV1[][]={"ABILITY","PAIN","DIE"};
 static const ZEV2[][]={"SLASH","HIT","STAB","HITWALL","INFECT"};
-for(new e = 0;e < sizeof ZEV1;e++)
+for(new e=0;e < sizeof ZEV1;e++)
 {
-for(new i = 0;i < NUM_CLASSES;i++)
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(key,charsmax(key),"Z%d_%s",i,ZEV1[e]);
 PrecacheSoundKeyEx(key,false);
 }
 }
-for(new i = 0;i < NUM_CLASSES;i++)
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(key,charsmax(key),"Z%d_IDLE",i);
 PrecacheSoundKeyEx(key,false);
 }
-for(new e = 0;e < sizeof ZEV2;e++)
+for(new e=0;e < sizeof ZEV2;e++)
 {
-for(new i = 0;i < NUM_CLASSES;i++)
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(key,charsmax(key),"Z%d_%s",i,ZEV2[e]);
 PrecacheSoundKeyEx(key,false);
 }
 }
-for(new m = 0;m < MODE_TOTAL;m++)
+for(new m=0;m < MODE_TOTAL;m++)
 {
 formatex(key,charsmax(key),"MODE%d_MUSIC",m);
 PrecacheSoundKeyEx(key,true);
 }
 new bool:needZ,bool:needB,tmp[8];
-for(new i = 0;i < NUM_CLASSES && !needZ;i++)
+for(new i=0;i < NUM_CLASSES&&!needZ;i++)
 {
 formatex(key,charsmax(key),"Z%d_ABILITY",i);
 if(!TrieGetString(g_tRes,key,tmp,charsmax(tmp))|| !tmp[0])
-needZ = true;
+needZ=true;
 }
-for(new b = 0;b < NUM_BOSSES && !needB;b++)
+for(new b=0;b < NUM_BOSSES&&!needB;b++)
 {
 if(!g_bBossLoaded[b])
 continue;
 formatex(key,charsmax(key),"B%d_IDLE",b);
 if(!TrieGetString(g_tRes,key,tmp,charsmax(tmp))|| !tmp[0])
-needB = true;
+needB=true;
 formatex(key,charsmax(key),"B%d_ATTACK",b);
 if(!TrieGetString(g_tRes,key,tmp,charsmax(tmp))|| !tmp[0])
-needB = true;
+needB=true;
 }
-for(new i = 0;i < sizeof SOUND_KEYS;i++)
+for(new i=0;i < sizeof SOUND_KEYS;i++)
 {
 if(!IsFallbackOnly(SOUND_KEYS[i]))
 continue;
@@ -28453,41 +28454,41 @@ PrecacheSoundKeyEx(SOUND_KEYS[i],false);
 else
 TrieSetString(g_tRes,SOUND_KEYS[i],"");
 }
-g_sprRing = PcModel("sprites/vexmira/arena51/base_ring.spr",false);
-g_sprBeam = PcModel("sprites/vexmira/arena51/base_beam.spr",false);
-g_sprLightning = PcModel("sprites/vexmira/arena51/base_lightning.spr",false);
-g_sprExplode = PcModel("sprites/vexmira/arena50/explosion.spr",false);
-g_sprSmoke = PcModel("sprites/vexmira/arena50/smoke.spr",false);
-g_sprBlood = PrecacheSafe("sprites/vexmira/arena50/blood.spr");
-g_sprBloodSpray = PrecacheSafe("sprites/vexmira/arena50/bloodspray.spr");
-g_sprHeadMark = PrecacheSafe(GetResString("BOSS_MARK_SPRITE","sprites/glow01.spr"));
-g_bHeadMarkAt =(g_sprHeadMark && SprFileFormat(GetResString("BOSS_MARK_SPRITE","sprites/glow01.spr"))== SPR_FMT_ALPHATEST)? true : false;
-g_sprLaser = g_sprBeam;
-g_sprFlare = PrecacheSafe("sprites/vexmira/arena50/flare.spr");
+g_sprRing=PcModel("sprites/vexmira/arena51/base_ring.spr",false);
+g_sprBeam=PcModel("sprites/vexmira/arena51/base_beam.spr",false);
+g_sprLightning=PcModel("sprites/vexmira/arena51/base_lightning.spr",false);
+g_sprExplode=PcModel("sprites/vexmira/arena50/explosion.spr",false);
+g_sprSmoke=PcModel("sprites/vexmira/arena50/smoke.spr",false);
+g_sprBlood=PrecacheSafe("sprites/vexmira/arena50/blood.spr");
+g_sprBloodSpray=PrecacheSafe("sprites/vexmira/arena50/bloodspray.spr");
+g_sprHeadMark=PrecacheSafe(GetResString("BOSS_MARK_SPRITE","sprites/glow01.spr"));
+g_bHeadMarkAt =(g_sprHeadMark&&SprFileFormat(GetResString("BOSS_MARK_SPRITE","sprites/glow01.spr"))== SPR_FMT_ALPHATEST)? true : false;
+g_sprLaser=g_sprBeam;
+g_sprFlare=PrecacheSafe("sprites/vexmira/arena50/flare.spr");
 if(!g_sprFlare)
-g_sprFlare = g_sprHeadMark;
-g_sprZone = PrecacheResSprite("SPR_ZONE",g_szSprZone,charsmax(g_szSprZone));
-g_sprTarget = PrecacheResSprite("SPR_TARGET",g_szSprTarget,charsmax(g_szSprTarget));
-g_sprBeacon = PrecacheResSprite("SPR_BEACON",g_szSprBeacon,charsmax(g_szSprBeacon));
-g_sprOrb = PrecacheResSprite("SPR_ORB",g_szSprOrb,charsmax(g_szSprOrb));
-g_sprMark = PrecacheResSprite("SPR_MARK",g_szSprMark,charsmax(g_szSprMark));
-g_sprFire = PrecacheResSprite("SPR_FIRE",g_szSprFire,charsmax(g_szSprFire));
-g_sprLmBeam = PrecacheResSprite("SPR_LASER",g_szSprLaser,charsmax(g_szSprLaser));
-if(!g_sprBeacon && g_sprHeadMark)
+g_sprFlare=g_sprHeadMark;
+g_sprZone=PrecacheResSprite("SPR_ZONE",g_szSprZone,charsmax(g_szSprZone));
+g_sprTarget=PrecacheResSprite("SPR_TARGET",g_szSprTarget,charsmax(g_szSprTarget));
+g_sprBeacon=PrecacheResSprite("SPR_BEACON",g_szSprBeacon,charsmax(g_szSprBeacon));
+g_sprOrb=PrecacheResSprite("SPR_ORB",g_szSprOrb,charsmax(g_szSprOrb));
+g_sprMark=PrecacheResSprite("SPR_MARK",g_szSprMark,charsmax(g_szSprMark));
+g_sprFire=PrecacheResSprite("SPR_FIRE",g_szSprFire,charsmax(g_szSprFire));
+g_sprLmBeam=PrecacheResSprite("SPR_LASER",g_szSprLaser,charsmax(g_szSprLaser));
+if(!g_sprBeacon&&g_sprHeadMark)
 {
-g_sprBeacon = g_sprHeadMark;
+g_sprBeacon=g_sprHeadMark;
 copy(g_szSprBeacon,charsmax(g_szSprBeacon),GetResString("BOSS_MARK_SPRITE","sprites/glow01.spr"));
 }
 if(!g_sprOrb)
 {
-if(g_sprFlare && file_exists("sprites/vexmira/arena50/flare.spr",true))
+if(g_sprFlare&&file_exists("sprites/vexmira/arena50/flare.spr",true))
 {
-g_sprOrb = g_sprFlare;
+g_sprOrb=g_sprFlare;
 copy(g_szSprOrb,charsmax(g_szSprOrb),"sprites/vexmira/arena50/flare.spr");
 }
 else if(g_sprBeacon)
 {
-g_sprOrb = g_sprBeacon;
+g_sprOrb=g_sprBeacon;
 copy(g_szSprOrb,charsmax(g_szSprOrb),g_szSprBeacon);
 }
 }
@@ -28495,44 +28496,44 @@ if(g_sprMark)
 g_bMarkAt =(SprFileFormat(g_szSprMark)== SPR_FMT_ALPHATEST)? true : false;
 else
 {
-g_sprMark = g_sprHeadMark;
-g_bMarkAt = g_bHeadMarkAt;
+g_sprMark=g_sprHeadMark;
+g_bMarkAt=g_bHeadMarkAt;
 }
 if(g_sprLmBeam)
-g_sprLaser = g_sprLmBeam;
+g_sprLaser=g_sprLmBeam;
 else
 copy(g_szSprLaser,charsmax(g_szSprLaser),"sprites/laserbeam.spr");
-g_sprChain = PrecacheResSprite("SPR_CHAIN",g_szSprChain,charsmax(g_szSprChain));
-g_sprWeb = PrecacheResSprite("SPR_WEB",g_szSprWeb,charsmax(g_szSprWeb));
-g_sprSpore = PrecacheResSprite("SPR_SPORE",g_szSprSpore,charsmax(g_szSprSpore));
-g_sprEmp = PrecacheResSprite("SPR_EMP",g_szSprEmp,charsmax(g_szSprEmp));
-if(!g_sprRing)g_sprRing = VxPcStock531("sprites/shockwave.spr");
-if(!g_sprBeam)g_sprBeam = VxPcStock531("sprites/laserbeam.spr");
-if(!g_sprLightning)g_sprLightning = VxPcStock531("sprites/lgtning.spr");
-if(!g_sprExplode)g_sprExplode = VxPcStock531("sprites/zerogxplode.spr");
-if(!g_sprSmoke)g_sprSmoke = VxPcStock531("sprites/steam1.spr");
-if(!g_sprLaser)g_sprLaser = g_sprBeam;
-if(!g_sprFlare)g_sprFlare = VxPcStock531("sprites/glow01.spr");
-if(!g_sprFire)g_sprFire = VxPcStock531("sprites/fexplo.spr");
-if(!g_sprLmBeam)g_sprLmBeam = g_sprBeam;
-if(!g_sprChain)g_sprChain = g_sprBeam;
-if(!g_sprWeb)g_sprWeb = g_sprBeam;
-if(!g_sprSpore)g_sprSpore = g_sprFlare;
-if(!g_sprEmp)g_sprEmp = g_sprRing;
-if(!g_sprBlood)g_sprBlood = VxPcStock531("sprites/blood.spr");
-if(!g_sprBloodSpray)g_sprBloodSpray = VxPcStock531("sprites/bloodspray.spr");
+g_sprChain=PrecacheResSprite("SPR_CHAIN",g_szSprChain,charsmax(g_szSprChain));
+g_sprWeb=PrecacheResSprite("SPR_WEB",g_szSprWeb,charsmax(g_szSprWeb));
+g_sprSpore=PrecacheResSprite("SPR_SPORE",g_szSprSpore,charsmax(g_szSprSpore));
+g_sprEmp=PrecacheResSprite("SPR_EMP",g_szSprEmp,charsmax(g_szSprEmp));
+if(!g_sprRing)g_sprRing=VxPcStock531("sprites/shockwave.spr");
+if(!g_sprBeam)g_sprBeam=VxPcStock531("sprites/laserbeam.spr");
+if(!g_sprLightning)g_sprLightning=VxPcStock531("sprites/lgtning.spr");
+if(!g_sprExplode)g_sprExplode=VxPcStock531("sprites/zerogxplode.spr");
+if(!g_sprSmoke)g_sprSmoke=VxPcStock531("sprites/steam1.spr");
+if(!g_sprLaser)g_sprLaser=g_sprBeam;
+if(!g_sprFlare)g_sprFlare=VxPcStock531("sprites/glow01.spr");
+if(!g_sprFire)g_sprFire=VxPcStock531("sprites/fexplo.spr");
+if(!g_sprLmBeam)g_sprLmBeam=g_sprBeam;
+if(!g_sprChain)g_sprChain=g_sprBeam;
+if(!g_sprWeb)g_sprWeb=g_sprBeam;
+if(!g_sprSpore)g_sprSpore=g_sprFlare;
+if(!g_sprEmp)g_sprEmp=g_sprRing;
+if(!g_sprBlood)g_sprBlood=VxPcStock531("sprites/blood.spr");
+if(!g_sprBloodSpray)g_sprBloodSpray=VxPcStock531("sprites/bloodspray.spr");
 new fxbuf[64];
-g_iFxSprN = 0;
-for(new i = 0;i < FXS_TOTAL;i++)
+g_iFxSprN=0;
+for(new i=0;i < FXS_TOTAL;i++)
 {
 g_sprFx[i]= PrecacheResSprite(FXS_KEY[i],fxbuf,charsmax(fxbuf));
 if(g_sprFx[i])
 g_iFxSprN++;
 }
 static const OVKEY[OVS_TOTAL][]={"SPR_BOSSBAR","SPR_BOSSICON","SPR_HPBAR","SPR_ICON_VIP","SPR_ICON_ADMIN","SPR_ICON_MVP","SPR_ICON_LAST","SPR_ICON_ALPHA","SPR_HUMAN47","SPR_ZOMBIE47"};
-for(new i = 0;i < OVS_TOTAL;i++)
+for(new i=0;i < OVS_TOTAL;i++)
 {
-if(i == OVS_HUMAN47){g_szOvhSpr[i][0]= 0;continue;}
+if(i==OVS_HUMAN47){g_szOvhSpr[i][0]= 0;continue;}
 if(PrecacheResSprite(OVKEY[i],g_szOvhSpr[i],charsmax(g_szOvhSpr[])))
 ReadSprInfo(i);
 else
@@ -28553,27 +28554,27 @@ PlayerModelFallback("terror",g_szNemModel,charsmax(g_szNemModel));
 GetPlayerModel("ASSASSIN_MODEL",g_szAsnModel,charsmax(g_szAsnModel));
 if(!g_szAsnModel[0])
 PlayerModelFallback("leet",g_szAsnModel,charsmax(g_szAsnModel));
-for(new i = 0;i < NUM_BOSSES;i++)
+for(new i=0;i < NUM_BOSSES;i++)
 {
 g_szBModel[i][0]= 0;
 g_szBClaw[i][0]= 0;
 formatex(key,charsmax(key),"B%d_MODEL",i);
 if(!g_bBossLoaded[i])continue;
 new bname[128],giant[48];
-g_fBossScale531 = floatclamp(str_to_float(GetResString("BOSS_SCALE","1.6")),1.0,3.0);
-g_iGiantMode532 = equali(GetResString("BOSS_GIANT","file"),"clone")? 1 :(equali(GetResString("BOSS_GIANT","file"),"off")? 0 : 2);
-if(g_iGiantMode532 == 2 && TrieGetString(g_tRes,key,bname,charsmax(bname))&& bname[0]&& GmBossGiant(bname,giant,charsmax(giant)))
+g_fBossScale531=floatclamp(str_to_float(GetResString("BOSS_SCALE","1.6")),1.0,3.0);
+g_iGiantMode532=equali(GetResString("BOSS_GIANT","file"),"clone")? 1 :(equali(GetResString("BOSS_GIANT","file"),"off")? 0 : 2);
+if(g_iGiantMode532==2&&TrieGetString(g_tRes,key,bname,charsmax(bname))&& bname[0]&& GmBossGiant(bname,giant,charsmax(giant)))
 {
 new gpath[128];formatex(gpath,charsmax(gpath),"models/player/%s/%s.mdl",giant,giant);
 if(PcModel(gpath)){copy(g_szBModel[i],charsmax(g_szBModel[]),giant);MdlHeadTops(giant);PcPlayerTex(giant);}
 }
-if(!g_szBModel[i][0]&& g_iGiantMode532 != 2)
+if(!g_szBModel[i][0]&& g_iGiantMode532!=2)
 GetPlayerModel(key,g_szBModel[i],charsmax(g_szBModel[]));
-if(!g_szBModel[i][0]&& g_iGiantMode532 == 2)log_amx("[GiantBoss] B%d: hazir dev model yok; konsolda vex_boss_build calistirin.",i);
+if(!g_szBModel[i][0]&& g_iGiantMode532==2)log_amx("[GiantBoss] B%d: hazir dev model yok; konsolda vex_boss_build calistirin.",i);
 if(!g_szBModel[i][0])
 PlayerModelFallback(BOSS_OLDMODEL[i],g_szBModel[i],charsmax(g_szBModel[]));
 }
-for(new i = 0;i < NUM_CLASSES;i++)
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(key,charsmax(key),"Z%d_MODEL",i);
 GetPlayerModel(key,g_szZModel[i],charsmax(g_szZModel[]));
@@ -28581,7 +28582,7 @@ if(!g_szZModel[i][0])
 PlayerModelFallback(CLASS_OLDMODEL[i],g_szZModel[i],charsmax(g_szZModel[]));
 }
 GetFileModel("CLAW_MODEL",g_szClawModel,charsmax(g_szClawModel));
-for(new i = 0;i < NUM_BOSSES;i++)
+for(new i=0;i < NUM_BOSSES;i++)
 {
 if(!g_bBossLoaded[i])
 continue;
@@ -28590,34 +28591,34 @@ GetFileModel(key,g_szBClaw[i],charsmax(g_szBClaw[]));
 }
 GetFileModel("NEMESIS_CLAW",g_szNemClaw,charsmax(g_szNemClaw));
 GetFileModel("ASSASSIN_CLAW",g_szAsnClaw,charsmax(g_szAsnClaw));
-for(new i = 0;i < NUM_CLASSES;i++)
+for(new i=0;i < NUM_CLASSES;i++)
 {
 formatex(key,charsmax(key),"Z%d_CLAW",i);
 GetFileModel(key,g_szZClaw[i],charsmax(g_szZClaw[]));
 }
 GetFileModel("VIP_V_KNIFE",g_szVipKnifeV,charsmax(g_szVipKnifeV));
 GetFileModel("VIP_P_KNIFE",g_szVipKnifeP,charsmax(g_szVipKnifeP));
-for(new w = 1;w < 31;w++)
+for(new w=1;w < 31;w++)
 {
 formatex(key,charsmax(key),"V_%s",WEAPON_KEYNAME[w]);
 GetFileModel(key,g_szWepV[w],charsmax(g_szWepV[]));
 }
-for(new i = 0;i < NUM_SPECIAL;i++)
+for(new i=0;i < NUM_SPECIAL;i++)
 {
 formatex(key,charsmax(key),"SW%d_VMODEL",i);
 GetFileModel(key,g_szSWView[i],charsmax(g_szSWView[]));
 formatex(key,charsmax(key),"SW%d_PMODEL",i);
 GetFileModel(key,g_szSWPlayer[i],charsmax(g_szSWPlayer[]));
 }
-for(new w = 1;w < 31;w++)
+for(new w=1;w < 31;w++)
 {
 formatex(key,charsmax(key),"P_%s",WEAPON_KEYNAME[w]);
 GetFileModel(key,g_szWepP[w],charsmax(g_szWepP[]));
 }
 static const OLDK[MW_MODES][MW_SLOTS][]={{"SURVIVOR_M249","SURVIVOR_DEAGLE"},{"SNIPER_AWP",""}};
-for(new mm = 0;mm < MW_MODES;mm++)
+for(new mm=0;mm < MW_MODES;mm++)
 {
-for(new ms = 0;ms < MW_SLOTS;ms++)
+for(new ms=0;ms < MW_SLOTS;ms++)
 {
 formatex(key,charsmax(key),"%s_W%d_VMODEL",MW_KEY[mm],ms + 1);
 GetFileModel(key,g_szMwV[mm][ms],charsmax(g_szMwV[][]));
@@ -28673,205 +28674,205 @@ if(!is_regamedll())
 set_fail_state("[Vexmira] ReGameDLL_CS + ReAPI gerekli! (ReGameDLL_CS and ReAPI are required)");
 return;
 }
-g_iMax = clamp(get_maxplayers(),1,32);
-g_msgFog = get_user_msgid("Fog");
-g_msgFade = get_user_msgid("ScreenFade");
-g_msgShake = get_user_msgid("ScreenShake");
-g_msgDeath = get_user_msgid("DeathMsg");
-g_msgScore = get_user_msgid("ScoreInfo");
-g_bGeoIP = LibraryExists("geoip",LibType_Library)? true : false;
+g_iMax=clamp(get_maxplayers(),1,32);
+g_msgFog=get_user_msgid("Fog");
+g_msgFade=get_user_msgid("ScreenFade");
+g_msgShake=get_user_msgid("ScreenShake");
+g_msgDeath=get_user_msgid("DeathMsg");
+g_msgScore=get_user_msgid("ScoreInfo");
+g_bGeoIP=LibraryExists("geoip",LibType_Library)? true : false;
 log_to_file("vexmira_startup.log","[530 core] vault open BEGIN");
-g_hVault = nvault_open("vexmira_v1");
+g_hVault=nvault_open("vexmira_v1");
 if(g_hVault!=INVALID_HANDLE)for(new w=0;w<4;w++)g_iRs6[w]=nvault_get(g_hVault,fmt("rs6_%d",w));
-g_hVipVault = nvault_open("vexmira_vip");
+g_hVipVault=nvault_open("vexmira_vip");
 log_to_file("vexmira_startup.log","[530 core] vault open READY");
-if(g_hVault == INVALID_HANDLE)
+if(g_hVault==INVALID_HANDLE)
 log_amx("[Vexmira] nvault acilamadi, ilerleme kaydedilmeyecek.");
-g_pCountdown = register_cvar("vex_countdown","15");
-g_pFirstHP = register_cvar("vex_first_zombie_hp","6000");
-g_pZombieHP = register_cvar("vex_zombie_hp","2400");
-g_pBossEvery = register_cvar("vex_boss_every","6");
-g_pBossHP = register_cvar("vex_boss_hp","9000");
-g_pEventChance = register_cvar("vex_event_chance","85");
-g_pNemHP = register_cvar("vex_nemesis_hp","15000");
-g_pAsnHP = register_cvar("vex_assassin_hp","10000");
-g_pSurvHP = register_cvar("vex_survivor_hp","1000");
-g_pSnipHP = register_cvar("vex_sniper_hp","900");
-g_pRespawn = register_cvar("vex_zombie_respawn","4.0");
-g_pDmgPerAP = register_cvar("vex_damage_per_ap","800");
-g_pKnockback = register_cvar("vex_knockback","1");
-g_pStartAP = register_cvar("vex_start_ap","20");
-g_pArmorProtect = register_cvar("vex_armor_protect","1");
-g_pChatBcast = register_cvar("vex_chat_broadcast","1");
-g_pChatBuyBcast = register_cvar("vex_chat_buy_broadcast","0");
-g_pVipContact = register_cvar("vex_vip_contact","discord.gg/vexmira");
-g_pVipBonus = register_cvar("vex_vip_bonus","25");
-g_pEliteBonus = register_cvar("vex_elite_bonus","50");
-g_pVipDisc = register_cvar("vex_vip_discount","10");
-g_pEliteDisc = register_cvar("vex_elite_discount","20");
-g_pVipArmor = register_cvar("vex_vip_armor","50");
-g_pEliteArmor = register_cvar("vex_elite_armor","100");
-g_pVipRoundVC = register_cvar("vex_vip_round_vc","1");
-g_pVipAutoPack = register_cvar("vex_vip_autopack","1");
-g_pVipPriority = register_cvar("vex_vip_priority_msg","2");
-g_pVipAnnounce = register_cvar("vex_vip_join_announce","2");
-g_pVipVoteW = register_cvar("vex_vip_vote_weight","2");
-g_pVipSpawnProt = register_cvar("vex_vip_spawnprot","1.0");
-g_pVipDaily = register_cvar("vex_vip_daily_pct","50");
-g_pEliteDaily = register_cvar("vex_elite_daily_pct","100");
-g_pVipScore = register_cvar("vex_vip_scoreboard","1");
-g_pVipRegun = register_cvar("vex_vip_regun","1");
+g_pCountdown=register_cvar("vex_countdown","15");
+g_pFirstHP=register_cvar("vex_first_zombie_hp","6000");
+g_pZombieHP=register_cvar("vex_zombie_hp","2400");
+g_pBossEvery=register_cvar("vex_boss_every","6");
+g_pBossHP=register_cvar("vex_boss_hp","9000");
+g_pEventChance=register_cvar("vex_event_chance","85");
+g_pNemHP=register_cvar("vex_nemesis_hp","15000");
+g_pAsnHP=register_cvar("vex_assassin_hp","10000");
+g_pSurvHP=register_cvar("vex_survivor_hp","1000");
+g_pSnipHP=register_cvar("vex_sniper_hp","900");
+g_pRespawn=register_cvar("vex_zombie_respawn","4.0");
+g_pDmgPerAP=register_cvar("vex_damage_per_ap","800");
+g_pKnockback=register_cvar("vex_knockback","1");
+g_pStartAP=register_cvar("vex_start_ap","20");
+g_pArmorProtect=register_cvar("vex_armor_protect","1");
+g_pChatBcast=register_cvar("vex_chat_broadcast","1");
+g_pChatBuyBcast=register_cvar("vex_chat_buy_broadcast","0");
+g_pVipContact=register_cvar("vex_vip_contact","discord.gg/vexmira");
+g_pVipBonus=register_cvar("vex_vip_bonus","25");
+g_pEliteBonus=register_cvar("vex_elite_bonus","50");
+g_pVipDisc=register_cvar("vex_vip_discount","10");
+g_pEliteDisc=register_cvar("vex_elite_discount","20");
+g_pVipArmor=register_cvar("vex_vip_armor","50");
+g_pEliteArmor=register_cvar("vex_elite_armor","100");
+g_pVipRoundVC=register_cvar("vex_vip_round_vc","1");
+g_pVipAutoPack=register_cvar("vex_vip_autopack","1");
+g_pVipPriority=register_cvar("vex_vip_priority_msg","2");
+g_pVipAnnounce=register_cvar("vex_vip_join_announce","2");
+g_pVipVoteW=register_cvar("vex_vip_vote_weight","2");
+g_pVipSpawnProt=register_cvar("vex_vip_spawnprot","1.0");
+g_pVipDaily=register_cvar("vex_vip_daily_pct","50");
+g_pEliteDaily=register_cvar("vex_elite_daily_pct","100");
+g_pVipScore=register_cvar("vex_vip_scoreboard","1");
+g_pVipRegun=register_cvar("vex_vip_regun","1");
 register_message(get_user_msgid("ScoreAttrib"),"msg_ScoreAttrib");
 register_srvcmd("vex_cos_give","srv_CosGive");
 register_srvcmd("vex_cos_dump","srv_CosDump");
-g_pTipInterval = register_cvar("vex_chat_tip_interval","240");
-g_pLiveChatter = register_cvar("vex_live_chatter","0");
-g_pVoteEvery = register_cvar("vex_vote_every","4");
-g_pRoundsTotal = register_cvar("vex_rounds_total","30");
-g_pFullRot534 = register_cvar("vex_full_rotation","1");
-g_pBossRounds = register_cvar("vex_boss_rounds","7 15 23 30");
+g_pTipInterval=register_cvar("vex_chat_tip_interval","240");
+g_pLiveChatter=register_cvar("vex_live_chatter","0");
+g_pVoteEvery=register_cvar("vex_vote_every","4");
+g_pRoundsTotal=register_cvar("vex_rounds_total","30");
+g_pFullRot534=register_cvar("vex_full_rotation","1");
+g_pBossRounds=register_cvar("vex_boss_rounds","7 15 23 30");
 g_pSpecialRounds= register_cvar("vex_special_rounds","4 11 19 26");
-g_pMultiChance = register_cvar("vex_multi_chance","15");
-g_pBossHPPer = register_cvar("vex_boss_hp_per_player","2500");
-g_pBossFinal = register_cvar("vex_boss_final_mult","1.5");
-g_pBossDmg = register_cvar("vex_boss_damage","90");
-g_pBossAbil = register_cvar("vex_boss_ability_mult","1.0");
-g_pNemDmg = register_cvar("vex_nemesis_damage","400");
-g_pAsnDmg = register_cvar("vex_assassin_damage","300");
-g_pMinionDmg = register_cvar("vex_minion_damage","35");
-g_pZombieDmg = register_cvar("vex_zombie_damage","75");
-g_pHumanHP = register_cvar("vex_human_hp","100");
-g_pLastHumanHP = register_cvar("vex_last_human_bonus","150");
-g_pZSpeed = register_cvar("vex_zombie_speed_mult","1.0");
-g_pHSpeed = register_cvar("vex_human_speed_mult","1.0");
-g_pSpeedHuman = register_cvar("vex_speedrush_human","1.55");
-g_pSpeedZombie = register_cvar("vex_speedrush_zombie","1.45");
-g_pSpeedFov = register_cvar("vex_speedrush_fov","105");
-g_pMvpAP = register_cvar("vex_mvp_ap","10");
-g_pMvpVC = register_cvar("vex_mvp_vc","1");
-g_pKillAP = register_cvar("vex_kill_ap","2");
-g_pInfectAP = register_cvar("vex_infect_ap","3");
-g_pGiveNades = register_cvar("vex_give_nades","abc");
-g_pLmEnable = register_cvar("vex_lm_enable","1");
-g_pLmMax = register_cvar("vex_lm_max","3");
-g_pLmMaxVip = register_cvar("vex_lm_max_vip","4");
-g_pLmTeamMax = register_cvar("vex_lm_team_max","40");
-g_pLmHealth = register_cvar("vex_lm_health","600");
-g_pLmDamage = register_cvar("vex_lm_damage","150");
-g_pLmZMult = register_cvar("vex_lm_zombie_mult","3.0");
-g_pLmWear = register_cvar("vex_lm_beam_wear","18");
-g_pLmBoss = register_cvar("vex_lm_boss","0");
-g_pNadeModes = register_cvar("vex_nade_modes","1");
-g_pNadeProx = register_cvar("vex_nade_sensor_radius","150");
-g_pNadeLaser = register_cvar("vex_nade_laser_length","700");
-g_pNadeHoming = register_cvar("vex_nade_homing_radius","750");
-g_pCluster = register_cvar("vex_nade_cluster","4");
-g_pAirdrop = register_cvar("vex_airdrop","1");
-g_pAirdropEvery = register_cvar("vex_airdrop_every","70");
-g_pMotd = register_cvar("vex_motd","1");
-g_pQuests = register_cvar("vex_quests","1");
-g_pEvolve = register_cvar("vex_evolve","3");
-g_pJoinMsg = register_cvar("vex_join_messages","1");
-g_pPrefix = register_cvar("vex_chat_prefix","^4[VEX]^1");
-g_pHostname = register_cvar("vex_hostname","[ZM] VEXMIRA Zombie 6.0 | BOSS | iPad+Cases | FREE VIP | TR/EN");
-g_pHostDyn = register_cvar("vex_hostname_dynamic","0");
-g_pEnv = register_cvar("vex_env","1");
-g_pEnvCalm = register_cvar("vex_env_calm_random","1");
-g_pWeather = register_cvar("vex_weather","1");
-g_pZHPPer = register_cvar("vex_zombie_hp_per_player","40");
-g_pNemHPPer = register_cvar("vex_nemesis_hp_per_player","1200");
-g_pAsnHPPer = register_cvar("vex_assassin_hp_per_player","800");
-g_pKBMult = register_cvar("vex_knockback_mult","1.6");
-g_pSpecCap = register_cvar("vex_special_dmg_cap","1500");
-g_pNemOneShot = register_cvar("vex_nemesis_oneshot","1");
-g_pAsnOneShot = register_cvar("vex_assassin_oneshot","1");
-g_pNemVsSurv = register_cvar("vex_nemesis_vs_survivor","350");
-g_pNemSpeed = register_cvar("vex_nemesis_speed","265");
-g_pAsnSpeed = register_cvar("vex_assassin_speed","340");
-g_pNemGrav = register_cvar("vex_nemesis_gravity","0.5");
-g_pAsnGrav = register_cvar("vex_assassin_gravity","0.45");
-g_pMinionHP = register_cvar("vex_minion_hp","600");
-g_pNemRageTime = register_cvar("vex_nemesis_rage_time","5");
-g_pNemRageCd = register_cvar("vex_nemesis_rage_cooldown","25");
-g_pAsnVeilTime = register_cvar("vex_assassin_veil_time","4");
-g_pAsnVeilCd = register_cvar("vex_assassin_veil_cooldown","25");
-g_pSpecialLeapCd = register_cvar("vex_special_leap_cooldown","6");
-g_pLmPerRound = register_cvar("vex_lm_per_round","3");
-g_pLmPerRoundVip = register_cvar("vex_lm_per_round_vip","4");
-g_pLmOneShot = register_cvar("vex_lm_oneshot","1");
-g_pLmSpecialDmg = register_cvar("vex_lm_special_damage","600");
-g_pLmZDmg534 = register_cvar("vex_lm_zombie_damage","550");
-g_pLmKeep534 = register_cvar("vex_lm_keep","0");
-g_pLmHumanMult534 = register_cvar("vex_lm_human_break_mult","1.0");
-g_pLmKillWear = register_cvar("vex_lm_kill_wear","100");
-g_pLmPlantTime = register_cvar("vex_lm_plant_time","1.0");
-g_pLmTakeTime = register_cvar("vex_lm_take_time","2.0");
-g_pMeteorEvery = register_cvar("vex_meteor_interval","9");
-g_pMeteorCount = register_cvar("vex_meteor_count","1");
-g_pLmArmTime = register_cvar("vex_lm_arm_time","1.5");
-g_pLmBeamWidth = register_cvar("vex_lm_beam_width","8");
-g_pLmColorMode = register_cvar("vex_lm_color_mode","3");
-g_pLmColor = register_cvar("vex_lm_color","0 200 255");
-g_pLmRange = register_cvar("vex_lm_plant_range","128");
-g_pLmTakeRange = register_cvar("vex_lm_take_range","170");
-g_pLmMaxRange = register_cvar("vex_lm_max_range","600");
-g_pLmBlockModes = register_cvar("vex_lm_block_modes","nemesis assassin");
-g_pDbgDirs = register_cvar("vex_debug_dirs","0");
-g_pCosFollow531 = register_cvar("vex_cos_follow","1");
-g_pSwDmg531 = register_cvar("vex_sw_damage_mult","3.0");
-g_pNadeFx531 = register_cvar("vex_nade_fx","1");
-g_pLzPrices531 = register_cvar("vex_laser_prices","300 450 600 900");
-g_pAutoHit531 = register_cvar("vex_auto_hitbox","1");
-g_pBlackLight531 = register_cvar("vex_blackout_light","b");
+g_pMultiChance=register_cvar("vex_multi_chance","15");
+g_pBossHPPer=register_cvar("vex_boss_hp_per_player","2500");
+g_pBossFinal=register_cvar("vex_boss_final_mult","1.5");
+g_pBossDmg=register_cvar("vex_boss_damage","90");
+g_pBossAbil=register_cvar("vex_boss_ability_mult","1.0");
+g_pNemDmg=register_cvar("vex_nemesis_damage","400");
+g_pAsnDmg=register_cvar("vex_assassin_damage","300");
+g_pMinionDmg=register_cvar("vex_minion_damage","35");
+g_pZombieDmg=register_cvar("vex_zombie_damage","75");
+g_pHumanHP=register_cvar("vex_human_hp","100");
+g_pLastHumanHP=register_cvar("vex_last_human_bonus","150");
+g_pZSpeed=register_cvar("vex_zombie_speed_mult","1.0");
+g_pHSpeed=register_cvar("vex_human_speed_mult","1.0");
+g_pSpeedHuman=register_cvar("vex_speedrush_human","1.55");
+g_pSpeedZombie=register_cvar("vex_speedrush_zombie","1.45");
+g_pSpeedFov=register_cvar("vex_speedrush_fov","105");
+g_pMvpAP=register_cvar("vex_mvp_ap","10");
+g_pMvpVC=register_cvar("vex_mvp_vc","1");
+g_pKillAP=register_cvar("vex_kill_ap","2");
+g_pInfectAP=register_cvar("vex_infect_ap","3");
+g_pGiveNades=register_cvar("vex_give_nades","abc");
+g_pLmEnable=register_cvar("vex_lm_enable","1");
+g_pLmMax=register_cvar("vex_lm_max","3");
+g_pLmMaxVip=register_cvar("vex_lm_max_vip","4");
+g_pLmTeamMax=register_cvar("vex_lm_team_max","40");
+g_pLmHealth=register_cvar("vex_lm_health","600");
+g_pLmDamage=register_cvar("vex_lm_damage","150");
+g_pLmZMult=register_cvar("vex_lm_zombie_mult","3.0");
+g_pLmWear=register_cvar("vex_lm_beam_wear","18");
+g_pLmBoss=register_cvar("vex_lm_boss","0");
+g_pNadeModes=register_cvar("vex_nade_modes","1");
+g_pNadeProx=register_cvar("vex_nade_sensor_radius","150");
+g_pNadeLaser=register_cvar("vex_nade_laser_length","700");
+g_pNadeHoming=register_cvar("vex_nade_homing_radius","750");
+g_pCluster=register_cvar("vex_nade_cluster","4");
+g_pAirdrop=register_cvar("vex_airdrop","1");
+g_pAirdropEvery=register_cvar("vex_airdrop_every","70");
+g_pMotd=register_cvar("vex_motd","1");
+g_pQuests=register_cvar("vex_quests","1");
+g_pEvolve=register_cvar("vex_evolve","3");
+g_pJoinMsg=register_cvar("vex_join_messages","1");
+g_pPrefix=register_cvar("vex_chat_prefix","^4[VEX]^1");
+g_pHostname=register_cvar("vex_hostname","Zombie Plague | Vexmira | /İpad /Tablet | Boss+FreeVip | EN/TR");
+g_pHostDyn=register_cvar("vex_hostname_dynamic","0");
+g_pEnv=register_cvar("vex_env","1");
+g_pEnvCalm=register_cvar("vex_env_calm_random","1");
+g_pWeather=register_cvar("vex_weather","1");
+g_pZHPPer=register_cvar("vex_zombie_hp_per_player","40");
+g_pNemHPPer=register_cvar("vex_nemesis_hp_per_player","1200");
+g_pAsnHPPer=register_cvar("vex_assassin_hp_per_player","800");
+g_pKBMult=register_cvar("vex_knockback_mult","1.6");
+g_pSpecCap=register_cvar("vex_special_dmg_cap","1500");
+g_pNemOneShot=register_cvar("vex_nemesis_oneshot","1");
+g_pAsnOneShot=register_cvar("vex_assassin_oneshot","1");
+g_pNemVsSurv=register_cvar("vex_nemesis_vs_survivor","350");
+g_pNemSpeed=register_cvar("vex_nemesis_speed","265");
+g_pAsnSpeed=register_cvar("vex_assassin_speed","340");
+g_pNemGrav=register_cvar("vex_nemesis_gravity","0.5");
+g_pAsnGrav=register_cvar("vex_assassin_gravity","0.45");
+g_pMinionHP=register_cvar("vex_minion_hp","600");
+g_pNemRageTime=register_cvar("vex_nemesis_rage_time","5");
+g_pNemRageCd=register_cvar("vex_nemesis_rage_cooldown","25");
+g_pAsnVeilTime=register_cvar("vex_assassin_veil_time","4");
+g_pAsnVeilCd=register_cvar("vex_assassin_veil_cooldown","25");
+g_pSpecialLeapCd=register_cvar("vex_special_leap_cooldown","6");
+g_pLmPerRound=register_cvar("vex_lm_per_round","3");
+g_pLmPerRoundVip=register_cvar("vex_lm_per_round_vip","4");
+g_pLmOneShot=register_cvar("vex_lm_oneshot","1");
+g_pLmSpecialDmg=register_cvar("vex_lm_special_damage","600");
+g_pLmZDmg534=register_cvar("vex_lm_zombie_damage","550");
+g_pLmKeep534=register_cvar("vex_lm_keep","0");
+g_pLmHumanMult534=register_cvar("vex_lm_human_break_mult","1.0");
+g_pLmKillWear=register_cvar("vex_lm_kill_wear","100");
+g_pLmPlantTime=register_cvar("vex_lm_plant_time","1.0");
+g_pLmTakeTime=register_cvar("vex_lm_take_time","2.0");
+g_pMeteorEvery=register_cvar("vex_meteor_interval","9");
+g_pMeteorCount=register_cvar("vex_meteor_count","1");
+g_pLmArmTime=register_cvar("vex_lm_arm_time","1.5");
+g_pLmBeamWidth=register_cvar("vex_lm_beam_width","8");
+g_pLmColorMode=register_cvar("vex_lm_color_mode","3");
+g_pLmColor=register_cvar("vex_lm_color","0 200 255");
+g_pLmRange=register_cvar("vex_lm_plant_range","128");
+g_pLmTakeRange=register_cvar("vex_lm_take_range","170");
+g_pLmMaxRange=register_cvar("vex_lm_max_range","600");
+g_pLmBlockModes=register_cvar("vex_lm_block_modes","nemesis assassin");
+g_pDbgDirs=register_cvar("vex_debug_dirs","0");
+g_pCosFollow531=register_cvar("vex_cos_follow","1");
+g_pSwDmg531=register_cvar("vex_sw_damage_mult","3.0");
+g_pNadeFx531=register_cvar("vex_nade_fx","1");
+g_pLzPrices531=register_cvar("vex_laser_prices","300 450 600 900");
+g_pAutoHit531=register_cvar("vex_auto_hitbox","1");
+g_pBlackLight531=register_cvar("vex_blackout_light","b");
 register_cvar("vex_dbg_nxmask","0");register_cvar("vex_debug_audio","0");
-g_pInfAmmo531 = register_cvar("vex_unlimited_bpammo","1");
+g_pInfAmmo531=register_cvar("vex_unlimited_bpammo","1");
 g_pAutoJoinHumans= register_cvar("vex_auto_join_humans","1");
-g_pAirdropLaser = register_cvar("vex_airdrop_laser","1");
-g_pNadeSensorArm = register_cvar("vex_nade_sensor_arm","1.5");
+g_pAirdropLaser=register_cvar("vex_airdrop_laser","1");
+g_pNadeSensorArm=register_cvar("vex_nade_sensor_arm","1.5");
 g_pNadeSensorLife= register_cvar("vex_nade_sensor_life","60");
-g_pNadeLaserArm = register_cvar("vex_nade_laser_arm","1.0");
-g_pNadeFireDmg = register_cvar("vex_nade_fire_damage","80");
-g_pNadeFireRad = register_cvar("vex_nade_fire_radius","260");
-g_pNadeFireBurn = register_cvar("vex_nade_fire_burn","6");
-g_pNadeFrostRad = register_cvar("vex_nade_frost_radius","260");
-g_pNadeFrostTime = register_cvar("vex_nade_frost_time","3.0");
-g_pNadeInfectRad = register_cvar("vex_nade_infect_radius","240");
-g_pNadeFlareTime = register_cvar("vex_nade_flare_time","25");
+g_pNadeLaserArm=register_cvar("vex_nade_laser_arm","1.0");
+g_pNadeFireDmg=register_cvar("vex_nade_fire_damage","80");
+g_pNadeFireRad=register_cvar("vex_nade_fire_radius","260");
+g_pNadeFireBurn=register_cvar("vex_nade_fire_burn","6");
+g_pNadeFrostRad=register_cvar("vex_nade_frost_radius","260");
+g_pNadeFrostTime=register_cvar("vex_nade_frost_time","3.0");
+g_pNadeInfectRad=register_cvar("vex_nade_infect_radius","240");
+g_pNadeFlareTime=register_cvar("vex_nade_flare_time","25");
 g_pNadeClusterDmg= register_cvar("vex_nade_cluster_damage","45");
-g_pBossPhase2 = register_cvar("vex_boss_phase2","60");
-g_pBossPhase3 = register_cvar("vex_boss_phase3","30");
-g_pBossRAuto = register_cvar("vex_boss_r_auto","12");
-g_pBossRCdMult = register_cvar("vex_boss_r_cooldown_mult","1.0");
-g_pBossRDmgMult = register_cvar("vex_boss_r_damage_mult","1.0");
-g_pBossAutoAbil = register_cvar("vex_boss_auto_abilities","1");
-g_pAfkTime = register_cvar("vex_afk_time","120");
-g_pAfkAction = register_cvar("vex_afk_action","1");
-g_pDropBeacon = register_cvar("vex_airdrop_beacon","1");
-g_pDropCompass = register_cvar("vex_airdrop_compass","1");
-g_pAirdropHP = register_cvar("vex_airdrop_zombie_heal","300");
-g_pLoopGuard = register_cvar("vex_sound_loopguard","1");
-g_pLoopMax = register_cvar("vex_sound_loop_max","3.0");
-g_pRoundStopSnd = register_cvar("vex_round_stopsound","1");
-g_pKillXP = register_cvar("vex_kill_xp","8");
-g_pInfectXP = register_cvar("vex_infect_xp","10");
-g_pWinHXP = register_cvar("vex_win_human_xp","25");
-g_pWinHAP = register_cvar("vex_win_human_ap","5");
-g_pWinZXP = register_cvar("vex_win_zombie_xp","15");
-g_pWinZAP = register_cvar("vex_win_zombie_ap","4");
-g_pBossKillXP = register_cvar("vex_boss_kill_xp","120");
-g_pBossKillAP = register_cvar("vex_boss_kill_ap","25");
-g_pBossKillVC = register_cvar("vex_boss_kill_vc","2");
-g_pSpecKillXP = register_cvar("vex_special_kill_xp","80");
-g_pSpecKillAP = register_cvar("vex_special_kill_ap","15");
-g_pBossBoard = register_cvar("vex_boss_board_ap","40 25 15");
-g_pHsAP = register_cvar("vex_headshot_ap","1");
-g_pExchange = register_cvar("vex_exchange_cost","100");
-g_pPerkStep = register_cvar("vex_perk_cost_step","5");
-g_pDailyAP = register_cvar("vex_daily_ap","20");
-g_pAchAP = register_cvar("vex_achievement_ap","25");
-g_pAchVC = register_cvar("vex_achievement_vc","2");
-g_pBurnDmg = register_cvar("vex_burn_damage_human","6");
-g_pZombieBurnDmg = register_cvar("vex_burn_damage_zombie","35");
+g_pBossPhase2=register_cvar("vex_boss_phase2","60");
+g_pBossPhase3=register_cvar("vex_boss_phase3","30");
+g_pBossRAuto=register_cvar("vex_boss_r_auto","12");
+g_pBossRCdMult=register_cvar("vex_boss_r_cooldown_mult","1.0");
+g_pBossRDmgMult=register_cvar("vex_boss_r_damage_mult","1.0");
+g_pBossAutoAbil=register_cvar("vex_boss_auto_abilities","1");
+g_pAfkTime=register_cvar("vex_afk_time","120");
+g_pAfkAction=register_cvar("vex_afk_action","1");
+g_pDropBeacon=register_cvar("vex_airdrop_beacon","1");
+g_pDropCompass=register_cvar("vex_airdrop_compass","1");
+g_pAirdropHP=register_cvar("vex_airdrop_zombie_heal","300");
+g_pLoopGuard=register_cvar("vex_sound_loopguard","1");
+g_pLoopMax=register_cvar("vex_sound_loop_max","3.0");
+g_pRoundStopSnd=register_cvar("vex_round_stopsound","1");
+g_pKillXP=register_cvar("vex_kill_xp","8");
+g_pInfectXP=register_cvar("vex_infect_xp","10");
+g_pWinHXP=register_cvar("vex_win_human_xp","25");
+g_pWinHAP=register_cvar("vex_win_human_ap","5");
+g_pWinZXP=register_cvar("vex_win_zombie_xp","15");
+g_pWinZAP=register_cvar("vex_win_zombie_ap","4");
+g_pBossKillXP=register_cvar("vex_boss_kill_xp","120");
+g_pBossKillAP=register_cvar("vex_boss_kill_ap","25");
+g_pBossKillVC=register_cvar("vex_boss_kill_vc","2");
+g_pSpecKillXP=register_cvar("vex_special_kill_xp","80");
+g_pSpecKillAP=register_cvar("vex_special_kill_ap","15");
+g_pBossBoard=register_cvar("vex_boss_board_ap","40 25 15");
+g_pHsAP=register_cvar("vex_headshot_ap","1");
+g_pExchange=register_cvar("vex_exchange_cost","100");
+g_pPerkStep=register_cvar("vex_perk_cost_step","5");
+g_pDailyAP=register_cvar("vex_daily_ap","20");
+g_pAchAP=register_cvar("vex_achievement_ap","25");
+g_pAchVC=register_cvar("vex_achievement_vc","2");
+g_pBurnDmg=register_cvar("vex_burn_damage_human","6");
+g_pZombieBurnDmg=register_cvar("vex_burn_damage_zombie","35");
 g_pZc[ZCV_HOOK_SPEED]= register_cvar("vex_butcher_hook_speed","1400");
 g_pZc[ZCV_HOOK_RANGE]= register_cvar("vex_butcher_hook_range","900");
 g_pZc[ZCV_HOOK_PULL]= register_cvar("vex_butcher_pull_speed","600");
@@ -28927,50 +28928,50 @@ g_pZc[ZCV_NM_BOOST]= register_cvar("vex_nightmare_boost","3");
 g_pZc[ZCV_NM_SPEED]= register_cvar("vex_nightmare_speed","1.35");
 g_pZc[ZCV_BOT]= register_cvar("vex_bot_abilities","1");
 g_pZc[ZCV_ALTKEYS]= register_cvar("vex_skill_alt_keys","1");
-g_pOvhEnable = register_cvar("vex_overhead","1");
-g_pHudStyle = register_cvar("vex_hud_style","1");
-g_pHudTop = register_cvar("vex_hud_top","-1");
-g_pTop532 = register_cvar("vex_topboard","1");g_pHpCard533 = register_cvar("vex_boss_hpcard","1");g_pCosSmooth532 = register_cvar("vex_cos_smooth","1");g_pAmbVol532 = register_cvar("vex_ambience_volume","0.55");g_pAmbRe532 = register_cvar("vex_ambience_restart","120");g_pTopPad532 = register_cvar("vex_topboard_pad","44");g_pTopY532 = register_cvar("vex_topboard_y","0.01");
-g_pHudRight = register_cvar("vex_hud_right","-1");
-g_pHudMvp = register_cvar("vex_hud_mvp","-1");
-g_pHudXp = register_cvar("vex_hud_xp","-1");
-g_pHudOvh = register_cvar("vex_hud_overhead","-1");
-g_pHudObjective = register_cvar("vex_hud_objective","-1");
-g_pCso = register_cvar("vex_cso_style","1");
-g_pCsoNotes = register_cvar("vex_cso_notes","2147483647");
-g_pComboTime = register_cvar("vex_combo_time","6.0");
-g_pCsoTime = register_cvar("vex_cso_time","2.5");
-g_pCsoKmTime = register_cvar("vex_cso_km_time","1.5");
-g_pCsoFov = register_cvar("vex_cso_fov","89");
-g_pCsoSnd = register_cvar("vex_cso_sound","1");
-g_pCsoIcons = register_cvar("vex_cso_icons","1");
-g_pCsoBots = register_cvar("vex_cso_bots","0");
-g_pCsoLog = register_cvar("vex_cso_log","0");
-g_pCsoAnim = register_cvar("vex_cso_anim","1");
-g_msgWL = get_user_msgid("WeaponList");
-g_msgCurW = get_user_msgid("CurWeapon");
-g_msgFOV = get_user_msgid("SetFOV");
-g_msgSIcon = get_user_msgid("StatusIcon");
+g_pOvhEnable=register_cvar("vex_overhead","1");
+g_pHudStyle=register_cvar("vex_hud_style","1");
+g_pHudTop=register_cvar("vex_hud_top","-1");
+g_pTop532=register_cvar("vex_topboard","1");g_pHpCard533=register_cvar("vex_boss_hpcard","1");g_pCosSmooth532=register_cvar("vex_cos_smooth","1");g_pAmbVol532=register_cvar("vex_ambience_volume","0.55");g_pAmbRe532=register_cvar("vex_ambience_restart","120");g_pTopPad532=register_cvar("vex_topboard_pad","44");g_pTopY532=register_cvar("vex_topboard_y","0.01");
+g_pHudRight=register_cvar("vex_hud_right","-1");
+g_pHudMvp=register_cvar("vex_hud_mvp","-1");
+g_pHudXp=register_cvar("vex_hud_xp","-1");
+g_pHudOvh=register_cvar("vex_hud_overhead","-1");
+g_pHudObjective=register_cvar("vex_hud_objective","-1");
+g_pCso=register_cvar("vex_cso_style","1");
+g_pCsoNotes=register_cvar("vex_cso_notes","2147483647");
+g_pComboTime=register_cvar("vex_combo_time","6.0");
+g_pCsoTime=register_cvar("vex_cso_time","2.5");
+g_pCsoKmTime=register_cvar("vex_cso_km_time","1.5");
+g_pCsoFov=register_cvar("vex_cso_fov","89");
+g_pCsoSnd=register_cvar("vex_cso_sound","1");
+g_pCsoIcons=register_cvar("vex_cso_icons","1");
+g_pCsoBots=register_cvar("vex_cso_bots","0");
+g_pCsoLog=register_cvar("vex_cso_log","0");
+g_pCsoAnim=register_cvar("vex_cso_anim","1");
+g_msgWL=get_user_msgid("WeaponList");
+g_msgCurW=get_user_msgid("CurWeapon");
+g_msgFOV=get_user_msgid("SetFOV");
+g_msgSIcon=get_user_msgid("StatusIcon");
 CsoInitWL();
 register_message(g_msgWL,"msg_WeaponList");
 set_task(0.1,"task_CsoTick",TASK_CSO,_,_,"b");
-g_pBossBarW = register_cvar("vex_bossbar_width","110");
-g_pHudMin538 = register_cvar("vex_hud_minimal","1");
-g_pSmallBarW = register_cvar("vex_hpbar_width","44");
-g_pIconSize = register_cvar("vex_head_icon_size","18");
-g_pIcons = register_cvar("vex_head_icons","31");
-g_pOvhSelf = register_cvar("vex_overhead_self","0");
-g_pOvhMargin = register_cvar("vex_overhead_margin","14");
-g_pOvhGap = register_cvar("vex_overhead_gap","2");
-g_pBossIdleMin = register_cvar("vex_boss_idle_min","9");
-g_pBossIdleMax = register_cvar("vex_boss_idle_max","16");
-g_pBossPainCd = register_cvar("vex_boss_pain_cd","0.9");
-g_pBossAtkCd = register_cvar("vex_boss_attack_cd","1.1");
-g_pBossStepDist = register_cvar("vex_boss_step_dist","120");
-g_pPrefixBoss = register_cvar("vex_chat_prefix_boss","^3[BOSS]^1");
-g_pPrefixEvent = register_cvar("vex_chat_prefix_event","^4[^1EVENT^4]^1");
-g_pPrefixVip = register_cvar("vex_chat_prefix_vip","^4[^3VIP^4]^1");
-g_pPrefixAdmin = register_cvar("vex_chat_prefix_admin","^3[ADMIN]^1");
+g_pBossBarW=register_cvar("vex_bossbar_width","110");
+g_pHudMin538=register_cvar("vex_hud_minimal","1");
+g_pSmallBarW=register_cvar("vex_hpbar_width","44");
+g_pIconSize=register_cvar("vex_head_icon_size","18");
+g_pIcons=register_cvar("vex_head_icons","31");
+g_pOvhSelf=register_cvar("vex_overhead_self","0");
+g_pOvhMargin=register_cvar("vex_overhead_margin","14");
+g_pOvhGap=register_cvar("vex_overhead_gap","2");
+g_pBossIdleMin=register_cvar("vex_boss_idle_min","9");
+g_pBossIdleMax=register_cvar("vex_boss_idle_max","16");
+g_pBossPainCd=register_cvar("vex_boss_pain_cd","0.9");
+g_pBossAtkCd=register_cvar("vex_boss_attack_cd","1.1");
+g_pBossStepDist=register_cvar("vex_boss_step_dist","120");
+g_pPrefixBoss=register_cvar("vex_chat_prefix_boss","^3[BOSS]^1");
+g_pPrefixEvent=register_cvar("vex_chat_prefix_event","^4[^1EVENT^4]^1");
+g_pPrefixVip=register_cvar("vex_chat_prefix_vip","^4[^3VIP^4]^1");
+g_pPrefixAdmin=register_cvar("vex_chat_prefix_admin","^3[ADMIN]^1");
 register_srvcmd("vex_precache_stats","srv_PrecacheStats");
 register_srvcmd("vex_debug_lmtest","srv_DbgLmTest");
 register_srvcmd("vex_debug_swtest","srv_DbgSwTest");
@@ -28985,13 +28986,13 @@ register_forward(FM_StartFrame,"GiantFrame532",1);
 PrecacheReportTotals();
 OvhInit();
 set_task(2.0,"CommunityCheckComponents");
-g_msgWeather = get_user_msgid("ReceiveW");
+g_msgWeather=get_user_msgid("ReceiveW");
 static const TABLE_CMDS[][]=
 {
 "vex_item","vex_class","vex_sw","vex_gun","vex_job","vex_boss_stat","vex_boss_skill",
 "vex_mode_rule","vex_env_event","vex_env_mode","vex_env_boss","vex_env_calm","vex_cosmetic","vex_quest","vex_sw_text"
 };
-for(new i = 0;i < sizeof TABLE_CMDS;i++)
+for(new i=0;i < sizeof TABLE_CMDS;i++)
 register_srvcmd(TABLE_CMDS[i],"srv_TableCmd");
 register_srvcmd("vex_res","srv_ResCmd");
 register_concmd("vex_reload","cmd_reload_cfg",ADMIN_RCON,"- vexmira.cfg dosyasini yeniden yukler");
@@ -29027,11 +29028,11 @@ VxRegisterHam524(Ham_Item_Deploy,"weapon_hegrenade","fw_NadeDeploy",1);
 VxRegisterHam524(Ham_Item_Deploy,"weapon_smokegrenade","fw_NadeDeploy",1);
 VxRegisterHam524(Ham_Item_Deploy,"weapon_flashbang","fw_NadeDeploy",1);
 register_message(get_user_msgid("MOTD"),"msg_Motd");
-for(new i = 0;i < sizeof GUN_CLASSES;i++)
+for(new i=0;i < sizeof GUN_CLASSES;i++)
 VxRegisterHam524(Ham_Weapon_PrimaryAttack,GUN_CLASSES[i],"fw_PrimaryAttackPost",1);
 register_forward(FM_ClientKill,"fw_ClientKill");
-g_tCmds = TrieCreate();
-g_tRoundBuys = TrieCreate();
+g_tCmds=TrieCreate();
+g_tRoundBuys=TrieCreate();
 register_clcmd("chooseteam","cmd_menu");
 register_clcmd("jointeam","cmd_jointeam");
 register_clcmd("vexmenu","cmd_menu");
@@ -29140,18 +29141,18 @@ register_concmd("vex_vip_remove","cmd_vip_remove",ADMIN_RCON,"<isim|#userid|STEA
 register_concmd("vex_vip_list","cmd_vip_list",ADMIN_BAN,"- online VIP listesi");
 register_concmd("vex_boss","cmd_adm_boss",ADMIN_BAN,"<0-8 | -1 rastgele> - siradaki boss");
 set_task(1.0,"task_Tick",TASK_TICK,_,_,"b");
-g_pHudBottom60 = register_cvar("vex_hud_bottom","1");
-g_pHudHide60 = register_cvar("vex_hud_hide","56");
-g_pHideRadar60 = register_cvar("vex_hide_radar","1");
+g_pHudBottom60=register_cvar("vex_hud_bottom","1");
+g_pHudHide60=register_cvar("vex_hud_hide","56");
+g_pHideRadar60=register_cvar("vex_hide_radar","1");
 set_task(0.3,"task_BottomHud60",TASK_BHUD60,_,_,"b");
 set_task(0.25,"task_ZombieVision",TASK_ZVISION,_,_,"b");
 set_task(0.2,"task_HudQueue",TASK_HUDQ,_,_,"b");
 set_task(0.1,"task_NadeTick",TASK_NADES,_,_,"b");
 set_task(0.1,"task_ZcTick",TASK_ZCTICK,_,_,"b");
-g_msgFlashlight = get_user_msgid("Flashlight");
-g_msgNVGToggle = get_user_msgid("NVGToggle");
-g_fMapStart = get_gametime();
-g_iRound = 1;
+g_msgFlashlight=get_user_msgid("Flashlight");
+g_msgNVGToggle=get_user_msgid("NVGToggle");
+g_fMapStart=get_gametime();
+g_iRound=1;
 ShuffleBosses();
 }
 public plugin_cfg()
@@ -29163,7 +29164,7 @@ VexDuplicateGuard();
 log_to_file("vexmira_startup.log","[530 core] duplicate guard READY");
 server_print("[Vexmira] Vexmira Zombie Core v%s yuklendi (iki eklenti: core + gear, modul: %d/14 acik)",VERSION,ZcModulesOn());
 log_amx("[Vexmira] Vexmira Zombie Core v%s",VERSION);
-new n = LoadMainConfig(false);
+new n=LoadMainConfig(false);
 log_amx("[Vexmira] vexmira.cfg yuklendi (%d satir).",n);
 log_to_file("vexmira_startup.log","[530 core] LoadTop BEGIN");
 LoadTop();
@@ -29182,9 +29183,9 @@ public plugin_end()
 if(!g_bRun526)return;
 log_to_file("vexmira_startup.log","[5.3.0] END map unload");
 if(g_tZcModelsReady!=Invalid_Trie)TrieDestroy(g_tZcModelsReady);
-if(g_hVault != INVALID_HANDLE)
+if(g_hVault!=INVALID_HANDLE)
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(is_user_connected(id))
 SaveData(id);
@@ -29192,9 +29193,9 @@ SaveData(id);
 nvault_close(g_hVault);
 }
 SaveTop();LbWrite60();
-if(g_hVipVault != INVALID_HANDLE)
+if(g_hVipVault!=INVALID_HANDLE)
 nvault_close(g_hVipVault);
-if(g_tRes != Invalid_Trie)
+if(g_tRes!=Invalid_Trie)
 TrieDestroy(g_tRes);
 }
 CommunityAlive(id){return is_user_alive(id)&& !g_bZombie[id]&& !g_bSurvivor[id]&& !g_bSniper[id]&& !g_bBoss[id]&& !g_bMinion[id];}
@@ -29212,10 +29213,10 @@ CommunityExtra(id)
 {
 return VxActive(id)>=0;
 }
-CommunityNativeZombie(id){return id<1 || id>32 || !is_user_connected(id)|| g_bZombie[id];}
-CommunityNativeWeapon(id){return id>=1 && id<=32 ? CommunityExtra(id):0;}
+CommunityNativeZombie(id){return id<1||id>32||!is_user_connected(id)|| g_bZombie[id];}
+CommunityNativeWeapon(id){return id>=1&&id<=32 ? CommunityExtra(id):0;}
 CommunityNativeRestore(id){
-if(id>=1 && id<=32 && is_user_alive(id)&& !g_bZombie[id]){ApplyHumanModel(id);remove_task(id+64000);set_task(0.2,"CommunityApplyKnife",id+64000);}
+if(id>=1&&id<=32&&is_user_alive(id)&& !g_bZombie[id]){ApplyHumanModel(id);remove_task(id+64000);set_task(0.2,"CommunityApplyKnife",id+64000);}
 return 1;
 }
 CommunityWeaponMenu(id)
@@ -29228,7 +29229,7 @@ formatex(line,charsmax(line),"%L",id,"MENU_BACK");MenuAdd(menu,line,999);MenuFin
 CommunityBuyWeapon(id,i)
 {
 if(i>=100){BuySg538(id,i-100);return;}
-if(i<0 || i>=NUM_SPECIAL)return;
+if(i<0||i>=NUM_SPECIAL)return;
 if(!CommunityAlive(id)){Chat(id,"ZC_ALIVE_HUMAN");return;}
 if(VxActive(id)==i){Chat(id,"SHOP_ALREADY");return;}
 if(g_iAP[id]<SW_COST[i]){client_print_color(id,print_team_default,g_iLang[id]==1?"^4[Vexmira]^1 You need ^3%d AP^1 more for this weapon.":"^4[Vexmira]^1 Bu silah icin ^3%d AP^1 daha gerekli.",SW_COST[i]-g_iAP[id]);return;}
@@ -29257,9 +29258,9 @@ if(g_iCommunitySel[id][c]==0)formatex(line,charsmax(line),"%L [%L]",id,"ZC_STAND
 else formatex(line,charsmax(line),"%L",id,"ZC_STANDARD");
 MenuAdd(menu,line,c*100);
 for(new i=0;i<(c ? KN_TOTAL : 5);i++){
-if(!c && !g_bCommunityCtOk[i])continue;
+if(!c&&!g_bCommunityCtOk[i])continue;
 new knm[48];KnifeName538(c,i,knm,charsmax(knm));
-if(c && !KnifeReady47(i)){if(knm[0]){formatex(line,charsmax(line),"\d%s [%s]",knm,g_iLang[id]!=1?"sunucuda dosya eksik":"files missing on server");MenuAdd(menu,line,c*100+i+1);}continue;}
+if(c&&!KnifeReady47(i)){if(knm[0]){formatex(line,charsmax(line),"\d%s [%s]",knm,g_iLang[id]!=1?"sunucuda dosya eksik":"files missing on server");MenuAdd(menu,line,c*100+i+1);}continue;}
 if(g_iCommunitySel[id][c]==i+1)formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_EQUIPPED");
 else if(g_iCommunityOwned[id][c]&(1<<i))formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_OWNED");
 else formatex(line,charsmax(line),"%s [%d VC]",knm,KnifeCost538(c,i));
@@ -29274,22 +29275,22 @@ if(item<0){menu_destroy(menu);return PLUGIN_HANDLED;}
 new sel=MenuInfo(menu,item);menu_destroy(menu);
 if(sel==999){ShowCosmeticMenu(id);return PLUGIN_HANDLED;}
 new c=sel/100,v=sel%100;
-if(c<0 || c>1 || v<0 || v>(c ? KN_TOTAL : 5))return PLUGIN_HANDLED;
+if(c<0||c>1||v<0||v>(c ? KN_TOTAL : 5))return PLUGIN_HANDLED;
 CommunityCoinSelect(id,c,v);
 CommunityCoinMenu(id,c);return PLUGIN_HANDLED;
 }
 CommunityCoinSelect(id,c,v)
 {
-if(c<0 || c>1 || v<0 || v>(c ? KN_TOTAL : 5))return 0;
-if(v &&((!c && !g_bCommunityCtOk[v-1])||(c && !KnifeReady47(v-1)))){Chat(id,"ZC_MISSING_COLLECTION");return 0;}
-if(v && !(g_iCommunityOwned[id][c]&(1<<(v-1)))){
+if(c<0||c>1||v<0||v>(c ? KN_TOTAL : 5))return 0;
+if(v &&((!c&&!g_bCommunityCtOk[v-1])||(c&&!KnifeReady47(v-1)))){Chat(id,"ZC_MISSING_COLLECTION");return 0;}
+if(v&&!(g_iCommunityOwned[id][c]&(1<<(v-1)))){
 new cost=KnifeCost538(c,v-1);
 if(g_iVC[id]<cost){Chat(id,"COS_NOVC",cost);return 0;}
 g_iVC[id]-=cost;g_iCommunityOwned[id][c]|=1<<(v-1);PlayKey(id,"SHOP_BUY");VxItemFxRGB531(id,255,215,0);
 }
 g_iCommunitySel[id][c]=v;SaveData(id);
 if(CommunityAlive(id)){
-if(!c && !ZcCall(ZC_HEV,ZCOP_has,id))ApplyHumanModel(id);
+if(!c&&!ZcCall(ZC_HEV,ZCOP_has,id))ApplyHumanModel(id);
 else if(c)CommunityApplyKnife(id+64000);
 }
 return 1;
@@ -29298,12 +29299,12 @@ public task_KnifeReport5(){for(new i=0;i<KN_TOTAL;i++){if(KnifeReady47(i))contin
 public CommunityApplyKnife(taskid)
 {
 new id=taskid-64000;
-if(id<1 || id>32 || !CommunityAlive(id))return;
+if(id<1||id>32||!CommunityAlive(id))return;
 CommunityRemoveKnives(id);
 if(ZcCall(ZC_JETPACK,ZCOP_has,id)|| ZcCall(ZC_HEV,ZCOP_has,id))return;
 new v=g_iCommunitySel[id][1];
 if(v==8){v=0;g_iCommunitySel[id][1]=0;}
-if(v>=5 && v<=KN_TOTAL){new ent=get_member(id,m_pActiveItem);if(!is_nullent(ent)&& get_user_weapon(id)==CSW_KNIFE)ExecuteHamB(Ham_Item_Deploy,ent);}
+if(v>=5&&v<=KN_TOTAL){new ent=get_member(id,m_pActiveItem);if(!is_nullent(ent)&& get_user_weapon(id)==CSW_KNIFE)ExecuteHamB(Ham_Item_Deploy,ent);}
 else if(v &&(g_iCommunityOwned[id][1]&(1<<(v-1))))ZcCall((v-1)+7,ZCOP_give,id);
 else{new ent=get_member(id,m_pActiveItem);if(!is_nullent(ent)&& get_user_weapon(id)==CSW_KNIFE)ExecuteHamB(Ham_Item_Deploy,ent);}
 }
@@ -29313,17 +29314,17 @@ MeleePrecache48();
 g_iSupplySigil47=ZcPcModel("models/vexmira/epic/supply_sigil47.mdl");
 for(new sg47=0;sg47<2;sg47++)g_iSigil47[sg47]=ZcPcModel(SIGIL47[sg47]);
 for(new b47=3;b47<5;b47++)if(file_exists(BANNER47[b47],true))g_iBannerModel47[b47]=ZcPcModel(BANNER47[b47]);
-g_bTitan47 = ZcPcModel("models/player/vex_titan48/vex_titan48.mdl")> 0;
+g_bTitan47=ZcPcModel("models/player/vex_titan48/vex_titan48.mdl")> 0;
 new path[128];
 for(new i=0;i<5;i++){formatex(path,charsmax(path),"models/player/%s/%s.mdl",COMMUNITY_CT[i],COMMUNITY_CT[i]);if(file_exists(path,true))g_bCommunityCtOk[i]= ZcPcModel(path)>0;else log_amx("[Community] EKSIK model: %s (bu CT gorunumu kapali)",path);}
 ZcPcGeneric("models/player/vex_halo/vex_haloT.mdl");
-g_bCommunityButterflyOk = g_bMkOk[0];
+g_bCommunityButterflyOk=g_bMkOk[0];
 }
 CommunityCosOrigin(ent,id,c,i)
 {
 new Float:o[3],Float:a[3],Float:owner[3];
-if(c==0 && get_pcvar_num(g_pCosFollow531)){
-if(get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW || get_entvar(ent,var_aiment)!=id){
+if(c==0&&get_pcvar_num(g_pCosFollow531)){
+if(get_entvar(ent,var_movetype)!=MOVETYPE_FOLLOW||get_entvar(ent,var_aiment)!=id){
 set_entvar(ent,var_movetype,MOVETYPE_FOLLOW);set_entvar(ent,var_aiment,id);
 get_entvar(id,var_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
 set_entvar(ent,var_angles,Float:{0.0,0.0,0.0});
@@ -29332,7 +29333,7 @@ set_entvar(ent,var_framerate,g_fCmFps[c][i]>0.0?g_fCmFps[c][i]:1.0);set_entvar(e
 CmApplyCtl(ent,id,c,i);
 return;
 }
-if(c==2 && equal(g_szCmMdl[c][i],"models/vexmira/arena52/hats/",28)&& CosCanFollow49(id,c)){
+if(c==2&&equal(g_szCmMdl[c][i],"models/vexmira/arena52/hats/",28)&& CosCanFollow49(id,c)){
 set_entvar(ent,var_movetype,MOVETYPE_FOLLOW);set_entvar(ent,var_aiment,id);
 get_entvar(id,var_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
 set_entvar(ent,var_angles,Float:{0.0,0.0,0.0});return;
@@ -29345,14 +29346,14 @@ CommunityCosCalc(id,c,i,Float:o[3],Float:a[3])
 {
 get_entvar(id,var_origin,o);get_entvar(id,var_angles,a);
 new bool:anchored=false;
-if(c!=1 && CosCanFollow49(id,c)){
+if(c!=1&&CosCanFollow49(id,c)){
 new j=c==2?1:0;
 if(g_fCosAt50[id]<=0.0){new Float:p50[3],Float:a50[3];engfunc(EngFunc_GetBonePosition,id,g_iCosBone50[id][j],p50,a50);for(new k=0;k<3;k++)g_fCosAnchor50[id][j][k]=p50[k]-o[k];}
 for(new k=0;k<3;k++)o[k]+=g_fCosAnchor50[id][j][k];anchored=true;
 }
 new Float:x=g_fCmOfs[c][i][0],Float:yy=g_fCmOfs[c][i][1],Float:z=g_fCmOfs[c][i][2];
 new bool:duck=(get_entvar(id,var_flags)&FL_DUCKING)?true:false;
-if(c==2 && anchored){
+if(c==2&&anchored){
 if(equali(g_szOvhMdl[id],"vex_batman47"))z-=2.0;
 else if(equali(g_szOvhMdl[id],"vex_wolverine47"))z-=3.3;
 else if(equali(g_szOvhMdl[id],"vex_ironman47"))z-=2.8;
@@ -29361,14 +29362,14 @@ else if(equali(g_szOvhMdl[id],"vex_masterchief47"))z-=0.8;
 }
 new Float:y=a[1]*0.0174532925;
 o[0]+=x*floatcos(y)-yy*floatsin(y);o[1]+=x*floatsin(y)+yy*floatcos(y);
-if(!anchored && g_iCmAtt[c][i]==CMA_HEAD)z+=duck?g_fOvhDuck[id]:g_fOvhStand[id];
-else if(!anchored &&(g_iCmAtt[c][i]==CMA_BACK ||(g_iCmAtt[c][i]==CMA_BONE && c==0)))z+=(duck?g_fOvhDuck[id]:g_fOvhStand[id])-18.0;
-else if(!anchored && g_iCmAtt[c][i]==CMA_BONE && c==2)z+=(duck?g_fOvhDuck[id]:g_fOvhStand[id])-8.3;
+if(!anchored&&g_iCmAtt[c][i]==CMA_HEAD)z+=duck?g_fOvhDuck[id]:g_fOvhStand[id];
+else if(!anchored &&(g_iCmAtt[c][i]==CMA_BACK ||(g_iCmAtt[c][i]==CMA_BONE&&c==0)))z+=(duck?g_fOvhDuck[id]:g_fOvhStand[id])-18.0;
+else if(!anchored&&g_iCmAtt[c][i]==CMA_BONE&&c==2)z+=(duck?g_fOvhDuck[id]:g_fOvhStand[id])-8.3;
 if(c==1){
 g_fPetWall49[id]=1.0;
 new Float:start[3],Float:down[3];start=o;start[2]+=24.0;down=start;down[2]-=100.0;
 new tr=create_tr2();engfunc(EngFunc_TraceLine,start,down,IGNORE_MONSTERS,id,tr);new Float:frac;get_tr2(tr,TR_flFraction,frac);
-if(z<0.0 && frac<1.0 && !get_tr2(tr,TR_StartSolid)){get_tr2(tr,TR_vecEndPos,down);o[2]=down[2]+1.5;}
+if(z<0.0&&frac<1.0&&!get_tr2(tr,TR_StartSolid)){get_tr2(tr,TR_vecEndPos,down);o[2]=down[2]+1.5;}
 else{o[2]+=z>=0.0?z+2.0*floatsin(get_gametime()*2.4+float(id)):(duck?-18.0:-36.0);}
 free_tr2(tr);
 new Float:owner[3],Float:stop[3];get_entvar(id,var_origin,owner);owner[2]=o[2]+12.0;stop=o;stop[2]+=12.0;
@@ -29378,7 +29379,7 @@ free_tr2(tr);
 }else o[2]+=z;
 a[0]=g_fCmAng[c][i][0];a[1]+=g_fCmAng[c][i][1];a[2]=g_fCmAng[c][i][2];
 }
-CommunityNativeJetpack(id){return id>=1 && id<=32 ? ZcCall(ZC_JETPACK,ZCOP_has,id):0;}
+CommunityNativeJetpack(id){return id>=1&&id<=32 ? ZcCall(ZC_JETPACK,ZCOP_has,id):0;}
 CommunityRemoveShots(id)
 {
 static const CLS[3][]={"vex_plasma_ball","vex_bow_arrow","vex_sal_flame"};
@@ -29391,10 +29392,10 @@ if(owner==id)set_pev(ent,pev_flags,pev(ent,pev_flags)|FL_KILLME);
 }
 }
 }
-CommunityNativePrepareJet(id){if(id>=1 && id<=32)CommunityRemoveKnives(id);return 1;}
+CommunityNativePrepareJet(id){if(id>=1&&id<=32)CommunityRemoveKnives(id);return 1;}
 CommunityCtReady(i)
 {
-return i>=0 && i<5 && g_bCommunityCtOk[i];
+return i>=0&&i<5&&g_bCommunityCtOk[i];
 }
 CommunityEventPrecache()
 {
@@ -29413,8 +29414,8 @@ new g_iButterflyInspect=-1,Float:g_fButterflyInspect;
 CommunityRestoreResource(const key[],const value[])
 {
 new path[192];
-if(contain(value,"models/")==0 || contain(value,"sprites/")==0 || contain(value,"sound/")==0)copy(path,charsmax(path),value);
-else if(containi(value,".wav")!=-1 || containi(value,".mp3")!=-1)formatex(path,charsmax(path),"sound/%s",value);
+if(contain(value,"models/")==0||contain(value,"sprites/")==0||contain(value,"sound/")==0)copy(path,charsmax(path),value);
+else if(containi(value,".wav")!=-1||containi(value,".mp3")!=-1)formatex(path,charsmax(path),"sound/%s",value);
 else if(containi(key,"MODEL")!=-1)formatex(path,charsmax(path),"models/player/%s/%s.mdl",value,value);
 else return;
 if(!file_exists(path,true)){log_to_file("vex_restore.log","[Restore] optional original absent: %s -> %s; current resource kept",key,path);return;}
@@ -29441,7 +29442,7 @@ public CommunityGameDescription(){forward_return(FMV_STRING,"Vexmira Zombie Plag
 public CommunityCheckComponents(){CommunityStatus(0,0,0);for(new i=0;i<NUM_SPECIAL;i++)log_amx("[Arsenal8] %s ready=%d",V50_NAMES[i],g_bVxReady[i]);}
 public CommunityStatus(id,level,cid)
 {
-if(id && !cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
+if(id&&!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 console_print(id,"VEXMIRA %s | %d slots | inspect + 8 wings/pets/hats + 5 skins + 8 knives | map vote 30",VERSION,g_iMax);
 ZcModuleStatus(id);
 console_print(id,"Cosmetics ready: wings=%d pets=%d hats=%d; bosses=%d",g_iCmN[0],g_iCmN[1],g_iCmN[2],g_iBossLoadN);
@@ -29451,7 +29452,7 @@ CommunityInspectRead(const path[],bool:butterfly=false,weapon=0)
 {
 new f=fopen(path,"rb");if(!f)return;
 new count,offset;fseek(f,164,SEEK_SET);fread(f,count,BLOCK_INT);fread(f,offset,BLOCK_INT);
-if(count<1 || count>256 || offset<244){fclose(f);return;}
+if(count<1||count>256||offset<244){fclose(f);return;}
 for(new i=0;i<count;i++){
 new label[33],Float:fps,frames;
 fseek(f,offset+i*176,SEEK_SET);fread_blocks(f,label,32,BLOCK_CHAR);label[32]=0;
@@ -29478,11 +29479,11 @@ CommunityInspect(id)
 {
 if(!CommunityAlive(id)|| CommunityExtra(id)|| ZcCall(ZC_HEV,ZCOP_has,id))return 0;
 new weapon=get_member(id,m_pActiveItem);if(is_nullent(weapon))return 0;
-new w=get_user_weapon(id);if(w<1 || w>30)return 0;
+new w=get_user_weapon(id);if(w<1||w>30)return 0;
 if(w==CSW_KNIFE &&(ZcCall(ZC_JETPACK,ZCOP_has,id)|| g_iCommunitySel[id][1]>0))return 0;
-new bool:butterfly=w==CSW_KNIFE && g_iCommunitySel[id][1]==5 && g_bCommunityButterflyOk;
+new bool:butterfly=w==CSW_KNIFE&&g_iCommunitySel[id][1]==5&&g_bCommunityButterflyOk;
 new weaponState=get_member(weapon,m_Weapon_iWeaponState);
-new slot=((w==CSW_M4A1 && !(weaponState&_:WPNSTATE_M4A1_SILENCED))||(w==CSW_USP && !(weaponState&_:WPNSTATE_USP_SILENCED)))?1:0;
+new slot=((w==CSW_M4A1&&!(weaponState&_:WPNSTATE_M4A1_SILENCED))||(w==CSW_USP&&!(weaponState&_:WPNSTATE_USP_SILENCED)))?1:0;
 new seq=butterfly?g_iButterflyInspect:g_iInspectSeq[w][slot];
 if(seq<0){slot=0;seq=g_iInspectSeq[w][0];}
 if(seq<0)return 0;
@@ -29510,14 +29511,14 @@ formatex(line,charsmax(line),"Survivor Minigun \d(%L)",id,"ZC_NEED_SURV");MenuAd
 }
 public CommunityAdminEquipmentHandler(id,menu,item)
 {
-if(item<0 || !(get_user_flags(id)&ADMIN_BAN)){menu_destroy(menu);return PLUGIN_HANDLED;}
+if(item<0||!(get_user_flags(id)&ADMIN_BAN)){menu_destroy(menu);return PLUGIN_HANDLED;}
 new sel=MenuInfo(menu,item);menu_destroy(menu);
 new target=find_player_ex(FindPlayer_MatchUserId,g_iAdmTarget[id]);
-if(!target || !is_user_alive(target)){Chat(id,"ADM_GONE");return PLUGIN_HANDLED;}
+if(!target||!is_user_alive(target)){Chat(id,"ADM_GONE");return PLUGIN_HANDLED;}
 new ok;
-if(sel>=0 && sel<NUM_SPECIAL)ok=VxGive(target,sel);
+if(sel>=0&&sel<NUM_SPECIAL)ok=VxGive(target,sel);
 else if(sel==12)ok=ZcCall(ZC_MINIGUN,ZCOP_give,target);
-else if(sel==10 && CommunityAlive(target)){
+else if(sel==10&&CommunityAlive(target)){
 CommunityRemoveKnives(target);
 ok=ZcCall(ZC_JETPACK,ZCOP_give,target);
 }
@@ -29534,7 +29535,7 @@ new count,offset,frames,Float:fps,nctl;
 fseek(fp,148,SEEK_SET);fread(fp,nctl,BLOCK_INT);
 g_bCmCtl[c][i]=false;
 fseek(fp,164,SEEK_SET);fread(fp,count,BLOCK_INT);fread(fp,offset,BLOCK_INT);
-if(count<1 || count>256){fclose(fp);return;}
+if(count<1||count>256){fclose(fp);return;}
 g_iCmSeq[c][i]=clamp(g_iCmSeq[c][i],0,count-1);
 g_iCmIdle48[c][i]=g_iCmSeq[c][i];g_iCmMove48[c][i]=g_iCmSeq[c][i];
 if(c==1){
@@ -29556,7 +29557,7 @@ CommunityCosAnimate(ent,c,i,Float:now)
 {
 new Float:last=Float:get_entvar(ent,var_fuser1);
 set_entvar(ent,var_fuser1,now);
-if(last<=0.0 || g_fCmNativeRate[c][i]<=0.0)return;
+if(last<=0.0||g_fCmNativeRate[c][i]<=0.0)return;
 new Float:rate=(get_entvar(ent,var_sequence)==g_iCmMove48[c][i]&& g_iCmMove48[c][i]!=g_iCmIdle48[c][i])?g_fCmMoveRate48[c][i]:g_fCmNativeRate[c][i];
 new Float:frame=Float:get_entvar(ent,var_frame)+floatclamp(now-last,0.0,0.25)*rate*g_fCmFps[c][i];
 while(frame>=256.0)frame-=256.0;
@@ -29569,11 +29570,11 @@ new magic,version,bytes,stored,textures,groups;
 fread(fp,magic,BLOCK_INT);fread(fp,version,BLOCK_INT);
 fseek(fp,0,SEEK_END);bytes=ftell(fp);
 if(containi(path,".mdl")!=-1){
-if(magic!=0x54534449 || version!=10 || bytes<244){fclose(fp);return false;}
+if(magic!=0x54534449||version!=10||bytes<244){fclose(fp);return false;}
 fseek(fp,72,SEEK_SET);fread(fp,stored,BLOCK_INT);
 fseek(fp,172,SEEK_SET);fread(fp,groups,BLOCK_INT);
 fseek(fp,180,SEEK_SET);fread(fp,textures,BLOCK_INT);fclose(fp);
-if(stored>bytes || stored<244 || groups<1 || groups>32)return false;
+if(stored>bytes||stored<244||groups<1||groups>32)return false;
 new sibling[192],base[160];copy(base,charsmax(base),path);base[strlen(base)-4]=0;
 if(!textures){formatex(sibling,charsmax(sibling),"%sT.mdl",base);if(!file_exists(sibling,true))return false;}
 for(new n=1;n<groups;n++){formatex(sibling,charsmax(sibling),"%s%02d.mdl",base,n);if(!file_exists(sibling,true))return false;}
@@ -29582,8 +29583,8 @@ if(!textures){formatex(sibling,charsmax(sibling),"%sT.mdl",base);if(!MdlTexOk539
 return true;
 }
 fclose(fp);
-if(containi(path,".spr")!=-1)return magic==0x50534449 && version==2 && bytes>42 && SprFramesOk539(path,bytes);
-if(containi(path,".wav")!=-1)return magic==0x46464952 && bytes>44;
+if(containi(path,".spr")!=-1)return magic==0x50534449&&version==2&&bytes>42&&SprFramesOk539(path,bytes);
+if(containi(path,".wav")!=-1)return magic==0x46464952&&bytes>44;
 return bytes>0;
 }
 stock ModelGuardLog539(const path[],const why[])
@@ -29593,24 +29594,24 @@ log_to_file("vexmira_modelguard.log","ENGELLENDI %s -> %s (oyuncuya gonderilmedi
 bool:MdlTexOk539(const path[],bytes)
 {
 if(equal(GetResString("MODEL_GUARD","1"),"0"))return true;
-new fp = fopen(path,"rb",true);
+new fp=fopen(path,"rb",true);
 if(!fp){ModelGuardLog539(path,"dosya acilamadi");return false;}
-if(bytes <= 0){fseek(fp,0,SEEK_END);bytes = ftell(fp);}
+if(bytes<=0){fseek(fp,0,SEEK_END);bytes=ftell(fp);}
 new magic,nt,ti,nbp,bpi;
 fseek(fp,0,SEEK_SET);fread(fp,magic,BLOCK_INT);
-if(magic != 0x54534449 || bytes < 244){fclose(fp);ModelGuardLog539(path,"gecersiz model basligi");return false;}
+if(magic!=0x54534449||bytes < 244){fclose(fp);ModelGuardLog539(path,"gecersiz model basligi");return false;}
 fseek(fp,180,SEEK_SET);fread(fp,nt,BLOCK_INT);fread(fp,ti,BLOCK_INT);
 fseek(fp,204,SEEK_SET);fread(fp,nbp,BLOCK_INT);fread(fp,bpi,BLOCK_INT);
-if(nt < 0 || nt > 256 ||(nt > 0 &&(ti < 244 || ti + nt * 80 > bytes))){fclose(fp);ModelGuardLog539(path,"doku tablosu bozuk");return false;}
-if(nbp < 0 || nbp > 64 ||(nbp > 0 &&(bpi < 244 || bpi + nbp * 76 > bytes))){fclose(fp);ModelGuardLog539(path,"govde tablosu bozuk");return false;}
+if(nt < 0||nt > 256 ||(nt > 0 &&(ti < 244||ti + nt * 80 > bytes))){fclose(fp);ModelGuardLog539(path,"doku tablosu bozuk");return false;}
+if(nbp < 0||nbp > 64 ||(nbp > 0 &&(bpi < 244||bpi + nbp * 76 > bytes))){fclose(fp);ModelGuardLog539(path,"govde tablosu bozuk");return false;}
 new w,h,idx,why[64];
-for(new i = 0;i < nt;i++)
+for(new i=0;i < nt;i++)
 {
 fseek(fp,ti + i * 80 + 68,SEEK_SET);
 fread(fp,w,BLOCK_INT);fread(fp,h,BLOCK_INT);fread(fp,idx,BLOCK_INT);
-if(w < 1 || h < 1 || w > 4096 || h > 4096){formatex(why,charsmax(why),"doku %d boyutu %dx%d gecersiz",i,w,h);break;}
+if(w < 1||h < 1||w > 4096||h > 4096){formatex(why,charsmax(why),"doku %d boyutu %dx%d gecersiz",i,w,h);break;}
 if((w * h)& 3){formatex(why,charsmax(why),"doku %d boyutu %dx%d (GL_Upload16 cokmesi)",i,w,h);break;}
-if(idx < 0 || idx + w * h + 768 > bytes){formatex(why,charsmax(why),"doku %d dosya disinda (eksik/kesik dosya)",i);break;}
+if(idx < 0||idx + w * h + 768 > bytes){formatex(why,charsmax(why),"doku %d dosya disinda (eksik/kesik dosya)",i);break;}
 }
 fclose(fp);
 if(why[0]){ModelGuardLog539(path,why);return false;}
@@ -29619,26 +29620,26 @@ return true;
 bool:SprFramesOk539(const path[],bytes)
 {
 if(equal(GetResString("MODEL_GUARD","1"),"0"))return true;
-new fp = fopen(path,"rb",true);
+new fp=fopen(path,"rb",true);
 if(!fp)return false;
 new nf,pc,o,t,n,x,y,w,h,why[64];
 fseek(fp,28,SEEK_SET);fread(fp,nf,BLOCK_INT);
 fseek(fp,40,SEEK_SET);fread(fp,pc,BLOCK_SHORT);
-o = 42 + pc * 3;
-if(nf < 1 || nf > 2048 || pc < 0 || pc > 256){fclose(fp);ModelGuardLog539(path,"gecersiz sprite basligi");return false;}
-for(new f = 0;f < nf && !why[0];f++)
+o=42 + pc * 3;
+if(nf < 1||nf > 2048||pc < 0||pc > 256){fclose(fp);ModelGuardLog539(path,"gecersiz sprite basligi");return false;}
+for(new f=0;f < nf&&!why[0];f++)
 {
-fseek(fp,o,SEEK_SET);fread(fp,t,BLOCK_INT);o += 4;
-n = 1;
-if(t != 0){fread(fp,n,BLOCK_INT);o += 4 + n * 4;if(n < 1 || n > 512){copy(why,charsmax(why),"kare grubu bozuk");break;}}
-for(new k = 0;k < n;k++)
+fseek(fp,o,SEEK_SET);fread(fp,t,BLOCK_INT);o+=4;
+n=1;
+if(t!=0){fread(fp,n,BLOCK_INT);o+=4 + n * 4;if(n < 1||n > 512){copy(why,charsmax(why),"kare grubu bozuk");break;}}
+for(new k=0;k < n;k++)
 {
 if(o + 16 > bytes){copy(why,charsmax(why),"kare dosya disinda (kesik dosya)");break;}
 fseek(fp,o,SEEK_SET);fread(fp,x,BLOCK_INT);fread(fp,y,BLOCK_INT);fread(fp,w,BLOCK_INT);fread(fp,h,BLOCK_INT);
-o += 16;
-if(w < 1 || h < 1 || w > 2048 || h > 2048){formatex(why,charsmax(why),"kare %d boyutu %dx%d gecersiz",f,w,h);break;}
+o+=16;
+if(w < 1||h < 1||w > 2048||h > 2048){formatex(why,charsmax(why),"kare %d boyutu %dx%d gecersiz",f,w,h);break;}
 if((w * h)& 3){formatex(why,charsmax(why),"kare %d boyutu %dx%d (GL_Upload16 cokmesi)",f,w,h);break;}
-o += w * h;
+o+=w * h;
 if(o > bytes){formatex(why,charsmax(why),"kare %d dosya disinda (kesik dosya)",f);break;}
 }
 }
@@ -29649,22 +29650,22 @@ return true;
 stock bool:VexIsOldCopy(const title[],const ver[],plugin)
 {
 if(equal(title,PLUGIN)&& !equal(ver,VERSION))return true;
-if(containi(title,"Vexmira")!= -1 && containi(title,"Diagnostic")!= -1)return true;
-if(get_func_id("vex_give",plugin)>= 0 && get_func_id("vex_has",plugin)>= 0
+if(containi(title,"Vexmira")!= -1&&containi(title,"Diagnostic")!= -1)return true;
+if(get_func_id("vex_give",plugin)>= 0&&get_func_id("vex_has",plugin)>= 0
 && get_func_id("vex_remove",plugin)>= 0)return true;
 return false;
 }
 VexDuplicateGuard()
 {
-new self = get_plugin(-1);
+new self=get_plugin(-1);
 new file[128],title[96],ver[32],author[64],status[32],list[512],n;
-for(new k = 0;k < get_pluginsnum();k++)
+for(new k=0;k < get_pluginsnum();k++)
 {
-if(k == self)continue;
+if(k==self)continue;
 if(get_plugin(k,file,charsmax(file),title,charsmax(title),ver,charsmax(ver),author,charsmax(author),status,charsmax(status))== -1)
 continue;
-new bool:dup = VexIsOldCopy(title,ver,k);
-if(!dup && equal(title,PLUGIN)&& equal(ver,VERSION)&& k > self)dup = true;
+new bool:dup=VexIsOldCopy(title,ver,k);
+if(!dup&&equal(title,PLUGIN)&& equal(ver,VERSION)&& k > self)dup=true;
 if(!dup)continue;
 if(equal(status,"running")|| equal(status,"debug"))
 pause("ac",file);
@@ -29681,7 +29682,7 @@ server_print("[Vexmira] !!! Delete them and their plugins.ini lines (and configs
 }
 public CommunityJetCommand(id){CommunityBuyGear(id,0);return PLUGIN_HANDLED;}
 public CommunityHevCommand(id){client_print(id,print_chat,"[VEXMIRA] HEV zirhi kaldirildi.");return PLUGIN_HANDLED;}
-CommunityNativeSurvivor(id){return id>=1 && id<=32 && g_bSurvivor[id]&& is_user_alive(id);}
+CommunityNativeSurvivor(id){return id>=1&&id<=32&&g_bSurvivor[id]&& is_user_alive(id);}
 public CommunityBootMap(){server_cmd("changelevel zm_vexmira_icefy");}
 EpicPrecache()
 {
@@ -29722,8 +29723,8 @@ SkillTriggerG(id);return PLUGIN_HANDLED;
 SkillTriggerG(id)
 {
 new Float:now=get_gametime();
-if(id!=g_iBoss || !g_bRoundActive || !is_user_alive(id))return;
-if(g_fBossIntro>now || g_fFrozen[id]>now || g_iBossChannel!=CH_NONE || task_exists(TASK_BOSSCAST)){
+if(id!=g_iBoss||!g_bRoundActive||!is_user_alive(id))return;
+if(g_fBossIntro>now||g_fFrozen[id]>now||g_iBossChannel!=CH_NONE||task_exists(TASK_BOSSCAST)){
 SkillDeny(id,"BSK_BUSY");return;
 }
 if(g_fEpicG[id]>now){SkillDeny(id,"ABILITY_COOL",floatround(g_fEpicG[id]-now,floatround_ceil));return;}
@@ -29736,14 +29737,14 @@ HudTo(id,SL_PERS,BOSS_RGB[g_iBossType][0],BOSS_RGB[g_iBossType][1],BOSS_RGB[g_iB
 }
 EpicBossCastFx()
 {
-if(!g_iBoss || !is_user_alive(g_iBoss)|| g_iBossType<0 || g_iBossType>=9)return;
+if(!g_iBoss||!is_user_alive(g_iBoss)|| g_iBossType<0||g_iBossType>=9)return;
 new Float:o[3];get_entvar(g_iBoss,var_origin,o);
 if(g_iEpicGlyph[g_iBossType])FxSpr(o,g_iEpicGlyph[g_iBossType],7,205,24.0);
 FxRingEx(o,BOSS_RGB[g_iBossType][0],BOSS_RGB[g_iBossType][1],BOSS_RGB[g_iBossType][2],220,6,8,160);
 }
 EpicBossStart(id)
 {
-if(g_iBossType<0 || g_iBossType>=9)return;
+if(g_iBossType<0||g_iBossType>=9)return;
 if(g_bEpicBar[g_iBossType]){
 copy(g_szOvhSpr[OVS_BOSSBAR],charsmax(g_szOvhSpr[]),"sprites/vexmira/arena49/bossbar.spr");
 ReadSprInfo(OVS_BOSSBAR);
@@ -29754,7 +29755,7 @@ remove_task(TASK_EPIC_MUSIC);set_task(3.0,"EpicBossMusic",TASK_EPIC_MUSIC);
 }
 public EpicBossMusic()
 {
-if(!g_bRoundActive || g_bRoundEnded)return;
+if(!g_bRoundActive||g_bRoundEnded)return;
 AmbientPath49();
 for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p))AmbientClient49(p);
 remove_task(TASK_EPIC_MUSIC);set_task(1.0,"EpicBossMusic",TASK_EPIC_MUSIC);
@@ -29770,10 +29771,10 @@ EpicRoundFinish(WinStatus:status)
 {
 remove_task(TASK_EPIC_MUSIC);
 StopRoundMusic();
-if(status!=WINSTATUS_CTS && status!=WINSTATUS_TERRORISTS)return;
+if(status!=WINSTATUS_CTS&&status!=WINSTATUS_TERRORISTS)return;
 for(new p=1;p<=g_iMax;p++){
 if(!is_user_alive(p))continue;
-if((status==WINSTATUS_CTS && !g_bZombie[p])||(status==WINSTATUS_TERRORISTS && g_bZombie[p])){
+if((status==WINSTATUS_CTS&&!g_bZombie[p])||(status==WINSTATUS_TERRORISTS&&g_bZombie[p])){
 new Float:o[3];get_entvar(p,var_origin,o);
 FxRingSmall(o,status==WINSTATUS_CTS?70:220,status==WINSTATUS_CTS?200:50,120);
 SigilSpawn47(p,status==WINSTATUS_CTS?0:1,4.0);
@@ -29784,7 +29785,7 @@ if(IsVip(p)&&(g_iSet[p]&E46_VIP_WIN))EpicVipFx(p);
 public EpicVipSpawn(task)
 {
 new id=task-TASK_EPIC_SPAWN;
-if(id<1 || id>32 || !is_user_alive(id))return;
+if(id<1||id>32||!is_user_alive(id))return;
 if(IsVip(id)&&(g_iSet[id]&E46_VIP_SPAWN))EpicVipFx(id);
 }
 EpicVipFx(id)
@@ -29814,7 +29815,7 @@ MenuFinish(id,menu);
 }
 public EpicVipHandler(id,menu,item)
 {
-if(item<0 || !IsVip(id)){menu_destroy(menu);return PLUGIN_HANDLED;}
+if(item<0||!IsVip(id)){menu_destroy(menu);return PLUGIN_HANDLED;}
 new sel=MenuInfo(menu,item);menu_destroy(menu);
 if(sel==999){ShowVipMenu(id);return PLUGIN_HANDLED;}
 switch(sel){
@@ -29834,7 +29835,7 @@ new tr=create_tr2();engfunc(EngFunc_TraceLine,a,b,IGNORE_MONSTERS,id,tr);
 new Float:frac;get_tr2(tr,TR_flFraction,frac);get_tr2(tr,TR_vecEndPos,end);free_tr2(tr);
 new Float:maxRange=floatclamp(get_pcvar_float(g_pLmMaxRange),64.0,1024.0);
 new Float:distance=get_distance_f(a,end);
-if(frac<1.0 && distance>=24.0 && distance<=maxRange)return true;
+if(frac<1.0&&distance>=24.0&&distance<=maxRange)return true;
 new Float:now=get_gametime();
 if(now>=g_fEpicLaserWarn[id]){
 g_fEpicLaserWarn[id]=now+1.5;
@@ -29855,36 +29856,36 @@ public VxNativeRestore(plugin,params){if(!g_bRun526)return 0;return CommunityNat
 public VxNativePrepareJet(plugin,params){if(!g_bRun526)return 0;return CommunityNativePrepareJet(get_param(1));}
 public VxNativeSurvivor(plugin,params){if(!g_bRun526)return 0;return CommunityNativeSurvivor(get_param(1));}
 public VxNativeJetpack(plugin,params){if(!g_bRun526)return 0;return CommunityNativeJetpack(get_param(1));}
-public VxNativeJetDisabled(plugin,params){new id=get_param(1);return(id>=1 && id<=32 && g_fJetEmpUntil[id]>get_gametime())?1:0;}
+public VxNativeJetDisabled(plugin,params){new id=get_param(1);return(id>=1&&id<=32&&g_fJetEmpUntil[id]>get_gametime())?1:0;}
 VxPcRemember(const m[])
 {
-if(g_tPcAll531 == Invalid_Trie)g_tPcAll531 = TrieCreate();
+if(g_tPcAll531==Invalid_Trie)g_tPcAll531=TrieCreate();
 new k[96];copy(k,charsmax(k),m);strtolower(k);
 TrieSetCell(g_tPcAll531,k,1);
-g_bPcReady531 = true;
+g_bPcReady531=true;
 }
 stock bool:VxModelOk(const m[])
 {
 if(!m[0])return true;
-if(!g_bPcHook531 || !g_bPcReady531 || g_tPcAll531 == Invalid_Trie)return true;
-if(equal(m,"models/",7)&& contain(m[7],"/")== -1 && !equal(m[7],"zombie",6))return true;
+if(!g_bPcHook531||!g_bPcReady531||g_tPcAll531==Invalid_Trie)return true;
+if(equal(m,"models/",7)&& contain(m[7],"/")== -1&&!equal(m[7],"zombie",6))return true;
 new k[96];copy(k,charsmax(k),m);strtolower(k);
 if(TrieKeyExists(g_tPcAll531,k))return true;
 return VxGearKnows532(m);
 }
-new g_iGearPl532 = -2,g_iGearFn532 = -1;
+new g_iGearPl532=-2,g_iGearFn532=-1;
 stock bool:VxGearKnows532(const m[])
 {
-if(g_iGearPl532 == -2)
+if(g_iGearPl532==-2)
 {
-g_iGearPl532 = -1;
-new n = get_pluginsnum();
-for(new i = 0;i < n;i++){new f = get_func_id("VxGearModelOkPublic",i);if(f >= 0){g_iGearPl532 = i;g_iGearFn532 = f;break;}}
+g_iGearPl532=-1;
+new n=get_pluginsnum();
+for(new i=0;i < n;i++){new f=get_func_id("VxGearModelOkPublic",i);if(f>=0){g_iGearPl532=i;g_iGearFn532=f;break;}}
 }
 if(g_iGearPl532 < 0)return false;
 if(callfunc_begin_i(g_iGearFn532,g_iGearPl532)!= 1)return false;
 callfunc_push_str(m,false);
-new bool:ok = callfunc_end()== 1;
+new bool:ok=callfunc_end()== 1;
 if(ok)
 {
 new k[96];copy(k,charsmax(k),m);strtolower(k);
@@ -29896,66 +29897,66 @@ public VxModelOkPublic(const m[])return VxModelOk(m)? 1 : 0;
 #define PC_SAFE_LIMIT531 509
 public VxRhPcSoundPre531(const s[])
 {
-if(g_iSndTop531 < PC_SAFE_LIMIT531 || !s[0])return HC_CONTINUE;
-if(g_tSndSeen531 != Invalid_Trie && TrieKeyExists(g_tSndSeen531,s))return HC_CONTINUE;
+if(g_iSndTop531 < PC_SAFE_LIMIT531||!s[0])return HC_CONTINUE;
+if(g_tSndSeen531!=Invalid_Trie&&TrieKeyExists(g_tSndSeen531,s))return HC_CONTINUE;
 if(g_iSndRefused531++ < 20)log_amx("[PrecacheGuard] ses limiti (%d/512): '%s' yuklenmedi (cokme onlendi)",g_iSndTop531,s);
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
 public VxRhPcSoundPost531(const s[])
 {
-new idx = GetHookChainReturn(ATYPE_INTEGER);
-if(idx <= 0)return HC_CONTINUE;
-if(g_tSndSeen531 == Invalid_Trie)g_tSndSeen531 = TrieCreate();
+new idx=GetHookChainReturn(ATYPE_INTEGER);
+if(idx<=0)return HC_CONTINUE;
+if(g_tSndSeen531==Invalid_Trie)g_tSndSeen531=TrieCreate();
 TrieSetCell(g_tSndSeen531,s,idx);
-if(idx > g_iSndTop531)g_iSndTop531 = idx;
+if(idx > g_iSndTop531)g_iSndTop531=idx;
 return HC_CONTINUE;
 }
 public VxRhPcGenPre531(const s[])
 {
-if(g_iGenTop531 < PC_SAFE_LIMIT531 || !s[0])return HC_CONTINUE;
-if(g_tGenSeen531 != Invalid_Trie && TrieKeyExists(g_tGenSeen531,s))return HC_CONTINUE;
+if(g_iGenTop531 < PC_SAFE_LIMIT531||!s[0])return HC_CONTINUE;
+if(g_tGenSeen531!=Invalid_Trie&&TrieKeyExists(g_tGenSeen531,s))return HC_CONTINUE;
 if(g_iGenRefused531++ < 20)log_amx("[PrecacheGuard] indirme limiti (%d/512): '%s' eklenmedi (cokme onlendi)",g_iGenTop531,s);
 SetHookChainReturn(ATYPE_INTEGER,0);
 return HC_SUPERCEDE;
 }
 public VxRhPcGenPost531(const s[])
 {
-new idx = GetHookChainReturn(ATYPE_INTEGER);
-if(idx <= 0)return HC_CONTINUE;
-if(g_tGenSeen531 == Invalid_Trie)g_tGenSeen531 = TrieCreate();
+new idx=GetHookChainReturn(ATYPE_INTEGER);
+if(idx<=0)return HC_CONTINUE;
+if(g_tGenSeen531==Invalid_Trie)g_tGenSeen531=TrieCreate();
 TrieSetCell(g_tGenSeen531,s,idx);
-if(idx > g_iGenTop531)g_iGenTop531 = idx;
+if(idx > g_iGenTop531)g_iGenTop531=idx;
 return HC_CONTINUE;
 }
 MapSoundCount531()
 {
 new map[64],path[96];get_mapname(map,charsmax(map));
 formatex(path,charsmax(path),"maps/%s.bsp",map);
-new fp = fopen(path,"rb",true);
+new fp=fopen(path,"rb",true);
 if(!fp)return 0;
 new ver,off,len;
 fread(fp,ver,BLOCK_INT);fread(fp,off,BLOCK_INT);fread(fp,len,BLOCK_INT);
-if(len <= 0 || len > 2000000){fclose(fp);return 0;}
+if(len<=0||len > 2000000){fclose(fp);return 0;}
 fseek(fp,off,SEEK_SET);
-new Trie:seen = TrieCreate(),n,buf[256],cur[128],cl,bool:q;
+new Trie:seen=TrieCreate(),n,buf[256],cur[128],cl,bool:q;
 new got;
-while((got = fread_blocks(fp,buf,sizeof buf,BLOCK_CHAR))> 0 && len > 0)
+while((got=fread_blocks(fp,buf,sizeof buf,BLOCK_CHAR))> 0&&len > 0)
 {
-for(new i = 0;i < got && len > 0;i++,len--)
+for(new i=0;i < got&&len > 0;i++,len--)
 {
-new c = buf[i]& 0xFF;
-if(c == '"')
+new c=buf[i]& 0xFF;
+if(c=='"')
 {
-if(q && cl > 4)
+if(q&&cl > 4)
 {
 cur[cl]= 0;
-if(containi(cur,".wav")!= -1 && !TrieKeyExists(seen,cur)){TrieSetCell(seen,cur,1);n++;}
+if(containi(cur,".wav")!= -1&&!TrieKeyExists(seen,cur)){TrieSetCell(seen,cur,1);n++;}
 }
-q = !q;cl = 0;
+q=!q;cl=0;
 continue;
 }
-if(q && cl < charsmax(cur))cur[cl++]= c;
+if(q&&cl < charsmax(cur))cur[cl++]= c;
 }
 }
 fclose(fp);
@@ -29965,15 +29966,15 @@ return n;
 }
 VxGuardInit531()
 {
-if(g_tPcAll531 == Invalid_Trie)g_tPcAll531 = TrieCreate();
+if(g_tPcAll531==Invalid_Trie)g_tPcAll531=TrieCreate();
 register_forward(FM_LightStyle,"fw_LightStyle531",0);
-if(RegisterHookChain(RH_PF_precache_model_I,"VxRhPcModel531",1))g_bPcHook531 = true;
+if(RegisterHookChain(RH_PF_precache_model_I,"VxRhPcModel531",1))g_bPcHook531=true;
 else log_amx("[ModelGuard] ReHLDS precache kancasi yok: model korumasi pasif");
 RegisterHookChain(RH_PF_precache_sound_I,"VxRhPcSoundPre531",0);
 RegisterHookChain(RH_PF_precache_sound_I,"VxRhPcSoundPost531",1);
 RegisterHookChain(RH_PF_precache_generic_I,"VxRhPcGenPre531",0);
 RegisterHookChain(RH_PF_precache_generic_I,"VxRhPcGenPost531",1);
-g_iMapSnd531 = MapSoundCount531();
+g_iMapSnd531=MapSoundCount531();
 }
 public VxRhPcModel531(const s[])
 {
@@ -29986,7 +29987,7 @@ if(g_iGuardLog531 < 60){g_iGuardLog531++;log_amx("[ModelGuard] %s: '%s' sunucuda
 }
 VxStockWeaponModel(id,bool:view,out[],len)
 {
-new w = get_member(id,m_pActiveItem),cls[32];
+new w=get_member(id,m_pActiveItem),cls[32];
 out[0]= 0;
 if(is_nullent(w))return;
 get_entvar(w,var_classname,cls,charsmax(cls));
@@ -29996,25 +29997,25 @@ if(!VxModelOk(out))out[0]= 0;
 }
 VxGuardFrame()
 {
-new Float:t = get_gametime();
-if(t == g_fGuardTime531)return;
-g_fGuardTime531 = t;
+new Float:t=get_gametime();
+if(t==g_fGuardTime531)return;
+g_fGuardTime531=t;
 if(!g_bPcReady531)return;
 new m[96],st[96];
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)){g_iGuardV531[id]= 0;g_iGuardP531[id]= 0;continue;}
-new v = pev(id,pev_viewmodel),pm = pev(id,pev_weaponmodel);
-if(v != g_iGuardV531[id])
+new v=pev(id,pev_viewmodel),pm=pev(id,pev_weaponmodel);
+if(v!=g_iGuardV531[id])
 {
 pev(id,pev_viewmodel2,m,charsmax(m));
-if(!VxModelOk(m)){VxGuardLog("viewmodel",m);VxStockWeaponModel(id,true,st,charsmax(st));set_pev(id,pev_viewmodel2,st);v = pev(id,pev_viewmodel);}
+if(!VxModelOk(m)){VxGuardLog("viewmodel",m);VxStockWeaponModel(id,true,st,charsmax(st));set_pev(id,pev_viewmodel2,st);v=pev(id,pev_viewmodel);}
 g_iGuardV531[id]= v;
 }
-if(pm != g_iGuardP531[id])
+if(pm!=g_iGuardP531[id])
 {
 pev(id,pev_weaponmodel2,m,charsmax(m));
-if(!VxModelOk(m)){VxGuardLog("weaponmodel",m);VxStockWeaponModel(id,false,st,charsmax(st));set_pev(id,pev_weaponmodel2,st);pm = pev(id,pev_weaponmodel);}
+if(!VxModelOk(m)){VxGuardLog("weaponmodel",m);VxStockWeaponModel(id,false,st,charsmax(st));set_pev(id,pev_weaponmodel2,st);pm=pev(id,pev_weaponmodel);}
 g_iGuardP531[id]= pm;
 }
 }
@@ -30051,11 +30052,11 @@ if(VxModelOk(p))return 1;
 VxGuardLog("player model",p);
 return 0;
 }
-stock VxSetUserModel(id,const name[],bool:upd = false)
+stock VxSetUserModel(id,const name[],bool:upd=false)
 {
 if(!VxPlayerModelOk(name))return 0;
 new idx540;
-if(g_tPmIdx540 != Invalid_Trie && TrieGetCell(g_tPmIdx540,name,idx540))
+if(g_tPmIdx540!=Invalid_Trie&&TrieGetCell(g_tPmIdx540,name,idx540))
 {
 rg_set_user_model(id,name,false);
 set_member(id,m_modelIndexPlayer,idx540);
@@ -30075,9 +30076,9 @@ VxGuardInit531();
 RegisterHookChain(RH_Con_Printf,"VxConsole524",0);
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePre524",0);
 RegisterHookChain(RH_SV_ActivateServer,"VxActivatePost524",1);
-g_iFwPcSnd = register_forward(FM_PrecacheSound,"fw_PcSoundPost",1);
-g_iFwPcMdl = register_forward(FM_PrecacheModel,"fw_PcModelPost",1);
-g_iFwPcGen = register_forward(FM_PrecacheGeneric,"fw_PcGenericPost",1);
+g_iFwPcSnd=register_forward(FM_PrecacheSound,"fw_PcSoundPost",1);
+g_iFwPcMdl=register_forward(FM_PrecacheModel,"fw_PcModelPost",1);
+g_iFwPcGen=register_forward(FM_PrecacheGeneric,"fw_PcGenericPost",1);
 if(file_exists("models/rpgrocket.mdl",true)&& CommunityLegacyFileOk("models/rpgrocket.mdl"))g_bCameraReady529=(VxPcOk531()&& precache_model("models/rpgrocket.mdl")>0);
 log_to_file("vexmira_startup.log","[5.3.0] BEGIN map preload");
 {new gv=vx521_pair_version(),ev=vxe_version();if(gv!=564||ev!=564)log_amx("[VEXMIRA] UYARI surum: gear=%d extra=%d (564 beklenir) - eklenti calismaya devam ediyor",gv,ev);}
@@ -30104,7 +30105,7 @@ if(!g_bPcClosed531)return true;
 if(g_iPcLate531++ < 5)log_amx("[Guard] harita yuklendikten sonra precache denemesi engellendi (cokme onlendi)");
 return false;
 }
-public VxPcClose531()g_bPcClosed531 = true;
+public VxPcClose531()g_bPcClosed531=true;
 public plugin_init()
 {
 set_task(0.1,"VxPcClose531");
@@ -30117,7 +30118,7 @@ static const GUNS531[][]={"weapon_p228","weapon_scout","weapon_xm1014","weapon_m
 "weapon_fiveseven","weapon_ump45","weapon_sg550","weapon_galil","weapon_famas","weapon_usp","weapon_glock18",
 "weapon_awp","weapon_mp5navy","weapon_m249","weapon_m3","weapon_m4a1","weapon_tmp","weapon_g3sg1",
 "weapon_deagle","weapon_sg552","weapon_ak47","weapon_p90"};
-for(new g531 = 0;g531 < sizeof GUNS531;g531++)RegisterHam(Ham_Weapon_Reload,GUNS531[g531],"VxHamReloadPre531",0);
+for(new g531=0;g531 < sizeof GUNS531;g531++)RegisterHam(Ham_Weapon_Reload,GUNS531[g531],"VxHamReloadPre531",0);
 ZcCore_plugin_init();
 BDoor536_Init();
 log_to_file("vexmira_startup.log","[530 core] base init READY");
@@ -30141,10 +30142,10 @@ ZcPcModel(const path[])
 if(!AllowModel528(path))return 0;
 if(!file_exists(path,true)|| !CommunityLegacyFileOk(path)){
 log_amx("[AssetGuard] EKSIK/BOZUK %s -> modul %s KAPALI (sunucu calismaya devam ediyor)",path,"core");
-g_zcGuardFail = true;
+g_zcGuardFail=true;
 return 0;
 }
-new known51;if(g_tZcModelsReady!=Invalid_Trie && TrieGetCell(g_tZcModelsReady,path,known51))return known51;
+new known51;if(g_tZcModelsReady!=Invalid_Trie&&TrieGetCell(g_tZcModelsReady,path,known51))return known51;
 if(max(g_iTotMdl,g_iPcMdl)>=448){g_zcGuardFail=true;log_amx("[AssetGuard] model limit reserve: %s",path);return 0;}
 new modelIndex =(!VxPcOk531())? 0 : precache_model(path);
 RegisterTexture530(path);
@@ -30186,9 +30187,9 @@ CameraTick47(id)
 if(!g_bCameraReady529)return;
 if(!is_user_connected(id)|| is_user_bot(id))return;
 new bool:active=g_bThird47[id]&& is_user_alive(id);
-if(active){new fov=get_member(id,m_iFOV);if(fov>0 && fov<60)active=false;}
+if(active){new fov=get_member(id,m_iFOV);if(fov>0&&fov<60)active=false;}
 if(!active){if(g_iCamera47[id])CameraRemove47(id);return;}
-if(g_iCamera47[id]>g_iMax && pev_valid(g_iCamera47[id])&& get_entvar(g_iCamera47[id],var_owner)==id)return;
+if(g_iCamera47[id]>g_iMax&&pev_valid(g_iCamera47[id])&& get_entvar(g_iCamera47[id],var_owner)==id)return;
 if(engfunc(EngFunc_NumberOfEntities)>=global_get(glb_maxEntities)-32)return;
 if(!set_view(id,CAMERA_3RDPERSON))return;
 new ent=-1;
@@ -30196,22 +30197,22 @@ while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","VexdCam"))>0){
 if(get_entvar(ent,var_owner)==id){g_iCamera47[id]=ent;break;}
 }
 }
-bool:KnifeReady47(i){if(i<0 || i>=KN_TOTAL)return false;if(i<4)return ZcCompOn(i+7);return g_bMkOk[i-4];}
+bool:KnifeReady47(i){if(i<0||i>=KN_TOTAL)return false;if(i<4)return ZcCompOn(i+7);return g_bMkOk[i-4];}
 KnifeName538(c,i,out[],len){if(!c)copy(out,len,COMMUNITY_CN[i]);else if(i<4)copy(out,len,COMMUNITY_KN[i]);else copy(out,len,g_szMkName[i-4]);}
-KnifeCost538(c,i){if(!c || i<4)return COMMUNITY_COIN[c][i];return g_iMkCost[i-4];}
+KnifeCost538(c,i){if(!c||i<4)return COMMUNITY_COIN[c][i];return g_iMkCost[i-4];}
 BannerRemove47(id)
 {
 UiHudRestore52(id);
-if(g_iBanner47[id]>0 && !is_nullent(g_iBanner47[id]))engfunc(EngFunc_RemoveEntity,g_iBanner47[id]);
+if(g_iBanner47[id]>0&&!is_nullent(g_iBanner47[id]))engfunc(EngFunc_RemoveEntity,g_iBanner47[id]);
 g_iBanner47[id]=0;
 }
 BannerShow47(id,kind,Float:duration)
 {
 BannerRemove47(id);
-if(!is_user_connected(id)||(g_iSet[id]& SET_NO_FX)|| kind<0 || kind>4 || !g_iBannerModel47[kind])return;
+if(!is_user_connected(id)||(g_iSet[id]& SET_NO_FX)|| kind<0||kind>4||!g_iBannerModel47[kind])return;
 if(kind==3)FadeOne(id,0,0,0,100,duration);
 new ent=CreateSafe51("info_target");
-if(!ent || is_nullent(ent))return;
+if(!ent||is_nullent(ent))return;
 g_iBanner47[id]=ent;g_iBannerKind47[id]=kind;
 g_fBannerStart47[id]=get_gametime();g_fBannerEnd47[id]=get_gametime()+duration;
 set_entvar(ent,var_classname,"vex_screen47");
@@ -30223,15 +30224,15 @@ set_entvar(ent,var_owner,id);BannerTick47(id);
 }
 BannerTick47(id)
 {
-new ent=g_iBanner47[id];if(!ent || is_nullent(ent))return;
+new ent=g_iBanner47[id];if(!ent||is_nullent(ent))return;
 new Float:now=get_gametime();
 if(!is_user_connected(id)|| now>=g_fBannerEnd47[id]){BannerRemove47(id);return;}
 new source=id;
 if(!is_user_alive(id)&& get_entvar(id,var_iuser1)==4){
-new target=get_entvar(id,var_iuser2);if(target>=1 && target<=g_iMax && is_user_alive(target))source=target;
+new target=get_entvar(id,var_iuser2);if(target>=1&&target<=g_iMax&&is_user_alive(target))source=target;
 }
 new Float:o[3],Float:v[3],Float:a[3],Float:aim[3];
-if(g_iCamera47[id]>0 && !is_nullent(g_iCamera47[id])&& is_user_alive(id)){
+if(g_iCamera47[id]>0&&!is_nullent(g_iCamera47[id])&& is_user_alive(id)){
 get_entvar(g_iCamera47[id],var_origin,o);get_entvar(id,var_v_angle,a);
 }else{
 get_entvar(source,var_origin,o);get_entvar(source,var_view_ofs,v);
@@ -30239,23 +30240,23 @@ for(new j=0;j<3;j++)o[j]+=v[j];get_entvar(source,var_v_angle,a);
 }
 engfunc(EngFunc_MakeVectors,a);global_get(glb_v_forward,aim);
 for(new j=0;j<3;j++)o[j]+=aim[j]*8.0;
-if(g_iBannerKind47[id]==4 && g_iUiPage52[id]!=53 && g_iUiPage52[id]!=54){
+if(g_iBannerKind47[id]==4&&g_iUiPage52[id]!=53&&g_iUiPage52[id]!=54){
 new Float:up52[3];global_get(glb_v_up,up52);for(new j=0;j<3;j++)o[j]+=up52[j]*1.65;
 }
 engfunc(EngFunc_SetOrigin,ent,o);
 new fov47=get_member(id,m_iFOV);if(fov47<=0)fov47=90;
 set_entvar(ent,var_scale,0.0183*floattan(float(clamp(fov47,10,120))*0.5,degrees));
 set_entvar(ent,var_frame,float(g_iBannerKind47[id]==4?g_iUiPage52[id]:8));
-new Float:fade=(g_iUiPage52[id]==53 || g_iUiPage52[id]==54)?1.0:floatmin(1.0,(now-g_fBannerStart47[id])*5.0)*floatmin(1.0,(g_fBannerEnd47[id]-now)*4.0);
+new Float:fade=(g_iUiPage52[id]==53||g_iUiPage52[id]==54)?1.0:floatmin(1.0,(now-g_fBannerStart47[id])*5.0)*floatmin(1.0,(g_fBannerEnd47[id]-now)*4.0);
 new Float:pulse530=1.0;
-if(g_iBannerKind47[id]==4 && g_iUiPage52[id]!=53 && g_iUiPage52[id]!=54)pulse530=0.875+0.125*floatsin((now-g_fBannerStart47[id])*25.132741);
+if(g_iBannerKind47[id]==4&&g_iUiPage52[id]!=53&&g_iUiPage52[id]!=54)pulse530=0.875+0.125*floatsin((now-g_fBannerStart47[id])*25.132741);
 set_entvar(ent,var_renderamt,fade*235.0*pulse530);
 }
 public fw_BannerPack47(es,e,ent,host,hostflags,player,pSet)
 {
-if(player || ent<=g_iMax || is_nullent(ent))return FMRES_IGNORED;
+if(player||ent<=g_iMax||is_nullent(ent))return FMRES_IGNORED;
 if(get_entvar(ent,var_iuser4)==470048){if(g_iSet[host]&SET_NO_FX)set_es(es,ES_Effects,get_es(es,ES_Effects)|EF_NODRAW);return FMRES_IGNORED;}
-if(get_entvar(ent,var_iuser4)!=470047 && get_entvar(ent,var_iuser4)!=470049)return FMRES_IGNORED;
+if(get_entvar(ent,var_iuser4)!=470047&&get_entvar(ent,var_iuser4)!=470049)return FMRES_IGNORED;
 if(get_entvar(ent,var_owner)!=host ||(g_iSet[host]&SET_NO_FX))set_es(es,ES_Effects,get_es(es,ES_Effects)|EF_NODRAW);
 else if(get_entvar(ent,var_iuser4)==470047){
 BannerTick47(host);new Float:pos52[3];get_entvar(ent,var_origin,pos52);set_es(es,ES_Origin,pos52);
@@ -30267,9 +30268,9 @@ return FMRES_IGNORED;
 }
 SigilSpawn47(id,kind,Float:duration)
 {
-if(!is_user_alive(id)|| kind<0 || kind>1 || !g_iSigil47[kind])return;
+if(!is_user_alive(id)|| kind<0||kind>1||!g_iSigil47[kind])return;
 new ent=CreateSafe51("info_target");
-if(!ent || is_nullent(ent))return;
+if(!ent||is_nullent(ent))return;
 set_entvar(ent,var_classname,"vex_sigil47");VxSM(ent,SIGIL47[kind]);
 set_entvar(ent,var_solid,SOLID_NOT);set_entvar(ent,var_movetype,MOVETYPE_NOCLIP);
 set_entvar(ent,var_iuser1,id);set_entvar(ent,var_iuser2,get_user_userid(id));set_entvar(ent,var_iuser4,470048);
@@ -30280,7 +30281,7 @@ public SigilThink47(ent)
 {
 if(is_nullent(ent))return;
 new id=get_entvar(ent,var_iuser1);new Float:now=get_gametime();
-if(now>=Float:get_entvar(ent,var_fuser1)|| id<1 || id>g_iMax || !is_user_alive(id)|| get_user_userid(id)!=get_entvar(ent,var_iuser2)){
+if(now>=Float:get_entvar(ent,var_fuser1)|| id<1||id>g_iMax||!is_user_alive(id)|| get_user_userid(id)!=get_entvar(ent,var_iuser2)){
 engfunc(EngFunc_RemoveEntity,ent);return;
 }
 new Float:o[3],Float:a[3];get_entvar(id,var_origin,o);
@@ -30299,9 +30300,9 @@ if(percent<0){GaugeRemove47(id);return 1;}
 if(!is_user_alive(id))return 0;
 g_fGaugeEnd47[id]=get_gametime()+1.5;
 new nowpct=clamp(percent,0,100),seconds=max(0,(100-nowpct+9)/10);
-if(nowpct<100 && !g_iPlantAction[id]&& get_gametime()>=g_fJetBar48[id]){
+if(nowpct<100&&!g_iPlantAction[id]&& get_gametime()>=g_fJetBar48[id]){
 rg_send_bartime2(id,10,float(nowpct),false);g_fJetBar48[id]=get_gametime()+1.0;
-}else if(nowpct==100 && g_fJetBar48[id]>0.0 && !g_iPlantAction[id]){rg_send_bartime(id,0,false);g_fJetBar48[id]=0.0;}
+}else if(nowpct==100&&g_fJetBar48[id]>0.0&&!g_iPlantAction[id]){rg_send_bartime(id,0,false);g_fJetBar48[id]=0.0;}
 if(!(g_iSet[id]&SET_NO_HUD)){
 set_hudmessage(80,200,255,-1.0,0.78,0,0.0,1.2,0.0,0.0,2);
 if(seconds)show_hudmessage(id,"JETPACK  |  Yakit %d%%^nFUZE DOLUMU  %d%%  /  %d sn",fuel,nowpct,seconds);
@@ -30311,10 +30312,10 @@ return 1;
 }
 GaugeRemove47(id)
 {
-if(g_iGauge47[id]>0 && !is_nullent(g_iGauge47[id]))engfunc(EngFunc_RemoveEntity,g_iGauge47[id]);
+if(g_iGauge47[id]>0&&!is_nullent(g_iGauge47[id]))engfunc(EngFunc_RemoveEntity,g_iGauge47[id]);
 if(is_user_connected(id)&& g_fGaugeEnd47[id]>0.0){set_hudmessage(80,200,255,-1.0,0.78,0,0.0,0.01,0.0,0.0,2);show_hudmessage(id,"");}
 g_iGauge47[id]=0;g_fGaugeEnd47[id]=0.0;
-if(is_user_connected(id)&& g_fJetBar48[id]>0.0 && !g_iPlantAction[id])rg_send_bartime(id,0,false);
+if(is_user_connected(id)&& g_fJetBar48[id]>0.0&&!g_iPlantAction[id])rg_send_bartime(id,0,false);
 g_fJetBar48[id]=0.0;
 }
 GaugeTick47(id)
@@ -30327,7 +30328,7 @@ new Float:now=get_gametime();
 if(now<g_fCool[id]){SkillDeny(id,"ABILITY_COOL",floatround(g_fCool[id]-now,floatround_ceil));return;}
 if(!(get_entvar(id,var_flags)&FL_ONGROUND)){SkillDeny(id,"SKILL_NEED_GROUND");return;}
 new ent=CreateSafe51("info_target");
-if(!ent || is_nullent(ent))return;
+if(!ent||is_nullent(ent))return;
 g_fCool[id]=now+18.0;
 new Float:o[3];get_entvar(id,var_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
 set_entvar(ent,var_classname,"vex_titan_stomp47");set_entvar(ent,var_iuser1,id);
@@ -30340,7 +30341,7 @@ public TitanImpact47(ent)
 {
 if(is_nullent(ent))return;
 new id=get_entvar(ent,var_iuser1);
-if(id<1 || id>g_iMax || !is_user_alive(id)|| !g_bRoundActive || g_bRoundEnded || g_iEvent!=EV_TITAN || !g_bFirst[id]
+if(id<1||id>g_iMax||!is_user_alive(id)|| !g_bRoundActive||g_bRoundEnded||g_iEvent!=EV_TITAN||!g_bFirst[id]
 || get_user_userid(id)!=get_entvar(ent,var_iuser2)|| g_iRound!=get_entvar(ent,var_iuser3)){engfunc(EngFunc_RemoveEntity,ent);return;}
 new Float:o[3],Float:po[3];get_entvar(ent,var_origin,o);o[2]+=16.0;
 FxRingEx(o,255,105,30,240,14,8);FxExploEl(o,EL_FIRE,12,18);EpicCue(0,"skill0");
@@ -30361,7 +30362,7 @@ engfunc(EngFunc_RemoveEntity,ent);
 }
 public msg_WinText47(msg,dest,id)
 {
-if(get_msg_args()<2 || get_msg_argtype(2)!=ARG_STRING)return PLUGIN_CONTINUE;
+if(get_msg_args()<2||get_msg_argtype(2)!=ARG_STRING)return PLUGIN_CONTINUE;
 new text[64];get_msg_arg_string(2,text,charsmax(text));
 if(equal(text,"#CTs_Win")|| equal(text,"#Terrorists_Win"))return PLUGIN_HANDLED;
 return PLUGIN_CONTINUE;
@@ -30378,9 +30379,9 @@ new const Float:B48_TOP[]={67.444,42.342,42.549,62.244,54.408,46.006,76.248,49.7
 new const Float:B48_DUCK[]={66.067,40.659,43.843,58.077,58.834,38.945,51.533,46.217,45.655,68.575};
 public BossBounds48(id)
 {
-if(id<1 || id>g_iMax || !is_user_alive(id))return FMRES_IGNORED;
-new idx=-1;if(g_bBoss[id]&& id==g_iBoss && g_iBossType>=0 && g_iBossType<9)idx=g_iBossType;
-else if(g_iEvent==EV_TITAN && g_bFirst[id]&& g_bZombie[id])idx=9;
+if(id<1||id>g_iMax||!is_user_alive(id))return FMRES_IGNORED;
+new idx=-1;if(g_bBoss[id]&& id==g_iBoss&&g_iBossType>=0&&g_iBossType<9)idx=g_iBossType;
+else if(g_iEvent==EV_TITAN&&g_bFirst[id]&& g_bZombie[id])idx=9;
 if(idx<0)
 {
 if(!get_pcvar_num(g_pAutoHit531))return FMRES_IGNORED;
@@ -30388,7 +30389,7 @@ OvhModelTops(id);
 new bool:duck531=(get_entvar(id,var_flags)&FL_DUCKING)?true:false;
 new Float:top531=duck531?g_fOvhDuck[id]:g_fOvhStand[id];
 new Float:hull531=duck531?18.0:36.0;
-if(top531<=hull531+2.0 || top531>200.0)return FMRES_IGNORED;
+if(top531<=hull531+2.0||top531>200.0)return FMRES_IGNORED;
 new Float:hi531[3];get_entvar(id,var_absmax,hi531);
 new Float:o531[3];get_entvar(id,var_origin,o531);
 hi531[2]=floatmax(hi531[2],o531[2]+top531+4.0);
@@ -30396,7 +30397,7 @@ set_entvar(id,var_absmax,hi531);
 return FMRES_IGNORED;
 }
 new Float:o[3],Float:lo[3],Float:hi[3];get_entvar(id,var_origin,o);
-new Float:gk=(idx<9 && g_fBossScale531>1.0 &&(g_iGiantMode532==1 || containi(g_szBModel[g_iBossType],"_x")!=-1))?g_fBossScale531:1.0;
+new Float:gk=(idx<9&&g_fBossScale531>1.0 &&(g_iGiantMode532==1||containi(g_szBModel[g_iBossType],"_x")!=-1))?g_fBossScale531:1.0;
 new Float:r=floatclamp(B48_RADIUS[idx]*gk,24.0,160.0);
 lo[0]=o[0]-r;lo[1]=o[1]-r;lo[2]=o[2]-40.0;hi[0]=o[0]+r;hi[1]=o[1]+r;
 hi[2]=o[2]+((get_entvar(id,var_flags)&FL_DUCKING)?B48_DUCK[idx]:B48_TOP[idx])*gk+36.0*(gk-1.0);
@@ -30424,7 +30425,7 @@ public MeleePrimary48(weapon){return MeleeAttack48(weapon,false);}
 public MeleeSecondary48(weapon){
 new id=get_member(weapon,m_pPlayer);
 if(MeleeIndex48(id)<0){
-if(id>=1 && id<=g_iMax && CommunityAlive(id)&& g_iCommunitySel[id][1]>=1 && g_iCommunitySel[id][1]<=4 && KnifeReady47(g_iCommunitySel[id][1]-1))vxe_legacy_melee(id,weapon);
+if(id>=1&&id<=g_iMax&&CommunityAlive(id)&& g_iCommunitySel[id][1]>=1&&g_iCommunitySel[id][1]<=4&&KnifeReady47(g_iCommunitySel[id][1]-1))vxe_legacy_melee(id,weapon);
 return HAM_IGNORED;
 }
 return MeleeAttack48(weapon,true);
@@ -30439,7 +30440,7 @@ MeleeAttack48(weapon,bool:heavy)
 {
 new id=get_member(weapon,m_pPlayer),idx=MeleeIndex48(id);if(idx<0)return HAM_IGNORED;
 new Float:now=get_gametime();
-if(heavy && now<g_fMelee48[id]){set_member(weapon,m_Weapon_flNextSecondaryAttack,0.25);return HAM_SUPERCEDE;}
+if(heavy&&now<g_fMelee48[id]){set_member(weapon,m_Weapon_flNextSecondaryAttack,0.25);return HAM_SUPERCEDE;}
 new Float:delay=g_fMkRate[idx][heavy?1:0];
 set_member(weapon,m_Weapon_flNextPrimaryAttack,delay);set_member(weapon,m_Weapon_flNextSecondaryAttack,delay);set_member(weapon,m_Weapon_flTimeWeaponIdle,delay+0.5);
 if(heavy)g_fMelee48[id]=now+delay+1.0;
@@ -30459,13 +30460,13 @@ return HAM_SUPERCEDE;
 }
 MkPick(g_szMkHit[idx],snd,charsmax(snd));if(snd[0])EmitSafe(id,CHAN_ITEM,snd,0.7,ATTN_NORM);
 new Float:dmg=g_fMkDmg[idx][heavy?1:0];
-if(g_iMkFx[idx]==6 && !random(10)){dmg*=3.0;MkBreak538(hit);}
+if(g_iMkFx[idx]==6&&!random(10)){dmg*=3.0;MkBreak538(hit);}
 if(g_iMkFx[idx]==7){if(now-g_fMkComboAt[id]>2.0)g_iMkCombo[id]=0;g_fMkComboAt[id]=now;if(++g_iMkCombo[id]>=3){g_iMkCombo[id]=0;dmg*=1.5;FxRingEx(hit,255,210,120,110,5,4);}}
 ExecuteHamB(Ham_TakeDamage,target,weapon,id,dmg,DMG_SLASH);
 if(is_user_alive(target)&& !g_bNoKB[target]){g_iMkPushBy[target]=id;g_fMkPushPower[target]=g_fMkKb[idx];RequestFrame("MeleePushFrame48",target);}
 if(!(g_iSet[id]&SET_NO_FX))FxRingSmall(hit,255,120,60);
 if(heavy)MeleeHeavyWave48(id,weapon,target,idx,hit);
-if(!heavy || !is_user_alive(target))return HAM_SUPERCEDE;
+if(!heavy||!is_user_alive(target))return HAM_SUPERCEDE;
 if(g_iMkSprite[idx]>0){engfunc(EngFunc_MessageBegin,MSG_PVS,SVC_TEMPENTITY,hit,0);write_byte(TE_EXPLOSION);engfunc(EngFunc_WriteCoord,hit[0]);engfunc(EngFunc_WriteCoord,hit[1]);engfunc(EngFunc_WriteCoord,hit[2]);write_short(g_iMkSprite[idx]);write_byte(8);write_byte(15);write_byte(TE_EXPLFLAG_NOSOUND);message_end();}
 switch(g_iMkFx[idx]){
 case 0:{Ignite(target,id,2);FxExploEl(hit,EL_FIRE,5,16);}
@@ -30484,7 +30485,7 @@ MeleeHeavyWave48(id,weapon,target,idx,const Float:hit[3])
 new Float:o[3],Float:eye[3],Float:f[3],Float:b[3],Float:ang[3];
 get_entvar(id,var_origin,o);o[2]+=24.0;
 VxAim(id,eye,f,b,ang);o[0]+=f[0]*48.0;o[1]+=f[1]*48.0;
-if(idx>=2 && idx<=5){
+if(idx>=2&&idx<=5){
 static const special[][]={"weapons/runeblade_finish1.wav","","weapons/holysword_cannon.wav","weapons/magicknife_magic_exp.wav"};
 EmitSafe(id,CHAN_ITEM,special[idx-2],0.8,ATTN_NORM);
 }
@@ -30512,7 +30513,7 @@ static const DEF[MK_MAX][][]={
 static const EXTRA_SND[][]={"vexmira/arena48/melee/balrog_balrog9_charge_finish1.wav","vexmira/arena48/melee/balrog_balrog9_charge_start1.wav",
 "vexmira/arena48/melee/balrog_balrog9_draw.wav","vexmira/arena48/melee/janus_janus9_stab1.wav","vexmira/arena48/melee/janus_janus9_stab2.wav"};
 new key[24],val[160],parts[4][8];
-for(new i = 0;i < MK_MAX;i++)
+for(new i=0;i < MK_MAX;i++)
 {
 if(i==3)continue;
 formatex(key,charsmax(key),"MK%d_NAME",i + 1);copy(g_szMkName[i],charsmax(g_szMkName[]),GetResString(key,DEF[i][0]));
@@ -30521,13 +30522,13 @@ formatex(key,charsmax(key),"MK%d_P",i + 1);copy(g_szMkP[i],charsmax(g_szMkP[]),G
 formatex(key,charsmax(key),"MK%d_SND",i + 1);copy(g_szMkSnd[i],charsmax(g_szMkSnd[]),GetResString(key,DEF[i][3]));
 formatex(key,charsmax(key),"MK%d_ANIM",i + 1);copy(val,charsmax(val),GetResString(key,DEF[i][4]));
 parse(val,parts[0],7,parts[1],7,parts[2],7,parts[3],7);
-for(new k = 0;k < 4;k++)g_iMkAnim[i][k]= str_to_num(parts[k]);
+for(new k=0;k < 4;k++)g_iMkAnim[i][k]= str_to_num(parts[k]);
 formatex(key,charsmax(key),"MK%d_COST",i + 1);g_iMkCost[i]= str_to_num(GetResString(key,DEF[i][5]));
 formatex(key,charsmax(key),"MK%d_FX",i + 1);g_iMkFx[i]= str_to_num(GetResString(key,DEF[i][6]));
 formatex(key,charsmax(key),"MK%d_DMG",i + 1);copy(val,charsmax(val),GetResString(key,"1.0"));
 parse(val,parts[0],7,parts[1],7);
 if(parts[1][0]){g_fMkDmg[i][0]= floatclamp(str_to_float(parts[0]),1.0,5000.0);g_fMkDmg[i][1]= floatclamp(str_to_float(parts[1]),1.0,9000.0);}
-else{new Float:mult = floatclamp(str_to_float(val),0.1,10.0);g_fMkDmg[i][0]= 170.0 * mult;g_fMkDmg[i][1]= 520.0 * mult;}
+else{new Float:mult=floatclamp(str_to_float(val),0.1,10.0);g_fMkDmg[i][0]= 170.0 * mult;g_fMkDmg[i][1]= 520.0 * mult;}
 formatex(key,charsmax(key),"MK%d_RATE",i + 1);copy(val,charsmax(val),GetResString(key,"0.65 1.2"));
 parts[1][0]= 0;parse(val,parts[0],7,parts[1],7);
 g_fMkRate[i][0]= floatclamp(str_to_float(parts[0]),0.2,3.0);g_fMkRate[i][1]= parts[1][0]? floatclamp(str_to_float(parts[1]),0.3,5.0): 1.2;
@@ -30542,19 +30543,19 @@ if(!g_szMkSw[i][0]){if(g_szMkSnd[i][0])formatex(g_szMkSw[i],charsmax(g_szMkSw[])
 if(!g_szMkHit[i][0]){if(g_szMkSnd[i][0])formatex(g_szMkHit[i],charsmax(g_szMkHit[]),"%s_hit.wav",g_szMkSnd[i]);else copy(g_szMkHit[i],charsmax(g_szMkHit[]),"weapons/knife_hit1.wav|weapons/knife_hit2.wav|weapons/knife_hit3.wav|weapons/knife_hit4.wav");}
 if(!g_szMkStab[i][0]&& !g_szMkSnd[i][0])copy(g_szMkStab[i],charsmax(g_szMkStab[]),"weapons/knife_stab.wav");
 MkPcList(g_szMkSw[i]);MkPcList(g_szMkHit[i]);MkPcList(g_szMkStab[i]);
-if(g_iMkFx[i]== 6 && !g_iMkGib538)g_iMkGib538 = ZcPcModel("models/woodgibs.mdl");
+if(g_iMkFx[i]== 6&&!g_iMkGib538)g_iMkGib538=ZcPcModel("models/woodgibs.mdl");
 formatex(key,charsmax(key),"MK%d_EFFECT",i + 1);
 copy(val,charsmax(val),GetResString(key,""));
 g_iMkSprite[i]=(val[0]&& file_exists(val,true))? ZcPcModel(val): 0;
 new extra[200];MkResLong(i,"SOUNDS",extra,charsmax(extra));MkPcList(extra);
 MkResLong(i,"SOUNDS2",extra,charsmax(extra));MkPcList(extra);
 }
-if(g_bMkOk[0]|| g_bMkOk[1])for(new k = 0;k < sizeof EXTRA_SND;k++)ZcPcSound(EXTRA_SND[k]);
+if(g_bMkOk[0]|| g_bMkOk[1])for(new k=0;k < sizeof EXTRA_SND;k++)ZcPcSound(EXTRA_SND[k]);
 }
 MkResLong(i,const what[],out[],len)
 {
 new key[24];formatex(key,charsmax(key),"MK%d_%s",i + 1,what);out[0]= 0;
-if(g_tRes != Invalid_Trie)TrieGetString(g_tRes,key,out,len);
+if(g_tRes!=Invalid_Trie)TrieGetString(g_tRes,key,out,len);
 }
 MkPcList(const list[])
 {
@@ -30563,9 +30564,9 @@ while(rest[0]){strtok(rest,one,charsmax(one),rest,charsmax(rest),'|');trim(one);
 }
 MkPick(const list[],out[],len)
 {
-new n = 1;for(new k = 0;list[k];k++)if(list[k]== '|')n++;
-new want = random(n),rest[200],c;copy(rest,charsmax(rest),list);out[0]= 0;
-while(rest[0]){strtok(rest,out,len,rest,charsmax(rest),'|');trim(out);if(c++ == want)break;}
+new n=1;for(new k=0;list[k];k++)if(list[k]== '|')n++;
+new want=random(n),rest[200],c;copy(rest,charsmax(rest),list);out[0]= 0;
+while(rest[0]){strtok(rest,out,len,rest,charsmax(rest),'|');trim(out);if(c++==want)break;}
 if(equali(out,"off"))out[0]= 0;
 }
 bool:CosCanFollow49(id,c)
@@ -30578,7 +30579,7 @@ new path[128];PlayerMdlPath540(g_szOvhMdl[id],path,charsmax(path));
 new fp=fopen(path,"rb",true);
 if(fp){
 new count,offset,lab[33];fseek(fp,140,SEEK_SET);fread(fp,count,BLOCK_INT);fread(fp,offset,BLOCK_INT);
-if(count>0 && count<=128 && offset>=244)for(new b=0;b<count;b++){
+if(count>0&&count<=128&&offset>=244)for(new b=0;b<count;b++){
 fseek(fp,offset+b*112,SEEK_SET);fread_blocks(fp,lab,32,BLOCK_CHAR);lab[32]=0;
 if(equali(lab,"Bip01 Spine2")){g_bCosAnchor49[id][0]=true;g_iCosBone50[id][0]=b;}
 if(equali(lab,"Bip01 Head")){g_bCosAnchor49[id][1]=true;g_iCosBone50[id][1]=b;}
@@ -30595,9 +30596,9 @@ return FMRES_IGNORED;
 }
 CommunityPetMove49(id)
 {
-if(id<1 || id>g_iMax || !is_user_alive(id))return;
-new ent=g_iCmEnt[id][1];if(!ent || !CmValid(ent,id))return;
-new i=g_iCmInfo[ent]%16;if(i<0 || i>=CM_MAX)return;
+if(id<1||id>g_iMax||!is_user_alive(id))return;
+new ent=g_iCmEnt[id][1];if(!ent||!CmValid(ent,id))return;
+new i=g_iCmInfo[ent]%16;if(i<0||i>=CM_MAX)return;
 new Float:o[3],Float:a[3],Float:owner[3];
 CommunityCosCalc(id,1,i,o,a);get_entvar(id,var_origin,owner);
 g_fPetFloor49[id]=o[2];
@@ -30607,7 +30608,7 @@ set_entvar(ent,var_velocity,Float:{0.0,0.0,0.0});
 }
 bool:AmbientValid49(const path[])
 {
-new len=strlen(path);if(len<12 || len>=159 || !equal(path,"sound/",6)|| !(equali(path[len-4],".wav")|| equali(path[len-4],".mp3"))|| contain(path,"..")!=-1)return false;
+new len=strlen(path);if(len<12||len>=159||!equal(path,"sound/",6)|| !(equali(path[len-4],".wav")|| equali(path[len-4],".mp3"))|| contain(path,"..")!=-1)return false;
 for(new j=0;j<len;j++)if(!((path[j]>='a'&&path[j]<='z')||(path[j]>='A'&&path[j]<='Z')||(path[j]>='0'&&path[j]<='9')||path[j]=='_'||path[j]=='/'||path[j]=='.'||path[j]=='-'))return false;
 return file_exists(path,true)?true:false;
 }
@@ -30621,7 +30622,8 @@ for(new kind=0;kind<3;kind++)for(new j=0;j<(kind==0?MODE_TOTAL:(kind==1?EV_TOTAL
 formatex(key,charsmax(key),"AMBIENT_%s%d",kind==0?"MODE":(kind==1?"EVENT":"BOSS"),j);
 if(!TrieGetString(g_tRes,key,path,charsmax(path))){
 new bed=kind==2?6:(kind==0?AMB_MODE[min(j,sizeof AMB_MODE-1)]:AMB_EVENT[min(j,sizeof AMB_EVENT-1)]);
-formatex(path,charsmax(path),"sound/vexmira/s534/amb_%s.wav",AMB_BED[bed]);
+copy(path,charsmax(path),"sound/vexmira/v10/ambience.wav");
+if(!file_exists(path,true))formatex(path,charsmax(path),"sound/vexmira/s534/amb_%s.wav",AMB_BED[bed]);
 if(!file_exists(path,true))formatex(path,charsmax(path),"sound/vexmira/amb532/%s.wav",AMB_BED[bed]);
 if(!file_exists(path,true))formatex(path,charsmax(path),"sound/vexmira/arena52/ambience/%s%d.wav",kind==0?"mode":(kind==1?"event":"boss"),j);
 TrieSetString(g_tRes,key,path);
@@ -30635,8 +30637,8 @@ NativePrecache52();
 AmbientPath49()
 {
 new key[32],path[160];
-if(g_iMode==MODE_BOSS && g_iBossType>=0 && g_iBossType<9){formatex(key,charsmax(key),"AMBIENT_BOSS%d",g_iBossType);}
-else if(g_iEvent>EV_NONE && g_iEvent<EV_TOTAL){formatex(key,charsmax(key),"AMBIENT_EVENT%d",g_iEvent);}
+if(g_iMode==MODE_BOSS&&g_iBossType>=0&&g_iBossType<9){formatex(key,charsmax(key),"AMBIENT_BOSS%d",g_iBossType);}
+else if(g_iEvent>EV_NONE&&g_iEvent<EV_TOTAL){formatex(key,charsmax(key),"AMBIENT_EVENT%d",g_iEvent);}
 else{formatex(key,charsmax(key),"AMBIENT_MODE%d",g_iMode);}
 static lastKey[32],lastRaw[160],lastOk[160];
 if(!TrieGetString(g_tRes,key,path,charsmax(path)))path[0]=0;
@@ -30654,12 +30656,12 @@ g_szAmbientPlaying52[id][0]=0;g_iAmbientUser49[id]=0;
 }
 AmbientClient49(id)
 {
-if(id<1 || id>g_iMax || !is_user_connected(id)|| is_user_bot(id))return;
+if(id<1||id>g_iMax||!is_user_connected(id)|| is_user_bot(id))return;
 new dbg=get_cvar_num("vex_debug_audio");
-if(!g_bRoundActive || g_bRoundEnded ||(g_iSet[id]&SET_NO_AMB)|| !g_szAmbient49[0]){if(dbg)log_amx("[AudioDbg] ambiyans #%d yok: round=%d bitti=%d kapali=%d yol='%s'",id,g_bRoundActive,g_bRoundEnded,(g_iSet[id]&SET_NO_AMB)?1:0,g_szAmbient49);AmbientStop52(id);return;}
-if(g_tAmbientReady52==Invalid_Trie || !TrieKeyExists(g_tAmbientReady52,g_szAmbient49)){if(dbg)log_amx("[AudioDbg] ambiyans '%s' yuklenmemis",g_szAmbient49);AmbientStop52(id);return;}
+if(!g_bRoundActive||g_bRoundEnded ||(g_iSet[id]&SET_NO_AMB)|| !g_szAmbient49[0]){if(dbg)log_amx("[AudioDbg] ambiyans #%d yok: round=%d bitti=%d kapali=%d yol='%s'",id,g_bRoundActive,g_bRoundEnded,(g_iSet[id]&SET_NO_AMB)?1:0,g_szAmbient49);AmbientStop52(id);return;}
+if(g_tAmbientReady52==Invalid_Trie||!TrieKeyExists(g_tAmbientReady52,g_szAmbient49)){if(dbg)log_amx("[AudioDbg] ambiyans '%s' yuklenmemis",g_szAmbient49);AmbientStop52(id);return;}
 new Float:now=get_gametime(),stamp=g_iAmbientEpoch49*2048+get_user_userid(id);
-if(g_iAmbientUser49[id]==stamp && now<g_fAmbientNext49[id])return;
+if(g_iAmbientUser49[id]==stamp&&now<g_fAmbientNext49[id])return;
 AmbientStop52(id);
 if(containi(g_szAmbient49,".mp3")!=-1)VxClientCmd527(id,"mp3 loop ^"%s^"",g_szAmbient49);
 else rh_emit_sound2(id,id,CHAN_STREAM,g_szAmbient49[6],floatclamp(get_pcvar_float(g_pAmbVol532),0.05,1.0),ATTN_NONE,0,PITCH_NORM);
@@ -30669,7 +30671,7 @@ g_iAmbientUser49[id]=stamp;g_fAmbientNext49[id]=now+(containi(g_szAmbient49,".mp
 }
 CosTick50(id)
 {
-if(id<1 || id>g_iMax || !is_user_alive(id)||(!g_iCmEnt[id][0]&& !g_iCmEnt[id][2]))return;
+if(id<1||id>g_iMax||!is_user_alive(id)||(!g_iCmEnt[id][0]&& !g_iCmEnt[id][2]))return;
 new Float:now=get_gametime();if(now<g_fCosAt50[id])return;g_fCosAt50[id]=now+0.01;
 OvhModelTops(id);CosCanFollow49(id,0);
 new Float:o[3],Float:p[3],Float:a[3];get_entvar(id,var_origin,o);
@@ -30678,7 +30680,7 @@ engfunc(EngFunc_GetBonePosition,id,g_iCosBone50[id][j],p,a);
 for(new k=0;k<3;k++)g_fCosAnchor50[id][j][k]=p[k]-o[k];
 }
 for(new c=0;c<3;c+=2){
-new ent=g_iCmEnt[id][c];if(!ent || !CmValid(ent,id))continue;
+new ent=g_iCmEnt[id][c];if(!ent||!CmValid(ent,id))continue;
 new i=g_iCmInfo[ent]%16;if(i<CM_MAX)CommunityCosOrigin(ent,id,c,i);
 }
 }
@@ -30699,16 +30701,16 @@ public VxReload50(w)
 {
 new sw=VxIndex(w);if(sw<0)return HAM_IGNORED;
 new id=get_member(w,m_pPlayer);if(!CommunityAlive(id))return HAM_SUPERCEDE;
-if(Float:get_entvar(w,var_fuser2)>0.0 || get_member(w,m_Weapon_iClip)>=SW_CLIP[sw]|| rg_get_user_bpammo(id,WEAPON_AK47)<=0)return HAM_SUPERCEDE;
+if(Float:get_entvar(w,var_fuser2)>0.0||get_member(w,m_Weapon_iClip)>=SW_CLIP[sw]|| rg_get_user_bpammo(id,WEAPON_AK47)<=0)return HAM_SUPERCEDE;
 new Float:t=floatclamp(V50_RELOAD_TIME[sw],1.0,4.0);set_entvar(w,var_fuser2,get_gametime()+t);
 set_member(w,m_Weapon_fInReload,false);set_member(id,m_flNextAttack,t);set_member(w,m_Weapon_flNextPrimaryAttack,t);set_member(w,m_Weapon_flTimeWeaponIdle,t+0.1);VxAnim(id,w,V50_RELOAD[sw]);
 return HAM_SUPERCEDE;
 }
 VxReloadTick50(id)
 {
-if(id<1 || id>g_iMax || !is_user_alive(id)|| g_bZombie[id])return;
+if(id<1||id>g_iMax||!is_user_alive(id)|| g_bZombie[id])return;
 new w=get_member(id,m_pActiveItem);if(is_nullent(w))return;new sw=VxIndex(w);if(sw<0)return;
-new Float:until=Float:get_entvar(w,var_fuser2);if(until<=0.0 || get_gametime()<until)return;
+new Float:until=Float:get_entvar(w,var_fuser2);if(until<=0.0||get_gametime()<until)return;
 set_entvar(w,var_fuser2,0.0);new clip=get_member(w,m_Weapon_iClip),bp=rg_get_user_bpammo(id,WEAPON_AK47),add=min(max(0,SW_CLIP[sw]-clip),bp);
 set_member(w,m_Weapon_iClip,clip+add);rg_set_user_bpammo(id,WEAPON_AK47,bp-add);
 }
@@ -30749,8 +30751,8 @@ for(new i;i<24;i++){formatex(key,charsmax(key),"Z%d_ABILITY",i);PrecacheSoundKey
 Float:OverheadTop52(id)
 {
 new Float:top=(get_entvar(id,var_flags)&FL_DUCKING)?g_fOvhDuck[id]:g_fOvhStand[id];
-if(g_bBoss[id]&& g_iBossType>=0 && g_iBossType<9)top=floatmax(top,(get_entvar(id,var_flags)&FL_DUCKING)?B48_DUCK[g_iBossType]:B48_TOP[g_iBossType]);
-if(g_bBoss[id]&& id==g_iBoss && g_iGiantMode532==1 && g_fBossScale531>1.01){new Float:k=g_fBossScale531;top=top*k+((get_entvar(id,var_flags)&FL_DUCKING)?18.0:36.0)*(k-1.0);}
+if(g_bBoss[id]&& g_iBossType>=0&&g_iBossType<9)top=floatmax(top,(get_entvar(id,var_flags)&FL_DUCKING)?B48_DUCK[g_iBossType]:B48_TOP[g_iBossType]);
+if(g_bBoss[id]&& id==g_iBoss&&g_iGiantMode532==1&&g_fBossScale531>1.01){new Float:k=g_fBossScale531;top=top*k+((get_entvar(id,var_flags)&FL_DUCKING)?18.0:36.0)*(k-1.0);}
 CosCanFollow49(id,2);
 new bone=g_iCosBone50[id][1];
 if(bone>=0){new Float:p[3],Float:a[3],Float:o[3];engfunc(EngFunc_GetBonePosition,id,bone,p,a);get_entvar(id,var_origin,o);top=floatmax(top,p[2]-o[2]+12.0);}
@@ -30759,10 +30761,10 @@ return floatclamp(top,12.0,400.0);
 bool:UiShow52(id,page,Float:duration,priority)
 {
 #pragma unused priority
-if(id<1 || id>g_iMax || !is_user_connected(id)|| is_user_bot(id)|| !get_pcvar_num(g_pUi52)||(g_iSet[id]&SET_NO_FX))return false;
+if(id<1||id>g_iMax||!is_user_connected(id)|| is_user_bot(id)|| !get_pcvar_num(g_pUi52)||(g_iSet[id]&SET_NO_FX))return false;
 new key[32],r=55,g=205,b=255;
 page=clamp(page,0,63);
-if(get_pcvar_num(g_pHudMin538)&&((page>=29 && page<=37)|| page==58 || page==59 || page==60 || page==62 || page==63))return false;
+if(get_pcvar_num(g_pHudMin538)&&((page>=29&&page<=37)|| page==58||page==59||page==60||page==62||page==63))return false;
 if(page<=9){formatex(key,charsmax(key),"MODE_ANN_%d",page);r=255;g=170;b=55;}
 else if(page<=28){formatex(key,charsmax(key),"EV_ANN_%d",page-9);r=90;g=210;b=255;}
 else if(page<=37){formatex(key,charsmax(key),"BOSS_ANN_%d",page-29);r=220;g=90;b=255;}
@@ -30793,7 +30795,7 @@ new enpath[128];for(new j=0;j<10;j++){formatex(enpath,charsmax(enpath),"sound/ve
 Radio52(i)
 {
 new dbg=get_cvar_num("vex_debug_audio");
-if(i<0 || i>=15 || !g_bRadioReady52[i]|| !get_pcvar_num(g_pRadio52)){if(dbg)log_amx("[AudioDbg] radio %d: hazir degil (ready=%d cvar=%d)",i,((i>=0&&i<15)?(g_bRadioReady52[i]? 1 : 0): -1),get_pcvar_num(g_pRadio52));return;}
+if(i<0||i>=15||!g_bRadioReady52[i]|| !get_pcvar_num(g_pRadio52)){if(dbg)log_amx("[AudioDbg] radio %d: hazir degil (ready=%d cvar=%d)",i,((i>=0&&i<15)?(g_bRadioReady52[i]? 1 : 0): -1),get_pcvar_num(g_pRadio52));return;}
 new Float:now=get_gametime();if(now<floatmax(g_fRadioBusy52,g_fRdBusy)|| now<g_fRadioAt52[i]){if(dbg)log_amx("[AudioDbg] radio %d: mesgul/bekleme",i);return;}
 if(dbg)log_amx("[AudioDbg] radio %d CAL (%s)",i,RADIO_FILE52[i]);
 new path[128];formatex(path,charsmax(path),"vexmira/arena52/radio/%s.wav",RADIO_FILE52[i]);
@@ -30810,7 +30812,7 @@ g_fRadioBusy52=now+floatmax(RADIO_LENGTH52[i],RADIO_EN_LENGTH521[en])+0.8;g_fRad
 }
 RadioTick52()
 {
-if(!g_bRoundActive || g_bRoundEnded || get_gametime()<g_fRadioNext52 || !get_pcvar_num(g_pRadio52))return;
+if(!g_bRoundActive||g_bRoundEnded||get_gametime()<g_fRadioNext52||!get_pcvar_num(g_pRadio52))return;
 new i=random_num(11,14);if(i==g_iRadioLast52)i=11+(i-10)%4;Radio52(i);
 }
 UiHudPrecache52()
@@ -30820,22 +30822,22 @@ for(new page=0;page<64;page++)g_bUiHudFiles52[page]=false;
 UiHudRestore52(id)
 {
 new w=g_iUiHudWpn52[id];
-if(w>=1 && w<=30 && is_user_connected(id)&& get_user_userid(id)==g_iUiHudUid52[id]){
+if(w>=1&&w<=30&&is_user_connected(id)&& get_user_userid(id)==g_iUiHudUid52[id]){
 CsoSendWL(id,g_szWL[w],w);
-if(is_user_alive(id)){new clip,ammo,cw=get_user_weapon(id,clip,ammo);if(cw>=1 && cw<=30)CsoCurW(id,cw,clip);}
+if(is_user_alive(id)){new clip,ammo,cw=get_user_weapon(id,clip,ammo);if(cw>=1&&cw<=30)CsoCurW(id,cw,clip);}
 }
 g_iUiHudWpn52[id]=0;g_bUiHudActive52[id]=false;
 }
 UiHudTick52(id)
 {
-if(id<1 || id>g_iMax || !g_bUiHudActive52[id])return;
+if(id<1||id>g_iMax||!g_bUiHudActive52[id])return;
 new Float:now=get_gametime();
 if(!is_user_connected(id)|| get_user_userid(id)!=g_iUiHudUid52[id]|| now>=g_fBannerEnd47[id]||(g_iSet[id]&SET_NO_FX)){UiHudRestore52(id);return;}
 if(!is_user_alive(id)){new Float:remain=g_fBannerEnd47[id]-now;UiHudRestore52(id);BannerShow47(id,4,remain);return;}
 if(!CsoFovOk(id)){UiHudRestore52(id);return;}
-new clip,ammo,w=get_user_weapon(id,clip,ammo);if(w<1 || w>30 || !g_bWL[w]){UiHudRestore52(id);return;}
+new clip,ammo,w=get_user_weapon(id,clip,ammo);if(w<1||w>30||!g_bWL[w]){UiHudRestore52(id);return;}
 if(w!=g_iUiHudWpn52[id]&& g_iUiHudWpn52[id]>0){new old=g_iUiHudWpn52[id];CsoSendWL(id,g_szWL[old],old);}
-new frame=(g_iUiPage52[id]==53 || g_iUiPage52[id]==54)?0:(floatround((now-g_fBannerStart47[id])*2.5)%2);
+new frame=(g_iUiPage52[id]==53||g_iUiPage52[id]==54)?0:(floatround((now-g_fBannerStart47[id])*2.5)%2);
 if(w==g_iUiHudWpn52[id]&& frame==g_iUiHudFrame52[id]&& now<g_fUiHudNext52[id])return;
 new name[40];formatex(name,charsmax(name),"vexmira/arena52/hud/n%02d%d",g_iUiPage52[id],frame);
 CsoSendWL(id,name,w);CsoCurW(id,w,clip);g_iUiHudWpn52[id]=w;g_iUiHudFrame52[id]=frame;g_fUiHudNext52[id]=now+0.4;
@@ -30859,7 +30861,7 @@ return HC_CONTINUE;
 new bool:g_bConsole524;
 public VxConsole524(const line[]){
 if(g_bConsole524)return HC_CONTINUE;
-if(get_gametime()>60.0 && containi(line,"error")==-1 && containi(line,"fatal")==-1 && containi(line,"overflow")==-1 && containi(line,"alloc")==-1)return HC_CONTINUE;
+if(get_gametime()>60.0&&containi(line,"error")==-1&&containi(line,"fatal")==-1&&containi(line,"overflow")==-1&&containi(line,"alloc")==-1)return HC_CONTINUE;
 g_bConsole524=true;
 log_to_file("vex_engine_console.log","%s",line);
 g_bConsole524=false;
@@ -30868,7 +30870,7 @@ return HC_CONTINUE;
 public FullModeStatus563(id){console_print(id,"[Vexmira 5.6.4] Production mode enabled.");return PLUGIN_HANDLED;}
 stock VxClientCmd527(id,const fmt[],any:...){
 new text[512];vformat(text,charsmax(text),fmt,3);
-if(!AllowAudio528()&&(containi(text,"spk ")!=-1 || containi(text,"mp3 play")!=-1))return 0;
+if(!AllowAudio528()&&(containi(text,"spk ")!=-1||containi(text,"mp3 play")!=-1))return 0;
 return client_cmd(id,"%s",text);
 }
 stock bool:AllowAudio528(){return true;}
@@ -30881,7 +30883,7 @@ stock bool:AllowGeneric528(const path[]){
 return true;
 }
 stock RegisterTexture530(const path[]){
-new length=strlen(path);if(length<5 || !equali(path[length-4],".mdl"))return;
+new length=strlen(path);if(length<5||!equali(path[length-4],".mdl"))return;
 new tex[192];copy(tex,charsmax(tex),path);tex[length-4]=0;add(tex,charsmax(tex),"T.mdl");
 if(file_exists(tex,true))ZcPcGeneric(tex);
 }
@@ -30889,8 +30891,8 @@ if(file_exists(tex,true))ZcPcGeneric(tex);
 new g_iBdEnt536[BD536_MAX],Float:g_fBdHp536[BD536_MAX],g_iBdNum536,Float:g_fBdHud536[33];
 public Polish536_HeadshotSnd(id)
 {
-new Float:now = get_gametime();
-if(now - g_fHsSnd536[id]< 0.12 || is_user_bot(id))return;
+new Float:now=get_gametime();
+if(now - g_fHsSnd536[id]< 0.12||is_user_bot(id))return;
 g_fHsSnd536[id]= now;
 static snd[64];get_pcvar_string(g_pHsSnd536,snd,charsmax(snd));
 if(snd[0])client_cmd(id,"spk %s",snd);
@@ -30898,7 +30900,7 @@ if(snd[0])client_cmd(id,"spk %s",snd);
 public Urban536_Appearance(id,slot)
 {
 if(!get_pcvar_num(g_pNoUrban536)|| get_member(id,m_iTeam)!= 2)return HC_CONTINUE;
-if(slot < 2 || slot > 4)SetHookChainArg(2,ATYPE_INTEGER,random_num(2,4));
+if(slot < 2||slot > 4)SetHookChainArg(2,ATYPE_INTEGER,random_num(2,4));
 return HC_CONTINUE;
 }
 public Urban536_SpawnPost(id)
@@ -30910,15 +30912,15 @@ if(equali(mdl,"urban"))cs_set_user_model(id,"gign");
 bool:Arena536_Parse(const key[],const val[])
 {
 new sx[16],sy[16],sz[16],sa[16];
-new n = parse(val,sx,charsmax(sx),sy,charsmax(sy),sz,charsmax(sz),sa,charsmax(sa));
+new n=parse(val,sx,charsmax(sx),sy,charsmax(sy),sz,charsmax(sz),sa,charsmax(sa));
 if(n < 3)return false;
 new Float:p[4];
-p[0]= str_to_float(sx);p[1]= str_to_float(sy);p[2]= str_to_float(sz);p[3]=(n >= 4)? str_to_float(sa): 0.0;
-if(floatabs(p[0])> 4096.0 || floatabs(p[1])> 4096.0 || floatabs(p[2])> 4096.0)return false;
-if(equali(key,"boss")){g_fArB536 = p;g_bArB536 = true;return true;}
+p[0]= str_to_float(sx);p[1]= str_to_float(sy);p[2]= str_to_float(sz);p[3]=(n>=4)? str_to_float(sa): 0.0;
+if(floatabs(p[0])> 4096.0||floatabs(p[1])> 4096.0||floatabs(p[2])> 4096.0)return false;
+if(equali(key,"boss")){g_fArB536=p;g_bArB536=true;return true;}
 if(equali(key,"human"))
 {
-if(g_iArHN536 >= sizeof g_fArH536)return false;
+if(g_iArHN536>=sizeof g_fArH536)return false;
 g_fArH536[g_iArHN536++]= p;
 return true;
 }
@@ -30934,7 +30936,7 @@ static const Float:OFF[][3]=
 {80.0,-80.0,8.0},{-80.0,80.0,8.0},{120.0,0.0,12.0},{-120.0,0.0,12.0},{0.0,120.0,12.0},{0.0,-120.0,12.0}
 };
 new Float:t[3];
-for(new i = 0;i < sizeof OFF;i++)
+for(new i=0;i < sizeof OFF;i++)
 {
 t[0]= p[0]+ OFF[i][0];t[1]= p[1]+ OFF[i][1];t[2]= p[2]+ OFF[i][2];
 if(engfunc(EngFunc_PointContents,t)== CONTENTS_SOLID)continue;
@@ -30954,19 +30956,19 @@ return false;
 }
 public task_Arena536()
 {
-if(!g_iBoss || !is_user_alive(g_iBoss)|| !g_bArB536 || !g_iArHN536)return;
+if(!g_iBoss||!is_user_alive(g_iBoss)|| !g_bArB536||!g_iArHN536)return;
 new moved;
 arrayset(g_iArTp536,0,sizeof g_iArTp536);
 if(Arena536_Put(g_iBoss,g_fArB536)){g_iArTp536[g_iBoss]= 1;moved++;}
-new start = random(g_iArHN536),k;
-for(new p = 1;p <= g_iMax;p++)
+new start=random(g_iArHN536),k;
+for(new p=1;p<=g_iMax;p++)
 {
-if(p == g_iBoss || !is_user_alive(p)|| g_bZombie[p])continue;
+if(p==g_iBoss||!is_user_alive(p)|| g_bZombie[p])continue;
 new bool:ok;
-for(new j = 0;j < g_iArHN536 && !ok;j++)
+for(new j=0;j < g_iArHN536&&!ok;j++)
 {
 k =(start + j)% g_iArHN536;
-ok = Arena536_Put(p,g_fArH536[k]);
+ok=Arena536_Put(p,g_fArH536[k]);
 }
 start =(k + 1)% g_iArHN536;
 if(ok){g_iArTp536[p]= 1;moved++;}
@@ -30985,11 +30987,11 @@ static const Float:OFFS[][3]=
 {64.0,0.0,0.0},{-64.0,0.0,0.0},{0.0,64.0,0.0},{0.0,-64.0,0.0}
 };
 new Float:o[3],Float:t[3];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!g_iArTp536[p]|| !is_user_alive(p)|| !IsStuck(p))continue;
 get_entvar(p,var_origin,o);
-for(new i = 0;i < sizeof OFFS;i++)
+for(new i=0;i < sizeof OFFS;i++)
 {
 t[0]= o[0]+ OFFS[i][0];t[1]= o[1]+ OFFS[i][1];t[2]= o[2]+ OFFS[i][2];
 if(IsHullFree(p,t)){engfunc(EngFunc_SetOrigin,p,t);break;}
@@ -30998,52 +31000,52 @@ if(IsHullFree(p,t)){engfunc(EngFunc_SetOrigin,p,t);break;}
 }
 BDoor536_Init()
 {
-g_pArenaTp536 = register_cvar("vex_boss_arena_tp","1");
-g_pNoUrban536 = register_cvar("vex_no_urban","1");
+g_pArenaTp536=register_cvar("vex_boss_arena_tp","1");
+g_pNoUrban536=register_cvar("vex_no_urban","1");
 RegisterHookChain(RG_HandleMenu_ChooseAppearance,"Urban536_Appearance",false);
 RegisterHam(Ham_Spawn,"player","Urban536_SpawnPost",1);
-g_pGunDmg536 = register_cvar("vex_gun_damage_mult","1.35");
-g_pHudCalm538 = register_cvar("vex_hud_calm","1");
+g_pGunDmg536=register_cvar("vex_gun_damage_mult","1.35");
+g_pHudCalm538=register_cvar("vex_hud_calm","1");
 ZupMarks538();
-g_pMenuPlain538 = register_cvar("vex_menu_plain","1");
-g_pMenuGap539 = register_cvar("vex_menu_gap","0");
-g_pSkDmg538 = register_cvar("vex_sknife_damage_mult","2.5");
-g_pSkKb538 = register_cvar("vex_sknife_knockback","430");
-g_pSkBoss538 = register_cvar("vex_sknife_boss_kb","0.25");
-g_pKBMax536 = register_cvar("vex_knockback_max","650");
-g_pHsSnd536 = register_cvar("vex_headshot_sound","buttons/blip1");
-g_pBdHp536 = register_cvar("vex_bdoor_hp","1200");
-g_pBdBoss536 = register_cvar("vex_bdoor_boss_mult","4.0");
+g_pMenuPlain538=register_cvar("vex_menu_plain","1");
+g_pMenuGap539=register_cvar("vex_menu_gap","0");
+g_pSkDmg538=register_cvar("vex_sknife_damage_mult","2.5");
+g_pSkKb538=register_cvar("vex_sknife_knockback","430");
+g_pSkBoss538=register_cvar("vex_sknife_boss_kb","0.25");
+g_pKBMax536=register_cvar("vex_knockback_max","650");
+g_pHsSnd536=register_cvar("vex_headshot_sound","buttons/blip1");
+g_pBdHp536=register_cvar("vex_bdoor_hp","1200");
+g_pBdBoss536=register_cvar("vex_bdoor_boss_mult","4.0");
 RegisterHam(Ham_TakeDamage,"func_door","BDoor536_TakeDamage",0);
 set_task(1.0,"BDoor536_Scan");
 }
 public BDoor536_Scan()
 {
-g_iBdNum536 = 0;
-g_iBdGib536 = 0;
-new ent = -1,nm[16];
-while((ent = engfunc(EngFunc_FindEntityByString,ent,"classname","func_door"))> 0 && g_iBdNum536 < BD536_MAX)
+g_iBdNum536=0;
+g_iBdGib536=0;
+new ent=-1,nm[16];
+while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","func_door"))> 0&&g_iBdNum536 < BD536_MAX)
 {
 pev(ent,pev_netname,nm,charsmax(nm));
 if(!equal(nm,"vxbd"))continue;
 g_iBdEnt536[g_iBdNum536++]= ent;
 }
-if(g_iBdNum536 && g_tPcAll531 != Invalid_Trie && TrieKeyExists(g_tPcAll531,"models/woodgibs.mdl"))
-g_iBdGib536 = engfunc(EngFunc_ModelIndex,"models/woodgibs.mdl");
+if(g_iBdNum536&&g_tPcAll531!=Invalid_Trie&&TrieKeyExists(g_tPcAll531,"models/woodgibs.mdl"))
+g_iBdGib536=engfunc(EngFunc_ModelIndex,"models/woodgibs.mdl");
 BDoor536_RestoreAll();
 if(g_iBdNum536)log_amx("[Vexmira] kirilabilir kapi: %d",g_iBdNum536);
 }
 BDoor536_Index(ent)
 {
-for(new i = 0;i < g_iBdNum536;i++)if(g_iBdEnt536[i]== ent)return i;
+for(new i=0;i < g_iBdNum536;i++)if(g_iBdEnt536[i]== ent)return i;
 return -1;
 }
 public BDoor536_RestoreAll()
 {
-new Float:hp = get_pcvar_float(g_pBdHp536);
-for(new i = 0;i < g_iBdNum536;i++)
+new Float:hp=get_pcvar_float(g_pBdHp536);
+for(new i=0;i < g_iBdNum536;i++)
 {
-new ent = g_iBdEnt536[i];
+new ent=g_iBdEnt536[i];
 if(!pev_valid(ent))continue;
 g_fBdHp536[i]= hp;
 set_pev(ent,pev_solid,SOLID_BSP);
@@ -31055,16 +31057,16 @@ new Float:o[3];pev(ent,pev_origin,o);engfunc(EngFunc_SetOrigin,ent,o);
 }
 public BDoor536_TakeDamage(ent,inflictor,attacker,Float:dmg,bits)
 {
-new i = BDoor536_Index(ent);
+new i=BDoor536_Index(ent);
 if(i < 0)return HAM_IGNORED;
 set_pev(ent,pev_health,100000.0);
-if(attacker < 1 || attacker > 32 || !is_user_alive(attacker)|| !g_bZombie[attacker]|| g_fBdHp536[i]<= 0.0)return HAM_SUPERCEDE;
+if(attacker < 1||attacker > 32||!is_user_alive(attacker)|| !g_bZombie[attacker]|| g_fBdHp536[i]<= 0.0)return HAM_SUPERCEDE;
 if(g_bBoss[attacker]|| g_bNemesis[attacker]|| g_bAssassin[attacker])dmg *= get_pcvar_float(g_pBdBoss536);
 g_fBdHp536[i]-= dmg;
 if(g_fBdHp536[i]<= 0.0){BDoor536_Break(ent);return HAM_SUPERCEDE;}
 static const HIT536[][]={"debris/wood1.wav","debris/wood2.wav","debris/wood3.wav"};
 emit_sound(ent,CHAN_BODY,HIT536[random(3)],0.8,ATTN_NORM,0,90 + random(20));
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now - g_fBdHud536[attacker]> 0.4)
 {
 g_fBdHud536[attacker]= now;
@@ -31076,7 +31078,7 @@ BDoor536_Break(ent)
 {
 new Float:mn[3],Float:mx[3],Float:c[3];
 pev(ent,pev_absmin,mn);pev(ent,pev_absmax,mx);
-for(new k = 0;k < 3;k++)c[k]=(mn[k]+ mx[k])* 0.5;
+for(new k=0;k < 3;k++)c[k]=(mn[k]+ mx[k])* 0.5;
 set_pev(ent,pev_solid,SOLID_NOT);
 set_pev(ent,pev_effects,pev(ent,pev_effects)| EF_NODRAW);
 set_pev(ent,pev_takedamage,DAMAGE_NO);
@@ -31095,10 +31097,10 @@ client_print(0,print_center,"Bir kapi kirildi! / A door was smashed!");
 }
 bool:GmBossGiant(const name[],out[],len)
 {
-new Float:k = floatclamp(str_to_float(GetResString("BOSS_SCALE","1.6")),1.0,3.0);
-g_fBossScale531 = k;
+new Float:k=floatclamp(str_to_float(GetResString("BOSS_SCALE","1.6")),1.0,3.0);
+g_fBossScale531=k;
 if(k < 1.05)return false;
-new tex = clamp(str_to_num(GetResString("BOSS_GIANT_TEX","128")),0,4096);
+new tex=clamp(str_to_num(GetResString("BOSS_GIANT_TEX","128")),0,4096);
 return vxe_boss_giant(name,out,len,k,tex,g_bBossBuild565)? true : false;
 }
 bool:GsSlim(const inPath[],const outPath[],maxTex)return vxe_gs_slim(inPath,outPath,maxTex)? true : false;
@@ -31107,24 +31109,24 @@ ModernEvents50()vxe_modern_events();
 NativePrecache52()vxe_native_precache();
 public VxcResSet(plugin,params){new k[64],v[192];get_string(1,k,charsmax(k));get_string(2,v,charsmax(v));TrieSetString(g_tRes,k,v);return 1;}
 public VxcPcGeneric(plugin,params){new p[192];get_string(1,p,charsmax(p));return ZcPcGeneric(p);}
-public VxcResGet(plugin,params){new k[64],v[512];get_string(1,k,charsmax(k));if(g_tRes == Invalid_Trie || !TrieGetString(g_tRes,k,v,charsmax(v)))v[0]= 0;set_string(2,v,get_param(3));return v[0]!= 0;}
+public VxcResGet(plugin,params){new k[64],v[512];get_string(1,k,charsmax(k));if(g_tRes==Invalid_Trie||!TrieGetString(g_tRes,k,v,charsmax(v)))v[0]= 0;set_string(2,v,get_param(3));return v[0]!= 0;}
 public VxcPcModel(plugin,params){new p[192];get_string(1,p,charsmax(p));return PcModel(p,false);}
 public VxcPcSound(plugin,params){
 new p[192],known;get_string(1,p,charsmax(p));
-if(g_tSndSeen531!=Invalid_Trie && TrieGetCell(g_tSndSeen531,p,known)){TrieSetCell(g_tSnd3D,p,known);return 1;}
+if(g_tSndSeen531!=Invalid_Trie&&TrieGetCell(g_tSndSeen531,p,known)){TrieSetCell(g_tSnd3D,p,known);return 1;}
 return PcSound(p);
 }
 SkKnock538(victim,attacker,Float:mult)
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now < g_fSkKbAt538[victim]|| g_bNoKB[victim])return;
 g_fSkKbAt538[victim]= now + 0.2;
-new Float:p = get_pcvar_float(g_pSkKb538)* mult;
+new Float:p=get_pcvar_float(g_pSkKb538)* mult;
 if(g_bBoss[victim]|| g_bNemesis[victim]|| g_bAssassin[victim])p *= floatclamp(get_pcvar_float(g_pSkBoss538),0.0,1.0);
-if(p <= 1.0)return;
+if(p<=1.0)return;
 new Float:vo[3],Float:ao[3],Float:v[3];
 get_entvar(victim,var_origin,vo);get_entvar(attacker,var_origin,ao);
-new Float:dx = vo[0]- ao[0],Float:dy = vo[1]- ao[1],Float:l = floatsqroot(dx * dx + dy * dy);
+new Float:dx=vo[0]- ao[0],Float:dy=vo[1]- ao[1],Float:l=floatsqroot(dx * dx + dy * dy);
 if(l < 1.0)return;
 get_entvar(victim,var_velocity,v);
 v[0]= dx / l * p;v[1]= dy / l * p;v[2]= floatmax(v[2],140.0);
@@ -31152,58 +31154,58 @@ new rgb=vxe_sw_rgb(i);VxItemFxRGB531(id,(rgb>>16)&255,(rgb>>8)&255,rgb&255);
 }
 BuyItem538(id,k)
 {
-new name[40],cost = vxe_item_info(k,g_bZombie[id]? 1 : 0,name,charsmax(name));
-if(cost < 0 || !is_user_alive(id)){Chat(id,"SHOP_UNAVAIL");return;}
+new name[40],cost=vxe_item_info(k,g_bZombie[id]? 1 : 0,name,charsmax(name));
+if(cost < 0||!is_user_alive(id)){Chat(id,"SHOP_UNAVAIL");return;}
 if(g_iAP[id]< cost){Chat(id,"SHOP_NOAP");return;}
 if(!vxe_item_buy(id,k)){Chat(id,"SHOP_ALREADY");return;}
 AddAP(id,-cost,false,false);PlayKey(id,"SHOP_BUY");
 }
-public VxcSetModel(plugin,params){new id = get_param(1),m[32];get_string(2,m,charsmax(m));if(1 <= id <= g_iMax && is_user_alive(id))VxSetUserModel(id,m,true);return 1;}
+public VxcSetModel(plugin,params){new id=get_param(1),m[32];get_string(2,m,charsmax(m));if(1<=id<=g_iMax&&is_user_alive(id))VxSetUserModel(id,m,true);return 1;}
 public VxcRestoreModel(plugin,params)
 {
-new id = get_param(1);
-if(id < 1 || id > g_iMax || !is_user_alive(id))return 0;
+new id=get_param(1);
+if(id < 1||id > g_iMax||!is_user_alive(id))return 0;
 if(!g_bZombie[id])ApplyHumanModel(id);
 else if(!g_bBoss[id]&& !g_bNemesis[id]&& !g_bAssassin[id])VxSetUserModel(id,g_szZModel[clamp(g_iClass[id],0,NUM_CLASSES - 1)],true);
 return 1;
 }
-public VxcCard(plugin,params){new id = get_param(1);return(1 <= id <= g_iMax && is_user_connected(id))? CsoNotify(id,CN_UPGRADE,get_param(2)): false;}
-public VxcClass(plugin,params){new id = get_param(1);return(1 <= id <= g_iMax)?(g_bZombie[id]? clamp(g_iClass[id],0,NUM_CLASSES - 1): -1): -1;}
+public VxcCard(plugin,params){new id=get_param(1);return(1<=id<=g_iMax&&is_user_connected(id))? CsoNotify(id,CN_UPGRADE,get_param(2)): false;}
+public VxcClass(plugin,params){new id=get_param(1);return(1<=id<=g_iMax)?(g_bZombie[id]? clamp(g_iClass[id],0,NUM_CLASSES - 1): -1): -1;}
 HitMarkPrecache538()
 {
-g_bHm538 = false;
+g_bHm538=false;
 if(!equal(g_szCsoDir,"c539")|| !str_to_num(GetResString("HITMARKER","1")))return;
 static const F[][]={"sprites/vexmira/c539/hm_hit.txt","sprites/vexmira/c539/hm_hs.txt","sprites/vexmira/c539/hm_kill.txt","sprites/vexmira/c539/shm0.spr"};
-for(new i = 0;i < sizeof F;i++){if(!file_exists(F[i],true))return;}
-for(new i = 0;i < sizeof F;i++)PcGeneric(F[i]);
-g_bHm538 = true;
+for(new i=0;i < sizeof F;i++){if(!file_exists(F[i],true))return;}
+for(new i=0;i < sizeof F;i++)PcGeneric(F[i]);
+g_bHm538=true;
 }
 HitMark538(id,kind)
 {
-if(!is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX)|| g_iCsoCur[id]>= 0 || g_iHpLvl533[id]>= 0)return;
+if(!is_user_connected(id)|| is_user_bot(id)||(g_iSet[id]& SET_NO_FX)|| g_iCsoCur[id]>= 0||g_iHpLvl533[id]>= 0)return;
 static const SND[3][]={"player/bhit_flesh-1","buttons/blip1","buttons/bell1"};
 client_cmd(id,"spk ^"%s^"",SND[clamp(kind,0,2)]);
-new clip,ammo,w = get_user_weapon(id,clip,ammo);
-if(w < 1 || w > 30 || !g_bWL[w])return;
+new clip,ammo,w=get_user_weapon(id,clip,ammo);
+if(w < 1||w > 30||!g_bWL[w])return;
 static const NM[3][]={"vexmira/c539/hm_hit","vexmira/c539/hm_hs","vexmira/c539/hm_kill"};
 CsoSendWL(id,NM[clamp(kind,0,2)],w);CsoCurW(id,w,clip);
-g_iHmW538[id]= w;g_fHmEnd538[id]= get_gametime()+(kind == 2 ? 0.35 : 0.18);
-remove_task(id + 538700);set_task(kind == 2 ? 0.35 : 0.18,"HitMarkOff538",id + 538700);
+g_iHmW538[id]= w;g_fHmEnd538[id]= get_gametime()+(kind==2 ? 0.35 : 0.18);
+remove_task(id + 538700);set_task(kind==2 ? 0.35 : 0.18,"HitMarkOff538",id + 538700);
 }
 public HitMarkOff538(t)
 {
-new id = t - 538700,w = g_iHmW538[id];
+new id=t - 538700,w=g_iHmW538[id];
 g_iHmW538[id]= 0;
-if(!is_user_connected(id)|| w < 1 || w > 30 || g_iCsoCur[id]>= 0 || g_iHpLvl533[id]>= 0)return;
+if(!is_user_connected(id)|| w < 1||w > 30||g_iCsoCur[id]>= 0||g_iHpLvl533[id]>= 0)return;
 CsoSendWL(id,g_szWL[w],w);
-if(is_user_alive(id)){new clip,ammo,cw = get_user_weapon(id,clip,ammo);if(cw >= 1 && cw <= 30)CsoCurW(id,cw,clip);}
+if(is_user_alive(id)){new clip,ammo,cw=get_user_weapon(id,clip,ammo);if(cw>=1&&cw<=30)CsoCurW(id,cw,clip);}
 }
 public VxcAreaHit563(plugin,params)
 {
 new victim=get_param(1),owner=get_param(2),inflictor=get_param(3);new Float:dmg=get_param_f(4);
-if(victim<1 || victim>g_iMax || owner<1 || owner>g_iMax || victim==owner || !is_user_alive(victim)|| !is_user_connected(owner)|| !g_bRoundActive || dmg<=0.0)return 0;
+if(victim<1||victim>g_iMax||owner<1||owner>g_iMax||victim==owner||!is_user_alive(victim)|| !is_user_connected(owner)|| !g_bRoundActive||dmg<=0.0)return 0;
 if(g_bZombie[victim]==g_bZombie[owner])return 0;
-if(inflictor<=0 || is_nullent(inflictor))inflictor=owner;
+if(inflictor<=0||is_nullent(inflictor))inflictor=owner;
 new previous=g_iAreaTarget563;g_iAreaTarget563=victim;
 ExecuteHamB(Ham_TakeDamage,victim,inflictor,owner,dmg,DMG_BLAST);
 g_iAreaTarget563=previous;
@@ -31211,9 +31213,9 @@ return 1;
 }
 TabletInit60()
 {
-g_pTabUrl60 = register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vex_tab8/vexmira_pad_v4.html");
-g_pTabItem60 = register_cvar("vex_tablet_item","1");
-g_iUptime60 = get_systime();
+g_pTabUrl60=register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vex_tab01/vexmira_pad_v4.html");
+g_pTabItem60=register_cvar("vex_tablet_item","1");
+g_iUptime60=get_systime();
 RegisterSay("ipad","tablet","cmd_Tablet60");
 RegisterSay("panel","menu2","cmd_Tablet60");
 RegisterSay("top15","top15","cmd_TabTop60");
@@ -31239,17 +31241,17 @@ Tab62Init();set_task(8.0,"task_KnifeReport5");
 TabletPrecache60()
 {
 TabItemPrecache61();
-if(file_exists("models/vexmira/tablet/v_tablet621.mdl",true))g_iTabV60 = ZcPcModel("models/vexmira/tablet/v_tablet621.mdl");
-if(file_exists("models/vexmira/tablet/p_tablet.mdl",true))g_iTabP60 = ZcPcModel("models/vexmira/tablet/p_tablet.mdl");
+if(file_exists("models/vexmira/tablet/v_tablet621.mdl",true))g_iTabV60=ZcPcModel("models/vexmira/tablet/v_tablet621.mdl");
+if(file_exists("models/vexmira/tablet/p_tablet.mdl",true))g_iTabP60=ZcPcModel("models/vexmira/tablet/p_tablet.mdl");
 }
 stock UrlEnc60(const src[],dst[],len)
 {
 static const HX[]= "0123456789ABCDEF";
-new o = 0;
-for(new i = 0;src[i]&& o < len - 3;i++)
+new o=0;
+for(new i=0;src[i]&& o < len - 3;i++)
 {
-new c = src[i]& 0xFF;
-if((c >= 'a' && c <= 'z')||(c >= 'A' && c <= 'Z')||(c >= '0' && c <= '9')|| c == '-' || c == '_' || c == '.')
+new c=src[i]& 0xFF;
+if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')|| c=='-'||c=='_'||c=='.')
 dst[o++]= c;
 else{dst[o++]= '%';dst[o++]= HX[c >> 4];dst[o++]= HX[c & 15];}
 }
@@ -31301,8 +31303,8 @@ switch(cat)
 {
 case 'k': KnifeName538(1,i,out,len);
 case 'c': copy(out,len,COMMUNITY_CN[i]);
-case 'w': copy(out,len,(tr && g_szCmTr[0][i][0])? g_szCmTr[0][i]: g_szCmEn[0][i]);
-case 'p': copy(out,len,(tr && g_szCmTr[1][i][0])? g_szCmTr[1][i]: g_szCmEn[1][i]);
+case 'w': copy(out,len,(tr&&g_szCmTr[0][i][0])? g_szCmTr[0][i]: g_szCmEn[0][i]);
+case 'p': copy(out,len,(tr&&g_szCmTr[1][i][0])? g_szCmTr[1][i]: g_szCmEn[1][i]);
 case 'f':{new k[16];formatex(k,charsmax(k),"COS_KFX_%d",i);LangFmt60(out,len,k,tr);}
 case 't':{new k[16];formatex(k,charsmax(k),"COS_TRAIL_%d",i);LangFmt60(out,len,k,tr);}
 case 'z': copy(out,len,tr ? LZ_TR531[i]: LZ_EN531[i]);
@@ -31341,12 +31343,12 @@ stock OwnedCount60(id)
 {
 new n;
 static const CATS[]= "kcwpftz";
-for(new c = 0;c < sizeof CATS - 1;c++)
-for(new i = 0;i < ItemCount60(CATS[c]);i++)
+for(new c=0;c < sizeof CATS - 1;c++)
+for(new i=0;i < ItemCount60(CATS[c]);i++)
 if(ItemOwned60(id,CATS[c],i))n++;
 return n;
 }
-stock RarityOf60(price){return(price <= 200)? 0 :(price <= 400)? 1 :(price <= 700)? 2 : 3;}
+stock RarityOf60(price){return(price<=200)? 0 :(price<=400)? 1 :(price<=700)? 2 : 3;}
 new const CASE60_PRICE[4]={150,350,700,1200};
 new const CASE60_W[4][5]={{70,24,5,1,0},{45,35,15,5,0},{20,35,30,13,2},{10,30,30,22,8}};
 new const CASE60_TR[4][]={"Bronz Kasa","Gumus Kasa","Altin Kasa","Kabus Kasasi"};
@@ -31356,11 +31358,11 @@ new const RAR60_EN[5][]={"Common","Rare","Epic","Legendary","Mythic"};
 PoolAdd60(r,const code[]){if(g_iPoolN60[r]< CASE60_POOL)copy(g_szPool60[r][g_iPoolN60[r]++],7,code);}
 BuildPools60()
 {
-for(new r = 0;r < 5;r++)g_iPoolN60[r]= 0;
+for(new r=0;r < 5;r++)g_iPoolN60[r]= 0;
 static const CATS[]= "kcwpftz";
 new code[8];
-for(new c = 0;c < sizeof CATS - 1;c++)
-for(new i = 0;i < ItemCount60(CATS[c]);i++)
+for(new c=0;c < sizeof CATS - 1;c++)
+for(new i=0;i < ItemCount60(CATS[c]);i++)
 {
 if(!ItemValid60(CATS[c],i))continue;
 formatex(code,charsmax(code),"%c%d",CATS[c],i + 1);
@@ -31382,13 +31384,13 @@ default: ItemName60(id,code[0],str_to_num(code[1])- 1,out,len,tr);
 }
 VipAddDays60(id,days)
 {
-if(g_hVipVault == INVALID_HANDLE)return;
-new key[48],val[32],base = get_systime(),tier = 1;
+if(g_hVipVault==INVALID_HANDLE)return;
+new key[48],val[32],base=get_systime(),tier=1;
 GetKey(id,key,charsmax(key));
 if(nvault_get(g_hVipVault,key,val,charsmax(val)))
 {
 new t[8],e[16];parse(val,t,charsmax(t),e,charsmax(e));
-if(str_to_num(e)> base){base = str_to_num(e);tier = max(1,str_to_num(t));}
+if(str_to_num(e)> base){base=str_to_num(e);tier=max(1,str_to_num(t));}
 }
 formatex(val,charsmax(val),"%d %d",tier,base + clamp(days,1,365)* 86400);
 nvault_set(g_hVipVault,key,val);
@@ -31403,15 +31405,15 @@ case 'a':{AddAP(id,str_to_num(code[1]),false,false);return 0;}
 case '$':{g_iVC[id]+= str_to_num(code[1]);return 0;}
 case 'v':{VipAddDays60(id,str_to_num(code[1]));return 0;}
 }
-new cat = code[0],i = str_to_num(code[1])- 1;
-if(i < 0 || i >= ItemCount60(cat))return 0;
-if(ItemOwned60(id,cat,i)){new rf = max(10,ItemPrice60(id,cat,i)/ 2);g_iVC[id]+= rf;return rf;}
+new cat=code[0],i=str_to_num(code[1])- 1;
+if(i < 0||i>=ItemCount60(cat))return 0;
+if(ItemOwned60(id,cat,i)){new rf=max(10,ItemPrice60(id,cat,i)/ 2);g_iVC[id]+= rf;return rf;}
 ItemSetOwned60(id,cat,i,true);
 return 0;
 }
 OpenCase60(id,c,bool:free)
 {
-if(!is_user_connected(id)|| c < 0 || c > 3)return;
+if(!is_user_connected(id)|| c < 0||c > 3)return;
 new bool:tr =(g_iLang[id]!= 1);
 if(!free)
 {
@@ -31420,27 +31422,27 @@ g_iVC[id]-= CASE60_PRICE[c];
 }
 new r,code[8];Pr5Fill(id);copy(code,7,g_szPr5[id][c]);r=g_iPr5[id][c];if(!code[0])r=RollCase5(c,code);
 g_szPr5[id][c][0]=0;Pr5Fill(id);
-new refund = GrantCode60(id,code);
+new refund=GrantCode60(id,code);
 g_iCases60[id]++;
 new nm[48];CodeName60(id,code,nm,charsmax(nm),tr);
 if(refund)client_print_color(id,print_team_default,tr ? "^4[VEXMIRA]^1 %s: ^3%s^1 (zaten vardi, ^4+%d VC^1 iade)" : "^4[VEXMIRA]^1 %s: ^3%s^1 (duplicate, ^4+%d VC^1 refund)",tr ? CASE60_TR[c]: CASE60_EN[c],nm,refund);
 else client_print_color(id,print_team_default,tr ? "^4[VEXMIRA]^1 %s acildi: ^3%s^1 [%s]" : "^4[VEXMIRA]^1 %s opened: ^3%s^1 [%s]",tr ? CASE60_TR[c]: CASE60_EN[c],nm,tr ? RAR60_TR[r]: RAR60_EN[r]);
 static const RC[5][3]={{170,170,180},{60,140,255},{170,70,255},{255,190,40},{255,40,40}};
 FadeOne(id,RC[r][0],RC[r][1],RC[r][2],60 + r * 20,0.8);
-if(r >= 3)
+if(r>=3)
 {
 GrantAch(id,17);
 new name[32];get_user_name(id,name,charsmax(name));
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_connected(p)|| is_user_bot(p))continue;
 new bool:ptr =(g_iLang[p]!= 1);
 new pn[48];CodeName60(p,code,pn,charsmax(pn),ptr);
 client_print_color(p,id,ptr ? "^4[VEXMIRA]^3 %s^1 kasadan ^4%s^1 cikardi: ^3%s^1 !" : "^4[VEXMIRA]^3 %s^1 unboxed a ^4%s^1 item: ^3%s^1 !",name,ptr ? RAR60_TR[r]: RAR60_EN[r],pn);
-PlayKey(p,r >= 4 ? "MVP" : "ACH_UNLOCK");
+PlayKey(p,r>=4 ? "MVP" : "ACH_UNLOCK");
 }
 }
-else PlayKey(id,r >= 2 ? "LEVEL_UP" : "SHOP_BUY");
+else PlayKey(id,r>=2 ? "LEVEL_UP" : "SHOP_BUY");
 if(g_iCases60[id]>= 25)GrantAch(id,16);
 if(OwnedCount60(id)>= 20)GrantAch(id,22);
 SaveData(id);
@@ -31458,9 +31460,9 @@ stock ReplaceStr60(s[],len,const a[],const b[]){replace_all(s,len,a,b);}
 public cmd_Case60(id)
 {
 new bool:tr =(g_iLang[id]!= 1);
-new m = menu_create(tr ? "\rVEXMIRA \w| \yKasalar^n\dVexCoin ile ac - icerik: tablet" : "\rVEXMIRA \w| \yCases^n\dOpen with VexCoin - contents: tablet","menu_Case60");
+new m=menu_create(tr ? "\rVEXMIRA \w| \yKasalar^n\dVexCoin ile ac - icerik: tablet" : "\rVEXMIRA \w| \yCases^n\dOpen with VexCoin - contents: tablet","menu_Case60");
 new line[96];
-for(new c = 0;c < 4;c++)
+for(new c=0;c < 4;c++)
 {
 formatex(line,charsmax(line),"%s%s \r[%d VC]",g_iVC[id]>= CASE60_PRICE[c]? "\w" : "\d",tr ? CASE60_TR[c]: CASE60_EN[c],CASE60_PRICE[c]);
 menu_additem(m,line);
@@ -31474,18 +31476,18 @@ public menu_Case60(id,m,item)
 {
 menu_destroy(m);
 if(item < 0)return PLUGIN_HANDLED;
-if(item == 4){OpenTablet60(id,"case","");return PLUGIN_HANDLED;}
+if(item==4){OpenTablet60(id,"case","");return PLUGIN_HANDLED;}
 OpenCase60(id,item,false);
 return PLUGIN_HANDLED;
 }
 public cmd_Trade60(id)
 {
 new bool:tr =(g_iLang[id]!= 1);
-new m = menu_create(tr ? "\rVEXMIRA \w| \yTakas^n\dKiminle takas yapacaksin?" : "\rVEXMIRA \w| \yTrade^n\dWho do you want to trade with?","menu_TradePick60");
+new m=menu_create(tr ? "\rVEXMIRA \w| \yTakas^n\dKiminle takas yapacaksin?" : "\rVEXMIRA \w| \yTrade^n\dWho do you want to trade with?","menu_TradePick60");
 new nm[32],inf[4],n;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
-if(p == id || !is_user_connected(p)|| is_user_bot(p)|| !g_bLoaded[p])continue;
+if(p==id||!is_user_connected(p)|| is_user_bot(p)|| !g_bLoaded[p])continue;
 get_user_name(p,nm,charsmax(nm));num_to_str(p,inf,charsmax(inf));
 menu_additem(m,nm,inf);n++;
 }
@@ -31498,7 +31500,7 @@ public menu_TradePick60(id,m,item)
 {
 if(item < 0){menu_destroy(m);return PLUGIN_HANDLED;}
 new inf[4],acc,nm[2],cb;menu_item_getinfo(m,item,acc,inf,charsmax(inf),nm,charsmax(nm),cb);menu_destroy(m);
-new t = str_to_num(inf);
+new t=str_to_num(inf);
 if(!is_user_connected(t))return PLUGIN_HANDLED;
 g_iTradeTo60[id]= t;
 ItemMenu60(id,"menu_TradeGive60",true);
@@ -31510,12 +31512,12 @@ new bool:tr =(g_iLang[id]!= 1);
 new title[160];
 if(title2[0])copy(title,charsmax(title),title2);
 else formatex(title,charsmax(title),tr ? "\rVEXMIRA \w| \yTakas^n\dVerecegin esyayi sec" : "\rVEXMIRA \w| \yTrade^n\dPick the item you give");
-new m = menu_create(title,handler);
+new m=menu_create(title,handler);
 if(!giveSide)menu_additem(m,tr ? "\yHediye olarak kabul et (karsilik yok)" : "\yAccept as a gift (nothing back)","-");
 static const CATS[]= "kcwpftz";
 new code[8],nm[48],line[80],n;
-for(new c = 0;c < sizeof CATS - 1;c++)
-for(new i = 0;i < ItemCount60(CATS[c]);i++)
+for(new c=0;c < sizeof CATS - 1;c++)
+for(new i=0;i < ItemCount60(CATS[c]);i++)
 {
 if(!ItemOwned60(id,CATS[c],i))continue;
 formatex(code,charsmax(code),"%c%d",CATS[c],i + 1);
@@ -31523,7 +31525,7 @@ ItemName60(id,CATS[c],i,nm,charsmax(nm),tr);
 formatex(line,charsmax(line),"\w%s \d[%s]",nm,tr ? RAR60_TR[RarityOf60(ItemPrice60(id,CATS[c],i))]: RAR60_EN[RarityOf60(ItemPrice60(id,CATS[c],i))]);
 menu_additem(m,line,code);n++;
 }
-if(giveSide && !n){menu_destroy(m);client_print_color(id,print_team_default,tr ? "^4[VEXMIRA]^1 Takas edecek esyan yok. Kasa ac: ^3/kasa" : "^4[VEXMIRA]^1 You have no items to trade. Open a case: ^3/case");return;}
+if(giveSide&&!n){menu_destroy(m);client_print_color(id,print_team_default,tr ? "^4[VEXMIRA]^1 Takas edecek esyan yok. Kasa ac: ^3/kasa" : "^4[VEXMIRA]^1 You have no items to trade. Open a case: ^3/case");return;}
 if(!giveSide)menu_additem(m,tr ? "\rReddet" : "\rDecline","x");
 menu_setprop(m,MPROP_NUMBER_COLOR,"\r");
 menu_display(id,m,0);
@@ -31532,7 +31534,7 @@ public menu_TradeGive60(id,m,item)
 {
 if(item < 0){menu_destroy(m);return PLUGIN_HANDLED;}
 new code[8],acc,nm[2],cb;menu_item_getinfo(m,item,acc,code,charsmax(code),nm,charsmax(nm),cb);menu_destroy(m);
-new t = g_iTradeTo60[id];
+new t=g_iTradeTo60[id];
 if(!is_user_connected(t)|| is_user_bot(t))return PLUGIN_HANDLED;
 copy(g_szTradeGive60[id],7,code);
 g_iTradeFrom60[t]= id;g_fTradeAt60[t]= get_gametime();
@@ -31549,27 +31551,27 @@ public menu_TradeAnswer60(t,m,item)
 {
 if(item < 0){menu_destroy(m);return PLUGIN_HANDLED;}
 new back[8],acc,nm[2],cb;menu_item_getinfo(m,item,acc,back,charsmax(back),nm,charsmax(nm),cb);menu_destroy(m);
-new id = g_iTradeFrom60[t];g_iTradeFrom60[t]= 0;
-if(!(1 <= id <= g_iMax)|| !is_user_connected(id)|| get_gametime()- g_fTradeAt60[t]> 60.0)return PLUGIN_HANDLED;
+new id=g_iTradeFrom60[t];g_iTradeFrom60[t]= 0;
+if(!(1<=id<=g_iMax)|| !is_user_connected(id)|| get_gametime()- g_fTradeAt60[t]> 60.0)return PLUGIN_HANDLED;
 if(back[0]== 'x'){client_print_color(id,print_team_default,(g_iLang[id]!= 1)? "^4[VEXMIRA]^1 Takas teklifin reddedildi." : "^4[VEXMIRA]^1 Your trade offer was declined.");return PLUGIN_HANDLED;}
 new give[8];copy(give,charsmax(give),g_szTradeGive60[id]);
-new gc = give[0],gi = str_to_num(give[1])- 1;
+new gc=give[0],gi=str_to_num(give[1])- 1;
 if(!ItemOwned60(id,gc,gi)|| ItemOwned60(t,gc,gi)){client_print_color(t,print_team_default,g_iLang[t]== 1 ? "^4[VEXMIRA]^1 Trade is no longer valid." : "^4[VEXMIRA]^1 Takas artik gecersiz.");return PLUGIN_HANDLED;}
-new bc = 0,bi = -1;
+new bc=0,bi=-1;
 if(back[0]!= '-')
 {
-bc = back[0];bi = str_to_num(back[1])- 1;
+bc=back[0];bi=str_to_num(back[1])- 1;
 if(!ItemOwned60(t,bc,bi)|| ItemOwned60(id,bc,bi)){client_print_color(t,print_team_default,g_iLang[t]== 1 ? "^4[VEXMIRA]^1 Trade is not valid (item already owned)." : "^4[VEXMIRA]^1 Takas gecersiz (esya zaten sende var).");return PLUGIN_HANDLED;}
 }
 ItemSetOwned60(id,gc,gi,false);ItemSetOwned60(t,gc,gi,true);
-if(bi >= 0){ItemSetOwned60(t,bc,bi,false);ItemSetOwned60(id,bc,bi,true);}
+if(bi>=0){ItemSetOwned60(t,bc,bi,false);ItemSetOwned60(id,bc,bi,true);}
 g_iTrades60[id]++;g_iTrades60[t]++;
 if(g_iTrades60[id]>= 10)GrantAch(id,18);
 if(g_iTrades60[t]>= 10)GrantAch(t,18);
 new a1[32],a2[32];get_user_name(id,a1,charsmax(a1));get_user_name(t,a2,charsmax(a2));
 log_to_file("vexmira_trade.log","TAKAS %s verdi %s <-> %s verdi %s",a1,give,a2,back);
-for(new p = 1;p <= g_iMax;p++)
-if(p == id || p == t)client_print_color(p,print_team_default,(g_iLang[p]!= 1)? "^4[VEXMIRA]^1 Takas tamamlandi: ^3%s^1 <-> ^3%s" : "^4[VEXMIRA]^1 Trade complete: ^3%s^1 <-> ^3%s",a1,a2);
+for(new p=1;p<=g_iMax;p++)
+if(p==id||p==t)client_print_color(p,print_team_default,(g_iLang[p]!= 1)? "^4[VEXMIRA]^1 Takas tamamlandi: ^3%s^1 <-> ^3%s" : "^4[VEXMIRA]^1 Trade complete: ^3%s^1 <-> ^3%s",a1,a2);
 PlayKey(id,"SHOP_BUY");PlayKey(t,"SHOP_BUY");
 SaveData(id);SaveData(t);
 return PLUGIN_HANDLED;
@@ -31577,9 +31579,9 @@ return PLUGIN_HANDLED;
 AchExtra60(id)
 {
 if(is_user_bot(id))return;
-new mins = g_iPlaySec[id]/ 60;
-if(mins >= 600)GrantAch(id,14);
-if(mins >= 6000)GrantAch(id,15);
+new mins=g_iPlaySec[id]/ 60;
+if(mins>=600)GrantAch(id,14);
+if(mins>=6000)GrantAch(id,15);
 if(g_iCases60[id]>= 25)GrantAch(id,16);
 if(g_iTrades60[id]>= 10)GrantAch(id,18);
 if(g_iLmKills60[id]>= 100)GrantAch(id,19);
@@ -31587,10 +31589,10 @@ if(g_iKnifeKills60[id]>= 100)GrantAch(id,20);
 if(g_iCures60[id]>= 10)GrantAch(id,21);
 if(OwnedCount60(id)>= 20)GrantAch(id,22);
 }
-AchCount60(id){new n;for(new i = 0;i < NUM_ACH;i++)if(g_iAch[id]&(1 << i))n++;return n;}
+AchCount60(id){new n;for(new i=0;i < NUM_ACH;i++)if(g_iAch[id]&(1 << i))n++;return n;}
 AchKill60(attacker,victim)
 {
-if(!(1 <= attacker <= g_iMax)|| is_user_bot(attacker))return;
+if(!(1<=attacker<=g_iMax)|| is_user_bot(attacker))return;
 g_iLifeKills60[attacker]++;
 if(g_iLifeKills60[attacker]>= 10)GrantAch(attacker,27);
 if(g_bNemesis[victim])GrantAch(attacker,24);
@@ -31598,19 +31600,19 @@ if(GetActiveWeaponId(attacker)== WEAPON_KNIFE){g_iKnifeKills60[attacker]++;if(g_
 }
 AchInfect60(attacker)
 {
-if(!(1 <= attacker <= g_iMax)|| is_user_bot(attacker))return;
+if(!(1<=attacker<=g_iMax)|| is_user_bot(attacker))return;
 g_iRoundInf60[attacker]++;
 if(g_iRoundInf60[attacker]>= 5)GrantAch(attacker,26);
-for(new c = 0;c < NUM_CLASSES && c < 24;c++)if(vxe_zup_level(attacker,c)>= 5){GrantAch(attacker,28);break;}
+for(new c=0;c < NUM_CLASSES&&c < 24;c++)if(vxe_zup_level(attacker,c)>= 5){GrantAch(attacker,28);break;}
 }
 RoundAch60(WinStatus:status)
 {
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 g_iRoundInf60[p]= 0;
 if(!is_user_alive(p)|| is_user_bot(p))continue;
-if(g_iMode == MODE_ARMAGEDDON &&((status == WINSTATUS_CTS && !g_bZombie[p])||(status == WINSTATUS_TERRORISTS && g_bZombie[p])))GrantAch(p,23);
-if(g_iMode == MODE_SURVIVOR && status == WINSTATUS_CTS && g_bSurvivor[p])GrantAch(p,25);
+if(g_iMode==MODE_ARMAGEDDON &&((status==WINSTATUS_CTS&&!g_bZombie[p])||(status==WINSTATUS_TERRORISTS&&g_bZombie[p])))GrantAch(p,23);
+if(g_iMode==MODE_SURVIVOR&&status==WINSTATUS_CTS&&g_bSurvivor[p])GrantAch(p,25);
 AchExtra60(p);
 }
 }
@@ -31618,7 +31620,7 @@ public cmd_GiveAch60(id,level,cid)
 {
 if(!cmd_access(id,level,cid,3))return PLUGIN_HANDLED;
 new who[32],a[8];read_argv(1,who,charsmax(who));read_argv(2,a,charsmax(a));
-new t = cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
+new t=cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
 if(!t)return PLUGIN_HANDLED;
 GrantAch(t,clamp(str_to_num(a),0,NUM_ACH - 1));SaveData(t);
 console_print(id,"[Vexmira] OK");
@@ -31628,7 +31630,7 @@ public cmd_GiveCase60(id,level,cid)
 {
 if(!cmd_access(id,level,cid,3))return PLUGIN_HANDLED;
 new who[32],a[8];read_argv(1,who,charsmax(who));read_argv(2,a,charsmax(a));
-new t = cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
+new t=cmd_target(id,who,CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS);
 if(!t)return PLUGIN_HANDLED;
 OpenCase60(t,clamp(str_to_num(a),0,3),true);
 return PLUGIN_HANDLED;
@@ -31638,15 +31640,15 @@ LbLoad60()
 {
 new path[128];LbFile60(path,charsmax(path));
 g_iLbN60[0]= 0;g_iLbN60[1]= 0;
-new fp = fopen(path,"rt");if(!fp)return;
+new fp=fopen(path,"rt");if(!fp)return;
 new line[160],b[4],key[48],name[32],v[12];
 while(!feof(fp))
 {
 fgets(fp,line,charsmax(line));trim(line);
 if(!line[0]|| line[0]== ';')continue;
 if(parse(line,b,charsmax(b),key,charsmax(key),name,charsmax(name),v,charsmax(v))< 4)continue;
-new bd = clamp(str_to_num(b),0,1),i = g_iLbN60[bd];
-if(i >= LB60_MAX)continue;
+new bd=clamp(str_to_num(b),0,1),i=g_iLbN60[bd];
+if(i>=LB60_MAX)continue;
 copy(g_szLbKey60[bd][i],47,key);copy(g_szLbName60[bd][i],31,name);g_iLbVal60[bd][i]= str_to_num(v);g_iLbN60[bd]++;
 }
 fclose(fp);
@@ -31655,34 +31657,34 @@ LbWrite60()
 {
 if(!g_bLbDirty60)return;
 new path[128];LbFile60(path,charsmax(path));
-new fp = fopen(path,"wt");if(!fp)return;
+new fp=fopen(path,"wt");if(!fp)return;
 fprintf(fp,"; Vexmira 6.0 siralamalar: 0 = oynama suresi (dk), 1 = basarim sayisi^n");
-for(new bd = 0;bd < 2;bd++)for(new i = 0;i < g_iLbN60[bd];i++)
+for(new bd=0;bd < 2;bd++)for(new i=0;i < g_iLbN60[bd];i++)
 fprintf(fp,"%d ^"%s^" ^"%s^" %d^n",bd,g_szLbKey60[bd][i],g_szLbName60[bd][i],g_iLbVal60[bd][i]);
 fclose(fp);
-g_bLbDirty60 = false;
+g_bLbDirty60=false;
 }
 LbPut60(bd,const key[],const name[],val)
 {
-if(val <= 0)return;
-new slot = -1;
-for(new i = 0;i < g_iLbN60[bd];i++)if(equal(g_szLbKey60[bd][i],key)){slot = i;break;}
-if(slot == -1)
+if(val<=0)return;
+new slot=-1;
+for(new i=0;i < g_iLbN60[bd];i++)if(equal(g_szLbKey60[bd][i],key)){slot=i;break;}
+if(slot==-1)
 {
-if(g_iLbN60[bd]< LB60_MAX)slot = g_iLbN60[bd]++;
-else if(val > g_iLbVal60[bd][LB60_MAX - 1])slot = LB60_MAX - 1;
+if(g_iLbN60[bd]< LB60_MAX)slot=g_iLbN60[bd]++;
+else if(val > g_iLbVal60[bd][LB60_MAX - 1])slot=LB60_MAX - 1;
 else return;
 }
 else if(g_iLbVal60[bd][slot]== val)return;
 copy(g_szLbKey60[bd][slot],47,key);copy(g_szLbName60[bd][slot],31,name);g_iLbVal60[bd][slot]= val;
-for(new i = slot;i > 0 && g_iLbVal60[bd][i]> g_iLbVal60[bd][i - 1];i--)
+for(new i=slot;i > 0&&g_iLbVal60[bd][i]> g_iLbVal60[bd][i - 1];i--)
 {
 new tk[48],tn[32],tv;
-copy(tk,47,g_szLbKey60[bd][i]);copy(tn,31,g_szLbName60[bd][i]);tv = g_iLbVal60[bd][i];
+copy(tk,47,g_szLbKey60[bd][i]);copy(tn,31,g_szLbName60[bd][i]);tv=g_iLbVal60[bd][i];
 copy(g_szLbKey60[bd][i],47,g_szLbKey60[bd][i - 1]);copy(g_szLbName60[bd][i],31,g_szLbName60[bd][i - 1]);g_iLbVal60[bd][i]= g_iLbVal60[bd][i - 1];
 copy(g_szLbKey60[bd][i - 1],47,tk);copy(g_szLbName60[bd][i - 1],31,tn);g_iLbVal60[bd][i - 1]= tv;
 }
-g_bLbDirty60 = true;
+g_bLbDirty60=true;
 }
 LbSave60(id,const key[])
 {
@@ -31695,21 +31697,21 @@ AchExtra60(id);
 public cmd_ResetTop60(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
-g_iTopCount = 0;g_bTopDirty = true;SaveTop();LbWrite60();RefreshTopRanks();
+g_iTopCount=0;g_bTopDirty=true;SaveTop();LbWrite60();RefreshTopRanks();
 console_print(id,"[Vexmira] top15 sifirlandi");log_amx("[Vexmira] top15 sifirlandi");
 return PLUGIN_HANDLED;
 }
 public cmd_ResetTime60(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
-g_iLbN60[0]= 0;g_bLbDirty60 = true;LbWrite60();
+g_iLbN60[0]= 0;g_bLbDirty60=true;LbWrite60();
 console_print(id,"[Vexmira] sure siralamasi sifirlandi");
 return PLUGIN_HANDLED;
 }
 public cmd_ResetAch60(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
-g_iLbN60[1]= 0;g_bLbDirty60 = true;LbWrite60();
+g_iLbN60[1]= 0;g_bLbDirty60=true;LbWrite60();
 console_print(id,"[Vexmira] basarim siralamasi sifirlandi");
 return PLUGIN_HANDLED;
 }
@@ -31767,7 +31769,7 @@ get_mapname(name,31);H4S(h,n,"mp",name);formatex(t,159,"%d%%2F%d",g_iRound,Round
 if(g_szPref4[id][0])H4S(h,n,"pf",g_szPref4[id]);H4I(h,n,"cm",vxe_ac_mask(id));formatex(t,159,"%d~%d",get_pcvar_num(g_pAchVC),get_pcvar_num(g_pAchAP));H4S(h,n,"ar",t);
 // PAD5: personal data every app needs rides along on every open -> the tablet never waits for a reply
 Pr5Fill(id);formatex(t,159,"%s:%d,%s:%d,%s:%d,%s:%d",g_szPr5[id][0],g_iPr5[id][0],g_szPr5[id][1],g_iPr5[id][1],g_szPr5[id][2],g_iPr5[id][2],g_szPr5[id][3],g_iPr5[id][3]);UrlEnc60(t,e,199);H4S(h,n,"pr",e);
-formatex(t,159,"%d~%d",get_pcvar_num(g_pDailyAP),VipDailyPct(id));H4S(h,n,"dq",t);H4I(h,n,"ig",get_cvar_num("vex_tab8_ingame_only"));
+formatex(t,159,"%d~%d",get_pcvar_num(g_pDailyAP),VipDailyPct(id));H4S(h,n,"dq",t);H4I(h,n,"ig",get_cvar_num("vex_tab01_ingame_only"));
 H4I(h,n,"dn",g_iDailyDay[id]==today?min(7,max(1,g_iDailyStreak[id])):(g_iDailyDay[id]==today-1?min(7,g_iDailyStreak[id]+1):1));
 // zombie upgrades: zx=<cost of level 1>;<class>~<lv>~<pts>~<a>~<b>~<c>~<next cost> only for classes with progress
 if(H4Key(h,n,"zx")){new s0;for(new cl=0;cl<24&&!s0;cl++)if(!vxe_zup_snapshot(id,cl,0))s0=vxe_zup_snapshot(id,cl,5);first=1;num_to_str(s0,t,15);H4Row(h,n,first,t);
@@ -31799,7 +31801,9 @@ if(App4(app,"adm")&&IsAdmin60(id)&&H4Key(h,n,"maps"))
 {
 new dirh,f[64],cnt;first=1;if((dirh=open_dir("maps",f,charsmax(f)))){do{new l=strlen(f);if(l>4&&equali(f[l-4],".bsp")&&cnt<30){f[l-4]=0;if(!H4Row(h,n,first,f))break;cnt++;}}while(next_file(dirh,f,charsmax(f)));close_dir(dirh);}
 }
-new boards=App4(app,"top","time","achtop");if(boards)Boards5(app,h,n);Pl5(id,h,n);if(!boards)Boards5(app,h,n);
+new boards=App4(app,"top","time","achtop");if(boards)Boards5(app,h,n);Pl5(id,h,n);
+if(g_fwSnap9>=0){static x9[700];x9[0]=0;new r9;ExecuteForward(g_fwSnap9,r9,id,app,PrepareArray(x9,700,1),699);new l9=strlen(x9);while(l9>0&&n+l9>=H4LEN-4){l9--;while(l9>0&&x9[l9]!='&')l9--;}if(l9>0){x9[l9]=0;n+=copy(h[n],H4LEN-n,x9);}} // v10 bank + season pass (vex_bank), after messages / notifications / players
+if(!boards)Boards5(app,h,n);
 return n;
 }
 new g_szApp4[33][12];
@@ -31813,64 +31817,64 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=90#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=100#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)
 {
 if(!(1<=id<=g_iMax)||!is_user_connected(id)||is_user_bot(id)||!g_szTok62[id][0])return;
-if(!force&&(g_fTabSeen62[id]<=0.0||get_gametime()-g_fTabSeen62[id]>120.0))return;
+if(!force&&(g_fTabSeen62[id]<=0.0||get_gametime()-g_fTabSeen62[id]>240.0))return;
 // the open MOTD ignores a new address until it is closed, so the reply goes to the tablet's own relay channel
 static h[H4LEN+8],tp[64];Snap4(id,g_szApp4[id][0]?g_szApp4[id]:"home",h);formatex(tp,63,"%s_%s",g_szTopic62,g_szTok62[id]);new r4;ExecuteForward(g_fwReply4,r4,id,tp,h);
 }
 JsStr60(const s[],out[],len)
 {
-new o = 0;
-for(new i = 0;s[i]&& o < len - 2;i++)
+new o=0;
+for(new i=0;s[i]&& o < len - 2;i++)
 {
-if(s[i]== '"' || s[i]== '\'){out[o++]= '\';out[o++]= s[i];}
+if(s[i]== '"'||s[i]== '\'){out[o++]= '\';out[o++]= s[i];}
 else if(s[i]>= 32)out[o++]= s[i];
 }
 out[o]= 0;
 }
 public WriteItemsJs60()
 {
-if(!dir_exists("vex_tab8"))mkdir("vex_tab8");
-new fp = fopen("vex_tab8/vxitems_server.js","wt");
-if(!fp){log_amx("[Vexmira] vex_tab8/vxitems_server.js yazilamadi");return;}
+if(!dir_exists("vex_tab01"))mkdir("vex_tab01");
+new fp=fopen("vex_tab01/vxitems_server.js","wt");
+if(!fp){log_amx("[Vexmira] vex_tab01/vxitems_server.js yazilamadi");return;}
 BuildPools60();
 fprintf(fp,"// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
 static const CATS[]= "kcwpftz";
 new a[64],b[64],ja[96],jb[96];
-for(new c = 0;c < sizeof CATS - 1;c++)
+for(new c=0;c < sizeof CATS - 1;c++)
 {
 fprintf(fp,"%s%c:[",c ? "," : "",CATS[c]);
-for(new i = 0;i < ItemCount60(CATS[c]);i++)
+for(new i=0;i < ItemCount60(CATS[c]);i++)
 {
 ItemName60(0,CATS[c],i,a,charsmax(a),true);ItemName60(0,CATS[c],i,b,charsmax(b),false);
 JsStr60(a,ja,charsmax(ja));JsStr60(b,jb,charsmax(jb));
-new pr = ItemPrice60(0,CATS[c],i);
+new pr=ItemPrice60(0,CATS[c],i);
 fprintf(fp,"%s{tr:^"%s^",en:^"%s^",r:%d,vc:%d,ok:%d}",i ? "," : "",ja,jb,RarityOf60(pr),pr,ItemValid60(CATS[c],i)? 1 : 0);
 }
 fprintf(fp,"]");
 }
 fprintf(fp,",cases:[");
-for(new c = 0;c < 4;c++)
+for(new c=0;c < 4;c++)
 {
 fprintf(fp,"%s{tr:^"%s^",en:^"%s^",vc:%d,loot:[",c ? "," : "",CASE60_TR[c],CASE60_EN[c],CASE60_PRICE[c]);
-new tot = 0;for(new r = 0;r < 5;r++)if(g_iPoolN60[r])tot += CASE60_W[c][r];
-new first = 1;
-for(new r = 0;r < 5;r++)
+new tot=0;for(new r=0;r < 5;r++)if(g_iPoolN60[r])tot+=CASE60_W[c][r];
+new first=1;
+for(new r=0;r < 5;r++)
 {
 if(!g_iPoolN60[r]|| !CASE60_W[c][r])continue;
-new Float:ch = float(CASE60_W[c][r])* 100.0 / float(max(1,tot))/ float(g_iPoolN60[r]);
-for(new i = 0;i < g_iPoolN60[r];i++){fprintf(fp,"%s[^"%s^",%d,%.2f]",first ? "" : ",",g_szPool60[r][i],r,ch);first = 0;}
+new Float:ch=float(CASE60_W[c][r])* 100.0 / float(max(1,tot))/ float(g_iPoolN60[r]);
+for(new i=0;i < g_iPoolN60[r];i++){fprintf(fp,"%s[^"%s^",%d,%.2f]",first ? "" : ",",g_szPool60[r][i],r,ch);first=0;}
 }
 fprintf(fp,"]}");
 }
 fprintf(fp,"],ach:[");
 new key[20];
-for(new i = 0;i < NUM_ACH;i++)
+for(new i=0;i < NUM_ACH;i++)
 {
 formatex(key,charsmax(key),"ACH_NAME_%d",i);LangFmt60(a,charsmax(a),key,true);LangFmt60(b,charsmax(b),key,false);
 JsStr60(a,ja,charsmax(ja));JsStr60(b,jb,charsmax(jb));
@@ -31881,12 +31885,12 @@ fprintf(fp,",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}",ja,jb,get_pcvar_num(g_pAchVC),g
 }
 fprintf(fp,"]};^n");
 fclose(fp);
-log_amx("[Vexmira] tablet: vex_tab8/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
+log_amx("[Vexmira] tablet: vex_tab01/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
 }
 public fw_KnifeDeploy60(knife)
 {
-new id = get_member(knife,m_pPlayer);
-if(1 <= id <= g_iMax)g_bTab60[id]= false;
+new id=get_member(knife,m_pPlayer);
+if(1<=id<=g_iMax)g_bTab60[id]= false;
 return HAM_IGNORED;
 }
 TabletShow60(id,bool:on)
@@ -31906,8 +31910,8 @@ set_task(0.6,"task_TabOpen60",id + 6060600);
 else
 {
 g_bTab60[id]= false;
-new w = get_member(id,m_pActiveItem);
-if(w > 0 && !is_nullent(w))ExecuteHamB(Ham_Item_Deploy,w);
+new w=get_member(id,m_pActiveItem);
+if(w > 0&&!is_nullent(w))ExecuteHamB(Ham_Item_Deploy,w);
 }
 }
 SendWeaponAnim60(id,anim)
@@ -31918,7 +31922,7 @@ message_begin(MSG_ONE,SVC_WEAPONANIM,_,id);write_byte(anim);write_byte(0);messag
 public fw_TabletCmd60(id,uc,seed)
 {
 if(!is_user_alive(id)|| is_user_bot(id)|| !get_pcvar_num(g_pTabItem60)|| !g_iTabV60)return FMRES_IGNORED;
-new btn = get_uc(uc,UC_Buttons),old = get_entvar(id,var_oldbuttons);
+new btn=get_uc(uc,UC_Buttons),old=get_entvar(id,var_oldbuttons);
 TabCmd61(id,uc,btn,old);
 if(TabItemOn61())return FMRES_IGNORED;
 new bool:knife =(GetActiveWeaponId(id)== WEAPON_KNIFE);
@@ -31935,8 +31939,8 @@ TabletShow60(id,false);
 client_cmd(id,"spk buttons/blip1");
 return FMRES_SUPERCEDE;
 }
-new Float:now = get_gametime();
-if(now - g_fTabOpen60[id]> 1.2 && !(old & IN_ATTACK))
+new Float:now=get_gametime();
+if(now - g_fTabOpen60[id]> 1.2&&!(old & IN_ATTACK))
 {
 g_fTabOpen60[id]= now;
 SendWeaponAnim60(id,1);
@@ -31947,10 +31951,10 @@ return FMRES_SUPERCEDE;
 }
 return FMRES_IGNORED;
 }
-public task_TabOpen60(tid){new id = tid - 6060600;if(is_user_alive(id)&& GetActiveWeaponId(id)== WEAPON_C4)OpenTablet60(id,"home","");}
+public task_TabOpen60(tid){new id=tid - 6060600;if(is_user_alive(id)&& GetActiveWeaponId(id)== WEAPON_C4)OpenTablet60(id,"home","");}
 TabletRoundHint60(id)
 {
-if(!g_iTabV60 || is_user_bot(id)|| !get_pcvar_num(g_pTabItem60))return;
+if(!g_iTabV60||is_user_bot(id)|| !get_pcvar_num(g_pTabItem60))return;
 client_print_color(id,print_team_default,(g_iLang[id]!= 1)? "^4[VEXMIRA]^1 iPad cebinde: ^3[5]^1 tusu ile al, ^3sol tik^1 = ekrani ac, ^3sag tik^1 = onceki silah. Yazarak: ^3/ipad" : "^4[VEXMIRA]^1 Your iPad is in slot ^3[5]^1: ^3left click^1 = open the screen, ^3right click^1 = previous weapon. Or type ^3/ipad");
 }
 LangFmt60(out[],len,const key[],bool:tr)
@@ -31960,25 +31964,25 @@ set_cvar_string("amx_language",tr ? "tr" : "en");
 formatex(out,len,"%L",LANG_SERVER,key);
 set_cvar_string("amx_language",old);
 }
-public task_TabHint60(tid){new id = tid - 6070700;if(is_user_connected(id))TabletRoundHint60(id);}
+public task_TabHint60(tid){new id=tid - 6070700;if(is_user_connected(id))TabletRoundHint60(id);}
 #define TAB61_UID 6161
 #define TAB61_V "models/vexmira/tablet/v_tablet621.mdl"
 #define TAB61_P "models/vexmira/tablet/p_tablet.mdl"
 #define TAB61_W "models/vexmira/tablet/w_tablet.mdl"
 TabItemPrecache61()
 {
-if(file_exists(TAB61_W,true))g_iTabW61 = ZcPcModel(TAB61_W);
+if(file_exists(TAB61_W,true))g_iTabW61=ZcPcModel(TAB61_W);
 if(file_exists("sprites/vexmira_tablet.txt",true)&& file_exists("sprites/vexmira_hud_tablet.spr",true))
 {
 ZcPcGeneric("sprites/vexmira_tablet.txt");
 ZcPcModel("sprites/vexmira_hud_tablet.spr");
-g_bTabHud61 = true;
+g_bTabHud61=true;
 }
 }
 TabItemInit61()
 {
-g_iMsgWList61 = get_user_msgid("WeaponList");
-g_pTabBots61 = register_cvar("vex_tablet_bots","0");
+g_iMsgWList61=get_user_msgid("WeaponList");
+g_pTabBots61=register_cvar("vex_tablet_bots","0");
 register_concmd("vex_tablet_status","cmd_TabStatus61",ADMIN_RCON,"- tablet: kimde var, hud ikonu, modeller");
 register_concmd("vex_tablet_force","cmd_TabForce61",ADMIN_RCON,"- (test) botlarin eline tableti ver");
 register_clcmd("vexmira_tablet","cmd_SelTab61");
@@ -31995,15 +31999,15 @@ register_message(get_user_msgid("TextMsg"),"msg_TabText61");
 }
 bool:TabIsItem61(weapon)
 {
-return weapon > 0 && !is_nullent(weapon)&& get_member(weapon,m_iId)== WEAPON_C4;
+return weapon > 0&&!is_nullent(weapon)&& get_member(weapon,m_iId)== WEAPON_C4;
 }
 bool:TabItemOn61()
 {
-return g_iTabV60 && get_pcvar_num(g_pTabItem60)? true : false;
+return g_iTabV60&&get_pcvar_num(g_pTabItem60)? true : false;
 }
 TabWeaponList61(id)
 {
-if(!g_bTabHud61 || g_bTabSent61[id]|| !g_iMsgWList61)return;
+if(!g_bTabHud61||g_bTabSent61[id]|| !g_iMsgWList61)return;
 g_bTabSent61[id]= true;
 message_begin(MSG_ONE,g_iMsgWList61,_,id);
 write_string("vexmira_tablet");
@@ -32021,7 +32025,7 @@ TabFixWL61()
 if(!g_bTabHud61)return;
 copy(g_szWL[6],charsmax(g_szWL[]),"vexmira_tablet");
 static const T[8]={-1,-1,-1,-1,4,3,6,24};
-for(new k = 0;k < 8;k++)g_iWL[6][k]= T[k];
+for(new k=0;k < 8;k++)g_iWL[6][k]= T[k];
 g_bWL[6]= true;
 }
 TabGive61(id)
@@ -32033,7 +32037,7 @@ if(rg_has_item_by_name(id,"weapon_c4"))return;
 rg_give_custom_item(id,"weapon_c4",GT_APPEND,TAB61_UID);
 }
 public task_TabGive61(tid){TabGive61(tid - 6161000);}
-TabGiveLater61(id,Float:delay = 0.3)
+TabGiveLater61(id,Float:delay=0.3)
 {
 remove_task(id + 6161000);
 set_task(delay,"task_TabGive61",id + 6161000);
@@ -32051,10 +32055,10 @@ return true;
 public fw_TabPrim61(weapon)
 {
 if(!TabIsItem61(weapon))return HAM_IGNORED;
-new id = get_member(weapon,m_pPlayer);
-if(1 <= id <= g_iMax)
+new id=get_member(weapon,m_pPlayer);
+if(1<=id<=g_iMax)
 {
-new Float:now = get_gametime();
+new Float:now=get_gametime();
 if(now - g_fTabTap61[id]> 0.9)
 {
 g_fTabTap61[id]= now;
@@ -32070,8 +32074,8 @@ return HAM_SUPERCEDE;
 public fw_TabSec61(weapon)
 {
 if(!TabIsItem61(weapon))return HAM_IGNORED;
-new id = get_member(weapon,m_pPlayer);
-if((1 <= id <= g_iMax)&& get_gametime()- g_fTabTap61[id]> 0.4)
+new id=get_member(weapon,m_pPlayer);
+if((1<=id<=g_iMax)&& get_gametime()- g_fTabTap61[id]> 0.4)
 {
 g_fTabTap61[id]= get_gametime();
 client_cmd(id,"lastinv");
@@ -32107,7 +32111,7 @@ return HC_CONTINUE;
 }
 public msg_TabScore61(msg,dest,ent)
 {
-new f = get_msg_arg_int(2);
+new f=get_msg_arg_int(2);
 if(f & 2)set_msg_arg_int(2,ARG_BYTE,f & ~2);
 return PLUGIN_CONTINUE;
 }
@@ -32121,14 +32125,14 @@ public msg_TabText61(msg,dest,ent)
 {
 if(get_msg_args()< 2)return PLUGIN_CONTINUE;
 new s[32];get_msg_arg_string(2,s,charsmax(s));
-if(s[0]== '#' &&(containi(s,"bomb")!= -1 || containi(s,"C4_")!= -1))return PLUGIN_HANDLED;
+if(s[0]== '#' &&(containi(s,"bomb")!= -1||containi(s,"C4_")!= -1))return PLUGIN_HANDLED;
 return PLUGIN_CONTINUE;
 }
 public cmd_TabStatus61(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new n,h,w[33];
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p))continue;
 n++;
@@ -32136,13 +32140,13 @@ if(rg_has_item_by_name(p,"weapon_c4")){h++;w[p]= 1;}
 }
 console_print(id,"[VEXMIRA] tablet: v=%d p=%d w=%d hud=%d item=%d | canli %d oyuncu, %d kiside tablet var",g_iTabV60,g_iTabP60,g_iTabW61,g_bTabHud61,TabItemOn61(),n,h);
 log_amx("[VEXMIRA] tablet: v=%d p=%d w=%d hud=%d item=%d | canli %d oyuncu, %d kiside tablet var",g_iTabV60,g_iTabP60,g_iTabW61,g_bTabHud61,TabItemOn61(),n,h);
-for(new p = 1;p <= g_iMax;p++)if(w[p]){new nm[32];get_user_name(p,nm,charsmax(nm));log_amx("[VEXMIRA] tablet var: %s (%s)",nm,g_bZombie[p]? "zombi" : "insan");}
+for(new p=1;p<=g_iMax;p++)if(w[p]){new nm[32];get_user_name(p,nm,charsmax(nm));log_amx("[VEXMIRA] tablet var: %s (%s)",nm,g_bZombie[p]? "zombi" : "insan");}
 return PLUGIN_HANDLED;
 }
 public cmd_TabForce61(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
-for(new p = 1;p <= g_iMax;p++)
+for(new p=1;p<=g_iMax;p++)
 {
 if(!is_user_alive(p)|| !is_user_bot(p))continue;
 TabGive61(p);
@@ -32152,7 +32156,7 @@ return PLUGIN_HANDLED;
 }
 public msg_TabWList61(msg,dest,ent)
 {
-if(!g_bTabHud61 || get_msg_args()< 9 || get_msg_arg_int(8)!= 6)return PLUGIN_CONTINUE;
+if(!g_bTabHud61||get_msg_args()< 9||get_msg_arg_int(8)!= 6)return PLUGIN_CONTINUE;
 set_msg_arg_string(1,"vexmira_tablet");
 set_msg_arg_int(2,ARG_BYTE,-1);
 set_msg_arg_int(3,ARG_BYTE,-1);
@@ -32160,18 +32164,18 @@ return PLUGIN_CONTINUE;
 }
 Tab62Init()
 {
-g_pRlOn62 = register_cvar("vex_tablet_relay","1");
-g_pRlHost62 = register_cvar("vex_tablet_relay_host","ntfy.sh");
-g_pRlPort62 = register_cvar("vex_tablet_relay_port","80");
-g_pRlTopic62 = register_cvar("vex_tablet_topic","");
-g_pWebBase62 = register_cvar("vex_tab8_web","http://f16.oyunyoneticisi.biz/cstrike/vex_tab8/");
-g_pWebPage62 = register_cvar("vex_tab8_page","vex_tab8.html");
-g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);g_fwReply4=CreateMultiForward("vxc_reply",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);
+g_pRlOn62=register_cvar("vex_tablet_relay","1");
+g_pRlHost62=register_cvar("vex_tablet_relay_host","ntfy.sh");
+g_pRlPort62=register_cvar("vex_tablet_relay_port","80");
+g_pRlTopic62=register_cvar("vex_tablet_topic","");
+g_pWebBase62=register_cvar("vex_tab01_web","http://f16.oyunyoneticisi.biz/cstrike/vex_tab01/");
+g_pWebPage62=register_cvar("vex_tab01_page","vex_tab01.html");
+g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);g_fwReply4=CreateMultiForward("vxc_reply",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);g_fwBank9=CreateMultiForward("vxc_bank9",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING,FP_STRING,FP_STRING);g_fwSnap9=CreateMultiForward("vxc_snap9",ET_IGNORE,FP_CELL,FP_STRING,FP_ARRAY,FP_CELL);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
 register_clcmd("vex_tablet_action","cmd_TabAction621");
 register_concmd("vex_tablet_selftest","cmd_TabSelf62",ADMIN_RCON,"<userid> <action...> - (test) aksiyonu bu oyuncu adina calistir + u dosyasi yaz");
-g_hSocial62 = nvault_open("vexmira_social");
+g_hSocial62=nvault_open("vexmira_social");
 set_task(1.0,"task_TabTick62",TAB62_TASK + 1,_,_,"b");
 set_task(3.0,"task_Tab62Start");
 }
@@ -32183,19 +32187,19 @@ Tab62Topic()
 {
 get_pcvar_string(g_pRlTopic62,g_szTopic62,charsmax(g_szTopic62));
 if(g_szTopic62[0])return;
-new fp = fopen("addons/amxmodx/data/vexmira_tablet_topic.txt","rt");
+new fp=fopen("addons/amxmodx/data/vexmira_tablet_topic.txt","rt");
 if(fp){fgets(fp,g_szTopic62,charsmax(g_szTopic62));fclose(fp);trim(g_szTopic62);}
 if(strlen(g_szTopic62)< 12)
 {
 RandStr62(g_szTopic62,18);format(g_szTopic62,charsmax(g_szTopic62),"vxm%s",g_szTopic62);
-fp = fopen("addons/amxmodx/data/vexmira_tablet_topic.txt","wt");
+fp=fopen("addons/amxmodx/data/vexmira_tablet_topic.txt","wt");
 if(fp){fprintf(fp,"%s^n",g_szTopic62);fclose(fp);}
 }
 }
 stock RandStr62(out[],n)
 {
 static const A[]= "abcdefghijkmnpqrstuvwxyz23456789";
-for(new i = 0;i < n;i++)out[i]= A[random(sizeof A - 1)];
+for(new i=0;i < n;i++)out[i]= A[random(sizeof A - 1)];
 out[n]= 0;
 }
 Tab62Connect(id)
@@ -32204,13 +32208,13 @@ RandStr62(g_szTok62[id],10);
 g_iSeqAck62[id]= 0;g_szRes62[id][0]= 0;g_fTabSeen62[id]= 0.0;
 g_iMsgN62[id]= 0;g_iNotN62[id]= 0;g_iUnread62[id]= 0;g_iFReq62[id]= 0;
 g_szFriends62[id][0]= 0;g_szBlocks62[id][0]= 0;g_szSid62[id][0]= 0;g_szPref4[id][0]=0;g_szApp4[id][0]=0;
-for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
+for(new p=1;p<=g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
 Tab62LoadSocial(id)
 {
 if(is_user_bot(id))return;
 get_user_authid(id,g_szSid62[id],charsmax(g_szSid62[]));
-if(g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0])return;
+if(g_hSocial62==INVALID_HANDLE||!g_szSid62[id][0])return;
 new key[48];
 formatex(key,charsmax(key),"f_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szFriends62[id],charsmax(g_szFriends62[]));
 formatex(key,charsmax(key),"b_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szBlocks62[id],charsmax(g_szBlocks62[]));
@@ -32220,7 +32224,7 @@ formatex(key,charsmax(key),"n_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,name
 }
 Tab62SaveSocial(id)
 {
-if(g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0])return;
+if(g_hSocial62==INVALID_HANDLE||!g_szSid62[id][0])return;
 new key[48];
 formatex(key,charsmax(key),"f_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,g_szFriends62[id]);
 formatex(key,charsmax(key),"b_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,g_szBlocks62[id]);
@@ -32234,7 +32238,7 @@ return containi(list,k)!= -1;
 }
 stock ListAdd62(list[],len,const sid[])
 {
-if(!sid[0]|| ListHas62(list,sid)|| strlen(list)+ strlen(sid)+ 2 >= len)return;
+if(!sid[0]|| ListHas62(list,sid)|| strlen(list)+ strlen(sid)+ 2>=len)return;
 add(list,len,sid);add(list,len,",");
 }
 stock ListDel62(list[],len,const sid[])
@@ -32244,12 +32248,12 @@ replace(list,len,k,"");
 }
 bool:Friends62(a,b){return ListHas62(g_szFriends62[a],g_szSid62[b])&& ListHas62(g_szFriends62[b],g_szSid62[a]);}
 bool:Blocked62(a,b){return ListHas62(g_szBlocks62[a],g_szSid62[b]);}
-Notify62(id,const text[],bool:sound = true)
+Notify62(id,const text[],bool:sound=true)
 {
-if(!(1 <= id <= g_iMax)|| !is_user_connected(id)|| is_user_bot(id))return;
+if(!(1<=id<=g_iMax)|| !is_user_connected(id)|| is_user_bot(id))return;
 if(g_iNotN62[id]>= NOT62)
 {
-for(new i = 1;i < NOT62;i++){copy(g_szNot62[id][i - 1],charsmax(g_szNot62[][]),g_szNot62[id][i]);g_iNotTime62[id][i - 1]= g_iNotTime62[id][i];}
+for(new i=1;i < NOT62;i++){copy(g_szNot62[id][i - 1],charsmax(g_szNot62[][]),g_szNot62[id][i]);g_iNotTime62[id][i - 1]= g_iNotTime62[id][i];}
 g_iNotN62[id]= NOT62 - 1;
 }
 copy(g_szNot62[id][g_iNotN62[id]],charsmax(g_szNot62[][]),text);
@@ -32257,16 +32261,16 @@ g_iNotTime62[id][g_iNotN62[id]]= get_systime();
 g_iNotN62[id]++;
 g_iUnread62[id]++;
 if(g_bHud4){new r4;ExecuteForward(g_fwNote4,r4,id,text);}else if(sound)client_cmd(id,"spk buttons/bell1");
-if(g_iActor4!=id)TabPush4(id); // an open tablet shows the new message / offer / request at once
+if(g_iActor4&&g_iActor4!=id){client_print_color(id,g_iActor4,"^4[iPad]^1 %s",text);TabPush4(id);} // from another player: always a chat line + card in game (does not need the relay), and an open tablet refreshes
 }
 public task_TabTick62()
 {
-for(new id = 1;id <= g_iMax;id++)
+for(new id=1;id<=g_iMax;id++)
 {
 if(!is_user_connected(id)|| is_user_bot(id))continue;
 if(g_bHud4||!g_iUnread62[id]||(is_user_alive(id)&& GetActiveWeaponId(id)== WEAPON_C4))continue;
 set_dhudmessage(255,200,60,0.86,0.12,0,0.0,1.05,0.0,0.0);
-show_dhudmessage(id,(g_iLang[id]!= 1)? "[iPad] %d yeni bildirim" : "[iPad] %d new notification%s",g_iUnread62[id],(g_iLang[id]!= 1 || g_iUnread62[id]== 1)? "" : "s");
+show_dhudmessage(id,(g_iLang[id]!= 1)? "[iPad] %d yeni bildirim" : "[iPad] %d new notification%s",g_iUnread62[id],(g_iLang[id]!= 1||g_iUnread62[id]== 1)? "" : "s");
 }
 }
 public cmd_TabFake62()
@@ -32279,36 +32283,36 @@ public cmd_TabLink62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);
-console_print(id,"[TAB8] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_tab8)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
-for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&!is_user_bot(p)&&g_szTok62[p][0])console_print(id,"[TAB8] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
+console_print(id,"[TAB01] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_tab01)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&!is_user_bot(p)&&g_szTok62[p][0])console_print(id,"[TAB01] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
 return PLUGIN_HANDLED;
 }
 TabAction62(const msg[])
 {
 if(!equal(msg,"vx1~",4))return;
-new parts[8][256],n = 0,o = 0;
-for(new i = 4;msg[i]&& n < 8;i++)
+new parts[8][256],n=0,o=0;
+for(new i=4;msg[i]&& n < 8;i++)
 {
-if(msg[i]== '~'){parts[n][o]= 0;n++;o = 0;continue;}
+if(msg[i]== '~'){parts[n][o]= 0;n++;o=0;continue;}
 if(o < 255)parts[n][o++]= msg[i];
 }
 if(n < 8){parts[n][o]= 0;n++;}
 if(n < 3)return;
-new id = 0;
-for(new p = 1;p <= g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p)&& equal(g_szTok62[p],parts[0])){id = p;break;}
+new id=0;
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&& !is_user_bot(p)&& equal(g_szTok62[p],parts[0])){id=p;break;}
 if(!id)return;
 g_iActionRx624++;
-new seq = str_to_num(parts[1]);
-if(seq <= g_iSeqAck62[id])return;
-new Float:now = get_gametime();
+new seq=str_to_num(parts[1]);
+if(seq<=g_iSeqAck62[id])return;
+new Float:now=get_gametime();
 if(now - g_fActWin62[id]> 3.0){g_fActWin62[id]= now;g_iActTick62[id]= 0;}
 if(++g_iActTick62[id]> 8)return;
 g_iSeqAck62[id]= seq;
 g_fTabSeen62[id]= now;
-g_bTabQuiet62 = true;g_iActor4 = id;
+g_bTabQuiet62=true;g_iActor4=id;
 TabDo62(id,parts[2],parts[3],parts[4],parts[5]);
-g_bTabQuiet62 = false;g_iActor4 = 0;
-if(equal(parts[2],"view")||equal(parts[2],"ping")||equal(parts[2],"case")||equal(parts[2],"market",6)||equal(parts[2],"t",1)||equal(parts[2],"adm"))TabPush4(id,true);
+g_bTabQuiet62=false;g_iActor4=0;
+if(equal(parts[2],"bk",2)||equal(parts[2],"bp",2)||equal(parts[2],"view")||equal(parts[2],"ping")||equal(parts[2],"case")||equal(parts[2],"market",6)||equal(parts[2],"t",1)||equal(parts[2],"adm"))TabPush4(id,true);
 }
 Res62(id,const fmt[],any:...)
 {
@@ -32316,27 +32320,27 @@ vformat(g_szRes62[id],charsmax(g_szRes62[]),fmt,3);
 }
 stock HexDec62(const hex[],out[],len)
 {
-new o = 0;
-for(new i = 0;hex[i]&& hex[i + 1]&& o < len;i += 2)
+new o=0;
+for(new i=0;hex[i]&& hex[i + 1]&& o < len;i+=2)
 {
-new hi = HexVal62(hex[i]),lo = HexVal62(hex[i + 1]);
-if(hi < 0 || lo < 0)break;
-new c = hi * 16 + lo;
-if(c < 32 && c != 9)c = ' ';
+new hi=HexVal62(hex[i]),lo=HexVal62(hex[i + 1]);
+if(hi < 0||lo < 0)break;
+new c=hi * 16 + lo;
+if(c < 32&&c!=9)c=' ';
 out[o++]= c;
 }
 out[o]= 0;
 }
 stock HexVal62(c)
 {
-if(c >= '0' && c <= '9')return c - '0';
-if(c >= 'a' && c <= 'f')return c - 'a' + 10;
-if(c >= 'A' && c <= 'F')return c - 'A' + 10;
+if(c>='0'&&c<='9')return c - '0';
+if(c>='a'&&c<='f')return c - 'a' + 10;
+if(c>='A'&&c<='F')return c - 'A' + 10;
 return -1;
 }
 UidToId62(uid)
 {
-for(new p = 1;p <= g_iMax;p++)if(is_user_connected(p)&& get_user_userid(p)== uid)return p;
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&& get_user_userid(p)== uid)return p;
 return 0;
 }
 TabDo62(id,const act[],const a[],const b[],const c[])
@@ -32344,6 +32348,7 @@ TabDo62(id,const act[],const a[],const b[],const c[])
 new bool:tr =(g_iLang[id]!= 1);
 new name[32];get_user_name(id,name,charsmax(name));
 if(!g_bLoaded[id]){Res62(id,"err~Player data not ready");return;}
+if((equal(act,"bk",2)||equal(act,"bp",2))&&g_fwBank9>=0){new r9;Res62(id,"err~%s",tr?"Banka hizmeti kapali":"Bank service offline");ExecuteForward(g_fwBank9,r9,id,act,a,b,c);return;}
 if(equal(act,"claimach")){new result=vxe_ac_claim(id,str_to_num(a));if(result>0){PlayKey(id,"ACH_UNLOCK");Res62(id,"ok~claimach");Notify62(id,tr?"Basarim odulu alindi":"Achievement reward claimed");}else Res62(id,"err~%s",tr?"Odul alinamadi: kilitli, alinmis veya kayit hazir degil":"Reward locked, already claimed or storage unavailable");return;}
 if(equal(act,"marketlist")||equal(act,"marketbuy")||equal(act,"marketcancel")){new op=equal(act,"marketlist")?0:equal(act,"marketbuy")?1:2;new result=vxe_market_action(id,op,a,b);if(result>0){PlayKey(id,"SHOP_BUY");Res62(id,"ok~market");if(op!=1)Notify62(id,op==0?(tr?"Pazar ilanin yayinda":"Market listing created"):(tr?"Pazar ilanin kaldirildi":"Market listing cancelled"));}else Res62(id,"err~%s",tr?"Pazar islemi gecersiz: sahiplik, bakiye, oyuncu veya fiyat degisti":"Market request invalid: ownership, balance, player or price changed");return;}
 if(equal(act,"lang")){if(equal(a,"tr")||equal(a,"en")){SetLanguage(id,equal(a,"tr")?2:1);Res62(id,"ok~lang");}else Res62(id,"err~Invalid language");return;}
@@ -32354,14 +32359,14 @@ if(equal(act,"view")){if(a[0]&&strlen(a)<12)copy(g_szApp4[id],11,a);if(equal(a,"
 if(equal(act,"seen")){g_iUnread62[id]= 0;Res62(id,"ok~seen");return;}
 if(equal(act,"case"))
 {
-new t = clamp(str_to_num(a),0,3);
+new t=clamp(str_to_num(a),0,3);
 if(g_iVC[id]< CASE60_PRICE[t]){Res62(id,"err~%s",tr ? "Yetersiz VexCoin" : "Not enough VexCoin");return;}
 OpenCase60(id,t,false);
 return;
 }
 if(equal(act,"daily"))
 {
-new before = g_iDailyDay[id];
+new before=g_iDailyDay[id];
 ClaimDaily(id);
 if(g_iDailyDay[id]!= before)Res62(id,"ok~daily~%d",g_iDailyStreak[id]);
 else Res62(id,"err~%s",tr ? "Bugunku odul zaten alindi" : "Already claimed today");
@@ -32369,32 +32374,31 @@ return;
 }
 if(equal(act,"equip"))
 {
-new cat = a[0],i = str_to_num(b)- 1;
-if(i < 0 || i >= ItemCount60(cat)|| !ItemOwned60(id,cat,i)){Res62(id,"err~%s",tr ? "Bu esya sende yok" : "You don't own this");return;}
+new cat=a[0],i=str_to_num(b)- 1;
+if(i < 0||i>=ItemCount60(cat)|| !ItemOwned60(id,cat,i)){Res62(id,"err~%s",tr ? "Bu esya sende yok" : "You don't own this");return;}
 Equip62(id,cat,i,str_to_num(c)== 1);
 Res62(id,"ok~equip");
 return;
 }
 if(equal(act,"msg"))
 {
-new t = UidToId62(str_to_num(a));
-if(!t || t == id || is_user_bot(t)){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
+new t=UidToId62(str_to_num(a));
+if(!t||t==id||is_user_bot(t)){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
 if(Blocked62(t,id)){Res62(id,"err~%s",tr ? "Bu oyuncu seni engelledi" : "This player blocked you");return;}
 new txt[120];HexDec62(b,txt,charsmax(txt));trim(txt);
 if(!txt[0])return;
 MsgAdd62(t,id,name,txt,false);
 new tn[32];get_user_name(t,tn,charsmax(tn));
 MsgAdd62(id,t,tn,txt,true);
-new note[96];formatex(note,charsmax(note),(g_iLang[t]!= 1)? "%s: %s" : "%s: %s",name,txt);
+new note[96];formatex(note,charsmax(note),(g_iLang[t]!= 1)? "Mesaj - %s: %s" : "Message - %s: %s",name,txt);
 Notify62(t,note);
-client_print_color(t,id,(g_iLang[t]!= 1)? "^4[iPad]^3 %s^1 sana mesaj gonderdi: ^4%s" : "^4[iPad]^3 %s^1 messaged you: ^4%s",name,txt);
 Res62(id,"ok~msg");
 return;
 }
 if(equal(act,"fadd")|| equal(act,"facc")|| equal(act,"fdel")|| equal(act,"block")|| equal(act,"unblock"))
 {
-new t = UidToId62(str_to_num(a));
-if(!t || t == id || is_user_bot(t)|| !g_szSid62[t][0]){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
+new t=UidToId62(str_to_num(a));
+if(!t||t==id||is_user_bot(t)|| !g_szSid62[t][0]){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
 new tn[32];get_user_name(t,tn,charsmax(tn));
 if(equal(act,"fadd"))
 {
@@ -32433,38 +32437,37 @@ return;
 }
 if(equal(act,"trade"))
 {
-new t = UidToId62(str_to_num(a));
-if(!t || t == id || is_user_bot(t)){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
+new t=UidToId62(str_to_num(a));
+if(!t||t==id||is_user_bot(t)){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
 if(Blocked62(t,id)){Res62(id,"err~%s",tr ? "Bu oyuncu seni engelledi" : "This player blocked you");return;}
-new gc = b[0],gi = str_to_num(b[1])- 1;
-if(gi < 0 || gi >= ItemCount60(gc)|| !ItemOwned60(id,gc,gi)){Res62(id,"err~%s",tr ? "Bu esya sende yok" : "You don't own this");return;}
+new gc=b[0],gi=str_to_num(b[1])- 1;
+if(gi < 0||gi>=ItemCount60(gc)|| !ItemOwned60(id,gc,gi)){Res62(id,"err~%s",tr ? "Bu esya sende yok" : "You don't own this");return;}
 if(ItemOwned60(t,gc,gi)){Res62(id,"err~%s",tr ? "Bu esya onda zaten var" : "They already own it");return;}
-if(g_iOffN62 >= OFF62){for(new k = 1;k < OFF62;k++)OffCopy62(k - 1,k);g_iOffN62 = OFF62 - 1;}
-new k = g_iOffN62++;
+if(g_iOffN62>=OFF62){for(new k=1;k < OFF62;k++)OffCopy62(k - 1,k);g_iOffN62=OFF62 - 1;}
+new k=g_iOffN62++;
 g_iOffId62[k]= ++g_iOffSeq62;g_iOffFrom62[k]= id;g_iOffTo62[k]= t;
 copy(g_szOffGive62[k],7,b);copy(g_szOffWant62[k],7,c[0]? c : "-");
 new it[48];CodeName60(t,b,it,charsmax(it),g_iLang[t]!= 1);
-new msgx[96];formatex(msgx,charsmax(msgx),(g_iLang[t]!= 1)? "%s takas teklifi: %s" : "%s offers a trade: %s",name,it);
+new msgx[96];formatex(msgx,charsmax(msgx),(g_iLang[t]!= 1)? "%s takas teklifi: %s (tabletten kabul et)" : "%s offers a trade: %s (accept on the tablet)",name,it);
 Notify62(t,msgx);
-client_print_color(t,id,(g_iLang[t]!= 1)? "^4[iPad]^3 %s^1 sana takas teklif etti: ^4%s^1 - tabletten kabul et" : "^4[iPad]^3 %s^1 offers you ^4%s^1 - accept on your tablet",name,it);
 Res62(id,"ok~trade");
 return;
 }
 if(equal(act,"tacc")|| equal(act,"tdec"))
 {
-new oid = str_to_num(a),k = -1;
-for(new q = 0;q < g_iOffN62;q++)if(g_iOffId62[q]== oid && g_iOffTo62[q]== id){k = q;break;}
+new oid=str_to_num(a),k=-1;
+for(new q=0;q < g_iOffN62;q++)if(g_iOffId62[q]== oid&&g_iOffTo62[q]== id){k=q;break;}
 if(k < 0){Res62(id,"err~%s",tr ? "Teklif bulunamadi" : "Offer not found");return;}
-new f = g_iOffFrom62[k];
+new f=g_iOffFrom62[k];
 if(equal(act,"tacc"))
 {
 if(!is_user_connected(f)){OffDel62(k);Res62(id,"err~%s",tr ? "Teklif sahibi oyundan cikti" : "The other player left");return;}
-new gc = g_szOffGive62[k][0],gi = str_to_num(g_szOffGive62[k][1])- 1;
-new wc = g_szOffWant62[k][0],wi = str_to_num(g_szOffWant62[k][1])- 1;
+new gc=g_szOffGive62[k][0],gi=str_to_num(g_szOffGive62[k][1])- 1;
+new wc=g_szOffWant62[k][0],wi=str_to_num(g_szOffWant62[k][1])- 1;
 if(!ItemOwned60(f,gc,gi)|| ItemOwned60(id,gc,gi)){OffDel62(k);Res62(id,"err~%s",tr ? "Takas artik gecersiz" : "Trade no longer valid");return;}
-if(wc != '-' &&(wi < 0 || !ItemOwned60(id,wc,wi)|| ItemOwned60(f,wc,wi))){OffDel62(k);Res62(id,"err~%s",tr ? "Istenen esya sende yok" : "You don't own the wanted item");return;}
+if(wc!='-' &&(wi < 0||!ItemOwned60(id,wc,wi)|| ItemOwned60(f,wc,wi))){OffDel62(k);Res62(id,"err~%s",tr ? "Istenen esya sende yok" : "You don't own the wanted item");return;}
 ItemSetOwned60(f,gc,gi,false);ItemSetOwned60(id,gc,gi,true);
-if(wc != '-'){ItemSetOwned60(id,wc,wi,false);ItemSetOwned60(f,wc,wi,true);}
+if(wc!='-'){ItemSetOwned60(id,wc,wi,false);ItemSetOwned60(f,wc,wi,true);}
 g_iTrades60[f]++;g_iTrades60[id]++;GrantAch(f,18);GrantAch(id,18);
 SaveData(f);SaveData(id);
 new fn[32];get_user_name(f,fn,charsmax(fn));
@@ -32492,21 +32495,21 @@ copy(g_szOffGive62[d],7,g_szOffGive62[s]);copy(g_szOffWant62[d],7,g_szOffWant62[
 }
 OffDel62(k)
 {
-for(new q = k + 1;q < g_iOffN62;q++)OffCopy62(q - 1,q);
+for(new q=k + 1;q < g_iOffN62;q++)OffCopy62(q - 1,q);
 if(g_iOffN62 > 0)g_iOffN62--;
 }
 MsgAdd62(id,from,const fname[],const txt[],bool:out)
 {
 if(g_iMsgN62[id]>= MSG62)
 {
-for(new i = 1;i < MSG62;i++)
+for(new i=1;i < MSG62;i++)
 {
 g_iMsgFrom62[id][i - 1]= g_iMsgFrom62[id][i];g_iMsgTime62[id][i - 1]= g_iMsgTime62[id][i];g_bMsgOut62[id][i - 1]= g_bMsgOut62[id][i];
 copy(g_szMsgName62[id][i - 1],charsmax(g_szMsgName62[][]),g_szMsgName62[id][i]);copy(g_szMsgTxt62[id][i - 1],charsmax(g_szMsgTxt62[][]),g_szMsgTxt62[id][i]);
 }
 g_iMsgN62[id]= MSG62 - 1;
 }
-new k = g_iMsgN62[id]++;
+new k=g_iMsgN62[id]++;
 g_iMsgFrom62[id][k]= get_user_userid(from);g_iMsgTime62[id][k]= get_systime();g_bMsgOut62[id][k]= out;
 copy(g_szMsgName62[id][k],charsmax(g_szMsgName62[][]),fname);copy(g_szMsgTxt62[id][k],charsmax(g_szMsgTxt62[][]),txt);
 }
@@ -32533,7 +32536,7 @@ if(equal(op,"rr")){server_cmd("sv_restart 1");Res62(id,"ok~rr");log_amx("[tablet
 if(equal(op,"map"))
 {
 new m[32];copy(m,charsmax(m),a);
-for(new i = 0;m[i];i++)if(!isalnum(m[i])&& m[i]!= '_' && m[i]!= '-'){m[i]= 0;break;}
+for(new i=0;m[i];i++)if(!isalnum(m[i])&& m[i]!= '_'&&m[i]!= '-'){m[i]= 0;break;}
 if(!m[0]|| !is_map_valid(m)){Res62(id,"err~%s",tr ? "Harita yok" : "Unknown map");return;}
 log_amx("[tablet admin] %s map -> %s",an,m);
 client_print_color(0,print_team_default,"^4[VEXMIRA]^1 Admin ^3%s^1 haritayi degistiriyor: ^4%s",an,m);
@@ -32546,16 +32549,16 @@ new txt[120];HexDec62(a,txt,charsmax(txt));
 if(txt[0]){set_dhudmessage(255,60,60,-1.0,0.25,0,0.0,6.0,0.2,0.4);show_dhudmessage(0,"%s: %s",an,txt);client_print_color(0,print_team_red,"^4[ADMIN]^3 %s^1: %s",an,txt);}
 Res62(id,"ok~say");return;
 }
-new t = UidToId62(str_to_num(a));
+new t=UidToId62(str_to_num(a));
 if(!t){Res62(id,"err~%s",tr ? "Oyuncu bulunamadi" : "Player not found");return;}
-if(t != id &&(get_user_flags(t)& ADMIN_IMMUNITY)&& !IsFounder60(id)){Res62(id,"err~%s",tr ? "Dokunulmazligi var" : "Target has immunity");return;}
+if(t!=id &&(get_user_flags(t)& ADMIN_IMMUNITY)&& !IsFounder60(id)){Res62(id,"err~%s",tr ? "Dokunulmazligi var" : "Target has immunity");return;}
 new tn[32];get_user_name(t,tn,charsmax(tn));
-new uid = get_user_userid(t),v = str_to_num(b);
+new uid=get_user_userid(t),v=str_to_num(b);
 if(equal(op,"kick"))server_cmd("kick #%d ^"%s^"",uid,tr ? "Admin tarafindan atildin" : "Kicked by admin");
 else if(equal(op,"ban"))
 {
 if(!(get_user_flags(id)& ADMIN_BAN)){Res62(id,"err~ban");return;}
-v = clamp(v,0,43200);
+v=clamp(v,0,43200);
 server_cmd("banid %d #%d kick;writeid",v,uid);
 }
 else if(equal(op,"slay")){if(is_user_alive(t))user_kill(t,1);}
@@ -32576,7 +32579,7 @@ Notify62(t,msgx);
 }
 else if(equal(op,"freeze"))
 {
-new fl = get_entvar(t,var_flags);
+new fl=get_entvar(t,var_flags);
 set_entvar(t,var_flags,(fl & FL_FROZEN)?(fl & ~FL_FROZEN):(fl | FL_FROZEN));
 }
 else{Res62(id,"err~?");return;}
@@ -32592,10 +32595,10 @@ Tab62Leave(id)
 {
 Tab62SaveSocial(id);
 g_szTok62[id][0]= 0;
-for(new k = g_iOffN62 - 1;k >= 0;k--)if(g_iOffFrom62[k]== id || g_iOffTo62[k]== id)OffDel62(k);
-for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
+for(new k=g_iOffN62 - 1;k>=0;k--)if(g_iOffFrom62[k]== id||g_iOffTo62[k]== id)OffDel62(k);
+for(new p=1;p<=g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
-// PAD5: the relay listener lives in vex_tab8 and hands every command line to the core
+// PAD5: the relay listener lives in vex_tab01 and hands every command line to the core
 // admin reset for everyone: 0 playtime, 1 stats, 2 achievements, 3 daily reward. Players offline right now
 // are reset on their next join (their save is older than the reset time).
 Rs6(id,w){switch(w){case 0:g_iPlaySec[id]=0;case 1:{g_iKills[id]=0;g_iInfects[id]=0;g_iWins[id]=0;g_iBossK[id]=0;g_iHS[id]=0;g_iCases60[id]=0;g_iTrades60[id]=0;g_iLmKills60[id]=0;g_iKnifeKills60[id]=0;g_iCures60[id]=0;}case 2:g_iAch[id]=0;case 3:{g_iDailyDay[id]=0;g_iDailyStreak[id]=0;}}}
@@ -32616,15 +32619,15 @@ public cmd_TabSelf62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new a[8];read_argv(1,a,charsmax(a));
-new t = UidToId62(str_to_num(a));
-if(!t){for(new p = 1;p <= g_iMax;p++)if(is_user_connected(p)){t = p;break;}}
+new t=UidToId62(str_to_num(a));
+if(!t){for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)){t=p;break;}}
 if(!t){console_print(id,"[selftest] oyuncu yok");return PLUGIN_HANDLED;}
 if(!g_szTok62[t][0])RandStr62(g_szTok62[t],10);
 new act[24],aa[64],bb[64],cc[64];
 read_argv(2,act,charsmax(act));read_argv(3,aa,charsmax(aa));read_argv(4,bb,charsmax(bb));read_argv(5,cc,charsmax(cc));
-g_bTabQuiet62 = true;g_bSelf62 = true;
+g_bTabQuiet62=true;g_bSelf62=true;
 TabDo62(t,act,aa,bb,cc);
-g_bTabQuiet62 = false;g_bSelf62 = false;
+g_bTabQuiet62=false;g_bSelf62=false;
 static hh[H4LEN+8];new ap4[12];read_argv(6,ap4,11);new hn=Snap4(t,ap4[0]?ap4:"home",hh);console_print(id,"[selftest] #%d (%s) act=%s -> res=%s snapshot=%d chars",t,g_szTok62[t],act,g_szRes62[t],hn);new sf=fopen("addons/amxmodx/data/vx4_snapshot.txt","wt");if(sf){fputs(sf,hh);fclose(sf);}
 log_amx("[selftest] #%d act=%s res=%s vc=%d ap=%d",t,act,g_szRes62[t],g_iVC[t],g_iAP[t]);
 return PLUGIN_HANDLED;
@@ -32636,6 +32639,13 @@ public N_TabCredit622(plugin,params){new id=get_param(1),vc=get_param(2),ap=get_
 public N_TabPurchase622(plugin,params){new buyer=get_param(1),seller=get_param(2),cat=get_param(3),ix=get_param(4),price=get_param(5);if(buyer<1||buyer>32||seller<1||seller>32||buyer==seller||g_hVault==INVALID_HANDLE||!is_user_connected(buyer)||!is_user_connected(seller)||!g_bLoaded[buyer]||!g_bLoaded[seller]||price<1||price>100000000||g_iVC[buyer]<price||g_iVC[seller]>2000000000-price||ix<0||ix>=ItemCount60(cat)||!ItemOwned60(seller,cat,ix)||ItemOwned60(buyer,cat,ix)||Blocked62(seller,buyer)||Blocked62(buyer,seller))return 0;
 SaveData(buyer);SaveData(seller);if(!vxe_market_prepare(buyer,seller,cat,ix,price))return 0;ItemSetOwned60(seller,cat,ix,false);ItemSetOwned60(buyer,cat,ix,true);if(cat=='k'&&is_user_alive(seller)&&!g_bZombie[seller])set_task(0.1,"CommunityApplyKnife",seller+64000);g_iVC[buyer]-=price;g_iVC[seller]+=price;SaveData(seller);SaveData(buyer);vxe_market_finish(buyer,seller);new line[96],bn[32],sn[32];get_user_name(buyer,bn,31);get_user_name(seller,sn,31);formatex(line,95,g_iLang[seller]==2?"Pazar: %s esyani %d VC karsiliginda aldi":"Market: %s bought your item for %d VC",bn,price);Notify62(seller,line);formatex(line,95,g_iLang[buyer]==2?"Pazar: %s oyuncusundan %d VC ile esya aldin":"Market: item bought from %s for %d VC",sn,price);Notify62(buyer,line);log_to_file("vexmira_market.log","BUY uid=%d seller=%d code=%c%d price=%d",get_user_userid(buyer),get_user_userid(seller),cat,ix+1,price);return 1;}
 
+// v9 natives for vex_bank: wallet change (all or nothing), notification, action result, refresh, counters, free case
+public N_Wal9(plugin,params){new id=get_param(1),v=get_param(2),a=get_param(3);if(id<1||id>g_iMax||!is_user_connected(id)||is_user_bot(id)||!g_bLoaded[id]||g_hVault==INVALID_HANDLE||g_iVC[id]+v<0||g_iAP[id]+a<0||(v>0&&g_iVC[id]>2000000000-v)||(a>0&&g_iAP[id]>2000000000-a))return 0;if(!v&&!a)return 1;g_iVC[id]+=v;if(a){g_iAP[id]+=a;SyncMoney(id);}SaveData(id);return 1;}
+public N_Note9(plugin,params){new id=get_param(1),t[160];get_string(2,t,159);if(t[0])Notify62(id,t,get_param(3)!=0);return 1;}
+public N_Res9(plugin,params){new id=get_param(1);if(id<1||id>g_iMax)return 0;get_string(2,g_szRes62[id],charsmax(g_szRes62[]));return 1;}
+public N_Push9(plugin,params){TabPush4(get_param(1),false);return 1;}
+public N_Stat9(plugin,params){new id=get_param(1);if(id<1||id>g_iMax||!is_user_connected(id)||!g_bLoaded[id])return -1;switch(get_param(2)){case 0:return g_iKills[id];case 1:return g_iInfects[id];case 2:return g_iHS[id];case 3:return g_iWins[id];case 4:return g_iBossK[id];case 5:return g_iPlaySec[id];case 6:return g_iLevel[id];case 7:return g_iDailyDay[id]==VXDAY;case 8:return g_iLang[id]!=1;case 9:return g_bZombie[id];}return -1;}
+public N_Case9(plugin,params){new id=get_param(1),c=get_param(2);if(id<1||id>g_iMax||!is_user_connected(id)||!g_bLoaded[id]||c<0||c>3)return 0;OpenCase60(id,c,true);return 1;}
 public N_TabKey622(plugin,params){new id=get_param(1);if(id<1||id>32||!g_bLoaded[id])return 0;set_string(2,g_szKey[id],get_param(3));return 1;}
 
 public N_TabRecover622(plugin,params){new id=get_param(1),before=get_param(2),after=get_param(3),cat=get_param(4),ix=get_param(5),oldOwned=get_param(6),newOwned=get_param(7);if(id<1||id>32||!is_user_connected(id)||!g_bLoaded[id]||g_hVault==INVALID_HANDLE||before<0||after<0||after>2000000000||ix<0||ix>=ItemCount60(cat)||(oldOwned!=0&&oldOwned!=1)||(newOwned!=0&&newOwned!=1))return 0;new owned=ItemOwned60(id,cat,ix)?1:0;if(g_iVC[id]==after&&owned==newOwned)return 1;if(g_iVC[id]!=before||owned!=oldOwned)return 0;g_iVC[id]=after;ItemSetOwned60(id,cat,ix,newOwned!=0);SaveData(id);return 1;}
