@@ -38,7 +38,14 @@ function parseHash() {
   return o;
 }
 function dec(s) { try { return decodeURIComponent(s || ''); } catch (e) { return s || ''; } }
+var UA6=navigator.userAgent||'',CM6=/Chrome\/(\d+)/.exec(UA6);
+// the game's MOTD browser: Steam CS 1.6 = old Chromium (18), non-Steam clients = Internet Explorer
+var INGAME6=/Valve|Steam|MSIE|Trident|Xash/i.test(UA6)||!!(CM6&&+CM6[1]<=40);
+var LITE6=INGAME6;try{if(localStorage.getItem('vx4_lite')==='1')LITE6=true;}catch(e){}
+if(LITE6)document.documentElement.className+=' lite';
 var RAW = parseHash(), DEMO = !RAW || !RAW.n || !RAW.tk || RAW.tk.length < 8 || !(+RAW.uid > 0) || !RAW.rt; // only a server-made address opens the tablet
+var BLOCK6=!DEMO&&RAW.ig!=='0'&&!INGAME6; // a copied address opened in a normal browser
+if(BLOCK6)DEMO=true;
 if(DEMO){try{history.replaceState(null,'',location.pathname);}catch(e){}RAW={l:'tr',n:'',pg:'home'};}
 var D = {
   lang: (store('lang') || dec(RAW.l) || 'tr') === 'en' ? 'en' : 'tr', page: dec(RAW.pg) || 'home', name: dec(RAW.n) || 'Player', sid: dec(RAW.s),
@@ -738,7 +745,7 @@ function widgets() {
 function renderHome() {
   var badges = { daily: D.claimed ? 0 : 1, 'case': D.cr ? 1 : 0, notif: D.un | 0, trade: OF.filter(function (o) { return o[5] === 1; }).length, msg: MS.filter(function (m) { return !m[4]; }).length ? 0 : 0 };
   var h = '<div class="hello nohi"><h1></h1><div class="hact">' +
-    '<span class="ldot" id="linkDot"></span>' + (EDIT ? '<span class="pill on" data-ui="done">' + esc(L('done')) + '</span>' : '<span class="pill" data-ui="cc">' + svg('brush') + esc(L('custom')) + '</span>') + '</div></div>';
+    '<span class="ldot" id="linkDot"></span>' + (EDIT ? '<span class="pill on" data-ui="done">' + esc(L('done')) + '</span>' : '') + '</div></div>';
   h += '<div class="hbody' + (EDIT ? ' edit' : '') + '">' + widgets() + '<div class="grid">' + homeApps().map(function (a) { return icoHtml(a, badges); }).join('') + '</div></div>';
   h += '<div class="dock"><div class="dockin">' + DOCK.map(function (a) { return icoHtml(a, badges, true); }).join('') + '</div></div>';
   $('home').innerHTML = h; colors($('home')); HOME_SIG=JSON.stringify([D.lv,D.xp,D.xn,D.ap,D.vc,D.claimed,D.un,D.on,D.lang,D.round,D.map,D.rank,D.role,OF]);
@@ -793,7 +800,7 @@ function notifications() {
 }
 
 // ------------------------------------------------------------------ confetti
-function confetti(col) {
+function confetti(col) { if (typeof LITE6 !== "undefined" && LITE6) return;
   var cv = $('fx'), cx = cv.getContext('2d'), W = cv.width = Math.max(280,cv.clientWidth), H = cv.height = Math.max(170,cv.clientHeight), P = [], cols = [col, '#ffffff', '#ffd34a', '#e3243b', '#7cff3a'];
   for (var i = 0; i < 36; i++) P.push({ x: W / 2, y: H / 3, vx: (Math.random() - 0.5) * 12, vy: Math.random() * -10 - 2, s: 3 + Math.random() * 5, c: cols[i % cols.length], r: Math.random() * 6, life: 0 });
   var t0 = Date.now();
@@ -864,8 +871,11 @@ document.addEventListener('click', function (e) {
   if ((v = el.getAttribute('data-openc')) !== null) { if (REEL_RUN) return; act('case', num(v), '', '', D.lang === 'tr' ? '/kasa' : '/case'); SND.click(); return; }
   if (el.getAttribute('data-daily') !== null) { act('daily', '', '', '', D.lang === 'tr' ? '/günlük' : '/daily'); SND.click(); return; }
   if ((v = el.getAttribute('data-eq')) !== null) { var q = v.split('.'); act('equip', q[0], num(q[1]) + 1, q[2] === '1' ? 1 : 0, D.lang === 'tr' ? '/kozmetik' : '/cosmetic'); SND.click(); return; }
-  if ((v = el.getAttribute('data-tgive')) !== null) { tradeSel = (tradeSel === v ? null : v); $('appBody').innerHTML = R.trade(); SND.click(); return; }
-  if ((v = el.getAttribute('data-toffer')) !== null) { if (tradeSel) { act('trade', num(v), tradeSel, '-', '/takas'); tradeSel = null; } SND.click(); return; }
+  if ((v = el.getAttribute('data-tgive')) !== null) { tradeSel = (tradeSel === v ? null : v);
+    // only the highlight changes (a full redraw of the item grid froze the game's browser)
+    var all = document.querySelectorAll('[data-tgive]'); for (var gi = 0; gi < all.length; gi++) { var on = all[gi].getAttribute('data-tgive') === tradeSel; all[gi].className = all[gi].className.replace(/ on\b/g, '') + (on ? ' on' : ''); var ok = all[gi].querySelector('.mkok'); if (on && !ok) { ok = document.createElement('span'); ok.className = 'mkok'; ok.textContent = '\u2713'; all[gi].appendChild(ok); } else if (!on && ok) ok.parentNode.removeChild(ok); }
+    SND.click(); return; }
+  if ((v = el.getAttribute('data-toffer')) !== null) { if (!tradeSel) { toast(tr('Önce vereceğin eşyayı seç','Pick the item to give first'), false); return; } X4.trt = 'out'; act('trade', num(v), tradeSel, '-', '/takas'); tradeSel = null; SND.click(); return; }
   if ((v = el.getAttribute('data-tacc')) !== null) { act('tacc', num(v)); SND.click(); return; }
   if ((v = el.getAttribute('data-tdec')) !== null) { act('tdec', num(v)); SND.click(); return; }
   if ((v = el.getAttribute('data-admtab'))) { admTab = v; $('appBody').innerHTML = R.adm(); SND.click(); return; }
@@ -1000,7 +1010,7 @@ function listen(){
 }
 var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
 function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<15000)return;sendRaw('view',a);}
-function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 6.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
+function buildStatus624(){var b=$('build624');if(b){b.textContent='';return;}if(b)b.textContent='TAB 7.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 var HOME_SIG='', LIVE_SIG='';
@@ -1037,7 +1047,8 @@ function onResult(name, res) {
 }
 // ------------------------------------------------------------------ list helpers
 function plName(uid) { for (var i = 0; i < PL.length; i++) if (PL[i][0] === uid) return PL[i][1]; return '?'; }
-function others(noBots) { return PL.filter(function (p) { return !(p[4] & 32) && !(noBots && (p[4] & 64)); }); }
+// players without bots; the admin list (others(false)) includes you, trade / messages / friends do not
+function others(noBots) { return PL.filter(function (p) { return !(p[4] & 64) && !(noBots && (p[4] & 32)); }); }
 function ago(ts) { var s = Math.max(0, Math.floor(Date.now() / 1000) - ts), tr = D.lang === 'tr'; if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s / 60) + (tr ? 'dk' : 'm'); return Math.floor(s / 3600) + (tr ? 'sa' : 'h'); }
 function prow(p, right) {
   var tr = D.lang === 'tr', team = p[2] === 2 ? (tr ? 'Zombi' : 'Zombie') : p[2] === 1 ? (tr ? 'İnsan' : 'Human') : (tr ? 'İzleyici' : 'Spec');
@@ -1154,7 +1165,7 @@ function mkRarName(code){var n=(T[D.lang]&&T[D.lang].rar)||T.tr.rar;return n[mkR
 function mkOwned(){var o=[];MK_CATS.forEach(function(c){catList(c).forEach(function(x,i){if((D.iv[c]||0)&(1<<i))o.push(c+(i+1));});});return o;}
 function mkRender(top){var b=$('appBody');if(!b||cur!=='market')return;var st=b.scrollTop;b.innerHTML=R.market();colors(b);b.scrollTop=top?0:st;}
 R.market=function(){
-  var tr2=function(a,b){return D.lang==='tr'?a:b;},mine=MARKET.filter(function(m){return m[1]===LIVE.uid;}),shop=MARKET.filter(function(m){return m[1]!==LIVE.uid;});
+  var tr2=function(a,b){return D.lang==='tr'?a:b;},mine=MARKET.filter(function(m){return m[1]===LIVE.uid;}),shop=MARKET.slice();
   var h='<div class="mk"><div class="mkhero"><div class="mkhl"><span class="mkapp">'+svg('market')+'</span><div><h1>'+tr2('Pazar','Market')+'</h1><p>'+tr2('Oyuncular arası VexCoin pazarı','Player-to-player VexCoin market')+'</p></div></div><div class="mkbal"><small>'+tr2('Bakiyen','Balance')+'</small><b>'+fmt(D.vc)+' <i>VC</i></b></div></div>';
   h+='<div class="mkseg">'+[['shop',tr2('Vitrin','Browse'),shop.length],['sell',tr2('Satış yap','Sell'),0],['mine',tr2('İlanlarım','My listings'),mine.length]].map(function(t){return '<span class="'+(MK_TAB===t[0]?'on':'')+'" data-mktab="'+t[0]+'">'+esc(t[1])+(t[2]?' <em>'+t[2]+'</em>':'')+'</span>';}).join('')+'</div>';
   function chips(list){var cnt={all:list.length};list.forEach(function(code){var c=code.charAt(0);cnt[c]=(cnt[c]||0)+1;});return '<div class="mkchips">'+['all'].concat(MK_CATS).filter(function(c){return c==='all'||cnt[c];}).map(function(c){return '<span class="'+(MK_CAT===c?'on':'')+'" data-mkcat="'+c+'">'+(c==='all'?'':'<svg viewBox="0 0 24 24">'+MK_ICO[c]+'</svg>')+esc(c==='all'?tr2('Tümü','All'):MK_META[c][D.lang==='tr'?0:1])+' <em>'+cnt[c]+'</em></span>';}).join('')+'</div>';}
@@ -1162,15 +1173,15 @@ R.market=function(){
     var codes=shop.map(function(m){return m[3];});if(MK_CAT!=='all'&&codes.join(',').indexOf(MK_CAT)<0)MK_CAT='all';
     h+=chips(codes);
     var list=shop.filter(function(m){return MK_CAT==='all'||m[3].charAt(0)===MK_CAT;});
-    h+=list.length?'<div class="mkgrid">'+list.map(function(m){var poor=D.vc<m[4];return '<div class="mkc"><div class="mktop">'+mkIcon(m[3],52)+'<span class="mkr" style="color:'+MK_RAR[mkRar(m[3])][0]+'">'+esc(mkRarName(m[3]))+'</span></div><b class="mkn">'+esc(itemName(m[3]))+'</b><small class="mkm">'+esc(MK_META[m[3].charAt(0)]?MK_META[m[3].charAt(0)][D.lang==='tr'?0:1]:'')+'</small><div class="mks"><span class="mka" style="'+avaColor(m[1])+'">'+esc(initials(m[2]))+'</span>'+esc(m[2])+'</div><div class="mkf"><b>'+fmt(m[4])+' <i>VC</i></b><button class="mkbuy'+(poor?' dis':'')+'" '+(poor?'disabled':'data-marketbuy="'+m[0]+'"')+'>'+esc(poor?tr2('Yetersiz','Too pricey'):tr2('Satın al','Buy'))+'</button></div></div>';}).join('')+'</div>'
-      :'<div class="mkempty">'+mkIcon('k1',64)+'<b>'+tr2('Vitrin şu an boş','Nothing for sale yet')+'</b><p>'+tr2('Çevrimiçi oyuncular eşya koyduğunda burada görünür. İlk ilanı sen ver!','Items appear here when online players list them. Be the first!')+'</p><button class="mkbtn" data-mktab="sell">'+tr2('Satış yap','Sell an item')+'</button></div>';
+    h+=list.length?'<div class="mkgrid">'+list.map(function(m){var mine6=m[1]===LIVE.uid,poor=!mine6&&D.vc<m[4];return '<div class="mkc'+(mine6?' mine':'')+'"><div class="mktop">'+mkIcon(m[3],52)+'<span class="mkr" style="color:'+MK_RAR[mkRar(m[3])][0]+'">'+esc(mkRarName(m[3]))+'</span></div><b class="mkn">'+esc(itemName(m[3]))+'</b><small class="mkm">'+esc(MK_META[m[3].charAt(0)]?MK_META[m[3].charAt(0)][D.lang==='tr'?0:1]:'')+'</small><div class="mks"><span class="mka" style="'+avaColor(m[1])+'">'+esc(initials(m[2]))+'</span>'+esc(m[2])+'</div><div class="mkf"><b>'+fmt(m[4])+' <i>VC</i></b>'+(mine6?'<button class="mkbuy mine" data-marketcancel="'+m[0]+'">'+esc(tr2('Senin · Kaldır','Yours · Remove'))+'</button>':'<button class="mkbuy'+(poor?' dis':'')+'" '+(poor?'disabled':'data-marketbuy="'+m[0]+'"')+'>'+esc(poor?tr2('Yetersiz','Too pricey'):tr2('Satın al','Buy'))+'</button>')+'</div></div>';}).join('')+'</div>'
+      :'<div class="mkempty">'+mkIcon('k1',64)+'<b>'+tr2('Vitrin şu an boş','Nothing for sale yet')+'</b><p>'+tr2('Oyuncular eşya koyduğunda burada görünür. İlk ilanı sen ver!','Items appear here when players list them. Be the first!')+'</p><button class="mkbtn" data-mktab="sell">'+tr2('Satış yap','Sell an item')+'</button></div>';
   } else if(MK_TAB==='sell'){
     var own=mkOwned();if(MK_CAT!=='all'&&own.join(',').indexOf(MK_CAT)<0)MK_CAT='all';
     h+=chips(own);
     var ol=own.filter(function(code){return MK_CAT==='all'||code.charAt(0)===MK_CAT;});
     h+=ol.length?'<div class="mkpick">'+ol.map(function(code){return '<div class="mkp'+(MARKET_CODE===code?' on':'')+'" data-mkpick="'+code+'">'+mkIcon(code,44)+'<b>'+esc(itemName(code))+'</b><small style="color:'+MK_RAR[mkRar(code)][0]+'">'+esc(mkRarName(code))+'</small>'+(MARKET_CODE===code?'<span class="mkok">✓</span>':'')+'</div>';}).join('')+'</div>'
       :'<div class="mkempty">'+mkIcon('w1',64)+'<b>'+tr2('Satılabilir eşyan yok','No items to sell')+'</b><p>'+tr2('Kasa açarak ya da mağazadan eşya kazan.','Win items from cases or the shop.')+'</p><button class="mkbtn" data-app="case">'+tr2('Kasalara git','Open cases')+'</button></div>';
-    if(ol.length){var sel=MARKET_CODE;h+='<div class="mkprice"><div class="mkpl"><small>'+tr2('Seçilen eşya','Selected item')+'</small><b>'+esc(sel?itemName(sel):tr2('Yukarıdan bir eşya seç','Pick an item above'))+'</b></div><div class="mkstep"><span data-mkstep="-100">−</span><input id="marketPrice" type="number" min="1" max="100000000" value="'+MK_PRICE+'"><span data-mkstep="100">+</span><i>VC</i></div><div class="mkq">'+[100,250,500,1000,2500].map(function(q){return '<span class="'+(MK_PRICE===q?'on':'')+'" data-mkstep="='+q+'">'+fmt(q)+'</span>';}).join('')+'</div><button class="mkbtn big'+(sel?'':' dis')+'" '+(sel?'data-marketlist="1"':'disabled')+'>'+tr2('İlana koy','List for sale')+'</button><p class="mknote">'+tr2('İlanlar sen çevrimiçiyken görünür · en fazla 8 ilan · satış olunca bildirim gelir','Listings show while you are online · max 8 · you get a notification on sale')+'</p></div>';}
+    if(ol.length){var sel=MARKET_CODE;h+='<div class="mkprice"><div class="mkpl"><small>'+tr2('Seçilen eşya','Selected item')+'</small><b>'+esc(sel?itemName(sel):tr2('Yukarıdan bir eşya seç','Pick an item above'))+'</b></div><div class="mkstep"><span data-mkstep="-100">−</span><input id="marketPrice" type="number" min="1" max="100000000" value="'+MK_PRICE+'"><span data-mkstep="100">+</span><i>VC</i></div><div class="mkq">'+[100,250,500,1000,2500].map(function(q){return '<span class="'+(MK_PRICE===q?'on':'')+'" data-mkstep="='+q+'">'+fmt(q)+'</span>';}).join('')+'</div><button class="mkbtn big'+(sel?'':' dis')+'" '+(sel?'data-marketlist="1"':'disabled')+'>'+tr2('İlana koy','List for sale')+'</button><p class="mknote">'+tr2('Eşya pazarda bekler, sen çıksan da ilan durur · satılınca VexCoin hesabına geçer · en fazla 8 ilan','Listings show while you are online · max 8 · you get a notification on sale')+'</p></div>';}
   } else {
     h+=mine.length?'<div class="mklist">'+mine.map(function(m){return '<div class="mkrow">'+mkIcon(m[3],44)+'<div class="mkrd"><b>'+esc(itemName(m[3]))+'</b><small>'+fmt(m[4])+' VC · '+esc(mkRarName(m[3]))+'</small></div><button class="mkcancel" data-marketcancel="'+m[0]+'">'+tr2('Kaldır','Remove')+'</button></div>';}).join('')+'</div>'
       :'<div class="mkempty">'+mkIcon('p1',64)+'<b>'+tr2('Aktif ilanın yok','No active listings')+'</b><p>'+tr2('Satış yap sekmesinden bir eşya listele.','List an item from the Sell tab.')+'</p><button class="mkbtn" data-mktab="sell">'+tr2('Satış yap','Sell an item')+'</button></div>';
@@ -1179,8 +1190,8 @@ R.market=function(){
   if(sel2)h+='<div class="mksheet"><div class="mksh">'+mkIcon(sel2[3],64)+'<b>'+esc(itemName(sel2[3]))+'</b><small>'+esc(sel2[2])+' · '+esc(mkRarName(sel2[3]))+'</small><div class="mkshp"><span>'+tr2('Fiyat','Price')+'</span><b>'+fmt(sel2[4])+' VC</b></div><div class="mkshp"><span>'+tr2('Sonra kalan','Balance after')+'</span><b>'+fmt(D.vc-sel2[4])+' VC</b></div><button class="mkbtn big" data-marketconfirm="1">'+tr2('Satın al','Buy now')+'</button><button class="mkbtn big ghost" data-marketabort="1">'+tr2('Vazgeç','Cancel')+'</button></div></div>';
   return h+'</div>';
 };
-var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA PAD 6.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
-// ------------------------------------------------------------------ PAD 6.0: every app in the iPadOS style of the Market app
+var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA TAB 7.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+// ------------------------------------------------------------------ TAB 7.0: every app in the iPadOS style of the Market app
 // (large-title hero, segmented controls, inset grouped lists, card grids). Same data and the same actions as before.
 var X4={achf:'all',trt:'',zf:'all'};
 IC.coin='<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.6-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2.1 0 2.9 5.8 1.5 5.8 4.3 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.6-3-1.5M12 6v1.8M12 16.4v1.8"/>';
@@ -1302,7 +1313,7 @@ R['case']=function(){
   h+='<span class="x4b big'+(can?'':' dis')+'" data-openc="'+caseSel+'">'+esc(can?x4t('Aç','Open')+' · '+(c[D.lang]||c.en)+' · '+price+' VC':x4t('Yetersiz bakiye','Not enough VC')+' · '+price+' VC')+'</span>';
   var loot=(c.loot||[]).slice(),rn=L('rar');
   if(loot.length){for(var r=4;r>=0;r--){var g=loot.filter(function(l){return (l[1]|0)===r;});if(!g.length)continue;var sum=0;g.forEach(function(l){sum+=Number(l[2])||0;});g.sort(function(a,b){return a[2]-b[2];});
-    h+='<div class="x4s"><span style="color:'+RCOL[r]+'">●</span> '+esc(rn[r]||'')+' · %'+sum.toFixed(2)+'</div><div class="x4g"><div class="x4lt">'+g.map(function(l){return '<div class="x4lc"><span class="mkic" style="width:30px;height:30px;'+lg(135,RCOL[r],'#15121a')+'"><svg viewBox="0 0 24 24">'+(MK_ICO[String(l[0]).charAt(0)]||IC.gift)+'</svg></span><b>'+esc(itemName(l[0]))+'</b><em>%'+Number(l[2]).toFixed(2)+'</em></div>';}).join('')+'</div></div>';}}
+    var gs=X4.loot==='all'?g:g.slice(0,4);h+='<div class="x4s"><span style="color:'+RCOL[r]+'">●</span> '+esc(rn[r]||'')+' · %'+sum.toFixed(2)+(g.length>gs.length?' · '+g.length+x4t(' eşya',' items'):'')+'</div><div class="x4g"><div class="x4lt">'+gs.map(function(l){return '<div class="x4lc"><span class="mkic" style="width:30px;height:30px;'+lg(135,RCOL[r],'#15121a')+'"><svg viewBox="0 0 24 24">'+(MK_ICO[String(l[0]).charAt(0)]||IC.gift)+'</svg></span><b>'+esc(itemName(l[0]))+'</b><em>%'+Number(l[2]).toFixed(2)+'</em></div>';}).join('')+'</div></div>';}if(X4.loot!=='all')h+='<span class="x4b" data-x4="loot=all">'+esc(x4t('Kasa içeriğinin tamamını göster','Show all contents'))+'</span>';}
   else h+=x4empty('case','pink',x4t('Düşme oranları yükleniyor','Loading drop rates'),x4t('Sunucu cevap verdiğinde kasa içeriği görünür.','Contents appear when the server answers.'));
   h+='<div class="x4f">'+esc(L('vipDrop'))+'</div>';
   return x4wrap(h+x4cmd(x4t('/kasa','/case')));
@@ -1334,6 +1345,7 @@ R.zup=function(){
   var rows=D.zup,totFree=0,cards='',per=[x4t('Bekleme','Cooldown'),x4t('Menzil','Range'),x4t('Hasar','Damage')],pic=['time','target','blade'],pcol=['blue','teal','red'];
   for(var i=0;i<24;i++){var z=rows[i]||[D.zlv[i]||0,0,0,0,0,0];var free=Math.max(0,z[0]-z[2]-z[3]-z[4]);totFree+=free;
     if(X4.zf==='free'&&!free)continue;
+    if(!z[0]&&!z[1]&&!free){cards+='<div class="x4cc"><div class="x4zc z0"><div class="x4zh"><div class="x4ci"><span class="x4zl" style="'+avaColor(0)+'">'+esc((names[i]||'?').charAt(0))+'</span></div><div><b>'+esc(names[i]||('Class '+(i+1)))+'</b><small>'+esc(x4t('Seviye 0 · bu sınıfla enfekte et / öldür','Level 0 · infect / kill with this class'))+'</small></div></div></div></div>';continue;}
     var pct=z[5]?Math.round(z[1]*100/z[5]):100;
     cards+='<div class="x4cc"><div class="x4zc"><div class="x4zh"><div class="x4ci"><span class="x4zl" style="'+avaColor(z[0]*5)+'">'+esc((names[i]||'?').charAt(0))+'</span></div><div><b>'+esc(names[i]||('Class '+(i+1)))+'</b><small>'+esc(x4t('Seviye ','Level '))+z[0]+' · '+z[1]+'/'+(z[5]||'MAX')+'</small></div>'+(free?x4pill('+'+free,'g'):'')+'</div>'+x4bar(pct,'g')+
       per.map(function(n,k){return '<div class="x4zp"><div class="x4ci">'+x4ic(pic[k],pcol[k])+'</div><span class="x4zn">'+esc(n)+'</span><b>'+z[k+2]+'</b><span class="x4plus'+(free?'':' dis')+'"'+(free?' data-zperk="'+i+'.'+k+'"':'')+'>+</span></div>';}).join('')+'</div></div>';}
@@ -1359,7 +1371,7 @@ R.trade=function(){
     h+=own.length?'<div class="mkpick">'+own.map(function(code){return '<div class="mkp'+(tradeSel===code?' on':'')+'" data-tgive="'+code+'">'+mkIcon(code,44)+'<b>'+esc(itemName(code))+'</b><small style="color:'+MK_RAR[mkRar(code)][0]+'">'+esc(mkRarName(code))+'</small>'+(tradeSel===code?'<span class="mkok">✓</span>':'')+'</div>';}).join('')+'</div>':x4empty('inv','purple',x4t('Takas edilecek eşyan yok','No items to trade'),x4t('Kasa açarak eşya kazan.','Win items from cases.'),x4btn(x4t('Kasalara git','Open cases'),'data-app="case"'));
     if(own.length){var pl=others(true);
       h+='<div class="x4s">'+esc(x4t('2. Kime','2. To whom'))+(tradeSel?' · '+esc(itemName(tradeSel)):'')+'</div>';
-      h+=x4sec('',pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4team(p[2])),tradeSel?x4btn(x4t('Teklif et','Offer'),'data-toffer="'+p[0]+'"'):x4btn(x4t('Önce eşya seç','Pick an item'),'','dis'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Sunucuda başka oyuncu yok','No other players online')),'',''));}
+      h+=x4sec('',pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4team(p[2])),x4btn(x4t('Teklif et','Offer'),'data-toffer="'+p[0]+'"'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Sunucuda başka oyuncu yok','No other players online')),'',''));}
   }
   return x4wrap(h+x4cmd(x4t('/takas','/trade')));
 };
@@ -1390,8 +1402,8 @@ R.friends=function(){
 
 // ---- notifications
 function x4nkind(t){t=String(t).toLowerCase();if(/mesaj|message/.test(t))return ['msg','blue'];if(/pazar|market|sat/.test(t))return ['market','green'];if(/arkada|friend/.test(t))return ['friends','teal'];if(/takas|trade|teklif|offer/.test(t))return ['trade','teal'];if(/kasa|case/.test(t))return ['case','pink'];if(/ba[sş]ar|achiev/.test(t))return ['ach','yellow'];if(/admin|ban|kick/.test(t))return ['adm','red'];return ['bell','red'];}
-R.notif=function(){
-  if(LIVE.tk)act('seen','','','',null);
+var SEEN6=0;R.notif=function(){
+  if(LIVE.tk&&Date.now()-SEEN6>20000){SEEN6=Date.now();act('seen','','','',null);}
   var h=x4hero('notif',x4t('Bildirimler','Notifications'),NT.length?NT.length+x4t(' bildirim',' notifications'):x4t('Her şey yolunda','All caught up'),'');
   h+=NT.length?x4sec(x4t('Son bildirimler','Recent'),NT.slice().reverse().map(function(n){var k=x4nkind(n[0]);return x4row(x4ic(k[0],k[1]),esc(n[0]),'','<small class="x4vs">'+ago(n[1])+'</small>');}).join(''),esc(x4t('Tablet kapalıyken gelenler oyunda iPad kartı olarak da görünür (Ayarlar > Bildirimler).','When the tablet is closed they also pop up in game (Settings > Notifications).'))):x4empty('notif','pink',x4t('Bildirim yok','No notifications'),x4t('Mesaj, arkadaşlık isteği, takas ve pazar satışları burada görünür.','Messages, friend requests, trades and market sales show up here.'));
   return x4wrap(h);
@@ -1417,16 +1429,16 @@ R.set=function(){
     x4row(x4ic('send',LIVE.ready?'green':'orange'),esc(x4t('Komut kanalı','Command channel')),esc((LIVE.ready?x4t('Sunucu dinliyor','Server listening'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('gönderilen ','sent ')+LIVE.sent),'<span class="ldot '+(LIVE.ready?'g':'y')+'"></span>')+
     x4row(x4ic('msg',LIVE.sse?'green':'orange'),esc(x4t('Cevap kanalı','Reply channel')),esc((LIVE.sse?x4t('Bağlı','Connected'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('alınan ','received ')+LIVE.rx),'<span class="ldot '+(LIVE.sse?'g':'y')+'"></span>')+
     x4row(x4ic('bolt','blue'),esc(x4t('Bağlantıyı sına','Test connection')),esc(x4t('Sunucuya ping gönderir, cevap 1-3 sn içinde gelir.','Pings the server; the answer arrives in 1-3 s.')),x4btn(x4t('Sına','Test'),'data-linktest="1"')));
-  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'VEXMIRA PAD 6.0',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
+  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'VEXMIRA TAB 7.0',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
   return x4wrap(h+'</div>');
 };
 
 // ---- about
 R.about=function(){
   var mins=D.ts?Math.max(0,Math.round((Date.now()/1000-D.ts)/60)):-1;
-  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · PAD 6.0</p></div>';
+  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · TAB 7.0</p></div>';
   h+=x4sec(x4t('Bu cihaz','This device'),
-    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">PAD 6.0</span>')+
+    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">TAB 7.0</span>')+
     x4row('',esc(L('map')),'','<span class="x4vs">'+esc(D.map)+'</span>')+
     x4row('',esc(L('round')),'','<span class="x4vs">'+esc(D.round)+'</span>')+
     x4row('',esc(L('players')),'','<span class="x4vs">'+D.on+'/'+D.mx+'</span>')+
@@ -1584,7 +1596,7 @@ function x5case(t,hint){
   return s;
 }
 // leaderboards written by the server (playtime / achievements); the copy on the web host can be a few minutes old
-(function(){try{var sc=document.createElement('script');sc.src='g6.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
+(function(){try{var sc=document.createElement('script');sc.src='g7.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
   var r2=function(s){return rows(s,function(c){return {n:dec(c[0]),v:num(c[1])};});};
   var t=rows(g.t,function(c){return {n:dec(c[0]),lv:num(c[1]),k:num(c[2])};});if(t.length>(D.top||[]).length)D.top=t;
   if(g.tt)D.tt=r2(g.tt);if(g.at)D.at=r2(g.at);
@@ -1594,6 +1606,45 @@ function x5case(t,hint){
 document.addEventListener('mousemove',function(e){if(!drag)return;var dy=e.clientY-drag.last,dt=Math.max(1,Date.now()-drag.t);if(Math.abs(e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){clearTimeout(LP.t);drag.el.scrollTop-=dy;drag.v=-dy/dt;drag.last=e.clientY;drag.t=Date.now();e.preventDefault();}},false);
 document.addEventListener('mouseup',function(){if(!drag)return;var d=drag;drag=null;if(!d.moved)return;suppress=Date.now()+120;var epoch=++inertia,appEpoch=EPOCH,last=Date.now();function step(){if(appEpoch!==EPOCH||epoch!==inertia||Math.abs(d.v)<.03||!document.body.contains(d.el))return;var now=Date.now(),prev=d.el.scrollTop;d.el.scrollTop+=d.v*Math.min(32,now-last);last=now;d.v*=.88;if(d.el.scrollTop===prev)return;requestAnimationFrame(step);}requestAnimationFrame(step);},false);
 document.addEventListener('click',function(e){if(Date.now()<suppress){e.preventDefault();e.stopImmediatePropagation();}},true);})();
+// ---- PAD6.1 -----------------------------------------------------------------------------------
+// Replies: one streaming request (works in the game's old Chromium, where cross-site EventSource fails
+// silently - that is why lists stayed short and notifications empty in game but not in a browser).
+listen=function(){
+  if(DEMO||!LIVE.on||!LIVE.tk||!LIVE.rt)return;
+  var fails=0,since=Math.floor(Date.now()/1000)-20;
+  function line(l){if(!l)return;var d;try{d=JSON.parse(l);}catch(e){return;}if(d.event==='message'){if(d.id)LIVE.lastId=d.id;LIVE.rx++;takeReply(d.message||'');}else if(d.event==='open'){LIVE.sse=1;linkDot();}}
+  function open(){var x,pos=0,done=false;
+    try{x=new XMLHttpRequest();x.open('GET',replyUrl('json')+'?since='+(LIVE.lastId||since),true);
+      x.onreadystatechange=function(){if(x.readyState>=3){var t=String(x.responseText||''),i;while((i=t.indexOf('\n',pos))>=0){line(t.slice(pos,i));pos=i+1;}}
+        if(x.readyState===4&&!done){done=true;LIVE.sse=0;linkDot();fails=x.status===200?0:fails+1;setTimeout(open,fails?Math.min(20000,1500*fails):300);}};
+      x.send();setTimeout(function(){if(!done)try{x.abort();}catch(e){}},240000); // fresh request every 4 min (keeps memory low)
+    }catch(e){fails++;setTimeout(open,4000);}}
+  open();
+};
+// compact data from the server: zombie upgrades (zx) and daily rewards (dq)
+var h61=hashU;hashU=function(o){var u=h61(o);
+  if(o.zx!==undefined){var zp=String(o.zx).split(';'),s0=num(zp[0]),z=[],i;for(i=0;i<24;i++)z.push([0,0,0,0,0,s0]);for(i=1;i<zp.length;i++){var c=zp[i].split('~');if(c.length<7)continue;var k=num(c[0]);if(k>=0&&k<24)z[k]=[num(c[1]),num(c[2]),num(c[3]),num(c[4]),num(c[5]),num(c[6])];}u.zup=z;}
+  if(o.dq!==undefined){var q=String(o.dq).split('~'),b=num(q[0]),dp=num(q[1]),rw=[];for(var d=1;d<=7;d++){var ap=b+20*d,vc=3+2*d;if(dp>0){ap+=Math.floor(ap*dp/100);vc+=Math.max(1,Math.floor(vc*dp/100));}rw.push([ap,vc,50+25*d]);}u.daily=rw;}
+  return u;};
+// leaderboards: a short list never replaces the full one (full lists come when that board is opened)
+// and the full boards are remembered for 30 min, so the next opening shows everyone at once
+var BOARD6={top:'top',tt:'time',at:'achtop'},BF6={};
+(function(){try{var c=JSON.parse(localStorage.getItem('vx6_boards')||'null');if(c&&Date.now()-c.t<1800000){for(var k in BOARD6)if(c[k]&&(!D[k]||c[k].length>D[k].length))D[k]=c[k];BF6=c.f||{};}}catch(e){}})();
+var a61=applyU;applyU=function(u){
+  for(var k in BOARD6){if(!u[k])continue;if(u.pg===BOARD6[k]){BF6[k]=Date.now();continue;}if(D[k]&&u[k].length<D[k].length&&!u.reset6)delete u[k];}
+  if(u.pl)u.pl.forEach(function(p){if(p[4]&32&&p[1].indexOf(' (')<0)p[1]+=D.lang==='tr'?' (Sen)':' (You)';});
+  a61(u);
+  try{localStorage.setItem('vx6_boards',JSON.stringify({t:Date.now(),top:D.top,tt:D.tt,at:D.at,f:BF6}));}catch(e){}
+};
+// you are listed with the others, but you cannot send yourself an offer / message / friend request
+document.addEventListener('click',function(e){var el=findAttr(e.target,['data-toffer','data-chat','data-fadd','data-tgive']);if(!el)return;
+  var v=el.getAttribute('data-toffer')||el.getAttribute('data-chat')||el.getAttribute('data-fadd')||el.getAttribute('data-tgive');
+  if(v&&num(v)===LIVE.uid){e.preventDefault();e.stopImmediatePropagation();toast(tr('Bu sensin','That is you'),false);}},true);
+// control centre: pull down from the top edge (like an iPad); a tap on the status bar still works
+(function(){var y0=null;document.addEventListener('mousedown',function(e){var r=$('screen').getBoundingClientRect();y0=(e.clientY-r.top<46&&$('lock').className.indexOf('off')>=0)?e.clientY:null;},true);
+  document.addEventListener('mouseup',function(e){if(y0!==null&&e.clientY-y0>38){var o=$('cc');if(!o||o.className.indexOf('show')<0)openCC();}y0=null;},true);})();
+// which browser the game uses (server log), at most once per 10 min
+if(!DEMO){try{var ut=+localStorage.getItem('vx6_ua')||0;if(Date.now()-ut>600000){localStorage.setItem('vx6_ua',Date.now());setTimeout(function(){sendRaw('ua',UA6.replace(/[^\x20-\x7e]/g,'').slice(0,96));},2500);}}catch(e){}}
 // CS2-style case opening: the crate unlocks (latches + hiss), the reel spins fast, slows down with
 // clicking ticks, slides a little past the mark and settles back, then the item is revealed in its rarity colour.
 var CS6={
@@ -1612,17 +1663,17 @@ runReel=function(){
   setTimeout(function(){if(!alive())return;st.className='casestage open6';CS6.whoosh();},1050);
   setTimeout(function(){if(!alive())return;st.style.display='none';$('rbox').style.display='block';$('rbox').className='reelbox spin6';spin();},1550);
   function spin(){
-    var cs=caseData(),c=cs[D.cr.c]||cs[0],pool=(c.loot&&c.loot.length)?c.loot:[[D.cr.code,D.cr.r,1]],items=[],WIN=52;
-    for(var i=0;i<60;i++){var p=pool[Math.floor(Math.random()*pool.length)];items.push(i===WIN?[D.cr.code,D.cr.r]:[p[0],p[1]]);}
+    var cs=caseData(),c=cs[D.cr.c]||cs[0],pool=(c.loot&&c.loot.length)?c.loot:[[D.cr.code,D.cr.r,1]],items=[],WIN=LITE6?30:52;
+    for(var i=0;i<WIN+6;i++){var p=pool[Math.floor(Math.random()*pool.length)];items.push(i===WIN?[D.cr.code,D.cr.r]:[p[0],p[1]]);}
     var reel=$('reel');reel.innerHTML=items.map(function(x){return '<div class="it r6'+x[1]+'"><div class="ic"><div class="ib" style="'+lg(160,RCOL[x[1]],'#15121a')+'">'+svg(x[0].charAt(0)==='k'?'blade':'gift')+'</div><b>'+esc(itemName(x[0]))+'</b><small class="t'+x[1]+'">'+esc(L('rar')[x[1]])+'</small><div class="rb r'+x[1]+'"></div></div></div>';}).join('');
-    var box=reel.parentNode,W=128,half=box.clientWidth/2,stop=WIN*W+64-half+Math.floor(Math.random()*70)-35,over=Math.min(46,Math.max(18,W*0.28)),start=null,dur=6400,back=520,last=-1,lastT=0;
+    var box=reel.parentNode,W=128,half=box.clientWidth/2,stop=WIN*W+64-half+Math.floor(Math.random()*70)-35,over=Math.min(46,Math.max(18,W*0.28)),start=null,dur=LITE6?5200:6400,back=520,last=-1,lastT=0;
     function ease(t){return 1-Math.pow(1-t,3.2);}
     function put(x){reel.style.webkitTransform=reel.style.transform='translateX('+(-x)+'px)';var idx=Math.floor((x+half)/W);if(idx!==last){last=idx;var now=Date.now();if(now-lastT>28){lastT=now;CS6.tick(Math.min(1,(now-start)/dur));}}}
     function step(){
       if(!alive())return;var now=Date.now();if(!start)start=now;var t=Math.min(1,(now-start)/dur);
       put((stop+over)*ease(t));
-      if(t<1){requestAnimationFrame(step);return;}
-      var s0=now;(function settle(){if(!alive())return;var k=Math.min(1,(Date.now()-s0)/back),e=k*k*(3-2*k);put(stop+over-over*e);if(k<1)requestAnimationFrame(settle);else done(reel.children[WIN]);})();
+      if(t<1){if(LITE6)setTimeout(step,40);else requestAnimationFrame(step);return;}
+      var s0=now;(function settle(){if(!alive())return;var k=Math.min(1,(Date.now()-s0)/back),e=k*k*(3-2*k);put(stop+over-over*e);if(k<1){if(LITE6)setTimeout(settle,40);else requestAnimationFrame(settle);}else done(reel.children[WIN]);})();
     }
     requestAnimationFrame(step);
   }
@@ -1632,7 +1683,7 @@ runReel=function(){
     setTimeout(function(){if(!alive())return;
       var fl=document.createElement('div');fl.className='flash6';fl.style.background='-webkit-radial-gradient(50% 50%,circle,'+rgba(col,.75)+','+rgba(col,0)+' 70%)';$('screen').appendChild(fl);setTimeout(function(){if(fl.parentNode)fl.parentNode.removeChild(fl);},900);
       $('winBox').innerHTML='<div class="win win6 w6r'+r+'" style="background:'+rgba(col,0.16)+';border:1px solid '+col+';-webkit-box-shadow:0 0 34px '+rgba(col,.55)+';box-shadow:0 0 34px '+rgba(col,.55)+'"><div class="rays6"></div><div class="wic" style="'+lg(160,col,'#15121a')+'">'+svg(D.cr.code.charAt(0)==='k'?'blade':'gift')+'</div><div class="rr t'+r+'">'+esc(L('rar')[r])+'</div><h2>'+esc(L('got'))+': '+esc(itemName(D.cr.code))+'</h2></div>';
-      CS6.reveal(r);if(r>=2)confetti(col);banner(L('got'),itemName(D.cr.code),'gift',col);
+      CS6.reveal(r);if(r>=2&&!LITE6)confetti(col);banner(L('got'),itemName(D.cr.code),'gift',col);
     },380);
   }
 };
@@ -1649,7 +1700,7 @@ document.addEventListener('click',function(e){if(Date.now()<skip){e.preventDefau
 // ------------------------------------------------------------------ boot
 applyTheme(); applyAccent(); applyBright(); setWall(); $('screen').className = 'screen locked'; $('lockLogo').innerHTML = LOGO(); $('lockHint').textContent = L('unlock');
 $('lockNote').textContent = D.claimed ? '' : L('dailyReady');
-if(DEMO){$('lockNote').textContent=tr('Bu tablet sadece oyunun içinden açılır.','This tablet only opens inside the game.');$('lockHint').textContent=tr('Sunucuda /ipad yaz','Type /ipad on the server');$('home').innerHTML='';$('screen').className='screen locked guard';}
+if(DEMO){$('lockNote').textContent=BLOCK6?tr('Bu adres sadece oyunun içinde çalışır. Tarayıcıdan açılamaz.','This address only works inside the game, not in a web browser.'):tr('Bu tablet sadece oyunun içinden açılır.','This tablet only opens inside the game.');$('lockHint').textContent=tr('Sunucuda /ipad yaz','Type /ipad on the server');$('home').innerHTML='';$('screen').className='screen locked guard';}
 $('demo').style.display='none';
 takeHash(true);
 setTimeout(listen,150);

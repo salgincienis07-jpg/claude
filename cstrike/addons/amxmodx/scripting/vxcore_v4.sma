@@ -31211,7 +31211,7 @@ return 1;
 }
 TabletInit60()
 {
-g_pTabUrl60 = register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad6/vexmira_pad_v4.html");
+g_pTabUrl60 = register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vexmira_tab7/vexmira_pad_v4.html");
 g_pTabItem60 = register_cvar("vex_tablet_item","1");
 g_iUptime60 = get_systime();
 RegisterSay("ipad","tablet","cmd_Tablet60");
@@ -31734,7 +31734,7 @@ Pl5(id,h[],&n)
 {
 // players first (trade / messages / admin need them), humans before bots, short names
 new t[160],e[120],name[32],first=1;
-if(H4Key(h,n,"pl")){for(new pass=0;pass<2;pass++)for(new p=1;p<=g_iMax;p++){if(!is_user_connected(p)||(is_user_bot(p)?0:1)==pass)continue;get_user_name(p,name,31);Cut5(name,14);UrlEnc60(name,e,90);new fl=0;if(p==id)fl|=32;if(Friends62(id,p))fl|=1;if(Blocked62(id,p))fl|=2;if(IsAdmin60(p))fl|=4;if(g_iFReq62[id]&(1<<p))fl|=8;if(is_user_alive(p))fl|=16;if(is_user_bot(p))fl|=64;
+if(H4Key(h,n,"pl")){for(new pass=1;pass<2;pass++)for(new p=1;p<=g_iMax;p++){if(!is_user_connected(p)||is_user_bot(p)||is_user_hltv(p))continue;get_user_name(p,name,31);Cut5(name,14);UrlEnc60(name,e,90);new fl=0;if(p==id)fl|=32;if(Friends62(id,p))fl|=1;if(Blocked62(id,p))fl|=2;if(IsAdmin60(p))fl|=4;if(g_iFReq62[id]&(1<<p))fl|=8;if(is_user_alive(p))fl|=16;if(is_user_bot(p))fl|=64;
 formatex(t,159,"%d~%s~%d~%d~%d",get_user_userid(p),e,!is_user_alive(p)?0:(g_bZombie[p]?2:1),g_iLevel[p],fl);if(!H4Row(h,n,first,t)){pass=2;break;}}}
 }
 Boards5(const app[],h[],&n)
@@ -31767,20 +31767,20 @@ get_mapname(name,31);H4S(h,n,"mp",name);formatex(t,159,"%d%%2F%d",g_iRound,Round
 if(g_szPref4[id][0])H4S(h,n,"pf",g_szPref4[id]);H4I(h,n,"cm",vxe_ac_mask(id));formatex(t,159,"%d~%d",get_pcvar_num(g_pAchVC),get_pcvar_num(g_pAchAP));H4S(h,n,"ar",t);
 // PAD5: personal data every app needs rides along on every open -> the tablet never waits for a reply
 Pr5Fill(id);formatex(t,159,"%s:%d,%s:%d,%s:%d,%s:%d",g_szPr5[id][0],g_iPr5[id][0],g_szPr5[id][1],g_iPr5[id][1],g_szPr5[id][2],g_iPr5[id][2],g_szPr5[id][3],g_iPr5[id][3]);UrlEnc60(t,e,199);H4S(h,n,"pr",e);
-if(H4Key(h,n,"dl")){first=1;new dp=VipDailyPct(id);for(new day=1;day<=7;day++){new ap=get_pcvar_num(g_pDailyAP)+20*day,vc=3+2*day;if(dp>0){ap+=ap*dp/100;vc+=max(1,vc*dp/100);}formatex(t,159,"%d~%d~%d",ap,vc,50+25*day);H4Row(h,n,first,t);}}
+formatex(t,159,"%d~%d",get_pcvar_num(g_pDailyAP),VipDailyPct(id));H4S(h,n,"dq",t);H4I(h,n,"ig",get_cvar_num("vex_tab7_ingame_only"));
 H4I(h,n,"dn",g_iDailyDay[id]==today?min(7,max(1,g_iDailyStreak[id])):(g_iDailyDay[id]==today-1?min(7,g_iDailyStreak[id]+1):1));
-// zombie upgrades: one row per class, trailing zeros left out (a fresh class is an empty row)
-if(H4Key(h,n,"zu")){for(new cl=0;cl<24;cl++){new l=formatex(t,159,"%d~%d~%d~%d~%d~%d",vxe_zup_snapshot(id,cl,0),vxe_zup_snapshot(id,cl,1),vxe_zup_snapshot(id,cl,2),vxe_zup_snapshot(id,cl,3),vxe_zup_snapshot(id,cl,4),vxe_zup_snapshot(id,cl,5));
-while(l>=2&&t[l-1]=='0'&&t[l-2]=='~'){l-=2;t[l]=0;}if(l==1&&t[0]=='0')t[0]=0;if(cl&&n<H4LEN-1)h[n++]=';';h[n]=0;if(n+strlen(t)<H4LEN)n+=copy(h[n],H4LEN-n,t);}}
+// zombie upgrades: zx=<cost of level 1>;<class>~<lv>~<pts>~<a>~<b>~<c>~<next cost> only for classes with progress
+if(H4Key(h,n,"zx")){new s0;for(new cl=0;cl<24&&!s0;cl++)if(!vxe_zup_snapshot(id,cl,0))s0=vxe_zup_snapshot(id,cl,5);first=1;num_to_str(s0,t,15);H4Row(h,n,first,t);
+for(new cl=0;cl<24;cl++)if(vxe_zup_snapshot(id,cl,0)||vxe_zup_snapshot(id,cl,1)){formatex(t,159,"%d~%d~%d~%d~%d~%d~%d",cl,vxe_zup_snapshot(id,cl,0),vxe_zup_snapshot(id,cl,1),vxe_zup_snapshot(id,cl,2),vxe_zup_snapshot(id,cl,3),vxe_zup_snapshot(id,cl,4),vxe_zup_snapshot(id,cl,5));if(!H4Row(h,n,first,t))break;}}
 if(App4(app,"market")&&H4Key(h,n,"mk")){new mk[700];vxe_market_str(id,mk,699);if(n+strlen(mk)+2<H4LEN)n+=copy(h[n],H4LEN-n,mk);}
 if(App4(app,"msg"))
 {
 new from=g_iMsgN62[id]>6?g_iMsgN62[id]-6:0;
 if(H4Key(h,n,"ms")){first=1;for(new k=from;k<g_iMsgN62[id];k++){new en[60],et[260];UrlEnc60(g_szMsgName62[id][k],en,59);UrlEnc60(g_szMsgTxt62[id][k],et,259);formatex(e,399,"%d~%s~%s~%d~%d",g_iMsgFrom62[id][k],en,et,g_iMsgTime62[id][k],g_bMsgOut62[id][k]?1:0);H4Row(h,n,first,e);}}
 }
-if(App4(app,"notif")&&H4Key(h,n,"nt"))
+if(g_iNotN62[id]&&H4Key(h,n,"nt"))
 {
-first=1;new from=g_iNotN62[id]>8?g_iNotN62[id]-8:0;
+first=1;new lim=App4(app,"notif")?8:3,from=g_iNotN62[id]>lim?g_iNotN62[id]-lim:0;
 for(new k=g_iNotN62[id]-1;k>=from;k--){new et[190];UrlEnc60(g_szNot62[id][k],et,189);formatex(e,199,"%s~%d",et,g_iNotTime62[id][k]);if(!H4Row(h,n,first,e))break;}
 }
 if(App4(app,"friends")&&H4Key(h,n,"fr")&&g_hSocial62!=INVALID_HANDLE)
@@ -31813,7 +31813,7 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=60#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=70#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)
@@ -31835,9 +31835,9 @@ out[o]= 0;
 }
 public WriteItemsJs60()
 {
-if(!dir_exists("vexmira_pad6"))mkdir("vexmira_pad6");
-new fp = fopen("vexmira_pad6/vxitems_server.js","wt");
-if(!fp){log_amx("[Vexmira] vexmira_pad6/vxitems_server.js yazilamadi");return;}
+if(!dir_exists("vexmira_tab7"))mkdir("vexmira_tab7");
+new fp = fopen("vexmira_tab7/vxitems_server.js","wt");
+if(!fp){log_amx("[Vexmira] vexmira_tab7/vxitems_server.js yazilamadi");return;}
 BuildPools60();
 fprintf(fp,"// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
 static const CATS[]= "kcwpftz";
@@ -31881,7 +31881,7 @@ fprintf(fp,",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}",ja,jb,get_pcvar_num(g_pAchVC),g
 }
 fprintf(fp,"]};^n");
 fclose(fp);
-log_amx("[Vexmira] tablet: vexmira_pad6/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
+log_amx("[Vexmira] tablet: vexmira_tab7/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
 }
 public fw_KnifeDeploy60(knife)
 {
@@ -32164,8 +32164,8 @@ g_pRlOn62 = register_cvar("vex_tablet_relay","1");
 g_pRlHost62 = register_cvar("vex_tablet_relay_host","ntfy.sh");
 g_pRlPort62 = register_cvar("vex_tablet_relay_port","80");
 g_pRlTopic62 = register_cvar("vex_tablet_topic","");
-g_pWebBase62 = register_cvar("vex_pad6_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad6/");
-g_pWebPage62 = register_cvar("vex_pad6_page","vexmira_pad6.html");
+g_pWebBase62 = register_cvar("vex_tab7_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_tab7/");
+g_pWebPage62 = register_cvar("vex_tab7_page","vexmira_tab7.html");
 g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);g_fwReply4=CreateMultiForward("vxc_reply",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
@@ -32278,8 +32278,8 @@ public cmd_TabLink62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);
-console_print(id,"[PAD6] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_pad6)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
-for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&!is_user_bot(p)&&g_szTok62[p][0])console_print(id,"[PAD6] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
+console_print(id,"[TAB7] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_tab7)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&!is_user_bot(p)&&g_szTok62[p][0])console_print(id,"[TAB7] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
 return PLUGIN_HANDLED;
 }
 TabAction62(const msg[])
@@ -32592,7 +32592,7 @@ g_szTok62[id][0]= 0;
 for(new k = g_iOffN62 - 1;k >= 0;k--)if(g_iOffFrom62[k]== id || g_iOffTo62[k]== id)OffDel62(k);
 for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
-// PAD5: the relay listener lives in vexmira_pad6 and hands every command line to the core
+// PAD5: the relay listener lives in vexmira_tab7 and hands every command line to the core
 // admin reset for everyone: 0 playtime, 1 stats, 2 achievements, 3 daily reward. Players offline right now
 // are reset on their next join (their save is older than the reset time).
 Rs6(id,w){switch(w){case 0:g_iPlaySec[id]=0;case 1:{g_iKills[id]=0;g_iInfects[id]=0;g_iWins[id]=0;g_iBossK[id]=0;g_iHS[id]=0;g_iCases60[id]=0;g_iTrades60[id]=0;g_iLmKills60[id]=0;g_iKnifeKills60[id]=0;g_iCures60[id]=0;}case 2:g_iAch[id]=0;case 3:{g_iDailyDay[id]=0;g_iDailyStreak[id]=0;}}}
