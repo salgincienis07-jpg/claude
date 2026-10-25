@@ -60,7 +60,7 @@ D.iv = masks(dec(RAW.iv)); D.eq = masks(dec(RAW.eq));
 var dy = dec(RAW.dy).split('~'); D.streak = num(dy[0]); D.claimed = num(dy[1]) === 1; D.next = num(dy[2]);
 var zu = dec(RAW.zu).split('~'); D.zpts = num(zu[0]); D.zlv = (zu[1] || '').split(',').map(function (x) { return num(x); }); D.zc = num(RAW.zc, -1);
 var sv = dec(RAW.sv).split('~'); D.up = num(sv[0]); D.svp = num(sv[1]);
-var cr = RAW.cr ? dec(RAW.cr).split('~') : null; D.cr = cr ? { c: num(cr[0]), code: cr[1], r: num(cr[2]) } : null;
+var cr = RAW.cr ? dec(RAW.cr).split('~') : null; D.cr = cr ? { c: num(cr[0]), code: cr[1], r: num(cr[2]), live: 1 } : null; // a case the server just opened (menu): shown once
 
 // ------------------------------------------------------------------ texts
 var T = {
@@ -743,7 +743,7 @@ function widgets() {
   return '<div class="wcol">' + w + '</div>';
 }
 function renderHome() {
-  var badges = { daily: D.claimed ? 0 : 1, 'case': D.cr ? 1 : 0, notif: D.un | 0, trade: OF.filter(function (o) { return o[5] === 1; }).length, msg: MS.filter(function (m) { return !m[4]; }).length ? 0 : 0 };
+  var badges = { daily: D.claimed ? 0 : 1, 'case': 0, notif: D.un | 0, trade: OF.filter(function (o) { return o[5] === 1; }).length, msg: MS.filter(function (m) { return !m[4]; }).length ? 0 : 0 };
   var h = '<div class="hello nohi"><h1></h1><div class="hact">' +
     '<span class="ldot" id="linkDot"></span>' + (EDIT ? '<span class="pill on" data-ui="done">' + esc(L('done')) + '</span>' : '') + '</div></div>';
   h += '<div class="hbody' + (EDIT ? ' edit' : '') + '">' + widgets() + '<div class="grid">' + homeApps().map(function (a) { return icoHtml(a, badges); }).join('') + '</div></div>';
@@ -785,7 +785,7 @@ function openApp(a, noSound) {
   $('appBody').innerHTML = R[a](); $('appBody').scrollTop = 0; $('appBody').className = 'app-body' + (GAMES.indexOf(a) >= 0 || a === 'calc' || a === 'notes' ? ' full' : '');
   $('app').className = 'app open'; $('home').className = 'home hide'; setWall();
   if (!noSound) SND.open();
-  if (a === 'case') runReel();
+  // the reel only runs right after "Open" (re-opening the app used to replay the last case)
   wantData(a);
   if(STARTERS[a]){var epoch=EPOCH;setTimeout(function(){if(epoch!==EPOCH||cur!==a)return;try{STARTERS[a]();}catch(e){stopGame();toast(tr('Oyun başlatılamadı. Ana ekrana dönebilirsin.','Game could not start. You can return home.'),false);}},30);} colors($('appBody'));
 }
@@ -1010,7 +1010,7 @@ function listen(){
 }
 var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
 function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<15000)return;sendRaw('view',a);}
-function buildStatus624(){var b=$('build624');if(b){b.textContent='';return;}if(b)b.textContent='TAB 7.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
+function buildStatus624(){var b=$('build624');if(b){b.textContent='';return;}if(b)b.textContent='Vexmira 1.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 var HOME_SIG='', LIVE_SIG='';
@@ -1033,7 +1033,7 @@ function onResult(name, res) {
   var p = res.split('~'), ok = p[0] === 'ok', tr = D.lang === 'tr';
   if (!ok) { toast(p.slice(1).join(' ') || (tr ? 'Hata' : 'Error'), false); return; }
   if (name === 'case' && p[1] === 'case') {
-    D.cr = { c: num(p[2]), code: p[3], r: num(p[4]) }; caseSel = D.cr.c;
+    D.cr = { c: num(p[2]), code: p[3], r: num(p[4]), live: 1 }; caseSel = D.cr.c;
     if (cur === 'case') { $('appBody').innerHTML = R['case'](); REEL_RUN = true; runReel(); setTimeout(function () { REEL_RUN = false; }, 8000); }
     return;
   }
@@ -1190,8 +1190,8 @@ R.market=function(){
   if(sel2)h+='<div class="mksheet"><div class="mksh">'+mkIcon(sel2[3],64)+'<b>'+esc(itemName(sel2[3]))+'</b><small>'+esc(sel2[2])+' · '+esc(mkRarName(sel2[3]))+'</small><div class="mkshp"><span>'+tr2('Fiyat','Price')+'</span><b>'+fmt(sel2[4])+' VC</b></div><div class="mkshp"><span>'+tr2('Sonra kalan','Balance after')+'</span><b>'+fmt(D.vc-sel2[4])+' VC</b></div><button class="mkbtn big" data-marketconfirm="1">'+tr2('Satın al','Buy now')+'</button><button class="mkbtn big ghost" data-marketabort="1">'+tr2('Vazgeç','Cancel')+'</button></div></div>';
   return h+'</div>';
 };
-var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA TAB 7.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
-// ------------------------------------------------------------------ TAB 7.0: every app in the iPadOS style of the Market app
+var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA Vexmira 1.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+// ------------------------------------------------------------------ Vexmira 1.0: every app in the iPadOS style of the Market app
 // (large-title hero, segmented controls, inset grouped lists, card grids). Same data and the same actions as before.
 var X4={achf:'all',trt:'',zf:'all'};
 IC.coin='<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.6-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2.1 0 2.9 5.8 1.5 5.8 4.3 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.6-3-1.5M12 6v1.8M12 16.4v1.8"/>';
@@ -1306,7 +1306,7 @@ R.inv=function(){
 R['case']=function(){
   var cs=caseData(),c=cs[caseSel]||cs[0],price=c.vc|0,can=D.vc>=price;
   var h=x4hero('case',x4t('Kasalar','Cases'),x4t('Kasa aç, nadir eşyalar kazan','Open cases, win rare items'),x4bal(x4t('Bakiyen','Balance'),fmt(D.vc),'VC'));
-  if(D.cr)h+='<div class="x4g x4stage"><div id="cstage" class="casestage shake"><div class="rays">'+RAYS+'</div><div class="big">'+crate(D.cr.c)+'</div></div><div class="reelbox" id="rbox" style="display:none"><div class="needle"></div><div id="reel" class="reel"></div></div><div id="winBox"></div></div>';
+  if(D.cr&&D.cr.live)h+='<div class="x4g x4stage"><div id="cstage" class="casestage shake"><div class="rays">'+RAYS+'</div><div class="big">'+crate(D.cr.c)+'</div></div><div class="reelbox" id="rbox" style="display:none"><div class="needle"></div><div id="reel" class="reel"></div></div><div id="winBox"></div></div>';
   h+='<div class="x4s">'+esc(x4t('Kasa seç','Pick a case'))+'</div><div class="x4g x4pad"><div class="cases">';
   cs.forEach(function(k,i){var t=TIERS[i]||TIERS[0];h+='<div class="case'+(i===caseSel?' sel':'')+'" data-case="'+i+'"><div class="ci"><span class="tier" style="background:'+t.tagc+'">'+t.tag+'</span><div class="cbx"><div class="glow" style="background:-webkit-radial-gradient(50% 50%,circle closest-side,'+t.glow+',rgba(0,0,0,0))"></div>'+crate(i)+'</div><b>'+esc(k[D.lang]||k.en)+'</b><small>'+(k.vc|0)+' VC</small></div></div>';});
   h+='</div></div>';
@@ -1395,8 +1395,9 @@ R.friends=function(){
   if(reqs.length)h+=x4sec(x4t('Arkadaşlık istekleri','Friend requests'),reqs.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4t('seni eklemek istiyor','wants to add you')),x4btn(x4t('Kabul et','Accept'),'data-facc="'+p[0]+'"','g'));}).join(''));
   var fl=FR.slice().sort(function(a,b){return (b[1]?1:0)-(a[1]?1:0);});
   h+=fl.length?x4sec(x4t('Arkadaşların','Your friends'),fl.map(function(f){return x4row(x4ava(f[0],30,f[1]?'':'x4of',!!f[1]),esc(f[0]),f[1]?'<span class="x4gr">● '+esc(x4t('Çevrimiçi','Online'))+'</span>':esc(x4t('Çevrimdışı','Offline')),f[1]?x4btn(x4t('Mesaj','Message'),'data-chat="'+f[1]+'"','gh'):'');}).join('')):x4empty('friends','green',x4t('Henüz arkadaşın yok','No friends yet'),x4t('Aşağıdan çevrimiçi oyuncuları ekleyebilirsin.','Add online players below.'));
-  var pl=others(true).filter(function(p){return !(p[4]&1)&&!(p[4]&8);});
-  h+=x4sec(x4t('Oyuncu ekle','Add players'),pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4team(p[2])),(p[4]&2)?x4btn(x4t('Engeli kaldır','Unblock'),'data-unblock="'+p[0]+'"','gh'):x4btn('+ '+x4t('Ekle','Add'),'data-fadd="'+p[0]+'"')+x4btn(x4t('Engelle','Block'),'data-block="'+p[0]+'"','red'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Eklenecek oyuncu yok','No players to add')),'',''));
+  var fnames={};FR.forEach(function(f){fnames[f[0]]=1;});
+  var pl=others(true).filter(function(p){return !(p[4]&1)&&!(p[4]&8)&&!fnames[p[1]];});
+  h+=x4sec(x4t('Oyuncu ekle','Add players'),pl.length?pl.map(function(p){return x4row(x4ava(p[1],p[3]),esc(p[1]),'Lv '+p[3]+' · '+esc(x4team(p[2])),(p[4]&128)?x4pill(x4t('İstek gönderildi','Request sent'),'b'):(p[4]&2)?x4btn(x4t('Engeli kaldır','Unblock'),'data-unblock="'+p[0]+'"','gh'):x4btn('+ '+x4t('Ekle','Add'),'data-fadd="'+p[0]+'"')+x4btn(x4t('Engelle','Block'),'data-block="'+p[0]+'"','red'));}).join(''):x4row(x4ic('users','gray'),esc(x4t('Eklenecek oyuncu yok','No players to add')),'',''));
   return x4wrap(h);
 };
 
@@ -1424,26 +1425,20 @@ R.set=function(){
   h+=x4sec(L('lang'),x4row(x4ic('globe','blue'),esc(x4t('Tablet ve oyun dili','Tablet and game language')),'','<div class="seg"><span data-set="tr" class="'+(D.lang==='tr'?'on':'')+'">Türkçe</span><span data-set="en" class="'+(D.lang==='en'?'on':'')+'">English</span></div>'));
   var w='<div class="wps">';L('wpNames').forEach(function(n,i){w+='<div class="wpt'+(i===WP?' on':'')+'" data-wp="'+i+'"><div class="w wp'+i+'">'+(i===7?emblem():'')+'<small>'+esc(n)+'</small></div></div>';});w+='</div>';
   h+=x4sec(L('wall'),'<div class="x4pad">'+w+'</div>');
-  h+=x4sec(x4t('Canlı bağlantı','Live connection'),
-    x4row(x4ic('dl',ok?'green':'red'),esc(x4t('Oyun verisi','Game data')),esc(ok?x4t('Sunucudan geldi','Received from the server'):x4t('Yok – tableti oyunda /ipad ile aç','Missing – open the tablet in game with /ipad')),'<span class="ldot '+(ok?'g':'r')+'"></span>')+
-    x4row(x4ic('send',LIVE.ready?'green':'orange'),esc(x4t('Komut kanalı','Command channel')),esc((LIVE.ready?x4t('Sunucu dinliyor','Server listening'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('gönderilen ','sent ')+LIVE.sent),'<span class="ldot '+(LIVE.ready?'g':'y')+'"></span>')+
-    x4row(x4ic('msg',LIVE.sse?'green':'orange'),esc(x4t('Cevap kanalı','Reply channel')),esc((LIVE.sse?x4t('Bağlı','Connected'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('alınan ','received ')+LIVE.rx),'<span class="ldot '+(LIVE.sse?'g':'y')+'"></span>')+
-    x4row(x4ic('bolt','blue'),esc(x4t('Bağlantıyı sına','Test connection')),esc(x4t('Sunucuya ping gönderir, cevap 1-3 sn içinde gelir.','Pings the server; the answer arrives in 1-3 s.')),x4btn(x4t('Sına','Test'),'data-linktest="1"')));
-  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'VEXMIRA TAB 7.0',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
+  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'Vexmira 1.0',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
   return x4wrap(h+'</div>');
 };
 
 // ---- about
 R.about=function(){
   var mins=D.ts?Math.max(0,Math.round((Date.now()/1000-D.ts)/60)):-1;
-  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · TAB 7.0</p></div>';
+  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · Vexmira 1.0</p></div>';
   h+=x4sec(x4t('Bu cihaz','This device'),
-    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">TAB 7.0</span>')+
+    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">Vexmira 1.0</span>')+
     x4row('',esc(L('map')),'','<span class="x4vs">'+esc(D.map)+'</span>')+
     x4row('',esc(L('round')),'','<span class="x4vs">'+esc(D.round)+'</span>')+
     x4row('',esc(L('players')),'','<span class="x4vs">'+D.on+'/'+D.mx+'</span>')+
-    (mins>=0?x4row('',esc(x4t('Veri güncellendi','Data updated')),'','<span class="x4vs">'+esc(F('updated',mins))+'</span>'):'')+
-    x4row('',esc(x4t('Bağlantı','Link')),'','<span class="x4vs">'+esc(LIVE.sse?x4t('Canlı','Live'):x4t('Bekleniyor','Waiting'))+'</span>'));
+    (mins>=0?x4row('',esc(x4t('Veri güncellendi','Data updated')),'','<span class="x4vs">'+esc(F('updated',mins))+'</span>'):''));
   h+=x4sec(x4t('Yapımcı','Credits'),x4row(x4ic('brush','pink'),esc(L('credit')),'','<b style="color:var(--acc)">smurfsexy</b>'));
   return x4wrap(h);
 };
@@ -1570,8 +1565,9 @@ act=function(name,a,b,c,hint){
   }else if(name==='msg'){
     var txt=x5unhex(b);if(!txt)return 0;MS.push([num(a),plName(num(a)),txt,Math.floor(Date.now()/1000),1]);SND.click();
   }else if(name==='fadd'||name==='facc'||name==='fdel'||name==='block'||name==='unblock'){
+    if(name==='fadd'){var pp=PL.filter(function(p){return p[0]===num(a);})[0];if(pp&&(pp[4]&129)){toast(pp[4]&1?(tr?'Zaten arkadaşsınız':'Already friends'):(tr?'İstek zaten gönderildi':'Request already sent'),false);return 0;}}
     var M={fadd:tr?'Arkadaşlık isteği gönderildi':'Friend request sent',facc:tr?'Arkadaş eklendi':'Friend added',fdel:tr?'Arkadaş silindi':'Friend removed',block:tr?'Engellendi':'Blocked',unblock:tr?'Engel kalktı':'Unblocked'};
-    PL.forEach(function(p){if(p[0]!==num(a))return;if(name==='fadd'||name==='facc')p[4]=(p[4]|1)&~8;if(name==='fdel')p[4]&=~1;if(name==='block')p[4]=(p[4]|2)&~1;if(name==='unblock')p[4]&=~2;});
+    PL.forEach(function(p){if(p[0]!==num(a))return;if(name==='fadd'&&!(p[4]&8))p[4]|=128;if(name==='facc'||(name==='fadd'&&(p[4]&8)))p[4]=(p[4]|1)&~8&~128;if(name==='fdel')p[4]&=~1;if(name==='block')p[4]=(p[4]|2)&~1;if(name==='unblock')p[4]&=~2;});
     if(name==='facc'||name==='fadd'){var nm=plName(num(a)),has=false;FR.forEach(function(f){if(f[0]===nm)has=true;});if(!has&&name==='facc')FR.push([nm,num(a)]);}
     SND.click();x5ok(M[name]);
   }
@@ -1591,12 +1587,12 @@ function x5case(t,hint){
   var cat=p.code.charAt(0),ix=num(p.code.slice(1));
   if(MK_CATS.indexOf(cat)>=0&&ix>0){var had=(D.iv[cat]|0)&(1<<(ix-1));if(had){var it=catList(cat)[ix-1];D.vc+=Math.max(10,Math.floor(((it&&it.vc)|0)/2));}else D.iv[cat]=(D.iv[cat]|0)|(1<<(ix-1));}
   else if(cat==='$')D.vc+=num(p.code.slice(1));else if(cat==='a')D.ap+=num(p.code.slice(1));
-  D.cr={c:t,code:p.code,r:p.r};caseSel=t;
+  D.cr={c:t,code:p.code,r:p.r,live:1};caseSel=t;
   if(cur==='case'){$('appBody').innerHTML=R['case']();colors($('appBody'));REEL_RUN=true;runReel();setTimeout(function(){REEL_RUN=false;LIVE_SIG='';},10500);}
   return s;
 }
 // leaderboards written by the server (playtime / achievements); the copy on the web host can be a few minutes old
-(function(){try{var sc=document.createElement('script');sc.src='g7.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
+(function(){try{var sc=document.createElement('script');sc.src='g8.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
   var r2=function(s){return rows(s,function(c){return {n:dec(c[0]),v:num(c[1])};});};
   var t=rows(g.t,function(c){return {n:dec(c[0]),lv:num(c[1]),k:num(c[2])};});if(t.length>(D.top||[]).length)D.top=t;
   if(g.tt)D.tt=r2(g.tt);if(g.at)D.at=r2(g.at);
@@ -1613,10 +1609,10 @@ listen=function(){
   if(DEMO||!LIVE.on||!LIVE.tk||!LIVE.rt)return;
   var fails=0,since=Math.floor(Date.now()/1000)-20;
   function line(l){if(!l)return;var d;try{d=JSON.parse(l);}catch(e){return;}if(d.event==='message'){if(d.id)LIVE.lastId=d.id;LIVE.rx++;takeReply(d.message||'');}else if(d.event==='open'){LIVE.sse=1;linkDot();}}
-  function open(){var x,pos=0,done=false;
+  function open(){var x,pos=0,done=false,t0=Date.now();
     try{x=new XMLHttpRequest();x.open('GET',replyUrl('json')+'?since='+(LIVE.lastId||since),true);
       x.onreadystatechange=function(){if(x.readyState>=3){var t=String(x.responseText||''),i;while((i=t.indexOf('\n',pos))>=0){line(t.slice(pos,i));pos=i+1;}}
-        if(x.readyState===4&&!done){done=true;LIVE.sse=0;linkDot();fails=x.status===200?0:fails+1;setTimeout(open,fails?Math.min(20000,1500*fails):300);}};
+        if(x.readyState===4&&!done){done=true;LIVE.sse=0;linkDot();fails=(x.status===200&&Date.now()-t0>20000)?0:fails+1;setTimeout(open,fails?Math.min(30000,2000*fails):300);}}; // a stream that ends quickly backs off (no request storm)
       x.send();setTimeout(function(){if(!done)try{x.abort();}catch(e){}},240000); // fresh request every 4 min (keeps memory low)
     }catch(e){fails++;setTimeout(open,4000);}}
   open();
@@ -1689,6 +1685,11 @@ runReel=function(){
 };
 // light theme: the status bar is dark text only over an open app (the home wallpaper is always dark)
 (function(){var oa=openApp,gh=goHome;openApp=function(a,n){oa(a,n);$('status').className='status onapp';};goHome=function(){gh();$('status').className='status';};})();
+// Mouse wheel: one notch moves ~150 px (the game's browser moved only a few lines per notch)
+(function(){function wheel(e){var el=e.target;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight+4&&(el.id==='appBody'||String(el.className).indexOf('hbody')===0||el.className==='bubbles'||el.className==='ccp')){break;}el=el.parentNode;}
+  if(!el||el===document.body)return;var d=e.deltaY!==undefined&&e.deltaY!==0?(e.deltaMode===1?e.deltaY*40:e.deltaY):-(e.wheelDelta||-e.detail*40||0);if(!d)return;
+  var step=(d>0?1:-1)*Math.max(150,Math.min(600,Math.abs(d)*1.6));el.scrollTop+=step;e.preventDefault&&e.preventDefault();e.returnValue=false;return false;}
+  if(document.addEventListener){document.addEventListener('wheel',wheel,false);document.addEventListener('mousewheel',function(e){if(!('onwheel' in document))return wheel(e);},false);}})();
 // One tap: the lock opens on press, an app opens on release (matched by app name, so a home refresh
 // between press and release can no longer swallow the tap); the browser's own click is then ignored.
 (function(){var T=null,skip=0;
@@ -1708,6 +1709,6 @@ renderHome(); clock(); setInterval(clock, 10000);
 $('home').className = 'home hide';
 if (GAMES.indexOf(D.page)>=0)D.page='home';
 if (RAW.nl && (!D.page || D.page === 'home')) { $('lock').className = 'lock off'; $('screen').className = 'screen'; $('home').className = 'home'; }
-else if (D.page && D.page !== 'home') { $('lock').className = 'lock off'; $('screen').className = 'screen'; $('home').className = 'home'; openApp(D.page, true); }
+else if (D.page && D.page !== 'home') { $('lock').className = 'lock off'; $('screen').className = 'screen'; $('home').className = 'home'; openApp(D.page, true); if (D.page === 'case' && D.cr && D.cr.live) runReel(); }
 else { setTimeout(function () { SND.drone(); }, 400); }
 })();

@@ -17,11 +17,11 @@
  */
 #include <amxmodx>
 #include <reapi>
-#include <fakemeta>
 
 #pragma semicolon 1
 
 native vxc_hud(id, field);
+native vxc_ipad_card(id);
 
 #define PL_VER "4.2"
 #define TASK_FAST 7400500
@@ -33,7 +33,7 @@ native vxc_hud(id, field);
 #define SET_NO_DMGNUM (1<<1)
 
 enum { F_MODE = 0, F_EVENT, F_ROUND, F_TOTAL, F_BOSS, F_BOSSPCT, F_BOSSTYPE, F_ZOMBIE, F_SPECIAL, F_ENDED,
-	F_VC, F_AP, F_LANG, F_SET, F_LEVEL, F_UNREAD, F_PREF, F_TABLET, F_THEME, F_GAUGE };
+	F_VC, F_AP, F_LANG, F_SET, F_LEVEL, F_UNREAD, F_PREF, F_TABLET, F_THEME, F_GAUGE, F_JOB };
 
 new g_pOn, g_pHide, g_pAscii, g_pDmg, g_pFast, g_pGap;
 new g_iMax, bool:g_bCore, g_iFrame, bool:g_bAscii;
@@ -46,66 +46,12 @@ new const C_HUM[3] = { 92, 200, 255 };
 new const C_ZOM[3] = { 255, 74, 74 };
 new const C_GOLD[3] = { 255, 206, 92 };
 
-#define NOTE_SPR "sprites/vexmira/ios_note.spr"
-new g_sprNote, Float:g_fIconT[33];
-
 public plugin_precache()
 {
 	if (file_exists(NOTE_FILE, true)) precache_sound(NOTE_SND);
-	if (file_exists(NOTE_SPR, true)) g_sprNote = precache_model(NOTE_SPR);
 }
 
-// iOS notification icon at the top left of the player's view (tablet closed): pops in, stays 3 s,
-// fades out. A sprite entity just in front of the eyes that only its owner can see.
-new g_iNoteEnt[33], g_iNoteOwner[2048];
-StartIcon(id)
-{
-	if (!g_sprNote) return;
-	new e = g_iNoteEnt[id];
-	if (!e || !is_entity(e))
-	{
-		e = rg_create_entity("info_target");
-		if (!e) return;
-		engfunc(EngFunc_SetModel, e, NOTE_SPR);
-		set_entvar(e, var_classname, "vx_ios_note");
-		set_entvar(e, var_movetype, MOVETYPE_NOCLIP);
-		set_entvar(e, var_solid, SOLID_NOT);
-		set_entvar(e, var_rendermode, kRenderTransAdd);
-		set_entvar(e, var_owner, id);
-		g_iNoteEnt[id] = e;
-		if (e < sizeof g_iNoteOwner) g_iNoteOwner[e] = id;
-	}
-	g_fIconT[id] = get_gametime();
-	if (!task_exists(id + 7700)) set_task(0.03, "task_Icon", id + 7700, _, _, "b");
-}
-public task_Icon(tid)
-{
-	new id = tid - 7700, e = g_iNoteEnt[id];
-	new Float:t = get_gametime() - g_fIconT[id];
-	if (!is_user_connected(id) || !e || !is_entity(e) || t > 3.2 || !is_user_alive(id))
-	{
-		if (e && is_entity(e)) set_entvar(e, var_effects, EF_NODRAW);
-		remove_task(tid); return;
-	}
-	new Float:o[3], Float:vo[3], Float:ang[3], Float:f[3], Float:r[3], Float:u[3], Float:p[3];
-	get_entvar(id, var_origin, o); get_entvar(id, var_view_ofs, vo); get_entvar(id, var_v_angle, ang);
-	angle_vector(ang, ANGLEVECTOR_FORWARD, f); angle_vector(ang, ANGLEVECTOR_RIGHT, r); angle_vector(ang, ANGLEVECTOR_UP, u);
-	for (new k = 0; k < 3; k++) p[k] = o[k] + vo[k] + f[k] * 10.0 - r[k] * 8.5 + u[k] * 6.0;   // 10 units: closer than any wall
-	engfunc(EngFunc_SetOrigin, e, p);
-	// pop: grows a little past full size, settles; then fades out at the end
-	new Float:sc = (t < 0.18 ? 0.04 + t * 0.45 : (t < 0.3 ? 0.121 - (t - 0.18) * 0.18 : 0.1)) * 0.25;
-	new Float:amt = t > 2.7 ? (3.2 - t) * 440.0 : 220.0;
-	set_entvar(e, var_scale, sc);
-	set_entvar(e, var_renderamt, floatclamp(amt, 0.0, 220.0));
-	set_entvar(e, var_effects, 0);
-}
-// only the owner sees his icon
-public fw_AddToFullPack_post(es, e, ent, host, flags, player, pset)
-{
-	if (player || ent <= 0 || ent >= sizeof g_iNoteOwner || !g_iNoteOwner[ent] || g_iNoteOwner[ent] == host) return FMRES_IGNORED;
-	set_es(es, ES_Effects, get_es(es, ES_Effects) | EF_NODRAW);
-	return FMRES_IGNORED;
-}
+
 
 public plugin_natives() set_native_filter("native_filter");
 
@@ -117,7 +63,6 @@ public native_filter(const name[], index, trap)
 
 public plugin_init()
 {
-	register_forward(FM_AddToFullPack, "fw_AddToFullPack_post", 1);
 	register_plugin("VEXMIRA HUD v4", PL_VER, "smurfsexy");
 	register_dictionary("vexmira_zombie.txt");
 	g_pOn = register_cvar("vx_hud4", "1");                 // 0 = core draws its old HUD again
@@ -322,12 +267,15 @@ public task_Fast()
 		Thousands(get_member(id, m_iAccount), money, charsmax(money));
 		Thousands(vxc_hud(id, F_VC), vc, charsmax(vc));
 		Thousands(vxc_hud(id, F_AP), ap, charsmax(ap));
+		// level + job (the core's top-right player panel is off while this HUD runs)
+		if (zombie) n += formatex(c[n], charsmax(c) - n, "Lv.%d^n", vxc_hud(id, F_LEVEL));
+		else { new jk[12]; formatex(jk, charsmax(jk), "JOB_%d", vxc_hud(id, F_JOB)); n += formatex(c[n], charsmax(c) - n, "Lv.%d   %L^n", vxc_hud(id, F_LEVEL), id, jk); }
 		n += formatex(c[n], charsmax(c) - n, "$ %s^nVexCoin %s^nAmmoPack %s", money, vc, ap);
 		new un = vxc_hud(id, F_UNREAD);
 		if (un > 0) formatex(c[n], charsmax(c) - n, "^niPad %s %d", dot, un);
 		new bool:low = !list && clip >= 0 && maxclip > 0 && clip * 4 <= maxclip;
 		if (vxc_hud(id, F_GAUGE)) continue;     // jetpack fuel gauge uses channel 2 while flying
-		set_hudmessage(low ? 255 : C_GOLD[0], low ? 140 : C_GOLD[1], low ? 70 : C_GOLD[2], -0.012, list ? 0.785 : 0.86, 0, 0.0, 0.45, 0.0, 0.0, 2); // far right: a negative x right-aligns the block on every resolution
+		set_hudmessage(low ? 255 : C_GOLD[0], low ? 140 : C_GOLD[1], low ? 70 : C_GOLD[2], -0.012, list ? 0.755 : 0.83, 0, 0.0, 0.45, 0.0, 0.0, 2); // far right: a negative x right-aligns the block on every resolution
 		show_hudmessage(id, "%s", c);
 	}
 }
@@ -345,7 +293,6 @@ public task_Slow()
 	}
 	new hw = get_member_game(m_iNumCTWins), zw = get_member_game(m_iNumTerroristWins);
 	new bosspct = vxc_hud(0, F_BOSSPCT), total, left = RoundLeft(total), bool:hurry = left <= 30 && !vxc_hud(0, F_ENDED);
-	new Float:now = get_gametime();
 	static a[160], b[200], dot[8];
 	Dot(dot, charsmax(dot));
 	for (new id = 1; id <= g_iMax; id++)
@@ -356,12 +303,6 @@ public task_Slow()
 		// bottom centre: round time, digits only (red in the last 30 s)
 		set_dhudmessage(hurry ? 255 : 245, hurry ? 70 : 245, hurry ? 60 : 250, -1.0, 0.94, 0, 0.0, 1.06, 0.0, 0.0);
 		show_dhudmessage(id, "%d:%02d", left / 60, left % 60);
-		// iPad banner stays alive by being re-sent every second
-		if (now < g_fNoteUntil[id] && g_szNote[id][0])
-		{
-			set_dhudmessage(245, 245, 250, 0.225, 0.07, 0, 0.0, 1.06, 0.0, 0.0);
-			show_dhudmessage(id, "iPad   %s^n%s", en ? "now" : "simdi", g_szNote[id]);
-		}
 		// centre: ROUND x / y, mode, event (boss: boss name)
 		{
 			static mk[24], ek[24], mn[48], evn[48];
@@ -465,9 +406,7 @@ public vxc_notify(id, const text[])
 		new Float:now = get_gametime();
 		g_fNoteUntil[id] = now + 5.0;
 		copy(g_szNote[id], charsmax(g_szNote[]), text);
-		set_dhudmessage(245, 245, 250, 0.225, 0.07, 0, 0.0, 1.06, 0.0, 0.0);
-		show_dhudmessage(id, "iPad   %s^n%s", En(id) ? "now" : "simdi", text);
-		StartIcon(id);
+		vxc_ipad_card(id);   // only the iOS bell card, drawn like the CSO cards (does not move with the view)
 	}
 	if (pref & 1)
 	{
@@ -496,9 +435,7 @@ public cmd_TestDmg()
 
 public client_disconnected(id)
 {
-	remove_task(id + 7700);
-	new ne = g_iNoteEnt[id]; g_iNoteEnt[id] = 0;
-	if (ne && is_entity(ne)) { if (ne < sizeof g_iNoteOwner) g_iNoteOwner[ne] = 0; set_entvar(ne, var_flags, FL_KILLME); }
+
 	g_fNoteUntil[id] = 0.0; g_bFastSet[id] = false; g_szNote[id][0] = 0;
 	g_iCombo[id] = 0; g_iHits[id] = 0; g_bDirty[id] = false; g_iComboVictim[id] = 0;
 }

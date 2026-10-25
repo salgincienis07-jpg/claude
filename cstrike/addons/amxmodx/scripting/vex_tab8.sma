@@ -1,4 +1,4 @@
-/* VEXMIRA TAB7 - tablet server (relay listener, limited replies, leaderboard file)
+/* VEX TAB8 - tablet server (relay listener, limited replies, leaderboard file)
    Tablet & mod: smurfsexy
 
    Why a separate plugin:
@@ -11,12 +11,12 @@
 
    Needs: vxcore_v4 (natives vxc_tab_action / vxc_tab_link / vxc_board), sockets module.
    Cvars (core): vex_tablet_relay, vex_tablet_relay_host, vex_tablet_relay_port, vex_tablet_topic.
-   Cvars (here): vex_tab7_reply_day, vex_tab7_reply_gap, vex_tab7_board.
-   Commands: vex_tab7 (status). */
+   Cvars (here): vex_tab8_reply_day, vex_tab8_reply_gap, vex_tab8_board.
+   Commands: vex_tab8 (status). */
 #include <amxmodx>
 #include <sockets>
 
-#define PLUGIN "VEXMIRA TAB7"
+#define PLUGIN "VEXMIRA TAB8"
 #define VERSION "6.0"
 
 native vxc_tab_action(const msg[]);
@@ -45,11 +45,11 @@ new g_pDay,g_pGap,g_pBoard,g_pOn,g_pHost,g_pPort;
 public plugin_init()
 {
 register_plugin(PLUGIN,VERSION,"smurfsexy");
-g_pDay=register_cvar("vex_tab7_reply_day","220");   // max answers per day from this server (ntfy.sh limit is ~250)
-g_pGap=register_cvar("vex_tab7_reply_gap","2.0");   // min seconds between two answers to the same player (later data is merged)
-g_pBoard=register_cvar("vex_tab7_board","1");
-register_cvar("vex_tab7_ingame_only","1");       // 1 = tablet page refuses to run in a normal web browser (only the game's MOTD browser)       // 1 = write vexmira_tab7/g7.js (leaderboards) every 2 min
-register_concmd("vex_tab7","cmd_Status",ADMIN_RCON,"- TAB7 tablet status");
+g_pDay=register_cvar("vex_tab8_reply_day","220");   // max answers per day from this server (ntfy.sh limit is ~250)
+g_pGap=register_cvar("vex_tab8_reply_gap","2.0");   // min seconds between two answers to the same player (later data is merged)
+g_pBoard=register_cvar("vex_tab8_board","1");
+register_cvar("vex_tab8_ingame_only","1");       // 1 = tablet page refuses to run in a normal web browser (only the game's MOTD browser)       // 1 = write vex_tab8/g8.js (leaderboards) every 2 min
+register_concmd("vex_tab8","cmd_Status",ADMIN_RCON,"- TAB8 tablet status");
 set_task(0.05,"task_Net",551000,_,_,"b");
 set_task(5.0,"task_Board",551001);
 set_task(120.0,"task_Board",551002,_,_,"b");
@@ -91,7 +91,7 @@ case L_IDLE:
 if(now<g_lNext)return;
 new host[64];Host(host,63);
 g_lSock=socket_open(host,Port(),SOCKET_TCP,g_lErr,SOCK_NON_BLOCKING);
-if(g_lSock<=0){g_lSock=0;g_lFails++;g_lNext=now+floatmin(60.0,3.0*float(g_lFails));if(g_lFails<=3)log_amx("[TAB7] relay baglanamadi (%s hata %d), tekrar denenecek",host,g_lErr);return;}
+if(g_lSock<=0){g_lSock=0;g_lFails++;g_lNext=now+floatmin(60.0,3.0*float(g_lFails));if(g_lFails<=3)log_amx("[TAB8] relay baglanamadi (%s hata %d), tekrar denenecek",host,g_lErr);return;}
 g_lState=L_CONN;g_lLast=now;
 }
 case L_CONN:
@@ -99,10 +99,10 @@ case L_CONN:
 if(socket_is_writable(g_lSock,0))
 {
 new host[64],req[256];Host(host,63);
-formatex(req,charsmax(req),"GET /%s/json HTTP/1.0^r^nHost: %s^r^nUser-Agent: vexmira-tab7/7.0^r^nAccept: application/x-ndjson^r^nConnection: close^r^n^r^n",g_szTopic,host);
+formatex(req,charsmax(req),"GET /%s/json HTTP/1.0^r^nHost: %s^r^nUser-Agent: vex-tab8/8.0^r^nAccept: application/x-ndjson^r^nConnection: close^r^n^r^n",g_szTopic,host);
 if(socket_send2(g_lSock,req,strlen(req))!=strlen(req)){LDrop(now);return;}
 g_lState=L_STREAM;g_lLast=now;g_lLen=0;
-if(g_lFails)log_amx("[TAB7] relay baglandi (%s)",host);
+if(g_lFails)log_amx("[TAB8] relay baglandi (%s)",host);
 g_lFails=0;
 }
 else if(now-g_lLast>10.0)LDrop(now);
@@ -149,8 +149,8 @@ g_lLen=rest;g_lBuf[rest]=0;
 }
 LLine(const line[])
 {
-if(equal(line,"HTTP/",5)){if(str_to_num(line[9])!=200){log_amx("[TAB7] relay HTTP %c%c%c - komut kanali hazir degil",line[9],line[10],line[11]);LDrop(get_gametime());}return;}
-if(containi(line,"^"event^":^"open^"")!=-1){g_lReady=true;vxc_tab_link(1,g_szTopic,charsmax(g_szTopic));log_amx("[TAB7] komut kanali hazir (%s)",g_szTopic);return;}
+if(equal(line,"HTTP/",5)){if(str_to_num(line[9])!=200){log_amx("[TAB8] relay HTTP %c%c%c - komut kanali hazir degil",line[9],line[10],line[11]);LDrop(get_gametime());}return;}
+if(containi(line,"^"event^":^"open^"")!=-1){g_lReady=true;vxc_tab_link(1,g_szTopic,charsmax(g_szTopic));log_amx("[TAB8] komut kanali hazir (%s)",g_szTopic);return;}
 if(containi(line,"^"event^":^"message^"")==-1)return;
 new p=containi(line,"^"message^":^"");
 if(p==-1)return;
@@ -207,7 +207,7 @@ new seq=str_to_num(body[q+1]);if(seq<=g_iSeq6[id]){g_lBad++;return;} // an old (
 g_iSeq6[id]=seq;
 new f[6][100],n=0,o=0;for(new i=0;body[i]&&n<6;i++){if(body[i]=='~'){f[n][o]=0;n++;o=0;continue;}if(o<99)f[n][o++]=body[i];}if(n<6)f[n][o]=0;
 if(equal(f[2],"adm")&&equal(f[3],"reset")){AdminReset(id,str_to_num(f[4]));return;}
-if(equal(f[2],"ua")){new nm[32];get_user_name(id,nm,31);log_amx("[TAB7] %s tablet tarayicisi: %s",nm,f[3]);return;} // which browser the game uses (for vex_tab7_ingame_only)
+if(equal(f[2],"ua")){new nm[32];get_user_name(id,nm,31);log_amx("[TAB8] %s tablet tarayicisi: %s",nm,f[3]);return;} // which browser the game uses (for vex_tab8_ingame_only)
 new out[512];formatex(out,charsmax(out),"vx1~%s%s",tk,body[q]);
 vxc_tab_action(out);
 }
@@ -226,7 +226,7 @@ case 5:{server_cmd("vex_reset_top");server_cmd("vex_reset_time");server_cmd("vex
 }
 static const W[][]={"oynama suresi","istatistikler","basarimlar","gunluk oduller","Top 15","tum siralamalar"};
 client_print(0,print_chat,"[VEXMIRA] Kurucu %s herkesin %s verisini sifirladi.",an,W[what]);
-log_amx("[TAB7] %s reset %d (%s)",an,what,W[what]);
+log_amx("[TAB8] %s reset %d (%s)",an,what,W[what]);
 }
 
 // ---------------------------------------------------------------- replies
@@ -286,7 +286,7 @@ case 2:
 if(socket_is_readable(g_sSock[k],0))
 {
 new head[64];socket_recv(g_sSock[k],head,63);
-if(contain(head," 429")!=-1){g_r429++;g_rPauseUntil=now+600.0;log_amx("[TAB7] ntfy gunluk/ani limit (429) - cevaplar 10 dk duraklatildi; tablet verisi yine acilista gelir");}
+if(contain(head," 429")!=-1){g_r429++;g_rPauseUntil=now+600.0;log_amx("[TAB8] ntfy gunluk/ani limit (429) - cevaplar 10 dk duraklatildi; tablet verisi yine acilista gelir");}
 socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_sT[k]=now;
 }
 else if(now-g_sT[k]>3.0){socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_sT[k]=now;}
@@ -295,16 +295,16 @@ else if(now-g_sT[k]>3.0){socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_s
 }
 // daily budget, counted on Turkey's calendar day like ntfy's rolling day (saved across map changes)
 DayRoll(){new d=(get_systime()+10800)/86400;if(d!=g_dayNo){g_dayNo=d;g_dayCount=0;}}
-DayLoad(){new f=fopen("addons/amxmodx/data/vexmira_tab7_day.txt","rt");if(f){new l[32],a[12],b[12];fgets(f,l,31);fclose(f);parse(l,a,11,b,11);g_dayNo=str_to_num(a);g_dayCount=str_to_num(b);}DayRoll();}
-DaySave(){new f=fopen("addons/amxmodx/data/vexmira_tab7_day.txt","wt");if(f){fprintf(f,"%d %d^n",g_dayNo,g_dayCount);fclose(f);}}
+DayLoad(){new f=fopen("addons/amxmodx/data/vex_tab8_day.txt","rt");if(f){new l[32],a[12],b[12];fgets(f,l,31);fclose(f);parse(l,a,11,b,11);g_dayNo=str_to_num(a);g_dayCount=str_to_num(b);}DayRoll();}
+DaySave(){new f=fopen("addons/amxmodx/data/vex_tab8_day.txt","wt");if(f){fprintf(f,"%d %d^n",g_dayNo,g_dayCount);fclose(f);}}
 
 // ---------------------------------------------------------------- leaderboards file (FastDL copy may lag)
 public task_Board()
 {
 DaySave();
 if(!get_pcvar_num(g_pBoard))return;
-if(!dir_exists("vexmira_tab7"))mkdir("vexmira_tab7");
-new f=fopen("vexmira_tab7/g7.js","wt");
+if(!dir_exists("vex_tab8"))mkdir("vex_tab8");
+new f=fopen("vex_tab8/g8.js","wt");
 if(!f)return;
 new row[160],k;
 fprintf(f,"window.VXG={ts:%d",get_systime());
@@ -324,8 +324,8 @@ public cmd_Status(id,level,cid)
 {
 if(!(get_user_flags(id)&ADMIN_RCON)&&id)return PLUGIN_HANDLED;
 new host[64];Host(host,63);DayRoll();
-console_print(id,"[TAB7] relay=%s:%d topic=%s dinleniyor=%d (1 olmali) gelen komut=%d reddedilen(imzasiz/sahte)=%d hata=%d",host,Port(),g_szTopic,g_lReady,g_lRx,g_lBad,g_lFails);
-console_print(id,"[TAB7] cevap: bugun %d/%d gonderildi, atlanan %d, 429=%d, sirada %d",g_dayCount,get_pcvar_num(g_pDay),g_rDropped,g_r429,g_qN);
-console_print(id,"[TAB7] veriler tablet adresinde gelir; cevap sadece pazar/takas/mesaj/yonetim/test icin gonderilir");
+console_print(id,"[TAB8] relay=%s:%d topic=%s dinleniyor=%d (1 olmali) gelen komut=%d reddedilen(imzasiz/sahte)=%d hata=%d",host,Port(),g_szTopic,g_lReady,g_lRx,g_lBad,g_lFails);
+console_print(id,"[TAB8] cevap: bugun %d/%d gonderildi, atlanan %d, 429=%d, sirada %d",g_dayCount,get_pcvar_num(g_pDay),g_rDropped,g_r429,g_qN);
+console_print(id,"[TAB8] veriler tablet adresinde gelir; cevap sadece pazar/takas/mesaj/yonetim/test icin gonderilir");
 return PLUGIN_HANDLED;
 }
