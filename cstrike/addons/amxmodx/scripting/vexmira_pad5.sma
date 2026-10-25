@@ -31,9 +31,11 @@ new g_lSock,g_lState,Float:g_lNext,Float:g_lLast,g_lFails,g_lErr,bool:g_lReady;
 new g_lBuf[4096],g_lLen,g_lRx,g_szTopic[40];
 
 // ---------------------------------------------------------------- replies (limited)
-#define RQ 24
+#define RQ 48
+#define NS 4   // parallel senders: 32 answers in the same second leave in ~2-3 s instead of ~12 s
 new g_qTopic[RQ][64],g_qBody[RQ][1500],g_qOwner[RQ],Float:g_qAt[RQ],g_qHead,g_qN;
-new g_rSock,g_rState,Float:g_rT,g_rSent,g_rFail,g_r429,g_rDropped,Float:g_rPauseUntil;
+new g_sSock[NS],g_sState[NS],Float:g_sT[NS],g_sReq[NS][1800],g_sLen[NS];
+new g_rSent,g_rFail,g_r429,g_rDropped,Float:g_rPauseUntil;
 new g_dayCount,g_dayNo,Float:g_fLastReply[33];
 new g_pDay,g_pGap,g_pBoard,g_pOn,g_pHost,g_pPort;
 
@@ -44,7 +46,7 @@ g_pDay=register_cvar("vex_pad5_reply_day","220");   // max answers per day from 
 g_pGap=register_cvar("vex_pad5_reply_gap","2.0");   // min seconds between two answers to the same player (later data is merged)
 g_pBoard=register_cvar("vex_pad5_board","1");       // 1 = write vexmira_pad5/g5.js (leaderboards) every 2 min
 register_concmd("vex_pad5","cmd_Status",ADMIN_RCON,"- PAD5 tablet status");
-set_task(0.1,"task_Net",551000,_,_,"b");
+set_task(0.05,"task_Net",551000,_,_,"b");
 set_task(5.0,"task_Board",551001);
 set_task(120.0,"task_Board",551002,_,_,"b");
 DayLoad();
@@ -56,7 +58,7 @@ g_pOn=get_cvar_pointer("vex_tablet_relay");g_pHost=get_cvar_pointer("vex_tablet_
 public plugin_end()
 {
 if(g_lSock>0)socket_close(g_lSock);
-if(g_rSock>0)socket_close(g_rSock);
+for(new k=0;k<NS;k++)if(g_sSock[k]>0)socket_close(g_sSock[k]);
 DaySave();
 }
 public client_disconnected(id){g_fLastReply[id]=0.0;}
@@ -174,42 +176,49 @@ if(1<=id<=32)g_fLastReply[id]=at;
 Send()
 {
 new Float:now=get_gametime();
-switch(g_rState)
+for(new k=0;k<NS;k++)Slot(k,now);
+}
+// take the first due queue entry (others may still wait for their per-player gap)
+bool:Pop(out[],len)
+{
+new due=-1;
+for(new k=0;k<g_qN;k++){new q=(g_qHead+k)%RQ;if(get_gametime()>=g_qAt[q]){due=q;break;}}
+if(due<0)return false;
+new host[64];Host(host,63);
+formatex(out,len,"POST /%s HTTP/1.0^r^nHost: %s^r^nContent-Type: text/plain^r^nX-Cache: no^r^nContent-Length: %d^r^nConnection: close^r^n^r^n%s",g_qTopic[due],host,strlen(g_qBody[due]),g_qBody[due]);
+// close the gap in the ring
+new q=due;while(q!=g_qHead){new pq=(q+RQ-1)%RQ;copy(g_qTopic[q],63,g_qTopic[pq]);copy(g_qBody[q],1499,g_qBody[pq]);g_qOwner[q]=g_qOwner[pq];g_qAt[q]=g_qAt[pq];q=pq;}
+g_qHead=(g_qHead+1)%RQ;g_qN--;
+return true;
+}
+Slot(k,Float:now)
+{
+switch(g_sState[k])
 {
 case 0:
 {
-if(!g_qN||now<g_rT)return;
-// first entry that is due (entries of other players are not held up by a waiting one)
-new due=-1;for(new k=0;k<g_qN;k++){new q=(g_qHead+k)%RQ;if(now>=g_qAt[q]){due=k;break;}}
-if(due<0)return;
-if(due>0){static tb[1500];new a=g_qHead,b=(g_qHead+due)%RQ,tt[64],to,Float:ta;copy(tt,63,g_qTopic[a]);copy(tb,1499,g_qBody[a]);to=g_qOwner[a];ta=g_qAt[a];copy(g_qTopic[a],63,g_qTopic[b]);copy(g_qBody[a],1499,g_qBody[b]);g_qOwner[a]=g_qOwner[b];g_qAt[a]=g_qAt[b];copy(g_qTopic[b],63,tt);copy(g_qBody[b],1499,tb);g_qOwner[b]=to;g_qAt[b]=ta;}
+if(!g_qN||now<g_sT[k])return;
+if(!Pop(g_sReq[k],charsmax(g_sReq[])))return;
+g_sLen[k]=strlen(g_sReq[k]);
 new host[64],err;Host(host,63);
-g_rSock=socket_open(host,Port(),SOCKET_TCP,err,SOCK_NON_BLOCKING);
-if(g_rSock<=0){g_rSock=0;g_rFail++;g_rT=now+2.0;return;}
-g_rState=1;g_rT=now;
+g_sSock[k]=socket_open(host,Port(),SOCKET_TCP,err,SOCK_NON_BLOCKING);
+if(g_sSock[k]<=0){g_sSock[k]=0;g_rFail++;g_sT[k]=now+2.0;return;}
+g_sState[k]=1;g_sT[k]=now;
 }
 case 1:
 {
-if(socket_is_writable(g_rSock,0))
-{
-static req[1800];new host[64];Host(host,63);
-new q=g_qHead,bl=strlen(g_qBody[q]);
-new n=formatex(req,charsmax(req),"POST /%s HTTP/1.0^r^nHost: %s^r^nContent-Type: text/plain^r^nX-Cache: no^r^nContent-Length: %d^r^nConnection: close^r^n^r^n%s",g_qTopic[q],host,bl,g_qBody[q]);
-socket_send2(g_rSock,req,n);
-g_qHead=(g_qHead+1)%RQ;g_qN--;g_rSent++;g_dayCount++;
-g_rState=2;g_rT=now;
-}
-else if(now-g_rT>4.0){socket_close(g_rSock);g_rSock=0;g_rState=0;g_rFail++;g_rT=now+1.0;}
+if(socket_is_writable(g_sSock[k],0)){socket_send2(g_sSock[k],g_sReq[k],g_sLen[k]);g_rSent++;g_dayCount++;g_sState[k]=2;g_sT[k]=now;}
+else if(now-g_sT[k]>4.0){socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_rFail++;g_sT[k]=now+1.0;}
 }
 case 2:
 {
-if(socket_is_readable(g_rSock,0))
+if(socket_is_readable(g_sSock[k],0))
 {
-new head[64];socket_recv(g_rSock,head,63);
+new head[64];socket_recv(g_sSock[k],head,63);
 if(contain(head," 429")!=-1){g_r429++;g_rPauseUntil=now+600.0;log_amx("[PAD5] ntfy gunluk/ani limit (429) - cevaplar 10 dk duraklatildi; tablet verisi yine acilista gelir");}
-socket_close(g_rSock);g_rSock=0;g_rState=0;g_rT=now+0.2;
+socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_sT[k]=now;
 }
-else if(now-g_rT>3.0){socket_close(g_rSock);g_rSock=0;g_rState=0;g_rT=now;}
+else if(now-g_sT[k]>3.0){socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_sT[k]=now;}
 }
 }
 }

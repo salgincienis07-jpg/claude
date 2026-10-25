@@ -22,7 +22,7 @@ native vxe_market_str(id,out[],len);
 new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4,g_fwReply4;
 new bool:g_bRlReady621;
 new g_iActionRx624;
-new g_szPr5[33][4][8],g_iPr5[33][4];
+new g_szPr5[33][4][8],g_iPr5[33][4],Float:g_fCard5[33];
 #pragma tabsize 0
 #pragma dynamic 32768
 native vxe_boss_giant(const name[],out[],len,Float:k,tex,build);
@@ -5832,6 +5832,8 @@ VexCardText532(id,note,const title[],const detail[],r,g,b,Float:hold)
 {
 new bool:big = !(note <= CN_NADE || note == CN_FIRST || note == CN_INFD || note == CN_TEN || note == CN_HS);
 new Float:y = big ?(g_bCapLow532[id]?(note == CN_MVP ? 0.74 : 0.665):(note == CN_MVP ? 0.36 : 0.25)): 0.62;
+// a card arriving while the previous big card is still on screen goes one row lower (no text on text)
+if(big){new Float:nw=get_gametime();if(nw<g_fCard5[id])y+=0.095;g_fCard5[id]=floatmax(g_fCard5[id],nw+hold+0.35);}
 new framed[160];
 copy(framed,charsmax(framed),title);
 if(get_pcvar_num(g_pHudMin538)){r = UI_R;g = UI_G;b = UI_B;hold = floatmin(hold,2.5);}
@@ -29296,7 +29298,7 @@ else if(c)CommunityApplyKnife(id+64000);
 }
 return 1;
 }
-public task_KnifeReport5(){for(new i=0;i<KN_TOTAL;i++){if(KnifeReady47(i))continue;new n[48];KnifeName538(1,i,n,47);if(!n[0])continue;if(i<4)log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> gear eklentisi dosya bulamadi ([AssetGuard] satirlarina bak)",n);else log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> model yok/yuklenemedi: %s",n,g_szMkV[i-4]);}}
+public task_KnifeReport5(){for(new i=0;i<KN_TOTAL;i++){if(KnifeReady47(i))continue;new n[48];KnifeName538(1,i,n,47);if(!n[0])continue;if(i<4)log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> gear eklentisi dosya bulamadi ([AssetGuard] satirlarina bak)",n);else log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> vexmira.cfg MK%d_V modeli sunucuda yok (%s)",n,i-3,g_szMkV[i-4]);}}
 public CommunityApplyKnife(taskid)
 {
 new id=taskid-64000;

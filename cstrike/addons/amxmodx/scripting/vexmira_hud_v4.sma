@@ -67,7 +67,7 @@ public plugin_init()
 	g_pAscii = register_cvar("vx_hud4_ascii", "0");
 	g_pDmg = register_cvar("vx_hud4_damage", "1");         // damage combo numbers
 	g_pFast = register_cvar("vx_hud4_fastswitch", "0");    // 1 = give hud_fastswitch 1 (only useful with vx_hud4_hide 59); 0 = restore the weapon menu once
-	g_pGap = register_cvar("vx_hud4_topgap", "22");        // top board: space between HUMANS / ROUND / ZOMBIES (spaces)
+	g_pGap = register_cvar("vx_hud4_topgap", "56");        // top board: space between HUMANS / ROUND / ZOMBIES (spaces)
 	register_srvcmd("vx_hud4_testnote", "cmd_TestNote");
 	register_srvcmd("vx_hud4_testdmg", "cmd_TestDmg");
 	RegisterHookChain(RG_CBasePlayer_TakeDamage, "fw_TakeDamagePost", true);
@@ -112,7 +112,7 @@ Line(out[], len, pct, cells)
 	out[o] = 0;
 }
 
-Dots(out[], len, count, maxShown)
+stock Dots(out[], len, count, maxShown)
 {
 	new o, n = min(count, maxShown);
 	for (new i = 0; i < n && o < len - 5; i++)
@@ -132,16 +132,17 @@ Dot(out[], len) { if (g_bAscii) copy(out, len, "*"); else copy(out, len, "•");
 VisLen(const s[]) { new n; for (new i = 0; s[i]; i++) if ((s[i] & 0xC0) != 0x80) n++; return n; }
 Spaces(out[], len, n) { new o; for (; o < n && o < len; o++) out[o] = ' '; out[o] = 0; }
 
-// Two-line block for the top board, drawn as a CENTRED message. Spaces push it next to the ROUND block:
-// left block = text + spaces (its right edge lands left of the centre), right block = spaces + text.
-// Both lines get the same visible length so their inner edges line up. Gap: vx_hud4_topgap.
-SideBlock(out[], len, const l1[], const l2[], bool:left)
+// One-line block for the top board, drawn as a CENTRED message. Spaces push it next to the ROUND block on
+// every resolution: left block = text + spaces, right block = spaces + text. A director message holds at
+// most 128 bytes, so the block is a single line (two padded lines did not fit and were cut).
+// A space is about half a letter wide, hence "letters + topgap" spaces. Gap: vx_hud4_topgap.
+SideBlock(out[], len, const l1[], bool:left)
 {
-	new a = VisLen(l1), b = VisLen(l2), w = max(a, b), gap = w + clamp(get_pcvar_num(g_pGap), 4, 60);
-	static s1[64], s2[64], g[96];
-	Spaces(s1, charsmax(s1), w - a); Spaces(s2, charsmax(s2), w - b); Spaces(g, charsmax(g), gap);
-	if (left) formatex(out, len, "%s%s%s^n%s%s%s", s1, l1, g, s2, l2, g);
-	else formatex(out, len, "%s%s%s^n%s%s%s", g, l1, s1, g, l2, s2);
+	new gap = min(VisLen(l1) + clamp(get_pcvar_num(g_pGap), 4, 90), 110 - strlen(l1));
+	static g[128];
+	Spaces(g, charsmax(g), gap);
+	if (left) formatex(out, len, "%s%s", l1, g);
+	else formatex(out, len, "%s%s", g, l1);
 }
 
 Thousands(v, out[], len)
@@ -287,7 +288,7 @@ public task_Slow()
 	new hw = get_member_game(m_iNumCTWins), zw = get_member_game(m_iNumTerroristWins);
 	new bosspct = vxc_hud(0, F_BOSSPCT), total, left = RoundLeft(total), bool:hurry = left <= 30 && !vxc_hud(0, F_ENDED);
 	new Float:now = get_gametime();
-	static a[160], b[200], dots[96], line[64], dot[8];
+	static a[160], b[200], dot[8];
 	Dot(dot, charsmax(dot));
 	for (new id = 1; id <= g_iMax; id++)
 	{
@@ -318,25 +319,23 @@ public task_Slow()
 		}
 		// left / right blocks are centred messages padded with spaces (like the old board): they sit right
 		// next to the ROUND block on every resolution instead of at a fixed screen x
-		static l1[64], l2[96];
-		Dots(dots, charsmax(dots), humans, 12);
-		formatex(l1, charsmax(l1), "%s   %d", en ? "HUMANS" : "İNSANLAR", hw);
-		SideBlock(a, charsmax(a), l1, dots, true);
+		// sides: "HUMANS 3  • 6" (wins, alive) | "• 2  1 ZOMBIES" - one line each, right next to the ROUND block
+		static l1[64], l2[64];
+		formatex(l1, charsmax(l1), "%s %d   %s %d", en ? "HUMANS" : "İNSANLAR", hw, dot, humans);
+		SideBlock(a, charsmax(a), l1, true);
 		set_dhudmessage(C_HUM[0], C_HUM[1], C_HUM[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		show_dhudmessage(id, "%s", a);
-		// right: zombies, or the boss with its HP gauge
+		// right: zombies, or the boss with its HP percent
 		if (bosspct >= 0)
 		{
-			Line(line, charsmax(line), bosspct, 20);
-			formatex(l2, charsmax(l2), "BOSS  %d%%", bosspct);
-			SideBlock(b, charsmax(b), l2, line, false);
+			formatex(l2, charsmax(l2), "%d%%  BOSS", bosspct);
+			SideBlock(b, charsmax(b), l2, false);
 			set_dhudmessage(214, 122, 255, -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		}
 		else
 		{
-			Dots(dots, charsmax(dots), zombies, 12);
-			formatex(l2, charsmax(l2), "%d   %s", zw, en ? "ZOMBIES" : "ZOMBİLER");
-			SideBlock(b, charsmax(b), l2, dots, false);
+			formatex(l2, charsmax(l2), "%s %d   %d %s", dot, zombies, zw, en ? "ZOMBIES" : "ZOMBİLER");
+			SideBlock(b, charsmax(b), l2, false);
 			set_dhudmessage(C_ZOM[0], C_ZOM[1], C_ZOM[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		}
 		show_dhudmessage(id, "%s", b);
