@@ -29656,6 +29656,8 @@ return false;
 }
 VexDuplicateGuard()
 {
+new o42[128];get_configsdir(o42,charsmax(o42));add(o42,charsmax(o42),"/plugins-vexmira42.ini");
+if(file_exists(o42))log_amx("[Vexmira] !!! UYARI: configs/plugins-vexmira42.ini (eski 4.2 listesi) SIL: vx42_hev / vx42_dragonsword ... eklentilerini yukletip oyunculara gereksiz dosya (HEV modelleri vb.) indirtir.");
 new self=get_plugin(-1);
 new file[128],title[96],ver[32],author[64],status[32],list[512],n;
 for(new k=0;k < get_pluginsnum();k++)
