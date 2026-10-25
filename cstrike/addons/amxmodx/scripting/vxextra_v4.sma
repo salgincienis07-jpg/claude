@@ -8,6 +8,7 @@
 new g_rq64Topic[RQ64][64],g_rq64Body[RQ64][1500],g_rq64Head,g_rq64N,g_rq64Sock,g_rq64State,Float:g_rq64T,g_rq64Sent,g_rq64Fail;
 new g_hPlus622=INVALID_HANDLE,g_acMask622[33],bool:g_acReady622[33];
 #define MARKET622_MAX 64
+new g_mAcc6[MARKET622_MAX][48],g_mName6[MARKET622_MAX][32],g_szAcc6[33][48];
 new g_mSerial622,g_mId622[MARKET622_MAX],g_mOwner622[MARKET622_MAX],g_mUid622[MARKET622_MAX],g_mCat622[MARKET622_MAX],g_mItem622[MARKET622_MAX],g_mPrice622[MARKET622_MAX];
 
 #include <amxmisc>
@@ -3916,7 +3917,7 @@ new Float:p[3]; pev(vic, pev_origin, p);
 if (g_iSgFx[i] == 10 && head) SgExplo(p,g_sprExplo538,4);
 return m;
 }
-public client_disconnected(id) { Disc538(id); }
+public client_disconnected(id) { Disc538(id); g_acReady622[id]=false; g_szAcc6[id][0]=0; }
 public N_SwCount(plugin, params) return SG_MAX;
 public N_SwInfo(plugin, params)
 {
@@ -4375,9 +4376,9 @@ ZupFree563(id,c) {return max(0,g_iZupLvl[id][c]-g_iZupStat[id][c][0]-g_iZupStat[
 ZupHint563(id,c)
 {
 if(!is_user_connected(id) || is_user_bot(id)) return;
-if(c<0 || c>=24 || !ZupFree563(id,c)) {ClearSyncHud(id,g_hZupHud563);return;}
-set_hudmessage(255,200,55,-1.0,0.81,0,0.0,8.0,0.2,0.3,-1);
-ShowSyncHudMsg(id,g_hZupHud563,"GELISTIRME PUANIN VAR! %s: %d bos puan^nSohbete /yukselt yaz > Sinifini sec > Skilli gelistir",ZUP_NAME[c],ZupFree563(id,c));
+if(c<0 || c>=24 || !ZupFree563(id,c)) return;
+set_dhudmessage(255,200,55,-1.0,0.81,0,0.0,6.0,0.2,0.3); // director message: never takes a HUD channel from the health bar
+show_dhudmessage(id,"GELISTIRME PUANIN VAR! %s: %d bos puan^nSohbete /yukselt yaz > Sinifini sec > Skilli gelistir",ZUP_NAME[c],ZupFree563(id,c));
 }
 public ZupRemind563()
 {
@@ -4562,34 +4563,102 @@ while(g_iVmCursor563[id]<count) {
 public N_ZupSnapshot621(plugin,params){new id=get_param(1),c=get_param(2),f=get_param(3);if(id<1||id>32||c<0||c>=24||!is_user_connected(id))return 0;if(!g_bZupLoaded[id]&&ZupAuthReady565(id))ZupLoad(id);if(!g_bZupLoaded[id])return 0;switch(f){case 0:return g_iZupLvl[id][c];case 1:return g_iZupPts[id][c];case 2,3,4:return g_iZupStat[id][c][f-2];case 5:return g_iZupLvl[id][c]<ZUP_MAX?g_iZupStep[g_iZupLvl[id][c]]:0;}return 0;}
 public N_ZupSpend621(plugin,params){new id=get_param(1),c=get_param(2),k=get_param(3);if(id<1||id>32||c<0||c>=24||k<0||k>=3||!is_user_connected(id))return 0;if(!g_bZupLoaded[id]&&ZupAuthReady565(id))ZupLoad(id);if(!g_bZupLoaded[id]||g_iZupVault==INVALID_HANDLE||ZupFree563(id,c)<=0)return 0;g_iZupStat[id][c][k]++;g_iZupSelected[id]=c;ZupSave(id);ClearSyncHud(id,g_hZupHud563);return 1;}
 
+native vxc_tab_recover(id,beforeVC,afterVC,cat,ix,beforeOwned,afterOwned);
 native vxc_tab_value(id,field,cat=0,ix=0);
 native vxc_tab_credit(id,vc,ap);
 native vxc_tab_purchase(buyer,seller,cat,ix,price);
 native vxc_tab_key(id,out[],len);
-PlusInit622(){g_hPlus622=nvault_open("vexmira_tablet_plus622");if(g_hPlus622==INVALID_HANDLE)log_amx("[Tablet622] Claim vault unavailable");}
+PlusInit622(){MarketLoad6();g_hPlus622=nvault_open("vexmira_tablet_plus622");if(g_hPlus622==INVALID_HANDLE)log_amx("[Tablet622] Claim vault unavailable");}
 AcKey622(id,key[],len,const prefix[]){new account[48];vxc_tab_key(id,account,47);formatex(key,len,"%s%s",prefix,account);}
 public N_AcLoad622(plugin,params){new id=get_param(1);if(id<1||id>32)return 0;g_acReady622[id]=false;g_acMask622[id]=0;if(g_hPlus622==INVALID_HANDLE||vxc_tab_value(id,0)<0)return 0;
 if(!MarketRecover622(id))return 0;new key[64],val[128];AcKey622(id,key,63,"a_");if(nvault_get(g_hPlus622,key,val,127))g_acMask622[id]=str_to_num(val);else{g_acMask622[id]=vxc_tab_value(id,2);num_to_str(g_acMask622[id],val,127);nvault_set(g_hPlus622,key,val);}
 new journal[64];AcKey622(id,journal,63,"j_");if(nvault_get(g_hPlus622,journal,val,127)){new a[16],b[16],c[16],d[16],e[16];if(parse(val,a,15,b,15,c,15,d,15,e,15)!=5)return 0;new bit=str_to_num(a),vc=str_to_num(b),ap=str_to_num(c),rv=str_to_num(d),ra=str_to_num(e);if(bit<0||bit>=30||vc<0||ap<0||rv<0||ra<0||rv>100000000||ra>100000000||vc>2000000000-rv||ap>2000000000-ra)return 0;
 if(!(g_acMask622[id]&(1<<bit))){new cv=vxc_tab_value(id,0),ca=vxc_tab_value(id,1);if(cv==vc&&ca==ap){if(!vxc_tab_credit(id,rv,ra))return 0;}else if(cv!=vc+rv||ca!=ap+ra){log_amx("[Tablet622] Claim recovery needs review id=%d",id);return 0;}g_acMask622[id]|=(1<<bit);num_to_str(g_acMask622[id],val,127);nvault_set(g_hPlus622,key,val);}nvault_remove(g_hPlus622,journal);}
-g_acReady622[id]=true;return 1;}
+g_acReady622[id]=true;vxc_tab_key(id,g_szAcc6[id],47);MarketPayout6(id);return 1;}
 public N_AcMask622(plugin,params){return g_acMask622[get_param(1)];}
 public N_AcClaim622(plugin,params){new id=get_param(1),bit=get_param(2);if(id<1||id>32||!g_acReady622[id]||bit<0||bit>=30||!(vxc_tab_value(id,2)&(1<<bit))||(g_acMask622[id]&(1<<bit)))return 0;
 new vc=vxc_tab_value(id,0),ap=vxc_tab_value(id,1),rv=vxc_tab_value(id,3),ra=vxc_tab_value(id,4);if(vc<0||ap<0||rv<0||ra<0||rv>100000000||ra>100000000||vc>2000000000-rv||ap>2000000000-ra)return 0;
 if(!vxc_tab_credit(id,0,0))return 0;new key[64],journal[64],val[128];AcKey622(id,key,63,"a_");AcKey622(id,journal,63,"j_");formatex(val,127,"%d %d %d %d %d",bit,vc,ap,rv,ra);nvault_set(g_hPlus622,journal,val);
 if(!vxc_tab_credit(id,rv,ra))return 0;g_acMask622[id]|=(1<<bit);num_to_str(g_acMask622[id],val,127);nvault_set(g_hPlus622,key,val);nvault_remove(g_hPlus622,journal);return 1;}
-bool:MarketValid622(k){new id=g_mOwner622[k];if(!g_mId622[k]||id<1||id>32||!is_user_connected(id)||get_user_userid(id)!=g_mUid622[k]||vxc_tab_value(id,0)<0)return false;return vxc_tab_value(id,5,g_mCat622[k],g_mItem622[k])==1;}
-public N_MarketAction622(plugin,params){new id=get_param(1),op=get_param(2),a[48],b[16];get_string(3,a,47);get_string(4,b,15);if(vxc_tab_value(id,0)<0||is_user_bot(id)||g_hPlus622==INVALID_HANDLE||!g_acReady622[id])return 0;
-if(op==0){if(!b[0]||strlen(b)>9)return 0;for(new digit=0;b[digit];digit++)if(b[digit]<'0'||b[digit]>'9')return 0;new cat=a[0],item=str_to_num(a[1])-1,price=str_to_num(b),slot=-1,count;if(contain("kcwpftz",fmt("%c",cat))<0||item<0||price<1||price>100000000||vxc_tab_value(id,5,cat,item)!=1)return 0;
-for(new k=0;k<MARKET622_MAX;k++){if(!MarketValid622(k)){g_mId622[k]=0;if(slot<0)slot=k;continue;}if(g_mOwner622[k]==id){count++;if(g_mCat622[k]==cat&&g_mItem622[k]==item)return 0;}}
-if(slot<0||count>=8)return 0;g_mId622[slot]=++g_mSerial622;g_mOwner622[slot]=id;g_mUid622[slot]=get_user_userid(id);g_mCat622[slot]=cat;g_mItem622[slot]=item;g_mPrice622[slot]=price;return 1;}
-new listing=str_to_num(a);for(new k=0;k<MARKET622_MAX;k++){if(g_mId622[k]!=listing)continue;if(!MarketValid622(k)){g_mId622[k]=0;return 0;}if(op==2){if(g_mOwner622[k]!=id)return 0;g_mId622[k]=0;return 1;}if(op==1){new seller=g_mOwner622[k];if(seller==id)return 0;g_mId622[k]=0;if(!vxc_tab_purchase(id,seller,g_mCat622[k],g_mItem622[k],g_mPrice622[k])){g_mId622[k]=listing;return 0;}return 1;}}return 0;}
-// 6.4: market rows for the tablet address: id~uid~name~code~price;...
-public N_MarketStr64(plugin,params){new len=get_param(3);static out[700];new n,name[32],enc[100],row[160];out[0]=0;for(new k=0;k<MARKET622_MAX;k++){if(!MarketValid622(k)){g_mId622[k]=0;continue;}get_user_name(g_mOwner622[k],name,31);new o;for(new i=0;name[i]&&o<96;i++){new c=name[i]&0xFF;if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9'))enc[o++]=c;else o+=formatex(enc[o],99-o,"%%%02X",c);}enc[o]=0;formatex(row,159,"%s%d~%d~%s~%c%d~%d",n?";":"",g_mId622[k],g_mUid622[k],enc,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);if(n+strlen(row)>=min(len,charsmax(out)))break;n+=copy(out[n],charsmax(out)-n,row);}
+// 6.6 MARKET: the listed item is held by the market, so a listing stays when the seller leaves or the map
+// changes (saved in data/vexmira_market6.ini). A sale credits the seller at once, or on the next join.
+MarketFile6(path[],len){get_datadir(path,len);add(path,len,"/vexmira_market6.ini");}
+MarketSave6()
+{
+new path[128];MarketFile6(path,charsmax(path));new fp=fopen(path,"wt");if(!fp)return;
+fprintf(fp,"; Vexmira pazar ilanlari (esya pazarda bekler) - elle degistirme^n#%d^n",g_mSerial622);
+for(new k=0;k<MARKET622_MAX;k++)if(g_mId622[k])fprintf(fp,"%d ^"%s^" ^"%s^" %c %d %d^n",g_mId622[k],g_mAcc6[k],g_mName6[k],g_mCat622[k],g_mItem622[k],g_mPrice622[k]);
+fclose(fp);
+}
+MarketLoad6()
+{
+new path[128];MarketFile6(path,charsmax(path));new fp=fopen(path,"rt");if(!fp)return;
+new line[192],a[12],acc[48],nm[32],c[4],it[12],pr[12],k;
+while(!feof(fp)&&k<MARKET622_MAX)
+{
+fgets(fp,line,charsmax(line));trim(line);
+if(line[0]=='#'){g_mSerial622=max(g_mSerial622,str_to_num(line[1]));continue;}
+if(!line[0]||line[0]==';'||parse(line,a,11,acc,47,nm,31,c,3,it,11,pr,11)<6)continue;
+g_mId622[k]=str_to_num(a);if(g_mId622[k]<=0)continue;g_mSerial622=max(g_mSerial622,g_mId622[k]);
+copy(g_mAcc6[k],47,acc);copy(g_mName6[k],31,nm);g_mCat622[k]=c[0];g_mItem622[k]=str_to_num(it);g_mPrice622[k]=str_to_num(pr);g_mOwner622[k]=0;g_mUid622[k]=0;k++;
+}
+fclose(fp);
+}
+// the online player behind a listing (0 when the seller is away)
+MarketSeller6(k){for(new p=1;p<=32;p++)if(g_acReady622[p]&&g_szAcc6[p][0]&&equal(g_szAcc6[p],g_mAcc6[k]))return p;return 0;}
+MarketPend6(const acc[],add)
+{
+new key[64],val[16];formatex(key,63,"pc_%s",acc);new cur=nvault_get(g_hPlus622,key);
+if(cur>2000000000-add)cur=2000000000-add;num_to_str(cur+add,val,15);nvault_set(g_hPlus622,key,val);
+}
+public MarketPaid6(id){if(is_user_connected(id))client_print(id,print_chat,"[VEXMIRA] Pazar: sen yokken ilanlarin satildi, VexCoin hesabina eklendi.");}
+MarketPayout6(id)
+{
+new key[64];formatex(key,63,"pc_%s",g_szAcc6[id]);new due=nvault_get(g_hPlus622,key);if(due<=0)return;
+if(vxc_tab_credit(id,due,0)){nvault_remove(g_hPlus622,key);log_amx("[PAZAR] PAYOUT acc=%s vc=%d",g_szAcc6[id],due);set_task(6.0,"MarketPaid6",id);}
+}
+public N_MarketAction622(plugin,params){new id=get_param(1),op=get_param(2),a[48],b[16];get_string(3,a,47);get_string(4,b,15);if(id<1||id>32||vxc_tab_value(id,0)<0||is_user_bot(id)||g_hPlus622==INVALID_HANDLE||!g_acReady622[id]||!g_szAcc6[id][0])return 0;
+if(op==0)
+{
+if(!b[0]||strlen(b)>9)return 0;for(new digit=0;b[digit];digit++)if(b[digit]<'0'||b[digit]>'9')return 0;
+new cat=a[0],item=str_to_num(a[1])-1,price=str_to_num(b),slot=-1,count;
+if(contain("kcwpftz",fmt("%c",cat))<0||item<0||price<1||price>100000000||vxc_tab_value(id,5,cat,item)!=1)return 0;
+for(new k=0;k<MARKET622_MAX;k++){if(!g_mId622[k]){if(slot<0)slot=k;continue;}if(equal(g_mAcc6[k],g_szAcc6[id])){count++;if(g_mCat622[k]==cat&&g_mItem622[k]==item)return 0;}}
+if(slot<0||count>=8)return 0;
+g_mId622[slot]=++g_mSerial622;copy(g_mAcc6[slot],47,g_szAcc6[id]);get_user_name(id,g_mName6[slot],31);g_mOwner622[slot]=id;g_mUid622[slot]=get_user_userid(id);g_mCat622[slot]=cat;g_mItem622[slot]=item;g_mPrice622[slot]=price;
+MarketSave6(); // listing saved first, then the item goes into the market
+new vc=vxc_tab_value(id,0);if(!vxc_tab_recover(id,vc,vc,cat,item,1,0)){g_mId622[slot]=0;MarketSave6();return 0;}log_amx("[PAZAR] LIST id=%d acc=%s code=%c%d price=%d",g_mId622[slot],g_szAcc6[id],cat,item+1,price);return 1;
+}
+new listing=str_to_num(a);if(listing<=0)return 0;
+for(new k=0;k<MARKET622_MAX;k++)
+{
+if(g_mId622[k]!=listing)continue;
+new cat=g_mCat622[k],item=g_mItem622[k],price=g_mPrice622[k],vc=vxc_tab_value(id,0);
+if(op==2)
+{
+if(!equal(g_mAcc6[k],g_szAcc6[id]))return 0;
+if(vxc_tab_value(id,5,cat,item)==1){if(!vxc_tab_credit(id,price,0))return 0;} // already owns it again: the price comes back instead
+else if(!vxc_tab_recover(id,vc,vc,cat,item,0,1))return 0;
+g_mId622[k]=0;MarketSave6();log_amx("[PAZAR] CANCEL id=%d acc=%s",listing,g_szAcc6[id]);return 1;
+}
+if(op==1)
+{
+if(equal(g_mAcc6[k],g_szAcc6[id])||vc<price||vxc_tab_value(id,5,cat,item)==1)return 0;
+g_mId622[k]=0;MarketSave6(); // listing gone first: it can never be sold twice
+if(!vxc_tab_recover(id,vc,vc-price,cat,item,0,1)){g_mId622[k]=listing;MarketSave6();return 0;} // buyer pays and gets the item in one step
+new seller=MarketSeller6(k),bn[32];get_user_name(id,bn,31);
+if(!seller||!vxc_tab_credit(seller,price,0))MarketPend6(g_mAcc6[k],price);
+else client_print(seller,print_chat,"[VEXMIRA] Pazar: %s esyani %d VC karsiliginda aldi.",bn,price);
+log_amx("[PAZAR] BUY id=%d buyer=%s seller=%s code=%c%d price=%d %s",listing,g_szAcc6[id],g_mAcc6[k],cat,item+1,price,seller?"online":"offline");
+return 1;
+}
+}
+return 0;}
+// market rows for the tablet address: id~uid~name~code~price;...  (uid 0 = seller is away)
+public N_MarketStr64(plugin,params){new len=get_param(3);static out[700];new n,enc[100],row[160];out[0]=0;for(new k=0;k<MARKET622_MAX;k++){if(!g_mId622[k])continue;new sp=MarketSeller6(k);new o;for(new i=0;g_mName6[k][i]&&o<96;i++){new c=g_mName6[k][i]&0xFF;if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9'))enc[o++]=c;else o+=formatex(enc[o],99-o,"%%%02X",c);}enc[o]=0;formatex(row,159,"%s%d~%d~%s~%c%d~%d",n?";":"",g_mId622[k],sp?get_user_userid(sp):0,enc,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);if(n+strlen(row)>=min(len,charsmax(out)))break;n+=copy(out[n],charsmax(out)-n,row);}
 set_string(2,out,len);return n;}
-public N_MarketWrite622(plugin,params){new fp=get_param(1);fputs(fp,"market:[");new first=1,name[32],safe[96];for(new k=0;k<MARKET622_MAX;k++){if(!MarketValid622(k)){g_mId622[k]=0;continue;}get_user_name(g_mOwner622[k],name,31);new n;for(new i=0;name[i]&&n<93;i++){if(name[i]=='"'||name[i]=='\')safe[n++]='\';if(name[i]>=32)safe[n++]=name[i];}safe[n]=0;fprintf(fp,"%s[%d,%d,^"%s^",^"%c%d^",%d]",first?"":",",g_mId622[k],g_mUid622[k],safe,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);first=0;}fputs(fp,"],");return 1;}
+public N_MarketWrite622(plugin,params){new fp=get_param(1);fputs(fp,"market:[");new first=1,safe[96];for(new k=0;k<MARKET622_MAX;k++){if(!g_mId622[k])continue;new sp=MarketSeller6(k),n;for(new i=0;g_mName6[k][i]&&n<93;i++){if(g_mName6[k][i]=='"'||g_mName6[k][i]=='\')safe[n++]='\';if(g_mName6[k][i]>=32)safe[n++]=g_mName6[k][i];}safe[n]=0;fprintf(fp,"%s[%d,%d,^"%s^",^"%c%d^",%d]",first?"":",",g_mId622[k],sp?get_user_userid(sp):0,safe,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);first=0;}fputs(fp,"],");return 1;}
 
-native vxc_tab_recover(id,beforeVC,afterVC,cat,ix,beforeOwned,afterOwned);
 MarketKey622(id,key[],len){AcKey622(id,key,len,"m_");}
 MarketRecover622(id){new key[64],val[160];MarketKey622(id,key,63);if(!nvault_get(g_hPlus622,key,val,159))return 1;new a[16],b[16],c[16],d[16],e[16],f[16],g[16];if(parse(val,a,15,b,15,c,15,d,15,e,15,f,15,g,15)!=7)return 0;
 new tx=str_to_num(a),marker[32];formatex(marker,31,"t_%d",tx);if(nvault_get(g_hPlus622,marker)!=1){nvault_remove(g_hPlus622,key);return 1;}if(!vxc_tab_recover(id,str_to_num(b),str_to_num(c),str_to_num(d),str_to_num(e),str_to_num(f),str_to_num(g))){log_amx("[Tablet622] Market recovery needs review id=%d tx=%d",id,tx);return 0;}nvault_remove(g_hPlus622,key);return 1;}
@@ -4602,7 +4671,7 @@ public N_MarketFinish622(plugin,params){new buyer=get_param(1),seller=get_param(
 // The open MOTD ignores a new address until it is closed, so the core hands every tablet reply here
 // (vxc_reply forward) and it is published to the tablet's own relay channel (same relay the tablet
 // already uses for its commands). One short HTTP request at a time, never blocks the game loop.
-// PAD5: replies are sent by vexmira_pad5 (daily limit aware); this old sender is kept unused
+// PAD5: replies are sent by vexmira_pad6 (daily limit aware); this old sender is kept unused
 stock vxc_reply_old64(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;

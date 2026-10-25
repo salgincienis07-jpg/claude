@@ -9197,9 +9197,8 @@ hev_g_bCriticalPlayed[i] = false;
 }
 if(hev_g_iSuitPower[i] < hev_MAX_POWER) hev_g_iSuitPower[i] = min(hev_MAX_POWER, hev_g_iSuitPower[i] + hev_REGEN_TICK);
 if(vx45_corejetpack(i)) continue; // Keep passive HEV bonuses; jetpack owns equipment HUD.
-set_hudmessage(255,140,0,0.02,0.84,0,0.0,1.6,0.0,0.0,2);
-show_hudmessage(i, "[ HEV Mark V ]^nGuc: %d%% | Can: %d | Zirh: %d",
-hev_g_iSuitPower[i], hev_hp, get_user_armor(i));
+// v6: no HEV text block here any more - it shared a HUD channel with the main HUD and made the
+// health / armor bars flicker; the main HUD already shows health and armor.
 }
 }
 public hev_zp_extra_item_selected(id, itemid)

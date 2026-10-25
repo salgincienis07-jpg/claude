@@ -3,14 +3,14 @@
 
 /* ---------- wallpapers: real images, same picture on lock + home (iPadOS) */
 .wall{background-color:#050206!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;-webkit-filter:none!important;filter:none!important}
-.wall.wp0{background-image:url(p5w_0.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp1{background-image:url(p5w_1.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp2{background-image:url(p5w_2.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp3{background-image:url(p5w_3.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp4{background-image:url(p5w_4.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp5{background-image:url(p5w_5.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp6{background-image:url(p5w_6.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp7{background-image:url(p5w_7.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp0{background-image:url(p6w_0.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp1{background-image:url(p6w_1.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp2{background-image:url(p6w_2.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp3{background-image:url(p6w_3.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp4{background-image:url(p6w_4.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp5{background-image:url(p6w_5.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp6{background-image:url(p6w_6.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp7{background-image:url(p6w_7.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
 .wall .wlogo,.fog,.vignette{display:none!important}
 .wall.blur{opacity:1!important}
 .wall:after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0);transition:background .3s}
@@ -19,14 +19,14 @@ html[data-theme=light] .wall{-webkit-filter:none!important;filter:none!important
 html[data-theme=light] .wall.blur:after{background:rgba(242,242,247,.93)}
 /* wallpaper picker thumbnails use the same pictures */
 .wpt .w .lgw,.wpt .w svg,.wpt .w .em{display:none!important}
-.wpt .w.wp0{background-image:url(p5w_0.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp1{background-image:url(p5w_1.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp2{background-image:url(p5w_2.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp3{background-image:url(p5w_3.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp4{background-image:url(p5w_4.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp5{background-image:url(p5w_5.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp6{background-image:url(p5w_6.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp7{background-image:url(p5w_7.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp0{background-image:url(p6w_0.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp1{background-image:url(p6w_1.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp2{background-image:url(p6w_2.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp3{background-image:url(p6w_3.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp4{background-image:url(p6w_4.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp5{background-image:url(p6w_5.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp6{background-image:url(p6w_6.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp7{background-image:url(p6w_7.jpg)!important;background-size:cover!important;background-position:center!important}
 
 /* ---------- lock screen (iPadOS 17 style: lock glyph, date over a large time, notification card) */
 .lock{background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,0) 45%,rgba(0,0,0,.35))!important;background-image:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,0) 45%,rgba(0,0,0,.35))!important}
@@ -471,3 +471,51 @@ html[data-theme=light] .x4warn{color:#8a4b00}
 .fog,.vignette{display:none!important}
 .x4b,.mkbtn,.mkbuy,.x4r,.mkchips span,.mkseg span{transition:none!important}
 .wg,.x4pc,.x4a,.x4av.big{box-shadow:none!important}
+/* ---- v6 CS2-style case opening ---- */
+.casestage.shake6 .big{-webkit-animation:shake6 .26s linear 4;animation:shake6 .26s linear 4}
+@-webkit-keyframes shake6{0%,100%{-webkit-transform:translate(0,0) rotate(0)}25%{-webkit-transform:translate(-3px,1px) rotate(-2deg)}75%{-webkit-transform:translate(3px,-1px) rotate(2deg)}}
+@keyframes shake6{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-3px,1px) rotate(-2deg)}75%{transform:translate(3px,-1px) rotate(2deg)}}
+.casestage.open6 .big{-webkit-animation:open6 .5s ease-in forwards;animation:open6 .5s ease-in forwards}
+@-webkit-keyframes open6{0%{-webkit-transform:scale(1);opacity:1}40%{-webkit-transform:scale(1.18);opacity:1}100%{-webkit-transform:scale(.2);opacity:0}}
+@keyframes open6{0%{transform:scale(1);opacity:1}40%{transform:scale(1.18);opacity:1}100%{transform:scale(.2);opacity:0}}
+.reelbox.spin6,.reelbox.stop6{position:relative;overflow:hidden;-webkit-box-shadow:inset 0 0 30px rgba(0,0,0,.65);box-shadow:inset 0 0 30px rgba(0,0,0,.65)}
+.reelbox.spin6:before,.reelbox.spin6:after,.reelbox.stop6:before,.reelbox.stop6:after{content:"";position:absolute;top:0;bottom:0;width:22%;z-index:2;pointer-events:none}
+.reelbox.spin6:before,.reelbox.stop6:before{left:0;background:-webkit-linear-gradient(left,rgba(8,7,10,.92),rgba(8,7,10,0));background:linear-gradient(to right,rgba(8,7,10,.92),rgba(8,7,10,0))}
+.reelbox.spin6:after,.reelbox.stop6:after{right:0;background:-webkit-linear-gradient(right,rgba(8,7,10,.92),rgba(8,7,10,0));background:linear-gradient(to left,rgba(8,7,10,.92),rgba(8,7,10,0))}
+.reelbox.spin6 .needle,.reelbox.stop6 .needle{z-index:3;background:#ffd34a;-webkit-box-shadow:0 0 12px #ffd34a,0 0 3px #fff;box-shadow:0 0 12px #ffd34a,0 0 3px #fff}
+.reelbox.stop6 .needle{-webkit-animation:needle6 .5s ease-out 2;animation:needle6 .5s ease-out 2}
+@-webkit-keyframes needle6{50%{-webkit-box-shadow:0 0 24px #fff,0 0 8px #fff}}
+@keyframes needle6{50%{box-shadow:0 0 24px #fff,0 0 8px #fff}}
+.reel .it.won6 .ic{-webkit-transform:scale(1.08);transform:scale(1.08);-webkit-transition:-webkit-transform .3s;transition:transform .3s;-webkit-box-shadow:0 0 18px rgba(255,255,255,.5);box-shadow:0 0 18px rgba(255,255,255,.5)}
+.flash6{position:absolute;left:0;top:0;right:0;bottom:0;z-index:40;pointer-events:none;-webkit-animation:flash6 .85s ease-out forwards;animation:flash6 .85s ease-out forwards}
+@-webkit-keyframes flash6{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+@keyframes flash6{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.win6{position:relative;overflow:hidden;text-align:center;padding:14px 12px;border-radius:16px;-webkit-animation:win6 .55s cubic-bezier(.2,1.4,.4,1) both;animation:win6 .55s cubic-bezier(.2,1.4,.4,1) both}
+@-webkit-keyframes win6{0%{-webkit-transform:scale(.6);opacity:0}100%{-webkit-transform:scale(1);opacity:1}}
+@keyframes win6{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.win6 .wic{width:64px;height:64px;margin:0 auto 8px;border-radius:16px;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;position:relative;z-index:1}
+.win6 .wic svg{width:34px;height:34px;fill:#fff}
+.win6 .rr,.win6 h2{position:relative;z-index:1}
+.win6 .rays6{position:absolute;left:50%;top:40px;width:420px;height:420px;margin:-210px 0 0 -210px;opacity:.35;background:-webkit-repeating-radial-gradient(50% 50%,circle,rgba(255,255,255,.0) 0,rgba(255,255,255,.0) 18px,rgba(255,255,255,.18) 19px,rgba(255,255,255,0) 22px);-webkit-animation:rays6 6s linear infinite;animation:rays6 6s linear infinite}
+@-webkit-keyframes rays6{to{-webkit-transform:rotate(360deg) scale(1.1)}}
+@keyframes rays6{to{transform:rotate(360deg) scale(1.1)}}
+.w6r3 .rr,.w6r4 .rr{-webkit-animation:glow6 1.2s ease-in-out infinite alternate;animation:glow6 1.2s ease-in-out infinite alternate}
+@-webkit-keyframes glow6{to{text-shadow:0 0 14px currentColor}}
+@keyframes glow6{to{text-shadow:0 0 14px currentColor}}
+/* ---- v6 light theme: the wallpaper stays dark, so everything drawn on it stays light ---- */
+html[data-theme=light] .ico span{color:#fff!important;text-shadow:0 1px 3px rgba(0,0,0,.75)!important}
+html[data-theme=light] .status{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.6)!important}
+html[data-theme=light] .status .wifi,html[data-theme=light] .status .batt{border-color:#fff!important}
+html[data-theme=light] .status.onapp{color:#1c1c1e!important;text-shadow:none!important}
+html[data-theme=light] .status.onapp .wifi,html[data-theme=light] .status.onapp .batt{border-color:#1c1c1e!important}
+html[data-theme=light] .lock,html[data-theme=light] .lock *{color:#fff}
+html[data-theme=light] .wg b,html[data-theme=light] .wg strong{color:#1c1c1e}
+html[data-theme=light] .homebar{background:rgba(255,255,255,.85)!important}
+html[data-theme=light] #app.open~.homebar{background:#1c1c1e!important}
+html[data-theme=light] .build624{color:rgba(255,255,255,.6)}
+html[data-theme=light] input,html[data-theme=light] textarea,html[data-theme=light] select{background:#fff!important;color:#1c1c1e!important;border-color:rgba(0,0,0,.15)!important}
+html[data-theme=light] .bn{color:#1c1c1e!important}
+html[data-theme=light] .bn small,html[data-theme=light] .bn p{color:#3a3a3c!important}
+html[data-theme=light] .muted,html[data-theme=light] small{color:#6c6c70}
+html[data-theme=light] .rsbtn.arm{background:#ff3b30!important;color:#fff!important}
+.rsbtn.arm{background:#ff3b30!important;color:#fff!important;-webkit-animation:glow6 .5s ease-in-out infinite alternate;animation:glow6 .5s ease-in-out infinite alternate}

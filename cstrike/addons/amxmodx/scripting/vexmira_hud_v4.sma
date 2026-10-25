@@ -64,7 +64,7 @@ public plugin_init()
 	register_dictionary("vexmira_zombie.txt");
 	g_pOn = register_cvar("vx_hud4", "1");                 // 0 = core draws its old HUD again
 	g_pHide = register_cvar("vx_hud4_hide", "58");         // default HUD parts hidden (58 = all but the weapon list/ammo; 59 also hides weapon selection)
-	g_pAscii = register_cvar("vx_hud4_ascii", "0");
+	g_pAscii = register_cvar("vx_hud4_ascii", "1");   // 1 = plain ASCII only (the CS 1.6 font has no Turkish capitals like I-dot)
 	g_pDmg = register_cvar("vx_hud4_damage", "1");         // damage combo numbers
 	g_pFast = register_cvar("vx_hud4_fastswitch", "0");    // 1 = give hud_fastswitch 1 (only useful with vx_hud4_hide 59); 0 = restore the weapon menu once
 	g_pGap = register_cvar("vx_hud4_topgap", "56");        // top board: space between HUMANS / ROUND / ZOMBIES (spaces)
@@ -126,7 +126,7 @@ stock Dots(out[], len, count, maxShown)
 	out[o] = 0;
 }
 
-Dot(out[], len) { if (g_bAscii) copy(out, len, "*"); else copy(out, len, "•"); }
+Dot(out[], len) { if (g_bAscii) copy(out, len, "|"); else copy(out, len, "•"); }
 
 // characters on screen (UTF-8 continuation bytes do not count)
 VisLen(const s[]) { new n; for (new i = 0; s[i]; i++) if ((s[i] & 0xC0) != 0x80) n++; return n; }
@@ -236,14 +236,14 @@ public task_Fast()
 		new hp = floatround(Float:get_entvar(id, var_health)), mx = max(1, floatround(Float:get_entvar(id, var_max_health)));
 		new pct = clamp(hp * 100 / mx, 0, 100), ar = rg_get_user_armor(id);
 		Line(g1, charsmax(g1), pct, 20);
-		// colour follows the health: blue above 250 (humans), then green -> yellow -> orange -> red (blinks)
+		// colour follows the health: blue above 250 (humans), then green -> yellow -> orange -> red (steady)
 		new r, g, bl;
 		if (special) { r = 214; g = 122; bl = 255; }
 		else if (!zombie && hp > 250) { r = 80; g = 170; bl = 255; }
 		else if (pct >= 75) { r = 70; g = 230; bl = 100; }
 		else if (pct >= 50) { r = 200; g = 230; bl = 70; }
 		else if (pct >= 25) { r = 255; g = 160; bl = 50; }
-		else { r = 255; g = (g_iFrame & 1) ? 40 : 90; bl = 40; }
+		else { r = 255; g = 60; bl = 50; }   // steady red (blinking looked like flicker)
 		if (!zombie && ar > 0)
 		{
 			Line(g2, charsmax(g2), clamp(ar, 0, 100), 20);
@@ -260,7 +260,7 @@ public task_Fast()
 		new w = WeaponInfo(id, wn, charsmax(wn), clip, bp, maxclip);
 		if (!list && !zombie && w && clip >= 0) n += formatex(c[n], charsmax(c) - n, "%s     %d / %d^n", wn, clip, bp);
 		else if (!list && !zombie && w && wn[0]) n += formatex(c[n], charsmax(c) - n, "%s^n", wn);
-		else if (zombie) n += formatex(c[n], charsmax(c) - n, "%s^n", special ? (en ? "SPECIAL ZOMBIE" : "ÖZEL ZOMBİ") : (en ? "ZOMBIE" : "ZOMBİ"));
+		else if (zombie) n += formatex(c[n], charsmax(c) - n, "%s^n", special ? (en ? "SPECIAL ZOMBIE" : "OZEL ZOMBI") : (en ? "ZOMBIE" : "ZOMBI"));
 		Thousands(get_member(id, m_iAccount), money, charsmax(money));
 		Thousands(vxc_hud(id, F_VC), vc, charsmax(vc));
 		Thousands(vxc_hud(id, F_AP), ap, charsmax(ap));
@@ -302,7 +302,7 @@ public task_Slow()
 		if (now < g_fNoteUntil[id] && g_szNote[id][0])
 		{
 			set_dhudmessage(245, 245, 250, 0.72, 0.10, 0, 0.0, 1.06, 0.0, 0.0);
-			show_dhudmessage(id, "%s iPad   %s^n%s", dot, en ? "now" : "şimdi", g_szNote[id]);
+			show_dhudmessage(id, "%s iPad   %s^n%s", dot, en ? "now" : "simdi", g_szNote[id]);
 		}
 		// centre: ROUND x / y, mode, event (boss: boss name)
 		{
@@ -321,7 +321,7 @@ public task_Slow()
 		// next to the ROUND block on every resolution instead of at a fixed screen x
 		// sides: "HUMANS 3  • 6" (wins, alive) | "• 2  1 ZOMBIES" - one line each, right next to the ROUND block
 		static l1[64], l2[64];
-		formatex(l1, charsmax(l1), "%s %d   %s %d", en ? "HUMANS" : "İNSANLAR", hw, dot, humans);
+		formatex(l1, charsmax(l1), "%s %d   %s %d", en ? "HUMANS" : "INSANLAR", hw, dot, humans);
 		SideBlock(a, charsmax(a), l1, true);
 		set_dhudmessage(C_HUM[0], C_HUM[1], C_HUM[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		show_dhudmessage(id, "%s", a);
@@ -334,7 +334,7 @@ public task_Slow()
 		}
 		else
 		{
-			formatex(l2, charsmax(l2), "%s %d   %d %s", dot, zombies, zw, en ? "ZOMBIES" : "ZOMBİLER");
+			formatex(l2, charsmax(l2), "%s %d   %d %s", dot, zombies, zw, en ? "ZOMBIES" : "ZOMBILER");
 			SideBlock(b, charsmax(b), l2, false);
 			set_dhudmessage(C_ZOM[0], C_ZOM[1], C_ZOM[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		}
@@ -384,7 +384,7 @@ ComboFlush(id, Float:now)
 	new txt[96], n, bool:en = En(id);
 	n = formatex(txt, charsmax(txt), "-%d", g_iCombo[id]);
 	if (g_iHits[id] > 1) n += formatex(txt[n], charsmax(txt) - n, "   x%d", g_iHits[id]);
-	if (g_bKill[id]) formatex(txt[n], charsmax(txt) - n, "^n%s", en ? "KILL" : "ÖLDÜRÜLDÜ");
+	if (g_bKill[id]) formatex(txt[n], charsmax(txt) - n, "^n%s", en ? "KILL" : "OLDURULDU");
 	else if (g_bHs[id]) formatex(txt[n], charsmax(txt) - n, "^n%s", en ? "HEADSHOT" : "KAFADAN");
 	new r, g, b;
 	if (g_bKill[id]) { r = 255; g = 64; b = 64; }
@@ -409,7 +409,7 @@ public vxc_notify(id, const text[])
 		copy(g_szNote[id], charsmax(g_szNote[]), text);
 		new dot[8]; Dot(dot, charsmax(dot));
 		set_dhudmessage(245, 245, 250, 0.72, 0.10, 0, 0.0, 1.06, 0.0, 0.0);
-		show_dhudmessage(id, "%s iPad   %s^n%s", dot, En(id) ? "now" : "şimdi", text);
+		show_dhudmessage(id, "%s iPad   %s^n%s", dot, En(id) ? "now" : "simdi", text);
 	}
 	if (pref & 1)
 	{
