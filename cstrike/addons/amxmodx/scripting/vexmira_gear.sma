@@ -14071,6 +14071,7 @@ return -1;
 bool:ZcCompOn(comp)
 {
 new i = ZcCompMod(comp);
+if (i == 9) return ZcHaxReady(); // Horse Axe: vx42_horseaxe.amxx
 return i >= 0 && g_bZcOn[i];
 }
 ZcModulesOn()
@@ -14084,7 +14085,7 @@ console_print(id,"8 yeni ozel silah core tarafindadir: vex_status | HEV kaldiril
 for (new i = 6; i < ZC_MODS; i++)
 if(i!=10) console_print(id, "module %-18s component %2d : %s", ZC_MOD_NAME[i], ZC_MOD_COMP[i], g_bZcOn[i] ? "ON" : "OFF (missing/damaged asset, see amxx log)");
 for (new i = 0; i < ZC_MODS; i++)
-if (i>=6 && i!=9 && i!=10 && !g_bZcOn[i]) log_amx("[Community] NOT READY: module %s is off (missing/damaged asset)", ZC_MOD_NAME[i]);
+if (i>=6 && i!=8 && i!=9 && i!=10 && !g_bZcOn[i]) log_amx("[Community] NOT READY: module %s is off (missing/damaged asset)", ZC_MOD_NAME[i]);
 }
 ZcCall(comp, op, id)
 {
@@ -14136,7 +14137,7 @@ case ZCOP_give: return lsb_vex_give(id);
 case ZCOP_has: return lsb_vex_has(id);
 case ZCOP_remove: return lsb_vex_remove(id);
 }
-case 10: return 0; // Horse Axe / Tomahawk removed.
+case 10: return ZcHaxCall(op == ZCOP_give ? "vex_give" : op == ZCOP_has ? "vex_has" : op == ZCOP_remove ? "vex_remove" : "", id); // Horse Axe: vx42_horseaxe.amxx
 case 11: switch (op) {
 case ZCOP_give: return hev_vex_give(id);
 case ZCOP_has: return hev_vex_has(id);
@@ -14260,15 +14261,15 @@ g_bZcOn[4]=false; // Replaced by core Arsenal8.
 g_bZcOn[5]=false; // Replaced by core Arsenal8.
 g_zcCurMod = 6; g_zcGuardFail = false; drs_plugin_precache(); g_bZcOn[6] = !g_zcGuardFail;
 g_zcCurMod = 7; g_zcGuardFail = false; kat_plugin_precache(); g_bZcOn[7] = !g_zcGuardFail;
-g_zcCurMod = 8; g_zcGuardFail = false; lsb_plugin_precache(); g_bZcOn[8] = !g_zcGuardFail;
-g_bZcOn[9]=false; // Horse Axe / Tomahawk removed; no models, sounds or hooks.
+g_bZcOn[8]=false; // v10.2: Light Saber kaldirildi (model / ses yuklenmez, indirilmez)
+g_bZcOn[9]=false; // v10.2: Horse Axe ayri eklentide (vx42_horseaxe.amxx); hazir olunca ZcHaxReady() acar
 g_bZcOn[10]=false; // HEV removed: no models/sounds/hooks are loaded.
 g_zcCurMod = 11; g_zcGuardFail = false; jet_plugin_precache(); g_bZcOn[11] = !g_zcGuardFail;
 g_zcCurMod = 12; g_zcGuardFail = false; mgn_plugin_precache(); g_bZcOn[12] = !g_zcGuardFail;
 g_bZcOn[13] = true;
 g_zcCurMod = -1;
 for (new i = 0; i < ZC_MODS; i++)
-if (i>=6 && i!=9 && i!=10 && !g_bZcOn[i]) log_amx("[Vexmira] modul %s KAPALI: eksik/bozuk dosya (yukaridaki AssetGuard satirlari). Diger her sey calisiyor.", ZC_MOD_NAME[i]);
+if (i>=6 && i!=8 && i!=9 && i!=10 && !g_bZcOn[i]) log_amx("[Vexmira] modul %s KAPALI: eksik/bozuk dosya (yukaridaki AssetGuard satirlari). Diger her sey calisiyor.", ZC_MOD_NAME[i]);
 }
 // 5.3.1: precache after map load = engine Host_Error (server shutdown) -> refuse instead
 new bool:g_bPcClosed531, g_iPcLate531;
@@ -19612,6 +19613,7 @@ public plugin_natives()
 register_native("vx521_pair_version","Vx521PairVersion");
 register_library("vexmira_gear45");
 register_native("vx45_call","VxGearCall");
+register_native("vx42_is_zombie","VxGearIsZombie"); // v10.2: vx42_horseaxe.amxx
 register_native("vx45_ready","VxGearReady");
 register_native("vx45_count","VxGearCount");
 register_native("vx45_status","VxGearStatus");
@@ -19620,6 +19622,7 @@ register_native("vx45_write","VxGearWrite");
 register_native("vx563_cancel_weapon_tasks","VxCancelWeaponTasks563");
 }
 public VxGearCall(plugin, params) { return ZcCall(get_param(1),get_param(2),get_param(3)); }
+public VxGearIsZombie(plugin, params) { new id = get_param(1); return (1 <= id <= 32 && is_user_connected(id)) ? vx45_corezombie(id) : 0; }
 public VxGearReady(plugin, params) { return ZcCompOn(get_param(1)); }
 public VxGearCount(plugin, params) { return ZcModulesOn(); }
 public VxGearStatus(plugin, params) { ZcModuleStatus(get_param(1)); return 1; }
@@ -19687,4 +19690,23 @@ remove_task(id+lsb_TASK_TURN+ZC_TOFF_LSB);remove_task(id+lsb_TASK_SLASH+ZC_TOFF_
 drs_g_Attack_Mode[id]=0;drs_g_Checking_Mode[id]=0;kat_g_Attack_Mode[id]=0;kat_g_Checking_Mode[id]=0;
 lsb_UnSet_BitVar(lsb_g_TempingAttack,id);lsb_UnSet_BitVar(lsb_g_InSpecialAttack,id);
 return 1;
+}
+
+// v10.2: Horse Axe lives in its own plugin (vx42_horseaxe.amxx); the coin knife shop reaches it through these
+stock ZcHaxCall(const fn[], id)
+{
+	if (!fn[0] || !ZcHaxReady()) return 0;
+	if (callfunc_begin(fn, "vx42_horseaxe.amxx") != 1) return 0;
+	callfunc_push_int(id);
+	return callfunc_end();
+}
+stock bool:ZcHaxReady()
+{
+	static cached = -1;
+	if (cached == -1)
+	{
+		cached = 0;
+		if (callfunc_begin("vex_ready", "vx42_horseaxe.amxx") == 1) cached = callfunc_end() ? 1 : 0;
+	}
+	return cached == 1;
 }

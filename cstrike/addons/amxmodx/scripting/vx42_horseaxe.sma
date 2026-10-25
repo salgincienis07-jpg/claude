@@ -74,7 +74,7 @@ new g_IsConnected, g_IsAlive, g_PlayerWeapon[33], g_HamBot
 
 public plugin_init()
 {
-    vex_register_component(10);
+    // v10.2: kayit vexmira_gear uzerinden (ZcHaxReady); eski vx42_register_component yok
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	// Safety
@@ -93,11 +93,13 @@ public plugin_init()
 
 }
 
+new bool:g_bHaxReady
 public plugin_precache()
 {
     if (!VexAssetGuard("vx42_horseaxe")) return;
 	precache_model(MODEL_V)
 	precache_model(MODEL_P)
+	g_bHaxReady = true
 	
 	for(new i = 0; i < sizeof(HorseAxe_Sounds); i++)
 		VexPcSnd(HorseAxe_Sounds[i], (i==1||i==2||i==3||i==4||i==5||i==7) ? true : false)
@@ -541,6 +543,7 @@ public get_player_weapon(id)
 --------- End of SAFETY ----------
 =================================*/
 
+public vex_ready() { return g_bHaxReady ? 1 : 0; }   // vexmira_gear: bicak pazarda gorunsun mu
 public vex_give(id) { if (!is_user_alive(id) || vex_is_zombie(id)) return 0; Get_HorseAxe(id); return vex_has(id); }
 public vex_remove(id) { Remove_Papin(id); return 1; }
 public vex_has(id) { return Get_BitVar(g_Had_HorseAxe, id) ? 1 : 0; }

@@ -39,8 +39,10 @@ new g_pOn, g_pHide, g_pAscii, g_pDmg, g_pFast, g_pGap;
 new g_iMax, bool:g_bCore, g_iFrame, bool:g_bAscii;
 new Float:g_fNoteUntil[33], bool:g_bFastSet[33], g_szNote[33][100];
 // damage combo
-new g_iCombo[33], g_iHits[33], bool:g_bHs[33], bool:g_bKill[33], bool:g_bBossHit[33], bool:g_bDirty[33];
-new Float:g_fComboEnd[33], Float:g_fComboShow[33], g_iComboVictim[33];
+new bool:g_bHs[33], bool:g_bBossHit[33], g_iComboVictim[33];
+#define NUM_GAP 0.06
+new const NUM_PAL[][3] = { {255,222,70}, {255,150,40}, {90,210,255}, {255,110,190}, {150,255,90}, {245,245,245}, {190,140,255} };
+new g_iNumPend[33], Float:g_fNumAt[33], g_iNumCol[33], g_iNumSec[33], Float:g_fHpAt[33];
 
 new const C_HUM[3] = { 92, 200, 255 };
 new const C_ZOM[3] = { 255, 74, 74 };
@@ -227,7 +229,7 @@ public task_Fast()
 	for (new id = 1; id <= g_iMax; id++)
 	{
 		if (!is_user_connected(id) || is_user_bot(id)) continue;
-		if (g_bDirty[id] || (g_iCombo[id] && now >= g_fComboEnd[id])) ComboFlush(id, now);
+		if (g_iNumPend[id] && now - g_fNumAt[id] >= NUM_GAP) NumFlush(id, now);
 		new bool:alive = is_user_alive(id) ? true : false;
 		if (alive && (vxc_hud(id, F_SET) & SET_NO_HUD)) continue;
 
@@ -263,7 +265,8 @@ public task_Fast()
 		new w = WeaponInfo(id, wn, charsmax(wn), clip, bp, maxclip);
 		if (!list && !zombie && w && clip >= 0) n += formatex(c[n], charsmax(c) - n, "%s     %d / %d^n", wn, clip, bp);
 		else if (!list && !zombie && w && wn[0]) n += formatex(c[n], charsmax(c) - n, "%s^n", wn);
-		else if (zombie) n += formatex(c[n], charsmax(c) - n, "%s^n", special ? (en ? "SPECIAL ZOMBIE" : "OZEL ZOMBI") : (en ? "ZOMBIE" : "ZOMBI"));
+		else if (zombie && special) n += formatex(c[n], charsmax(c) - n, "%s^n", en ? "SPECIAL ZOMBIE" : "OZEL ZOMBI");
+		else if (zombie) { new ck[12]; formatex(ck, charsmax(ck), "CLASS_%d", vxc_hud(id, F_JOB)); n += formatex(c[n], charsmax(c) - n, "%L^n", id, ck); }   // zombi sinifinin adi
 		Thousands(get_member(id, m_iAccount), money, charsmax(money));
 		Thousands(vxc_hud(id, F_VC), vc, charsmax(vc));
 		Thousands(vxc_hud(id, F_AP), ap, charsmax(ap));
@@ -341,7 +344,10 @@ public task_Slow()
 	}
 }
 
-// ------------------------------------------------------------------ damage combo
+// ------------------------------------------------------------------ hit numbers + remaining HP
+// v10.2: her vurus crosshair cevresinde rastgele bir noktada renkli bir sayi olarak cikar (art arda vuruslar
+// etrafa dagilir); hedefin kalan HP si CS 1.6 nin orijinal sari orta yazisiyla (silah modu yazisi gibi) gosterilir.
+
 public fw_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 {
 	if (!g_bCore || !get_pcvar_num(g_pOn) || !get_pcvar_num(g_pDmg) || damage <= 0.0) return;
@@ -349,51 +355,50 @@ public fw_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 	if (vxc_hud(attacker, F_ZOMBIE) == vxc_hud(victim, F_ZOMBIE)) return;
 	if (vxc_hud(attacker, F_SET) & SET_NO_DMGNUM) return;
 	new Float:now = get_gametime();
-	if (g_iComboVictim[attacker] != victim || now >= g_fComboEnd[attacker]) { g_iCombo[attacker] = 0; g_iHits[attacker] = 0; g_bHs[attacker] = false; g_bKill[attacker] = false; }
+	if (g_iComboVictim[attacker] != victim) { g_iNumPend[attacker] = 0; g_bHs[attacker] = false; }
 	g_iComboVictim[attacker] = victim;
-	g_iCombo[attacker] += floatround(damage);
-	g_iHits[attacker]++;
+	g_iNumPend[attacker] += max(1, floatround(damage));
 	if ((bits & DMG_BULLET) && get_member(victim, m_LastHitGroup) == HIT_HEAD) g_bHs[attacker] = true;
 	g_bBossHit[attacker] = vxc_hud(0, F_BOSS) == victim;
-	g_fComboEnd[attacker] = now + 1.1;
-	g_bDirty[attacker] = true;
-	if (now >= g_fComboShow[attacker]) ComboFlush(attacker, now);
+	if (now - g_fNumAt[attacker] >= NUM_GAP) NumFlush(attacker, now);
+	if (now - g_fHpAt[attacker] >= 0.1 && is_user_alive(victim)) HpLine(attacker, victim, now);
 }
 
 public fw_KilledPost(victim, killer)
 {
-	if (1 <= killer <= g_iMax && killer != victim && g_iComboVictim[killer] == victim && g_iCombo[killer] > 0)
-	{
-		g_bKill[killer] = true; g_bDirty[killer] = true;
-		ComboFlush(killer, get_gametime());
-	}
+	if (!(1 <= killer <= g_iMax) || killer == victim || is_user_bot(killer) || !is_user_connected(killer) || g_iComboVictim[killer] != victim) return;
+	if (g_iNumPend[killer]) NumFlush(killer, get_gametime());
+	new name[32]; get_user_name(victim, name, charsmax(name));
+	client_print(killer, print_center, En(killer) ? "%s  -  KILLED" : "%s  -  OLDURULDU", name);
+	g_iComboVictim[killer] = 0; g_fHpAt[killer] = get_gametime() + 0.6;   // kill yazisi biraz ekranda kalsin
 }
 
-ComboFlush(id, Float:now)
+// a number at a random point on a ring around the crosshair; every hit gets a new spot and colour
+NumFlush(id, Float:now)
 {
-	if (!g_iCombo[id]) { g_bDirty[id] = false; return; }
-	if (!g_bDirty[id])
-	{
-		if (now >= g_fComboEnd[id]) { g_iCombo[id] = 0; g_iHits[id] = 0; }
-		return;
-	}
-	if (now < g_fComboShow[id]) return;      // max ~4 updates per second
-	g_bDirty[id] = false;
-	g_fComboShow[id] = now + 0.33;
-	new txt[96], n, bool:en = En(id);
-	n = formatex(txt, charsmax(txt), "-%d", g_iCombo[id]);
-	if (g_iHits[id] > 1) n += formatex(txt[n], charsmax(txt) - n, "   x%d", g_iHits[id]);
-	if (g_bKill[id]) formatex(txt[n], charsmax(txt) - n, "^n%s", en ? "KILL" : "OLDURULDU");
-	else if (g_bHs[id]) formatex(txt[n], charsmax(txt) - n, "^n%s", en ? "HEADSHOT" : "KAFADAN");
+	new d = g_iNumPend[id]; if (d <= 0) return;
+	g_iNumPend[id] = 0; g_fNumAt[id] = now;
 	new r, g, b;
-	if (g_bKill[id]) { r = 255; g = 64; b = 64; }
+	if (g_bHs[id]) { r = 255; g = 52; b = 52; }
 	else if (g_bBossHit[id]) { r = 214; g = 122; b = 255; }
-	else if (g_bHs[id]) { r = 255; g = 206; b = 70; }
-	else if (vxc_hud(id, F_ZOMBIE)) { r = 150; g = 255; b = 92; }
-	else { r = 160; g = 225; b = 255; }
-	set_dhudmessage(r, g, b, 0.54, 0.54, 0, 0.0, g_bKill[id] ? 0.8 : 0.4, 0.0, 0.0);
-	show_dhudmessage(id, "%s", txt);
-	if (g_bKill[id]) { g_iCombo[id] = 0; g_iHits[id] = 0; g_bKill[id] = false; }
+	else { new c = (g_iNumCol[id] + 1 + random(sizeof NUM_PAL - 1)) % sizeof NUM_PAL; g_iNumCol[id] = c; r = NUM_PAL[c][0]; g = NUM_PAL[c][1]; b = NUM_PAL[c][2]; }
+	// ring around the crosshair (never on it), each hit in another sector so consecutive numbers do not overlap
+	g_iNumSec[id] = (g_iNumSec[id] + 2 + random(4)) % 8;
+	new Float:ang = (float(g_iNumSec[id]) + random_float(0.15, 0.85)) * 0.7854, Float:rad = random_float(0.75, 1.0);
+	new Float:x = 0.5 + floatcos(ang, radian) * 0.11 * rad - 0.015;
+	new Float:y = 0.5 + floatsin(ang, radian) * 0.13 * rad - 0.015;
+	set_dhudmessage(r, g, b, floatclamp(x, 0.0, 0.95), floatclamp(y, 0.0, 0.95), 0, 0.0, 0.45, 0.0, 0.25);
+	if (g_bHs[id]) show_dhudmessage(id, "%d!", d); else show_dhudmessage(id, "%d", d);
+	g_bHs[id] = false;
+}
+
+// remaining HP of the target: original CS 1.6 yellow centre text (same place as "Switched to burst-fire mode")
+HpLine(id, victim, Float:now)
+{
+	if (now < g_fHpAt[id]) return;
+	g_fHpAt[id] = now + 0.1;
+	new name[32]; get_user_name(victim, name, charsmax(name));
+	client_print(id, print_center, "%s  :  %d HP", name, get_user_health(victim));
 }
 
 // ------------------------------------------------------------------ iPad notification banner
@@ -427,8 +432,8 @@ public cmd_TestDmg()
 	new a[16]; read_argv(1, a, charsmax(a)); new kind = str_to_num(a);
 	for (new p = 1; p <= g_iMax; p++) if (is_user_connected(p) && !is_user_bot(p))
 	{
-		g_iCombo[p] = 245 + random(300); g_iHits[p] = 3 + random(5); g_bHs[p] = kind == 1; g_bKill[p] = kind == 2; g_bBossHit[p] = kind == 3;
-		g_fComboEnd[p] = get_gametime() + 1.1; g_fComboShow[p] = 0.0; g_bDirty[p] = true; ComboFlush(p, get_gametime());
+		g_iNumPend[p] = 25 + random(90); g_bHs[p] = kind == 1; g_bBossHit[p] = kind == 3; NumFlush(p, get_gametime());
+		client_print(p, print_center, "Test  :  %d HP", 1000 + random(4000));
 	}
 	return PLUGIN_HANDLED;
 }
@@ -437,5 +442,5 @@ public client_disconnected(id)
 {
 
 	g_fNoteUntil[id] = 0.0; g_bFastSet[id] = false; g_szNote[id][0] = 0;
-	g_iCombo[id] = 0; g_iHits[id] = 0; g_bDirty[id] = false; g_iComboVictim[id] = 0;
+	g_iNumPend[id] = 0; g_fNumAt[id] = 0.0; g_fHpAt[id] = 0.0; g_iComboVictim[id] = 0;
 }

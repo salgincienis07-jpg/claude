@@ -13751,8 +13751,7 @@ return;
 new key[16],nm[32];
 formatex(key,charsmax(key),"NMODE_%d",g_iNadeMode[id][slot]);
 formatex(nm,charsmax(nm),"%L",id,key);
-set_dhudmessage(CLR_WARN,-1.0,0.62,0,0.0,2.0,0.0,0.3);
-show_dhudmessage(id,"%L",id,"NMODE_HUD",nm);
+client_print(id,print_center,"%L",id,"NMODE_HUD",nm);
 }
 public fw_NadeAttack2(weapon)
 {
@@ -29664,6 +29663,7 @@ for(new k=0;k < get_pluginsnum();k++)
 if(k==self)continue;
 if(get_plugin(k,file,charsmax(file),title,charsmax(title),ver,charsmax(ver),author,charsmax(author),status,charsmax(status))== -1)
 continue;
+if(equali(file,"vx42_horseaxe.amxx"))continue;
 new bool:dup=VexIsOldCopy(title,ver,k);
 if(!dup&&equal(title,PLUGIN)&& equal(ver,VERSION)&& k > self)dup=true;
 if(!dup)continue;
@@ -32034,7 +32034,9 @@ TabFixWL61();
 if(!TabItemOn61()|| !is_user_alive(id)|| g_bBoss[id]||(is_user_bot(id)&& !get_pcvar_num(g_pTabBots61)))return;
 TabWeaponList61(id);
 if(rg_has_item_by_name(id,"weapon_c4"))return;
+new prev=get_member(id,m_pActiveItem);
 rg_give_custom_item(id,"weapon_c4",GT_APPEND,TAB61_UID);
+if(GetActiveWeaponId(id)==WEAPON_C4){if(prev>0&&!is_nullent(prev)&&get_member(id,m_pActiveItem)!=prev)rg_switch_weapon(id,prev);else engclient_cmd(id,"weapon_knife");}
 }
 public task_TabGive61(tid){TabGive61(tid - 6161000);}
 TabGiveLater61(id,Float:delay=0.3)
@@ -32610,7 +32612,7 @@ public N_TabLink5(plugin,params){new r=get_param(1);if(r>=0)g_bRlReady621=r>0;if
 public N_Board5(plugin,params){new b=get_param(1),row=get_param(2),t[160],e[96];if(row<0)return 0;if(b==0){if(row>=g_iTopCount)return 0;UrlEnc60(g_szTopName[row],e,90);formatex(t,159,"%s~%d~%d",e,CalcLevel(g_iTopXP[row]),g_iTopKills[row]);}else{b=clamp(b-1,0,1);if(row>=g_iLbN60[b])return 0;UrlEnc60(g_szLbName60[b][row],e,90);formatex(t,159,"%s~%d",e,g_iLbVal60[b][row]);}set_string(3,t,get_param(4));return 1;}
 // v4 HUD data: f 99 = HUD plugin is running (core stops its own bars/top board)
 public N_Hud64(plugin,params){new id=get_param(1),f=get_param(2);if(f==99){g_bHud4=true;return 1;}
-switch(f){case 0:return g_iMode;case 1:return g_iEvent;case 2:return g_iRound;case 3:return RoundsTotal();case 4:return g_iBoss;case 5:{if(!g_iBoss||!is_user_alive(g_iBoss))return -1;new Float:bh=Float:get_entvar(g_iBoss,var_health);return clamp(floatround(bh*100.0/float(max(1,g_iBossMaxHP))),0,100);}case 6:return g_iBossType;case 20:return g_iJob[id];case 9:return g_bRoundEnded;}
+switch(f){case 0:return g_iMode;case 1:return g_iEvent;case 2:return g_iRound;case 3:return RoundsTotal();case 4:return g_iBoss;case 5:{if(!g_iBoss||!is_user_alive(g_iBoss))return -1;new Float:bh=Float:get_entvar(g_iBoss,var_health);return clamp(floatround(bh*100.0/float(max(1,g_iBossMaxHP))),0,100);}case 6:return g_iBossType;case 20:return g_bZombie[id]?(g_bMinion[id]?0:g_iClass[id]):g_iJob[id];case 9:return g_bRoundEnded;}
 if(!(1<=id<=g_iMax)||!is_user_connected(id))return 0;
 switch(f){case 7:return g_bZombie[id];case 8:return g_bBoss[id]||g_bNemesis[id]||g_bAssassin[id];case 10:return g_iVC[id];case 11:return g_iAP[id];case 12:return g_iLang[id];case 13:return g_iSet[id];case 14:return g_iLevel[id];case 15:return g_iUnread62[id];
 case 16:{new k,v[2]={1,1};for(new i=0;g_szPref4[id][i];i++)if(g_szPref4[id][i]=='*'){k++;if((k==5||k==6)&&g_szPref4[id][i+1]=='0')v[k-5]=0;}return v[0]|(v[1]<<1);}
