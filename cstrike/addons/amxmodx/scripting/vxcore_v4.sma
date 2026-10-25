@@ -31825,7 +31825,7 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=102#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=104#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)
@@ -32223,7 +32223,7 @@ for(new p=1;p<=g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 Tab62LoadSocial(id)
 {
 if(is_user_bot(id))return;
-get_user_authid(id,g_szSid62[id],charsmax(g_szSid62[]));
+ComputeKey(id,g_szSid62[id],charsmax(g_szSid62[])); // v10.4: same rule as the main save (shared LAN ids use the name)
 if(g_hSocial62==INVALID_HANDLE||!g_szSid62[id][0])return;
 new key[48];
 formatex(key,charsmax(key),"f_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szFriends62[id],charsmax(g_szFriends62[]));
