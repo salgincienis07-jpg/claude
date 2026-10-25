@@ -738,3 +738,9 @@ html.lite .bkcard:after{display:none}
 html.lite .app{-webkit-transform:none!important;transform:none!important;opacity:1!important;display:none}
 html.lite .app.open{display:block}
 html.lite .home{-webkit-transform:none!important;transform:none!important}
+/* v10 admin: bank card */
+.bkastat{display:table;width:100%;table-layout:fixed;margin-bottom:8px}
+.bkastat>div{display:table-cell;padding:4px 6px 4px 0}
+.bkastat small{display:block;font-size:11px;color:#8e8e93;text-transform:uppercase;letter-spacing:.4px}
+.bkastat b{font-size:14px}.bkastat b.red{color:#ff453a}.bkastat b.grn{color:#30d158}
+.bkaf{margin-top:10px}.bkaf .mkseg{margin-bottom:8px}

@@ -31817,7 +31817,7 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=100#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=101#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)

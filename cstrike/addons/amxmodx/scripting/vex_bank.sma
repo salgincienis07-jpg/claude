@@ -246,6 +246,7 @@ else if(equal(act,"bpprem"))Premium(id);
 else if(equal(act,"bpclaim"))Claim(id,str_to_num(a),str_to_num(b));
 else if(equal(act,"bpall"))ClaimAll(id);
 else if(equal(act,"bkview"))Res(id,"ok~bkview");
+else if(equal(act,"bkadm"))AdminBank(id,a,str_to_num(b),c);
 else Res(id,"err~%s",tr?"Bilinmeyen banka islemi":"Unknown bank action");
 }
 DayRoll(id){new d=VXDAY;if(g_iTxDay[id]!=d){g_iTxDay[id]=d;g_iTxSent[id][0]=0;g_iTxSent[id][1]=0;}}
@@ -439,6 +440,17 @@ n+=formatex(buf[n],len-n,",9.%d.1.%d.%d|",(g_iMDone[id]>>3)&1,LOGIN_XP,(g_iMDone
 for(new k=0;k<3;k++){new s=WM[k][0];n+=formatex(buf[n],len-n,"%s%d.%d.%d.%d.%d",k?",":"",k,clamp(st[s]-g_iWBase[id][s],0,WM[k][1]),WM[k][1],WM[k][2],(g_iWDone[id]>>k)&1);}
 n+=formatex(buf[n],len-n,"~%d",86400-((now+10800)%86400));
 }
+if(equal(app,"adm")&&(get_user_flags(id)&(ADMIN_BAN|ADMIN_RCON)))
+{
+// ba = uid~debtVC~debtAP~blocked~frozenVC~frozenAP~score~leftVC~leftAP;...  (players with any bank state; others are clean)
+new first=1,cnt;
+for(new p=1;p<=32&&cnt<14&&n<len-60;p++)
+{
+if(!is_user_connected(p)||is_user_bot(p)||!g_bOk[p])continue;
+if(!g_iDebt[p][0]&&!g_iDebt[p][1]&&!g_iFrz[p][0]&&!g_iFrz[p][1]&&g_iScore[p]==500)continue;
+n+=formatex(buf[n],len-n,"%s%d~%d~%d~%d~%d~%d~%d~%d~%d",first?"&ba=":";",get_user_userid(p),g_iDebt[p][0],g_iDebt[p][1],Blocked(p),g_iFrz[p][0],g_iFrz[p][1],g_iScore[p],g_iDebt[p][0]?g_iDue[p][0]-now:0,g_iDebt[p][1]?g_iDue[p][1]-now:0);first=0;cnt++;
+}
+}
 if(equal(app,"bank")&&g_iHistN[id])
 {
 n+=formatex(buf[n],len-n,"&bh=");
@@ -490,4 +502,62 @@ new a[32],b[16];read_argv(1,a,31);read_argv(2,b,15);new t=Find(id,a);if(!t)retur
 if(!g_bOk[t])Load(t);if(!g_bOk[t])return PLUGIN_HANDLED;
 Season(t);g_iBpXp[t]=clamp(g_iBpXp[t]+str_to_num(b),0,TIERS*max(1,get_pcvar_num(g_pTierXp)));Save(t);
 console_print(id,"[BANK] sezon xp=%d seviye=%d",g_iBpXp[t],Tier(t));return PLUGIN_HANDLED;
+}
+
+// ---------------------------------------------------------------- tablet admin app (Yonetim > oyuncu > Vexmira Bank)
+// admin (ban flag): unblock / clear debt, +1 day due.  founder (rcon flag): give / take VC or AP, set credit score.
+// spec: v<amount> / a<amount> (give, take) or the score (score)
+AdminBank(id,const op[],uid,const spec[])
+{
+new bool:tr=TR(id),fl=get_user_flags(id);
+new bool:founder=(fl&ADMIN_RCON)!=0,bool:admin=founder||(fl&ADMIN_BAN)!=0;
+if(!admin){Res(id,"err~%s",tr?"Yetkin yok":"No permission");return;}
+new t=0;for(new p=1;p<=32;p++)if(is_user_connected(p)&&!is_user_bot(p)&&get_user_userid(p)==uid){t=p;break;}
+if(!t){Res(id,"err~%s",tr?"Oyuncu oyunda degil":"Player is not in the game");return;}
+if(!g_bOk[t])Load(t);
+if(!g_bOk[t]){Res(id,"err~%s",tr?"Oyuncunun hesabi hazir degil":"Player account not ready");return;}
+new an[32],tn[32],msg[160];get_user_name(id,an,31);get_user_name(t,tn,31);
+if(equal(op,"unblock"))
+{
+new d0=g_iDebt[t][0],d1=g_iDebt[t][1];
+for(new c=0;c<2;c++){g_iDebt[t][c]=0;g_bLate[t][c]=false;g_iPrin[t][c]=0;}
+Unblock(t);Save(t);
+log_amx("[BANK] ADMIN %s: %s borcu silindi / bloke kalkti (%d VC %d AP)",an,tn,d0,d1);
+formatex(msg,charsmax(msg),TR(t)?"Banka: yonetici %s borcunu sildi, hesabin acildi":"Bank: admin %s cleared your debt, account unlocked",an);vxc_note9(t,msg,1);
+Res(id,"ok~bkadm");return;
+}
+if(equal(op,"extend"))
+{
+new n;for(new c=0;c<2;c++)if(g_iDebt[t][c]&&!g_bLate[t][c]){g_iDue[t][c]+=86400;n++;}
+if(!n){Res(id,"err~%s",tr?"Uzatilacak (vadesi gecmemis) kredi yok":"No running loan to extend");return;}
+Save(t);log_amx("[BANK] ADMIN %s: %s kredi vadesi +1 gun",an,tn);
+formatex(msg,charsmax(msg),TR(t)?"Banka: yonetici %s kredi vadeni 1 gun uzatti":"Bank: admin %s extended your loan by 1 day",an);vxc_note9(t,msg,1);
+Res(id,"ok~bkadm");return;
+}
+if(!founder){Res(id,"err~%s",tr?"Bu islem sadece kurucu icindir":"Founder only");return;}
+if(equal(op,"score"))
+{
+new v=str_to_num(spec);if(v<0||v>1000){Res(id,"err~%s",tr?"Kredi notu 0-1000 olmali":"Score must be 0-1000");return;}
+g_iScore[t]=v;Save(t);log_amx("[BANK] ADMIN %s: %s kredi notu = %d",an,tn,v);
+Res(id,"ok~bkadm");return;
+}
+new c=spec[0]=='a'?CA:CV,amt=str_to_num(spec[1]);
+if((spec[0]!='a'&&spec[0]!='v')||amt<1||amt>1000000){Res(id,"err~%s",tr?"Gecersiz tutar (1 - 1.000.000)":"Invalid amount (1 - 1,000,000)");return;}
+if(equal(op,"give"))
+{
+if(!vxc_wal9(t,c==CV?amt:0,c==CA?amt:0)){Res(id,"err~%s",tr?"Bakiye eklenemedi":"Could not add balance");return;}
+log_amx("[BANK] ADMIN %s: %s hesabina +%d %s",an,tn,amt,CUR(c));
+formatex(msg,charsmax(msg),TR(t)?"Banka: yonetici %s hesabina %d %s ekledi":"Bank: admin %s added %d %s to your account",an,amt,CUR(c));vxc_note9(t,msg,1);
+Res(id,"ok~bkadm");return;
+}
+if(equal(op,"take"))
+{
+new bal=vxc_tab_value(t,c);if(bal<0){Res(id,"err~%s",tr?"Hesap hazir degil":"Account not ready");return;}
+new take=min(amt,bal);if(take<1){Res(id,"err~%s",tr?"Oyuncunun bu bakiyesi yok":"Player has no balance of this kind");return;}
+if(!vxc_wal9(t,c==CV?-take:0,c==CA?-take:0)){Res(id,"err~%s",tr?"Bakiye alinamadi":"Could not take balance");return;}
+log_amx("[BANK] ADMIN %s: %s hesabindan -%d %s",an,tn,take,CUR(c));
+formatex(msg,charsmax(msg),TR(t)?"Banka: yonetici %s hesabindan %d %s aldi":"Bank: admin %s took %d %s from your account",an,take,CUR(c));vxc_note9(t,msg,1);
+Res(id,"ok~bkadm");return;
+}
+Res(id,"err~%s",tr?"Bilinmeyen islem":"Unknown action");
 }

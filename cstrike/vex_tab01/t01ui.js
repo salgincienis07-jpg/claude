@@ -2114,6 +2114,52 @@ document.addEventListener('keyup',function(e){var t=e.target;if(!t||!t.id)return
   if(last<0){last=top;return;}
   if(top>last&&own){last=top;return;} // the answer to the player's own action already showed its note
   if(top>last){last=top;var k=x4nkind(txt);banner(D.lang==='tr'?'Yeni bildirim':'New notification',txt,k[0],(X4C[k[1]]||'#0a84ff,#0a84ff').split(',')[1]);SND.notif();if(!cur){HOME_SIG='';renderHome();}}};})();
+// v10: Yonetim > oyuncu > Vexmira Bank (state of the selected player + admin actions; the server checks the rights again)
+var BA={},BA_T=0;X4.bkacur='v';X4.bkaamt='';
+(function(){var hu=hashU;hashU=function(o){var u=hu(o);if(o.ba!==undefined){u.ba={};String(o.ba).split(';').forEach(function(r){var c=r.split('~').map(function(x){return num(x);});if(c[0])u.ba[c[0]]={d:[c[1],c[2]],blk:c[3]===1,frz:[c[4],c[5]],score:c[6],left:[c[7],c[8]]};});}return u;};})();
+(function(){var au=applyU;applyU=function(u){if(u.ba){BA=u.ba;BA_T=Date.now();}else if(u.pg==='adm'&&u.bk){BA={};BA_T=Date.now();}au(u);};})();
+var BKA_ARM='',BKA_T=0;
+function bkaState(uid){return BA[uid]||{d:[0,0],blk:false,frz:[0,0],score:500,left:[0,0]};}
+function bkaCard(uid,name){
+  var tr=D.lang==='tr',st=bkaState(uid),founder=D.role>=2,clean=!st.d[0]&&!st.d[1]&&!st.frz[0]&&!st.frz[1];
+  var age=Math.floor((Date.now()-BA_T)/1000);
+  function arm(op){return BKA_ARM===op+uid&&Date.now()-BKA_T<5000;}
+  var rows='<div class="bkastat">'+
+    '<div><small>'+esc(tr?'Durum':'Status')+'</small><b class="'+(st.blk?'red':clean?'grn':'')+'">'+esc(st.blk?(tr?'BLOKE':'BLOCKED'):clean?(tr?'Temiz':'Clean'):(tr?'Kredisi var':'Has a loan'))+'</b></div>'+
+    '<div><small>'+esc(tr?'Borç':'Debt')+'</small><b>'+fmtFull(st.d[0])+' VC · '+fmtFull(st.d[1])+' AP</b></div>'+
+    '<div><small>'+esc(tr?'Dondurulan':'Frozen')+'</small><b>'+fmtFull(st.frz[0])+' VC · '+fmtFull(st.frz[1])+' AP</b></div>'+
+    '<div><small>'+esc(tr?'Kredi notu':'Score')+'</small><b style="color:'+bkScoreCol(st.score)+'">'+st.score+'</b></div></div>';
+  if(st.d[0]||st.d[1])rows+='<p class="bknote">'+esc((tr?'Vade: ':'Due: ')+[0,1].filter(function(c){return st.d[c];}).map(function(c){return BCUR[c]+' '+bkDur(st.left[c]-age);}).join(' · '))+'</p>';
+  var btn='<div class="admgrid">'+
+    '<span class="abtn'+(arm('unblock')?' warn2':'')+'" data-bka="unblock">'+svg('lock')+esc(arm('unblock')?(tr?'Emin misin? Tekrar dokun':'Sure? Tap again'):(tr?'Blokeyi kaldır / borcu sil':'Unblock / clear debt'))+'</span>'+
+    '<span class="abtn" data-bka="extend">'+svg('time')+esc(tr?'Vadeyi +1 gün uzat':'Due +1 day')+'</span></div>';
+  if(founder)btn+='<div class="bkaf">'+x4segv([['v','VexCoin'],['a','AmmoPack']],'bkacur')+
+    '<div class="bkamt sm"><input id="bkaAmt" type="text" inputmode="numeric" maxlength="7" placeholder="'+esc(tr?'Tutar':'Amount')+'" value="'+esc(X4.bkaamt)+'"><span>'+BCUR[bkC(X4.bkacur)]+'</span></div>'+
+    '<div class="admgrid"><span class="abtn" data-bka="give">'+svg('plus')+esc(tr?'Bakiye ver':'Give')+'</span>'+
+    '<span class="abtn'+(arm('take')?' warn2':'')+'" data-bka="take">'+svg('down')+esc(arm('take')?(tr?'Emin misin? Tekrar dokun':'Sure? Tap again'):(tr?'Bakiye al':'Take'))+'</span>'+
+    '<span class="abtn" data-bka="score">'+svg('chart')+esc(tr?'Kredi notunu 500 yap':'Reset score to 500')+'</span></div></div>';
+  else btn+='<p class="muted" style="margin-top:6px">'+esc(tr?'Bakiye verme / alma sadece kurucu içindir.':'Giving / taking balance is founder only.')+'</p>';
+  return card('Vexmira Bank · '+name,rows+btn);
+}
+(function(){var oa=R.adm;R.adm=function(){var h=oa();if(D.role<1||admTab!=='players'||!admSel)return h;
+  var sel=null;PL.forEach(function(p){if(p[0]===admSel)sel=p;});if(!sel)return h;
+  var i=h.lastIndexOf('</div>');return h.slice(0,i)+bkaCard(sel[0],sel[1])+h.slice(i);};})();
+document.addEventListener('keyup',function(e){if(e.target&&e.target.id==='bkaAmt')X4.bkaamt=String(bkInt(e.target.value)||'');},false);
+document.addEventListener('click',function(e){
+  var el=findAttr(e.target,['data-bka']);if(!el||cur!=='adm'||!admSel)return;
+  var op=el.getAttribute('data-bka'),tr=D.lang==='tr',uid=admSel,st=bkaState(uid),c=bkC(X4.bkacur),amt=bkVal('bkaAmt');
+  if(op==='take'||op==='unblock'){if(!(BKA_ARM===op+uid&&Date.now()-BKA_T<5000)){BKA_ARM=op+uid;BKA_T=Date.now();x4re();SND.click();return;}BKA_ARM='';}
+  if(op==='give'||op==='take'){if(D.role<2){toast(tr?'Sadece kurucu':'Founder only',false);return;}if(amt<1||amt>1000000){toast(tr?'Tutar gir (1 - 1.000.000)':'Enter an amount (1 - 1,000,000)',false);return;}}
+  if(op==='extend'&&!((st.d[0]&&st.left[0]>0)||(st.d[1]&&st.left[1]>0))){toast(tr?'Uzatılacak kredi yok':'No running loan',false);return;}
+  var spec=op==='score'?'500':(X4.bkacur==='a'?'a':'v')+amt;
+  if(!bkAct('bkadm',op,uid,spec))return;
+  var nm=plName(uid),M={unblock:tr?'Borç silindi, bloke kalktı':'Debt cleared, unblocked',extend:tr?'Vade 1 gün uzatıldı':'Due extended by 1 day',score:tr?'Kredi notu 500':'Score set to 500',give:(tr?'Verildi: +':'Given: +')+fmtFull(amt)+' '+BCUR[c],take:(tr?'Alındı: −':'Taken: −')+fmtFull(amt)+' '+BCUR[c]};
+  if(op==='unblock'){BA[uid]={d:[0,0],blk:false,frz:[0,0],score:Math.min(1000,st.score+10),left:[0,0]};}
+  else if(op==='extend'){for(var k=0;k<2;k++)if(st.d[k]&&st.left[k]>0)st.left[k]+=86400;BA[uid]=st;}
+  else if(op==='score'){st.score=500;BA[uid]=st;}
+  if(uid===LIVE.uid&&(op==='give'||op==='take')){if(c)D.ap=Math.max(0,D.ap+(op==='give'?amt:-amt));else D.vc=Math.max(0,D.vc+(op==='give'?amt:-amt));}
+  X4.bkaamt='';SND.click();x5ok(nm+' · '+M[op]);x4re();
+},false);
 // ------------------------------------------------------------------ boot
 applyTheme(); applyAccent(); applyBright(); setWall(); $('screen').className = 'screen locked'; $('lockLogo').innerHTML = LOGO(); $('lockHint').textContent = L('unlock');
 $('lockNote').textContent = D.claimed ? '' : L('dailyReady');
