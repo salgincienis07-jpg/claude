@@ -29258,6 +29258,7 @@ else formatex(line,charsmax(line),"%L",id,"ZC_STANDARD");
 MenuAdd(menu,line,c*100);
 for(new i=0;i<(c ? KN_TOTAL : 5);i++){
 if(!c&&!g_bCommunityCtOk[i])continue;
+if(c&&KnifeGone(i))continue;
 new knm[48];KnifeName538(c,i,knm,charsmax(knm));
 if(c&&!KnifeReady47(i)){if(knm[0]){formatex(line,charsmax(line),"\d%s [%s]",knm,g_iLang[id]!=1?"sunucuda dosya eksik":"files missing on server");MenuAdd(menu,line,c*100+i+1);}continue;}
 if(g_iCommunitySel[id][c]==i+1)formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_EQUIPPED");
@@ -29294,7 +29295,7 @@ else if(c)CommunityApplyKnife(id+64000);
 }
 return 1;
 }
-public task_KnifeReport5(){for(new i=0;i<KN_TOTAL;i++){if(KnifeReady47(i))continue;new n[48];KnifeName538(1,i,n,47);if(!n[0])continue;if(i<4)log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> gear eklentisi dosya bulamadi ([AssetGuard] satirlarina bak)",n);else log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> vexmira.cfg MK%d_V modeli sunucuda yok (%s)",n,i-3,g_szMkV[i-4]);}}
+public task_KnifeReport5(){for(new i=0;i<KN_TOTAL;i++){if(KnifeReady47(i)||KnifeGone(i))continue;new n[48];KnifeName538(1,i,n,47);if(!n[0])continue;if(i<4)log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> gear eklentisi dosya bulamadi ([AssetGuard] satirlarina bak)",n);else log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> vexmira.cfg MK%d_V modeli sunucuda yok (%s)",n,i-3,g_szMkV[i-4]);}}
 public CommunityApplyKnife(taskid)
 {
 new id=taskid-64000;
@@ -30199,7 +30200,8 @@ while((ent=engfunc(EngFunc_FindEntityByString,ent,"classname","VexdCam"))>0){
 if(get_entvar(ent,var_owner)==id){g_iCamera47[id]=ent;break;}
 }
 }
-bool:KnifeReady47(i){if(i<0||i>=KN_TOTAL)return false;if(i<4)return ZcCompOn(i+7);return g_bMkOk[i-4];}
+bool:KnifeGone(i){return i==2||i==3||i==4;} // v10.2: Light Saber, Horse Axe, Ates Yumrugu (Balrog-9) kaldirildi
+bool:KnifeReady47(i){if(i<0||i>=KN_TOTAL||KnifeGone(i))return false;if(i<4)return ZcCompOn(i+7);return g_bMkOk[i-4];}
 KnifeName538(c,i,out[],len){if(!c)copy(out,len,COMMUNITY_CN[i]);else if(i<4)copy(out,len,COMMUNITY_KN[i]);else copy(out,len,g_szMkName[i-4]);}
 KnifeCost538(c,i){if(!c||i<4)return COMMUNITY_COIN[c][i];return g_iMkCost[i-4];}
 BannerRemove47(id)
