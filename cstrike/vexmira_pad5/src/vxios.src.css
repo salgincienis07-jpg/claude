@@ -3,14 +3,14 @@
 
 /* ---------- wallpapers: real images, same picture on lock + home (iPadOS) */
 .wall{background-color:#050206!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;-webkit-filter:none!important;filter:none!important}
-.wall.wp0{background-image:url(wp4_0.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp1{background-image:url(wp4_1.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp2{background-image:url(wp4_2.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp3{background-image:url(wp4_3.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp4{background-image:url(wp4_4.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp5{background-image:url(wp4_5.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp6{background-image:url(wp4_6.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
-.wall.wp7{background-image:url(wp4_7.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp0{background-image:url(p5w_0.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp1{background-image:url(p5w_1.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp2{background-image:url(p5w_2.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp3{background-image:url(p5w_3.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp4{background-image:url(p5w_4.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp5{background-image:url(p5w_5.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp6{background-image:url(p5w_6.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+.wall.wp7{background-image:url(p5w_7.jpg)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
 .wall .wlogo,.fog,.vignette{display:none!important}
 .wall.blur{opacity:1!important}
 .wall:after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0);transition:background .3s}
@@ -19,14 +19,14 @@ html[data-theme=light] .wall{-webkit-filter:none!important;filter:none!important
 html[data-theme=light] .wall.blur:after{background:rgba(242,242,247,.93)}
 /* wallpaper picker thumbnails use the same pictures */
 .wpt .w .lgw,.wpt .w svg,.wpt .w .em{display:none!important}
-.wpt .w.wp0{background-image:url(wp4_0.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp1{background-image:url(wp4_1.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp2{background-image:url(wp4_2.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp3{background-image:url(wp4_3.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp4{background-image:url(wp4_4.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp5{background-image:url(wp4_5.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp6{background-image:url(wp4_6.jpg)!important;background-size:cover!important;background-position:center!important}
-.wpt .w.wp7{background-image:url(wp4_7.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp0{background-image:url(p5w_0.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp1{background-image:url(p5w_1.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp2{background-image:url(p5w_2.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp3{background-image:url(p5w_3.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp4{background-image:url(p5w_4.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp5{background-image:url(p5w_5.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp6{background-image:url(p5w_6.jpg)!important;background-size:cover!important;background-position:center!important}
+.wpt .w.wp7{background-image:url(p5w_7.jpg)!important;background-size:cover!important;background-position:center!important}
 
 /* ---------- lock screen (iPadOS 17 style: lock glyph, date over a large time, notification card) */
 .lock{background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,0) 45%,rgba(0,0,0,.35))!important;background-image:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,0) 45%,rgba(0,0,0,.35))!important}
@@ -465,3 +465,9 @@ html[data-theme=light] .x4warn{color:#8a4b00}
 .x4lc em{font-style:normal;font-size:12px;color:#8e8e93;margin-left:6px}
 @media (max-width:860px){.x4lc{width:50%}}
 @media (max-width:620px){.x4kc{width:50%}}
+/* PAD5 performance: the in-game browser repaints the whole page for every running animation.
+   Decorative endless animations are switched off; transitions stay short. */
+.fog i,.lock-hint,.logo .emb{animation:none!important}
+.fog,.vignette{display:none!important}
+.x4b,.mkbtn,.mkbuy,.x4r,.mkchips span,.mkseg span{transition:none!important}
+.wg,.x4pc,.x4a,.x4av.big{box-shadow:none!important}

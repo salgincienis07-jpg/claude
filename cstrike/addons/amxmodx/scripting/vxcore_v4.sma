@@ -21,8 +21,8 @@ native vxe_zup_spend(id,cls,perk);
 native vxe_market_str(id,out[],len);
 new g_iActor4,g_szPref4[33][48],bool:g_bHud4,g_fwNote4,g_fwReply4;
 new bool:g_bRlReady621;
-new g_iRlOpenErr623;
-new g_iRelayRx624,g_iActionRx624,g_iStateWrites624,g_iStateErr624;
+new g_iActionRx624;
+new g_szPr5[33][4][8],g_iPr5[33][4];
 #pragma tabsize 0
 #pragma dynamic 32768
 native vxe_boss_giant(const name[],out[],len,Float:k,tex,build);
@@ -3469,13 +3469,9 @@ new g_szCsoOverride[33][160];
 new g_iOvhOwn[OVH_MAXENT],Float:g_fOvhDz[OVH_MAXENT];
 new Float:g_fWingDz60[33];
 #define TAB62_TASK 6262000
-#define RL_IDLE 0
-#define RL_CONNECTING 1
-#define RL_STREAM 2
+#define VXDAY ((get_systime()+10800)/86400)
 new g_pRlOn62,g_pRlHost62,g_pRlPort62,g_pRlTopic62,g_pWebBase62,g_pWebPage62;
 new g_szTopic62[40],g_szTok62[33][12],g_iSeqAck62[33],g_szRes62[33][160];
-new g_iRlSock62,g_iRlState62,Float:g_fRlNext62,Float:g_fRlLast62,g_iRlFails62;
-new g_szRlBuf62[4096],g_iRlBufLen62;
 new bool:g_bTabQuiet62,bool:g_bSelf62,Float:g_fTabSeen62[33],g_iActTick62[33],Float:g_fActWin62[33];
 #define MSG62 24
 #define NOT62 16
@@ -5033,8 +5029,8 @@ formatex(key,charsmax(key),"%s%d",prefix,idx);
 formatex(nm,charsmax(nm),"%L",id,key);
 Chat(id,msgKey,nm);
 }
-new const Float:HUDPOS_X[NUM_HUDPOS]={0.76,0.015,0.015,0.76,-1.0};
-new const Float:HUDPOS_Y[NUM_HUDPOS]={0.40,0.33,0.20,0.12,0.80};
+new const Float:HUDPOS_X[NUM_HUDPOS]={0.75,0.015,0.015,0.75,-1.0};
+new const Float:HUDPOS_Y[NUM_HUDPOS]={0.585,0.33,0.20,0.12,0.80};
 stock HudPartMode(pcvar)
 {
 new mode = get_pcvar_num(pcvar);
@@ -8671,10 +8667,10 @@ SaveData(id);
 }
 ClaimDaily(id)
 {
-new today = get_systime()/ 86400;
+new today = VXDAY;
 if(g_iDailyDay[id]== today)
 {
-new left = 86400 -(get_systime()% 86400);
+new left = 86400 -((get_systime()+10800)% 86400);
 Chat(id,"DAILY_WAIT",left / 3600,(left % 3600)/ 60);
 return;
 }
@@ -8685,7 +8681,7 @@ g_iDailyStreak[id]= 1;
 g_iDailyDay[id]= today;
 new s = min(g_iDailyStreak[id],7);
 new ap = get_pcvar_num(g_pDailyAP)+ 10 * s;
-new vc = 1 + s / 2;
+new vc = 2 + s; // v5 economy: 3..9 VC over the 7-day streak
 new xp = 50 + 25 * s;
 new dp = VipDailyPct(id);
 if(dp > 0)
@@ -22419,7 +22415,7 @@ FadeOne(id,THEME_A[t][0],THEME_A[t][1],THEME_A[t][2],60,1.2);
 Chat(id,"WELCOME",name);
 Chat(id,"WELCOME_2");
 SendFogForEvent(id);
-if(g_iDailyDay[id]< get_systime()/ 86400)
+if(g_iDailyDay[id]< VXDAY)
 set_task(3.0,"task_DailyHint",id + TASK_WELCOME);
 }
 public task_DailyHint(tid)
@@ -23461,6 +23457,7 @@ if(SpecialIndex(attacker,wid)== 7)
 power *= 1.5;
 if(get_entvar(victim,var_flags)& FL_DUCKING)
 power *= 0.5;
+{new hg=get_member(victim,m_LastHitGroup);if(hg==HIT_HEAD)power*=1.25;else if(hg==HIT_LEFTLEG||hg==HIT_RIGHTLEG)power*=0.75;} // aim matters: head pushes more, legs less
 new Float:vo[3],Float:ao[3],Float:dir[3],Float:vel[3];
 get_entvar(victim,var_origin,vo);
 get_entvar(attacker,var_origin,ao);
@@ -23905,12 +23902,15 @@ return HC_CONTINUE;
 #define HUB_CHAR     203
 #define HUB_FUN      204
 #define HUB_VIPADM   205
+#define HUB_VC       206
 #define HUB_BACK     99
-new const HUB_MARKET_ITEMS[]={1,2,18,19};
-new const HUB_CLASS_ITEMS[]={4,5,23};
-new const HUB_CHAR_ITEMS[]={31,20,32,33,34,16,22};
-new const HUB_FUN_ITEMS[]={6,9,14,15,13};
+// v5 menu: one clear place per currency and per topic
+new const HUB_MARKET_ITEMS[]={1,2,18,19};          // AP market: items, special guns, laser mines, grenade modes
+new const HUB_CLASS_ITEMS[]={4,23,5};              // zombie class, class upgrades, human job
+new const HUB_CHAR_ITEMS[]={6,20,31,32,33,16,22};  // rewards & profile: daily, quest, stats, achievements, titles, top
+new const HUB_FUN_ITEMS[]={11,12,34,14,15,9,13};   // settings & help: settings, language, chat style, modes, help, fun, unstuck
 new const HUB_VIPADM_ITEMS[]={8,17};
+new const HUB_VC_ITEMS[]={21,25,7};                // VexCoin market: knives & cosmetics, cases, perks
 ShowMainMenu(id)
 {
 new title[320],item[128];
@@ -23920,16 +23920,14 @@ VexHead(id,title,charsmax(title),"MENU_MAIN",hsub);
 new menu = VexMenuCreate(title,"menu_main_handler");
 PlayKey(id,"UI_OPEN");
 new bool:adm =(get_user_flags(id)& ADMIN_BAN)? true : false;
-MainItem60(id,menu,"MAINH_9",24,"");
-MainItem60(id,menu,"MAINH_1",HUB_MARKET,"");
 MainItem60(id,menu,"MAINH_2",3,"");
+MainItem60(id,menu,"MAINH_1",HUB_MARKET,"");
+MainItem60(id,menu,"MAINH_10",HUB_VC,"");
 MainItem60(id,menu,"MAINH_3",HUB_CLASS,"");
 menu_addblank(menu,0);
-MainItem60(id,menu,"MAINH_4",HUB_CHAR,(g_iQuest[id]>= 0 && g_bQuestDone[id])? " \y[OK]" : "");
-MainItem60(id,menu,"MAINH_5",HUB_FUN,(g_iDailyDay[id]< get_systime()/ 86400)? " \r(!)" : "");
-MainItem60(id,menu,"MAINH_10",21,"");
-menu_addblank(menu,0);
-MainItem60(id,menu,"MAINH_7",11,"");
+MainItem60(id,menu,"MAINH_4",HUB_CHAR,(g_iDailyDay[id]< VXDAY)? " \r(!)" :((g_iQuest[id]>= 0 && g_bQuestDone[id])? " \y[OK]" : ""));
+MainItem60(id,menu,"MAINH_9",24,"");
+MainItem60(id,menu,"MAINH_5",HUB_FUN,"");
 formatex(item,charsmax(item),"%s",IsVip(id)? " \y[*]" : "");
 MainItem60(id,menu,adm ? "MAINH_8A" : "MAINH_8",adm ? HUB_VIPADM : 8,item);
 MenuNoPage(menu);
@@ -23959,6 +23957,7 @@ case HUB_CLASS:{n = sizeof HUB_CLASS_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_
 case HUB_CHAR:{n = sizeof HUB_CHAR_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_CHAR_ITEMS[i];}
 case HUB_FUN:{n = sizeof HUB_FUN_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_FUN_ITEMS[i];}
 case HUB_VIPADM:{n = sizeof HUB_VIPADM_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_VIPADM_ITEMS[i];}
+case HUB_VC:{n = sizeof HUB_VC_ITEMS;for(new i = 0;i < n;i++)list[i]= HUB_VC_ITEMS[i];}
 }
 for(new k = 0;k < n;k++)
 {
@@ -23968,7 +23967,7 @@ formatex(key,charsmax(key),"PROF_%d",c - 30);
 else
 formatex(key,charsmax(key),"MAIN_%d",c);
 formatex(item,charsmax(item),"\y%L",id,key);
-if(c == 6 && g_iDailyDay[id]< get_systime()/ 86400)
+if(c == 6 && g_iDailyDay[id]< VXDAY)
 add(item,charsmax(item)," \r(!)");
 if(c == 20 && g_iQuest[id]>= 0 && g_bQuestDone[id])
 add(item,charsmax(item)," \r[OK\r]");
@@ -24028,7 +24027,7 @@ case 32: ShowAchMenu(id);
 case 33: ShowTitleMenu(id);
 case 34: ShowStyleMenu(id);
 case HUB_BACK: ShowMainMenu(id);
-case HUB_MARKET,HUB_CLASS,HUB_CHAR,HUB_FUN,HUB_VIPADM: ShowHub(id,sel);
+case HUB_MARKET,HUB_CLASS,HUB_CHAR,HUB_FUN,HUB_VIPADM,HUB_VC: ShowHub(id,sel);
 }
 }
 ShowProfileMenu(id)
@@ -28226,7 +28225,7 @@ public VxcPcReady542(plugin,params)return(g_tMdlDone != Invalid_Trie && g_tRes !
 public plugin_natives()
 {
 register_library("vexmira_core45");
-register_native("vxc_tab_value","N_TabValue622");register_native("vxc_hud","N_Hud64");
+register_native("vxc_tab_value","N_TabValue622");register_native("vxc_tab_action","N_TabAct5");register_native("vxc_tab_link","N_TabLink5");register_native("vxc_board","N_Board5");register_native("vxc_hud","N_Hud64");
 register_native("vxc_tab_key","N_TabKey622");
 register_native("vxc_tab_recover","N_TabRecover622");
 register_native("vxc_tab_credit","N_TabCredit622");
@@ -29260,8 +29259,9 @@ if(g_iCommunitySel[id][c]==0)formatex(line,charsmax(line),"%L [%L]",id,"ZC_STAND
 else formatex(line,charsmax(line),"%L",id,"ZC_STANDARD");
 MenuAdd(menu,line,c*100);
 for(new i=0;i<(c ? KN_TOTAL : 5);i++){
-if((!c && !g_bCommunityCtOk[i])||(c && !KnifeReady47(i)))continue;
+if(!c && !g_bCommunityCtOk[i])continue;
 new knm[48];KnifeName538(c,i,knm,charsmax(knm));
+if(c && !KnifeReady47(i)){if(knm[0]){formatex(line,charsmax(line),"\d%s [%s]",knm,g_iLang[id]!=1?"sunucuda dosya eksik":"files missing on server");MenuAdd(menu,line,c*100+i+1);}continue;}
 if(g_iCommunitySel[id][c]==i+1)formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_EQUIPPED");
 else if(g_iCommunityOwned[id][c]&(1<<i))formatex(line,charsmax(line),"%s [%L]",knm,id,"ZC_OWNED");
 else formatex(line,charsmax(line),"%s [%d VC]",knm,KnifeCost538(c,i));
@@ -29296,6 +29296,7 @@ else if(c)CommunityApplyKnife(id+64000);
 }
 return 1;
 }
+public task_KnifeReport5(){for(new i=0;i<KN_TOTAL;i++){if(KnifeReady47(i))continue;new n[48];KnifeName538(1,i,n,47);if(!n[0])continue;if(i<4)log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> gear eklentisi dosya bulamadi ([AssetGuard] satirlarina bak)",n);else log_amx("[VEXMIRA] Ozel bicak KAPALI: %s -> model yok/yuklenemedi: %s",n,g_szMkV[i-4]);}}
 public CommunityApplyKnife(taskid)
 {
 new id=taskid-64000;
@@ -31220,7 +31221,7 @@ return 1;
 }
 TabletInit60()
 {
-g_pTabUrl60 = register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad4/vexmira_pad_v4.html");
+g_pTabUrl60 = register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad5/vexmira_pad_v4.html");
 g_pTabItem60 = register_cvar("vex_tablet_item","1");
 g_iUptime60 = get_systime();
 RegisterSay("ipad","tablet","cmd_Tablet60");
@@ -31243,7 +31244,7 @@ register_forward(FM_CmdStart,"fw_TabletCmd60");
 RegisterHam(Ham_Item_Deploy,"weapon_knife","fw_KnifeDeploy60",1);
 LbLoad60();
 TabItemInit61();
-Tab62Init();
+Tab62Init();set_task(8.0,"task_KnifeReport5");
 }
 TabletPrecache60()
 {
@@ -31455,13 +31456,8 @@ if(!free)
 if(g_iVC[id]< CASE60_PRICE[c]){client_print_color(id,print_team_default,tr ? "^4[VEXMIRA]^1 Yetersiz VexCoin: ^3%d^1 gerekli." : "^4[VEXMIRA]^1 Not enough VexCoin: ^3%d^1 needed.",CASE60_PRICE[c]);return;}
 g_iVC[id]-= CASE60_PRICE[c];
 }
-new tot,roll,r;
-for(r = 0;r < 5;r++)if(g_iPoolN60[r])tot += CASE60_W[c][r];
-roll = random_num(1,max(1,tot));
-for(r = 0;r < 5;r++){if(!g_iPoolN60[r])continue;roll -= CASE60_W[c][r];if(roll <= 0)break;}
-r = clamp(r,0,4);
-if(!g_iPoolN60[r])r = 0;
-new code[8];copy(code,charsmax(code),g_szPool60[r][random(max(1,g_iPoolN60[r]))]);
+new r,code[8];Pr5Fill(id);copy(code,7,g_szPr5[id][c]);r=g_iPr5[id][c];if(!code[0])r=RollCase5(c,code);
+g_szPr5[id][c][0]=0;Pr5Fill(id);
 new refund = GrantCode60(id,code);
 g_iCases60[id]++;
 new nm[48];CodeName60(id,code,nm,charsmax(nm),tr);
@@ -31491,6 +31487,11 @@ new extra[48];formatex(extra,charsmax(extra),"&cr=%d~%s~%d",c,code,r);
 ReplaceStr60(extra,charsmax(extra),"$","%24");
 OpenTablet60(id,"case",extra);
 }
+RollCase5(c,code[]){new tot,roll,r;for(r=0;r<5;r++)if(g_iPoolN60[r])tot+=CASE60_W[c][r];roll=random_num(1,max(1,tot));for(r=0;r<5;r++){if(!g_iPoolN60[r])continue;roll-=CASE60_W[c][r];if(roll<=0)break;}r=clamp(r,0,4);if(!g_iPoolN60[r])r=0;code[0]=0;if(g_iPoolN60[r])copy(code,7,g_szPool60[r][random(g_iPoolN60[r])]);return r;}
+bool:Pr5Ok(const code[]){if(!code[0])return false;if(code[0]=='a'||code[0]=='$'||code[0]=='v')return true;new i=str_to_num(code[1])-1;return i>=0&&i<ItemCount60(code[0])&&ItemValid60(code[0],i);}
+Pr5Fill(id){new ch;for(new c=0;c<4;c++)if(!Pr5Ok(g_szPr5[id][c])){g_iPr5[id][c]=RollCase5(c,g_szPr5[id][c]);ch=1;}if(ch)Pr5Save(id);}
+Pr5Save(id){if(g_hSocial62==INVALID_HANDLE||!g_szSid62[id][0])return;new k[48],v[64];formatex(k,47,"r_%s",g_szSid62[id]);formatex(v,63,"%s:%d %s:%d %s:%d %s:%d",g_szPr5[id][0],g_iPr5[id][0],g_szPr5[id][1],g_iPr5[id][1],g_szPr5[id][2],g_iPr5[id][2],g_szPr5[id][3],g_iPr5[id][3]);nvault_set(g_hSocial62,k,v);}
+Pr5Load(id){new k[48],v[64],w[4][16];for(new c=0;c<4;c++)g_szPr5[id][c][0]=0;if(g_hSocial62==INVALID_HANDLE||!g_szSid62[id][0])return;formatex(k,47,"r_%s",g_szSid62[id]);if(!nvault_get(g_hSocial62,k,v,63))return;parse(v,w[0],15,w[1],15,w[2],15,w[3],15);for(new c=0;c<4;c++){new q=contain(w[c],":");if(q>0&&q<8){w[c][q]=0;copy(g_szPr5[id][c],7,w[c]);g_iPr5[id][c]=clamp(str_to_num(w[c][q+1]),0,4);}}}
 stock ReplaceStr60(s[],len,const a[],const b[]){replace_all(s,len,a,b);}
 public cmd_Case60(id)
 {
@@ -31783,22 +31784,18 @@ H4S(h,n,"rh",t);H4S(h,n,"rt",g_szTopic62);H4I(h,n,"rl",get_pcvar_num(g_pRlOn62)?
 H4I(h,n,"lv",g_iLevel[id]);H4I(h,n,"xp",g_iXP[id]);H4I(h,n,"xn",XPForLevel(g_iLevel[id]+1));H4I(h,n,"ap",g_iAP[id]);H4I(h,n,"vc",g_iVC[id]);
 H4I(h,n,"r",IsFounder60(id)?2:(IsAdmin60(id)?1:0));H4I(h,n,"on",get_playersnum());H4I(h,n,"mx",g_iMax);H4I(h,n,"un",g_iUnread62[id]);
 H4I(h,n,"ack",g_iSeqAck62[id]);if(g_szRes62[id][0]){UrlEnc60(g_szRes62[id],e,399);H4S(h,n,"res",e);}
-new today=get_systime()/86400;formatex(t,159,"%d~%d~%d",g_iDailyStreak[id],g_iDailyDay[id]==today?1:0,86400-(get_systime()%86400));H4S(h,n,"dy",t);
+new today=VXDAY;formatex(t,159,"%d~%d~%d",g_iDailyStreak[id],g_iDailyDay[id]==today?1:0,86400-((get_systime()+10800)%86400));H4S(h,n,"dy",t);
 formatex(t,159,"k%d.c%d.w%d.p%d.f%d.z%d.t%d",g_iCommunityOwned[id][1],g_iCommunityOwned[id][0],g_iCmOwned[id]&255,(g_iCmOwned[id]>>8)&255,(g_iCosOwned[id]>>6)&63,g_iLzOwned531[id],g_iCosOwned[id]&63);UrlEnc60(t,e,199);H4S(h,n,"iv",e);
 formatex(t,159,"k%d.c%d.w%d.p%d.f%d.z%d.t%d",g_iCommunitySel[id][1],g_iCommunitySel[id][0],CmSel(id,0),CmSel(id,1),g_iKfxSel[id],g_iLzSel531[id],g_iTrailSel[id]);UrlEnc60(t,e,199);H4S(h,n,"eq",e);
 formatex(t,159,"%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d",g_iKills[id],g_iInfects[id],get_user_deaths(id),g_iHS[id],g_iWins[id],g_iBossK[id],g_iPlaySec[id]/60,IsVip(id)?(g_iVip[id]>=2?2:1):0,max(0,(g_iVipExpire[id]-get_systime())/86400),g_iTopRank[id],g_iAch[id]);H4S(h,n,"st",t);
 get_mapname(name,31);H4S(h,n,"mp",name);formatex(t,159,"%d%%2F%d",g_iRound,RoundsTotal());H4S(h,n,"rd",t);
 if(g_szPref4[id][0])H4S(h,n,"pf",g_szPref4[id]);H4I(h,n,"cm",vxe_ac_mask(id));formatex(t,159,"%d~%d",get_pcvar_num(g_pAchVC),get_pcvar_num(g_pAchAP));H4S(h,n,"ar",t);
-if(App4(app,"daily")||App4(app,"home"))
-{
-if(H4Key(h,n,"dl")){first=1;new dp=VipDailyPct(id);for(new day=1;day<=7;day++){new ap=get_pcvar_num(g_pDailyAP)+10*day,vc=1+day/2;if(dp>0){ap+=ap*dp/100;vc+=max(1,vc*dp/100);}formatex(t,159,"%d~%d~%d",ap,vc,50+25*day);H4Row(h,n,first,t);}}
+// PAD5: personal data every app needs rides along on every open -> the tablet never waits for a reply
+Pr5Fill(id);formatex(t,159,"%s:%d,%s:%d,%s:%d,%s:%d",g_szPr5[id][0],g_iPr5[id][0],g_szPr5[id][1],g_iPr5[id][1],g_szPr5[id][2],g_iPr5[id][2],g_szPr5[id][3],g_iPr5[id][3]);UrlEnc60(t,e,199);H4S(h,n,"pr",e);
+if(H4Key(h,n,"dl")){first=1;new dp=VipDailyPct(id);for(new day=1;day<=7;day++){new ap=get_pcvar_num(g_pDailyAP)+10*day,vc=2+day;if(dp>0){ap+=ap*dp/100;vc+=max(1,vc*dp/100);}formatex(t,159,"%d~%d~%d",ap,vc,50+25*day);H4Row(h,n,first,t);}}
 H4I(h,n,"dn",g_iDailyDay[id]==today?min(7,max(1,g_iDailyStreak[id])):(g_iDailyDay[id]==today-1?min(7,g_iDailyStreak[id]+1):1));
-}
-if(App4(app,"zup")&&H4Key(h,n,"zu"))
-{
-first=1;for(new cl=0;cl<24;cl++){formatex(t,159,"%d~%d~%d~%d~%d~%d",vxe_zup_snapshot(id,cl,0),vxe_zup_snapshot(id,cl,1),vxe_zup_snapshot(id,cl,2),vxe_zup_snapshot(id,cl,3),vxe_zup_snapshot(id,cl,4),vxe_zup_snapshot(id,cl,5));H4Row(h,n,first,t);}
-}
-if(App4(app,"top")&&H4Key(h,n,"t")){first=1;for(new row=0;row<g_iTopCount;row++){UrlEnc60(g_szTopName[row],e,90);formatex(t,159,"%s~%d~%d",e,CalcLevel(g_iTopXP[row]),g_iTopKills[row]);if(!H4Row(h,n,first,t))break;}}
+if(H4Key(h,n,"zu")){first=1;for(new cl=0;cl<24;cl++){formatex(t,159,"%d~%d~%d~%d~%d~%d",vxe_zup_snapshot(id,cl,0),vxe_zup_snapshot(id,cl,1),vxe_zup_snapshot(id,cl,2),vxe_zup_snapshot(id,cl,3),vxe_zup_snapshot(id,cl,4),vxe_zup_snapshot(id,cl,5));H4Row(h,n,first,t);}}
+if(H4Key(h,n,"t")){first=1;new lim=App4(app,"top")?g_iTopCount:min(g_iTopCount,10);for(new row=0;row<lim;row++){UrlEnc60(g_szTopName[row],e,90);formatex(t,159,"%s~%d~%d",e,CalcLevel(g_iTopXP[row]),g_iTopKills[row]);if(!H4Row(h,n,first,t))break;}}
 if(App4(app,"time","achtop"))
 {
 new board=App4(app,"time")?0:1;
@@ -31827,7 +31824,7 @@ if(App4(app,"trade")&&H4Key(h,n,"of"))
 first=1;for(new k=0;k<g_iOffN62;k++){new f=g_iOffFrom62[k],to=g_iOffTo62[k];if(f!=id&&to!=id)continue;new other=(f==id)?to:f;if(!is_user_connected(other))continue;get_user_name(other,name,31);UrlEnc60(name,e,90);
 formatex(t,159,"%d~%d~%s~%s~%s~%d",g_iOffId62[k],get_user_userid(other),e,g_szOffGive62[k],g_szOffWant62[k],to==id?1:0);if(!H4Row(h,n,first,t))break;}
 }
-if(App4(app,"msg","friends","trade","adm")||App4(app,"market","notif"))
+if(App4(app,"msg","friends","trade","adm")||App4(app,"market","notif","home"))
 {
 if(H4Key(h,n,"pl")){first=1;for(new p=1;p<=g_iMax;p++){if(!is_user_connected(p))continue;get_user_name(p,name,31);UrlEnc60(name,e,90);new fl=0;if(p==id)fl|=32;if(Friends62(id,p))fl|=1;if(Blocked62(id,p))fl|=2;if(IsAdmin60(p))fl|=4;if(g_iFReq62[id]&(1<<p))fl|=8;if(is_user_alive(p))fl|=16;if(is_user_bot(p))fl|=64;
 formatex(t,159,"%d~%s~%d~%d~%d",get_user_userid(p),e,!is_user_alive(p)?0:(g_bZombie[p]?2:1),g_iLevel[p],fl);if(!H4Row(h,n,first,t))break;}}
@@ -31849,7 +31846,7 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=42#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=50#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)
@@ -31871,9 +31868,9 @@ out[o]= 0;
 }
 public WriteItemsJs60()
 {
-if(!dir_exists("vexmira_pad4"))mkdir("vexmira_pad4");
-new fp = fopen("vexmira_pad4/vxitems_server.js","wt");
-if(!fp){log_amx("[Vexmira] vexmira_pad4/vxitems_server.js yazilamadi");return;}
+if(!dir_exists("vexmira_pad5"))mkdir("vexmira_pad5");
+new fp = fopen("vexmira_pad5/vxitems_server.js","wt");
+if(!fp){log_amx("[Vexmira] vexmira_pad5/vxitems_server.js yazilamadi");return;}
 BuildPools60();
 fprintf(fp,"// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
 static const CATS[]= "kcwpftz";
@@ -31917,7 +31914,7 @@ fprintf(fp,",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}",ja,jb,get_pcvar_num(g_pAchVC),g
 }
 fprintf(fp,"]};^n");
 fclose(fp);
-log_amx("[Vexmira] tablet: vexmira_pad4/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
+log_amx("[Vexmira] tablet: vexmira_pad5/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
 }
 public fw_KnifeDeploy60(knife)
 {
@@ -32200,28 +32197,20 @@ g_pRlOn62 = register_cvar("vex_tablet_relay","1");
 g_pRlHost62 = register_cvar("vex_tablet_relay_host","ntfy.sh");
 g_pRlPort62 = register_cvar("vex_tablet_relay_port","80");
 g_pRlTopic62 = register_cvar("vex_tablet_topic","");
-g_pWebBase62 = register_cvar("vex_pad4_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad4/");
-g_pWebPage62 = register_cvar("vex_pad4_page","vexmira_pad_v4.html");
+g_pWebBase62 = register_cvar("vex_pad5_web","http://f16.oyunyoneticisi.biz/cstrike/vexmira_pad5/");
+g_pWebPage62 = register_cvar("vex_pad5_page","vexmira_pad5.html");
 g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);g_fwReply4=CreateMultiForward("vxc_reply",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
 register_clcmd("vex_tablet_action","cmd_TabAction621");
 register_concmd("vex_tablet_selftest","cmd_TabSelf62",ADMIN_RCON,"<userid> <action...> - (test) aksiyonu bu oyuncu adina calistir + u dosyasi yaz");
 g_hSocial62 = nvault_open("vexmira_social");
-set_task(0.1,"task_Relay62",TAB62_TASK,_,_,"b");
 set_task(1.0,"task_TabTick62",TAB62_TASK + 1,_,_,"b");
 set_task(3.0,"task_Tab62Start");
 }
 public task_Tab62Start()
 {
 Tab62Topic();
-if(!dir_exists("vexmira_pad4"))mkdir("vexmira_pad4");
-new dirh,f[64],path[96];
-if((dirh = open_dir("vexmira_pad4",f,charsmax(f))))
-{
-do{if((equal(f,"st4_",4)||equal(f,"u_",2))&& containi(f,".js")!= -1){formatex(path,charsmax(path),"vexmira_pad4/%s",f);delete_file(path);}}while(next_file(dirh,f,charsmax(f)));
-close_dir(dirh);
-}
 }
 Tab62Topic()
 {
@@ -32258,7 +32247,7 @@ if(g_hSocial62 == INVALID_HANDLE || !g_szSid62[id][0])return;
 new key[48];
 formatex(key,charsmax(key),"f_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szFriends62[id],charsmax(g_szFriends62[]));
 formatex(key,charsmax(key),"b_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szBlocks62[id],charsmax(g_szBlocks62[]));
-formatex(key,charsmax(key),"p_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szPref4[id],charsmax(g_szPref4[]));
+formatex(key,charsmax(key),"p_%s",g_szSid62[id]);nvault_get(g_hSocial62,key,g_szPref4[id],charsmax(g_szPref4[]));Pr5Load(id);
 new name[32];get_user_name(id,name,charsmax(name));
 formatex(key,charsmax(key),"n_%s",g_szSid62[id]);nvault_set(g_hSocial62,key,name);
 }
@@ -32301,7 +32290,6 @@ g_iNotTime62[id][g_iNotN62[id]]= get_systime();
 g_iNotN62[id]++;
 g_iUnread62[id]++;
 if(g_bHud4){new r4;ExecuteForward(g_fwNote4,r4,id,text);}else if(sound)client_cmd(id,"spk buttons/bell1");
-if(id!=g_iActor4)TabPush4(id);
 }
 public task_TabTick62()
 {
@@ -32313,94 +32301,6 @@ set_dhudmessage(255,200,60,0.86,0.12,0,0.0,1.05,0.0,0.0);
 show_dhudmessage(id,(g_iLang[id]!= 1)? "[iPad] %d yeni bildirim" : "[iPad] %d new notification%s",g_iUnread62[id],(g_iLang[id]!= 1 || g_iUnread62[id]== 1)? "" : "s");
 }
 }
-public task_Relay62()
-{
-if(!get_pcvar_num(g_pRlOn62)|| !g_szTopic62[0]){if(g_iRlSock62>0)RelayDrop62(get_gametime());return;}
-new Float:now = get_gametime();
-switch(g_iRlState62)
-{
-case RL_IDLE:
-{
-if(now < g_fRlNext62)return;
-new host[64],err;get_pcvar_string(g_pRlHost62,host,charsmax(host));
-g_iRlSock62 = socket_open(host,get_pcvar_num(g_pRlPort62),SOCKET_TCP,err,SOCK_NON_BLOCKING);
-g_iRlOpenErr623=err;
-// Nonblocking connect may return a valid descriptor with an in-progress error.
-if(g_iRlSock62 <= 0)
-{
-g_iRlFails62++;g_fRlNext62 = now + floatmin(60.0,3.0 * float(g_iRlFails62));
-if(g_iRlFails62 <= 3)log_amx("[tablet] relay baglanamadi (%s:%d hata %d) - tekrar denenecek",host,get_pcvar_num(g_pRlPort62),err);
-g_iRlSock62 = 0;
-return;
-}
-g_iRlState62 = RL_CONNECTING;g_fRlLast62 = now;
-}
-case RL_CONNECTING:
-{
-if(socket_is_writable(g_iRlSock62,0))
-{
-new host[64],req[256];get_pcvar_string(g_pRlHost62,host,charsmax(host));
-formatex(req,charsmax(req),"GET /%s/json HTTP/1.0^r^nHost: %s^r^nUser-Agent: vexmira-tablet/6.2.1^r^nAccept: application/x-ndjson^r^nConnection: close^r^n^r^n",g_szTopic62,host);
-if(socket_send2(g_iRlSock62,req,strlen(req))!=strlen(req)){RelayDrop62(now);return;}
-g_iRlState62 = RL_STREAM;g_fRlLast62 = now;g_iRlBufLen62 = 0;
-if(g_iRlFails62)log_amx("[tablet] relay baglandi (%s)",host);
-g_iRlFails62 = 0;
-}
-else if(now - g_fRlLast62 > 10.0)RelayDrop62(now);
-}
-case RL_STREAM:
-{
-new loops;
-while(loops++ < 8 && socket_is_readable(g_iRlSock62,0))
-{
-new got = socket_recv(g_iRlSock62,g_szRlBuf62[g_iRlBufLen62],charsmax(g_szRlBuf62)- g_iRlBufLen62);
-if(got <= 0){RelayDrop62(now);return;}
-g_iRlBufLen62 += got;g_szRlBuf62[g_iRlBufLen62]= 0;g_fRlLast62 = now;
-RelayLines62();
-if(g_iRlBufLen62 >= charsmax(g_szRlBuf62)- 8)g_iRlBufLen62 = 0;
-}
-if(now - g_fRlLast62 > 90.0)RelayDrop62(now);
-}
-}
-}
-RelayDrop62(Float:now)
-{
-if(g_iRlSock62 > 0)socket_close(g_iRlSock62);
-g_bRlReady621=false;
-g_iRlSock62 = 0;g_iRlState62 = RL_IDLE;g_fRlNext62 = now + 2.0;g_iRlBufLen62 = 0;
-}
-RelayLines62()
-{
-new start = 0;
-for(new i = 0;i < g_iRlBufLen62;i++)
-{
-if(g_szRlBuf62[i]!= 10)continue;
-g_szRlBuf62[i]= 0;
-RelayLine62(g_szRlBuf62[start]);
-if(g_iRlState62==RL_IDLE)return;
-start = i + 1;
-}
-if(start > 0)
-{
-new rest = g_iRlBufLen62 - start;
-for(new k = 0;k < rest;k++)g_szRlBuf62[k]= g_szRlBuf62[start + k];
-g_iRlBufLen62 = rest;g_szRlBuf62[rest]= 0;
-}
-}
-RelayLine62(const line[])
-{
-if(equal(line,"HTTP/",5)){new status[4];copy(status,3,line[9]);if(str_to_num(status)!=200){log_amx("[Tablet621] relay HTTP status: %s; link NOT ready",status);RelayDrop62(get_gametime());}return;}
-if(containi(line,"^"event^":^"open^"")!=-1){g_bRlReady621=true;log_amx("[Tablet621] relay subscription confirmed");return;}
-if(containi(line,"^"event^":^"message^"")== -1)return;
-g_iRelayRx624++;
-new p = containi(line,"^"message^":^"");
-if(p == -1)return;
-p += 11;
-new msg[512],o;
-for(new i = p;line[i]&& line[i]!= '"' && o < charsmax(msg);i++)msg[o++]= line[i];
-msg[o]= 0;
-TabAction62(msg);
-}
 public cmd_TabFake62()
 {
 new a[512];read_args(a,charsmax(a));remove_quotes(a);trim(a);
@@ -32410,10 +32310,9 @@ return PLUGIN_HANDLED;
 public cmd_TabLink62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
-new host[64];get_pcvar_string(g_pRlHost62,host,charsmax(host));
-console_print(id,"[VEXMIRA] tablet link: relay=%s:%d topic=%s state=%d (0 bos,1 baglaniyor,2 akis) deneme=%d",host,get_pcvar_num(g_pRlPort62),g_szTopic62,g_iRlState62,g_iRlFails62);
-console_print(id,"[PAD4] komut kanali dinleniyor=%d (1 olmali) socket=%d",g_bRlReady621,g_iRlOpenErr623);
-new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);console_print(id,"[PAD4] sayfa=%s%s | tabletten gelen komut (rx)=%d | oyuncuya eslesen=%d | veri yolu: MOTD adresi (FastDL gerekmez)",base,page,g_iRelayRx624,g_iActionRx624);for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&g_szTok62[p][0])console_print(id,"[PAD4] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
+new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);
+console_print(id,"[PAD5] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_pad5)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&g_szTok62[p][0])console_print(id,"[PAD5] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
 return PLUGIN_HANDLED;
 }
 TabAction62(const msg[])
@@ -32441,7 +32340,7 @@ g_fTabSeen62[id]= now;
 g_bTabQuiet62 = true;g_iActor4 = id;
 TabDo62(id,parts[2],parts[3],parts[4],parts[5]);
 g_bTabQuiet62 = false;g_iActor4 = 0;
-if(!equal(parts[2],"pref")&&!equal(parts[2],"lang"))TabPush4(id,true);
+if(equal(parts[2],"view")||equal(parts[2],"ping")||equal(parts[2],"case")||equal(parts[2],"market",6)||equal(parts[2],"t",1)||equal(parts[2],"adm"))TabPush4(id,true);
 }
 Res62(id,const fmt[],any:...)
 {
@@ -32722,11 +32621,14 @@ Res62(id,"ok~case~%d~%s~%d",c,code,r);
 Tab62Leave(id)
 {
 Tab62SaveSocial(id);
-if(g_szTok62[id][0]){new path[64];formatex(path,charsmax(path),"vexmira_pad4/st4_%s.js",g_szTok62[id]);delete_file(path);}
 g_szTok62[id][0]= 0;
 for(new k = g_iOffN62 - 1;k >= 0;k--)if(g_iOffFrom62[k]== id || g_iOffTo62[k]== id)OffDel62(k);
 for(new p = 1;p <= g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
+// PAD5: the relay listener lives in vexmira_pad5 and hands every command line to the core
+public N_TabAct5(plugin,params){new m[512];get_string(1,m,511);TabAction62(m);return 1;}
+public N_TabLink5(plugin,params){new r=get_param(1);if(r>=0)g_bRlReady621=r>0;if(!g_szTopic62[0])Tab62Topic();set_string(2,g_szTopic62,get_param(3));return g_bRlReady621;}
+public N_Board5(plugin,params){new b=get_param(1),row=get_param(2),t[160],e[96];if(row<0)return 0;if(b==0){if(row>=g_iTopCount)return 0;UrlEnc60(g_szTopName[row],e,90);formatex(t,159,"%s~%d~%d",e,CalcLevel(g_iTopXP[row]),g_iTopKills[row]);}else{b=clamp(b-1,0,1);if(row>=g_iLbN60[b])return 0;UrlEnc60(g_szLbName60[b][row],e,90);formatex(t,159,"%s~%d",e,g_iLbVal60[b][row]);}set_string(3,t,get_param(4));return 1;}
 // v4 HUD data: f 99 = HUD plugin is running (core stops its own bars/top board)
 public N_Hud64(plugin,params){new id=get_param(1),f=get_param(2);if(f==99){g_bHud4=true;return 1;}
 switch(f){case 0:return g_iMode;case 1:return g_iEvent;case 2:return g_iRound;case 3:return RoundsTotal();case 4:return g_iBoss;case 5:{if(!g_iBoss||!is_user_alive(g_iBoss))return -1;new Float:bh=Float:get_entvar(g_iBoss,var_health);return clamp(floatround(bh*100.0/float(max(1,g_iBossMaxHP))),0,100);}case 6:return g_iBossType;case 9:return g_bRoundEnded;}

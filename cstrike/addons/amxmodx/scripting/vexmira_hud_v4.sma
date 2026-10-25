@@ -22,19 +22,19 @@
 
 native vxc_hud(id, field);
 
-#define PL_VER "4.1"
+#define PL_VER "4.2"
 #define TASK_FAST 7400500
 #define TASK_SLOW 7400501
 #define NOTE_SND "vexmira/ui/ipad_note.wav"
 #define NOTE_FILE "sound/vexmira/ui/ipad_note.wav"
-#define HIDE_ALL_DEFAULT 59      // weapons/ammo 1 + flashlight 2 + health/armor 8 + timer 16 + money 32
+#define HIDE_ALL_DEFAULT 58      // flashlight 2 + health/armor 8 + timer 16 + money 32 (weapon list + ammo stay: weapon selection works)
 #define SET_NO_HUD (1<<0)
 #define SET_NO_DMGNUM (1<<1)
 
 enum { F_MODE = 0, F_EVENT, F_ROUND, F_TOTAL, F_BOSS, F_BOSSPCT, F_BOSSTYPE, F_ZOMBIE, F_SPECIAL, F_ENDED,
 	F_VC, F_AP, F_LANG, F_SET, F_LEVEL, F_UNREAD, F_PREF, F_TABLET, F_THEME, F_GAUGE };
 
-new g_pOn, g_pHide, g_pAscii, g_pDmg, g_pFast;
+new g_pOn, g_pHide, g_pAscii, g_pDmg, g_pFast, g_pGap;
 new g_iMax, bool:g_bCore, g_iFrame, bool:g_bAscii;
 new Float:g_fNoteUntil[33], bool:g_bFastSet[33], g_szNote[33][100];
 // damage combo
@@ -44,7 +44,6 @@ new Float:g_fComboEnd[33], Float:g_fComboShow[33], g_iComboVictim[33];
 new const C_HUM[3] = { 92, 200, 255 };
 new const C_ZOM[3] = { 255, 74, 74 };
 new const C_GOLD[3] = { 255, 206, 92 };
-new const C_TXT[3] = { 238, 241, 246 };
 
 public plugin_precache()
 {
@@ -64,10 +63,11 @@ public plugin_init()
 	register_plugin("VEXMIRA HUD v4", PL_VER, "smurfsexy");
 	register_dictionary("vexmira_zombie.txt");
 	g_pOn = register_cvar("vx_hud4", "1");                 // 0 = core draws its old HUD again
-	g_pHide = register_cvar("vx_hud4_hide", "59");         // default HUD parts hidden (59 = all, radar is hidden by the core)
+	g_pHide = register_cvar("vx_hud4_hide", "58");         // default HUD parts hidden (58 = all but the weapon list/ammo; 59 also hides weapon selection)
 	g_pAscii = register_cvar("vx_hud4_ascii", "0");
 	g_pDmg = register_cvar("vx_hud4_damage", "1");         // damage combo numbers
-	g_pFast = register_cvar("vx_hud4_fastswitch", "1");    // weapon list is hidden with the ammo HUD -> fast switch
+	g_pFast = register_cvar("vx_hud4_fastswitch", "0");    // 1 = give hud_fastswitch 1 (only useful with vx_hud4_hide 59); 0 = restore the weapon menu once
+	g_pGap = register_cvar("vx_hud4_topgap", "22");        // top board: space between HUMANS / ROUND / ZOMBIES (spaces)
 	register_srvcmd("vx_hud4_testnote", "cmd_TestNote");
 	register_srvcmd("vx_hud4_testdmg", "cmd_TestDmg");
 	RegisterHookChain(RG_CBasePlayer_TakeDamage, "fw_TakeDamagePost", true);
@@ -128,6 +128,22 @@ Dots(out[], len, count, maxShown)
 
 Dot(out[], len) { if (g_bAscii) copy(out, len, "*"); else copy(out, len, "•"); }
 
+// characters on screen (UTF-8 continuation bytes do not count)
+VisLen(const s[]) { new n; for (new i = 0; s[i]; i++) if ((s[i] & 0xC0) != 0x80) n++; return n; }
+Spaces(out[], len, n) { new o; for (; o < n && o < len; o++) out[o] = ' '; out[o] = 0; }
+
+// Two-line block for the top board, drawn as a CENTRED message. Spaces push it next to the ROUND block:
+// left block = text + spaces (its right edge lands left of the centre), right block = spaces + text.
+// Both lines get the same visible length so their inner edges line up. Gap: vx_hud4_topgap.
+SideBlock(out[], len, const l1[], const l2[], bool:left)
+{
+	new a = VisLen(l1), b = VisLen(l2), w = max(a, b), gap = w + clamp(get_pcvar_num(g_pGap), 4, 60);
+	static s1[64], s2[64], g[96];
+	Spaces(s1, charsmax(s1), w - a); Spaces(s2, charsmax(s2), w - b); Spaces(g, charsmax(g), gap);
+	if (left) formatex(out, len, "%s%s%s^n%s%s%s", s1, l1, g, s2, l2, g);
+	else formatex(out, len, "%s%s%s^n%s%s%s", g, l1, s1, g, l2, s2);
+}
+
 Thousands(v, out[], len)
 {
 	new tmp[16]; num_to_str(v, tmp, charsmax(tmp));
@@ -171,12 +187,16 @@ public fw_SpawnPost(id)
 	if (!is_user_alive(id) || is_user_bot(id) || !g_bCore || !get_pcvar_num(g_pOn)) return;
 	ApplyHide(id);
 	new hide = get_pcvar_num(g_pHide);
-	if ((hide & 1) && get_pcvar_num(g_pFast) && !g_bFastSet[id])
+	if (!g_bFastSet[id])
 	{
-		// the weapon list belongs to the ammo HUD that is hidden: switch weapons instantly with 1-5 / wheel
 		g_bFastSet[id] = true;
-		client_cmd(id, "hud_fastswitch 1");
-		client_print_color(id, print_team_default, En(id) ? "^4[VEXMIRA]^1 New HUD: weapons switch instantly with keys ^41-5^1 (hud_fastswitch 1)." : "^4[VEXMIRA]^1 Yeni HUD: silahlar ^41-5^1 tuslariyla aninda degisir (hud_fastswitch 1).");
+		if ((hide & 1) && get_pcvar_num(g_pFast))
+		{
+			// the weapon list belongs to the ammo HUD that is hidden: switch weapons instantly with 1-5 / wheel
+			client_cmd(id, "hud_fastswitch 1");
+			client_print_color(id, print_team_default, En(id) ? "^4[VEXMIRA]^1 New HUD: weapons switch instantly with keys ^41-5^1 (hud_fastswitch 1)." : "^4[VEXMIRA]^1 Yeni HUD: silahlar ^41-5^1 tuslariyla aninda degisir (hud_fastswitch 1).");
+		}
+		else if (!(hide & 1)) client_cmd(id, "hud_fastswitch 0"); // HUD 4.1 had switched it on: weapon menu (1-5, wheel) opens again
 	}
 }
 
@@ -215,12 +235,14 @@ public task_Fast()
 		new hp = floatround(Float:get_entvar(id, var_health)), mx = max(1, floatround(Float:get_entvar(id, var_max_health)));
 		new pct = clamp(hp * 100 / mx, 0, 100), ar = rg_get_user_armor(id);
 		Line(g1, charsmax(g1), pct, 20);
+		// colour follows the health: blue above 250 (humans), then green -> yellow -> orange -> red (blinks)
 		new r, g, bl;
 		if (special) { r = 214; g = 122; bl = 255; }
-		else if (zombie) { r = 150; g = 255; bl = 92; }
-		else if (pct > 50) { r = C_TXT[0]; g = C_TXT[1]; bl = C_TXT[2]; }
-		else if (pct > 25) { r = 255; g = 186; bl = 60; }
-		else { r = 255; g = (g_iFrame & 1) ? 46 : 96; bl = 46; }
+		else if (!zombie && hp > 250) { r = 80; g = 170; bl = 255; }
+		else if (pct >= 75) { r = 70; g = 230; bl = 100; }
+		else if (pct >= 50) { r = 200; g = 230; bl = 70; }
+		else if (pct >= 25) { r = 255; g = 160; bl = 50; }
+		else { r = 255; g = (g_iFrame & 1) ? 40 : 90; bl = 40; }
 		if (!zombie && ar > 0)
 		{
 			Line(g2, charsmax(g2), clamp(ar, 0, 100), 20);
@@ -233,19 +255,20 @@ public task_Fast()
 		// --- bottom right: weapon + ammo, money / VexCoin / AP (one block)
 		new clip, bp, maxclip, n = 0;
 		c[0] = 0;
+		new bool:list = (get_pcvar_num(g_pHide) & 1) == 0;   // game weapon list / ammo visible -> no weapon line here
 		new w = WeaponInfo(id, wn, charsmax(wn), clip, bp, maxclip);
-		if (!zombie && w && clip >= 0) n += formatex(c[n], charsmax(c) - n, "%s     %d / %d^n", wn, clip, bp);
-		else if (!zombie && w && wn[0]) n += formatex(c[n], charsmax(c) - n, "%s^n", wn);
+		if (!list && !zombie && w && clip >= 0) n += formatex(c[n], charsmax(c) - n, "%s     %d / %d^n", wn, clip, bp);
+		else if (!list && !zombie && w && wn[0]) n += formatex(c[n], charsmax(c) - n, "%s^n", wn);
 		else if (zombie) n += formatex(c[n], charsmax(c) - n, "%s^n", special ? (en ? "SPECIAL ZOMBIE" : "ÖZEL ZOMBİ") : (en ? "ZOMBIE" : "ZOMBİ"));
 		Thousands(get_member(id, m_iAccount), money, charsmax(money));
 		Thousands(vxc_hud(id, F_VC), vc, charsmax(vc));
 		Thousands(vxc_hud(id, F_AP), ap, charsmax(ap));
-		n += formatex(c[n], charsmax(c) - n, "$ %s    VC %s    AP %s", money, vc, ap);
+		n += formatex(c[n], charsmax(c) - n, "$ %s^nVexCoin %s^nAmmoPack %s", money, vc, ap);
 		new un = vxc_hud(id, F_UNREAD);
 		if (un > 0) formatex(c[n], charsmax(c) - n, "^niPad %s %d", dot, un);
-		new bool:low = clip >= 0 && maxclip > 0 && clip * 4 <= maxclip;
+		new bool:low = !list && clip >= 0 && maxclip > 0 && clip * 4 <= maxclip;
 		if (vxc_hud(id, F_GAUGE)) continue;     // jetpack fuel gauge uses channel 2 while flying
-		set_hudmessage(low ? 255 : C_GOLD[0], low ? 140 : C_GOLD[1], low ? 70 : C_GOLD[2], 0.78, 0.905, 0, 0.0, 0.45, 0.0, 0.0, 2);
+		set_hudmessage(low ? 255 : C_GOLD[0], low ? 140 : C_GOLD[1], low ? 70 : C_GOLD[2], 0.75, list ? 0.785 : 0.86, 0, 0.0, 0.45, 0.0, 0.0, 2); // right column, same x as the core's player panel (vxcore HUDPOS 0)
 		show_hudmessage(id, "%s", c);
 	}
 }
@@ -280,23 +303,41 @@ public task_Slow()
 			set_dhudmessage(245, 245, 250, 0.72, 0.10, 0, 0.0, 1.06, 0.0, 0.0);
 			show_dhudmessage(id, "%s iPad   %s^n%s", dot, en ? "now" : "şimdi", g_szNote[id]);
 		}
-		// left: humans  "İNSAN  3  [12]" + one dot per living human
+		// centre: ROUND x / y, mode, event (boss: boss name)
+		{
+			static mk[24], ek[24], mn[48], evn[48];
+			formatex(mk, charsmax(mk), "MODE_NAME_%d", vxc_hud(0, F_MODE));
+			if (bosspct >= 0) formatex(ek, charsmax(ek), "BOSS_NAME_%d", vxc_hud(0, F_BOSSTYPE));
+			else formatex(ek, charsmax(ek), "EV_NAME_%d", vxc_hud(0, F_EVENT));
+			formatex(mn, charsmax(mn), "%L", id, mk);
+			formatex(evn, charsmax(evn), "%L", id, ek);
+			if (containi(mn, "ML_NOTFOUND") != -1) mn[0] = 0;
+			if (containi(evn, "ML_NOTFOUND") != -1) evn[0] = 0;
+			set_dhudmessage(C_GOLD[0], C_GOLD[1], C_GOLD[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
+			show_dhudmessage(id, "%s %d / %d^n%s^n%s", en ? "ROUND" : "RAUNT", vxc_hud(0, F_ROUND), vxc_hud(0, F_TOTAL), mn, evn);
+		}
+		// left / right blocks are centred messages padded with spaces (like the old board): they sit right
+		// next to the ROUND block on every resolution instead of at a fixed screen x
+		static l1[64], l2[96];
 		Dots(dots, charsmax(dots), humans, 12);
-		formatex(a, charsmax(a), "%s   %d^n%s", en ? "HUMANS" : "İNSANLAR", hw, dots);
-		set_dhudmessage(C_HUM[0], C_HUM[1], C_HUM[2], 0.335, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
+		formatex(l1, charsmax(l1), "%s   %d", en ? "HUMANS" : "İNSANLAR", hw);
+		SideBlock(a, charsmax(a), l1, dots, true);
+		set_dhudmessage(C_HUM[0], C_HUM[1], C_HUM[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		show_dhudmessage(id, "%s", a);
 		// right: zombies, or the boss with its HP gauge
 		if (bosspct >= 0)
 		{
 			Line(line, charsmax(line), bosspct, 20);
-			formatex(b, charsmax(b), "BOSS  %d%%^n%s", bosspct, line);
-			set_dhudmessage(214, 122, 255, 0.565, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
+			formatex(l2, charsmax(l2), "BOSS  %d%%", bosspct);
+			SideBlock(b, charsmax(b), l2, line, false);
+			set_dhudmessage(214, 122, 255, -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		}
 		else
 		{
 			Dots(dots, charsmax(dots), zombies, 12);
-			formatex(b, charsmax(b), "%d   %s^n%s", zw, en ? "ZOMBIES" : "ZOMBİLER", dots);
-			set_dhudmessage(C_ZOM[0], C_ZOM[1], C_ZOM[2], 0.565, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
+			formatex(l2, charsmax(l2), "%d   %s", zw, en ? "ZOMBIES" : "ZOMBİLER");
+			SideBlock(b, charsmax(b), l2, dots, false);
+			set_dhudmessage(C_ZOM[0], C_ZOM[1], C_ZOM[2], -1.0, 0.014, 0, 0.0, 1.06, 0.0, 0.0);
 		}
 		show_dhudmessage(id, "%s", b);
 	}

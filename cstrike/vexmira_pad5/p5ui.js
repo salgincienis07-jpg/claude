@@ -985,7 +985,7 @@ function listen(){
 }
 var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
 function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<15000)return;sendRaw('view',a);}
-function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 4.2 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
+function buildStatus624(){var b=$('build624');if(b)b.textContent='PAD 5.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 var HOME_SIG='', LIVE_SIG='';
@@ -1160,8 +1160,8 @@ R.market=function(){
   if(sel2)h+='<div class="mksheet"><div class="mksh">'+mkIcon(sel2[3],64)+'<b>'+esc(itemName(sel2[3]))+'</b><small>'+esc(sel2[2])+' · '+esc(mkRarName(sel2[3]))+'</small><div class="mkshp"><span>'+tr2('Fiyat','Price')+'</span><b>'+fmt(sel2[4])+' VC</b></div><div class="mkshp"><span>'+tr2('Sonra kalan','Balance after')+'</span><b>'+fmt(D.vc-sel2[4])+' VC</b></div><button class="mkbtn big" data-marketconfirm="1">'+tr2('Satın al','Buy now')+'</button><button class="mkbtn big ghost" data-marketabort="1">'+tr2('Vazgeç','Cancel')+'</button></div></div>';
   return h+'</div>';
 };
-var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA PAD 4.2</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
-// ------------------------------------------------------------------ PAD 4.2: every app in the iPadOS style of the Market app
+var oldSettings622=R.set;R.set=function(){var ok=LIVE.fileOk&&!DEMO;return oldSettings622()+card(tr('Canlı bağlantı','Live connection'),'<div class="linkhealth"><p><span class="ldot '+(ok?(LIVE.ready?'g':'y'):'r')+'"></span> '+(ok?tr('Oyun verisi sunucudan geldi','Game data received from the server'):tr('Oyun verisi yok – tableti oyunda /ipad ile aç','No game data – open the tablet in game with /ipad'))+'</p><p>'+tr('Komut kanalı: ','Command channel: ')+(LIVE.ready?tr('sunucu dinliyor','server listening'):tr('sunucu bağlanıyor','server connecting'))+' · '+tr('gönderilen: ','sent: ')+LIVE.sent+'</p><p>'+tr('Cevap kanalı: ','Reply channel: ')+(LIVE.sse?tr('bağlı','connected'):tr('bağlanıyor','connecting'))+' · '+tr('alınan: ','received: ')+LIVE.rx+'</p><p class="muted">VEXMIRA PAD 5.0</p><button class="gbtn get" data-linktest="1">'+tr('Bağlantıyı sına','Test connection')+'</button></div>');};
+// ------------------------------------------------------------------ PAD 5.0: every app in the iPadOS style of the Market app
 // (large-title hero, segmented controls, inset grouped lists, card grids). Same data and the same actions as before.
 var X4={achf:'all',trt:'',zf:'all'};
 IC.coin='<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.6-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2.1 0 2.9 5.8 1.5 5.8 4.3 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.6-3-1.5M12 6v1.8M12 16.4v1.8"/>';
@@ -1302,7 +1302,7 @@ R.daily=function(){
   if(D.claimed)h+='<div class="x4note"><div class="x4ci">'+x4ic('time','blue')+'</div><div><b>'+esc(L('claimed'))+'</b><small>'+esc(x4t('Sonraki ödül: ','Next reward in: '))+'<span id="dailyCountdown">'+esc(hms(D.next))+'</span></small></div></div>';
   else h+='<span class="x4b g big" data-daily="1">'+esc(L('claim'))+(D.rewards&&D.rewards[today-1]?' · '+fmt(D.rewards[today-1][0])+' AP + '+fmt(D.rewards[today-1][1])+' VC':'')+'</span>';
   h+=x4sec(x4t('Nasıl çalışır','How it works'),
-    x4row(x4ic('daily','green'),esc(x4t('Her gün bir kez al','Claim once a day')),esc(x4t('Ödül gece yarısı değil, son alımından 24 saat sonra yenilenir.','Resets 24 hours after your last claim.')),'')+
+    x4row(x4ic('daily','green'),esc(x4t('Her gün bir kez al','Claim once a day')),esc(x4t('Ödül her gece 00:00\'da (Türkiye saati) yenilenir.','Resets every night at 00:00 Turkey time.')),'')+
     x4row(x4ic('fire','orange'),esc(x4t('Seriyi bozma','Keep the streak')),esc(x4t('Bir gün kaçırırsan seri 1. güne döner.','Miss a day and the streak restarts.')),'')+
     x4row(x4ic('crown','yellow'),esc(x4t('7. gün büyük ödül','Day 7 jackpot')),esc(x4t('En yüksek AP ve VexCoin 7. gündedir.','Day 7 pays the most AP and VexCoin.')),''));
   return x4wrap(h+x4cmd(x4t('/gunluk','/daily')));
@@ -1398,16 +1398,16 @@ R.set=function(){
     x4row(x4ic('send',LIVE.ready?'green':'orange'),esc(x4t('Komut kanalı','Command channel')),esc((LIVE.ready?x4t('Sunucu dinliyor','Server listening'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('gönderilen ','sent ')+LIVE.sent),'<span class="ldot '+(LIVE.ready?'g':'y')+'"></span>')+
     x4row(x4ic('msg',LIVE.sse?'green':'orange'),esc(x4t('Cevap kanalı','Reply channel')),esc((LIVE.sse?x4t('Bağlı','Connected'):x4t('Bağlanıyor','Connecting'))+' · '+x4t('alınan ','received ')+LIVE.rx),'<span class="ldot '+(LIVE.sse?'g':'y')+'"></span>')+
     x4row(x4ic('bolt','blue'),esc(x4t('Bağlantıyı sına','Test connection')),esc(x4t('Sunucuya ping gönderir, cevap 1-3 sn içinde gelir.','Pings the server; the answer arrives in 1-3 s.')),x4btn(x4t('Sına','Test'),'data-linktest="1"')));
-  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'VEXMIRA PAD 4.2',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
+  h+=x4sec('',x4row(x4ic('about','gray'),esc(L('about')),'VEXMIRA PAD 5.0',svg('chev'),'data-app="about"','nav')+x4row(x4ic('cmds','gray'),esc(L('cmds')),esc(x4t('Oyun içi ayarlar: /ayarlar /dil /stil','In-game settings: /settings /lang /style')),svg('chev'),'data-app="cmds"','nav'));
   return x4wrap(h+'</div>');
 };
 
 // ---- about
 R.about=function(){
   var mins=D.ts?Math.max(0,Math.round((Date.now()/1000-D.ts)/60)):-1;
-  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · PAD 4.2</p></div>';
+  var h='<div class="x4ab"><div class="lg">'+LOGO()+'</div><p>'+esc(x4t('Zombi sunucusu tableti','Zombie server tablet'))+' · PAD 5.0</p></div>';
   h+=x4sec(x4t('Bu cihaz','This device'),
-    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">PAD 4.2</span>')+
+    x4row('',esc(x4t('Sürüm','Version')),'','<span class="x4vs">PAD 5.0</span>')+
     x4row('',esc(L('map')),'','<span class="x4vs">'+esc(D.map)+'</span>')+
     x4row('',esc(L('round')),'','<span class="x4vs">'+esc(D.round)+'</span>')+
     x4row('',esc(L('players')),'','<span class="x4vs">'+D.on+'/'+D.mx+'</span>')+
@@ -1460,6 +1460,90 @@ R.adm=function(){
   var founder=D.role>=2;
   return '<div class="x4 x4adm">'+x4hero('adm',x4t('Yönetim','Admin'),(founder?x4t('Kurucu · tam yetki','Founder · full access'):'Admin')+' · '+esc(D.name),x4bal(L('players'),others(false).length+'/'+D.mx,'','#30d158'))+x4seg([['players',x4t('Oyuncular','Players')],['server',x4t('Sunucu','Server')]],'data-admtab',admTab)+x4oldAdm()+'</div>';
 };
+// ------------------------------------------------------------------ PAD5: instant tablet (no waiting for the server)
+// The free relay only allows ~250 server messages a day, so the server barely answers any more:
+// - all personal data (daily, zombie upgrades, top 15, case results) comes inside the tablet address,
+// - daily / upgrade / equip / achievement / case are shown at once here and the server does the same,
+// - leaderboards for playtime and achievements come from g5.js (written by the server).
+var PR=[null,null,null,null];
+var x5hashU=hashU;
+hashU=function(o){var u=x5hashU(o);if(o.pr){u.pr=String(dec(o.pr)).split(',').map(function(x){var q=x.split(':');return q[0]?{code:q[0],r:num(q[1])}:null;});}return u;};
+var x5applyU=applyU;
+applyU=function(u){if(u.pr)PR=u.pr;x5applyU(u);};
+NEED=['msg','friends','notif','trade','adm','market'];
+wantData=function(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<20000)return;GOT[a]=Date.now();sendRaw('view',a);};
+// one request per command; a second (image) request only when the first could not leave the browser
+beacon=function(msg){var url=relayBase()+'/publish?message='+encodeURIComponent(msg)+'&title=vx&cache=no&t='+Date.now();LIVE.sent++;try{var x=new XMLHttpRequest();x.open('GET',url,true);x.onreadystatechange=function(){if(x.readyState!==4)return;if(x.status>=200&&x.status<300)LIVE.okSend=Date.now();else if(x.status===429)LIVE.rate=Date.now();else if(x.status===0){var img=new Image();img.src=url;}};x.send();}catch(e){var img=new Image();img.src=url;}};
+// replies: one long EventSource; old browsers poll every 6 s (the relay refills one request per 5 s)
+listen=function(){
+  if(DEMO||!LIVE.on||!LIVE.tk||!LIVE.rt)return;
+  if(window.EventSource){try{var es=new EventSource(replyUrl('sse'));LIVE.es=es;
+    es.onopen=function(){LIVE.sse=1;linkDot();};
+    es.onmessage=function(e){var d;try{d=JSON.parse(e.data);}catch(x){return;}if(d.event&&d.event!=='message')return;if(d.id)LIVE.lastId=d.id;takeReply(d.message||'');};
+    es.onerror=function(){LIVE.sse=0;linkDot();};
+    return;}catch(err){}}
+  (function poll(){var x;try{x=new XMLHttpRequest();x.open('GET',replyUrl('json')+'?poll=1&since='+(LIVE.lastId||Math.floor(Date.now()/1000)-2),true);x.onreadystatechange=function(){if(x.readyState!==4)return;if(x.status===200)String(x.responseText||'').split('\n').forEach(function(l){if(!l)return;try{var d=JSON.parse(l);if(d.event==='message'){LIVE.lastId=d.id;takeReply(d.message);}}catch(e){}});};x.send();}catch(e){}
+    setTimeout(poll,6000);})();
+};
+function x5render(){var b=$('appBody');if(!b||!cur||!R[cur]||GAME)return;var st=b.scrollTop;b.innerHTML=R[cur]();colors(b);b.scrollTop=st;LIVE_SIG='';}
+function x5ok(t){banner('iPad',t,'bell','#1f8a4c');}
+function x5unhex(h){var s='';for(var i=0;i+1<h.length;i+=2)s+='%'+h.substr(i,2);try{return decodeURIComponent(s);}catch(e){return '';}}
+function x5trMidnight(){var now=Math.floor(Date.now()/1000);return 86400-((now+10800)%86400);}
+var x5act=act,X5_INSTANT=['daily','zperk','equip','claimach','pref','lang','seen','msg','fadd','facc','fdel','block','unblock'];
+act=function(name,a,b,c,hint){
+  var tr=D.lang==='tr';
+  if(name==='case')return x5case(num(a),hint);
+  if(X5_INSTANT.indexOf(name)<0)return x5act(name,a,b,c,hint);
+  if(!LIVE.on||!LIVE.tk||!LIVE.rt){toast(tr?'Tablet oyundan açılmadı. Oyunda /ipad yaz.':'Open the tablet in game with /ipad.',false);return 0;}
+  if(name==='daily'){
+    if(D.claimed){toast(tr?'Bugünkü ödül zaten alındı. Sonraki ödül: '+hms(D.next):'Already claimed today. Next: '+hms(D.next),false);return 0;}
+    var day=D.dailyNext||1,rw=D.rewards&&D.rewards[day-1];
+    if(rw){D.ap+=rw[0];D.vc+=rw[1];}
+    D.claimed=true;D.streak=day;D.next=x5trMidnight();
+    SND.win(2);x5ok((tr?'Günlük ödül alındı':'Daily reward claimed')+(rw?' · +'+fmt(rw[0])+' AP · +'+fmt(rw[1])+' VC':''));
+  }else if(name==='zperk'){
+    var z=D.zup&&D.zup[num(a)];if(!z){toast(tr?'Gelişim verisi yok':'No upgrade data',false);return 0;}
+    var free=Math.max(0,z[0]-z[2]-z[3]-z[4]);if(!free){toast(tr?'Bu sınıfta boş puan yok':'No free points for this class',false);return 0;}
+    z[num(b)+2]++;SND.click();x5ok(tr?'Gelişim puanı verildi':'Upgrade point spent');
+  }else if(name==='equip'){
+    D.eq[a]=c===1||c==='1'?0:num(b);SND.click();x5ok(c===1||c==='1'?(tr?'Çıkarıldı':'Unequipped'):(tr?'Kuşanıldı':'Equipped'));
+  }else if(name==='claimach'){
+    var i=num(a);if((D.claimedMask|0)&(1<<i)){toast(tr?'Bu ödül zaten alındı':'Already claimed',false);return 0;}
+    D.claimedMask=(D.claimedMask|0)|(1<<i);if(D.achReward){D.vc+=D.achReward[0];D.ap+=D.achReward[1];}SND.win(2);x5ok(tr?'Başarım ödülü alındı':'Achievement reward claimed');
+  }else if(name==='msg'){
+    var txt=x5unhex(b);if(!txt)return 0;MS.push([num(a),plName(num(a)),txt,Math.floor(Date.now()/1000),1]);SND.click();
+  }else if(name==='fadd'||name==='facc'||name==='fdel'||name==='block'||name==='unblock'){
+    var M={fadd:tr?'Arkadaşlık isteği gönderildi':'Friend request sent',facc:tr?'Arkadaş eklendi':'Friend added',fdel:tr?'Arkadaş silindi':'Friend removed',block:tr?'Engellendi':'Blocked',unblock:tr?'Engel kalktı':'Unblocked'};
+    PL.forEach(function(p){if(p[0]!==num(a))return;if(name==='fadd'||name==='facc')p[4]=(p[4]|1)&~8;if(name==='fdel')p[4]&=~1;if(name==='block')p[4]=(p[4]|2)&~1;if(name==='unblock')p[4]&=~2;});
+    if(name==='facc'||name==='fadd'){var nm=plName(num(a)),has=false;FR.forEach(function(f){if(f[0]===nm)has=true;});if(!has&&name==='facc')FR.push([nm,num(a)]);}
+    SND.click();x5ok(M[name]);
+  }
+  var s=sendRaw(name,a,b,c);
+  if(name!=='pref'&&name!=='lang'&&name!=='seen')x5render();
+  if(!cur){HOME_SIG='';renderHome();}
+  return s;
+};
+// cases: the server keeps the next item of every case ready (and saved), so the reel starts at once
+function x5case(t,hint){
+  var tr=D.lang==='tr',cs=caseData(),c=cs[t]||cs[0],price=c.vc|0,p=PR[t];
+  if(REEL_RUN)return 0;
+  if(D.vc<price){toast(tr?'Yetersiz VexCoin: '+price+' VC gerekli':'Not enough VexCoin: '+price+' VC needed',false);return 0;}
+  if(!p||!p.code||!LIVE.on||!LIVE.tk)return x5act('case',t,'','',hint);
+  var s=sendRaw('case',t,p.code,'');
+  D.vc-=price;PR[t]=null;
+  var cat=p.code.charAt(0),ix=num(p.code.slice(1));
+  if(MK_CATS.indexOf(cat)>=0&&ix>0){var had=(D.iv[cat]|0)&(1<<(ix-1));if(had){var it=catList(cat)[ix-1];D.vc+=Math.max(10,Math.floor(((it&&it.vc)|0)/2));}else D.iv[cat]=(D.iv[cat]|0)|(1<<(ix-1));}
+  else if(cat==='$')D.vc+=num(p.code.slice(1));else if(cat==='a')D.ap+=num(p.code.slice(1));
+  D.cr={c:t,code:p.code,r:p.r};caseSel=t;
+  if(cur==='case'){$('appBody').innerHTML=R['case']();colors($('appBody'));REEL_RUN=true;runReel();setTimeout(function(){REEL_RUN=false;LIVE_SIG='';},8000);}
+  return s;
+}
+// leaderboards written by the server (playtime / achievements); the copy on the web host can be a few minutes old
+(function(){try{var sc=document.createElement('script');sc.src='g5.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
+  var r2=function(s){return rows(s,function(c){return {n:dec(c[0]),v:num(c[1])};});};
+  var t=rows(g.t,function(c){return {n:dec(c[0]),lv:num(c[1]),k:num(c[2])};});if(t.length>(D.top||[]).length)D.top=t;
+  if(g.tt)D.tt=r2(g.tt);if(g.at)D.at=r2(g.at);
+  if(cur==='top'||cur==='time'||cur==='achtop')x5render();};document.getElementsByTagName('head')[0].appendChild(sc);}catch(e){}})();
 // Drag the content, preserving clicks until a movement threshold is crossed.
 (function(){var drag=null,suppress=0,inertia=0;document.addEventListener('mousedown',function(e){if(e.button!==0)return;inertia++;var el=e.target;if(/^(INPUT|TEXTAREA|SELECT|CANVAS)$/.test(el.tagName))return;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight+4&&(el.id==='appBody'||el.className==='hbody'||String(el.className).indexOf('hbody ')===0||el.className==='bubbles')){drag={el:el,y:e.clientY,last:e.clientY,t:Date.now(),v:0,moved:false};break;}el=el.parentNode;}},false);
 document.addEventListener('mousemove',function(e){if(!drag)return;var dy=e.clientY-drag.last,dt=Math.max(1,Date.now()-drag.t);if(Math.abs(e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){clearTimeout(LP.t);drag.el.scrollTop-=dy;drag.v=-dy/dt;drag.last=e.clientY;drag.t=Date.now();e.preventDefault();}},false);

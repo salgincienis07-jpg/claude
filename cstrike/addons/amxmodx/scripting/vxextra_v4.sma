@@ -2688,7 +2688,6 @@ public N_Modern(plugin, params) { ModernEvents50(); return 1; }
 public N_NatPre(plugin, params) { NativePrecache52(); return 1; }
 public plugin_init()
 {
-set_task(0.1,"task_Reply64",7406400,_,_,"b");
 PlusInit622();
 register_plugin("Vexmira Extra", "5.6.4", "Vexmira");
 ZupInit();
@@ -4603,14 +4602,15 @@ public N_MarketFinish622(plugin,params){new buyer=get_param(1),seller=get_param(
 // The open MOTD ignores a new address until it is closed, so the core hands every tablet reply here
 // (vxc_reply forward) and it is published to the tablet's own relay channel (same relay the tablet
 // already uses for its commands). One short HTTP request at a time, never blocks the game loop.
-public vxc_reply(id,const topic[],const body[])
+// PAD5: replies are sent by vexmira_pad5 (daily limit aware); this old sender is kept unused
+stock vxc_reply_old64(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;
 for(new k=0;k<g_rq64N;k++){new q=(g_rq64Head+k)%RQ64;if(equal(g_rq64Topic[q],topic)){copy(g_rq64Body[q],1499,body);return;}} // newest data wins
 if(g_rq64N>=RQ64){g_rq64Head=(g_rq64Head+1)%RQ64;g_rq64N--;}
 new q=(g_rq64Head+g_rq64N)%RQ64;copy(g_rq64Topic[q],63,topic);copy(g_rq64Body[q],1499,body);g_rq64N++;
 }
-public task_Reply64()
+stock task_Reply64()
 {
 new Float:now=get_gametime();
 switch(g_rq64State)

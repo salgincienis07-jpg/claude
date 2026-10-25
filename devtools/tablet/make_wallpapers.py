@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """VEXMIRA iPad wallpapers (iPadOS-style soft light + flowing shapes, dark zombie palettes).
 
-Writes cstrike/vexmira_pad4/wp4_<n>.jpg (1600x1000). Order matches the tablet's wallpaper list:
+Writes cstrike/vexmira_pad5/p5w_<n>.jpg (1280x800, light for the in-game browser). Order matches the tablet's wallpaper list:
 0 Kizil Sis, 1 Ucurum, 2 Zehir, 3 Altigen, 4 Kor, 5 Mor Safak, 6 Gece Mavisi, 7 Vexmira.
 """
 import os, math
 import numpy as np
 from PIL import Image, ImageFilter, ImageDraw, ImageFont
 
-W, H = 1600, 1000
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'cstrike', 'vexmira_pad4')
+W, H = 1280, 800
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'cstrike', 'vexmira_pad5')
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
 u, v = xx / W, yy / H
 rng = np.random.default_rng(7)
@@ -40,8 +40,8 @@ def finish(img, vign=0.55, grain=0.018):
 
 def save(img, n):
     im = Image.fromarray((img * 255).astype(np.uint8), 'RGB').filter(ImageFilter.GaussianBlur(0.6))
-    p = os.path.join(OUT, 'wp4_%d.jpg' % n)
-    im.save(p, quality=84, optimize=True, progressive=False)
+    p = os.path.join(OUT, 'p5w_%d.jpg' % n)
+    im.save(p, quality=78, optimize=True, progressive=False)
     print(p, os.path.getsize(p) // 1024, 'KB')
     return im
 
@@ -68,7 +68,7 @@ def make():
     # 3 Altigen - red hex grid over dark
     img = base((14, 3, 7), (3, 1, 2)) + blob(.5, .45, .7, .6, (170, 12, 40), .45)
     im = Image.fromarray((finish(img, grain=.012) * 255).astype(np.uint8), 'RGB')
-    dr = ImageDraw.Draw(im, 'RGBA'); r = 46
+    dr = ImageDraw.Draw(im, 'RGBA'); r = 37
     for j in range(-1, H // int(r * 1.5) + 2):
         for i in range(-1, int(W / (r * 1.732)) + 2):
             cx = i * r * 1.732 + (j % 2) * r * 0.866; cy = j * r * 1.5
@@ -100,7 +100,7 @@ def make():
     img = finish(img)
     vm = np.zeros((H, W), np.float32)
     im = Image.fromarray((vm * 255).astype(np.uint8), 'L'); dr = ImageDraw.Draw(im)
-    cx, cy, s = W / 2, H * .42, 210
+    cx, cy, s = W / 2, H * .42, 168
     dr.polygon([(cx - s, cy - s * .8), (cx - s * .55, cy - s * .8), (cx, cy + s * .55), (cx + s * .55, cy - s * .8), (cx + s, cy - s * .8), (cx, cy + s)], fill=255)
     m = np.asarray(im.filter(ImageFilter.GaussianBlur(3))).astype(np.float32) / 255
     glow = np.asarray(im.filter(ImageFilter.GaussianBlur(40))).astype(np.float32) / 255
