@@ -536,3 +536,29 @@ html.lite .x4zc.z0{padding-bottom:6px}
 .x4zc.z0 .x4zh{margin:0}
 .build624{display:none!important}
 html.lite .flash6{display:none!important}
+/* v9 case opening (canvas) */
+.cstage9{position:relative;height:150px;border-radius:14px;overflow:hidden;background:#07060a;border:1px solid var(--line);margin:2px 0 10px}
+.cstage9 canvas{display:block}
+.win9{text-align:center;padding:14px 12px;border-radius:16px}
+.win9 .wic{width:56px;height:56px;margin:0 auto 8px;border-radius:14px;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center}
+.win9 .wic svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:1.8}
+.win6 .wic svg{fill:none;stroke:#fff;stroke-width:1.8}
+/* v9 brightness */
+#dim9{position:absolute;left:0;top:0;right:0;bottom:0;background:#000;pointer-events:none;z-index:2147483000;display:none}
+.brs{position:relative;height:44px;border-radius:14px;overflow:hidden;background:rgba(127,127,127,.22);cursor:pointer;margin-top:4px;-webkit-user-select:none;user-select:none}
+.brf{position:absolute;left:0;top:0;bottom:0;background:#fff;border-radius:0}
+[data-theme=light] .brf{background:#fff;-webkit-box-shadow:0 0 0 1px rgba(0,0,0,.06);box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+.brs i{position:absolute;left:6px;top:6px;width:32px;height:32px;border-radius:10px;z-index:1}
+.brs i svg{position:absolute;left:6px;top:6px;width:20px;height:20px;fill:none;stroke:#8e8e93;stroke-width:2.2;stroke-linecap:round}
+.brs.dim i svg{stroke:#ffcc00}
+.brs span{position:absolute;right:12px;top:0;line-height:44px;font-size:13px;font-weight:600;color:#8e8e93;z-index:1}
+
+
+.brpad{padding:2px 14px 12px}
+/* v9 press feedback (iOS-like, cheap: only the pressed element repaints) */
+.back:active,.x4set .seg span:active,.seg span:active,.mktab span:active{opacity:.55}
+.case:active .ci,.mkc:active,.cct:active div,.wpt:active,.day.now:active,.x4card[data-app]:active,.tile:active{opacity:.75}
+.ccacc span:active{-webkit-transform:scale(.88);transform:scale(.88)}
+.sw:active{opacity:.8}
+.cce:active,.x4btn:active,[data-openc]:active,[data-daily]:active,[data-marketbuy]:active{opacity:.6}
+.x4stage .cstage9{margin:0}
