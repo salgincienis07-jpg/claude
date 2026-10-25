@@ -15,6 +15,7 @@
  * Needs vxcore_v4 (native vxc_hud); the core then stops drawing its own bars / top board / numbers.
  * Tablet & Mod: smurfsexy
  */
+#pragma dynamic 32768
 #include <amxmodx>
 #include <reapi>
 

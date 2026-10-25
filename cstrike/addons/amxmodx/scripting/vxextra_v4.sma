@@ -4617,6 +4617,7 @@ MarketPayout6(id)
 new key[64];formatex(key,63,"pc_%s",g_szAcc6[id]);new due=nvault_get(g_hPlus622,key);if(due<=0)return;
 if(vxc_tab_credit(id,due,0)){nvault_remove(g_hPlus622,key);log_amx("[PAZAR] PAYOUT acc=%s vc=%d",g_szAcc6[id],due);set_task(6.0,"MarketPaid6",id);}
 }
+native vxc_note9(id,const text[],sound=1);
 public N_MarketAction622(plugin,params){new id=get_param(1),op=get_param(2),a[48],b[16];get_string(3,a,47);get_string(4,b,15);if(id<1||id>32||vxc_tab_value(id,0)<0||is_user_bot(id)||g_hPlus622==INVALID_HANDLE||!g_acReady622[id]||!g_szAcc6[id][0])return 0;
 if(op==0)
 {
@@ -4648,7 +4649,7 @@ g_mId622[k]=0;MarketSave6(); // listing gone first: it can never be sold twice
 if(!vxc_tab_recover(id,vc,vc-price,cat,item,0,1)){g_mId622[k]=listing;MarketSave6();return 0;} // buyer pays and gets the item in one step
 new seller=MarketSeller6(k),bn[32];get_user_name(id,bn,31);
 if(!seller||!vxc_tab_credit(seller,price,0))MarketPend6(g_mAcc6[k],price);
-else client_print(seller,print_chat,"[VEXMIRA] Pazar: %s esyani %d VC karsiliginda aldi.",bn,price);
+else{new nt[128];formatex(nt,charsmax(nt),"Pazar: %s esyani %d VC karsiliginda aldi",bn,price);vxc_note9(seller,nt,1);} // v10.3: tablet note + live update
 log_amx("[PAZAR] BUY id=%d buyer=%s seller=%s code=%c%d price=%d %s",listing,g_szAcc6[id],g_mAcc6[k],cat,item+1,price,seller?"online":"offline");
 return 1;
 }
@@ -4671,7 +4672,7 @@ public N_MarketFinish622(plugin,params){new buyer=get_param(1),seller=get_param(
 // The open MOTD ignores a new address until it is closed, so the core hands every tablet reply here
 // (vxc_reply forward) and it is published to the tablet's own relay channel (same relay the tablet
 // already uses for its commands). One short HTTP request at a time, never blocks the game loop.
-// PAD5: replies are sent by vex_tab01 (daily limit aware); this old sender is kept unused
+// PAD5: replies are sent by vex_tab02 (daily limit aware); this old sender is kept unused
 stock vxc_reply_old64(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;

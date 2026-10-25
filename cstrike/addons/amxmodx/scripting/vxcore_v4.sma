@@ -31217,7 +31217,7 @@ return 1;
 }
 TabletInit60()
 {
-g_pTabUrl60=register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vex_tab01/vexmira_pad_v4.html");
+g_pTabUrl60=register_cvar("vex_tablet_url","http://f16.oyunyoneticisi.biz/cstrike/vex_tab02/vexmira_pad_v4.html");
 g_pTabItem60=register_cvar("vex_tablet_item","1");
 g_iUptime60=get_systime();
 RegisterSay("ipad","tablet","cmd_Tablet60");
@@ -31773,7 +31773,7 @@ get_mapname(name,31);H4S(h,n,"mp",name);formatex(t,159,"%d%%2F%d",g_iRound,Round
 if(g_szPref4[id][0])H4S(h,n,"pf",g_szPref4[id]);H4I(h,n,"cm",vxe_ac_mask(id));formatex(t,159,"%d~%d",get_pcvar_num(g_pAchVC),get_pcvar_num(g_pAchAP));H4S(h,n,"ar",t);
 // PAD5: personal data every app needs rides along on every open -> the tablet never waits for a reply
 Pr5Fill(id);formatex(t,159,"%s:%d,%s:%d,%s:%d,%s:%d",g_szPr5[id][0],g_iPr5[id][0],g_szPr5[id][1],g_iPr5[id][1],g_szPr5[id][2],g_iPr5[id][2],g_szPr5[id][3],g_iPr5[id][3]);UrlEnc60(t,e,199);H4S(h,n,"pr",e);
-formatex(t,159,"%d~%d",get_pcvar_num(g_pDailyAP),VipDailyPct(id));H4S(h,n,"dq",t);H4I(h,n,"ig",get_cvar_num("vex_tab01_ingame_only"));
+formatex(t,159,"%d~%d",get_pcvar_num(g_pDailyAP),VipDailyPct(id));H4S(h,n,"dq",t);H4I(h,n,"ig",get_cvar_num("vex_tab02_ingame_only"));
 H4I(h,n,"dn",g_iDailyDay[id]==today?min(7,max(1,g_iDailyStreak[id])):(g_iDailyDay[id]==today-1?min(7,g_iDailyStreak[id]+1):1));
 // zombie upgrades: zx=<cost of level 1>;<class>~<lv>~<pts>~<a>~<b>~<c>~<next cost> only for classes with progress
 if(H4Key(h,n,"zx")){new s0;for(new cl=0;cl<24&&!s0;cl++)if(!vxe_zup_snapshot(id,cl,0))s0=vxe_zup_snapshot(id,cl,5);first=1;num_to_str(s0,t,15);H4Row(h,n,first,t);
@@ -31821,7 +31821,7 @@ new n=Snap4(id,g_szApp4[id],h);
 if(push)H4S(h,n,"nl","1");
 if(extra[0]&&n+strlen(extra)<H4LEN)n+=copy(h[n],H4LEN-n,extra);
 get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,pg,47);
-formatex(url,charsmax(url),"%s%s?v=101#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
+formatex(url,charsmax(url),"%s%s?v=102#%s",base,pg,h);show_motd(id,url,"VEXMIRA iPad");if(!push)client_cmd(id,"spk buttons/blip1");
 }
 // re-send the tablet page with fresh data after an action (only while the player uses the tablet)
 TabPush4(id,bool:force=false)
@@ -31843,9 +31843,9 @@ out[o]= 0;
 }
 public WriteItemsJs60()
 {
-if(!dir_exists("vex_tab01"))mkdir("vex_tab01");
-new fp=fopen("vex_tab01/vxitems_server.js","wt");
-if(!fp){log_amx("[Vexmira] vex_tab01/vxitems_server.js yazilamadi");return;}
+if(!dir_exists("vex_tab02"))mkdir("vex_tab02");
+new fp=fopen("vex_tab02/vxitems_server.js","wt");
+if(!fp){log_amx("[Vexmira] vex_tab02/vxitems_server.js yazilamadi");return;}
 BuildPools60();
 fprintf(fp,"// VEXMIRA - written by the server at map start (vexmira_core 6.0). Tablet & mod: smurfsexy^nwindow.VXITEMS={");
 static const CATS[]= "kcwpftz";
@@ -31889,7 +31889,7 @@ fprintf(fp,",dtr:^"%s^",den:^"%s^",vc:%d,ap:%d}",ja,jb,get_pcvar_num(g_pAchVC),g
 }
 fprintf(fp,"]};^n");
 fclose(fp);
-log_amx("[Vexmira] tablet: vex_tab01/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
+log_amx("[Vexmira] tablet: vex_tab02/vxitems_server.js yazildi (havuz: %d/%d/%d/%d/%d)",g_iPoolN60[0],g_iPoolN60[1],g_iPoolN60[2],g_iPoolN60[3],g_iPoolN60[4]);
 }
 public fw_KnifeDeploy60(knife)
 {
@@ -32174,8 +32174,8 @@ g_pRlOn62=register_cvar("vex_tablet_relay","1");
 g_pRlHost62=register_cvar("vex_tablet_relay_host","ntfy.sh");
 g_pRlPort62=register_cvar("vex_tablet_relay_port","80");
 g_pRlTopic62=register_cvar("vex_tablet_topic","");
-g_pWebBase62=register_cvar("vex_tab01_web","http://f16.oyunyoneticisi.biz/cstrike/vex_tab01/");
-g_pWebPage62=register_cvar("vex_tab01_page","vex_tab01.html");
+g_pWebBase62=register_cvar("vex_tab02_web","http://f16.oyunyoneticisi.biz/cstrike/vex_tab02/");
+g_pWebPage62=register_cvar("vex_tab02_page","vex_tab02.html");
 g_fwNote4=CreateMultiForward("vxc_notify",ET_IGNORE,FP_CELL,FP_STRING);g_fwReply4=CreateMultiForward("vxc_reply",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING);g_fwBank9=CreateMultiForward("vxc_bank9",ET_IGNORE,FP_CELL,FP_STRING,FP_STRING,FP_STRING,FP_STRING);g_fwSnap9=CreateMultiForward("vxc_snap9",ET_IGNORE,FP_CELL,FP_STRING,FP_ARRAY,FP_CELL);
 register_concmd("vex_tablet_link","cmd_TabLink62",ADMIN_RCON,"- tablet canli baglanti durumu");
 register_srvcmd("vex_tablet_fake","cmd_TabFake62");
@@ -32289,8 +32289,8 @@ public cmd_TabLink62(id,level,cid)
 {
 if(!cmd_access(id,level,cid,1))return PLUGIN_HANDLED;
 new base[192],page[48];get_pcvar_string(g_pWebBase62,base,191);get_pcvar_string(g_pWebPage62,page,47);
-console_print(id,"[TAB01] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_tab01)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
-for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&!is_user_bot(p)&&g_szTok62[p][0])console_print(id,"[TAB01] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
+console_print(id,"[TAB02] sayfa=%s%s topic=%s dinleniyor=%d islenen komut=%d (ayrinti: vex_tab02)",base,page,g_szTopic62,g_bRlReady621,g_iActionRx624);
+for(new p=1;p<=g_iMax;p++)if(is_user_connected(p)&&!is_user_bot(p)&&g_szTok62[p][0])console_print(id,"[TAB02] #%d tk=%s",get_user_userid(p),g_szTok62[p]);
 return PLUGIN_HANDLED;
 }
 TabAction62(const msg[])
@@ -32356,7 +32356,7 @@ new name[32];get_user_name(id,name,charsmax(name));
 if(!g_bLoaded[id]){Res62(id,"err~Player data not ready");return;}
 if((equal(act,"bk",2)||equal(act,"bp",2))&&g_fwBank9>=0){new r9;Res62(id,"err~%s",tr?"Banka hizmeti kapali":"Bank service offline");ExecuteForward(g_fwBank9,r9,id,act,a,b,c);return;}
 if(equal(act,"claimach")){new result=vxe_ac_claim(id,str_to_num(a));if(result>0){PlayKey(id,"ACH_UNLOCK");Res62(id,"ok~claimach");Notify62(id,tr?"Basarim odulu alindi":"Achievement reward claimed");}else Res62(id,"err~%s",tr?"Odul alinamadi: kilitli, alinmis veya kayit hazir degil":"Reward locked, already claimed or storage unavailable");return;}
-if(equal(act,"marketlist")||equal(act,"marketbuy")||equal(act,"marketcancel")){new op=equal(act,"marketlist")?0:equal(act,"marketbuy")?1:2;new result=vxe_market_action(id,op,a,b);if(result>0){PlayKey(id,"SHOP_BUY");Res62(id,"ok~market");if(op!=1)Notify62(id,op==0?(tr?"Pazar ilanin yayinda":"Market listing created"):(tr?"Pazar ilanin kaldirildi":"Market listing cancelled"));}else Res62(id,"err~%s",tr?"Pazar islemi gecersiz: sahiplik, bakiye, oyuncu veya fiyat degisti":"Market request invalid: ownership, balance, player or price changed");return;}
+if(equal(act,"marketlist")||equal(act,"marketbuy")||equal(act,"marketcancel")){new op=equal(act,"marketlist")?0:equal(act,"marketbuy")?1:2;new result=vxe_market_action(id,op,a,b);if(result>0){PlayKey(id,"SHOP_BUY");for(new mp=1;mp<=g_iMax;mp++)if(mp!=id&&equal(g_szApp4[mp],"market"))TabPush4(mp);Res62(id,"ok~market");if(op!=1)Notify62(id,op==0?(tr?"Pazar ilanin yayinda":"Market listing created"):(tr?"Pazar ilanin kaldirildi":"Market listing cancelled"));}else Res62(id,"err~%s",tr?"Pazar islemi gecersiz: sahiplik, bakiye, oyuncu veya fiyat degisti":"Market request invalid: ownership, balance, player or price changed");return;}
 if(equal(act,"lang")){if(equal(a,"tr")||equal(a,"en")){SetLanguage(id,equal(a,"tr")?2:1);Res62(id,"ok~lang");}else Res62(id,"err~Invalid language");return;}
 if(equal(act,"zperk")){new cl=str_to_num(a),perk=str_to_num(b);if(cl<0||cl>=24||perk<0||perk>=3){Res62(id,"err~Invalid upgrade");return;}new ret=vxe_zup_spend(id,cl,perk);if(ret>0)Res62(id,"ok~zperk");else Res62(id,"err~%s",tr?"Bos gelistirme puani yok veya veri hazir degil":"No free points or data not ready");return;}
 if(equal(act,"ping")){Res62(id,"ok~ping");return;}
@@ -32604,7 +32604,7 @@ g_szTok62[id][0]= 0;
 for(new k=g_iOffN62 - 1;k>=0;k--)if(g_iOffFrom62[k]== id||g_iOffTo62[k]== id)OffDel62(k);
 for(new p=1;p<=g_iMax;p++)g_iFReq62[p]&= ~(1 << id);
 }
-// PAD5: the relay listener lives in vex_tab01 and hands every command line to the core
+// PAD5: the relay listener lives in vex_tab02 and hands every command line to the core
 // admin reset for everyone: 0 playtime, 1 stats, 2 achievements, 3 daily reward. Players offline right now
 // are reset on their next join (their save is older than the reset time).
 Rs6(id,w){switch(w){case 0:g_iPlaySec[id]=0;case 1:{g_iKills[id]=0;g_iInfects[id]=0;g_iWins[id]=0;g_iBossK[id]=0;g_iHS[id]=0;g_iCases60[id]=0;g_iTrades60[id]=0;g_iLmKills60[id]=0;g_iKnifeKills60[id]=0;g_iCures60[id]=0;}case 2:g_iAch[id]=0;case 3:{g_iDailyDay[id]=0;g_iDailyStreak[id]=0;}}}

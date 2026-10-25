@@ -1021,7 +1021,8 @@ function listen(){
     var busyNow=false;for(var k in LIVE.pend)busyNow=true;setTimeout(poll,busyNow?900:3000);})();
 }
 var NEED=['msg','friends','notif','trade','adm','zup','market','top','time','achtop'];
-function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<45000)return;sendRaw('view',a);}
+var LIVEAPP=['msg','friends','notif','trade','market'];
+function wantData(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<(LIVEAPP.indexOf(a)>=0?6000:45000))return;sendRaw('view',a);} // v10.3: live lists are asked again after 6 s (data now comes without relay limits)
 function buildStatus624(){var b=$('build624');if(b){b.textContent='';return;}if(b)b.textContent='Vexmira 1.0 · '+(LIVE.fileOk?(LIVE.ready?tr('CANLI','LIVE'):tr('VERİ VAR','DATA OK')):tr('/ipad ile aç','open with /ipad'));}
 function linkDot() { buildStatus624(); var d = $('linkDot'); if (d) {d.title=LIVE.fileOk?(LIVE.ready?tr('Sunucu bağlantısı hazır','Server link ready'):tr('Veri okunuyor, komut bağlantısı bekleniyor','Reading data; waiting for command link')):tr('Canlı veri dosyası okunamıyor','Live data file unavailable'); d.className = 'ldot ' + (LIVE.fileOk ? (LIVE.ready ? 'g' : 'y') : 'r'); } }
 function typing() { var a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
@@ -1510,7 +1511,7 @@ hashU=function(o){var u=x5hashU(o);if(o.pr){u.pr=String(dec(o.pr)).split(',').ma
 var x5applyU=applyU;
 applyU=function(u){if(u.pr)PR=u.pr;x5applyU(u);};
 NEED=['msg','friends','notif','trade','adm','market','top','time','achtop'];
-wantData=function(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<20000)return;GOT[a]=Date.now();sendRaw('view',a);};
+wantData=function(a){if(NEED.indexOf(a)<0||DEMO)return;if(GOT[a]&&Date.now()-GOT[a]<(LIVEAPP.indexOf(a)>=0?6000:20000))return;GOT[a]=Date.now();sendRaw('view',a);};
 // one request per command; a second (image) request only when the first could not leave the browser
 // v10: commands never get lost. They go out one by one in order (the server refuses an older sequence
 // number after a newer one); if the relay says "too many requests" (429) or the network fails, the same
@@ -1623,7 +1624,7 @@ function x5case(t,hint){
   return s;
 }
 // leaderboards written by the server (playtime / achievements); the copy on the web host can be a few minutes old
-(function(){try{var sc=document.createElement('script');sc.src='g01.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
+(function(){try{var sc=document.createElement('script');sc.src='g02.js?t='+Math.floor(Date.now()/300000);sc.onload=function(){var g=window.VXG;if(!g)return;
   var r2=function(s){return rows(s,function(c){return {n:dec(c[0]),v:num(c[1])};});};
   var t=rows(g.t,function(c){return {n:dec(c[0]),lv:num(c[1]),k:num(c[2])};});if(t.length>(D.top||[]).length)D.top=t;
   if(g.tt)D.tt=r2(g.tt);if(g.at)D.at=r2(g.at);
@@ -2160,6 +2161,29 @@ document.addEventListener('click',function(e){
   if(uid===LIVE.uid&&(op==='give'||op==='take')){if(c)D.ap=Math.max(0,D.ap+(op==='give'?amt:-amt));else D.vc=Math.max(0,D.vc+(op==='give'?amt:-amt));}
   X4.bkaamt='';SND.click();x5ok(nm+' · '+M[op]);x4re();
 },false);
+// v10.3: server -> tablet data from the game server's own web folder (d/<secret name>.js), read every
+// 1.5 s (0.7 s while a command waits). No relay limits: works the same with 32 players. The file name comes
+// from this tablet's secret key and the content is encrypted with it, so other people cannot read it.
+// If the folder cannot be read at all, the tablet asks the server to answer over the relay instead.
+var DF={seq:-1,fails:0,ok:false,name:'',asked:false,t0:Date.now()};
+function dfDec(seq,hex){var out='',b=-1,kh='',n=hex.length>>1;for(var i=0;i<n;i++){var blk=i>>5;if(blk!==b){b=blk;kh=sha256(LIVE.tk+'|k02|'+seq+'|'+b);}
+  out+=String.fromCharCode(parseInt(hex.substr(i*2,2),16)^parseInt(kh.substr((i&31)*2,2),16));}
+  try{return decodeURIComponent(escape(out));}catch(e){return out;}}
+window.vxD=function(seq,hex){DF.fails=0;if(!DF.ok){DF.ok=true;LIVE.fileOk=true;linkDot();}
+  if(seq===DF.seq)return;DF.seq=seq;if(!hex)return;var body=dfDec(seq,String(hex));if(body.slice(0,2)!=='n=')return;takeReply(body+'&tk='+encodeURIComponent(LIVE.tk));window.vxDN=(window.vxDN||0)+1;};
+function dfPoll(){
+  if(DEMO||!LIVE.on||!LIVE.tk)return;
+  if(!DF.name)DF.name=sha256(LIVE.tk+'|d02').slice(0,16);
+  var sc=document.createElement('script'),fin=false;
+  function next(okLoad){if(fin)return;fin=true;if(sc.parentNode)sc.parentNode.removeChild(sc);
+    if(!okLoad){DF.fails++;var waiting=false,now=Date.now();for(var k in LIVE.pend)if(now-LIVE.pend[k].t>9000)waiting=true;
+      if(!DF.ok&&!DF.asked&&DF.fails>=6&&waiting){DF.asked=true;sendRaw('relay','1');}}
+    var busy=false;for(var p in LIVE.pend)busy=true;setTimeout(dfPoll,busy?700:(DF.fails>20&&!DF.ok?5000:1500));}
+  sc.onload=function(){next(true);};sc.onerror=function(){next(false);};
+  setTimeout(function(){next(false);},6000);
+  sc.src='d/'+DF.name+'.js?t='+Date.now();document.getElementsByTagName('head')[0].appendChild(sc);
+}
+setTimeout(dfPoll,400);
 // ------------------------------------------------------------------ boot
 applyTheme(); applyAccent(); applyBright(); setWall(); $('screen').className = 'screen locked'; $('lockLogo').innerHTML = LOGO(); $('lockHint').textContent = L('unlock');
 $('lockNote').textContent = D.claimed ? '' : L('dailyReady');

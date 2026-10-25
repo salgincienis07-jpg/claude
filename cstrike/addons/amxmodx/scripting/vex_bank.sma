@@ -2,7 +2,7 @@
    Tablet & mod: smurfsexy
 
    Everything is decided here on the server; the tablet only shows the data and sends signed requests
-   (vx2, checked by vex_tab01). Money moves only through the core native vxc_wal9, which changes a wallet
+   (vx2, checked by vex_tab02). Money moves only through the core native vxc_wal9, which changes a wallet
    all-or-nothing (never below 0, never overflows) and saves the player at once.
 
    BANK
@@ -21,9 +21,10 @@
      formula on the tablet, so the tablet always shows the right numbers.
 
    Needs: vxcore_v4 (natives vxc_wal9, vxc_note9, vxc_res9, vxc_push9, vxc_stat9, vxc_case9, vxc_tab_value,
-   vxc_tab_key, forwards vxc_bank9 / vxc_snap9), vex_tab01, nvault.
+   vxc_tab_key, forwards vxc_bank9 / vxc_snap9), vex_tab02, nvault.
    Commands (rcon): vex_bank <name> (info), vex_bank_clear <name> (clear debt and block),
    vex_bank_due <name> <seconds> (move the due time), vex_bp_xp <name> <xp> (season pass XP). */
+#pragma dynamic 32768
 #include <amxmodx>
 #include <amxmisc>
 #include <nvault>
@@ -93,7 +94,14 @@ g_hV=nvault_open("vexmira_bank9");
 set_task(0.2,"task_Sweep",552000,_,_,"b");
 set_task(2.0,"task_Tick",552001,_,_,"b");
 }
-public plugin_end(){for(new id=1;id<=32;id++)if(g_bOk[id])Save(id);if(g_hV!=INVALID_HANDLE)nvault_close(g_hV);log_amx("[BANK] harita sonu: transfer=%d kredi=%d gecikme=%d",g_iStatTx,g_iStatLoan,g_iStatLate);}
+public plugin_end()
+{
+// v10.3: reopen by name first. nVault returns the same vault when it is still open, and opens it again when
+// something else already closed it - the last save of the map is never lost and nvault_close never errors.
+g_hV=nvault_open("vexmira_bank9");
+if(g_hV!=INVALID_HANDLE){for(new id=1;id<=32;id++)if(g_bOk[id])Save(id);nvault_close(g_hV);g_hV=INVALID_HANDLE;}
+log_amx("[BANK] harita sonu: transfer=%d kredi=%d gecikme=%d",g_iStatTx,g_iStatLoan,g_iStatLate);
+}
 public client_putinserver(id){Clear(id);}
 public client_disconnected(id){if(g_bOk[id])Save(id);Clear(id);}
 Clear(id)

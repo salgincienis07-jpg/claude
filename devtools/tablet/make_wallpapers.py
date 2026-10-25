@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """VEXMIRA iPad wallpapers (iPadOS-style soft light + flowing shapes, dark zombie palettes).
 
-Writes cstrike/vex_tab01/t01w_<n>.jpg (1280x800, light for the in-game browser). Order matches the tablet's wallpaper list:
+Writes cstrike/vex_tab02/t02w_<n>.jpg (1280x800, light for the in-game browser). Order matches the tablet's wallpaper list:
 0 Kizil Sis, 1 Ucurum, 2 Zehir, 3 Altigen, 4 Kor, 5 Mor Safak, 6 Gece Mavisi, 7 Vexmira.
 """
 import os, math
@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageFilter, ImageDraw, ImageFont
 
 W, H = 1280, 800
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'cstrike', 'vex_tab01')
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'cstrike', 'vex_tab02')
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
 u, v = xx / W, yy / H
 rng = np.random.default_rng(7)
@@ -40,7 +40,7 @@ def finish(img, vign=0.55, grain=0.018):
 
 def save(img, n):
     im = Image.fromarray((img * 255).astype(np.uint8), 'RGB').filter(ImageFilter.GaussianBlur(0.6))
-    p = os.path.join(OUT, 't01w_%d.jpg' % n)
+    p = os.path.join(OUT, 't02w_%d.jpg' % n)
     im.save(p, quality=78, optimize=True, progressive=False)
     print(p, os.path.getsize(p) // 1024, 'KB')
     return im
