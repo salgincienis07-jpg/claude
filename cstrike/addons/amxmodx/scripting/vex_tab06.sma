@@ -1,4 +1,4 @@
-/* VEX TAB02 - tablet server (relay listener, limited replies, leaderboard file)
+/* VEX TAB06 - tablet server (relay listener, limited replies, leaderboard file)
    Tablet & mod: smurfsexy
 
    Why a separate plugin:
@@ -11,15 +11,15 @@
 
    Needs: vxcore_v4 (natives vxc_tab_action / vxc_tab_link / vxc_board), sockets module.
    Cvars (core): vex_tablet_relay, vex_tablet_relay_host, vex_tablet_relay_port, vex_tablet_topic.
-   Cvars (here): vex_tab02_reply_day, vex_tab02_reply_gap, vex_tab02_board.
-   Commands: vex_tab02 (status). */
+   Cvars (here): vex_tab06_reply_day, vex_tab06_reply_gap, vex_tab06_board.
+   Commands: vex_tab06 (status). */
 #include <amxmodx>
 #include <amxmisc>
 #include <sockets>
 #pragma dynamic 32768   // v10.3: a tablet command + the core's nested reply used to overflow the default 16 KB stack
 
-#define PLUGIN "VEXMIRA TAB02"
-#define VERSION "6.0"
+#define PLUGIN "VEXMIRA TAB06"
+#define VERSION "10.5"
 
 native vxc_tab_action(const msg[]);
 native vxc_tab_link(ready,topic[],len);
@@ -27,6 +27,8 @@ native vxc_board(board,row,out[],len);
 native vxc_tab_tok(id,out[],len);
 native vxc_reset(what);
 native vxc_tab_reopen(id);
+native vxc_tab_snap(id,out[],len);
+native vxc_tab_mq(id,st);
 new g_iSeq6[33];
 
 // ---------------------------------------------------------------- listener (commands from tablets)
@@ -45,23 +47,36 @@ new g_rSent,g_rFail,g_r429,g_rDropped,Float:g_rPauseUntil,g_r429Row;
 // ntfy.sh allows each IP a burst of ~60 requests, then 1 every 5 s: stay below it instead of getting 429
 new Float:g_fTok=40.0,Float:g_fTokAt;
 new g_dayCount,g_dayNo,Float:g_fLastReply[33];
-// v10.3: server -> tablet data goes into the game server's own web folder (vex_tab02/d/<secret name>.js):
+// v10.3: server -> tablet data goes into the game server's own web folder (vex_tab06/d/<secret name>.js):
 // no relay limits, works the same with 32 players. ntfy replies only for a tablet that reports it cannot
-// read that folder (cvar vex_tab02_ntfy_reply 1 = always send them too).
+// read that folder (cvar vex_tab06_ntfy_reply 1 = always send them too).
 new g_iDSeq[33],g_szDName[33][24],bool:g_bRelayPl[33],g_pNtfy,g_pFiles,g_dWrites,g_dFail,g_iReopen;
 new Float:g_qMade[48];
 new g_pDay,g_pGap,g_pBoard,g_pOn,g_pHost,g_pPort;
+// ---------------------------------------------------------------- v10.5 MQTT link (no daily limit)
+// One TCP connection to a public MQTT broker. Answers go to vx5/<topic>/r/<secret name of the tablet>,
+// encrypted with that tablet's key; commands come in on vx5/<topic>/c (signed like on ntfy).
+#define MQ_OUT 65536
+new g_mSock,g_mState,Float:g_mNext,Float:g_mLast,Float:g_mPing,Float:g_mT0,g_mFails,g_mErr;
+new g_mOut[MQ_OUT],g_mOutH,g_mOutN,g_mIn[4200],g_mInN,g_mSkip;
+new bool:g_mRxOk,g_mTest[16],g_mPub,g_mRx,g_mDrop,g_mRxSec,Float:g_mRxT;
+new bool:g_bMqPl[33],g_mSeq[33],Float:g_fMqDue[33],g_mRR;
+new g_pMq,g_pMqHost,g_pMqPort;
 
 public plugin_init()
 {
 register_plugin(PLUGIN,VERSION,"smurfsexy");
-g_pDay=register_cvar("vex_tab02_reply_day","220");   // max answers per day from this server (ntfy.sh limit is ~250)
-g_pGap=register_cvar("vex_tab02_reply_gap","2.0");   // min seconds between two answers to the same player (later data is merged)
-g_pBoard=register_cvar("vex_tab02_board","1");
-g_pNtfy=register_cvar("vex_tab02_ntfy_reply","1");  // answers over the relay (fast); when it is full the tablet reopens with fresh data
-g_pFiles=register_cvar("vex_tab02_files","0");     // 1 = also write vex_tab02/d/*.js (only useful when the web folder shows server files at once)
-register_cvar("vex_tab02_ingame_only","1");       // 1 = tablet page refuses to run in a normal web browser (only the game's MOTD browser)       // 1 = write vex_tab02/g02.js (leaderboards) every 2 min
-register_concmd("vex_tab02","cmd_Status",ADMIN_RCON,"- TAB02 tablet status");
+g_pDay=register_cvar("vex_tab06_reply_day","220");   // max answers per day from this server (ntfy.sh limit is ~250)
+g_pGap=register_cvar("vex_tab06_reply_gap","2.0");   // min seconds between two answers to the same player (later data is merged)
+g_pBoard=register_cvar("vex_tab06_board","1");
+g_pNtfy=register_cvar("vex_tab06_ntfy_reply","1");  // answers over the relay (fast); when it is full the tablet reopens with fresh data
+g_pFiles=register_cvar("vex_tab06_files","0");     // 1 = also write vex_tab06/d/*.js (only useful when the web folder shows server files at once)
+register_cvar("vex_tab06_ingame_only","1");
+g_pMq=register_cvar("vex_tab06_mqtt","1");                       // 1 = MQTT link on (answers without daily limit)
+g_pMqHost=register_cvar("vex_tab06_mqtt_host","broker.emqx.io");  // broker for the game server (plain TCP)
+g_pMqPort=register_cvar("vex_tab06_mqtt_port","1883");
+register_cvar("vex_tab06_mqtt_ws","ws://broker.emqx.io:8083/mqtt"); // same broker for the tablet (WebSocket)       // 1 = tablet page refuses to run in a normal web browser (only the game's MOTD browser)       // 1 = write vex_tab06/g02.js (leaderboards) every 2 min
+register_concmd("vex_tab06","cmd_Status",ADMIN_RCON,"- TAB06 tablet status");
 set_task(0.05,"task_Net",551000,_,_,"b");
 set_task(5.0,"task_Board",551001);
 set_task(120.0,"task_Board",551002,_,_,"b");
@@ -75,11 +90,12 @@ g_pOn=get_cvar_pointer("vex_tablet_relay");g_pHost=get_cvar_pointer("vex_tablet_
 public plugin_end()
 {
 if(g_lSock>0)socket_close(g_lSock);
+if(g_mSock>0)socket_close(g_mSock);
 for(new k=0;k<NS;k++)if(g_sSock[k]>0)socket_close(g_sSock[k]);
 DaySave();
 }
-public client_disconnected(id){g_fLastReply[id]=0.0;g_iSeq6[id]=0;DataDrop(id);}
-public client_putinserver(id){g_iSeq6[id]=0;g_iDSeq[id]=0;g_bRelayPl[id]=false;g_szDName[id][0]=0;}
+public client_disconnected(id){g_fLastReply[id]=0.0;g_bMqPl[id]=false;g_fMqDue[id]=0.0;vxc_tab_mq(id,0);g_iSeq6[id]=0;DataDrop(id);}
+public client_putinserver(id){g_iSeq6[id]=0;g_bMqPl[id]=false;g_mSeq[id]=0;g_fMqDue[id]=0.0;g_iDSeq[id]=0;g_bRelayPl[id]=false;g_szDName[id][0]=0;}
 
 Host(out[],len){out[0]=0;if(g_pHost)get_pcvar_string(g_pHost,out,len);if(!out[0])copy(out,len,"ntfy.sh");}
 Port(){new p=g_pPort?get_pcvar_num(g_pPort):80;return p>0?p:80;}
@@ -89,6 +105,7 @@ public task_Net()
 {
 Listen();
 Send();
+MqTick();
 }
 
 // ---------------------------------------------------------------- listener
@@ -104,7 +121,7 @@ case L_IDLE:
 if(now<g_lNext)return;
 new host[64];Host(host,63);
 g_lSock=socket_open(host,Port(),SOCKET_TCP,g_lErr,SOCK_NON_BLOCKING);
-if(g_lSock<=0){g_lSock=0;g_lFails++;g_lNext=now+floatmin(60.0,3.0*float(g_lFails));if(g_lFails<=3)log_amx("[TAB02] relay baglanamadi (%s hata %d), tekrar denenecek",host,g_lErr);return;}
+if(g_lSock<=0){g_lSock=0;g_lFails++;g_lNext=now+floatmin(60.0,3.0*float(g_lFails));if(g_lFails<=3)log_amx("[TAB06] relay baglanamadi (%s hata %d), tekrar denenecek",host,g_lErr);return;}
 g_lState=L_CONN;g_lLast=now;
 }
 case L_CONN:
@@ -115,7 +132,7 @@ new host[64],req[256];Host(host,63);
 formatex(req,charsmax(req),"GET /%s/json HTTP/1.0^r^nHost: %s^r^nUser-Agent: vex-tab01/8.0^r^nAccept: application/x-ndjson^r^nConnection: close^r^n^r^n",g_szTopic,host);
 if(socket_send2(g_lSock,req,strlen(req))!=strlen(req)){LDrop(now);return;}
 g_lState=L_STREAM;g_lLast=now;g_lLen=0;
-if(g_lFails)log_amx("[TAB02] relay baglandi (%s)",host);
+if(g_lFails)log_amx("[TAB06] relay baglandi (%s)",host);
 g_lFails=0;
 }
 else if(now-g_lLast>10.0)LDrop(now);
@@ -162,8 +179,8 @@ g_lLen=rest;g_lBuf[rest]=0;
 }
 LLine(const line[])
 {
-if(equal(line,"HTTP/",5)){if(str_to_num(line[9])!=200){log_amx("[TAB02] relay HTTP %c%c%c - komut kanali hazir degil",line[9],line[10],line[11]);LDrop(get_gametime());}return;}
-if(containi(line,"^"event^":^"open^"")!=-1){g_lReady=true;vxc_tab_link(1,g_szTopic,charsmax(g_szTopic));log_amx("[TAB02] komut kanali hazir (%s)",g_szTopic);return;}
+if(equal(line,"HTTP/",5)){if(str_to_num(line[9])!=200){log_amx("[TAB06] relay HTTP %c%c%c - komut kanali hazir degil",line[9],line[10],line[11]);LDrop(get_gametime());}return;}
+if(containi(line,"^"event^":^"open^"")!=-1){g_lReady=true;vxc_tab_link(1,g_szTopic,charsmax(g_szTopic));log_amx("[TAB06] komut kanali hazir (%s)",g_szTopic);return;}
 if(containi(line,"^"event^":^"message^"")==-1)return;
 new p=containi(line,"^"message^":^"");
 if(p==-1)return;
@@ -221,8 +238,9 @@ g_iSeq6[id]=seq;
 if(!g_iDSeq[id]&&get_pcvar_num(g_pFiles))DataWrite(id,""); // first command: the tablet learns that its data file works
 static f[6][100];new n=0,o=0;for(new i=0;body[i]&&n<6;i++){if(body[i]=='~'){f[n][o]=0;n++;o=0;continue;}if(o<99)f[n][o++]=body[i];}if(n<6)f[n][o]=0;
 if(equal(f[2],"adm")&&equal(f[3],"reset")){AdminReset(id,str_to_num(f[4]));return;}
-if(equal(f[2],"ua")){new nm[32];get_user_name(id,nm,31);log_amx("[TAB02] %s tablet tarayicisi: %s",nm,f[3]);if(get_pcvar_num(g_pFiles))DataWrite(id,"");return;} // + first (empty) data file: the tablet sees the folder works
-if(equal(f[2],"relay")){g_bRelayPl[id]=str_to_num(f[3])!=0;new nm[32];get_user_name(id,nm,31);log_amx("[TAB02] %s tableti veri klasorunu okuyamiyor -> ntfy cevaplari acildi (vex_tab02_web adresini kontrol et)",nm);return;} // which browser the game uses (for vex_tab02_ingame_only)
+if(equal(f[2],"mq")){g_bMqPl[id]=str_to_num(f[3])!=0&&g_mState==4;vxc_tab_mq(id,g_bMqPl[id]?1:0);if(g_bMqPl[id])g_fMqDue[id]=get_gametime()+0.05;return;} // tablet listens on MQTT: full answers there
+if(equal(f[2],"ua")){new nm[32];get_user_name(id,nm,31);log_amx("[TAB06] %s tablet tarayicisi: %s",nm,f[3]);if(get_pcvar_num(g_pFiles))DataWrite(id,"");return;} // + first (empty) data file: the tablet sees the folder works
+if(equal(f[2],"relay")){g_bRelayPl[id]=str_to_num(f[3])!=0;new nm[32];get_user_name(id,nm,31);log_amx("[TAB06] %s tableti veri klasorunu okuyamiyor -> ntfy cevaplari acildi (vex_tab06_web adresini kontrol et)",nm);return;} // which browser the game uses (for vex_tab06_ingame_only)
 static out[512];formatex(out,charsmax(out),"vx1~%s%s",tk,body[q]);
 vxc_tab_action(out);
 }
@@ -241,7 +259,7 @@ case 5:{server_cmd("vex_reset_top");server_cmd("vex_reset_time");server_cmd("vex
 }
 static const W[][]={"oynama suresi","istatistikler","basarimlar","gunluk oduller","Top 15","tum siralamalar"};
 client_print(0,print_chat,"[VEXMIRA] Kurucu %s herkesin %s verisini sifirladi.",an,W[what]);
-log_amx("[TAB02] %s reset %d (%s)",an,what,W[what]);
+log_amx("[TAB06] %s reset %d (%s)",an,what,W[what]);
 }
 
 // ---------------------------------------------------------------- replies
@@ -249,6 +267,7 @@ log_amx("[TAB02] %s reset %d (%s)",an,what,W[what]);
 public vxc_reply(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;
+if(1<=id<=32&&g_bMqPl[id]&&g_mState==4){if(g_fMqDue[id]<=0.0)g_fMqDue[id]=get_gametime()+0.06;return;} // v10.5: newest full data over MQTT
 if(1<=id<=32&&get_pcvar_num(g_pFiles))DataWrite(id,body);
 if(!get_pcvar_num(g_pNtfy)&&!(1<=id<=32&&g_bRelayPl[id]))return;
 DayRoll();
@@ -317,7 +336,7 @@ case 2:
 if(socket_is_readable(g_sSock[k],0))
 {
 new head[64];socket_recv(g_sSock[k],head,63);
-if(contain(head," 429")!=-1){g_r429++;g_r429Row++;new Float:w=floatmin(600.0,30.0*float(1<<min(5,g_r429Row-1)));g_rPauseUntil=now+w;g_fTok=0.0;log_amx("[TAB02] ntfy limit (429) - cevaplar %.0f sn bekletiliyor; oyuncular yine sohbet + iPad kartiyla haber alir",w);}
+if(contain(head," 429")!=-1){g_r429++;g_r429Row++;new Float:w=floatmin(600.0,30.0*float(1<<min(5,g_r429Row-1)));g_rPauseUntil=now+w;g_fTok=0.0;log_amx("[TAB06] ntfy limit (429) - cevaplar %.0f sn bekletiliyor; oyuncular yine sohbet + iPad kartiyla haber alir",w);}
 else g_r429Row=0;
 socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_sT[k]=now;
 }
@@ -327,16 +346,16 @@ else if(now-g_sT[k]>3.0){socket_close(g_sSock[k]);g_sSock[k]=0;g_sState[k]=0;g_s
 }
 // daily budget, counted on Turkey's calendar day like ntfy's rolling day (saved across map changes)
 DayRoll(){new d=(get_systime()+10800)/86400;if(d!=g_dayNo){g_dayNo=d;g_dayCount=0;}}
-DayLoad(){new f=fopen("addons/amxmodx/data/vex_tab02_day.txt","rt");if(f){new l[32],a[12],b[12];fgets(f,l,31);fclose(f);parse(l,a,11,b,11);g_dayNo=str_to_num(a);g_dayCount=str_to_num(b);}DayRoll();}
-DaySave(){new f=fopen("addons/amxmodx/data/vex_tab02_day.txt","wt");if(f){fprintf(f,"%d %d^n",g_dayNo,g_dayCount);fclose(f);}}
+DayLoad(){new f=fopen("addons/amxmodx/data/vex_tab06_day.txt","rt");if(f){new l[32],a[12],b[12];fgets(f,l,31);fclose(f);parse(l,a,11,b,11);g_dayNo=str_to_num(a);g_dayCount=str_to_num(b);}DayRoll();}
+DaySave(){new f=fopen("addons/amxmodx/data/vex_tab06_day.txt","wt");if(f){fprintf(f,"%d %d^n",g_dayNo,g_dayCount);fclose(f);}}
 
 // ---------------------------------------------------------------- leaderboards file (FastDL copy may lag)
 public task_Board()
 {
 DaySave();
 if(!get_pcvar_num(g_pBoard))return;
-if(!dir_exists("vex_tab02"))mkdir("vex_tab02");
-new f=fopen("vex_tab02/g02.js","wt");
+if(!dir_exists("vex_tab06"))mkdir("vex_tab06");
+new f=fopen("vex_tab06/g02.js","wt");
 if(!f)return;
 new row[160],k;
 fprintf(f,"window.VXG={ts:%d",get_systime());
@@ -356,25 +375,27 @@ public cmd_Status(id,level,cid)
 {
 if(!(get_user_flags(id)&ADMIN_RCON)&&id)return PLUGIN_HANDLED;
 new host[64];Host(host,63);DayRoll();
-console_print(id,"[TAB02] relay=%s:%d topic=%s dinleniyor=%d (1 olmali) gelen komut=%d reddedilen(imzasiz/sahte)=%d hata=%d",host,Port(),g_szTopic,g_lReady,g_lRx,g_lBad,g_lFails);
-console_print(id,"[TAB02] cevap: bugun %d/%d gonderildi, atlanan %d, 429=%d, sirada %d",g_dayCount,get_pcvar_num(g_pDay),g_rDropped,g_r429,g_qN);
+console_print(id,"[TAB06] relay=%s:%d topic=%s dinleniyor=%d (1 olmali) gelen komut=%d reddedilen(imzasiz/sahte)=%d hata=%d",host,Port(),g_szTopic,g_lReady,g_lRx,g_lBad,g_lFails);
+console_print(id,"[TAB06] cevap: bugun %d/%d gonderildi, atlanan %d, 429=%d, sirada %d",g_dayCount,get_pcvar_num(g_pDay),g_rDropped,g_r429,g_qN);
 new nr=0;for(new p=1;p<=32;p++)if(g_bRelayPl[p])nr++;
-console_print(id,"[TAB02] relay dolu/gecikince yeni veriyle acilan tablet: %d | veri dosyasi: %s (yazilan %d, hata %d) | ntfy cevabi: %s, %d",g_iReopen,get_pcvar_num(g_pFiles)?"acik":"kapali",g_dWrites,g_dFail,get_pcvar_num(g_pNtfy)?"acik":"kapali",nr);
+new nm=0;for(new p=1;p<=32;p++)if(g_bMqPl[p])nm++;
+console_print(id,"[TAB06] MQTT %s:%d durum=%d (4=bagli) komut alma=%s | gonderilen %d, gelen komut %d, atlanan %d | MQTT tableti: %d",MqHostS(),get_pcvar_num(g_pMqPort),g_mState,g_mRxOk?"evet":"hayir",g_mPub,g_mRx,g_mDrop,nm);
+console_print(id,"[TAB06] relay dolu/gecikince yeni veriyle acilan tablet: %d | veri dosyasi: %s (yazilan %d, hata %d) | ntfy cevabi: %s, %d",g_iReopen,get_pcvar_num(g_pFiles)?"acik":"kapali",g_dWrites,g_dFail,get_pcvar_num(g_pNtfy)?"acik":"kapali",nr);
 return PLUGIN_HANDLED;
 }
 
 // ---------------------------------------------------------------- v10.3 data files (server -> tablet)
 DataDirInit()
 {
-if(!dir_exists("vex_tab02"))mkdir("vex_tab02");
-if(!dir_exists("vex_tab02/d"))mkdir("vex_tab02/d");
+if(!dir_exists("vex_tab06"))mkdir("vex_tab06");
+if(!dir_exists("vex_tab06/d"))mkdir("vex_tab06/d");
 // no directory listing on the web server (index file + apache rule); file names are secret anyway
-if(!file_exists("vex_tab02/d/index.html")){new f1=fopen("vex_tab02/d/index.html","wt");if(f1){fputs(f1,"<!doctype html><title>403</title>");fclose(f1);}}
-if(!file_exists("vex_tab02/d/.htaccess")){new f2=fopen("vex_tab02/d/.htaccess","wt");if(f2){fputs(f2,"Options -Indexes^n");fclose(f2);}}
+if(!file_exists("vex_tab06/d/index.html")){new f1=fopen("vex_tab06/d/index.html","wt");if(f1){fputs(f1,"<!doctype html><title>403</title>");fclose(f1);}}
+if(!file_exists("vex_tab06/d/.htaccess")){new f2=fopen("vex_tab06/d/.htaccess","wt");if(f2){fputs(f2,"Options -Indexes^n");fclose(f2);}}
 // old files from the last map: nobody reads them any more
-new fn[64],path[96],len=0,h=open_dir("vex_tab02/d",fn,charsmax(fn));
+new fn[64],path[96],len=0,h=open_dir("vex_tab06/d",fn,charsmax(fn));
 if(!h)return;
-do{len=strlen(fn);if((len>3&&equal(fn[len-3],".js"))||(len>4&&equal(fn[len-4],".tmp"))){formatex(path,charsmax(path),"vex_tab02/d/%s",fn);delete_file(path);}}while(next_file(h,fn,charsmax(fn)));
+do{len=strlen(fn);if((len>3&&equal(fn[len-3],".js"))||(len>4&&equal(fn[len-4],".tmp"))){formatex(path,charsmax(path),"vex_tab06/d/%s",fn);delete_file(path);}}while(next_file(h,fn,charsmax(fn)));
 close_dir(h);
 }
 // name = first 16 hex of sha256(<secret key>|d02): only that tablet knows it, the key itself is not in the name
@@ -393,8 +414,8 @@ DataWrite(id,const body[])
 if(!is_user_connected(id)||is_user_bot(id)||!DataName(id))return;
 new tk[16];if(!vxc_tab_tok(id,tk,charsmax(tk))||!tk[0])return;
 static path[64],tmp[64],plain[1500],hexo[3004],src[64],kh[72];
-formatex(path,charsmax(path),"vex_tab02/d/%s.js",g_szDName[id]);
-formatex(tmp,charsmax(tmp),"vex_tab02/d/%s.tmp",g_szDName[id]);
+formatex(path,charsmax(path),"vex_tab06/d/%s.js",g_szDName[id]);
+formatex(tmp,charsmax(tmp),"vex_tab06/d/%s.tmp",g_szDName[id]);
 // copy without the tk=... field
 new o=0,i=0;
 while(body[i]&&o<charsmax(plain))
@@ -419,7 +440,7 @@ hexo[h++]=HX[c>>4];hexo[h++]=HX[c&15];
 }
 hexo[h]=0;
 new fp=fopen(tmp,"wt");
-if(!fp){g_dFail++;if(g_dFail<=3)log_amx("[TAB02] veri dosyasi yazilamadi: %s",tmp);return;}
+if(!fp){g_dFail++;if(g_dFail<=3)log_amx("[TAB06] veri dosyasi yazilamadi: %s",tmp);return;}
 fprintf(fp,"vxD(%d,^"%s^");",seq,hexo);
 fclose(fp);
 // replace in one step: the web server never hands out a half written file
@@ -432,7 +453,164 @@ HexN(c){if('0'<=c<='9')return c-'0';if('a'<=c<='f')return c-'a'+10;if('A'<=c<='F
 DataDrop(id)
 {
 if(!g_szDName[id][0])return;
-new path[64];formatex(path,charsmax(path),"vex_tab02/d/%s.js",g_szDName[id]);
+new path[64];formatex(path,charsmax(path),"vex_tab06/d/%s.js",g_szDName[id]);
 if(file_exists(path))delete_file(path);
 g_szDName[id][0]=0;g_iDSeq[id]=0;g_bRelayPl[id]=false;
+}
+
+// ================================================================ v10.5 MQTT
+MqHostS(){static h[64];get_pcvar_string(g_pMqHost,h,63);return h;}
+MqDrop(const why[])
+{
+if(g_mSock>0)socket_close(g_mSock);
+if(g_mState==4||g_mFails<3)log_amx("[TAB06] MQTT baglantisi kapandi (%s), tekrar denenecek - bu arada ntfy kullaniliyor",why);
+new bool:was=g_mState==4;
+g_mSock=0;g_mState=0;g_mOutH=0;g_mOutN=0;g_mInN=0;g_mSkip=0;g_mRxOk=false;g_mFails++;
+g_mNext=get_gametime()+floatmin(60.0,3.0*float(g_mFails));
+if(was){vxc_tab_mq(0,0);for(new p=1;p<=32;p++){g_bMqPl[p]=false;g_fMqDue[p]=0.0;}}
+}
+MqB(b){if(g_mOutH+g_mOutN>=MQ_OUT)return 0;g_mOut[g_mOutH+g_mOutN]=b&0xFF;g_mOutN++;return 1;}
+MqLen(n){do{new d=n%128;n/=128;if(n>0)d|=128;MqB(d);}while(n>0);}
+MqStr(const t[]){new l=strlen(t);MqB(l>>8);MqB(l);for(new i=0;i<l;i++)MqB(t[i]);}
+bool:MqRoom(need){if(g_mOutH>0&&g_mOutH+g_mOutN+need>=MQ_OUT){for(new i=0;i<g_mOutN;i++)g_mOut[i]=g_mOut[g_mOutH+i];g_mOutH=0;}return g_mOutH+g_mOutN+need<MQ_OUT;}
+bool:MqPublish(const topic[],const pay[])
+{
+new tl=strlen(topic),pl=strlen(pay),rem=2+tl+pl;
+if(!MqRoom(rem+6)){g_mDrop++;return false;}
+MqB(0x30);MqLen(rem);MqStr(topic);for(new i=0;i<pl;i++)MqB(pay[i]);
+g_mPub++;return true;
+}
+MqFlush()
+{
+if(g_mOutN<=0||!socket_is_writable(g_mSock,0))return;
+new sent=socket_send2(g_mSock,g_mOut[g_mOutH],g_mOutN);
+if(sent>0){g_mOutH+=sent;g_mOutN-=sent;if(g_mOutN<=0){g_mOutH=0;g_mOutN=0;}}
+}
+MqTick()
+{
+new Float:now=get_gametime();
+if(!get_pcvar_num(g_pMq)||!g_szTopic[0]){if(g_mSock>0)MqDrop("kapatildi");return;}
+switch(g_mState)
+{
+case 0:
+{
+if(now<g_mNext)return;
+g_mSock=socket_open(MqHostS(),get_pcvar_num(g_pMqPort),SOCKET_TCP,g_mErr,SOCK_NON_BLOCKING);
+if(g_mSock<=0){g_mSock=0;g_mState=0;g_mFails++;g_mNext=now+floatmin(60.0,3.0*float(g_mFails));if(g_mFails<=3)log_amx("[TAB06] MQTT baglanamadi (%s hata %d)",MqHostS(),g_mErr);return;}
+g_mState=1;g_mT0=now;
+}
+case 1:
+{
+if(socket_is_writable(g_mSock,0))
+{
+new cid[32];formatex(cid,31,"vxs%d%d",get_systime()%100000,random_num(1000,9999));
+MqB(0x10);MqLen(10+2+strlen(cid));MqB(0);MqB(4);MqB('M');MqB('Q');MqB('T');MqB('T');MqB(4);MqB(2);MqB(0);MqB(60);MqStr(cid);
+g_mState=2;g_mT0=now;g_mLast=now;
+}
+else if(now-g_mT0>10.0)MqDrop("zaman asimi");
+}
+default:
+{
+MqRead(now);
+if(!g_mSock)return;
+if(g_mState<4&&now-g_mT0>12.0){MqDrop("cevap yok");return;}
+if(g_mState==4)
+{
+if(now-g_mPing>30.0){g_mPing=now;if(MqRoom(4)){MqB(0xC0);MqB(0);}}
+if(now-g_mLast>80.0){MqDrop("sessiz");return;}
+MqPlayers(now);
+}
+MqFlush();
+}
+}
+}
+MqRead(Float:now)
+{
+new loops;
+while(loops++<8&&socket_is_readable(g_mSock,0))
+{
+new room=charsmax(g_mIn)-g_mInN;if(room<64){MqDrop("buyuk paket");return;}
+new got=socket_recv(g_mSock,g_mIn[g_mInN],room);
+if(got<=0){MqDrop("sunucu kapatti");return;}
+for(new i=0;i<got;i++)g_mIn[g_mInN+i]&=0xFF;
+g_mInN+=got;g_mLast=now;
+MqParse();
+if(!g_mSock)return;
+}
+}
+MqCut(k){for(new i=k;i<g_mInN;i++)g_mIn[i-k]=g_mIn[i];g_mInN-=k;}
+MqParse()
+{
+for(;;)
+{
+if(g_mSkip>0){new k=min(g_mSkip,g_mInN);MqCut(k);g_mSkip-=k;if(g_mSkip>0)return;}
+if(g_mInN<2)return;
+new m=1,rem=0,i=1,c;
+do{if(i>=g_mInN||i>4)return;c=g_mIn[i++];rem+=(c&127)*m;m*=128;}while(c&128);
+new total=i+rem,type=g_mIn[0];
+if(total>charsmax(g_mIn)-8){g_mSkip=total;continue;} // too big for a command: skipped
+if(g_mInN<total)return;
+switch(type&0xF0)
+{
+case 0x20:
+{
+if(g_mIn[i+1]!=0){log_amx("[TAB06] MQTT broker reddetti (kod %d)",g_mIn[i+1]);MqCut(total);MqDrop("red");return;}
+new t[80];formatex(t,79,"vx5/%s/c",g_szTopic);
+MqB(0x82);MqLen(2+2+strlen(t)+1);MqB(0);MqB(1);MqStr(t);MqB(0);
+g_mState=3;
+}
+case 0x90:
+{
+g_mState=4;g_mFails=0;g_mPing=get_gametime();vxc_tab_mq(0,1);
+log_amx("[TAB06] MQTT bagli (%s) - cevaplar sinirsiz",MqHostS());
+new t[80];formatex(t,79,"vx5/%s/c",g_szTopic);formatex(g_mTest,15,"vxt~%d",random_num(100000,999999));MqPublish(t,g_mTest);
+}
+case 0x30:
+{
+new tl=(g_mIn[i]<<8)|g_mIn[i+1],p=i+2+tl;if(type&6)p+=2;
+static msg[512];new o=0;for(new k=p;k<total&&o<charsmax(msg);k++)msg[o++]=g_mIn[k];msg[o]=0;
+if(equal(msg,g_mTest)){if(!g_mRxOk){g_mRxOk=true;vxc_tab_mq(0,2);}}
+else if(equal(msg,"vx2~",4))
+{
+new Float:now=get_gametime();if(now-g_mRxT>1.0){g_mRxT=now;g_mRxSec=0;}
+if(++g_mRxSec<=60){g_mRx++;Verified(msg);}
+}
+}
+}
+MqCut(total);
+if(!g_mSock)return;
+}
+}
+// newest full data for tablets that asked (max 4 per tick: 32 tablets in 0.4 s, no lag spike)
+MqPlayers(Float:now)
+{
+new done;
+for(new k=0;k<32&&done<4;k++)
+{
+g_mRR=g_mRR%32+1;new id=g_mRR;
+if(g_fMqDue[id]<=0.0||now<g_fMqDue[id])continue;
+g_fMqDue[id]=0.0;done++;
+if(!g_bMqPl[id]||!is_user_connected(id))continue;
+MqSendSnap(id);
+}
+}
+// payload "<seq>.<text>": every printable char is shifted by a key stream sha256(<key>|k05|<seq>|<block>),
+// a new stream per message; the key itself (tk) is never sent. Only this tablet can read it.
+MqSendSnap(id)
+{
+new tk[16];if(!vxc_tab_tok(id,tk,charsmax(tk))||!tk[0])return;
+static plain[6100],pay[6200],src[64],kh[72],topic[96];
+if(vxc_tab_snap(id,plain,charsmax(plain))<=0)return;
+static name[72];formatex(src,charsmax(src),"%s|r05",tk);hash_string(src,Hash_Sha256,name,charsmax(name));name[16]=0;
+formatex(topic,charsmax(topic),"vx5/%s/r/%s",g_szTopic,name);
+new seq=++g_mSeq[id],o=formatex(pay,charsmax(pay),"%d.",seq),blk=-1,j=0;
+for(new i=0;plain[i]&&o<charsmax(pay);i++)
+{
+if((i==0||plain[i-1]=='&')&&plain[i]=='t'&&plain[i+1]=='k'&&plain[i+2]=='='){while(plain[i+1]&&plain[i+1]!='&')i++;if(plain[i+1]=='&')i++;continue;}
+if(j/32!=blk){blk=j/32;formatex(src,charsmax(src),"%s|k05|%d|%d",tk,seq,blk);hash_string(src,Hash_Sha256,kh,charsmax(kh));}
+new c=plain[i]&0xFF,k=HexByte(kh[(j%32)*2],kh[(j%32)*2+1])%95;j++;
+pay[o++]=(c>=32&&c<=126)?32+((c-32+k)%95):'?';
+}
+pay[o]=0;
+MqPublish(topic,pay);
 }

@@ -2,7 +2,7 @@
    Tablet & mod: smurfsexy
 
    Everything is decided here on the server; the tablet only shows the data and sends signed requests
-   (vx2, checked by vex_tab02). Money moves only through the core native vxc_wal9, which changes a wallet
+   (vx2, checked by vex_tab06). Money moves only through the core native vxc_wal9, which changes a wallet
    all-or-nothing (never below 0, never overflows) and saves the player at once.
 
    BANK
@@ -21,7 +21,7 @@
      formula on the tablet, so the tablet always shows the right numbers.
 
    Needs: vxcore_v4 (natives vxc_wal9, vxc_note9, vxc_res9, vxc_push9, vxc_stat9, vxc_case9, vxc_tab_value,
-   vxc_tab_key, forwards vxc_bank9 / vxc_snap9), vex_tab02, nvault.
+   vxc_tab_key, forwards vxc_bank9 / vxc_snap9), vex_tab06, nvault.
    Commands (rcon): vex_bank <name> (info), vex_bank_clear <name> (clear debt and block),
    vex_bank_due <name> <seconds> (move the due time), vex_bp_xp <name> <xp> (season pass XP). */
 #pragma dynamic 32768

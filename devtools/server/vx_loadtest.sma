@@ -3,7 +3,7 @@
    vxlt_wave <act> [a] [b]  : runs the tablet action for EVERY connected player (bots too) in one server
                               frame through the core's own action path (vex_tablet_selftest), and logs how
                               many milliseconds the whole wave took.
-   vxlt_replies <n>         : queues n tablet replies at once in vex_tab02 (same as n players asking for
+   vxlt_replies <n>         : queues n tablet replies at once in vex_tab06 (same as n players asking for
                               market / trade data in the same second) and logs when the queue is empty.
    Every second it logs the worst server frame gap seen (ms) so lag spikes show up. */
 #include <amxmodx>
@@ -64,12 +64,12 @@ public cmd_Replies()
 	for (new k = 1; k <= n; k++)
 	{
 		new topic[48]; formatex(topic, charsmax(topic), "vxloadtest_%d", k);
-		if (callfunc_begin("vxc_reply", "vex_tab02.amxx") != 1) { log_amx("[vxlt] vex_tab02 not found"); return PLUGIN_HANDLED; }
+		if (callfunc_begin("vxc_reply", "vex_tab06.amxx") != 1) { log_amx("[vxlt] vex_tab06 not found"); return PLUGIN_HANDLED; }
 		callfunc_push_int(k);
 		callfunc_push_str(topic, false);
 		callfunc_push_str(body, false);
 		callfunc_end();
 	}
-	log_amx("[vxlt] queued %d replies in %d ms (send progress: vex_tab02)", n, tickcount() - t0);
+	log_amx("[vxlt] queued %d replies in %d ms (send progress: vex_tab06)", n, tickcount() - t0);
 	return PLUGIN_HANDLED;
 }

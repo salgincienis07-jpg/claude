@@ -4656,7 +4656,7 @@ return 1;
 }
 return 0;}
 // market rows for the tablet address: id~uid~name~code~price;...  (uid 0 = seller is away)
-public N_MarketStr64(plugin,params){new len=get_param(3);static out[700];new n,enc[100],row[160];out[0]=0;for(new k=0;k<MARKET622_MAX;k++){if(!g_mId622[k])continue;new sp=MarketSeller6(k);new o;for(new i=0;g_mName6[k][i]&&o<96;i++){new c=g_mName6[k][i]&0xFF;if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9'))enc[o++]=c;else o+=formatex(enc[o],99-o,"%%%02X",c);}enc[o]=0;formatex(row,159,"%s%d~%d~%s~%c%d~%d",n?";":"",g_mId622[k],sp?get_user_userid(sp):0,enc,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);if(n+strlen(row)>=min(len,charsmax(out)))break;n+=copy(out[n],charsmax(out)-n,row);}
+public N_MarketStr64(plugin,params){new len=get_param(3);static out[3000];new n,enc[100],row[160];out[0]=0;for(new k=0;k<MARKET622_MAX;k++){if(!g_mId622[k])continue;new sp=MarketSeller6(k);new o;for(new i=0;g_mName6[k][i]&&o<96;i++){new c=g_mName6[k][i]&0xFF;if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9'))enc[o++]=c;else o+=formatex(enc[o],99-o,"%%%02X",c);}enc[o]=0;formatex(row,159,"%s%d~%d~%s~%c%d~%d",n?";":"",g_mId622[k],sp?get_user_userid(sp):0,enc,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);if(n+strlen(row)>=min(len,charsmax(out)))break;n+=copy(out[n],charsmax(out)-n,row);}
 set_string(2,out,len);return n;}
 public N_MarketWrite622(plugin,params){new fp=get_param(1);fputs(fp,"market:[");new first=1,safe[96];for(new k=0;k<MARKET622_MAX;k++){if(!g_mId622[k])continue;new sp=MarketSeller6(k),n;for(new i=0;g_mName6[k][i]&&n<93;i++){if(g_mName6[k][i]=='"'||g_mName6[k][i]=='\')safe[n++]='\';if(g_mName6[k][i]>=32)safe[n++]=g_mName6[k][i];}safe[n]=0;fprintf(fp,"%s[%d,%d,^"%s^",^"%c%d^",%d]",first?"":",",g_mId622[k],sp?get_user_userid(sp):0,safe,g_mCat622[k],g_mItem622[k]+1,g_mPrice622[k]);first=0;}fputs(fp,"],");return 1;}
 
@@ -4672,7 +4672,7 @@ public N_MarketFinish622(plugin,params){new buyer=get_param(1),seller=get_param(
 // The open MOTD ignores a new address until it is closed, so the core hands every tablet reply here
 // (vxc_reply forward) and it is published to the tablet's own relay channel (same relay the tablet
 // already uses for its commands). One short HTTP request at a time, never blocks the game loop.
-// PAD5: replies are sent by vex_tab02 (daily limit aware); this old sender is kept unused
+// PAD5: replies are sent by vex_tab06 (daily limit aware); this old sender is kept unused
 stock vxc_reply_old64(id,const topic[],const body[])
 {
 if(!topic[0]||!body[0])return;

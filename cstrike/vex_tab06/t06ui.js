@@ -1657,9 +1657,9 @@ var h61=hashU;hashU=function(o){var u=h61(o);
 // leaderboards: a short list never replaces the full one (full lists come when that board is opened)
 // and the full boards are remembered for 30 min, so the next opening shows everyone at once
 var BOARD6={top:'top',tt:'time',at:'achtop'},BF6={};
-(function(){try{var c=JSON.parse(localStorage.getItem('vx6_boards')||'null');if(c&&Date.now()-c.t<1800000){for(var k in BOARD6)if(c[k]&&(!D[k]||c[k].length>D[k].length))D[k]=c[k];BF6=c.f||{};}}catch(e){}})();
+(function(){try{var c=JSON.parse(localStorage.getItem('vx6_boards')||'null');if(c&&Date.now()-c.t<1800000){for(var k in BOARD6)if(c[k]&&!D[k])D[k]=c[k];BF6=c.f||{};}}catch(e){}})();
 var a61=applyU;applyU=function(u){
-  for(var k in BOARD6){if(!u[k])continue;if(u.pg===BOARD6[k]){BF6[k]=Date.now();continue;}if(D[k]&&u[k].length<D[k].length&&!u.reset6)delete u[k];}
+  for(var k in BOARD6){if(!u[k])continue;if(u.fb||u.pg===BOARD6[k]){BF6[k]=Date.now();continue;}if(D[k]&&u[k].length<D[k].length&&!u.reset6)delete u[k];}
   if(u.pl)u.pl.forEach(function(p){if(p[4]&32&&p[1].indexOf(' (')<0)p[1]+=D.lang==='tr'?' (Sen)':' (You)';});
   a61(u);
   try{localStorage.setItem('vx6_boards',JSON.stringify({t:Date.now(),top:D.top,tt:D.tt,at:D.at,f:BF6}));}catch(e){}
@@ -2183,6 +2183,42 @@ function dfPoll(){
   sc.src='d/'+DF.name+'.js?t='+Date.now();document.getElementsByTagName('head')[0].appendChild(sc);
 }
 setTimeout(dfPoll,400);
+
+// ---- v10.5 MQTT link: answers from the server without a daily limit and with the full data (all players,
+// listings, boards). Encrypted for this tablet only; commands go the same way. ntfy stays as the backup.
+var MQ={ws:null,ok:false,cmd:num(RAW.mq)>=2,seq:0,fails:0,ui:0,last:0,rec:[],urls:String(dec(RAW.mw||'')||'').split(' ').filter(function(x){return /^wss?:\/\//.test(x);})};
+(function(){var hu=hashU;hashU=function(o){var u=hu(o);if(o.fb)u.fb=1;if(o.mq!==undefined){MQ.cmd=num(o.mq)>=2;if(!num(o.mq)&&MQ.ok){MQ.ok=false;}}return u;};})();
+function mqU(s){return unescape(encodeURIComponent(s));}
+function mqLen(n){var o='';do{var d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o+=String.fromCharCode(d);}while(n>0);return o;}
+function mqStr(s){var b=mqU(s);return String.fromCharCode(b.length>>8,b.length&255)+b;}
+function mqPkt(t,b){return String.fromCharCode(t)+mqLen(b.length)+b;}
+function mqSend(b){if(!MQ.ws||MQ.ws.readyState!==1)return false;try{var u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i)&255;MQ.ws.send(u.buffer);return true;}catch(e){return false;}}
+function mqTC(){return 'vx5/'+LIVE.rt+'/c';}
+function mqTR(){return 'vx5/'+LIVE.rt+'/r/'+sha256(LIVE.tk+'|r05').slice(0,16);}
+function mqTake(s){var d=s.indexOf('.');if(d<1)return;var seq=num(s.slice(0,d));if(seq<=MQ.seq)return;var c=s.slice(d+1),out='',b=-1,kh='';
+  for(var i=0;i<c.length;i++){if((i>>5)!==b){b=i>>5;kh=sha256(LIVE.tk+'|k05|'+seq+'|'+b);}var k=parseInt(kh.substr((i&31)*2,2),16)%95,x=c.charCodeAt(i);out+=(x>=32&&x<=126)?String.fromCharCode(32+((x-32-k+95)%95)):'?';}
+  if(out.slice(0,2)!=='n=')return;MQ.seq=seq;MQ.rx=(MQ.rx||0)+1;takeReply(out+'&tk='+encodeURIComponent(LIVE.tk));}
+function mqPacket(t,b){var ty=t&0xF0;
+  if(ty===0x20){if(b.charCodeAt(1)!==0){try{MQ.ws.close();}catch(e){}return;}mqSend(mqPkt(0x82,'\x00\x01'+mqStr(mqTR())+'\x00'));}
+  else if(ty===0x90){MQ.ok=true;MQ.fails=0;try{linkDot();}catch(e){}sendRaw('mq','1');}
+  else if(ty===0x30){if(t&1)return;var tl=(b.charCodeAt(0)<<8)|b.charCodeAt(1),p=2+tl;if(t&6)p+=2;mqTake(b.slice(p));}}
+function mqLater(){if(MQ.fails>14)return;setTimeout(mqOpen,Math.min(30000,1500*MQ.fails));}
+function mqOpen(){
+  if(DEMO||!LIVE.on||!LIVE.tk||!LIVE.rt||!window.WebSocket||!window.Uint8Array||!MQ.urls.length||MQ.ws)return;
+  var ws,inb='';try{ws=new WebSocket(MQ.urls[MQ.ui%MQ.urls.length],'mqtt');}catch(e){MQ.fails++;MQ.ui++;return mqLater();}
+  MQ.ws=ws;try{ws.binaryType='arraybuffer';}catch(e){}
+  ws.onopen=function(){mqSend(mqPkt(0x10,'\x00\x04MQTT\x04\x02\x00\x3c'+mqStr('vxp'+LIVE.uid+'_'+Math.floor(Math.random()*1e9).toString(36))));};
+  ws.onmessage=function(ev){var d=ev.data;if(typeof d==='string')inb+=d;else{var u=new Uint8Array(d),parts=[];for(var i=0;i<u.length;i+=4096)parts.push(String.fromCharCode.apply(null,Array.prototype.slice.call(u,i,Math.min(u.length,i+4096))));inb+=parts.join('');}
+    MQ.last=Date.now();
+    for(;;){if(inb.length<2)return;var m=1,len=0,i=1,c;do{if(i>=inb.length||i>4)return;c=inb.charCodeAt(i++);len+=(c&127)*m;m*=128;}while(c&128);if(inb.length<i+len)return;var t=inb.charCodeAt(0),body=inb.substr(i,len);inb=inb.substr(i+len);mqPacket(t,body);}};
+  function down(){if(MQ.ws!==ws)return;MQ.ws=null;var was=MQ.ok;MQ.ok=false;if(!was)MQ.ui++;MQ.fails++;try{linkDot();}catch(e){}
+    if(was){sendRaw('mq','0');var now=Date.now();MQ.rec.forEach(function(r){if(now-r.t<5000)beacon0(r.m);});}MQ.rec=[];mqLater();}
+  ws.onclose=down;ws.onerror=down;
+}
+setInterval(function(){if(!MQ.ok)return;if(Date.now()-MQ.last>80000){try{MQ.ws.close();}catch(e){}return;}mqSend('\xC0\x00');},30000);
+var beacon0=beacon;
+beacon=function(msg){if(MQ.ok&&MQ.cmd&&mqSend(mqPkt(0x30,mqStr(mqTC())+mqU(msg)))){LIVE.sent++;var now=Date.now();MQ.rec=MQ.rec.filter(function(r){return now-r.t<5000;});MQ.rec.push({t:now,m:msg});return;}beacon0(msg);};
+setTimeout(mqOpen,300);
 // ------------------------------------------------------------------ boot
 applyTheme(); applyAccent(); applyBright(); setWall(); $('screen').className = 'screen locked'; $('lockLogo').innerHTML = LOGO(); $('lockHint').textContent = L('unlock');
 $('lockNote').textContent = D.claimed ? '' : L('dailyReady');
