@@ -351,6 +351,7 @@ public task_Slow()
 
 public fw_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 {
+	return; // v10.6: the core shows remaining HP + damage numbers itself (works without this plugin)
 	if (!g_bCore || !get_pcvar_num(g_pOn) || !get_pcvar_num(g_pDmg) || damage <= 0.0) return;
 	if (!(1 <= attacker <= g_iMax) || attacker == victim || !(1 <= victim <= g_iMax) || is_user_bot(attacker) || !is_user_connected(attacker)) return;
 	if (vxc_hud(attacker, F_ZOMBIE) == vxc_hud(victim, F_ZOMBIE)) return;
@@ -367,6 +368,7 @@ public fw_TakeDamagePost(victim, inflictor, attacker, Float:damage, bits)
 
 public fw_KilledPost(victim, killer)
 {
+	return; // v10.6: in the core
 	if (!(1 <= killer <= g_iMax) || killer == victim || is_user_bot(killer) || !is_user_connected(killer) || g_iComboVictim[killer] != victim) return;
 	if (g_iNumPend[killer]) NumFlush(killer, get_gametime());
 	new name[32]; get_user_name(victim, name, charsmax(name));

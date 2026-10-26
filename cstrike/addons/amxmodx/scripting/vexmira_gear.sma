@@ -9443,13 +9443,19 @@ new jet_iMsgStatusIcon
 const jet_PDATA_SAFE = 2
 const jet_OFFSET_WEAPONOWNER = 41
 const jet_OFFSET_LINUX_WEAPONS = 4
+stock JetSpr106(const path[], const fallback[])
+{
+	if (file_exists(path, true)) { new r = ZcPcModel(path); if (r) return r; g_zcGuardFail = false; }
+	return precache_model(fallback);
+}
 public jet_plugin_precache()
 {
 if (!VexAssetGuard("vx42_jetpack")) return;
-jet_SprTrail = ZcPcModel("sprites/vexmira/epic/jet_smoke.spr")
-jet_SprExplode = ZcPcModel("sprites/vexmira/epic/jet_blast47.spr")
-jet_SprRing = ZcPcModel("sprites/vexmira/epic/jet_ring.spr")
-jet_SprFlame = ZcPcModel("sprites/vexmira/epic/jet_flame.spr")
+// v10.6: effect sprites are optional - a missing one uses the game's own sprite instead of switching the jetpack off
+jet_SprTrail = JetSpr106("sprites/vexmira/epic/jet_smoke.spr", "sprites/smoke.spr")
+jet_SprExplode = JetSpr106("sprites/vexmira/epic/jet_blast47.spr", "sprites/zerogxplode.spr")
+jet_SprRing = JetSpr106("sprites/vexmira/epic/jet_ring.spr", "sprites/shockwave.spr")
+jet_SprFlame = JetSpr106("sprites/vexmira/epic/jet_flame.spr", "sprites/xfireball3.spr")
 ZcPcModel(jet_ModelRocket)
 ZcPcModel(jet_ModelJetpack_P)
 ZcPcModel(jet_ModelJetpack_W)

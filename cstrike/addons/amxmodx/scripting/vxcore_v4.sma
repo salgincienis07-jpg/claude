@@ -23260,6 +23260,42 @@ if(dmg!=damage)
 SetHookChainArg(4,ATYPE_FLOAT,dmg);
 return HC_CONTINUE;
 }
+// v10.6: remaining HP (original CS 1.6 yellow centre text) + coloured damage numbers around the crosshair.
+// In the core so it always works (no separate HUD plugin needed).
+new g_iDmgPend10[33],Float:g_fDmgAt10[33],g_iDmgVic10[33],bool:g_bDmgHs10[33],g_iDmgCol10[33],g_iDmgSec10[33],Float:g_fHpAt10[33];
+new const DMG_PAL10[][3]={{255,222,70},{255,150,40},{90,210,255},{255,110,190},{150,255,90},{245,245,245},{190,140,255}};
+Dmg10(id,victim,Float:damage,bool:hs)
+{
+new Float:now=get_gametime();
+if(g_iDmgVic10[id]!=victim){g_iDmgPend10[id]=0;g_bDmgHs10[id]=false;}
+g_iDmgVic10[id]=victim;g_iDmgPend10[id]+=max(1,floatround(damage));if(hs)g_bDmgHs10[id]=true;
+if(now-g_fDmgAt10[id]>=0.06)DmgFlush10(id);else if(!task_exists(id+610600))set_task(0.07,"DmgFlushT10",id+610600);
+if(now>=g_fHpAt10[id]&&is_user_alive(victim)){g_fHpAt10[id]=now+0.1;new nm[32];get_user_name(victim,nm,31);client_print(id,print_center,"%s  :  %d HP",nm,get_user_health(victim));}
+}
+public DmgFlushT10(t){new id=t-610600;if(1<=id<=g_iMax&&is_user_connected(id))DmgFlush10(id);}
+DmgFlush10(id)
+{
+new d=g_iDmgPend10[id];if(d<=0)return;
+g_iDmgPend10[id]=0;g_fDmgAt10[id]=get_gametime();
+new r,g,b,v=g_iDmgVic10[id];
+if(g_bDmgHs10[id]){r=255;g=52;b=52;}
+else if(1<=v<=g_iMax&&g_bBoss[v]){r=214;g=122;b=255;}
+else{new c=(g_iDmgCol10[id]+1+random(sizeof DMG_PAL10-1))%sizeof DMG_PAL10;g_iDmgCol10[id]=c;r=DMG_PAL10[c][0];g=DMG_PAL10[c][1];b=DMG_PAL10[c][2];}
+g_iDmgSec10[id]=(g_iDmgSec10[id]+2+random(4))%8; // each hit in another spot of a ring around the crosshair
+new Float:ang=(float(g_iDmgSec10[id])+random_float(0.15,0.85))*0.7854,Float:rad=random_float(0.75,1.0);
+new Float:x=floatclamp(0.5+floatcos(ang,radian)*0.11*rad-0.015,0.0,0.95),Float:y=floatclamp(0.5+floatsin(ang,radian)*0.13*rad-0.015,0.0,0.95);
+set_dhudmessage(r,g,b,x,y,0,0.0,0.45,0.0,0.25);
+if(g_bDmgHs10[id])show_dhudmessage(id,"%d!",d);else show_dhudmessage(id,"%d",d);
+g_bDmgHs10[id]=false;
+}
+DmgKill10(victim,killer)
+{
+if(!(1<=killer<=g_iMax)||killer==victim||is_user_bot(killer)||!is_user_connected(killer)||g_iDmgVic10[killer]!=victim)return;
+DmgFlush10(killer);remove_task(killer+610600);
+new nm[32];get_user_name(victim,nm,31);
+client_print(killer,print_center,g_iLang[killer]==1?"%s  -  KILLED":"%s  -  OLDURULDU",nm);
+g_iDmgVic10[killer]=0;g_fHpAt10[killer]=get_gametime()+0.6;
+}
 HitFeel60(victim,attacker,Float:damage)
 {
 if(!is_user_alive(victim))return;
@@ -23296,6 +23332,7 @@ if(hitNow565>=g_fHitFeel565[attacker]&& !is_user_bot(attacker)&&(g_bZombie[attac
 if(hitNow565>=g_fHurtFeel565[victim]&& !is_user_bot(victim)&& !(g_iSet[victim]&SET_NO_FX))
 {g_fHurtFeel565[victim]=hitNow565+0.28;FadeOne(victim,170,25,25,22,0.12);}
 HitFeel60(victim,attacker,damage);
+if(!is_user_bot(attacker)&&!(g_iSet[attacker]&SET_NO_DMGNUM))Dmg10(attacker,victim,damage,(bits&DMG_BULLET)&&get_member(victim,m_LastHitGroup)==HIT_HEAD);
 }
 if(damage>0.0&&1<=attacker<=g_iMax&&1<=victim<=g_iMax&&is_user_alive(attacker)&& is_user_alive(victim)&&
 g_bZombie[victim]&& !g_bZombie[attacker]&& GetActiveWeaponId(attacker)==WEAPON_KNIFE &&
@@ -23516,6 +23553,7 @@ return HC_CONTINUE;
 }
 public rg_PlayerKilled(victim,attacker,gib)
 {
+DmgKill10(victim,attacker);
 if(g_bHm538&&1<=attacker<=g_iMax&&attacker!=victim&&g_bZombie[victim]&& !g_bZombie[attacker])HitMark538(attacker,2);
 if(1<=attacker<=g_iMax&&attacker!=victim&&g_bZombie[attacker]&& !g_bZombie[victim]&& !g_bBoss[attacker]&& !g_bNemesis[attacker]&& !g_bAssassin[attacker])vxe_zup_add(attacker,2,g_iClass[attacker]);
 vxe_weapon_stop(victim);
