@@ -8,14 +8,16 @@ ayrı işaretlendi. Belirsiz bir şeyi varsayma: sunucu sahibine sor veya kodu h
 
 ## 1. Sunucu ortamı (bilinenler)
 
-- **Motor:** ReHLDS + ReGameDLL, **AMX Mod X 1.10** (1.9 ile de çalışacak şekilde yaz), **ReAPI** var.
-  Hook'lar için `RegisterHookChain` (ReAPI) ve `RegisterHam` (hamsandwich) kullanılabilir.
-- **Paneldeki modüller:** `sockets`, `geoip`, `mysql`, `sqlite` **AÇIK**. `regex`, `json`, `easy_http` **KAPALI**.
-  - Bu yüzden: `regex_*`, `json_*` ve `ezhttp_*` kullanma. Kullanırsan eklenti "module not found" ile yüklenmez.
-  - Dış dünyaya bağlantı **sadece `sockets`** ile yapılabilir: düz TCP/UDP. **TLS/HTTPS yok.** Yalnızca `http://`
-    (80 portu) ya da düz TCP protokolleri kullanılabilir. HTTPS isteyen API'ler (Firebase, Discord webhook vb.)
-    doğrudan kullanılamaz.
-  - 80 dışındaki çıkış portları (örneğin 1883/MQTT) **doğrulanmadı.** Mutlaka bir yedek yol yaz.
+- **Motor:** ReHLDS + ReGameDLL. **AMX Mod X 1.9.0.5302** (1.10 DEĞİL — 1.10'a özel native kullanma,
+  derleyicin 1.9 olsun). **ReAPI 5.29**. Metamod eklentileri: Reunion (Steam'siz oyuncular), ReAuthCheck,
+  Revoice, Accuracy Fix. Kontrol komutları: panel konsolunda `meta list`, `amxx list`, `amxx modules`.
+- **Yüklü AMXX modülleri (meta list):** geoip, mysql, sqlite, reapi, cstrike, fakemeta, hamsandwich, engine,
+  fun. **sockets listede görünmüyor**: kullanacaksan önce `amxx modules` ile yüklendiğini doğrula; yüklü
+  değilse sockets isteyen eklenti açılmaz. regex, json ve easy_http yok; bunları kullanma.
+  - Dış dünyaya bağlantı sadece `sockets` ile mümkün: düz TCP/UDP, **TLS/HTTPS yok** (yalnız `http://`).
+  - AMXX 1.9'da `socket_recv` gelen veriyi sıfır baytta kesebilir: ikili protokol (MQTT vb.) okurken tamponu
+    önce sıfırla ve bozuk okuma olursa yedek yola geç.
+  - 80 dışındaki çıkış portları (ör. 1883) doğrulanmadı.
 - **Kalıcı veri:** `nvault` (dosya tabanlı) güvenilir şekilde çalışır. `sqlite` modülü de açık.
   `mysql` modülü açık ama hostun veritabanı verip vermediği ve web tarafında PHP olup olmadığı **bilinmiyor**.
 - **Oyuncular:** Hem **Steam** hem **Steam'siz (non-steam / LAN)** oyuncular giriyor. Steam'siz oyuncuların
@@ -34,9 +36,20 @@ ayrı işaretlendi. Belirsiz bir şeyi varsayma: sunucu sahibine sor veya kodu h
   - `cstrike/models`, `sound`, `sprites`, `maps`, `gfx/env` (skybox) → oyun dosyaları
 - **Eklenti listesi:** AMXX, `configs/plugins-*.ini` dosyalarını kendiliğinden yükler. Kendi listeni ayrı bir
   `plugins-<modadi>.ini` dosyasına koy. Aynı eklentiyi iki ini dosyasına yazma.
-- **Panel eklentileri kendisi derliyor**, büyük ihtimalle hata ayıklama bilgisi olmadan. `plugins.ini` içinde
-  `debug` yazılıysa logda `Plugin not compiled with debug option` uyarısı çıkar; bu bir hata değildir.
-  Sen derlediğin `.amxx` dosyalarını `amxxpc -d2` ile derle ki hata olursa log dosya adı ve satır numarası versin.
+- **Panel `.sma` dosyalarını kendisi derleyip YÜKLÜYOR:** yüklenen her `.sma` için `plugins/` içine
+  `1792974144_<ad>.amxx` gibi numaralı bir dosya oluşturuyor ve bunu kendi listesinden çalıştırıyor.
+  Sen ayrıca kendi `.amxx` dosyanı ve `plugins-<mod>.ini` listeni koyarsan **AYNI EKLENTİ İKİ KEZ çalışır**
+  (çift hook, çift kayıt, çift ntfy/MQTT bağlantısı, veri karışması). `amxx list` ile kontrol et.
+  **Tek yol seç:** ya sadece panelin derlediği numaralı dosyalar (ini'de o eklentiler olmasın), ya da sadece
+  kendi `.amxx` + ini (panelde o `.sma` yüklü olmasın). Kodda başlığa göre çift-yükleme koruması yaz.
+- **Panel her eklentiyi `debug` modunda çalıştırıyor.** AMXX 1.9'da debug bilgisi OLMADAN derlenmiş bir `.amxx`
+  bu modda **HİÇ YÜKLENMEZ** (`bad load: Plugin not compiled with debug option`). Dışarıda derlediğin her
+  `.amxx` dosyasını `amxxpc -d2` ile derle.
+- **Panelin kendi eklentileri çok** (admin, ban, reklam, BunnyHop, MultiJump, Parachute, Respawn Controller,
+  Random Skies, Restrict Weapons, PrecacheX, Komut Blok, Safe Userinfo, No See Vars vb.). Modun bunlarla
+  çakışabilir: zıplama/uçma (MultiJump, Parachute, BunnyHop), yeniden doğma (Respawn Controller), gökyüzü
+  (Random Skies), silah kısıtlama, komut engelleme (Komut Blok bazı say/console komutlarını yutabilir),
+  precache sayısı. Modun ihtiyacına göre hangilerinin kapatılacağını OKU dosyasında yaz.
 - **Tek `.sma` dosyasının boyutu 1 MB'ın (1.000.000 bayt) altında kalmalı.** Panel ya da derleyici sınırı
   büyük dosyada sorun çıkardı; çok büyük modu birkaç eklentiye böl.
 - **Panel log adlarını farklı veriyor.** Logda farklı bir eklenti adı görmek, eklentinin iki kez yüklendiği

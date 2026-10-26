@@ -530,6 +530,7 @@ new loops;
 while(loops++<8&&socket_is_readable(g_mSock,0))
 {
 new room=charsmax(g_mIn)-g_mInN;if(room<64){MqDrop("buyuk paket");return;}
+for(new z=g_mInN;z<charsmax(g_mIn);z++)g_mIn[z]=0; // AMXX 1.9 may stop copying at a zero byte: the rest must read as 0, not old data
 new got=socket_recv(g_mSock,g_mIn[g_mInN],room);
 if(got<=0){MqDrop("sunucu kapatti");return;}
 for(new i=0;i<got;i++)g_mIn[g_mInN+i]&=0xFF;
